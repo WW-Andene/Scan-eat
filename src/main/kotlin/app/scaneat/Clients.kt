@@ -8,35 +8,40 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 class ExternalClients(private val http: HttpClient = defaultClient()) {
-    suspend fun productFromBarcode(barcode: String): ProductInput? {
-        val response: OffResponse = http.get("https://world.openfoodfacts.org/api/v2/product/$barcode.json") {
-            parameter("fields", "product_name,categories_tags,nova_group,nutriments,ingredients_text,ingredients")
-        }.body()
-        if (response.status != 1 || response.product == null) return null
-        val p = response.product
-        return ProductInput(
-            name = p.productName ?: "Produit $barcode",
-            category = inferCategory(p.categoriesTags),
-            nova_class = p.novaGroup ?: 4,
-            ingredients = p.ingredients?.map { Ingredient(it.text ?: it.id ?: "ingrédient", e_number = it.id?.takeIf { id -> id.startsWith("en:e") }?.removePrefix("en:")?.uppercase()) }
-                ?: parseIngredients(p.ingredientsText),
-            nutrition = NutritionPer100g(
-                energy_kcal = p.nutriments?.energyKcal100g,
-                fat_g = p.nutriments?.fat100g,
-                saturated_fat_g = p.nutriments?.saturatedFat100g,
-                carbs_g = p.nutriments?.carbohydrates100g,
-                sugars_g = p.nutriments?.sugars100g,
-                fiber_g = p.nutriments?.fiber100g,
-                protein_g = p.nutriments?.proteins100g,
-                salt_g = p.nutriments?.salt100g,
-            ),
-            barcode = barcode,
-        )
+    suspend fun productFromBarcode(barcode: String): ProductLookup {
+        val digits = barcode.filter(Char::isDigit)
+        if (digits.isBlank()) return ProductLookup(null, listOf("Code-barres vide"), "invalid_barcode")
+        return try {
+            retrying("Open Food Facts barcode lookup") {
+                val response = http.get("https://world.openfoodfacts.org/api/v2/product/$digits.json") {
+                    parameter("fields", "product_name,categories_tags,nova_group,nutriments,ingredients_text,ingredients")
+                }
+                if (!response.status.isSuccess()) {
+                    return@retrying ProductLookup(
+                        null,
+                        listOf("Open Food Facts a répondu HTTP ${response.status.value}"),
+                        "openfoodfacts_error",
+                    )
+                }
+                val off: OffResponse = response.body()
+                if (off.status != 1 || off.product == null) {
+                    return@retrying ProductLookup(
+                        null,
+                        listOf("Code-barres non trouvé dans Open Food Facts"),
+                        "openfoodfacts_not_found",
+                    )
+                }
+                ProductLookup(mapOFFProduct(off.product, digits), source = "openfoodfacts")
+            }
+        } catch (e: Throwable) {
+            ProductLookup(null, listOf("Recherche Open Food Facts indisponible: ${e.message ?: "erreur réseau"}"), "openfoodfacts_error")
+        }
     }
 
     suspend fun proxyOrUnavailable(route: String, rawJsonBody: String): Map<String, Any?> {
@@ -74,11 +79,40 @@ class ExternalClients(private val http: HttpClient = defaultClient()) {
     fun close() = http.close()
 
     companion object {
+        @OptIn(ExperimentalSerializationApi::class)
         fun defaultClient() = HttpClient(CIO) {
             install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true; explicitNulls = false }) }
         }
     }
 }
+
+private fun mapOFFProduct(p: OffProduct, barcode: String) = ProductInput(
+    name = p.productName?.takeIf { it.isNotBlank() } ?: "Produit $barcode",
+    category = inferCategory(p.categoriesTags),
+    nova_class = p.novaGroup?.coerceIn(1, 4) ?: 4,
+    ingredients = p.ingredients
+        ?.mapNotNull { offIngredient ->
+            val name = offIngredient.text ?: offIngredient.id ?: return@mapNotNull null
+            val eNumber = offIngredient.id
+                ?.takeIf { id -> Regex("^en:e[0-9]{3}[a-z]?$", RegexOption.IGNORE_CASE).matches(id) }
+                ?.removePrefix("en:")
+                ?.uppercase()
+            Ingredient(name, e_number = eNumber, category = if (eNumber != null) "additive" else null)
+        }
+        ?.takeIf { it.isNotEmpty() }
+        ?: parseIngredients(p.ingredientsText),
+    nutrition = NutritionPer100g(
+        energy_kcal = p.nutriments?.energyKcal100g,
+        fat_g = p.nutriments?.fat100g,
+        saturated_fat_g = p.nutriments?.saturatedFat100g,
+        carbs_g = p.nutriments?.carbohydrates100g,
+        sugars_g = p.nutriments?.sugars100g,
+        fiber_g = p.nutriments?.fiber100g,
+        protein_g = p.nutriments?.proteins100g,
+        salt_g = p.nutriments?.salt100g,
+    ),
+    barcode = barcode,
+)
 
 fun normalizeImages(req: ScoreRequest): List<ImagePayload> = when {
     req.images.isNotEmpty() -> req.images.filter { it.base64.isNotBlank() }

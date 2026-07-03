@@ -11,15 +11,15 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.http.content.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlin.math.roundToInt
-import java.io.File
 
 fun main() {
     embeddedServer(Netty, port = System.getenv("PORT")?.toIntOrNull() ?: 5173, host = "0.0.0.0") { scanEatModule() }.start(wait = true)
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 fun Application.scanEatModule(clients: ExternalClients = ExternalClients()) {
     val appLog = environment.log
     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true; explicitNulls = false; prettyPrint = false }) }
@@ -39,39 +39,79 @@ fun Application.scanEatModule(clients: ExternalClients = ExternalClients()) {
         get("/api/health") { call.respond(mapOf("ok" to true, "engineVersion" to ScoringEngine.ENGINE_VERSION)) }
         post("/api/score") {
             val body = call.receive<ScoreRequest>().validated()
-            val product = body.product
-                ?: body.barcode?.let { clients.productFromBarcode(it) }
-                ?: fallbackProduct(normalizeImages(body), body.barcode)
+            val images = normalizeImages(body)
+            val lookup = body.barcode?.let { clients.productFromBarcode(it) }
+            val product = body.product ?: lookup?.product ?: fallbackProduct(images, body.barcode)
             val source = when {
                 body.product != null -> "manual_or_client_product"
-                body.barcode != null && product.barcode == body.barcode -> "openfoodfacts_or_fallback"
-                else -> "kotlin_fallback"
+                lookup?.product != null -> lookup.source
+                images.isNotEmpty() -> "native_image_fallback"
+                body.barcode != null -> lookup?.source ?: "barcode_fallback"
+                else -> "native_fallback"
             }
-            call.respond(ScoreResponse(product, ScoringEngine.score(product, body.preferences), source = source, barcode = body.barcode ?: product.barcode))
+            val warnings = buildList {
+                addAll(lookup?.warnings.orEmpty())
+                addAll(fallbackWarnings(images, body.barcode, lookup))
+            }
+            call.respond(ScoreResponse(product, ScoringEngine.score(product, body.preferences), warnings = warnings, source = source, barcode = body.barcode ?: product.barcode))
         }
-        post("/api/identify") { call.respond(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true))) }
-        post("/api/identify-multi") { call.respond(mapOf("items" to listOf(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true))))) }
+        post("/api/identify") { call.respond(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true), clients)) }
+        post("/api/identify-multi") { call.respond(IdentifyMultiResponse(listOf(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true), clients)))) }
         post("/api/identify-menu") { call.respond(clients.proxyOrUnavailable("identify-menu", call.receiveText())) }
         post("/api/identify-recipe") { call.respond(clients.proxyOrUnavailable("identify-recipe", call.receiveText())) }
         post("/api/suggest-recipes") { call.respond(clients.proxyOrUnavailable("suggest-recipes", call.receiveText())) }
         post("/api/suggest-from-pantry") { call.respond(clients.proxyOrUnavailable("suggest-from-pantry", call.receiveText())) }
         post("/api/fetch-recipe") { call.respond(clients.proxyOrUnavailable("fetch-recipe", call.receiveText())) }
-
-        staticFiles("/", File("public")) { default("index.html") }
     }
 }
 
-private fun identifyFallback(req: ScoreRequest): Map<String, Any?> {
-    val product = req.product ?: fallbackProduct(normalizeImages(req), req.barcode)
-    return mapOf("product" to product, "warnings" to listOf("Kotlin fallback identification used; pass a product payload or barcode for best results"))
+private suspend fun identifyFallback(req: ScoreRequest, clients: ExternalClients): IdentifyResponse {
+    val images = normalizeImages(req)
+    val lookup = req.barcode?.let { clients.productFromBarcode(it) }
+    val product = req.product ?: lookup?.product ?: fallbackProduct(images, req.barcode)
+    val warnings = buildList {
+        addAll(lookup?.warnings.orEmpty())
+        addAll(fallbackWarnings(images, req.barcode, lookup))
+    }
+    return IdentifyResponse(
+        product = product,
+        warnings = warnings,
+        source = when {
+            req.product != null -> "manual_or_client_product"
+            lookup?.product != null -> lookup.source
+            images.isNotEmpty() -> "native_image_fallback"
+            else -> lookup?.source ?: "native_fallback"
+        },
+        barcode = req.barcode ?: product.barcode,
+    )
 }
 
-private fun fallbackProduct(images: List<ImagePayload>, barcode: String?): ProductInput = ProductInput(
-    name = if (images.isEmpty()) "Produit inconnu" else "Produit scanné",
-    category = "other",
-    nova_class = 4,
-    barcode = barcode,
-)
+private fun fallbackProduct(images: List<ImagePayload>, barcode: String?): ProductInput {
+    val signals = buildList {
+        barcode?.let { add(Ingredient("code-barres $it")) }
+        if (images.isNotEmpty()) add(Ingredient("${images.size} photo(s) native(s) fournie(s)"))
+    }
+    return ProductInput(
+        name = when {
+            barcode != null -> "Produit code-barres $barcode"
+            images.isNotEmpty() -> "Produit scanné par photo"
+            else -> "Produit inconnu"
+        },
+        category = "other",
+        nova_class = 4,
+        ingredients = signals,
+        barcode = barcode,
+    )
+}
+
+private fun fallbackWarnings(images: List<ImagePayload>, barcode: String?, lookup: ProductLookup?): List<String> = buildList {
+    if (lookup?.product == null && barcode != null) {
+        add("Aucune fiche produit fiable trouvée pour ce code-barres; résultat de secours généré côté Kotlin natif")
+    }
+    if (images.isNotEmpty() && lookup?.product == null) {
+        add("OCR/IA non configuré côté Kotlin natif; la photo est acceptée mais ne peut pas encore extraire l'étiquette sans passerelle native/LLM")
+    }
+}
 
 private fun ScoreRequest.validated(requireSignal: Boolean = false): ScoreRequest {
     barcode?.let { require(Regex("^(?:\\d{8}|\\d{12,14})$").matches(it.trim())) { "Invalid barcode" } }

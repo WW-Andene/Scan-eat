@@ -29,4 +29,25 @@ class ApplicationTest {
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
+
+    @Test fun `native image identify always returns a fallback result`() = testApplication {
+        application { scanEatModule() }
+        val response = client.post("/api/identify") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"images":[{"base64":"AAAA","mime":"image/jpeg"}]}""")
+        }
+        val body = response.bodyAsText()
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertTrue(body.contains("Produit scanné par photo"))
+        assertTrue(body.contains("native_image_fallback"))
+        assertTrue(body.contains("OCR/IA non configuré côté Kotlin natif"))
+    }
+
+    @Test fun `pwa shell is not served by the kotlin native api`() = testApplication {
+        application { scanEatModule() }
+        val manifest = client.get("/manifest.webmanifest")
+        val index = client.get("/index.html")
+        assertEquals(HttpStatusCode.NotFound, manifest.status)
+        assertEquals(HttpStatusCode.NotFound, index.status)
+    }
 }

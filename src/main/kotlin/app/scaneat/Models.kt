@@ -92,3 +92,20 @@ data class ScoreResponse(
     val source: String,
     val barcode: String? = null,
 )
+
+@Serializable
+data class IdentifyResponse(
+    val product: ProductInput,
+    val warnings: List<String> = emptyList(),
+    val source: String,
+    val barcode: String? = null,
+)
+
+@Serializable
+data class IdentifyMultiResponse(val items: List<IdentifyResponse>)
+
+data class ProductLookup(
+    val product: ProductInput?,
+    val warnings: List<String> = emptyList(),
+    val source: String = "fallback",
+)
