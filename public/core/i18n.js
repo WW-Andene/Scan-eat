@@ -744,7 +744,7 @@ AUTORITAIRES (traçables à une source nommée) :
 • Charcuterie = IARC Groupe 1 — Monographie Vol 114 (2015).
 • Chaque additif dans la base a un champ 'source' citant EFSA, IARC, règlement UE ou étude primaire.
 
-ÉDITORIAUX (jugement Scan\'eat) :
+ÉDITORIAUX (jugement Scan'eat) :
 • Pondérations des piliers (20/25/25/15/15) et seuils de notes A+ → F.
 • Ajustements par catégorie (fromage sat fat, condiment sucre).
 • Auto-correction NOVA lorsque l'entrée semble fausse.
@@ -1525,7 +1525,7 @@ Cette app est une aide à la décision, pas un avis nutritionniste ou médical. 
     portionHalfPack: '{g} g (½ pack)',
     about: 'About',
     disclaimerTitle: 'Guidance, not medical advice',
-    disclaimerBody: `Scan\'eat explicitly separates two data types:
+    disclaimerBody: `Scan'eat explicitly separates two data types:
 
 AUTHORITATIVE (traceable to a named source):
 • Negative-nutrient thresholds — FSA "Front of pack labelling guidance" 2016 (Red sat fat ≥5 g/100 g, sugars ≥22.5 g/100 g, salt ≥1.5 g/100 g).
@@ -1535,7 +1535,7 @@ AUTHORITATIVE (traceable to a named source):
 • Processed meat = IARC Group 1 — Monograph Vol 114 (2015).
 • Every additive carries a 'source' field citing EFSA, IARC, EU regulation, or primary study.
 
-EDITORIAL (Scan\'eat's own judgment):
+EDITORIAL (Scan'eat's own judgment):
 • Pillar weights (20/25/25/15/15) and A+ → F grade breakpoints.
 • Category-specific adjustments (cheese sat-fat, condiment sugar).
 • Auto-NOVA correction when the input appears wrong.
