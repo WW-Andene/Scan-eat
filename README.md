@@ -49,8 +49,9 @@ public/                  Static shell (deployed as-is)
   service-worker.js      PWA shell + share_target
   index.html             Single-page entry
 
-src/main/kotlin/         Kotlin Ktor application, native API routes, embedded catalog, scoring engine
-public/                  Static PWA shell served by Ktor in local/dev deployments
+src/main/kotlin/         Kotlin Ktor application, native API routes, embedded catalog, native data repository, scoring engine
+src/main/resources/      Native JSON resources translated from legacy data modules for JVM/Android reuse
+public/                  Legacy static shell retained until native feature parity replacement lands
 api/, src/*.ts           Production TypeScript API/scoring path used by Vercel
 
 tools/                   Data-generation scripts (commit-as-infrastructure)

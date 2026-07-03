@@ -1,0 +1,79 @@
+{
+  "macroPresets": {
+    "balanced": {
+      "carbs": 50,
+      "protein": 20,
+      "fat": 30,
+      "label_fr": "Équilibré (OMS/EFSA)",
+      "label_en": "Balanced (WHO/EFSA)"
+    },
+    "mediterranean": {
+      "carbs": 45,
+      "protein": 15,
+      "fat": 40,
+      "label_fr": "Méditerranéen",
+      "label_en": "Mediterranean"
+    },
+    "high_protein": {
+      "carbs": 30,
+      "protein": 35,
+      "fat": 35,
+      "label_fr": "Riche en protéines",
+      "label_en": "High-protein"
+    },
+    "low_carb": {
+      "carbs": 25,
+      "protein": 30,
+      "fat": 45,
+      "label_fr": "Faible en glucides",
+      "label_en": "Low-carb"
+    },
+    "keto": {
+      "carbs": 5,
+      "protein": 20,
+      "fat": 75,
+      "label_fr": "Cétogène",
+      "label_en": "Ketogenic"
+    },
+    "custom": {
+      "label_fr": "Personnalisé",
+      "label_en": "Custom"
+    }
+  },
+  "defaultModifiers": {
+    "lowSugar": false,
+    "lowSalt": false,
+    "highProtein": false,
+    "organic": false
+  },
+  "defaultProfile": {
+    "sex": null,
+    "age_years": null,
+    "height_cm": null,
+    "weight_kg": null,
+    "goal_weight_kg": null,
+    "water_goal_ml": null,
+    "activity": null,
+    "diet": "none",
+    "custom_diet": null,
+    "modifiers": {
+      "lowSugar": false,
+      "lowSalt": false,
+      "highProtein": false,
+      "organic": false
+    },
+    "macro_split": "balanced",
+    "macro_split_custom": {
+      "carbs": 50,
+      "protein": 20,
+      "fat": 30
+    }
+  },
+  "activityPal": {
+    "sedentary": 1.4,
+    "light": 1.55,
+    "moderate": 1.75,
+    "active": 1.9,
+    "very_active": 2.2
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "items": {
+    "walking_brisk": 4.3,
+    "running": 9.8,
+    "cycling": 7,
+    "swimming": 7,
+    "strength": 5,
+    "yoga": 2.8,
+    "hiit": 8,
+    "other": 4
+  }
+}
