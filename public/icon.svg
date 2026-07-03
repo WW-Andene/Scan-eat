@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="scann-eat-icon-title">
+  <title id="scann-eat-icon-title">Scann-eat</title>
+  <rect width="512" height="512" rx="96" fill="#F54B5E"/>
+  <circle cx="256" cy="256" r="150" fill="#F5F0E8"/>
+  <path d="M256 140 a116 116 0 1 0 82 34 l-28 28 a76 76 0 1 1 -54 -22 z" fill="#1B1B1F"/>
+  <rect x="238" y="128" width="36" height="80" rx="10" fill="#1B1B1F"/>
+</svg>

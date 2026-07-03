@@ -1,0 +1,40 @@
+# LICENSE — decision pending
+
+Per `app_development_SKILL.md §I.1` the choice of software licence is a
+**Tier-3** decision (legal, irreversible once third parties have forked or
+vendored code under a chosen licence). Claude did not select one
+autonomously. The user must pick.
+
+## Options to consider
+
+| Licence | Who can use it | Who can modify it | Who can redistribute it | Notes |
+|---------|----------------|-------------------|-------------------------|-------|
+| **All Rights Reserved** (current implicit default) | Only the owner | Only the owner | Only the owner | Safest until you pick something. Blocks OSS contributions. |
+| **MIT** | Anyone, incl. commercial | Anyone | Anyone (with licence + copyright) | Most permissive practical OSS licence. Compatible with almost anything. |
+| **Apache 2.0** | Anyone, incl. commercial | Anyone | Anyone (with licence + NOTICE) | MIT-like + explicit patent grant. Safer for enterprises. |
+| **AGPLv3** | Anyone | Anyone (must share source, incl. network use) | Same terms | Strong copyleft. Forces any SaaS user to publish their modifications. |
+| **GPLv3** | Anyone | Anyone (must share source on distribution) | Same terms | Copyleft but not network-use. Less aggressive than AGPL. |
+| **CC BY-NC 4.0** | Anyone non-commercial | Anyone non-commercial | Same terms | Non-commercial restriction. Not OSI-approved. Works for "personal only". |
+
+## Provenance constraints
+
+Separately: several data files in `public/data/` carry **their own licence
+clocks** independent of the code:
+
+- `public/data/food-db.js` — values derived from ANSES CIQUAL 2020 (open data,
+  freely redistributable with attribution).
+- `public/data/pairings.js` — generated from Ahn 2011 Sci. Rep. supplementary
+  data (open-access, CC BY 4.0 via the Nature open-access terms).
+
+Whatever licence the code ends up under, the data files keep their upstream
+terms. The in-file headers already cite those upstream licences.
+
+## Delete this file
+
+Once a licence is selected, rename / replace this file:
+
+1. Create `LICENSE` with the standard SPDX text.
+2. Add the SPDX identifier (`SPDX-License-Identifier: MIT`, etc.) to the
+   README header.
+3. Delete `LICENSE.TODO`.
+4. If open-sourcing, also add `CONTRIBUTING.md` and a `CODE_OF_CONDUCT.md`.

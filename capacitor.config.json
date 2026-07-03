@@ -1,0 +1,11 @@
+{
+  "appId": "fr.scanneat.app",
+  "appName": "Scan'eat",
+  "webDir": "public",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
