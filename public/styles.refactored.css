@@ -1322,14 +1322,13 @@ header h1 {
 }
 
 #product-name {
-  font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2rem);
+  font-size: var(--text-lg);
   font-weight: 700;
   letter-spacing: var(--tracking-snug);
-  line-height: var(--lh-snug);
 }
 #product-category,
 .category {
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: var(--tracking-uppercase);
@@ -1576,8 +1575,8 @@ header h1 {
 .product {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
-  font-size: var(--text-base);
+  gap: var(--sp-3);
+  font-size: var(--text-sm);
 }
 
 #ingredients {
@@ -1589,14 +1588,14 @@ header h1 {
   gap: var(--sp-1);
 }
 #ingredients li {
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: var(--panel-2);
   border-radius: var(--r-sm);
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-2);
   align-items: baseline;
-  font-size: var(--text-base);
+  font-size: var(--text-sm);
   line-height: var(--lh-relaxed);
 }
 #ingredients li[data-additive] {
@@ -1613,14 +1612,14 @@ header h1 {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--sp-2) var(--sp-4);
-  font-size: var(--text-base);
+  gap: var(--sp-1) var(--sp-3);
+  font-size: var(--text-sm);
   font-feature-settings: var(--num-feat);
 }
 #nutrition li {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 4px 0;
   border-bottom: 1px solid var(--border);
 }
 #nutrition li:last-child { border-bottom: none; }
@@ -3055,7 +3054,9 @@ body.reduce-motion [aria-busy="true"]::before {
    OLED panels can power off those pixels entirely, and coral is
    pulled back to a hinted role — small gradients on the accent
    surfaces (buttons, active states, highlighted cards) rather than
-   the dominant fill.
+   the dominant fill. Visual reference: dark navy/black app shells
+   with a single coral "now playing" card and a coral gradient glow,
+   not a coral background.
    ===================================================================== */
 [data-theme="oled"] {
   /* surfaces — true black, then near-black steps for layering */
@@ -3133,8 +3134,9 @@ body.reduce-motion [aria-busy="true"]::before {
   background: var(--panel);
 }
 
-/* The one place coral is allowed to dominate: primary calls to action
-   and high-confidence positive grade chips. */
+/* The one place coral is allowed to dominate: the active/selected
+   surface (e.g. the currently-playing station card, the primary
+   capture button) — as a gradient, matching the reference art. */
 [data-theme="oled"] .capture-btn,
 [data-theme="oled"] #scan-btn:not(:disabled),
 [data-theme="oled"] .grade-chip[data-grade="A+"],

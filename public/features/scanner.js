@@ -51,13 +51,7 @@ export async function openCameraScanner() {
   const cameraVideo = $('camera-video');
   const cameraStatus = $('camera-status');
   if (!getBarcodeDetector()) {
-    errorEl.textContent = t('cameraUnsupported'); show(errorEl);
-    const manual = document.querySelector('.manual-barcode-wrap');
-    if (manual) {
-      manual.open = true;
-      manual.querySelector('input')?.focus();
-    }
-    return;
+    errorEl.textContent = t('cameraUnsupported'); show(errorEl); return;
   }
   try {
     cameraStream = await navigator.mediaDevices.getUserMedia({

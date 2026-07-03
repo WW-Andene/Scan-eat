@@ -609,17 +609,15 @@ resetBtn.addEventListener('click', () => { resetScanState(); });
 // barcode camera in a single tap. Only shown when BarcodeDetector or
 // native MLKit is available (same gate as the main capture-screen barcode button).
 const resetCameraBtn = $('reset-camera-btn');
-// The main barcode button stays visible on every browser. When live
-// BarcodeDetector / native MLKit is missing, scanner.js opens the manual
-// barcode form instead of leaving the control apparently broken.
+// Gate is async on native (MLKit availability check); show immediately on web.
 (async () => {
   const hasBarcodeSupport = isCapacitor
     ? hasNativeBarcodeScanner()
     : !!getBarcodeDetector();
   if (hasBarcodeSupport) {
     show(resetCameraBtn);
+    show(barcodeLiveBtn);
   }
-  show(barcodeLiveBtn);
 })();
 resetCameraBtn?.addEventListener('click', () => {
   resetScanState();
@@ -855,7 +853,9 @@ if ('serviceWorker' in navigator && !isCapacitor) {
     if (intent === 'scan') {
       // Native: always use MLKit scanner directly.
       // Web: BarcodeDetector if available, else file picker.
-      openCameraScanner();
+      if (isCapacitor) openCameraScanner();
+      else if (getBarcodeDetector()) openCameraScanner();
+      else fileInput?.click();
     } else if (intent === 'quick-add') {
       quickAddBtn?.click();
     } else if (intent === 'dashboard') {
