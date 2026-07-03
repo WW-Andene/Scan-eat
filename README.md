@@ -26,11 +26,11 @@ intake against EFSA / WHO targets.
 
 ## Architecture
 
-- **Runtime**: vanilla ES modules for the browser PWA. For production today, use the Vercel/TypeScript API path because it contains the complete OCR + scoring behavior; the Kotlin/JVM + Ktor server is a fallback/static host while backend parity work continues.
+- **Runtime**: Kotlin/JVM + Ktor now owns the native `/api/*` route surface for scoring, barcode fallback, menu/recipe helpers, pantry suggestions, and recipe import. The existing browser/PWA and TypeScript files are retained as legacy/reference source while native parity work continues; they were not deleted wholesale.
 - **Shell**: PWA under `public/`. Service Worker: stale-while-revalidate + `share_target`.
 - **Persistence**: IndexedDB (v6, 7 stores) + `localStorage` for settings, snapshots, and
   small feature state (meal plan, fasting, hydration, per-day notes, custom foods).
-- **External APIs**: Open Food Facts (barcode product lookup) and Groq LLM vision/text endpoints in the TypeScript API. The Kotlin API keeps compatible `/api/*` routes and deterministic scoring fallbacks, but does not yet implement every LLM-backed route.
+- **External APIs**: Legacy TypeScript routes still document/use Open Food Facts and Groq. The Kotlin native route path does not proxy those LLM routes and uses deterministic native helpers plus an embedded barcode catalog instead.
 - **Native wrap**: Capacitor 6 (Android only) — see `.github/workflows/android.yml`
   for the APK build path.
 - **Tests**: `node --test --experimental-strip-types` on ~20 `*-tests.ts` files.
@@ -49,7 +49,7 @@ public/                  Static shell (deployed as-is)
   service-worker.js      PWA shell + share_target
   index.html             Single-page entry
 
-src/main/kotlin/         Kotlin Ktor application, API routes, Open Food Facts client, scoring engine
+src/main/kotlin/         Kotlin Ktor application, native API routes, embedded catalog, scoring engine
 public/                  Static PWA shell served by Ktor in local/dev deployments
 api/, src/*.ts           Production TypeScript API/scoring path used by Vercel
 
