@@ -53,7 +53,21 @@ data class ScoreAudit(
     val pillars: Map<String, Int>,
     val positives: List<String>,
     val warnings: List<String>,
+    val engineVersion: String = ScoringEngine.ENGINE_VERSION,
+    val allergens: List<String> = emptyList(),
+    val scoringNote: String = "Kotlin fallback scorer",
+    val source: ScoringSource = ScoringSource.HYBRID,
+    val confidenceScore: Float = 1.0f,
 )
+
+@Serializable
+enum class ScoringSource {
+    OFF_DATABASE,
+    LLM_OCR,
+    MANUAL_ENTRY,
+    HYBRID,
+    FALLBACK,
+}
 
 @Serializable
 data class ScoreResponse(

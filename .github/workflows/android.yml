@@ -36,6 +36,12 @@ jobs:
       - name: Build web shell
         run: npm run build:web
 
+      - name: Run npm tests
+        run: npm test
+
+      - name: Run Kotlin tests
+        run: ./gradlew test
+
       - name: Add or sync Capacitor Android project
         run: |
           if [ ! -d android ]; then

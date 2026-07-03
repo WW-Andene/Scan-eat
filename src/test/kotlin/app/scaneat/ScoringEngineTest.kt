@@ -3,6 +3,7 @@ package app.scaneat
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.assertContains
 
 class ScoringEngineTest {
     @Test fun `whole food style product scores better than sugary ultra processed product`() {
@@ -22,5 +23,18 @@ class ScoringEngineTest {
         )
         assertTrue(ScoringEngine.score(yogurt).score > ScoringEngine.score(candy).score)
         assertTrue(ScoringEngine.score(candy).score < 55)
+    }
+
+    @Test fun `allergen detector handles French plurals and engine metadata`() {
+        val cookie = ProductInput(
+            name = "Cookie",
+            ingredients = listOf(Ingredient("arachides"), Ingredient("œufs"), Ingredient("laits")),
+            nutrition = NutritionPer100g(energy_kcal = 500.0, protein_g = 5.0, carbs_g = 60.0, fat_g = 20.0),
+        )
+        val audit = ScoringEngine.score(cookie)
+        assertContains(audit.allergens, "arachide")
+        assertContains(audit.allergens, "œuf")
+        assertContains(audit.allergens, "lait")
+        assertEquals(ScoringEngine.ENGINE_VERSION, audit.engineVersion)
     }
 }

@@ -13,6 +13,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.http.content.*
 import kotlinx.serialization.json.Json
+import kotlin.math.roundToInt
 import java.io.File
 
 fun main() {
@@ -24,6 +25,9 @@ fun Application.scanEatModule(clients: ExternalClients = ExternalClients()) {
     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true; explicitNulls = false; prettyPrint = false }) }
     install(CORS) { anyHost(); allowHeader(HttpHeaders.ContentType); allowMethod(HttpMethod.Post); allowMethod(HttpMethod.Get) }
     install(StatusPages) {
+        exception<IllegalArgumentException> { call, cause ->
+            call.respond(HttpStatusCode.BadRequest, mapOf("error" to (cause.message ?: "Invalid request")))
+        }
         exception<Throwable> { call, cause ->
             appLog.error("Request failed", cause)
             call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Scoring failed"))
@@ -31,20 +35,27 @@ fun Application.scanEatModule(clients: ExternalClients = ExternalClients()) {
     }
 
     routing {
+        get("/") { call.respond(mapOf("ok" to true, "engineVersion" to ScoringEngine.ENGINE_VERSION)) }
+        get("/api/health") { call.respond(mapOf("ok" to true, "engineVersion" to ScoringEngine.ENGINE_VERSION)) }
         post("/api/score") {
-            val body = call.receive<ScoreRequest>()
+            val body = call.receive<ScoreRequest>().validated()
             val product = body.product
                 ?: body.barcode?.let { clients.productFromBarcode(it) }
                 ?: fallbackProduct(normalizeImages(body), body.barcode)
-            call.respond(ScoreResponse(product, ScoringEngine.score(product), source = if (body.barcode != null) "openfoodfacts_or_fallback" else "kotlin", barcode = body.barcode ?: product.barcode))
+            val source = when {
+                body.product != null -> "manual_or_client_product"
+                body.barcode != null && product.barcode == body.barcode -> "openfoodfacts_or_fallback"
+                else -> "kotlin_fallback"
+            }
+            call.respond(ScoreResponse(product, ScoringEngine.score(product), source = source, barcode = body.barcode ?: product.barcode))
         }
-        post("/api/identify") { call.respond(identifyFallback(call.receive<ScoreRequest>())) }
-        post("/api/identify-multi") { call.respond(mapOf("items" to listOf(identifyFallback(call.receive<ScoreRequest>())))) }
-        post("/api/identify-menu") { call.respond(mapOf("items" to emptyList<String>(), "warnings" to listOf("Menu OCR requires a configured LLM adapter"))) }
-        post("/api/identify-recipe") { call.respond(mapOf("recipe" to null, "warnings" to listOf("Recipe OCR requires a configured LLM adapter"))) }
-        post("/api/suggest-recipes") { call.respond(mapOf("recipes" to emptyList<String>())) }
-        post("/api/suggest-from-pantry") { call.respond(mapOf("recipes" to emptyList<String>())) }
-        post("/api/fetch-recipe") { call.respond(mapOf("error" to "Recipe fetching is not enabled in the Kotlin runtime")) }
+        post("/api/identify") { call.respond(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true))) }
+        post("/api/identify-multi") { call.respond(mapOf("items" to listOf(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true))))) }
+        post("/api/identify-menu") { call.respond(clients.proxyOrUnavailable("identify-menu", call.receiveText())) }
+        post("/api/identify-recipe") { call.respond(clients.proxyOrUnavailable("identify-recipe", call.receiveText())) }
+        post("/api/suggest-recipes") { call.respond(clients.proxyOrUnavailable("suggest-recipes", call.receiveText())) }
+        post("/api/suggest-from-pantry") { call.respond(clients.proxyOrUnavailable("suggest-from-pantry", call.receiveText())) }
+        post("/api/fetch-recipe") { call.respond(clients.proxyOrUnavailable("fetch-recipe", call.receiveText())) }
 
         staticFiles("/", File("public")) { default("index.html") }
     }
@@ -61,3 +72,16 @@ private fun fallbackProduct(images: List<ImagePayload>, barcode: String?): Produ
     nova_class = 4,
     barcode = barcode,
 )
+
+private fun ScoreRequest.validated(requireSignal: Boolean = false): ScoreRequest {
+    barcode?.let { require(Regex("^(?:\\d{8}|\\d{12,14})$").matches(it.trim())) { "Invalid barcode" } }
+    val imgs = normalizeImages(this)
+    require(imgs.size <= 4) { "Too many images (max 4)" }
+    imgs.forEachIndexed { index, image ->
+        require(image.mime in setOf("image/jpeg", "image/png", "image/webp", "image/heic", "image/heif")) { "Unsupported image type at index $index" }
+        require(image.base64.length <= 3_500_000) { "Image ${index} is too large (${(image.base64.length / 1024.0 / 1024.0 * 10).roundToInt() / 10.0} MB base64)" }
+        require(Regex("^[A-Za-z0-9+/]+={0,2}$").matches(image.base64) && image.base64.length % 4 == 0) { "Invalid base64 image at index $index" }
+    }
+    if (requireSignal) require(imgs.isNotEmpty() || barcode != null || product != null) { "Missing images, barcode, or product" }
+    return this
+}

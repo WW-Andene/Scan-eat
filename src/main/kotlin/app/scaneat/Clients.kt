@@ -5,6 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
@@ -36,6 +37,38 @@ class ExternalClients(private val http: HttpClient = defaultClient()) {
             ),
             barcode = barcode,
         )
+    }
+
+    suspend fun proxyOrUnavailable(route: String, rawJsonBody: String): Map<String, Any?> {
+        val upstream = System.getenv("SCANEAT_UPSTREAM_URL")?.trim()?.trimEnd('/')
+        if (upstream.isNullOrBlank()) {
+            return mapOf(
+                "error" to "service_unavailable",
+                "warnings" to listOf("LLM recipe/menu features require SCANEAT_UPSTREAM_URL or the TypeScript API runtime"),
+            )
+        }
+        return retrying("proxy /api/$route") {
+            val response = http.post("$upstream/api/$route") {
+                contentType(ContentType.Application.Json)
+                setBody(rawJsonBody)
+            }
+            mapOf(
+                "status" to response.status.value,
+                "proxied" to true,
+                "body" to response.bodyAsText(),
+            )
+        }
+    }
+
+    private suspend fun <T> retrying(operation: String, block: suspend () -> T): T {
+        var last: Throwable? = null
+        repeat(3) { attempt ->
+            try { return block() } catch (e: Throwable) {
+                last = e
+                if (attempt < 2) kotlinx.coroutines.delay(500L * (1L shl attempt))
+            }
+        }
+        throw IllegalStateException("$operation failed after retries: ${last?.message}", last)
     }
 
     fun close() = http.close()
