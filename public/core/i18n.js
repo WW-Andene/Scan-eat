@@ -565,7 +565,7 @@ export const STRINGS = {
     weeklyVsPriorProtein: 'vs sem. passée · P',
     remindersHydration: '💧 Hydratation (toutes les N h)',
     remindersWeight: '⚖️ Poids (si pas loggé depuis 4 j)',
-    settingsImmediateNote: '⚡ Ces actions s\\'appliquent tout de suite — "Annuler" en bas ne les annule pas.',
+    settingsImmediateNote: "⚡ Ces actions s'appliquent tout de suite — \"Annuler\" en bas ne les annule pas.",
     calibrationPlaceholder: 'Calcul à la demande — touche « Recalculer ».',
     reminderHydration: '💧 Prends un verre d\'eau.',
     reminderWeightFirst: '⚖️ Pense à logger ton poids.',
@@ -732,7 +732,7 @@ export const STRINGS = {
     portionHalfPack: '{g} g (½ paquet)',
     about: 'À propos',
     disclaimerTitle: 'Information, pas conseil médical',
-    disclaimerBody: `Scan\'eat distingue explicitement deux types de données :
+    disclaimerBody: `Scan'eat distingue explicitement deux types de données :
 
 AUTORITAIRES (traçables à une source nommée) :
 • Seuils des nutriments négatifs — FSA "Front of pack labelling guidance" 2016 (rouge sat ≥5 g/100 g, sucres ≥22,5 g/100 g, sel ≥1,5 g/100 g).

@@ -26,15 +26,15 @@ intake against EFSA / WHO targets.
 
 ## Architecture
 
-- **Runtime**: Kotlin/JVM + Ktor for the API/static server; vanilla ES modules for the browser PWA. No React / Vue / Svelte.
+- **Runtime**: vanilla ES modules for the browser PWA. For production today, use the Vercel/TypeScript API path because it contains the complete OCR + scoring behavior; the Kotlin/JVM + Ktor server is a fallback/static host while backend parity work continues.
 - **Shell**: PWA under `public/`. Service Worker: stale-while-revalidate + `share_target`.
 - **Persistence**: IndexedDB (v6, 7 stores) + `localStorage` for settings, snapshots, and
   small feature state (meal plan, fasting, hydration, per-day notes, custom foods).
-- **External APIs**: Open Food Facts (barcode product lookup). The Kotlin API keeps compatible `/api/*` routes and deterministic scoring fallbacks; LLM-backed OCR can be added behind the route layer without changing the PWA contract.
+- **External APIs**: Open Food Facts (barcode product lookup) and Groq LLM vision/text endpoints in the TypeScript API. The Kotlin API keeps compatible `/api/*` routes and deterministic scoring fallbacks, but does not yet implement every LLM-backed route.
 - **Native wrap**: Capacitor 6 (Android only) — see `.github/workflows/android.yml`
   for the APK build path.
 - **Tests**: `node --test --experimental-strip-types` on ~20 `*-tests.ts` files.
-  449 tests at the time of writing.
+  913 tests at the time of writing.
 
 Folder layout:
 
@@ -44,13 +44,14 @@ public/                  Static shell (deployed as-is)
   core/                  i18n, presenters, app-settings, telemetry, scoring rules
   data/                  IDB + localStorage storage modules
   features/              Self-contained UI + state modules
-  styles.css             Single stylesheet; 53 CSS custom properties
+  styles.refactored.css  Base responsive stylesheet
+  styles.rework.css      Design-token/component override layer
   service-worker.js      PWA shell + share_target
   index.html             Single-page entry
 
 src/main/kotlin/         Kotlin Ktor application, API routes, Open Food Facts client, scoring engine
 public/                  Static PWA shell served by Ktor in local/dev deployments
-api/, src/*.ts           Legacy TypeScript implementation kept as migration reference
+api/, src/*.ts           Production TypeScript API/scoring path used by Vercel
 
 tools/                   Data-generation scripts (commit-as-infrastructure)
 docs/                    Brief, decisions, assumptions, flows, ADRs

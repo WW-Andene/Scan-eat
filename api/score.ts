@@ -24,6 +24,8 @@ import {
   mapErrorToPublicMessage,
   normalizeImages,
   readJsonBody,
+  validateBarcode,
+  validateImages,
   requirePost,
   sendJSON,
 } from './_lib.ts';
@@ -44,11 +46,12 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       barcode?: string;
     }>(req);
 
-    const images = normalizeImages(body);
+    const images = validateImages(normalizeImages(body));
+    const barcode = validateBarcode(body.barcode);
 
     // OFF + optional LLM hybrid path.
-    if (body.barcode) {
-      const off = await fetchFromOFF(body.barcode);
+    if (barcode) {
+      const off = await fetchFromOFF(barcode);
       if (off) {
         if (isOFFSparse(off) && images.length > 0 && process.env?.GROQ_API_KEY) {
           try {
@@ -61,7 +64,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
               audit,
               warnings: [...parsed.warnings, ...conflicts],
               source: 'merged',
-              barcode: body.barcode,
+              barcode,
             });
           } catch (llmErr) {
             // LLM failed — fall back to OFF alone. Log first so the
@@ -77,7 +80,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           audit,
           warnings: [],
           source: 'openfoodfacts',
-          barcode: body.barcode,
+          barcode,
         });
       }
     }

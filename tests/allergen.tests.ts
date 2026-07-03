@@ -79,9 +79,11 @@ describe('detectAllergens — positives', () => {
     assert.ok(hits.find((h: { key: string }) => h.key === 'eggs'));
   });
 
-  it('detects peanuts via "arachide"', () => {
-    const hits = detectAllergens(product(['huile d\'arachide']));
-    assert.ok(hits.find((h: { key: string }) => h.key === 'peanuts'));
+  it('detects peanuts via singular and plural French forms', () => {
+    for (const ingredient of ['huile d\'arachide', 'éclats d\'arachides', 'cacahuètes grillées']) {
+      const hits = detectAllergens(product([ingredient]));
+      assert.ok(hits.find((h: { key: string }) => h.key === 'peanuts'), ingredient);
+    }
   });
 
   it('detects tree nuts via "noisettes"', () => {

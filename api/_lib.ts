@@ -22,6 +22,9 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 /** Body-size cap shared across handlers. 12 MB is enough for 4 photos
  *  at the engine's MAX_DIM=1600 + JPEG_QUALITY=0.85 worst case. */
 export const MAX_BODY_BYTES = 12 * 1024 * 1024;
+export const MAX_IMAGES = 4;
+export const MAX_IMAGE_BASE64_CHARS = 3_500_000;
+const ALLOWED_IMAGE_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']);
 
 /**
  * Read the request body up to MAX_BODY_BYTES, then return it as a Buffer.
@@ -81,12 +84,13 @@ export function mapErrorToPublicMessage(err: unknown, fallback: string): {
   const status =
     err instanceof Error && (err as Error & { status?: number }).status === 429 ? 429
     : /body too large/i.test(internalMessage) ? 413
+    : err instanceof Error && (err as Error & { status?: number }).status === 400 ? 400
     : /JSON/i.test(internalMessage) ? 400
     : 500;
   const publicMessage =
     status === 429 ? 'rate_limit'
     : status === 413 ? 'Request body too large'
-    : status === 400 ? 'Invalid JSON body'
+    : status === 400 ? (err instanceof Error && (err as Error & { publicMessage?: string }).publicMessage) || 'Invalid JSON body'
     : fallback;
   return { status, publicMessage, internalMessage };
 }
@@ -131,13 +135,40 @@ export function normalizeImages(body: {
   imageBase64?: string;
   mime?: string;
 }): Array<{ base64: string; mime: string }> {
-  if (Array.isArray(body.images) && body.images.length > 0) {
-    return body.images
-      .filter((i) => typeof i?.base64 === 'string' && i.base64.length > 0)
-      .map((i) => ({ base64: i.base64 as string, mime: i.mime ?? 'image/jpeg' }));
-  }
-  if (typeof body.imageBase64 === 'string' && body.imageBase64.length > 0) {
-    return [{ base64: body.imageBase64, mime: body.mime ?? 'image/jpeg' }];
-  }
-  return [];
+  const raw = Array.isArray(body.images) && body.images.length > 0
+    ? body.images
+    : typeof body.imageBase64 === 'string' && body.imageBase64.length > 0
+      ? [{ base64: body.imageBase64, mime: body.mime }]
+      : [];
+
+  return raw
+    .filter((i) => typeof i?.base64 === 'string' && i.base64.trim().length > 0)
+    .map((i) => ({ base64: (i.base64 as string).trim(), mime: i.mime ?? 'image/jpeg' }));
+}
+
+function publicValidationError(message: string): Error & { status: number; publicMessage: string } {
+  const err = new Error(message) as Error & { status: number; publicMessage: string };
+  err.status = 400;
+  err.publicMessage = message;
+  return err;
+}
+
+export function validateBarcode(barcode: unknown): string | undefined {
+  if (barcode == null || barcode === '') return undefined;
+  if (typeof barcode !== 'string') throw publicValidationError('Invalid barcode');
+  const clean = barcode.trim();
+  if (!/^(?:\d{8}|\d{12,14})$/.test(clean)) throw publicValidationError('Invalid barcode');
+  return clean;
+}
+
+export function validateImages(images: Array<{ base64: string; mime: string }>): Array<{ base64: string; mime: string }> {
+  if (images.length > MAX_IMAGES) throw publicValidationError(`Too many images (max ${MAX_IMAGES})`);
+  return images.map((img, idx) => {
+    if (!ALLOWED_IMAGE_MIMES.has(img.mime)) throw publicValidationError(`Unsupported image type at index ${idx}`);
+    if (img.base64.length > MAX_IMAGE_BASE64_CHARS) throw publicValidationError(`Image too large at index ${idx}`);
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(img.base64) || img.base64.length % 4 !== 0) {
+      throw publicValidationError(`Invalid base64 image at index ${idx}`);
+    }
+    return img;
+  });
 }

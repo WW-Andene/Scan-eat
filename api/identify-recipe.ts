@@ -17,6 +17,7 @@ import {
   mapErrorToPublicMessage,
   normalizeImages,
   readJsonBody,
+  validateImages,
   requireGroqKey,
   requirePost,
   sendJSON,
@@ -31,7 +32,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const body = await readJsonBody<{
       images?: Array<{ base64: string; mime?: string }>;
     }>(req);
-    const images = normalizeImages(body);
+    const images = validateImages(normalizeImages(body));
     if (images.length === 0) return sendJSON(res, 400, { error: 'Missing images' });
 
     const result = await identifyRecipe(images);

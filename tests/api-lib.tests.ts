@@ -22,6 +22,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import {
   MAX_BODY_BYTES,
+  MAX_IMAGE_BASE64_CHARS,
   mapErrorToPublicMessage,
   normalizeImages,
   readBody,
@@ -29,6 +30,8 @@ import {
   requireGroqKey,
   requirePost,
   sendJSON,
+  validateBarcode,
+  validateImages,
 } from '../api/_lib.ts';
 
 // --- mock helpers ------------------------------------------------------
@@ -193,6 +196,30 @@ describe('api/_lib: normalizeImages', () => {
 
   it('returns [] when both shapes are absent', () => {
     assert.deepEqual(normalizeImages({}), []);
+  });
+});
+
+
+describe('api/_lib: request validation', () => {
+  it('accepts valid EAN/UPC-style barcodes and trims whitespace', () => {
+    assert.equal(validateBarcode(' 3017620422003 '), '3017620422003');
+    assert.equal(validateBarcode('12345678'), '12345678');
+    assert.equal(validateBarcode(undefined), undefined);
+  });
+
+  it('rejects malformed barcodes with a public 400 error', () => {
+    assert.throws(() => validateBarcode('abc123'), /Invalid barcode/);
+    const err = (() => { try { validateBarcode('123'); } catch (e) { return e; } })() as { status?: number; publicMessage?: string };
+    assert.equal(err.status, 400);
+    assert.equal(err.publicMessage, 'Invalid barcode');
+  });
+
+  it('validates image MIME, base64 syntax, count, and per-image size', () => {
+    assert.deepEqual(validateImages([{ base64: 'QUJDRA==', mime: 'image/jpeg' }]), [{ base64: 'QUJDRA==', mime: 'image/jpeg' }]);
+    assert.throws(() => validateImages([{ base64: 'QUJDRA==', mime: 'text/plain' }]), /Unsupported image type/);
+    assert.throws(() => validateImages([{ base64: 'not base64!', mime: 'image/jpeg' }]), /Invalid base64 image/);
+    assert.throws(() => validateImages(new Array(5).fill({ base64: 'QUJDRA==', mime: 'image/jpeg' })), /Too many images/);
+    assert.throws(() => validateImages([{ base64: 'A'.repeat(MAX_IMAGE_BASE64_CHARS + 4), mime: 'image/jpeg' }]), /Image too large/);
   });
 });
 

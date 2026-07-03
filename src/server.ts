@@ -323,5 +323,5 @@ server.listen(PORT, () => {
   if (!process.env.GROQ_API_KEY) {
     console.warn('[server] GROQ_API_KEY is not set — /api/score will fail.');
   }
-  console.log(`[server] Scan\'eat dev server ready at http://localhost:${PORT}`);
+  console.log(`[server] Scan'eat dev server ready at http://localhost:${PORT}`);
 });

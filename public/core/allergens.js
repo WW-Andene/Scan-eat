@@ -64,7 +64,7 @@ const RULES = [
     key: 'peanuts',
     label_fr: 'Arachides',
     label_en: 'Peanuts',
-    re: new RegExp(`(?<!${W})(arachide|cacahu[eè]te|peanut|beurre de cacahu[eè]te)(?!${W})`, 'i'),
+    re: new RegExp(`(?<!${W})(arachides?|cacahu[eè]tes?|peanuts?|beurre de cacahu[eè]tes?)(?!${W})`, 'i'),
   },
   {
     key: 'soy',
