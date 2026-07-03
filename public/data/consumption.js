@@ -15,6 +15,7 @@
 
 import { localDateISO } from '../core/dateutil.js';
 import { MICRO_KEYS } from '../core/nutrition-fields.js';
+import { recordStorageFailure } from '../core/storage-health.js';
 // Single-source micro list. Fiber is included; sumTotals handles it
 // through the loop, no explicit per-field addition.
 const MICRO_FIELDS = MICRO_KEYS;
@@ -71,7 +72,7 @@ export async function putEntry(entry) {
     const tx = db.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put(entry);
     tx.oncomplete = () => { db.close(); resolve(entry); };
-    tx.onerror = () => { db.close(); reject(tx.error); };
+    tx.onerror = () => { recordStorageFailure({ area: 'indexedDB', store: STORE, op: 'putEntry', error: tx.error?.name || String(tx.error) }); db.close(); reject(tx.error); };
   });
 }
 
@@ -143,12 +144,22 @@ export function buildEntry(product, grams, opts = {}) {
  * Build a manual "Quick Add" entry — user-entered totals, not derived from
  * a product. Skips the per-100 g conversion because the user types totals.
  */
+export function macroEnergyWarning({ kcal = 0, carbs_g = 0, protein_g = 0, fat_g = 0 } = {}, threshold = 0.10) {
+  const declared = Number(kcal) || 0;
+  const expected = (Number(carbs_g) || 0) * 4 + (Number(protein_g) || 0) * 4 + (Number(fat_g) || 0) * 9;
+  if (declared <= 0 || expected <= 0) return null;
+  const diff = Math.abs(declared - expected) / Math.max(declared, expected);
+  if (diff <= threshold) return null;
+  return { kcal: round1(declared), expected: round1(expected), diff_pct: Math.round(diff * 100) };
+}
+
 export function buildQuickAdd({
   name, meal,
   kcal = 0, carbs_g = 0, protein_g = 0, fat_g = 0,
   sat_fat_g = 0, sugars_g = 0, salt_g = 0, fiber_g = 0,
   iron_mg = 0, calcium_mg = 0, vit_d_ug = 0, b12_ug = 0,
 }, now = Date.now()) {
+  const warning = macroEnergyWarning({ kcal, carbs_g, protein_g, fat_g });
   return {
     id: (globalThis.crypto?.randomUUID?.() ?? `q${now}${Math.random().toString(36).slice(2)}`),
     // R25.1: same local-ISO fix as buildEntry — Quick Add was the
@@ -172,6 +183,7 @@ export function buildQuickAdd({
     vit_d_ug: round2(Number(vit_d_ug) || 0),
     b12_ug: round2(Number(b12_ug) || 0),
     quickAdd: true,
+    ...(warning ? { energy_warning: warning } : {}),
   };
 }
 
@@ -195,7 +207,7 @@ async function persistEntry(entry) {
     const tx = db.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put(entry);
     tx.oncomplete = () => { db.close(); resolve(entry); };
-    tx.onerror = () => { db.close(); reject(tx.error); };
+    tx.onerror = () => { recordStorageFailure({ area: 'indexedDB', store: STORE, op: 'persistEntry', error: tx.error?.name || String(tx.error) }); db.close(); reject(tx.error); };
   });
 }
 

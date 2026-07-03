@@ -70,6 +70,7 @@ import { initCustomFoodsDayNotes, initCustomFoodsDialog, renderDayNote, applyVie
 import { initDashboardCharts, renderWeeklyView, renderMonthlyView, renderDashboard, renderGapCloser, renderLineChart, renderProgressCharts, round1, round3 } from './features/dashboard-charts.js';
 import { initQaPhotoId, setQaStatus, setQaLoadingPhases, identifyViaModePath, readQaForm } from './features/qa-photo-identify.js';
 import { setProfilesStatus, renderProfilesUI, initProfilesDialog } from './features/profiles-ui.js';
+import { recordStorageFailure, storageFailureEvent } from './core/storage-health.js';
 
 // Safari private mode + some embedded WebViews disable localStorage writes
 // (getItem returns null silently, but setItem/removeItem throw). Shim the
@@ -79,14 +80,18 @@ try {
   const _set = Storage.prototype.setItem;
   const _rem = Storage.prototype.removeItem;
   Storage.prototype.setItem = function (k, v) {
-    try { return _set.call(this, k, v); } catch { /* quota / disabled */ }
+    try { return _set.call(this, k, v); } catch (err) { recordStorageFailure({ area: 'localStorage', key: k, error: err?.name || String(err) }); }
   };
   Storage.prototype.removeItem = function (k) {
-    try { return _rem.call(this, k); } catch { /* disabled */ }
+    try { return _rem.call(this, k); } catch (err) { recordStorageFailure({ area: 'localStorage', key: k, error: err?.name || String(err) }); }
   };
 } catch { /* Storage.prototype missing — nothing to protect */ }
 
 const $ = (id) => document.getElementById(id);
+
+window.addEventListener(storageFailureEvent(), () => {
+  toast(t('storageWriteFailed'), 'warn');
+});
 
 const fileInput = $('file-input');
 const queueEl = $('queue');
@@ -663,6 +668,7 @@ $('csv-import-file')?.addEventListener('change', async (e) => {
   if (!file) return;
   if (status) {
     status.textContent = t('csvImportLoading');
+    status.setAttribute('aria-busy', 'true');
     // F-F-05: clear any prior skipped-rows details so a fresh import
     // doesn't inherit stale warnings.
     const priorDetails = status.nextElementSibling;
@@ -675,7 +681,7 @@ $('csv-import-file')?.addEventListener('change', async (e) => {
     const text = await file.text();
     const { format, entries, errors } = parseCsvImport(text);
     if (format === 'unknown') {
-      if (status) status.textContent = t('csvImportUnknown');
+      if (status) { status.textContent = t('csvImportUnknown'); status.removeAttribute('aria-busy'); }
       return;
     }
     let written = 0;
@@ -683,6 +689,7 @@ $('csv-import-file')?.addEventListener('change', async (e) => {
       try { await putEntry(e); written += 1; } catch { /* skip */ }
     }
     if (status) {
+      status.removeAttribute('aria-busy');
       status.textContent = t('csvImportDone', {
         n: written, format, skipped: errors.length,
       });
@@ -710,7 +717,7 @@ $('csv-import-file')?.addEventListener('change', async (e) => {
     await renderDashboard();
   } catch (err) {
     console.error('[csv import]', err);
-    if (status) status.textContent = t('csvImportFailed');
+    if (status) { status.textContent = t('csvImportFailed'); status.removeAttribute('aria-busy'); }
   }
 });
 
@@ -1157,6 +1164,7 @@ qaSave?.addEventListener('click', async (e) => {
     }
   }
   if (f.kcal <= 0) { $('qa-kcal')?.focus(); return; }
+  if (f.energy_warning) toast(t('macroEnergyWarn', { expected: f.energy_warning.expected, kcal: f.energy_warning.kcal }), 'warn');
   try {
     if (editingEntry) {
       // R35.I1: upsert the existing entry with the user's edits.

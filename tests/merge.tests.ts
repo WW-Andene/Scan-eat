@@ -13,7 +13,7 @@
 import { strict as assert } from 'node:assert';
 import { describe, it } from 'node:test';
 
-import { isOFFSparse, mergeOFFWithLLM, detectSourceConflicts, rankAlternatives } from '../src/off.ts';
+import { isOFFSparse, mergeOFFWithLLM, detectSourceConflicts, detectMacroEnergyMismatch, rankAlternatives } from '../src/off.ts';
 import type { ProductInput } from '../src/scoring-engine.ts';
 
 function p(overrides: Partial<ProductInput>): ProductInput {
@@ -183,6 +183,24 @@ describe('detectSourceConflicts', () => {
     const off = p({});
     const llm = p({});
     assert.deepEqual(detectSourceConflicts(off, llm), []);
+  });
+
+
+
+  it('warns when merged macros and declared kcal differ materially', () => {
+    const off = p({
+      nutrition: { ...p({}).nutrition, energy_kcal: 500, fat_g: 0, carbs_g: 0, protein_g: 0 },
+    });
+    const llm = p({
+      nutrition: { ...p({}).nutrition, energy_kcal: 500, fat_g: 10, carbs_g: 10, protein_g: 10 },
+    });
+    const conflicts = detectSourceConflicts(off, llm);
+    assert.ok(conflicts.some((c) => /Macro energy mismatch/.test(c.message) && c.severity === 'high'));
+  });
+
+  it('does not warn on normal Atwater rounding drift', () => {
+    const product = p({ nutrition: { ...p({}).nutrition, energy_kcal: 140, fat_g: 4, carbs_g: 20, protein_g: 6 } });
+    assert.equal(detectMacroEnergyMismatch(product), null);
   });
 
   it('warns when sugars differ by >20 %', () => {

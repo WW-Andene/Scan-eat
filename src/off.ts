@@ -710,6 +710,24 @@ const CONFLICT_THRESHOLDS: Record<
   energy_kcal:     { label: 'Energy',    relativeThreshold: 0.20, absoluteFloor: 30,   unit: 'kcal', severity: 'high'   },
 };
 
+
+export function detectMacroEnergyMismatch(product: ProductInput): SourceConflict | null {
+  const n = product.nutrition;
+  const kcal = Number(n.energy_kcal ?? 0);
+  const fat = Number(n.fat_g ?? 0);
+  const carbs = Number(n.carbs_g ?? 0);
+  const protein = Number(n.protein_g ?? 0);
+  if (kcal <= 0 || (fat <= 0 && carbs <= 0 && protein <= 0)) return null;
+  const expected = fat * 9 + carbs * 4 + protein * 4;
+  if (expected <= 0) return null;
+  const diff = Math.abs(kcal - expected) / Math.max(kcal, expected);
+  if (diff <= 0.15) return null;
+  return {
+    message: `Macro energy mismatch: declared ${Math.round(kcal)}kcal vs macros ${Math.round(expected)}kcal (${Math.round(diff * 100)}% difference, threshold 15%)`,
+    severity: 'high',
+  };
+}
+
 export function detectSourceConflicts(off: ProductInput, llm: ProductInput): SourceConflict[] {
   const conflicts: SourceConflict[] = [];
   for (const [field, cfg] of Object.entries(CONFLICT_THRESHOLDS) as Array<
@@ -729,5 +747,7 @@ export function detectSourceConflicts(off: ProductInput, llm: ProductInput): Sou
       });
     }
   }
+  const mergedConflict = detectMacroEnergyMismatch(mergeOFFWithLLM(off, llm));
+  if (mergedConflict) conflicts.push(mergedConflict);
   return conflicts;
 }

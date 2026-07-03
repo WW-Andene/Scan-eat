@@ -34,7 +34,7 @@ intake against EFSA / WHO targets.
 - **Native wrap**: Capacitor 6 (Android only) — see `.github/workflows/android.yml`
   for the APK build path.
 - **Tests**: `node --test --experimental-strip-types` on ~20 `*-tests.ts` files.
-  913 tests at the time of writing.
+  920 tests at the time of writing.
 
 Folder layout:
 

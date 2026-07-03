@@ -27,6 +27,11 @@ async function updatePendingBanner() {
   show(pendingBanner);
 }
 
+function shouldRemovePendingAfterResponse(res) {
+  // 429 and other non-2xx responses must keep the queued scan for a future retry.
+  return Boolean(res?.ok);
+}
+
 async function retryPending() {
   try {
     const items = await listPending();
@@ -37,7 +42,7 @@ async function retryPending() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ images: item.images, barcode: item.barcode }),
         });
-        if (res.ok) await removePending(item.id);
+        if (shouldRemovePendingAfterResponse(res)) await removePending(item.id);
         else break; // stop the loop on first failure
       } catch { break; }
     }
@@ -51,4 +56,4 @@ async function retryPending() {
 
 window.addEventListener('online', retryPending);
 
-export { updatePendingBanner, retryPending };
+export { updatePendingBanner, retryPending, shouldRemovePendingAfterResponse };

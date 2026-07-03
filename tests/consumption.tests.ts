@@ -26,7 +26,7 @@ if (!('crypto' in globalThis) || !('randomUUID' in (globalThis as { crypto?: Cry
   } as Crypto;
 }
 
-const { buildEntry, buildQuickAdd, sumTotals, groupByMeal, todayISO, MEALS } = await import('../public/data/consumption.js');
+const { buildEntry, buildQuickAdd, macroEnergyWarning, sumTotals, groupByMeal, todayISO, MEALS } = await import('../public/data/consumption.js');
 
 type P = {
   name: string; category: string; nutrition: Record<string, number>; weight_g?: number;
@@ -50,6 +50,23 @@ function product(over: Partial<P['nutrition']> = {}): P {
     },
   };
 }
+
+
+describe('macroEnergyWarning', () => {
+  it('returns null when kcal and macro-derived energy are close', () => {
+    assert.equal(macroEnergyWarning({ kcal: 520, protein_g: 10, carbs_g: 50, fat_g: 30 }), null);
+  });
+
+  it('flags chemically implausible manual entries', () => {
+    const warning = macroEnergyWarning({ kcal: 1000, protein_g: 10, carbs_g: 50, fat_g: 30 });
+    assert.deepEqual(warning, { kcal: 1000, expected: 510, diff_pct: 49 });
+  });
+
+  it('stores the warning on Quick Add entries without blocking save', () => {
+    const entry = buildQuickAdd({ name: 'manual', kcal: 1000, protein_g: 10, carbs_g: 50, fat_g: 30 }, Date.UTC(2026, 0, 2, 12));
+    assert.deepEqual(entry.energy_warning, { kcal: 1000, expected: 510, diff_pct: 49 });
+  });
+});
 
 describe('buildEntry — per-100 g → per-portion math', () => {
   it('scales linearly by grams/100 for each macro', () => {

@@ -170,7 +170,9 @@ async function runAndRender(intro, fetcher) {
   if (!dialog) return;
   $('recipe-ideas-intro').textContent = intro;
   $('recipe-ideas-list').textContent = '';
-  $('recipe-ideas-status').textContent = t('recipeIdeasLoading');
+  const status = $('recipe-ideas-status');
+  status.textContent = t('recipeIdeasLoading');
+  status.setAttribute('aria-busy', 'true');
   dialog.showModal();
   let result;
   try {
@@ -183,15 +185,18 @@ async function runAndRender(intro, fetcher) {
     const msg = err?.message === t('errRateLimit')
       ? err.message
       : t('recipeIdeasFailed');
-    $('recipe-ideas-status').textContent = msg;
+    status.textContent = msg;
+    status.removeAttribute('aria-busy');
     return;
   }
   const recipes = Array.isArray(result?.recipes) ? result.recipes : [];
   if (recipes.length === 0) {
-    $('recipe-ideas-status').textContent = t('recipeIdeasEmpty');
+    status.textContent = t('recipeIdeasEmpty');
+    status.removeAttribute('aria-busy');
     return;
   }
-  $('recipe-ideas-status').textContent = '';
+  status.textContent = '';
+  status.removeAttribute('aria-busy');
   renderCards(recipes);
 }
 
