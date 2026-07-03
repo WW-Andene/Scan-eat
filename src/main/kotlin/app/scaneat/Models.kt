@@ -12,6 +12,7 @@ data class ScoreRequest(
     val mime: String? = null,
     val barcode: String? = null,
     val product: ProductInput? = null,
+    val preferences: UserPreferences = UserPreferences(),
 )
 
 @Serializable
@@ -58,6 +59,20 @@ data class ScoreAudit(
     val scoringNote: String = "Kotlin fallback scorer",
     val source: ScoringSource = ScoringSource.HYBRID,
     val confidenceScore: Float = 1.0f,
+    val personalScore: PersonalScore = PersonalScore(),
+)
+
+@Serializable
+data class UserPreferences(
+    val diets: List<String> = emptyList(),
+    val allergens: List<String> = emptyList(),
+)
+
+@Serializable
+data class PersonalScore(
+    val scoreCap: Int? = null,
+    val warnings: List<String> = emptyList(),
+    val matchedAllergens: List<String> = emptyList(),
 )
 
 @Serializable

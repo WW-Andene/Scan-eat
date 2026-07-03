@@ -47,7 +47,7 @@ fun Application.scanEatModule(clients: ExternalClients = ExternalClients()) {
                 body.barcode != null && product.barcode == body.barcode -> "openfoodfacts_or_fallback"
                 else -> "kotlin_fallback"
             }
-            call.respond(ScoreResponse(product, ScoringEngine.score(product), source = source, barcode = body.barcode ?: product.barcode))
+            call.respond(ScoreResponse(product, ScoringEngine.score(product, body.preferences), source = source, barcode = body.barcode ?: product.barcode))
         }
         post("/api/identify") { call.respond(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true))) }
         post("/api/identify-multi") { call.respond(mapOf("items" to listOf(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true))))) }

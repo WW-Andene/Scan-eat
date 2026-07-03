@@ -153,6 +153,48 @@ function publicValidationError(message: string): Error & { status: number; publi
   return err;
 }
 
+export function validateImageScan(body: unknown): {
+  images: Array<{ base64: string; mime: string }>;
+  barcode?: string;
+} {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    throw publicValidationError('Request body must be a JSON object');
+  }
+  const obj = body as {
+    images?: unknown;
+    imageBase64?: unknown;
+    mime?: unknown;
+    barcode?: unknown;
+  };
+  if (obj.images != null && !Array.isArray(obj.images)) {
+    throw publicValidationError('images must be an array');
+  }
+  if (obj.imageBase64 != null && typeof obj.imageBase64 !== 'string') {
+    throw publicValidationError('imageBase64 must be a string');
+  }
+  if (obj.mime != null && typeof obj.mime !== 'string') {
+    throw publicValidationError('mime must be a string');
+  }
+  if (Array.isArray(obj.images)) {
+    obj.images.forEach((img, idx) => {
+      if (!img || typeof img !== 'object' || Array.isArray(img)) {
+        throw publicValidationError(`images[${idx}] must be an object`);
+      }
+      const rec = img as { base64?: unknown; mime?: unknown };
+      if (typeof rec.base64 !== 'string' || rec.base64.trim().length === 0) {
+        throw publicValidationError(`images[${idx}].base64 is required and must be a string`);
+      }
+      if (rec.mime != null && typeof rec.mime !== 'string') {
+        throw publicValidationError(`images[${idx}].mime must be a string`);
+      }
+    });
+  }
+  return {
+    images: validateImages(normalizeImages(obj as { images?: Array<{ base64?: string; mime?: string }>; imageBase64?: string; mime?: string })),
+    barcode: validateBarcode(obj.barcode),
+  };
+}
+
 export function validateBarcode(barcode: unknown): string | undefined {
   if (barcode == null || barcode === '') return undefined;
   if (typeof barcode !== 'string') throw publicValidationError('Invalid barcode');

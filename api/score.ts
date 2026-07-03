@@ -22,10 +22,8 @@ import { fetchFromOFF, isOFFSparse, mergeOFFWithLLM, detectSourceConflicts } fro
 import { scoreProduct } from '../src/scoring-engine.ts';
 import {
   mapErrorToPublicMessage,
-  normalizeImages,
   readJsonBody,
-  validateBarcode,
-  validateImages,
+  validateImageScan,
   requirePost,
   sendJSON,
 } from './_lib.ts';
@@ -39,15 +37,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   if (!requirePost(req, res)) return;
 
   try {
-    const body = await readJsonBody<{
-      images?: Array<{ base64: string; mime?: string }>;
-      imageBase64?: string;
-      mime?: string;
-      barcode?: string;
-    }>(req);
+    const body = await readJsonBody<unknown>(req);
 
-    const images = validateImages(normalizeImages(body));
-    const barcode = validateBarcode(body.barcode);
+    const { images, barcode } = validateImageScan(body);
 
     // OFF + optional LLM hybrid path.
     if (barcode) {

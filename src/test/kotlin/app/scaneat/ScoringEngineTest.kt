@@ -37,4 +37,17 @@ class ScoringEngineTest {
         assertContains(audit.allergens, "lait")
         assertEquals(ScoringEngine.ENGINE_VERSION, audit.engineVersion)
     }
+
+    @Test fun `personal score caps products that conflict with user diets and allergens`() {
+        val sandwich = ProductInput(
+            name = "Sandwich jambon fromage",
+            ingredients = listOf(Ingredient("pain de blé"), Ingredient("jambon de porc"), Ingredient("fromage au lait")),
+            nutrition = NutritionPer100g(energy_kcal = 250.0, protein_g = 12.0, carbs_g = 30.0, fat_g = 8.0),
+        )
+        val audit = ScoringEngine.score(sandwich, UserPreferences(diets = listOf("halal", "gluten_free"), allergens = listOf("lait")))
+        assertTrue(audit.score <= 35)
+        assertContains(audit.personalScore.matchedAllergens, "lait")
+        assertTrue(audit.warnings.any { it.contains("halal") })
+        assertTrue(audit.warnings.any { it.contains("sans gluten") })
+    }
 }

@@ -71,6 +71,22 @@ export async function listPending() {
   });
 }
 
+export async function update(id, patch) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const store = tx.objectStore(STORE);
+    const getReq = store.get(id);
+    getReq.onsuccess = () => {
+      const current = getReq.result;
+      if (!current) return;
+      store.put({ ...current, ...patch, id });
+    };
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+
 export async function remove(id) {
   const db = await openDB();
   return new Promise((resolve, reject) => {

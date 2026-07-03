@@ -10,7 +10,29 @@ on:
       - main
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Build web shell
+        run: npm run build:web
+      - name: Run npm tests
+        run: npm test
+      - name: Run Kotlin tests
+        run: ./gradlew test
+
   build:
+    needs: [test]
     runs-on: ubuntu-latest
 
     steps:
@@ -35,12 +57,6 @@ jobs:
 
       - name: Build web shell
         run: npm run build:web
-
-      - name: Run npm tests
-        run: npm test
-
-      - name: Run Kotlin tests
-        run: ./gradlew test
 
       - name: Add or sync Capacitor Android project
         run: |

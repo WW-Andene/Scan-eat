@@ -32,6 +32,7 @@ import {
   sendJSON,
   validateBarcode,
   validateImages,
+  validateImageScan,
 } from '../api/_lib.ts';
 
 // --- mock helpers ------------------------------------------------------
@@ -220,6 +221,17 @@ describe('api/_lib: request validation', () => {
     assert.throws(() => validateImages([{ base64: 'not base64!', mime: 'image/jpeg' }]), /Invalid base64 image/);
     assert.throws(() => validateImages(new Array(5).fill({ base64: 'QUJDRA==', mime: 'image/jpeg' })), /Too many images/);
     assert.throws(() => validateImages([{ base64: 'A'.repeat(MAX_IMAGE_BASE64_CHARS + 4), mime: 'image/jpeg' }]), /Image too large/);
+  });
+
+  it('validates the full image-scan body before handlers use it', () => {
+    assert.deepEqual(validateImageScan({ images: [{ base64: 'QUJDRA==', mime: 'image/png' }], barcode: '12345678' }), {
+      images: [{ base64: 'QUJDRA==', mime: 'image/png' }],
+      barcode: '12345678',
+    });
+    assert.throws(() => validateImageScan(null), /JSON object/);
+    assert.throws(() => validateImageScan({ images: 'nope' }), /images must be an array/);
+    assert.throws(() => validateImageScan({ images: [{ mime: 'image/jpeg' }] }), /base64 is required/);
+    assert.throws(() => validateImageScan({ imageBase64: 42 }), /imageBase64 must be a string/);
   });
 });
 

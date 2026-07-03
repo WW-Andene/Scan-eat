@@ -16,9 +16,8 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { identifyFood } from '../src/ocr-parser.ts';
 import {
   mapErrorToPublicMessage,
-  normalizeImages,
   readJsonBody,
-  validateImages,
+  validateImageScan,
   requireGroqKey,
   requirePost,
   sendJSON,
@@ -33,10 +32,8 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   if (!requirePost(req, res)) return;
   if (!requireGroqKey(res)) return;
   try {
-    const body = await readJsonBody<{
-      images?: Array<{ base64: string; mime?: string }>;
-    }>(req);
-    const images = validateImages(normalizeImages(body));
+    const body = await readJsonBody<unknown>(req);
+    const { images } = validateImageScan(body);
     if (images.length === 0) return sendJSON(res, 400, { error: 'Missing images' });
 
     const result = await identifyFood(images);
