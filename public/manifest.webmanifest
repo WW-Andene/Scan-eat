@@ -1,0 +1,58 @@
+{
+  "name": "Scan'eat",
+  "short_name": "Scan'eat",
+  "description": "Photographie une étiquette alimentaire et obtiens un score nutritionnel sur 100, avec des drapeaux pour les additifs, les graisses saturées et les sucres.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["food", "health", "lifestyle", "utilities"],
+  "icons": [
+    { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "shared_images",
+          "accept": ["image/*"]
+        }
+      ]
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "Scanner un code-barres",
+      "short_name": "Scanner",
+      "description": "Ouvre la caméra et scanne immédiatement",
+      "url": ./?intent=scan",
+      "icons": [
+        { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }
+      ]
+    },
+    {
+      "name": "Quick Add",
+      "short_name": "Quick Add",
+      "description": "Logger un aliment sans scanner",
+      "url": ./?intent=quick-add",
+      "icons": [
+        { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }
+      ]
+    },
+    {
+      "name": "Tableau de bord",
+      "short_name": "Dashboard",
+      "description": "Voir tes calories du jour",
+      "url": ./?intent=dashboard",
+      "icons": [
+        { "src": "./icon.svg", "sizes": "any", "type": "image/svg+xml" }
+      ]
+    }
+  ]
+}

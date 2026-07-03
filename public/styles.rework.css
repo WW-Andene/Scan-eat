@@ -1,0 +1,782 @@
+/* ==========================================================================
+   Scan'eat — Design Rework Layer  (v1, 2026-06)
+   ==========================================================================
+   Drop-in after styles.refactored.css. Overrides tokens + targeted
+   component patches. No structural HTML changes required.
+
+   Design brief:
+     Emotional target: "Confident clarity" — calm, precise health authority.
+     Identity: coral paper is the brand; the grade IS the product.
+     Signature: grade chip emits a hue-matched radial glow — instant feedback.
+     Accent shift: orange CTA → amber CTA (disambiguates from coral bg).
+     Typography: Lexend owns numbers/grades/headings. Atkinson owns body.
+     Panel depth: slightly warmer near-black (coral-tinted, not grey-neutral).
+   ========================================================================== */
+
+
+/* =====================================================================
+   1. TOKEN OVERRIDES — palette calibration + typography re-role
+   ===================================================================== */
+
+:root,
+[data-theme="dark"] {
+
+  /* — Surfaces -------------------------------------------------------- */
+  /* Coral shifted to OKLCH: same hue, perceptually richer and deeper.
+     Avoids the "hot pink" flatness of the original #F54B5E at raw sRGB. */
+  --bg:               #E8435A;   /* oklch(57% 0.23 14) — calibrated coral */
+  --bg-deep:          #CB3650;   /* oklch(49% 0.22 14) — deeper companion */
+
+  /* Panel: very slightly coral-tinted near-black (hue 12, vs neutral grey).
+     Gives cards a sense of existing in the same world as the bg rather
+     than being pasted on top. */
+  --panel:            #1E1619;   /* oklch(11% 0.018 12) */
+  --panel-2:          #2C1F23;   /* oklch(16% 0.020 12) */
+  --panel-3:          #3A2A2F;   /* oklch(21% 0.020 12) */
+
+  /* — Text ------------------------------------------------------------ */
+  /* Cream gets a touch warmer: oklch(94% 0.010 55) = very slight amber warmth */
+  --text:             #F6EFDF;   /* warm cream — more papery, less clinical */
+  --muted:            #9E8F87;   /* warm muted — less grey-cold */
+
+  /* — Action ---------------------------------------------------------- */
+  /* Accent pivot: from orange (FF6B45, hue ~22°) to amber (hue ~55°).
+     Orange clashes with the coral bg in a warm-warm collision with no
+     contrast hierarchy. Amber reads as "action" while coral reads as
+     "environment" — clear separation.
+     oklch(72% 0.18 55) → hex #D4A032
+     Passes 4.6:1 against --panel (WCAG AA ✓). */
+  --accent:           #D4A032;   /* amber — unambiguous CTA */
+  --accent-hover:     #E0B048;   /* +2 lightness */
+  --accent-pressed:   #B08826;
+  --accent-focus:     #D4A032;
+  --accent-ink:       #110E07;   /* near-black on amber */
+  --accent-warm:      #E8C46B;   /* still warm for chip accents */
+
+  /* Warning recalibrated off hue 38° → 28°: at the old value (#F5B441) it
+     sat almost on top of --accent (hue ~41°), so a caution state and the
+     primary CTA read as the same color family. True orange now reads as
+     "caution", distinct from amber "action" and from the grade-ramp red
+     "danger" (hue ~352°). */
+  --warning:          #F39849;   /* oklch(76% .15 28) */
+
+  /* Gradient follows the new amber */
+  --grad-accent:      linear-gradient(135deg, #D4A032 0%, #B8832A 100%);
+  --grad-accent-dim:  linear-gradient(135deg, #B08826 0%, #9A6E22 100%);
+  --grad-accent-soft: linear-gradient(135deg, rgba(212,160,50,0.16) 0%, rgba(184,131,42,0.16) 100%);
+
+  /* Borders tinted toward coral for warmth */
+  --border:           rgba(246, 239, 223, 0.09);
+  --border-strong:    rgba(246, 239, 223, 0.20);
+
+  /* Focus glow follows amber */
+  --glow-focus:       0 0 0 3px #D4A032,
+                      0 0 0 6px rgba(212, 160, 50, 0.20);
+
+  /* Elevation shadows tinted coral-dark (panel hue) */
+  --elev-sm:          0 1px 3px rgba(30, 10, 15, 0.12),
+                      0 4px 12px rgba(30, 10, 15, 0.09);
+  --elev-md:          0 2px 6px rgba(30, 10, 15, 0.16),
+                      0 12px 28px rgba(30, 10, 15, 0.14);
+  --elev-lg:          0 4px 10px rgba(30, 10, 15, 0.20),
+                      0 24px 48px rgba(30, 10, 15, 0.24);
+  --elev-hero:        0 8px 16px rgba(30, 10, 15, 0.24),
+                      0 32px 64px rgba(30, 10, 15, 0.32);
+
+  /* — Typography roles ------------------------------------------------ */
+  /* Lexend: designed for display, numbers, headings — geometric, precise.
+     Atkinson: optimised for body reading legibility.
+     These were backwards: Lexend was assigned as --font-mono (data role),
+     Atkinson was body. We keep Atkinson as body but make Lexend the
+     display role. We use --font-display as the new variable. */
+  --font-display:     "Lexend", "Atkinson Hyperlegible", -apple-system,
+                       BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans:        "Atkinson Hyperlegible", -apple-system, BlinkMacSystemFont,
+                       "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Numeric pairing for the score/grade figures specifically (not just
+     "another display label"). Lexend is a humanist grotesque tuned for
+     reading comfort — its digits are fine in a sentence but don't have
+     much personality as a hero numeral. Space Grotesk is a true
+     companion face: a geometric grotesque cut with the same low-contrast,
+     friendly-but-precise spirit as Atkinson Hyperlegible, but with
+     distinctive open counters and slightly squared digits that make a
+     96-104 score or an "A+" chip feel engineered rather than just big.
+     Atkinson (body) -> Space Grotesk (numerals) is the real two-voice
+     pairing; Lexend stays reserved for headings/section labels so all
+     three roles read as distinct, not duplicated. */
+  --font-numeric:     "Space Grotesk", "Lexend", -apple-system,
+                       BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Type scale bump: display size up to 4rem for the score number,
+     grade chip size up to 3.25rem for the single-product hero view. */
+  --text-display:     4rem;         /* score number hero */
+  --text-3xl:         3.25rem;      /* grade chip in hero */
+
+  /* Motion: slightly longer enter for the grade reveal (900ms → 700ms
+     becomes the chip normal, grade-land stays at 900ms). */
+  --speed-base:       180ms;
+
+  /* Selection: follows amber */
+  --selection-bg:     rgba(212, 160, 50, 0.30);
+}
+
+
+/* =====================================================================
+   2. LIGHT THEME CALIBRATION
+   ===================================================================== */
+
+[data-theme="light"] {
+  /* Pale coral paper: slightly richer than the original #F8C8CF */
+  --bg:               #F5C0C9;   /* oklch(83% 0.07 14) — firmer coral paper */
+  --bg-deep:          #EDB0BA;
+
+  /* White cards stay white — pure contrast against coral paper */
+  --panel:            #FFFFFF;
+  --panel-2:          #FBF6EE;
+  --panel-3:          #F0EAE0;
+
+  /* Text stays near-black */
+  --text:             #1E1619;
+  --text-on-bg:       #1E1619;
+  --muted:            #5E5249;
+  --muted-on-bg:      rgba(30, 22, 25, 0.62);
+
+  /* Amber CTA: dark enough for white ink on light surface */
+  --accent:           #96700F;   /* oklch(52% 0.16 68) — deep amber */
+  --accent-hover:     #A87C14;
+  --accent-pressed:   #7A5A08;
+  --accent-focus:     #96700F;
+  --accent-ink:       #FFFFFF;
+  --accent-warm:      #9B7214;
+
+  /* --success and --warning were never recalibrated for light theme —
+     they inherited the dark-theme values (#6BE584, #F5B441) tuned for a
+     near-black panel. As text (e.g. .gap-closer-list[data-all-met] uses
+     color:var(--success)) that's #6BE584 on white: 1.6:1 contrast,
+     effectively invisible (needs 4.5:1). Same hue family, darkened for
+     AA on white panels. */
+  --success:          #15793E;   /* 5.47:1 on white */
+  --warning:          #914808;   /* 6.70:1 on white, same hue as dark warning */
+
+  --grad-accent:      linear-gradient(135deg, #96700F 0%, #7A5A08 100%);
+  --grad-accent-soft: linear-gradient(135deg, rgba(150,112,15,0.14) 0%, rgba(122,90,8,0.14) 100%);
+
+  --border:           rgba(30, 22, 25, 0.08);
+  --border-strong:    rgba(30, 22, 25, 0.18);
+  --border-focus:     var(--accent-focus);
+
+  --selection-bg:     rgba(150, 112, 15, 0.22);
+  --selection-fg:     var(--text);
+
+  --glow-focus:       0 0 0 3px #96700F, 0 0 0 6px rgba(150, 112, 15, 0.18);
+
+  --elev-sm:          0 1px 2px rgba(80, 30, 40, 0.08), 0 3px 10px rgba(80, 30, 40, 0.06);
+  --elev-md:          0 2px 4px rgba(80, 30, 40, 0.10), 0 10px 22px rgba(80, 30, 40, 0.09);
+  --elev-lg:          0 3px 8px rgba(80, 30, 40, 0.12), 0 20px 40px rgba(80, 30, 40, 0.12);
+  --elev-hero:        0 6px 12px rgba(80, 30, 40, 0.14), 0 28px 56px rgba(80, 30, 40, 0.16);
+
+  color-scheme: light;
+}
+
+
+/* =====================================================================
+   3. TYPOGRAPHY — apply display font role to headings + numbers
+   ===================================================================== */
+
+/* App-level headings in Lexend */
+h1, h2, h3 {
+  font-family: var(--font-display);
+}
+
+/* Score numbers and grade letters: Space Grotesk, paired against the
+   Atkinson body — a real two-voice pairing instead of reusing the
+   heading face. Tabular figures + a touch of negative tracking so
+   multi-digit scores ("96") sit as tight and confident as the "A+"
+   chip beside them. */
+.grade,
+.grade-chip,
+.score strong,
+.dash-value,
+.ws-value,
+.recent-grade,
+.compare-score {
+  font-family: var(--font-numeric);
+  font-feature-settings: "tnum" 1, "lnum" 1, "ss01" 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
+/* App name in header: Lexend, slightly tighter */
+header h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-size: 1.6rem;   /* slightly larger than text-xl */
+}
+
+
+/* =====================================================================
+   4. HEADER — clean up, reduce emoji noise, give it structure
+   ===================================================================== */
+
+header {
+  padding: 12px var(--container-pad) 0;
+  /* Add a faint bottom separator to ground the header on the coral paper */
+  border-bottom: 1px solid rgba(30, 22, 25, 0.10);
+  margin-bottom: 4px;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* Tagline: reduce visual weight — it's helpful context, not a headline */
+.tagline {
+  font-size: 0.8125rem;   /* between text-xs and text-sm */
+  opacity: 0.72;
+  padding: 4px var(--container-pad) 10px;
+  letter-spacing: 0;
+}
+
+/* Settings icon buttons: less "floating", slightly bordered for clarity */
+.settings-btn {
+  border: 1px solid rgba(30, 22, 25, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-sm);
+  min-width: 40px;
+  min-height: 40px;
+  padding: 6px;
+  font-size: 1.1rem;
+}
+.settings-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(30, 22, 25, 0.20);
+}
+[data-theme="light"] .settings-btn {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(30, 22, 25, 0.12);
+}
+[data-theme="light"] .settings-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.80);
+}
+
+
+/* =====================================================================
+   5. CAPTURE PANEL — elevate the CTA scan button
+   ===================================================================== */
+
+/* The Analyser button (#scan-btn) is a plain <button> child of .capture.
+   Override it to be the hero CTA — amber gradient, prominent, press physics. */
+.capture > #scan-btn,
+.capture > button[data-i18n="analyse"] {
+  background: var(--grad-accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: var(--r-md);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-base);
+  letter-spacing: var(--tracking-snug);
+  min-height: 52px;
+  box-shadow: var(--elev-md);
+  transition:
+    transform 150ms var(--ease-ui),
+    box-shadow 150ms var(--ease-ui),
+    filter 100ms var(--ease-ui);
+}
+.capture > #scan-btn:hover:not(:disabled),
+.capture > button[data-i18n="analyse"]:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--elev-lg);
+  filter: brightness(1.06);
+}
+.capture > #scan-btn:active:not(:disabled),
+.capture > button[data-i18n="analyse"]:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: var(--elev-sm);
+  filter: brightness(0.97);
+}
+.capture > #scan-btn:disabled,
+.capture > button[data-i18n="analyse"]:disabled {
+  background: var(--panel-3);
+  color: var(--text-disabled, rgba(246, 239, 223, 0.38));
+  border: 1px solid var(--border);
+  box-shadow: none;
+  transform: none;
+  filter: none;
+}
+
+/* Capture card itself: subtle top glow to suggest "active zone" */
+.capture {
+  border-top: 2px solid rgba(212, 160, 50, 0.18);
+}
+
+
+/* =====================================================================
+   6. CHIP BUTTONS — accent variant follows amber
+   ===================================================================== */
+
+.chip-btn.accent {
+  background: var(--grad-accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+.chip-btn.accent:hover:not(:disabled) {
+  filter: brightness(1.08);
+  border-color: transparent;
+}
+
+
+/* =====================================================================
+   7. SCORE CARD + GRADE CHIP — the signature element
+   ==========================================================================
+   SIGNATURE: grade chip emits a radial glow in its grade color.
+   Each grade has its own hue. The glow communicates the score before
+   the eye fully reads the letter. It is restrained (12px spread, 28%
+   opacity) — visible, not garish.
+   ========================================================================== */
+
+/* Score card background: deeper so the grade chip pops harder */
+.score-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+}
+
+/* Grade hero size bump — makes the letter the undeniable focal point */
+.score-card:not(.dual) .grade,
+.score-card:not(.dual) .grade-chip {
+  width: 6.5rem;
+  height: 6.5rem;
+  font-size: var(--text-3xl);
+  font-family: var(--font-numeric);
+  font-feature-settings: "tnum" 1, "lnum" 1, "ss01" 1;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  border-radius: var(--r-pill);
+  /* default glow: subtle until grade-color glow overrides below */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.28);
+  transition: box-shadow 600ms var(--ease-ui);
+}
+
+/* Dual-product (comparison) grade: same numeric pairing */
+.score-card.dual .grade,
+.score-card.dual .grade-chip {
+  font-family: var(--font-numeric);
+  font-feature-settings: "tnum" 1, "lnum" 1, "ss01" 1;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* THE SIGNATURE: grade-color glow applied to all grade-chip surfaces */
+.grade[data-grade="A+"],
+.grade-chip[data-grade="A+"] {
+  box-shadow: 0 0 0 4px rgba(107, 229, 132, 0.20),
+              0 8px 32px rgba(107, 229, 132, 0.30),
+              0 2px 8px rgba(0, 0, 0, 0.20);
+}
+.grade[data-grade="A"],
+.grade-chip[data-grade="A"] {
+  box-shadow: 0 0 0 4px rgba(163, 224, 103, 0.20),
+              0 8px 28px rgba(163, 224, 103, 0.28),
+              0 2px 8px rgba(0, 0, 0, 0.20);
+}
+.grade[data-grade="B"],
+.grade-chip[data-grade="B"] {
+  box-shadow: 0 0 0 4px rgba(245, 214, 81, 0.20),
+              0 8px 28px rgba(245, 214, 81, 0.28),
+              0 2px 8px rgba(0, 0, 0, 0.20);
+}
+.grade[data-grade="C"],
+.grade-chip[data-grade="C"] {
+  box-shadow: 0 0 0 4px rgba(245, 166, 75, 0.20),
+              0 8px 28px rgba(245, 166, 75, 0.26),
+              0 2px 8px rgba(0, 0, 0, 0.20);
+}
+.grade[data-grade="D"],
+.grade-chip[data-grade="D"] {
+  box-shadow: 0 0 0 4px rgba(245, 110, 75, 0.22),
+              0 8px 28px rgba(245, 110, 75, 0.28),
+              0 2px 8px rgba(0, 0, 0, 0.20);
+}
+.grade[data-grade="F"],
+.grade-chip[data-grade="F"] {
+  box-shadow: 0 0 0 4px rgba(229, 75, 94, 0.24),
+              0 8px 32px rgba(229, 75, 94, 0.32),
+              0 2px 8px rgba(0, 0, 0, 0.20);
+}
+
+/* Score number: Space Grotesk for the big number, slightly larger */
+.score strong {
+  font-family: var(--font-numeric);
+  font-feature-settings: "tnum" 1, "lnum" 1, "ss01" 1;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+}
+
+
+/* =====================================================================
+   8. RECENT SCANS — grade chips in list get the glow too (softer)
+   ===================================================================== */
+
+.recent-grade[data-grade="A+"] { box-shadow: 0 2px 12px rgba(107,229,132,0.25); }
+.recent-grade[data-grade="A"]  { box-shadow: 0 2px 12px rgba(163,224,103,0.22); }
+.recent-grade[data-grade="B"]  { box-shadow: 0 2px 12px rgba(245,214,81,0.22);  }
+.recent-grade[data-grade="C"]  { box-shadow: 0 2px 12px rgba(245,166,75,0.22);  }
+.recent-grade[data-grade="D"]  { box-shadow: 0 2px 12px rgba(245,110,75,0.22);  }
+.recent-grade[data-grade="F"]  { box-shadow: 0 2px 12px rgba(229,75,94,0.24);   }
+
+
+/* =====================================================================
+   9. PILLAR BARS — tint toward brand hue
+   ===================================================================== */
+
+/* Pillar progress tracks: warmer empty state */
+.pillar-bar-track {
+  background: var(--panel-3);
+}
+
+
+/* =====================================================================
+  10. DIALOGS — warmer panel surface, Lexend for dialog titles
+   ===================================================================== */
+
+dialog {
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+}
+
+dialog h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+
+/* =====================================================================
+  11. DAILY DASHBOARD KPI TILES — Space Grotesk for numbers
+   ===================================================================== */
+
+.dash-value,
+.ws-value {
+  font-family: var(--font-numeric);
+  font-feature-settings: "tnum" 1, "lnum" 1, "ss01" 1;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+
+/* =====================================================================
+  12. GRADE REVEAL ANIMATION — calibrated for the new chip size
+   ===================================================================== */
+
+@keyframes scanneat-grade-land {
+  0%   { transform: scale(0.80) translateY(-8px); opacity: 0; }
+  55%  { transform: scale(1.08) translateY(3px);  opacity: 1; }
+  75%  { transform: scale(0.97) translateY(-1px); }
+  100% { transform: scale(1)    translateY(0);    opacity: 1; }
+}
+/* Keep the grade-chip-reveal class animation but with tighter spring */
+.grade-chip-reveal {
+  animation: scanneat-grade-land 750ms var(--ease-ui) both;
+}
+
+
+/* =====================================================================
+  13. ONBOARDING + EMPTY STATES — amber CTA consistency
+   ===================================================================== */
+
+/* Onboarding next button */
+#ob-next,
+button[data-i18n="next"] {
+  background: var(--grad-accent);
+  color: var(--accent-ink);
+  border: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+#ob-next:hover:not(:disabled),
+button[data-i18n="next"]:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+
+/* =====================================================================
+  14. REDUCED MOTION — zero animation fallback
+   ===================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .grade-chip-reveal {
+    animation: none;
+  }
+  .capture > #scan-btn,
+  .capture > button[data-i18n="analyse"] {
+    transition: none;
+  }
+}
+
+
+/* =====================================================================
+  15. LIGHT THEME SURFACE TWEAKS
+   ===================================================================== */
+
+[data-theme="light"] .capture {
+  border-top-color: rgba(150, 112, 15, 0.20);
+}
+[data-theme="light"] dialog {
+  background: var(--panel);
+  border-color: var(--border-strong);
+}
+
+/* Light theme grade glows: muted (white cards absorb less shadow) */
+[data-theme="light"] .grade[data-grade="A+"],
+[data-theme="light"] .grade-chip[data-grade="A+"] {
+  box-shadow: 0 0 0 4px rgba(107, 229, 132, 0.18),
+              0 8px 28px rgba(107, 229, 132, 0.22);
+}
+[data-theme="light"] .grade[data-grade="F"],
+[data-theme="light"] .grade-chip[data-grade="F"] {
+  box-shadow: 0 0 0 4px rgba(229, 75, 94, 0.18),
+              0 8px 28px rgba(229, 75, 94, 0.26);
+}
+/* Re-apply the light F-grade outline (refactored style, ensure not lost) */
+[data-theme="light"] .grade[data-grade="F"],
+[data-theme="light"] .grade-chip[data-grade="F"],
+[data-theme="light"] .recent-grade[data-grade="F"] {
+  outline: 1px solid rgba(0, 0, 0, 0.18);
+}
+
+/* =====================================================================
+   14. TOKEN-MIGRATION GAP — leftover hardcoded orange (#FF6B45) accents
+   ===================================================================== */
+/* styles.refactored.css hardcodes the pre-rework orange as raw rgba() in
+   three animations (scanning sweep glow ×2, voice-record pulse) instead of
+   referencing --accent. The :root override above repoints --accent to
+   amber, but these never read that variable, so they kept rendering the
+   old orange — a literal "find-and-replace" gap: changing the brand accent
+   required touching 4 files instead of 1. Recalibrated to amber
+   (#D4A032 → rgb(212,160,50)) at the same opacities as the originals. */
+.capture[aria-busy="true"]::after,
+[aria-busy="true"]::before {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(212, 160, 50, 0.10) 50%,
+    transparent 100%);
+}
+@keyframes voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 160, 50, 0.45); }
+  50%      { box-shadow: 0 0 0 10px rgba(212, 160, 50, 0); }
+}
+
+/* =====================================================================
+   15. BOTTOM TAB NAVIGATION + HUB SCREENS
+   Replaces the single endless scroll + dialog-soup with four real
+   destinations. Sections opt in via data-tab="scan|journal|plan|
+   progress" (toggled by /features/tab-nav.js); this layer only owns
+   the bar's look and the room main needs to leave for it.
+   ===================================================================== */
+
+main#main-content {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+}
+
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+  padding: var(--sp-2) var(--sp-2) calc(env(safe-area-inset-bottom, 0px) + var(--sp-2));
+}
+
+.tab-bar-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-md);
+  padding: var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--speed-base, 180ms) ease, transform var(--speed-base, 180ms) ease;
+}
+.tab-bar-btn:hover { color: var(--text); }
+.tab-bar-btn:active { transform: scale(0.94); }
+.tab-bar-btn .tab-bar-icon { font-size: 1.25rem; line-height: 1; }
+.tab-bar-btn .tab-bar-label { font-size: var(--text-xs); font-weight: 600; }
+.tab-bar-btn.active {
+  color: var(--accent);
+}
+.tab-bar-btn.active .tab-bar-icon {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-bar-btn { transition: none; }
+  .tab-bar-btn:active { transform: none; }
+}
+
+/* Plan / Progress hub screens — simple card grid, each card opens the
+   existing dialog for that feature. No new dialogs, just a real entry
+   point instead of a 7-button chip row buried in the daily dashboard. */
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-3);
+  padding-top: var(--sp-2);
+}
+.hub-grid > h2 {
+  grid-column: 1 / -1;
+  margin: 0 0 var(--sp-1);
+}
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  color: var(--text);
+  cursor: pointer;
+  transition: transform var(--speed-base, 180ms) ease, border-color var(--speed-base, 180ms) ease;
+}
+.hub-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.hub-card:active { transform: translateY(0) scale(0.98); }
+.hub-card-icon { font-size: 1.75rem; }
+.hub-card-label { font-family: var(--font-display); font-weight: 700; font-size: var(--text-lg); }
+.hub-card-hint { color: var(--muted); font-size: var(--text-sm); }
+
+@media (max-width: 420px) {
+  .hub-grid { grid-template-columns: 1fr; }
+}
+
+/* Desktop: tab bar becomes a left rail instead of a bottom bar, and
+   main no longer needs to reserve bottom space for it. */
+@media (min-width: 1100px) {
+  main#main-content { padding-bottom: var(--sp-7); padding-left: 96px; }
+  .tab-bar {
+    top: 0;
+    bottom: 0;
+    right: auto;
+    width: 80px;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--sp-4);
+    padding: var(--sp-6) var(--sp-2);
+    border-top: none;
+    border-right: 1px solid var(--border);
+  }
+  .tab-bar-btn { flex: 0 0 auto; }
+}
+
+/* =====================================================================
+   16. SIGNATURE ELEMENT — the grade chip is the product; make it the
+   one bold thing on screen instead of competing with the chip-button
+   row that used to surround it.
+   ===================================================================== */
+.grade-chip {
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 12px 32px -8px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* =====================================================================
+   17. SETTINGS DIALOG — collapsible sections instead of a wall of
+   unstyled <fieldset>s (UX audit 2026-06).
+
+   Previously: 6 <fieldset class="prefs"> blocks (Lecture, Profils,
+   Rappels, Journal debug, Sauvegarde, Calibration) sat one after another
+   in a single ~170-line scroll, none of them had ANY CSS — no rule in
+   either stylesheet targeted `fieldset` or `legend` — so they rendered
+   with the bare browser-default inset border + legend, clashing with
+   the paper-notebook look everywhere else in the app. Theme/language,
+   the two settings people open this dialog for most, sat above all of
+   that, but still required scrolling past nothing to reach — the real
+   cost was reaching anything *below* them (reminders, backup) without
+   passing visual noise, and debug-only tools (telemetry log, Spearman
+   pillar calibration) being exactly as prominent as everyday prefs.
+
+   Fix: each former fieldset is now a <details class="settings-section">
+   (the same disclosure pattern already used elsewhere — .manual-barcode-
+   wrap, .qa-more, .weight-history — so this isn't a new interaction,
+   just applying an existing one consistently). Reading prefs default
+   open since they're accessibility-load-bearing; everything else
+   defaults closed. Debug/power-user sections get a quieter treatment
+   via .settings-section-advanced. ===================================================================== */
+
+.settings-section {
+  border-top: 1px solid var(--border);
+  padding-top: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+.settings-section summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-uppercase, 0.08em);
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: var(--sp-1) 0;
+}
+.settings-section summary::-webkit-details-marker { display: none; }
+.settings-section summary::after {
+  content: "▾";
+  font-size: 0.8em;
+  transform: rotate(-90deg);
+  transition: transform var(--speed-ui, 140ms) var(--ease-ui);
+  flex-shrink: 0;
+}
+.settings-section[open] > summary::after {
+  transform: rotate(0deg);
+}
+.settings-section summary:hover,
+.settings-section summary:focus-visible {
+  color: var(--text);
+}
+.settings-section summary:focus-visible {
+  outline: 2px solid var(--accent-focus);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+.settings-section-body {
+  padding-top: var(--sp-3);
+}
+
+/* Debug / power-user sections (telemetry log, pillar calibration):
+   same disclosure pattern but visually quieter so they don't compete
+   with prefs people actually adjust regularly. */
+.settings-section-advanced summary {
+  opacity: 0.78;
+}
+
+/* Backup/Profiles contain buttons that act immediately (export, import,
+   delete profile, clear telemetry) even though they live inside a
+   <form method="dialog"> with Annuler/Enregistrer at the bottom — those
+   two buttons only ever governed the plain <select>/<input> fields, not
+   these action buttons, but visually nothing said so. This note makes
+   the distinction explicit instead of letting people assume "Annuler"
+   is a safety net for everything in the dialog. */
+.settings-immediate-note {
+  color: var(--warning);
+  font-weight: 600;
+}

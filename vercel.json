@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/score.ts": {
+      "maxDuration": 30
+    },
+    "api/identify.ts": {
+      "maxDuration": 30
+    },
+    "api/identify-multi.ts": {
+      "maxDuration": 30
+    },
+    "api/identify-menu.ts": {
+      "maxDuration": 30
+    },
+    "api/identify-recipe.ts": {
+      "maxDuration": 30
+    },
+    "api/suggest-recipes.ts": {
+      "maxDuration": 30
+    },
+    "api/suggest-from-pantry.ts": {
+      "maxDuration": 30
+    },
+    "api/fetch-recipe.ts": {
+      "maxDuration": 15
+    }
+  }
+}
