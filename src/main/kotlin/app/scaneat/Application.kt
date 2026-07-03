@@ -6,7 +6,6 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -23,7 +22,6 @@ fun main() {
 fun Application.scanEatModule(clients: ExternalClients = ExternalClients()) {
     val appLog = environment.log
     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true; explicitNulls = false; prettyPrint = false }) }
-    install(CORS) { anyHost(); allowHeader(HttpHeaders.ContentType); allowMethod(HttpMethod.Post); allowMethod(HttpMethod.Get) }
     install(StatusPages) {
         exception<IllegalArgumentException> { call, cause ->
             call.respond(HttpStatusCode.BadRequest, mapOf("error" to (cause.message ?: "Invalid request")))
@@ -46,7 +44,7 @@ fun Application.scanEatModule(clients: ExternalClients = ExternalClients()) {
                 body.product != null -> "manual_or_client_product"
                 lookup?.product != null -> lookup.source
                 images.isNotEmpty() -> "native_image_fallback"
-                body.barcode != null -> lookup?.source ?: "barcode_fallback"
+                body.barcode != null -> lookup?.source ?: "native_catalog_fallback"
                 else -> "native_fallback"
             }
             val warnings = buildList {
@@ -57,11 +55,11 @@ fun Application.scanEatModule(clients: ExternalClients = ExternalClients()) {
         }
         post("/api/identify") { call.respond(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true), clients)) }
         post("/api/identify-multi") { call.respond(IdentifyMultiResponse(listOf(identifyFallback(call.receive<ScoreRequest>().validated(requireSignal = true), clients)))) }
-        post("/api/identify-menu") { call.respond(clients.proxyOrUnavailable("identify-menu", call.receiveText())) }
-        post("/api/identify-recipe") { call.respond(clients.proxyOrUnavailable("identify-recipe", call.receiveText())) }
-        post("/api/suggest-recipes") { call.respond(clients.proxyOrUnavailable("suggest-recipes", call.receiveText())) }
-        post("/api/suggest-from-pantry") { call.respond(clients.proxyOrUnavailable("suggest-from-pantry", call.receiveText())) }
-        post("/api/fetch-recipe") { call.respond(clients.proxyOrUnavailable("fetch-recipe", call.receiveText())) }
+        post("/api/identify-menu") { call.respond(clients.identifyMenu(call.receiveText())) }
+        post("/api/identify-recipe") { call.respond(clients.identifyRecipe(call.receiveText())) }
+        post("/api/suggest-recipes") { call.respond(clients.suggestRecipes(call.receiveText())) }
+        post("/api/suggest-from-pantry") { call.respond(clients.suggestFromPantry(call.receiveText())) }
+        post("/api/fetch-recipe") { call.respond(clients.fetchRecipe(call.receiveText())) }
     }
 }
 
