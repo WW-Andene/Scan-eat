@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
-import fr.scanneat.data.repository.ActivityEntry
-import fr.scanneat.data.repository.ActivityRepository
-import fr.scanneat.data.repository.ActivityType
+import fr.scanneat.data.repository.health.ActivityEntry
+import fr.scanneat.data.repository.health.ActivityRepository
+import fr.scanneat.data.repository.health.ActivityType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

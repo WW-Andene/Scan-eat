@@ -6,6 +6,20 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import fr.scanneat.data.local.db.activity.ActivityDao
+import fr.scanneat.data.local.db.activity.ActivityEntity
+import fr.scanneat.data.local.db.consumption.ConsumptionDao
+import fr.scanneat.data.local.db.consumption.ConsumptionEntity
+import fr.scanneat.data.local.db.customfood.CustomFoodDao
+import fr.scanneat.data.local.db.customfood.CustomFoodEntity
+import fr.scanneat.data.local.db.recipe.RecipeDao
+import fr.scanneat.data.local.db.recipe.RecipeEntity
+import fr.scanneat.data.local.db.scan.ScanHistoryDao
+import fr.scanneat.data.local.db.scan.ScanHistoryEntity
+import fr.scanneat.data.local.db.template.MealTemplateDao
+import fr.scanneat.data.local.db.template.MealTemplateEntity
+import fr.scanneat.data.local.db.weight.WeightDao
+import fr.scanneat.data.local.db.weight.WeightEntity
 
 @Database(
     entities = [

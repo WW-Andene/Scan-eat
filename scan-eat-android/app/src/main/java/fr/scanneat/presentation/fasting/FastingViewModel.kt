@@ -3,9 +3,9 @@ package fr.scanneat.presentation.fasting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.FastCompletion
-import fr.scanneat.data.repository.FastingRepository
-import fr.scanneat.data.repository.FastingState
+import fr.scanneat.data.repository.health.FastCompletion
+import fr.scanneat.data.repository.health.FastingRepository
+import fr.scanneat.data.repository.health.FastingState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

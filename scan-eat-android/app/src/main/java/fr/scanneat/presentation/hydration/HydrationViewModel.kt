@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
-import fr.scanneat.data.repository.HydrationRepository
+import fr.scanneat.data.repository.health.HydrationRepository
 import java.time.LocalDate
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

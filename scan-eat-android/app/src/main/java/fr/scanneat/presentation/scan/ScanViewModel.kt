@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.ImagePayload
-import fr.scanneat.data.repository.ScanRepository
+import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

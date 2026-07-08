@@ -20,8 +20,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.RecipeRepository
-import fr.scanneat.domain.engine.*
+import fr.scanneat.data.repository.planning.RecipeRepository
+import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nutrition.*
+import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject

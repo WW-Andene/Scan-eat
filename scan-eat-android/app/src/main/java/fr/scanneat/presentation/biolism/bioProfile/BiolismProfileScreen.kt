@@ -20,7 +20,7 @@ import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel(), theme: String = "oled") {
+fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
     val profile = viewModel.profile.collectAsStateWithLifecycle()
     val saved   = viewModel.saved.collectAsStateWithLifecycle()
 

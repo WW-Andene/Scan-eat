@@ -3,8 +3,8 @@ package fr.scanneat.presentation.diary
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.ConsumptionRepository
-import fr.scanneat.data.repository.DayNotesRepository
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import fr.scanneat.domain.model.DailySummary
 import fr.scanneat.domain.model.DiaryEntry
 import kotlinx.coroutines.ExperimentalCoroutinesApi

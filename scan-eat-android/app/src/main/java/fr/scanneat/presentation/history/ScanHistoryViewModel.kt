@@ -3,7 +3,7 @@ package fr.scanneat.presentation.history
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.ScanRepository
+import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
-import fr.scanneat.domain.engine.*
+import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nutrition.*
+import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

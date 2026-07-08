@@ -24,7 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.ScanRepository
+import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*

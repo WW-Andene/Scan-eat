@@ -19,7 +19,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
-import fr.scanneat.data.repository.HydrationRepository
+import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

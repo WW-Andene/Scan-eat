@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.scanneat.domain.engine.FoodEntry
+import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable

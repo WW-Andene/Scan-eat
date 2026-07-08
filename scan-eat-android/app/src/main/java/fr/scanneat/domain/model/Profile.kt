@@ -31,10 +31,10 @@ data class Profile(
     val goalWeightKg: Double? = null,
     val activityLevel: ActivityLevel = ActivityLevel.MODERATELY_ACTIVE,
     val goal: Goal = Goal.MAINTAIN,
-    // DietKey lives in domain/engine/DietChecker.kt
-    val diet: fr.scanneat.domain.engine.DietKey = fr.scanneat.domain.engine.DietKey.NONE,
+    // DietKey lives in domain/engine/scoring/DietChecker.kt
+    val diet: fr.scanneat.domain.engine.scoring.DietKey = fr.scanneat.domain.engine.scoring.DietKey.NONE,
     val allergens: Set<String> = emptySet(),
     val isMenstruating: Boolean = false,
 )
-// NOTE: DailyTargets is defined in domain/engine/PersonalScoreEngine.kt (canonical location).
+// NOTE: DailyTargets is defined in domain/engine/scoring/PersonalScoreEngine.kt (canonical location).
 // Do NOT add a second DailyTargets here.

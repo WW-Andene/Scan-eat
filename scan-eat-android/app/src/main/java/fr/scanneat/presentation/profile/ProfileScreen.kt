@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.scanneat.domain.engine.DietKey
+import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt

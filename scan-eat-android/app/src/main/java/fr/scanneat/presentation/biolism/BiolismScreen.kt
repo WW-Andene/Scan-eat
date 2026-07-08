@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import fr.scanneat.presentation.biolism.bioProfile.BiolismProfileScreen
-import fr.scanneat.presentation.ui.theme.BiolismTokens
 import fr.scanneat.presentation.biolism.data.DataScreen
 import fr.scanneat.presentation.biolism.tracker.TrackerScreen
 import fr.scanneat.presentation.ui.theme.*
@@ -22,11 +21,11 @@ private enum class BiolismTab(val label: String) {
 }
 
 @Composable
-fun BiolismScreen(theme: String = "oled") {
+fun BiolismScreen() {
     var activeTab by remember { mutableStateOf(BiolismTab.TRACKER) }
 
-    val bgColor = BiolismTokens.background(theme)
-    val fgColor = BiolismTokens.onBackground(theme)
+    val bgColor = MaterialTheme.colorScheme.background
+    val fgColor = MaterialTheme.colorScheme.onBackground
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
         // ── Internal 3-tab header ─────────────────────────────────────────────
         Column(
@@ -37,7 +36,7 @@ fun BiolismScreen(theme: String = "oled") {
                 .padding(top = 12.dp, bottom = 8.dp),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Biolism", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 22.sp), color = BiolismTokens.gold(theme))
+                Text("Biolism", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 22.sp), color = LocalGoldAccent.current)
             }
             Text("Métabolisme · Science · Précision", style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
             Spacer(Modifier.height(10.dp))
@@ -59,7 +58,7 @@ fun BiolismScreen(theme: String = "oled") {
                             tab.label,
                             modifier = Modifier.padding(vertical = 8.dp),
                             style = MaterialTheme.typography.labelMedium,
-                            color = if (isActive) BiolismTokens.gold(theme) else fgColor.copy(0.5f),
+                            color = if (isActive) LocalGoldAccent.current else fgColor.copy(0.5f),
                             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
                             textAlign = TextAlign.Center,
                         )
@@ -73,9 +72,9 @@ fun BiolismScreen(theme: String = "oled") {
         // ── Tab content ───────────────────────────────────────────────────────
         Box(modifier = Modifier.fillMaxSize()) {
             when (activeTab) {
-                BiolismTab.TRACKER -> TrackerScreen(theme = theme)
-                BiolismTab.DATA    -> DataScreen(theme = theme)
-                BiolismTab.PROFILE -> BiolismProfileScreen(theme = theme)
+                BiolismTab.TRACKER -> TrackerScreen()
+                BiolismTab.DATA    -> DataScreen()
+                BiolismTab.PROFILE -> BiolismProfileScreen()
             }
         }
     }

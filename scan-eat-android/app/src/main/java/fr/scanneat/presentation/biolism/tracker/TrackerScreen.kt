@@ -21,12 +21,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.domain.engine.biolism.*
-import fr.scanneat.presentation.ui.theme.BiolismTokens
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
 
 @Composable
-fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel(), theme: String = "oled") {
+fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     val profile   = viewModel.profile.collectAsStateWithLifecycle()
     val timer     = viewModel.timerState.collectAsStateWithLifecycle()
     val elapsedMs = viewModel.elapsedMs.collectAsStateWithLifecycle()
@@ -57,7 +56,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel(), theme: String =
         "Warm"   -> Warm;    "Severe"-> Severe;  else     -> Teal
     }
 
-    val bgColor = BiolismTokens.background(theme)
+    val bgColor = MaterialTheme.colorScheme.background
     Column(
         modifier = Modifier
             .fillMaxSize()

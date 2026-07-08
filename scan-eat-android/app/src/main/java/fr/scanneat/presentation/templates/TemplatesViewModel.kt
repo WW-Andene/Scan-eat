@@ -3,9 +3,9 @@ package fr.scanneat.presentation.templates
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.ConsumptionRepository
-import fr.scanneat.data.repository.MealTemplate
-import fr.scanneat.data.repository.MealTemplateRepository
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.planning.MealTemplate
+import fr.scanneat.data.repository.planning.MealTemplateRepository
 import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

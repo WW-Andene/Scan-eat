@@ -1,0 +1,49 @@
+name: Android Build
+
+on:
+  push:
+    paths:
+      - "scan-eat-android/**"
+      - ".github/workflows/android-build.yml"
+  pull_request:
+    paths:
+      - "scan-eat-android/**"
+      - ".github/workflows/android-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scan-eat-android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run unit tests
+        run: ./gradlew test --stacktrace
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-eat-debug-apk
+          path: scan-eat-android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

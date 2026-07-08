@@ -23,11 +23,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.data.repository.biolism.BiolismRepository.MealEntry
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
-import fr.scanneat.presentation.ui.theme.BiolismTokens
 import kotlin.math.*
 
 @Composable
-fun DataScreen(viewModel: DataViewModel = hiltViewModel(), theme: String = "oled") {
+fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val profile  = viewModel.profile.collectAsStateWithLifecycle()
     val timer    = viewModel.timer.collectAsStateWithLifecycle()
     val m        = viewModel.metabolics.collectAsStateWithLifecycle()
@@ -41,7 +40,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), theme: String = "oled
     val s   = timer.value
 
     if (met == null) {
-        val bgColor = BiolismTokens.background(theme)
+        val bgColor = MaterialTheme.colorScheme.background
         Box(Modifier.fillMaxSize().background(bgColor), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("⚗️", fontSize = 48.sp)
@@ -52,8 +51,8 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), theme: String = "oled
         return
     }
 
+    val bgColor2 = MaterialTheme.colorScheme.background
     LazyColumn(
-        val bgColor2 = BiolismTokens.background(theme)
         modifier = Modifier.fillMaxSize().background(bgColor2),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),

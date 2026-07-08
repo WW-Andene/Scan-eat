@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
-import fr.scanneat.data.repository.WeightEntry
-import fr.scanneat.data.repository.WeightRepository
-import fr.scanneat.data.repository.WeightSummary
-import fr.scanneat.domain.engine.WeightForecast
-import fr.scanneat.domain.engine.weightForecast
+import fr.scanneat.data.repository.health.WeightEntry
+import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.data.repository.health.WeightSummary
+import fr.scanneat.domain.engine.dashboard.WeightForecast
+import fr.scanneat.domain.engine.dashboard.weightForecast
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate

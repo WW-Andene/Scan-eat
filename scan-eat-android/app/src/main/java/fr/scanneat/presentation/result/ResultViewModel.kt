@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
-import fr.scanneat.data.repository.ComparisonRepository
-import fr.scanneat.data.repository.ComparisonResult
-import fr.scanneat.data.repository.ConsumptionRepository
-import fr.scanneat.data.repository.ScanRepository
-import fr.scanneat.domain.engine.*
-import fr.scanneat.domain.engine.PairingsDb
+import fr.scanneat.data.repository.scan.ComparisonRepository
+import fr.scanneat.data.repository.scan.ComparisonResult
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nutrition.*
+import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -69,7 +71,7 @@ class ResultViewModel @Inject constructor(
             val personal   = computePersonalScore(scan.audit, scan.product, profile)
             val comparison = if (comparisonRepo.isArmed.first()) comparisonRepo.compare(scan)
                              else { comparisonRepo.arm(scan); null }
-            val pairs      = PairingsDb.findPairings(scan.product.name, limit = 5)
+            val pairs      = findPairings(scan.product.name, limit = 5)
 
             emit(ScanLoad.Loaded(scan, personal, comparison, pairs))
         }

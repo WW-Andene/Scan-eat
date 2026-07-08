@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
-import fr.scanneat.data.repository.ConsumptionRepository
-import fr.scanneat.data.repository.ScanRepository
-import fr.scanneat.data.repository.WeightRepository
-import fr.scanneat.domain.engine.*
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nutrition.*
+import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import fr.scanneat.domain.model.DiaryEntry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,7 +24,7 @@ data class DashboardUiState(
     val streak: Int = 0,
     val weekly: RollupResult? = null,
     val weekDelta: WeekOverWeekDelta? = null,
-    val weightSummary: fr.scanneat.data.repository.WeightSummary? = null,
+    val weightSummary: fr.scanneat.data.repository.health.WeightSummary? = null,
     val weightForecast: WeightForecast = WeightForecast.InsufficientData,
     val gapSuggestions: List<GapEntry> = emptyList(),
     val recentScans: List<ScanResult> = emptyList(),

@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val theme = prefs.theme.collectAsState(initial = "oled").value
             ScanEatTheme(theme = theme) {
-                MainShell(startOnboarding = needsOnboarding, theme = theme)
+                MainShell(startOnboarding = needsOnboarding)
             }
         }
     }

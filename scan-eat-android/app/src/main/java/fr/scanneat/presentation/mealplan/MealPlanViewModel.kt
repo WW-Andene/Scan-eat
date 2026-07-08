@@ -3,9 +3,9 @@ package fr.scanneat.presentation.mealplan
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.DayPlan
-import fr.scanneat.data.repository.MealPlanRepository
-import fr.scanneat.data.repository.MealPlanSlot
+import fr.scanneat.data.repository.planning.DayPlan
+import fr.scanneat.data.repository.planning.MealPlanRepository
+import fr.scanneat.data.repository.planning.MealPlanSlot
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate

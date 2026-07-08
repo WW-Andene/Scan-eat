@@ -3,10 +3,10 @@ package fr.scanneat.presentation.recipes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.ConsumptionRepository
-import fr.scanneat.data.repository.Recipe
-import fr.scanneat.data.repository.RecipeComponent
-import fr.scanneat.data.repository.RecipeRepository
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.planning.Recipe
+import fr.scanneat.data.repository.planning.RecipeComponent
+import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch

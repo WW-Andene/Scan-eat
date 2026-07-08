@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Barcode / scan-line mark, kept inside the ~66dp adaptive-icon safe zone -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M31,34 h6 v40 h-6 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M41,34 h6 v40 h-6 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M51,34 h10 v40 h-10 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M65,34 h6 v40 h-6 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M75,34 h6 v40 h-6 z" />
+</vector>

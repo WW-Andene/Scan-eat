@@ -19,7 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.scanneat.domain.engine.*
+import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nutrition.*
+import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 
@@ -93,7 +96,7 @@ fun ResultScreen(
 private fun ResultContent(
     scan: ScanResult,
     personalScore: PersonalScoreResult?,
-    comparisonResult: fr.scanneat.data.repository.ComparisonResult? = null,
+    comparisonResult: fr.scanneat.data.repository.scan.ComparisonResult? = null,
     pairings: List<String> = emptyList(),
     modifier: Modifier = Modifier,
 ) {

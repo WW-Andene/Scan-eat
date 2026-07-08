@@ -18,7 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.scanneat.domain.engine.*
+import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nutrition.*
+import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
@@ -284,7 +287,7 @@ private fun WeekDeltaCard(delta: WeekOverWeekDelta) {
 }
 
 @Composable
-private fun WeightCard(summary: fr.scanneat.data.repository.WeightSummary, forecast: WeightForecast) {
+private fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary, forecast: WeightForecast) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Poids", style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)

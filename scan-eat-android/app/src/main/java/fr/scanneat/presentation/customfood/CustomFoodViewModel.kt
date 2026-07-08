@@ -3,8 +3,8 @@ package fr.scanneat.presentation.customfood
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import fr.scanneat.data.repository.CustomFoodRepository
-import fr.scanneat.domain.engine.FoodEntry
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.domain.engine.nutrition.FoodEntry
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
