@@ -146,7 +146,6 @@ fun DiaryScreen(
             )
         }
     }
-}
 
 @Composable
 private fun MacroSummaryCard(totals: ConsumedNutrition) {

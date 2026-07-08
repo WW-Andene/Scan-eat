@@ -105,7 +105,7 @@ class CustomFoodRepository @Inject constructor(private val dao: CustomFoodDao) {
     )
 
     @JsonClass(generateAdapter = true)
-    private data class CustomFoodJson(
+    internal data class CustomFoodJson(
         val kcal: Double = 0.0,
         val proteinG: Double = 0.0,
         val carbsG: Double = 0.0,
