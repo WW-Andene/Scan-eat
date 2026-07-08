@@ -398,9 +398,9 @@ private fun HeroCard(
             // Substrate bar
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
-                    Box(Modifier.weight(fatFrac.coerceAtLeast(0.01f).toFloat()).fillMaxHeight().background(if (ketosisOn) Teal else Warm))
-                    Box(Modifier.weight(carbFrac.coerceAtLeast(0.01f).toFloat()).fillMaxHeight().background(Gold.copy(0.6f)))
-                    Box(Modifier.weight(protFrac.coerceAtLeast(0.01f).toFloat()).fillMaxHeight().background(Violet.copy(0.7f)))
+                    Box(Modifier.weight(fatFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(if (ketosisOn) Teal else Warm))
+                    Box(Modifier.weight(carbFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Gold.copy(0.6f)))
+                    Box(Modifier.weight(protFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Violet.copy(0.7f)))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SubstrateLegendItem(if (ketosisOn) Teal else Warm, "Graisses $fatPct%")

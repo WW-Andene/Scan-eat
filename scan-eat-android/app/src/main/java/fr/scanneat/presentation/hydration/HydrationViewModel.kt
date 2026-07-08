@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
 import fr.scanneat.data.repository.health.HydrationRepository
 import java.time.LocalDate
 import kotlinx.coroutines.flow.*
@@ -20,7 +21,7 @@ class HydrationViewModel @Inject constructor(
 
     val goal: StateFlow<Int> = prefs.profile
         .map { repo.goalMl(it.weightKg) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HydrationRepository.HYD_DEFAULT_GOAL_ML)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
 
     fun addGlass()    = viewModelScope.launch { repo.addGlass() }
     fun removeGlass() = viewModelScope.launch { repo.removeGlass() }

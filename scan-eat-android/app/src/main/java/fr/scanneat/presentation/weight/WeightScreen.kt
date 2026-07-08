@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.presentation.ui.theme.*
 import java.time.format.DateTimeFormatter
 

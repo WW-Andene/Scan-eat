@@ -434,9 +434,8 @@ private fun CaloricBalanceCard(
                                "G g"  to editCarb to { v: String -> editCarb = v },
                                "L g"  to editFat  to { v: String -> editFat  = v },
                         ).forEach { (labelVal, setter) ->
-                            val (lv, set) = labelVal
-                            val (l, v) = lv
-                            OutlinedTextField(value = v, onValueChange = set, label = { Text(l, fontSize = 10.sp) },
+                            val (l, v) = labelVal
+                            OutlinedTextField(value = v, onValueChange = setter, label = { Text(l, fontSize = 10.sp) },
                                 modifier = Modifier.weight(1f), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Teal, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
                         }

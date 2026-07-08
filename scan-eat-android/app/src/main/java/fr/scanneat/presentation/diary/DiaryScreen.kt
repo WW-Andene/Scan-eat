@@ -32,8 +32,8 @@ fun DiaryScreen(
 ) {
     val summary      = viewModel.summary.collectAsStateWithLifecycle()
     val selectedDate = viewModel.selectedDate.collectAsStateWithLifecycle()
-    val isToday      = viewModel.isToday.collectAsStateWithLifecycle(initial = true)
-    val dayNote      = viewModel.dayNote.collectAsStateWithLifecycle(initial = "")
+    val isToday      = viewModel.isToday.collectAsStateWithLifecycle(initialValue = true)
+    val dayNote      = viewModel.dayNote.collectAsStateWithLifecycle(initialValue = "")
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     // Fix 9: initialise to empty on date change; LaunchedEffect collects the stored
     // note once per date and sets it — won't fire again while the user is typing because

@@ -1,5 +1,6 @@
 package fr.scanneat.domain.engine.nutrition
 
+import fr.scanneat.domain.engine.scoring.inferCategoryFromName
 import fr.scanneat.domain.model.*
 
 // ============================================================================

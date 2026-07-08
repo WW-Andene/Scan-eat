@@ -11,6 +11,7 @@ import fr.scanneat.domain.model.ScoreAudit
 import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.ScanSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton

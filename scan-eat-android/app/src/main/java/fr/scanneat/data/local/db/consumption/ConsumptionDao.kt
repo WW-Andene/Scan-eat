@@ -15,6 +15,9 @@ interface ConsumptionDao {
     @Query("SELECT * FROM consumption_log WHERE date BETWEEN :from AND :to AND profileId = :profileId ORDER BY date ASC, loggedAt ASC")
     suspend fun getRange(from: String, to: String, profileId: String = "default"): List<ConsumptionEntity>
 
+    @Query("SELECT * FROM consumption_log WHERE date BETWEEN :from AND :to AND profileId = :profileId ORDER BY date ASC, loggedAt ASC")
+    fun observeRange(from: String, to: String, profileId: String = "default"): Flow<List<ConsumptionEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ConsumptionEntity): Long
 

@@ -374,7 +374,7 @@ private fun PillarsSection(pillars: ScoreAudit.Pillars) {
 
 @Composable
 private fun PillarRow(pillar: PillarScore) {
-    val ratio = (pillar.score / pillar.max.toFloat()).coerceIn(0f, 1f)
+    val ratio = (pillar.score.toFloat() / pillar.max.toFloat()).coerceIn(0f, 1f)
     val color = when { ratio >= 0.7f -> FlagGreen; ratio >= 0.4f -> AmberWarning; else -> FlagRed }
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

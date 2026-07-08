@@ -20,7 +20,7 @@ interface OpenFoodFactsApi {
     ): OffResponse
 }
 
-const val OFF_FIELDS = listOf(
+val OFF_FIELDS = listOf(
     "product_name", "product_name_fr", "generic_name_fr", "brands",
     "categories_tags", "ingredients_text_fr", "ingredients_text",
     "nova_group", "nutriments", "labels_tags", "origins", "countries_tags",

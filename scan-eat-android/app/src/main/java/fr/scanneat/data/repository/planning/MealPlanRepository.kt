@@ -131,7 +131,7 @@ class MealPlanRepository @Inject constructor(
         for (line in raw.lines()) {
             val parts = line.split("|", limit = 5)
             if (parts.size < 5) continue
-            val (dateStr, meal, kind, id, nameOrText) = parts
+            val dateStr = parts[0]; val meal = parts[1]; val kind = parts[2]; val id = parts[3]; val nameOrText = parts[4]
             val date = runCatching { LocalDate.parse(dateStr) }.getOrNull() ?: continue
             val slot: MealPlanSlot = when (kind) {
                 "recipe"   -> MealPlanSlot.RecipeSlot(id, nameOrText)
