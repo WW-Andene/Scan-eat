@@ -1,0 +1,27 @@
+### Gradle / Kotlin ###
+.gradle/
+.kotlin/
+build/
+**/build/
+out/
+
+### Android ###
+*.apk
+*.aab
+*.ap_
+*.dex
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+### IDE ###
+.idea/
+*.iml
+.vscode/
+
+### OS ###
+.DS_Store
+
+### Env ###
+.env

@@ -1,0 +1,310 @@
+package fr.scanneat.service
+
+import fr.scanneat.model.ImageDto
+import fr.scanneat.shared.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
+import org.slf4j.LoggerFactory
+
+// ============================================================================
+// LLM LABEL PARSER (Server)
+// Port of src/ocr-parser.ts for the Ktor backend.
+// Uses GroqService for all LLM calls.
+// ============================================================================
+
+private val log = LoggerFactory.getLogger("LlmLabelParser")
+private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+
+// ---- LLM DTO ----
+
+@Serializable
+private data class LlmProductDto(
+    val name: String? = null,
+    val category: String? = null,
+    val nova_class: Int? = null,
+    val ingredients: List<LlmIngredientDto>? = null,
+    val nutrition: LlmNutritionDto? = null,
+    val organic: Boolean? = null,
+    val whole_grain_primary: Boolean? = null,
+    val fermented: Boolean? = null,
+    val has_health_claims: Boolean? = null,
+    val has_misleading_marketing: Boolean? = null,
+    val named_oils: Boolean? = null,
+    val origin: String? = null,
+    val weight_g: Double? = null,
+    val barcode: String? = null,
+)
+
+@Serializable
+private data class LlmIngredientDto(
+    val name: String? = null,
+    val percentage: Double? = null,
+    val e_number: String? = null,
+    val category: String? = null,
+    val is_whole_food: Boolean? = null,
+)
+
+@Serializable
+private data class LlmNutritionDto(
+    val energy_kcal: Double? = null,
+    val fat_g: Double? = null,
+    val saturated_fat_g: Double? = null,
+    val carbs_g: Double? = null,
+    val sugars_g: Double? = null,
+    val added_sugars_g: Double? = null,
+    val fiber_g: Double? = null,
+    val protein_g: Double? = null,
+    val salt_g: Double? = null,
+    val trans_fat_g: Double? = null,
+    val iron_mg: Double? = null,
+    val calcium_mg: Double? = null,
+    val magnesium_mg: Double? = null,
+    val potassium_mg: Double? = null,
+    val zinc_mg: Double? = null,
+    val vit_a_ug: Double? = null,
+    val vit_c_mg: Double? = null,
+    val vit_d_ug: Double? = null,
+    val vit_e_mg: Double? = null,
+    val vit_k_ug: Double? = null,
+    val b12_ug: Double? = null,
+)
+
+// ---- Prompts ----
+
+private fun labelPrompt(lang: String) = """
+You are a food label OCR and structuring assistant.
+Read the food packaging image and extract as raw JSON (no markdown, no preamble):
+
+{
+  "name": "<product name>",
+  "category": "<sandwich|ready_meal|bread|breakfast_cereal|yogurt|cheese|processed_meat|fresh_meat|fish|snack_sweet|snack_salty|beverage_soft|beverage_juice|beverage_water|condiment|oil_fat|other>",
+  "nova_class": <1|2|3|4>,
+  "ingredients": [{ "name": "<name>", "percentage": <number|null>, "e_number": "<Exxx|null>", "category": "<food|additive|processing_aid|null>", "is_whole_food": <true|false|null> }],
+  "nutrition": { "energy_kcal":<n>, "fat_g":<n>, "saturated_fat_g":<n>, "carbs_g":<n>, "sugars_g":<n>, "added_sugars_g":<n|null>, "fiber_g":<n>, "protein_g":<n>, "salt_g":<n>, "trans_fat_g":<n|null>, "iron_mg":<n|null>, "calcium_mg":<n|null>, "magnesium_mg":<n|null>, "potassium_mg":<n|null>, "zinc_mg":<n|null>, "vit_a_ug":<n|null>, "vit_c_mg":<n|null>, "vit_d_ug":<n|null>, "vit_e_mg":<n|null>, "b12_ug":<n|null> },
+  "organic": <true|false>, "whole_grain_primary": <true|false>, "fermented": <true|false>,
+  "has_health_claims": <true|false>, "has_misleading_marketing": <true|false>,
+  "named_oils": <true|false|null>, "origin": "<country|null>", "weight_g": <number|null>,
+  "barcode": "<EAN/UPC if visible|null>"
+}
+
+Rules: all values per 100g. Use null for unreadable values. Preserve E-numbers exactly. Language: $lang.
+Output ONLY the JSON.
+""".trimIndent()
+
+private val identifyFoodPrompt = """
+Identify the food in this image. Return JSON with the same schema as a food label.
+Set ingredients to [] if it's a whole food. Estimate nutrition per 100g conservatively.
+Output ONLY the JSON, no markdown.
+""".trimIndent()
+
+private val identifyMultiPrompt = """
+This image shows multiple distinct foods. Return a JSON object:
+{ "items": [ { <same schema as single food label> }, ... ] }
+One entry per distinct food item visible. Output ONLY the JSON.
+""".trimIndent()
+
+private val identifyMenuPrompt = """
+This is a restaurant menu. Extract all dishes you can read. Return:
+{ "dishes": [ { "name": "<dish name>", "description": "<brief>", "estimated_kcal": <int|null>, "protein_g": <double|null> } ] }
+Output ONLY the JSON.
+""".trimIndent()
+
+private val identifyRecipePrompt = """
+This is a recipe card or cookbook page. Extract the recipe. Return:
+{
+  "name": "<recipe name>",
+  "servings": <int|null>,
+  "ingredients": [ { "name": "<ingredient>", "quantity": "<amount>", "unit": "<unit>" } ],
+  "steps": [ "<step 1>", "<step 2>", ... ],
+  "cook_time_min": <int|null>
+}
+Output ONLY the JSON.
+""".trimIndent()
+
+// ---- Mapping ----
+
+private fun mapToProduct(dto: LlmProductDto): Product {
+    val n = dto.nutrition
+    return Product(
+        name      = dto.name?.trim() ?: "(produit sans nom)",
+        category  = ProductCategory.fromKey(dto.category ?: "other"),
+        novaClass = NovaClass.fromInt(dto.nova_class ?: 4),
+        ingredients = dto.ingredients?.mapNotNull { ing ->
+            val name = ing.name?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            Ingredient(
+                name        = name,
+                percentage  = ing.percentage,
+                eNumber     = ing.e_number?.uppercase()?.takeIf { Regex("^E\\d{3}").containsMatchIn(it) },
+                category    = when (ing.category?.lowercase()) {
+                    "additive"        -> IngredientCategory.ADDITIVE
+                    "processing_aid"  -> IngredientCategory.PROCESSING_AID
+                    else              -> IngredientCategory.FOOD
+                },
+                isWholeFood = ing.is_whole_food,
+            )
+        } ?: emptyList(),
+        nutrition = NutritionPer100g(
+            energyKcal    = n?.energy_kcal ?: 0.0,
+            fatG          = n?.fat_g ?: 0.0,
+            saturatedFatG = n?.saturated_fat_g ?: 0.0,
+            carbsG        = n?.carbs_g ?: 0.0,
+            sugarsG       = n?.sugars_g ?: 0.0,
+            addedSugarsG  = n?.added_sugars_g,
+            fiberG        = n?.fiber_g ?: 0.0,
+            proteinG      = n?.protein_g ?: 0.0,
+            saltG         = n?.salt_g ?: 0.0,
+            transFatG     = n?.trans_fat_g,
+            ironMg        = n?.iron_mg,
+            calciumMg     = n?.calcium_mg,
+            magnesiumMg   = n?.magnesium_mg,
+            potassiumMg   = n?.potassium_mg,
+            zincMg        = n?.zinc_mg,
+            vitAUg        = n?.vit_a_ug,
+            vitCMg        = n?.vit_c_mg,
+            vitDUg        = n?.vit_d_ug,
+            vitEMg        = n?.vit_e_mg,
+            b12Ug         = n?.b12_ug,
+        ),
+        organic               = dto.organic ?: false,
+        wholeGrainPrimary     = dto.whole_grain_primary ?: false,
+        fermented             = dto.fermented ?: false,
+        hasHealthClaims       = dto.has_health_claims ?: false,
+        hasMisleadingMarketing = dto.has_misleading_marketing ?: false,
+        namedOils             = dto.named_oils,
+        origin                = dto.origin?.takeIf { it.isNotBlank() },
+        weightG               = dto.weight_g,
+    )
+}
+
+private fun parseSingle(raw: String): Pair<Product, String?> {
+    val jsonStr = extractJson(raw)
+    val dto = runCatching { json.decodeFromString<LlmProductDto>(jsonStr) }.getOrNull()
+        ?: return Pair(Product("(parse error)", ProductCategory.OTHER, NovaClass.ULTRA_PROCESSED, emptyList(), NutritionPer100g.EMPTY), null)
+    return Pair(mapToProduct(dto), dto.barcode)
+}
+
+// ============================================================================
+// Public API — called from routes
+// ============================================================================
+
+data class ParseResult(val product: Product, val warnings: List<String>, val barcode: String? = null)
+
+suspend fun GroqService.parseLabel(
+    images: List<ImageDto>,
+    apiKey: String?,
+    lang: String = "fr",
+): ParseResult {
+    val raw = complete(labelPrompt(lang), images, apiKey)
+    val (product, barcode) = parseSingle(raw)
+    val warnings = buildList {
+        if (product.nutrition.energyKcal == 0.0 && product.nutrition.proteinG == 0.0) add("Nutrition values could not be read")
+        if (product.ingredients.isEmpty()) add("Ingredients list could not be parsed")
+    }
+    return ParseResult(product, warnings, barcode)
+}
+
+suspend fun GroqService.identifyFood(images: List<ImageDto>, apiKey: String?): ParseResult {
+    val raw = complete(identifyFoodPrompt, images, apiKey)
+    val (product, _) = parseSingle(raw)
+    return ParseResult(product, listOf("Nutrition estimated by AI — not from label"))
+}
+
+@Serializable
+private data class MultiResult(val items: List<LlmProductDto> = emptyList())
+
+data class MultiParseResult(val items: List<Product>, val warnings: List<String>)
+
+suspend fun GroqService.identifyMultiFood(images: List<ImageDto>, apiKey: String?): MultiParseResult {
+    val raw = complete(identifyMultiPrompt, images, apiKey)
+    val jsonStr = extractJson(raw)
+    val result = runCatching { json.decodeFromString<MultiResult>(jsonStr) }.getOrNull()
+        ?: MultiResult()
+    return MultiParseResult(
+        items    = result.items.map { mapToProduct(it) },
+        warnings = if (result.items.isEmpty()) listOf("No food items identified") else emptyList(),
+    )
+}
+
+@Serializable
+private data class MenuResult(
+    val dishes: List<MenuDishRaw> = emptyList(),
+)
+
+@Serializable
+data class MenuDishRaw(
+    val name: String = "",
+    val description: String? = null,
+    val estimated_kcal: Int? = null,
+    val protein_g: Double? = null,
+)
+
+data class MenuParseResult(val dishes: List<MenuDishRaw>, val warnings: List<String>)
+
+suspend fun GroqService.identifyMenu(images: List<ImageDto>, apiKey: String?): MenuParseResult {
+    val raw = complete(identifyMenuPrompt, images, apiKey)
+    val jsonStr = extractJson(raw)
+    val result = runCatching { json.decodeFromString<MenuResult>(jsonStr) }.getOrNull() ?: MenuResult()
+    return MenuParseResult(result.dishes, if (result.dishes.isEmpty()) listOf("No dishes found") else emptyList())
+}
+
+@Serializable
+data class RecipeResult(
+    val name: String = "",
+    val servings: Int? = null,
+    val ingredients: List<RecipeIngRaw> = emptyList(),
+    val steps: List<String> = emptyList(),
+    val cook_time_min: Int? = null,
+)
+
+@Serializable
+data class RecipeIngRaw(
+    val name: String = "",
+    val quantity: String? = null,
+    val unit: String? = null,
+)
+
+suspend fun GroqService.identifyRecipe(images: List<ImageDto>, apiKey: String?): RecipeResult {
+    val raw = complete(identifyRecipePrompt, images, apiKey)
+    val jsonStr = extractJson(raw)
+    return runCatching { json.decodeFromString<RecipeResult>(jsonStr) }.getOrElse { RecipeResult() }
+}
+
+// ---- Recipe suggestions ----
+
+private fun suggestRecipesPrompt(ingredient: String) = """
+You are a French chef. Suggest 5 creative recipes for: "$ingredient".
+Return JSON: { "recipes": [ { "name": "<name>", "description": "<1-2 sentence description>", "cook_time_min": <int>, "difficulty": "<easy|medium|hard>", "main_ingredients": ["<ing1>", "<ing2>"] } ] }
+Output ONLY the JSON.
+""".trimIndent()
+
+private fun suggestFromPantryPrompt(pantry: List<String>) = """
+You are a French chef. Suggest 5 recipes using mostly these pantry items: ${pantry.joinToString()}.
+Return JSON: { "recipes": [ { "name": "<name>", "description": "<1-2 sentences>", "cook_time_min": <int>, "difficulty": "<easy|medium|hard>", "main_ingredients": ["<ing1>", "<ing2>"] } ] }
+Output ONLY the JSON.
+""".trimIndent()
+
+@Serializable
+data class SuggestResult(
+    val recipes: List<SuggestRecipeRaw> = emptyList(),
+)
+
+@Serializable
+data class SuggestRecipeRaw(
+    val name: String = "",
+    val description: String = "",
+    val cook_time_min: Int? = null,
+    val difficulty: String? = null,
+    val main_ingredients: List<String> = emptyList(),
+)
+
+suspend fun GroqService.suggestRecipes(ingredient: String, apiKey: String?): SuggestResult {
+    val raw = complete(suggestRecipesPrompt(ingredient), apiKey = apiKey)
+    val jsonStr = extractJson(raw)
+    return runCatching { json.decodeFromString<SuggestResult>(jsonStr) }.getOrElse { SuggestResult() }
+}
+
+suspend fun GroqService.suggestFromPantry(pantry: List<String>, apiKey: String?): SuggestResult {
+    val raw = complete(suggestFromPantryPrompt(pantry), apiKey = apiKey)
+    val jsonStr = extractJson(raw)
+    return runCatching { json.decodeFromString<SuggestResult>(jsonStr) }.getOrElse { SuggestResult() }
+}

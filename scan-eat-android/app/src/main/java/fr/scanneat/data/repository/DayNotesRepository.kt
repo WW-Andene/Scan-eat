@@ -1,0 +1,55 @@
+package fr.scanneat.data.repository
+
+import android.content.Context
+import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import javax.inject.Inject
+import javax.inject.Singleton
+
+// ============================================================================
+// DAY NOTES REPOSITORY — port of public/features/day-notes.js
+//
+// Per-day free-text notes: mood, training, cycle phase, medication, etc.
+// Cap: 500 chars per note (same as original).
+// Storage: DataStore (replaces localStorage on Android).
+// Notes stay on-device; included in backup export.
+// ============================================================================
+
+const val DAY_NOTE_MAX_CHARS = 500
+
+private val Context.notesDataStore by preferencesDataStore(name = "day_notes")
+
+@Singleton
+class DayNotesRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
+    private val store = context.notesDataStore
+
+    private fun key(date: LocalDate) = stringPreferencesKey("note_${date}")
+
+    /** Observe note for a given date. Emits "" when none set. */
+    fun observe(date: LocalDate): Flow<String> =
+        store.data.map { prefs -> prefs[key(date)] ?: "" }
+
+    /** Set or clear a note. Truncates to DAY_NOTE_MAX_CHARS. */
+    suspend fun set(date: LocalDate, text: String) {
+        val trimmed = text.take(DAY_NOTE_MAX_CHARS)
+        store.edit { prefs ->
+            if (trimmed.isEmpty()) prefs.remove(key(date))
+            else prefs[key(date)] = trimmed
+        }
+    }
+
+    /** List all dates that have a note, sorted ascending. */
+    suspend fun listDates(): List<LocalDate> {
+        val prefs = store.data.first()
+        return prefs.asMap().keys
+            .filter { it.name.startsWith("note_") }
+            .mapNotNull { runCatching { LocalDate.parse(it.name.removePrefix("note_")) }.getOrNull() }
+            .sorted()
+    }
+}

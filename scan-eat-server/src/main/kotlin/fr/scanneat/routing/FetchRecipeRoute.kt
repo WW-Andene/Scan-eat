@@ -1,0 +1,195 @@
+package fr.scanneat.routing
+
+import fr.scanneat.model.*
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import kotlinx.serialization.json.*
+import org.slf4j.LoggerFactory
+
+private val log = LoggerFactory.getLogger("FetchRecipeRoute")
+
+// ============================================================================
+// GET /api/fetch-recipe?url=<recipe-page-url>
+//
+// Proxies a recipe blog URL, extracts schema.org Recipe JSON-LD,
+// and returns a compact object the client can pre-fill.
+// Mirrors api/fetch-recipe.ts
+//
+// No Groq key needed — pure HTML fetch + parse.
+// ============================================================================
+
+private val httpClient = HttpClient(CIO) {
+    install(HttpTimeout) {
+        requestTimeoutMillis = 8_000
+        connectTimeoutMillis = 8_000
+    }
+    followRedirects = true
+}
+
+fun Route.fetchRecipeRoute() {
+    get("/fetch-recipe") {
+        val url = call.request.queryParameters["url"]
+        if (url.isNullOrBlank()) {
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing url parameter"))
+            return@get
+        }
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("URL must be http(s)"))
+            return@get
+        }
+
+        try {
+            val html = httpClient.get(url) {
+                header("User-Agent", "ScanEat/0.1 (+https://github.com/scanneat)")
+                header("Accept", "text/html,application/xhtml+xml")
+            }.bodyAsText()
+
+            val recipe = parseSchemaOrgRecipe(html, url)
+            if (recipe == null) {
+                call.respond(HttpStatusCode.NotFound, ErrorResponse("No schema.org Recipe found on this page"))
+                return@get
+            }
+            call.respond(recipe)
+        } catch (e: Exception) {
+            log.error("[/api/fetch-recipe] $url", e)
+            val (status, body) = mapError(e)
+            call.respond(status, body)
+        }
+    }
+}
+
+// ============================================================================
+// Schema.org parser — mirrors the TS implementation in fetch-recipe.ts
+// ============================================================================
+
+private val jsonParser = Json { ignoreUnknownKeys = true; isLenient = true }
+
+private fun parseSchemaOrgRecipe(html: String, sourceUrl: String): FetchedRecipeResponse? {
+    // Extract all <script type="application/ld+json"> blocks
+    val ldJsonBlocks = Regex(
+        """<script[^>]*type=["']application/ld\+json["'][^>]*>([\s\S]*?)</script>""",
+        RegexOption.IGNORE_CASE
+    ).findAll(html).mapNotNull { m ->
+        val raw = m.groupValues[1].trim()
+        if (raw.isEmpty()) return@mapNotNull null
+        runCatching { jsonParser.parseToJsonElement(raw) }.getOrNull()
+            ?: runCatching {
+                // Best-effort: unescape common HTML entities
+                val cleaned = raw.replace("&quot;", "\"").replace("&amp;", "&").replace("&#34;", "\"")
+                jsonParser.parseToJsonElement(cleaned)
+            }.getOrNull()
+    }.toList()
+
+    // Find the first Recipe object (may be nested in @graph)
+    val recipe = ldJsonBlocks.firstNotNullOfOrNull { findRecipe(it) } ?: return null
+
+    return FetchedRecipeResponse(
+        name        = stringOr(recipe["name"]),
+        servings    = yieldToServings(recipe["recipeYield"]).toString(),
+        ingredients = stringArray(recipe["recipeIngredient"]),
+        steps       = extractSteps(recipe["recipeInstructions"]),
+        cookTimeMin = parseISODuration(recipe["totalTime"]) ?: parseISODuration(recipe["cookTime"]),
+        nutrition   = extractNutrition(recipe["nutrition"]),
+        sourceUrl   = sourceUrl,
+    )
+}
+
+private fun findRecipe(element: JsonElement): JsonObject? {
+    return when (element) {
+        is JsonObject -> {
+            val type = element["@type"]
+            val isRecipe = type?.let {
+                when (it) {
+                    is JsonPrimitive -> it.contentOrNull == "Recipe"
+                    is JsonArray     -> it.any { e -> e is JsonPrimitive && e.contentOrNull == "Recipe" }
+                    else -> false
+                }
+            } ?: false
+            if (isRecipe) element
+            else element["@graph"]?.let { findRecipe(it) }
+        }
+        is JsonArray  -> element.firstNotNullOfOrNull { findRecipe(it) }
+        else          -> null
+    }
+}
+
+private fun stringOr(element: JsonElement?, fallback: String = ""): String =
+    (element as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() } ?: fallback
+
+private fun stringArray(element: JsonElement?): List<String> = when (element) {
+    is JsonArray     -> element.mapNotNull { e ->
+        when (e) {
+            is JsonPrimitive -> e.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
+            is JsonObject    -> (e["text"] as? JsonPrimitive)?.contentOrNull?.trim()?.takeIf { it.isNotEmpty() }
+            else             -> null
+        }
+    }
+    is JsonPrimitive -> listOfNotNull(element.contentOrNull?.trim()?.takeIf { it.isNotEmpty() })
+    else             -> emptyList()
+}
+
+private fun extractSteps(element: JsonElement?): List<String> {
+    if (element == null) return emptyList()
+    val list = when (element) {
+        is JsonArray -> element.mapNotNull { s ->
+            when (s) {
+                is JsonPrimitive -> s.contentOrNull?.trim()
+                is JsonObject    -> (s["text"] as? JsonPrimitive)?.contentOrNull?.trim()
+                    ?: (s["name"] as? JsonPrimitive)?.contentOrNull?.trim()
+                else             -> null
+            }?.takeIf { it.isNotEmpty() }
+        }
+        is JsonPrimitive -> listOfNotNull(element.contentOrNull?.trim()?.takeIf { it.isNotEmpty() })
+        else             -> emptyList()
+    }
+    return list
+}
+
+private fun yieldToServings(element: JsonElement?): Int {
+    if (element == null) return 1
+    return when (element) {
+        is JsonPrimitive -> {
+            element.intOrNull ?: run {
+                val m = Regex("(\\d+)").find(element.contentOrNull ?: "")
+                m?.groupValues?.get(1)?.toIntOrNull() ?: 1
+            }
+        }
+        is JsonArray -> yieldToServings(element.firstOrNull())
+        else -> 1
+    }
+}
+
+private fun parseISODuration(element: JsonElement?): Int? {
+    val s = (element as? JsonPrimitive)?.contentOrNull ?: return null
+    val m = Regex("^PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?$").matchEntire(s) ?: return null
+    val h = m.groupValues[1].toIntOrNull() ?: 0
+    val min = m.groupValues[2].toIntOrNull() ?: 0
+    val sec = m.groupValues[3].toIntOrNull() ?: 0
+    return h * 60 + min + (sec / 60)
+}
+
+private fun numFrom(element: JsonElement?): Double = when (element) {
+    is JsonPrimitive -> element.doubleOrNull ?: run {
+        element.contentOrNull?.replace(",", ".")?.toDoubleOrNull() ?: 0.0
+    }
+    else -> 0.0
+}
+
+private fun extractNutrition(element: JsonElement?): FetchedNutritionDto? {
+    val obj = element as? JsonObject ?: return null
+    val kcal = numFrom(obj["calories"])
+    if (kcal == 0.0) return null
+    return FetchedNutritionDto(
+        kcal      = kcal,
+        proteinG  = numFrom(obj["proteinContent"]),
+        fatG      = numFrom(obj["fatContent"]),
+        carbsG    = numFrom(obj["carbohydrateContent"]),
+    )
+}

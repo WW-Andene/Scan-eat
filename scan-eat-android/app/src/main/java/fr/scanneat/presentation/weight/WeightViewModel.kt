@@ -1,0 +1,41 @@
+package fr.scanneat.presentation.weight
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.WeightEntry
+import fr.scanneat.data.repository.WeightRepository
+import fr.scanneat.data.repository.WeightSummary
+import fr.scanneat.domain.engine.WeightForecast
+import fr.scanneat.domain.engine.weightForecast
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import javax.inject.Inject
+
+@HiltViewModel
+class WeightViewModel @Inject constructor(
+    private val repo: WeightRepository,
+    private val prefs: UserPreferences,
+) : ViewModel() {
+    val entries: StateFlow<List<WeightEntry>> = repo.observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val summary: StateFlow<WeightSummary?> = repo.observeSummary(30)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val forecast: StateFlow<WeightForecast> = combine(summary, prefs.profile) { s, p ->
+        if (s != null && p.goalWeightKg != null)
+            weightForecast(s.latestKg, p.goalWeightKg, s.trendKgPerWeek)
+        else WeightForecast.InsufficientData
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), WeightForecast.InsufficientData)
+
+    fun log(kg: Double, notes: String = "") {
+        viewModelScope.launch { repo.log(LocalDate.now(), kg, notes) }
+    }
+
+    fun delete(id: String) {
+        viewModelScope.launch { repo.delete(id) }
+    }
+}
