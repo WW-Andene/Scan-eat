@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.biolism.data.cards
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.domain.engine.biolism.BiolismSession
 import fr.scanneat.domain.engine.biolism.MetabolicResult
@@ -9,9 +11,9 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 fun DailyGoalsCard(met: MetabolicResult, profile: BiolismProfile, sessions: List<BiolismSession>) {
-    BioCard("Objectifs quotidiens") {
-        InfoRow("BMR (au repos)", "%.1f kcal/j".format(met.bmrDay), "besoin métabolique de base", TextSecondary)
-        InfoRow("TDEE (actif)", "%.1f kcal/j".format(met.tdeeDay), profile.activityMeta.label, Gold)
-        InfoRow("Sessions aujourd'hui", "${sessions.count { isToday(it.timestamp) }}", "enregistrées aujourd'hui", Teal)
+    BioCard(stringResource(R.string.biolism_goals_title)) {
+        InfoRow(stringResource(R.string.biolism_goals_bmr_label), stringResource(R.string.biolism_goals_kcal_per_day, met.bmrDay), stringResource(R.string.biolism_goals_bmr_note), TextSecondary)
+        InfoRow(stringResource(R.string.biolism_goals_tdee_label), stringResource(R.string.biolism_goals_kcal_per_day, met.tdeeDay), profile.activityMeta.label, Gold)
+        InfoRow(stringResource(R.string.biolism_goals_sessions_label), "${sessions.count { isToday(it.timestamp) }}", stringResource(R.string.biolism_goals_sessions_note), Teal)
     }
 }

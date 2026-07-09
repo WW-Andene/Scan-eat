@@ -421,6 +421,13 @@
     <string name="biolism_liveweight_glyco_lost">%1$s g glycogen+H₂O</string>
     <string name="biolism_tracker_empty_title">Complete your Biolism profile</string>
     <string name="biolism_tracker_empty_desc">Age, sex, height, and weight are needed to calculate your BMR and substrate flux.</string>
+    <string name="biolism_goals_title">Daily goals</string>
+    <string name="biolism_goals_bmr_label">BMR (resting)</string>
+    <string name="biolism_goals_bmr_note">basal metabolic need</string>
+    <string name="biolism_goals_tdee_label">TDEE (active)</string>
+    <string name="biolism_goals_sessions_label">Sessions today</string>
+    <string name="biolism_goals_sessions_note">logged today</string>
+    <string name="biolism_goals_kcal_per_day">%1$.1f kcal/day</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
