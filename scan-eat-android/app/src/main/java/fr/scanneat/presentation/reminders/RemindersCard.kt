@@ -77,7 +77,7 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                 Text(stringResource(R.string.reminders_hydration), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { NotificationHelper.show(context, 904, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) }) {
-                        Icon(androidx.compose.material.icons.Icons.Default.NotificationsActive, null, tint = HydrationBlue)
+                        Icon(androidx.compose.material.icons.Icons.Default.Notifications, null, tint = HydrationBlue)
                     }
                     Switch(checked = s.hydrationOn, onCheckedChange = { viewModel.setHydration(it, s.hydrationIntervalHours) },
                         colors = SwitchDefaults.colors(checkedTrackColor = HydrationBlue))
@@ -101,7 +101,7 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                 Text(stringResource(R.string.reminders_weight), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { NotificationHelper.show(context, 905, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) }) {
-                        Icon(androidx.compose.material.icons.Icons.Default.NotificationsActive, null, tint = Gold)
+                        Icon(androidx.compose.material.icons.Icons.Default.Notifications, null, tint = Gold)
                     }
                     Switch(checked = s.weightOn, onCheckedChange = { viewModel.setWeight(it, s.weightThresholdDays) },
                         colors = SwitchDefaults.colors(checkedTrackColor = Gold))
@@ -139,7 +139,7 @@ private fun ReminderRow(
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
         )
         IconButton(onClick = onTest) {
-            Icon(androidx.compose.material.icons.Icons.Default.NotificationsActive, null, tint = Gold)
+            Icon(androidx.compose.material.icons.Icons.Default.Notifications, null, tint = Gold)
         }
         Switch(checked = on, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = Gold))
     }

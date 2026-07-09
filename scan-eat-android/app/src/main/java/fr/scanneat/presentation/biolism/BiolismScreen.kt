@@ -16,8 +16,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.presentation.biolism.bioProfile.BiolismOnboardingScreen
 import fr.scanneat.presentation.biolism.bioProfile.BiolismProfileScreen
+import fr.scanneat.presentation.biolism.bioProfile.BiolismProfileViewModel
 import fr.scanneat.presentation.biolism.data.DataScreen
 import fr.scanneat.presentation.biolism.tracker.TrackerScreen
 import fr.scanneat.presentation.ui.theme.*
@@ -27,7 +31,15 @@ private enum class BiolismTab(@androidx.annotation.StringRes val labelRes: Int) 
 }
 
 @Composable
-fun BiolismScreen() {
+fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
+    val profile   = gateViewModel.profile.collectAsStateWithLifecycle()
+    val onboarded = gateViewModel.onboarded.collectAsStateWithLifecycle()
+
+    if (!onboarded.value && !profile.value.isValid) {
+        BiolismOnboardingScreen()
+        return
+    }
+
     var activeTab by remember { mutableStateOf(BiolismTab.TRACKER) }
 
     val bgColor = MaterialTheme.colorScheme.background

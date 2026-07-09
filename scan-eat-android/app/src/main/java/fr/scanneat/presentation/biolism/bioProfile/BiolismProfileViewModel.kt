@@ -17,6 +17,12 @@ class BiolismProfileViewModel @Inject constructor(private val repo: BiolismRepos
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
+    val onboarded: StateFlow<Boolean> = repo.onboarded
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun save(p: BiolismProfile) = viewModelScope.launch { repo.saveProfile(p); _saved.value = true }
     fun clearSaved() { _saved.value = false }
+
+    fun completeOnboarding(p: BiolismProfile) = viewModelScope.launch { repo.saveProfile(p); repo.setOnboarded(true) }
+    fun skipOnboarding() = viewModelScope.launch { repo.setOnboarded(true) }
 }

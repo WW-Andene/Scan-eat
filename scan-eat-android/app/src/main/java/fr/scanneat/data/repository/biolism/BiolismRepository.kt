@@ -80,7 +80,13 @@ class BiolismRepository @Inject constructor(
 
         // Manual HR for Fick cross-check
         val K_MANUAL_HR         = intPreferencesKey("bio_manual_hr")
+
+        // Onboarding wizard completion flag
+        val K_ONBOARDED         = booleanPreferencesKey("bio_onboarded")
     }
+
+    val onboarded: Flow<Boolean> = store.data.map { it[K_ONBOARDED] ?: false }
+    suspend fun setOnboarded(v: Boolean) = store.edit { it[K_ONBOARDED] = v }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Profile
