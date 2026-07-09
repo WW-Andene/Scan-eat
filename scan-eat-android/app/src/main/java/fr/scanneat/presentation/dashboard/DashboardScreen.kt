@@ -13,11 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -48,10 +51,10 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dashboard", color = OnBackground) },
+                title = { Text(stringResource(R.string.dashboard_title), color = OnBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = OnBackground)
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -74,7 +77,7 @@ fun DashboardScreen(
                     StatChip(
                         icon  = Icons.Default.LocalFireDepartment,
                         color = CalorieOrange,
-                        label = "${s.streak} jour${if (s.streak > 1) "s" else ""} de suite",
+                        label = pluralStringResource(R.plurals.dashboard_streak, s.streak, s.streak),
                     )
                 }
             }
@@ -99,27 +102,27 @@ fun DashboardScreen(
 
             // ---- Feature tiles ----
             item {
-                Text("Fonctionnalités", style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.dashboard_features_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeatureTile("⚖️", "Poids",    Modifier.weight(1f), onClick = onOpenWeight)
-                    FeatureTile("⏱️", "Jeûne",    Modifier.weight(1f), onClick = onOpenFasting)
-                    FeatureTile("💧", "Eau",       Modifier.weight(1f), onClick = onOpenHydration)
-                    FeatureTile("🏃", "Activité", Modifier.weight(1f), onClick = onOpenActivity)
+                    FeatureTile("⚖️", stringResource(R.string.dashboard_tile_weight),    Modifier.weight(1f), onClick = onOpenWeight)
+                    FeatureTile("⏱️", stringResource(R.string.dashboard_tile_fasting),    Modifier.weight(1f), onClick = onOpenFasting)
+                    FeatureTile("💧", stringResource(R.string.dashboard_tile_water),       Modifier.weight(1f), onClick = onOpenHydration)
+                    FeatureTile("🏃", stringResource(R.string.dashboard_tile_activity), Modifier.weight(1f), onClick = onOpenActivity)
                 }
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeatureTile("🍳", "Recettes",  Modifier.weight(1f), onClick = onOpenRecipes)
-                    FeatureTile("📋", "Modèles",   Modifier.weight(1f), onClick = onOpenTemplates)
-                    FeatureTile("📅", "Planning",  Modifier.weight(1f), onClick = onOpenMealPlan)
-                    FeatureTile("🛒", "Courses",   Modifier.weight(1f), onClick = onOpenGrocery)
+                    FeatureTile("🍳", stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
+                    FeatureTile("📋", stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
+                    FeatureTile("📅", stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
+                    FeatureTile("🛒", stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
                 }
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeatureTile("👤", "Mon Profil", Modifier.weight(1f), onClick = onOpenProfile)
+                    FeatureTile("👤", stringResource(R.string.dashboard_tile_profile), Modifier.weight(1f), onClick = onOpenProfile)
                     Spacer(Modifier.weight(3f))
                 }
             }
@@ -127,7 +130,7 @@ fun DashboardScreen(
             // ---- Recent scans ----
             item {
                 Text(
-                    "Scans récents",
+                    stringResource(R.string.dashboard_recent_scans_title),
                     style      = MaterialTheme.typography.titleSmall,
                     color      = OnBackground,
                     fontWeight = FontWeight.SemiBold,
@@ -139,7 +142,7 @@ fun DashboardScreen(
                         Modifier.fillMaxWidth().padding(vertical = 24.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("Aucun scan pour l'instant.", color = OnBackground.copy(0.4f))
+                        Text(stringResource(R.string.dashboard_recent_scans_empty), color = OnBackground.copy(0.4f))
                     }
                 }
             } else {
@@ -160,14 +163,14 @@ fun DashboardScreen(
 private fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Aujourd'hui", style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                MacroItem("Calories", "${totals.energyKcal.roundToInt()}", "kcal",
+                MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.roundToInt()}", "kcal",
                     targets?.kcal?.roundToInt())
-                MacroItem("Protéines", "${totals.proteinG.roundToInt()}", "g",
+                MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.roundToInt()}", "g",
                     targets?.proteinGTarget?.roundToInt())
-                MacroItem("Glucides", "${totals.carbsG.roundToInt()}", "g", null)
-                MacroItem("Lipides", "${totals.fatG.roundToInt()}", "g", null)
+                MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.roundToInt()}", "g", null)
+                MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.roundToInt()}", "g", null)
             }
             // Kcal progress bar
             targets?.let { t ->
@@ -194,7 +197,7 @@ private fun MacroItem(label: String, value: String, unit: String, target: Int?) 
         Text(value, style = MaterialTheme.typography.titleMedium, color = AccentGreen, fontWeight = FontWeight.Bold)
         Text(unit, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f))
-        target?.let { Text("/ $it", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp) }
+        target?.let { Text(stringResource(R.string.dashboard_macro_target, it), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp) }
     }
 }
 
@@ -218,8 +221,8 @@ private fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Cette semaine", style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                Text("${rollup.avg.kcal.roundToInt()} kcal/j moy.", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                Text(stringResource(R.string.dashboard_week_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.dashboard_week_avg_kcal, rollup.avg.kcal.roundToInt()), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
             }
             val peak = (listOf(targets?.kcal ?: 0.0) + rollup.days.map { it.kcal }).maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
             Row(
@@ -279,7 +282,7 @@ private fun WeekDeltaCard(delta: WeekOverWeekDelta) {
             null, tint = color, modifier = Modifier.size(16.dp),
         )
         Text(
-            "${sign}${delta.kcal.roundToInt()} kcal vs semaine dernière",
+            stringResource(R.string.dashboard_week_delta, "$sign${delta.kcal.roundToInt()}"),
             style = MaterialTheme.typography.labelMedium,
             color = color,
         )
@@ -290,24 +293,24 @@ private fun WeekDeltaCard(delta: WeekOverWeekDelta) {
 private fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary, forecast: WeightForecast) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Poids", style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.weight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("${summary.latestKg} kg", style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.weight_kg, summary.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
                     val deltaColor = when {
                         summary.deltaKg < 0 -> FlagGreen
                         summary.deltaKg > 0 -> FlagRed
                         else -> OnSurface.copy(0.5f)
                     }
                     val sign = if (summary.deltaKg >= 0) "+" else ""
-                    Text("$sign${summary.deltaKg} kg (30j)", style = MaterialTheme.typography.labelSmall, color = deltaColor)
+                    Text(stringResource(R.string.weight_delta_kg, "$sign${summary.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = deltaColor)
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     val trend = summary.trendKgPerWeek
                     val trendSign = if (trend >= 0) "+" else ""
-                    Text("${trendSign}${trend} kg/sem.", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                    Text(stringResource(R.string.weight_trend_kg_week, "$trendSign$trend"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                     if (forecast is WeightForecast.Ok) {
-                        Text("Objectif dans ${forecast.days}j", style = MaterialTheme.typography.labelSmall, color = AccentGreen)
+                        Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentGreen)
                     }
                 }
             }
@@ -319,11 +322,11 @@ private fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary
 private fun GapCloserCard(gaps: List<GapEntry>) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Combler les écarts", style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.dashboard_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             gaps.take(3).forEach { gap ->
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        "${gap.nutrient.replaceFirstChar { it.uppercase() }} : −${gap.deficit} manquant",
+                        stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, gap.deficit.toString()),
                         style = MaterialTheme.typography.labelMedium, color = AmberWarning,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -333,7 +336,7 @@ private fun GapCloserCard(gaps: List<GapEntry>) {
                                 color = AccentGreen.copy(0.15f),
                             ) {
                                 Text(
-                                    "${s.name} · ${s.grams} g",
+                                    stringResource(R.string.dashboard_gap_suggestion, s.name, s.grams),
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     style    = MaterialTheme.typography.labelSmall,
                                     color    = AccentGreen,
@@ -370,7 +373,7 @@ private fun ScanHistoryCard(scan: ScanResult) {
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1)
-            Text("${scan.audit.score}/100 · ${scan.product.category.key.replace('_', ' ')}",
+            Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')),
                 style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
         }
         Text("${scan.audit.score}", style = MaterialTheme.typography.titleMedium, color = gradeColor, fontWeight = FontWeight.Bold)

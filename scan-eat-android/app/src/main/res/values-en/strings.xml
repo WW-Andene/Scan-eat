@@ -287,4 +287,30 @@
     <string name="settings_section_about">About</string>
     <string name="settings_about_version">Scan\'eat v0.1.0 · Scoring engine v2.2.0</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
+
+    <!-- ── Dashboard screen ───────────────────────────────────────────────── -->
+    <plurals name="dashboard_streak">
+        <item quantity="one">%1$d day streak</item>
+        <item quantity="other">%1$d days streak</item>
+    </plurals>
+    <string name="dashboard_features_title">Features</string>
+    <string name="dashboard_tile_weight">Weight</string>
+    <string name="dashboard_tile_fasting">Fasting</string>
+    <string name="dashboard_tile_water">Water</string>
+    <string name="dashboard_tile_activity">Activity</string>
+    <string name="dashboard_tile_recipes">Recipes</string>
+    <string name="dashboard_tile_templates">Templates</string>
+    <string name="dashboard_tile_mealplan">Meal Plan</string>
+    <string name="dashboard_tile_grocery">Grocery</string>
+    <string name="dashboard_tile_profile">My Profile</string>
+    <string name="dashboard_recent_scans_title">Recent Scans</string>
+    <string name="dashboard_recent_scans_empty">No scans yet.</string>
+    <string name="dashboard_today_label">Today</string>
+    <string name="dashboard_macro_target">/ %1$d</string>
+    <string name="dashboard_week_title">This Week</string>
+    <string name="dashboard_week_avg_kcal">%1$d kcal/day avg.</string>
+    <string name="dashboard_week_delta">%1$s kcal vs last week</string>
+    <string name="dashboard_gap_title">Close the Gaps</string>
+    <string name="dashboard_gap_entry">%1$s: −%2$s missing</string>
+    <string name="dashboard_gap_suggestion">%1$s · %2$d g</string>
 </resources>
