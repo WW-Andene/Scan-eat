@@ -225,7 +225,13 @@ fun CameraPreview(
         androidx.compose.ui.viewinterop.AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                val previewView = PreviewView(ctx)
+                val previewView = PreviewView(ctx).apply {
+                    // COMPATIBLE (TextureView) instead of the default PERFORMANCE (SurfaceView):
+                    // a SurfaceView composites in its own hardware layer and always draws either
+                    // fully above or fully below the rest of the view hierarchy, ignoring normal
+                    // z-order — it can bleed over sibling Compose UI (e.g. clipping the header text).
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                }
                 val future = ProcessCameraProvider.getInstance(ctx)
                 future.addListener({
                     val provider = future.get()

@@ -28,12 +28,14 @@ class SplashViewModel @Inject constructor(
     /** Reactive — the in-app theme preference can change any time via Settings. */
     val theme: StateFlow<String> = prefs.theme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "oled")
+    val dyslexicFont: StateFlow<Boolean> = prefs.dyslexicFont
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val colorblindMode: StateFlow<String> = prefs.colorblindMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
 
     init {
         viewModelScope.launch {
-            val apiKey = prefs.groqApiKey.first()
-            val serverUrl = prefs.serverUrl.first()
-            needsOnboarding = apiKey.isBlank() && serverUrl.isBlank()
+            needsOnboarding = !prefs.onboardingComplete.first()
             _ready.value = true
         }
     }

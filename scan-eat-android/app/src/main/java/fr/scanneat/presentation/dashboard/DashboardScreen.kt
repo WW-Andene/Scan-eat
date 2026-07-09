@@ -106,23 +106,23 @@ fun DashboardScreen(
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeatureTile("⚖️", stringResource(R.string.dashboard_tile_weight),    Modifier.weight(1f), onClick = onOpenWeight)
-                    FeatureTile("⏱️", stringResource(R.string.dashboard_tile_fasting),    Modifier.weight(1f), onClick = onOpenFasting)
-                    FeatureTile("💧", stringResource(R.string.dashboard_tile_water),       Modifier.weight(1f), onClick = onOpenHydration)
-                    FeatureTile("🏃", stringResource(R.string.dashboard_tile_activity), Modifier.weight(1f), onClick = onOpenActivity)
+                    FeatureTile(Icons.Default.MonitorWeight, stringResource(R.string.dashboard_tile_weight),    Modifier.weight(1f), onClick = onOpenWeight)
+                    FeatureTile(Icons.Default.Timer, stringResource(R.string.dashboard_tile_fasting),    Modifier.weight(1f), onClick = onOpenFasting)
+                    FeatureTile(Icons.Default.Opacity, stringResource(R.string.dashboard_tile_water),       Modifier.weight(1f), onClick = onOpenHydration)
+                    FeatureTile(Icons.Default.DirectionsRun, stringResource(R.string.dashboard_tile_activity), Modifier.weight(1f), onClick = onOpenActivity)
                 }
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeatureTile("🍳", stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
-                    FeatureTile("📋", stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
-                    FeatureTile("📅", stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
-                    FeatureTile("🛒", stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
+                    FeatureTile(Icons.Default.RestaurantMenu, stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
+                    FeatureTile(Icons.Default.ListAlt, stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
+                    FeatureTile(Icons.Default.CalendarMonth, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
+                    FeatureTile(Icons.Default.ShoppingCart, stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
                 }
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeatureTile("👤", stringResource(R.string.dashboard_tile_profile), Modifier.weight(1f), onClick = onOpenProfile)
+                    FeatureTile(Icons.Default.Person, stringResource(R.string.dashboard_tile_profile), Modifier.weight(1f), onClick = onOpenProfile)
                     Spacer(Modifier.weight(3f))
                 }
             }
@@ -381,7 +381,7 @@ private fun ScanHistoryCard(scan: ScanResult) {
 }
 
 @Composable
-private fun FeatureTile(emoji: String, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+private fun FeatureTile(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = modifier,
@@ -393,7 +393,7 @@ private fun FeatureTile(emoji: String, label: String, modifier: Modifier = Modif
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(emoji, style = MaterialTheme.typography.titleLarge)
+            Icon(icon, null, tint = AccentGreen, modifier = Modifier.size(26.dp))
             Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))
         }
     }

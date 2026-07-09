@@ -151,7 +151,7 @@ private fun EmptyProfilePrompt() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("⚗️", fontSize = 48.sp)
+            Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(48.dp))
             Text("Complète ton profil Biolism", style = MaterialTheme.typography.titleSmall,
                 color = OnBackground, fontWeight = FontWeight.SemiBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Text("Âge, sexe, taille et poids sont nécessaires pour calculer ton BMR et les flux de substrats.",
@@ -225,7 +225,7 @@ private fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () ->
                         Text("Kéto-adapté", style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
                         if (threeWeeks) {
                             Surface(shape = RoundedCornerShape(4.dp), color = GoldHaze, border = androidx.compose.foundation.BorderStroke(1.dp, GoldGlow)) {
-                                Text("AUTO ✓", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                Text("AUTO", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold)
                             }
                         } else {

@@ -39,11 +39,21 @@ fun SettingsScreen(
     val serverUrl = viewModel.serverUrl.collectAsStateWithLifecycle()
     val language  = viewModel.language.collectAsStateWithLifecycle()
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
+    val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
+    val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
+    val savedField = viewModel.savedField.collectAsStateWithLifecycle()
 
     var keyVisible  by remember { mutableStateOf(false) }
     var localKey    by remember(apiKey.value)    { mutableStateOf(apiKey.value) }
     var localUrl    by remember(serverUrl.value) { mutableStateOf(serverUrl.value) }
     var localModel  by remember(groqModel.value) { mutableStateOf(groqModel.value) }
+
+    LaunchedEffect(savedField.value) {
+        if (savedField.value != null) {
+            kotlinx.coroutines.delay(2000)
+            viewModel.clearSavedField()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -103,9 +113,7 @@ fun SettingsScreen(
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                     )
                     Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
-                    Button(onClick = { viewModel.saveApiKey(localKey) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
-                        Text(stringResource(R.string.common_save), color = Color.Black, fontWeight = FontWeight.SemiBold)
-                    }
+                    SaveButtonRow(saved = savedField.value == "apiKey") { viewModel.saveApiKey(localKey) }
                 }
 
                 // ---- Groq model ----
@@ -132,9 +140,7 @@ fun SettingsScreen(
                         singleLine = true, shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                     )
-                    Button(onClick = { viewModel.saveGroqModel(localModel) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
-                        Text(stringResource(R.string.common_save), color = Color.Black, fontWeight = FontWeight.SemiBold)
-                    }
+                    SaveButtonRow(saved = savedField.value == "groqModel") { viewModel.saveGroqModel(localModel) }
                 }
             }
 
@@ -148,9 +154,7 @@ fun SettingsScreen(
                         singleLine = true, shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                     )
-                    Button(onClick = { viewModel.saveServerUrl(localUrl) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
-                        Text(stringResource(R.string.common_save), color = Color.Black, fontWeight = FontWeight.SemiBold)
-                    }
+                    SaveButtonRow(saved = savedField.value == "serverUrl") { viewModel.saveServerUrl(localUrl) }
                 }
             }
 
@@ -177,6 +181,40 @@ fun SettingsScreen(
                         FilterChip(
                             selected = theme.value == key,
                             onClick  = { viewModel.setTheme(key) },
+                            label    = { Text(label) },
+                            colors   = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                            ),
+                        )
+                    }
+                }
+            }
+
+            // ---- Accessibility ----
+            SettingsSection(stringResource(R.string.settings_section_accessibility)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_dyslexic_font), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                        Text(stringResource(R.string.settings_dyslexic_font_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    }
+                    Switch(
+                        checked = dyslexicFont.value,
+                        onCheckedChange = { viewModel.setDyslexicFont(it) },
+                        colors = SwitchDefaults.colors(checkedTrackColor = AccentGreen),
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.settings_colorblind_mode), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        "none" to stringResource(R.string.settings_colorblind_none),
+                        "deuteranopia" to stringResource(R.string.settings_colorblind_deuteranopia),
+                        "protanopia" to stringResource(R.string.settings_colorblind_protanopia),
+                        "tritanopia" to stringResource(R.string.settings_colorblind_tritanopia),
+                    ).forEach { (key, label) ->
+                        FilterChip(
+                            selected = colorblindMode.value == key,
+                            onClick  = { viewModel.setColorblindMode(key) },
                             label    = { Text(label) },
                             colors   = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
@@ -218,5 +256,20 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         content()
+    }
+}
+
+@Composable
+private fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Button(onClick = onSave, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
+            Text(stringResource(R.string.common_save), color = Color.Black, fontWeight = FontWeight.SemiBold)
+        }
+        androidx.compose.animation.AnimatedVisibility(visible = saved) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Icon(Icons.Default.Check, null, tint = AccentGreen, modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.settings_saved_confirmation), style = MaterialTheme.typography.bodySmall, color = AccentGreen)
+            }
+        }
     }
 }

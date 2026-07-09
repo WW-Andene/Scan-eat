@@ -76,7 +76,7 @@ fun GroceryScreen(
         if (items.value.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("🛒", style = MaterialTheme.typography.displaySmall)
+                    Icon(Icons.Default.ShoppingCart, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(40.dp))
                     Text(stringResource(R.string.grocery_empty_body),
                         color = OnBackground.copy(0.5f))
                 }

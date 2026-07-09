@@ -27,6 +27,9 @@ class UserPreferences @Inject constructor(
         val KEY_SERVER_URL           = stringPreferencesKey("server_url")
         val KEY_LANGUAGE             = stringPreferencesKey("language")
         val KEY_THEME                = stringPreferencesKey("theme")
+        val KEY_ONBOARDING_COMPLETE  = booleanPreferencesKey("onboarding_complete")
+        val KEY_DYSLEXIC_FONT        = booleanPreferencesKey("dyslexic_font")
+        val KEY_COLORBLIND_MODE      = stringPreferencesKey("colorblind_mode")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         // Profile — flat keys
         val KEY_PROFILE_NAME         = stringPreferencesKey("profile_name")
@@ -51,6 +54,10 @@ class UserPreferences @Inject constructor(
     val serverUrl: Flow<String>   = store.data.map { it[KEY_SERVER_URL] ?: "" }
     val language: Flow<String>    = store.data.map { it[KEY_LANGUAGE]   ?: "fr" }
     val theme: Flow<String>       = store.data.map { it[KEY_THEME]      ?: "oled" }
+    val onboardingComplete: Flow<Boolean> = store.data.map { it[KEY_ONBOARDING_COMPLETE] ?: false }
+    val dyslexicFont: Flow<Boolean>       = store.data.map { it[KEY_DYSLEXIC_FONT] ?: false }
+    /** "none" | "deuteranopia" | "protanopia" | "tritanopia" */
+    val colorblindMode: Flow<String>      = store.data.map { it[KEY_COLORBLIND_MODE] ?: "none" }
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = key }
     suspend fun setGroqModel(model: String) = store.edit { it[KEY_GROQ_MODEL] = model }
@@ -58,6 +65,9 @@ class UserPreferences @Inject constructor(
     suspend fun setServerUrl(url: String)   = store.edit { it[KEY_SERVER_URL] = url }
     suspend fun setLanguage(lang: String)   = store.edit { it[KEY_LANGUAGE]   = lang }
     suspend fun setTheme(theme: String)     = store.edit { it[KEY_THEME]      = theme }
+    suspend fun setOnboardingComplete(v: Boolean) = store.edit { it[KEY_ONBOARDING_COMPLETE] = v }
+    suspend fun setDyslexicFont(v: Boolean)       = store.edit { it[KEY_DYSLEXIC_FONT] = v }
+    suspend fun setColorblindMode(mode: String)   = store.edit { it[KEY_COLORBLIND_MODE] = mode }
 
     // ---- Profile ----
 

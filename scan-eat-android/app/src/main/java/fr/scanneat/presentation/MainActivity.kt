@@ -29,13 +29,15 @@ class MainActivity : ComponentActivity() {
             val ready = splashViewModel.ready.collectAsState().value
             if (ready) {
                 val theme = splashViewModel.theme.collectAsState().value
+                val dyslexicFont = splashViewModel.dyslexicFont.collectAsState().value
+                val colorblindMode = splashViewModel.colorblindMode.collectAsState().value
                 SideEffect {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                     insetsController.isAppearanceLightStatusBars = theme == "light"
                     insetsController.isAppearanceLightNavigationBars = theme == "light"
                 }
 
-                ScanEatTheme(theme = theme) {
+                ScanEatTheme(theme = theme, dyslexicFont = dyslexicFont, colorblindMode = colorblindMode) {
                     MainShell(startOnboarding = splashViewModel.needsOnboarding)
                 }
             }

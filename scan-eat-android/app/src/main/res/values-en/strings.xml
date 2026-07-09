@@ -17,7 +17,7 @@
     <string name="hydration_title">Hydration</string>
     <string name="hydration_goal_ml">/ %1$d mL</string>
     <string name="hydration_glasses_count">%1$d / %2$d glasses</string>
-    <string name="hydration_goal_reached">Goal reached! 🎉</string>
+    <string name="hydration_goal_reached">Goal reached!</string>
     <string name="hydration_glass_ml">%1$d mL</string>
     <string name="hydration_per_glass_label">per glass</string>
     <string name="hydration_goal_footer">Goal: %1$d mL/day (30 mL × body weight)</string>
@@ -58,8 +58,8 @@
     <!-- ── Meal Plan screen ───────────────────────────────────────────────── -->
     <string name="mealplan_title">Meal Plan</string>
     <string name="mealplan_day_today">%1$s · Today</string>
-    <string name="mealplan_recipe_prefix">📖 %1$s</string>
-    <string name="mealplan_template_prefix">📋 %1$s</string>
+    <string name="mealplan_recipe_prefix">%1$s</string>
+    <string name="mealplan_template_prefix">%1$s</string>
 
     <!-- ── Biolism shell ──────────────────────────────────────────────────── -->
     <string name="biolism_subtitle">Metabolism · Science · Precision</string>
@@ -135,11 +135,11 @@
     <string name="logsheet_confirm_with_kcal">Confirm · %1$d kcal</string>
 
     <!-- ── Biolism profile screen ─────────────────────────────────────────── -->
-    <string name="bioprofile_saved">✓ Profile saved</string>
+    <string name="bioprofile_saved">Profile saved</string>
     <string name="bioprofile_overview_title">Overview</string>
     <string name="bioprofile_overview_saved_badge">SAVED</string>
-    <string name="bioprofile_sex_male">♂ Male</string>
-    <string name="bioprofile_sex_female">♀ Female</string>
+    <string name="bioprofile_sex_male">Male</string>
+    <string name="bioprofile_sex_female">Female</string>
     <string name="bioprofile_field_weight">Weight (kg)</string>
     <string name="bioprofile_field_weight_imperial">Weight (lb)</string>
     <string name="bioprofile_section_activity">Activity level</string>
@@ -230,6 +230,7 @@
     <string name="onboarding_api_key_label">Groq key (gsk_…)</string>
     <string name="onboarding_api_key_hint">Free key at console.groq.com</string>
     <string name="onboarding_continue_button">Continue</string>
+    <string name="onboarding_api_skip">Skip, scan without AI for now</string>
     <string name="onboarding_profile_title">Personalization</string>
     <string name="onboarding_profile_body">Fill in your profile (sex, age, weight, diet, allergens) to get a personal score tailored to your nutritional needs. You can do this later from the Profile tab.</string>
     <string name="onboarding_profile_cta">Set up my profile now</string>
@@ -289,6 +290,15 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_section_profile">Nutrition Profile</string>
+    <string name="settings_section_accessibility">Accessibility</string>
+    <string name="settings_dyslexic_font">Dyslexia-friendly font</string>
+    <string name="settings_dyslexic_font_hint">Wider letter and line spacing for easier reading</string>
+    <string name="settings_colorblind_mode">Colorblind mode</string>
+    <string name="settings_colorblind_none">None</string>
+    <string name="settings_colorblind_deuteranopia">Deuteranopia</string>
+    <string name="settings_colorblind_protanopia">Protanopia</string>
+    <string name="settings_colorblind_tritanopia">Tritanopia</string>
+    <string name="settings_saved_confirmation">Saved</string>
     <string name="settings_profile_hint">Sex, age, height, weight, diet, allergens — required for the personal score.</string>
     <string name="settings_profile_button">Edit my profile</string>
     <string name="settings_section_about">About</string>

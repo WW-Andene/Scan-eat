@@ -98,7 +98,7 @@ fun CustomFoodScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                Text("🥗", fontSize = 40.sp)
+                                Icon(Icons.Default.RestaurantMenu, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(40.dp))
                                 Text(
                                     if (query.value.isBlank())
                                         stringResource(R.string.customfood_empty_body)

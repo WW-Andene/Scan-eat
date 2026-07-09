@@ -7,12 +7,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -21,16 +24,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
 
-private data class OnboardStep(val icon: String, val title: String, val sub: String, val optional: Boolean = false)
+private data class OnboardStep(val icon: ImageVector, val title: String, val sub: String, val optional: Boolean = false)
 
 private val ONBOARD_STEPS = listOf(
-    OnboardStep("⚕", "Bienvenue dans Biolism",
+    OnboardStep(Icons.Default.MonitorHeart, "Bienvenue dans Biolism",
         "Configurons ton profil en 3 étapes rapides. Ces données restent sur ton appareil et alimentent chaque calcul."),
-    OnboardStep("👤", "Qui es-tu ?",
+    OnboardStep(Icons.Default.Person, "Qui es-tu ?",
         "Sexe et âge calibrent ta formule de BMR. Taille et poids sont les entrées principales."),
-    OnboardStep("📏", "Mesures corporelles",
+    OnboardStep(Icons.Default.Straighten, "Mesures corporelles",
         "Débloque le BF% Navy, le ratio taille/hanches et les indicateurs de graisse viscérale.", optional = true),
-    OnboardStep("⚡", "Niveau d'activité",
+    OnboardStep(Icons.Default.Bolt, "Niveau d'activité",
         "À quel point es-tu actif au quotidien ? Ceci multiplie ton BMR pour estimer ta dépense totale."),
 )
 
@@ -80,7 +83,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                     }
                 }
 
-                Text(s.icon, fontSize = 36.sp)
+                Icon(s.icon, null, tint = Gold, modifier = Modifier.size(36.dp))
                 Text(s.title, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                 Row {
                     Text(s.sub, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
@@ -90,7 +93,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                 when (step) {
                     1 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(BiolismSex.MALE to "♂ Homme", BiolismSex.FEMALE to "♀ Femme").forEach { (v, label) ->
+                            listOf(BiolismSex.MALE to "Homme", BiolismSex.FEMALE to "Femme").forEach { (v, label) ->
                                 FilterChip(selected = sex == v, onClick = { sex = v }, label = { Text(label) },
                                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold))
                             }

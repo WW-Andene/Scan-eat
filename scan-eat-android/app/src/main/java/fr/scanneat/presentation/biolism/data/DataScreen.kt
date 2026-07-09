@@ -45,7 +45,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         val bgColor = MaterialTheme.colorScheme.background
         Box(Modifier.fillMaxSize().background(bgColor), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("⚗️", fontSize = 48.sp)
+                Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(48.dp))
                 Text("Complète ton profil Biolism", style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
                 Text("Onglet Profil", style = MaterialTheme.typography.bodySmall, color = Gold)
             }
@@ -215,7 +215,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                     )
                     if (s.ketoHours >= 1440) {
                         Spacer(Modifier.height(8.dp))
-                        Text("⚠ Jeûne prolongé : réserves de graisse en voie d'épuisement, le catabolisme protéique augmente à nouveau.",
+                        Text("Attention : jeûne prolongé : réserves de graisse en voie d'épuisement, le catabolisme protéique augmente à nouveau.",
                             style = MaterialTheme.typography.labelSmall, color = Severe, fontWeight = FontWeight.SemiBold)
                     }
                 }
@@ -300,7 +300,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                 ketoHours = s.ketoHours, fastingHours = s.fastingHours, ketosis = s.ketosisOn,
                 elapsedSec = s.elapsedMs / 1000.0,
             )
-            InfoRow("🩸 Glycémie estimée", "%.2f mmol/L".format(estGluc), "modèle cinétique simplifié · Guyton & Hall 2016",
+            InfoRow("Glycémie estimée", "%.2f mmol/L".format(estGluc), "modèle cinétique simplifié · Guyton & Hall 2016",
                 if (estGluc < 3.0) Danger else if (estGluc < 3.9) Warm else Teal)
             cum.value?.let { c ->
                 Spacer(Modifier.height(8.dp))
@@ -343,7 +343,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             val h = hormones.value
             if (h != null) {
                 BioCard("Hormones", defaultOpen = false, badge = { GoldBadge("ESTIMATION") }) {
-                    Text("⚠ Estimations basées sur âge, sexe, composition corporelle et contexte métabolique. Pas un substitut à une analyse sanguine.",
+                    Text("Estimations basées sur âge, sexe, composition corporelle et contexte métabolique. Pas un substitut à une analyse sanguine.",
                         style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
                         modifier = Modifier.background(OnBackground.copy(0.03f), RoundedCornerShape(6.dp)).padding(8.dp))
                     Spacer(Modifier.height(8.dp))
@@ -423,11 +423,11 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             }
             Spacer(Modifier.height(10.dp))
             Label("Objectifs complémentaires", OnBackground.copy(0.4f))
-            InfoRow("💧 Eau", "≥ %.1f L".format(met.waterNeedL),
-                "EFSA 2010 · ${if (profile.value.sex == BiolismSex.MALE) "♂ 2,5" else "♀ 2,0"} L${if (profile.value.activityMeta.mult >= 1.55) " + 0,5 L activité" else ""}", Teal)
-            InfoRow("🌾 Fibres alimentaires", "≥ 25 g", "EFSA 2017 · apport suffisant pour transit & microbiote", Gold)
-            InfoRow("🧂 Sodium", "1500–2300 mg", "WHO 2012 · cible AHA 1500 mg · limite NHANES 2300 mg", Warm)
-            InfoRow("⚡ Potassium", "≥ ${if (profile.value.sex == BiolismSex.MALE) "3400" else "2600"} mg", "NASEM DRI 2019 · contre l'excrétion sodique", Violet)
+            InfoRow("Eau", "≥ %.1f L".format(met.waterNeedL),
+                "EFSA 2010 · ${if (profile.value.sex == BiolismSex.MALE) "2,5" else "2,0"} L${if (profile.value.activityMeta.mult >= 1.55) " + 0,5 L activité" else ""}", Teal)
+            InfoRow("Fibres alimentaires", "≥ 25 g", "EFSA 2017 · apport suffisant pour transit & microbiote", Gold)
+            InfoRow("Sodium", "1500–2300 mg", "WHO 2012 · cible AHA 1500 mg · limite NHANES 2300 mg", Warm)
+            InfoRow("Potassium", "≥ ${if (profile.value.sex == BiolismSex.MALE) "3400" else "2600"} mg", "NASEM DRI 2019 · contre l'excrétion sodique", Violet)
         }}
 
         // ── All-Time Summary ──────────────────────────────────────────────────
@@ -513,9 +513,9 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                                                     style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                                             }
                                         }
-                                        if (isPRKcal) Badge("🏅 kcal", Gold)
-                                        if (isPRDur) Badge("🏅 durée", Violet)
-                                        if (isPRRate) Badge("🏅 taux", Teal)
+                                        if (isPRKcal) Badge("Record kcal", Gold)
+                                        if (isPRDur) Badge("Record durée", Violet)
+                                        if (isPRRate) Badge("Record taux", Teal)
                                     }
                                     Text("${sess.activityLabel} · $dur · ${sess.kcalBurned.toInt()} kcal",
                                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
@@ -628,7 +628,7 @@ private fun CaloricBalanceCard(
     history7d: List<fr.scanneat.data.repository.biolism.BiolismRepository.DayKcalEntry>,
     viewModel: DataViewModel,
 ) {
-    val slots = listOf("breakfast" to "🌅 Petit-déjeuner", "lunch" to "🥗 Déjeuner", "dinner" to "🍽️ Dîner", "snack" to "🍎 Collations")
+    val slots = listOf("breakfast" to "Petit-déjeuner", "lunch" to "Déjeuner", "dinner" to "Dîner", "snack" to "Collations")
     var editingSlot by remember { mutableStateOf<String?>(null) }
     var editKcal by remember { mutableStateOf("") }
     var editProt by remember { mutableStateOf("") }

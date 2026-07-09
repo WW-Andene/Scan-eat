@@ -2,6 +2,8 @@ package fr.scanneat.presentation.onboarding
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,7 +36,11 @@ class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences
     fun setMode(mode: ApiMode) = viewModelScope.launch { prefs.setApiMode(mode) }
     fun setApiKey(key: String) = viewModelScope.launch { prefs.setGroqApiKey(key) }
     fun setServerUrl(url: String) = viewModelScope.launch { prefs.setServerUrl(url) }
-    fun finish() { _done.value = true }
+    fun skipApiSetup() { /* no key/server set — barcode-only OFF lookups still work */ }
+    fun finish() {
+        viewModelScope.launch { prefs.setOnboardingComplete(true) }
+        _done.value = true
+    }
 }
 
 @Composable
@@ -62,7 +68,7 @@ fun OnboardingScreen(
             when (page) {
                 // ---- Page 0: Welcome ----
                 0 -> {
-                    Text("🥦", fontSize = 64.sp)
+                    Icon(Icons.Default.QrCodeScanner, null, tint = AccentGreen, modifier = Modifier.size(64.dp))
                     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                     Text(
                         stringResource(R.string.onboarding_welcome_body),
@@ -135,6 +141,10 @@ fun OnboardingScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
                         shape = RoundedCornerShape(12.dp),
                     ) { Text(stringResource(R.string.onboarding_continue_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
+                    TextButton(
+                        onClick = { viewModel.skipApiSetup(); page = 2 },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text(stringResource(R.string.onboarding_api_skip), color = OnBackground.copy(0.5f)) }
                 }
 
                 // ---- Page 2: Profile prompt ----

@@ -18,7 +18,7 @@ data class OffProductResponse(
     val ingredientsTextFr: String?,
     val ingredientsText: String?,
     val novaGroup: Int?,
-    val nutriments: Map<String, Double?>?,
+    val nutriments: Map<String, Any?>?,
     val labelsTags: List<String>?,
     val origins: String?,
     val countriesTags: List<String>?,

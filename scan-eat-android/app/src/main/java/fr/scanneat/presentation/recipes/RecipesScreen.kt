@@ -54,7 +54,7 @@ fun RecipesScreen(
                 item {
                     Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("🍳", style = MaterialTheme.typography.displaySmall)
+                            Icon(Icons.Default.RestaurantMenu, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(40.dp))
                             Text(stringResource(R.string.recipes_empty_body), color = OnBackground.copy(0.5f))
                         }
                     }

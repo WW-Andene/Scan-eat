@@ -45,7 +45,10 @@ data class OffProductDto(
     @Json(name = "ingredients_text_fr") val ingredientsTextFr: String?,
     @Json(name = "ingredients_text") val ingredientsText: String?,
     @Json(name = "nova_group") val novaGroup: Int?,
-    val nutriments: Map<String, Double?>?,
+    // OFF mixes numeric values with string "modifier" keys (e.g. added-sugars_modifier: "~"
+    // for approximate/estimated values) in the same object — Any? lets Moshi parse each value
+    // per its actual JSON type instead of throwing when a modifier key isn't a Double.
+    val nutriments: Map<String, Any?>?,
     @Json(name = "labels_tags") val labelsTags: List<String>?,
     val origins: String?,
     @Json(name = "countries_tags") val countriesTags: List<String>?,

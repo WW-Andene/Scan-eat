@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import fr.scanneat.domain.model.Grade
 
@@ -76,11 +77,29 @@ val HydrationBlue   = Color(0xFF29B6F6)
 val CalorieOrange   = Color(0xFFFF6B35)
 
 // ── Grade → color (single source of truth — was duplicated per screen) ────────
-fun gradeColor(grade: Grade): Color = when (grade) {
-    Grade.A_PLUS -> Color(0xFF4CAF50)
-    Grade.A      -> Color(0xFF8BC34A)
-    Grade.B      -> Color(0xFFCDDC39)
-    Grade.C      -> Color(0xFFFF9800)
-    Grade.D      -> Color(0xFFFF5722)
-    Grade.F      -> Color(0xFFF44336)
+// The red↔green axis is the one most CVD types confuse, so the colorblind-safe
+// palette swaps to a blue→orange/brown gradient (Okabe & Ito 2008) where "worse"
+// grades also get darker/lower-luminance, keeping the scale readable even when
+// hue can't be trusted. Grade letters are always shown alongside the color too.
+private val NormalGradeColors = mapOf(
+    Grade.A_PLUS to Color(0xFF4CAF50),
+    Grade.A      to Color(0xFF8BC34A),
+    Grade.B      to Color(0xFFCDDC39),
+    Grade.C      to Color(0xFFFF9800),
+    Grade.D      to Color(0xFFFF5722),
+    Grade.F      to Color(0xFFF44336),
+)
+private val ColorblindSafeGradeColors = mapOf(
+    Grade.A_PLUS to Color(0xFF0072B2),
+    Grade.A      to Color(0xFF56B4E9),
+    Grade.B      to Color(0xFFE6C619),
+    Grade.C      to Color(0xFFE69F00),
+    Grade.D      to Color(0xFFD55E00),
+    Grade.F      to Color(0xFF8B2E00),
+)
+
+@Composable
+fun gradeColor(grade: Grade): Color {
+    val palette = if (LocalColorblindMode.current == "none") NormalGradeColors else ColorblindSafeGradeColors
+    return palette.getValue(grade)
 }
