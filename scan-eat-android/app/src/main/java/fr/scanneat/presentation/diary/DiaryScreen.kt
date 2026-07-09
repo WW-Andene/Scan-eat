@@ -53,7 +53,11 @@ fun DiaryScreen(
                         Text(selectedDate.value.format(DATE_FMT), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
                     }
                 },
-                navigationIcon = if (isTabRoot) {} else { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
+                navigationIcon = {
+                    if (!isTabRoot) {
+                        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) }
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.goToPreviousDay() }) { Icon(Icons.Default.ChevronLeft, "Jour précédent", tint = OnBackground) }
                     if (!isToday.value) {
