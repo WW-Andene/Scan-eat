@@ -27,6 +27,7 @@ import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.activity.ActivityScreen
 import fr.scanneat.presentation.fasting.FastingScreen
 import fr.scanneat.presentation.hydration.HydrationScreen
+import fr.scanneat.presentation.reminders.RemindersCard
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.weight.WeightScreen
 import java.time.format.DateTimeFormatter
@@ -53,7 +54,6 @@ fun DiaryScreen(
     viewModel: DiaryViewModel = hiltViewModel(),
     onBack: () -> Unit,
     isTabRoot: Boolean = false,
-    onOpenProfile: () -> Unit = {},
 ) {
     var activeTab by remember { mutableStateOf(DiaryTab.MEALS) }
 
@@ -65,12 +65,6 @@ fun DiaryScreen(
                     if (!isTabRoot) {
                         IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
                     }
-                },
-                // Journal is the one canonical entry point to Profile — it used to
-                // also be a Dashboard tile and a Settings button, three doors to
-                // mostly the same screen.
-                actions = {
-                    IconButton(onClick = onOpenProfile) { Icon(Icons.Default.Person, stringResource(R.string.dashboard_tile_profile), tint = OnBackground) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
@@ -209,6 +203,14 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                 }
             }
         }
+        // Reminders — meal, hydration, and weigh-in notifications live in Journal,
+        // next to the logging they nudge you toward, not buried in Réglages.
+        item {
+            Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground,
+                fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        }
+        item { RemindersCard() }
+
         item { Spacer(Modifier.height(32.dp)) }
     }
 

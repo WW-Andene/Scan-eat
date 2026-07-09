@@ -39,6 +39,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBack: () -> Unit,
     isTabRoot: Boolean = false,
+    onOpenProfile: () -> Unit = {},
 ) {
     val apiKey    = viewModel.apiKey.collectAsStateWithLifecycle()
     val groqModel = viewModel.groqModel.collectAsStateWithLifecycle()
@@ -119,6 +120,20 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             Spacer(Modifier.height(4.dp))
+
+            // ---- Profile — first thing in Réglages, not buried at the bottom ----
+            SettingsSection(stringResource(R.string.settings_section_profile)) {
+                Text(stringResource(R.string.settings_profile_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                OutlinedButton(
+                    onClick = onOpenProfile,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Icon(Icons.Default.Person, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.settings_profile_button), color = OnBackground)
+                }
+            }
 
             // ---- API Mode ----
             SettingsSection(stringResource(R.string.settings_section_api_mode)) {
@@ -282,11 +297,6 @@ fun SettingsScreen(
                         }
                     }
                 }
-            }
-
-            // Reminders — meal, hydration, and weigh-in notifications live here, not in Biolism
-            SettingsSection(stringResource(R.string.settings_section_reminders)) {
-                fr.scanneat.presentation.reminders.RemindersCard()
             }
 
             // Backup — local export/import, no cloud account required

@@ -62,14 +62,8 @@ fun AppNavGraph(
         }
 
         composable(TopTab.Diary.route) {
-            // isTabRoot=true suppresses the back arrow inside DiaryScreen. Journal
-            // owns the canonical Profile entry point (see DiaryScreen's top-bar
-            // person icon) — Dashboard and Settings no longer each have their own.
-            DiaryScreen(
-                onBack = {},
-                isTabRoot = true,
-                onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
-            )
+            // isTabRoot=true suppresses the back arrow inside DiaryScreen.
+            DiaryScreen(onBack = {}, isTabRoot = true)
         }
 
         composable(TopTab.Dashboard.route) {
@@ -87,7 +81,11 @@ fun AppNavGraph(
         composable(TopTab.Biolism.route) { BiolismScreen() }
 
         composable(TopTab.Settings.route) {
-            SettingsScreen(onBack = {}, isTabRoot = true)
+            SettingsScreen(
+                onBack = {},
+                isTabRoot = true,
+                onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+            )
         }
 
         // ── Full-screen nested routes ──────────────────────────────────────

@@ -52,7 +52,7 @@
     <string name="tab_scan">Scanner</string>
     <string name="tab_diary">Journal</string>
     <string name="tab_dashboard">Tableau</string>
-    <string name="tab_biolism">Biolism</string>
+    <string name="tab_biolism">Métabolisme</string>
     <string name="tab_settings">Réglages</string>
 
     <!-- ── Meal Plan screen ───────────────────────────────────────────────── -->
@@ -164,7 +164,7 @@
          card chrome and equation titles are localized here. -->
     <string name="biolism_eq_title">Équations &amp; sources</string>
     <string name="biolism_eq_badge">RÉFÉRENCE</string>
-    <string name="biolism_eq_disclaimer">Chaque valeur affichée dans Biolism dérive d\'une formule publiée. Ci-dessous : la formule, tes chiffres actuels substitués, et la source.</string>
+    <string name="biolism_eq_disclaimer">Chaque valeur affichée dans Métabolisme dérive d\'une formule publiée. Ci-dessous : la formule, tes chiffres actuels substitués, et la source.</string>
     <string name="biolism_eq_bmr_msj">BMR — Mifflin-St Jeor (1990)</string>
     <string name="biolism_eq_bmr_km">BMR — Katch-McArdle (1996)</string>
     <string name="biolism_eq_bodyfat">Masse grasse — Deurenberg (1991)</string>
@@ -310,7 +310,7 @@
     <string name="biolism_flux_gng_sub">%1$.0f%% du catabolisme protéique → GNG · Cahill 1966</string>
 
     <!-- ── Biolism: Onboarding wizard ─────────────────────────────────────── -->
-    <string name="biolism_onboard_step0_title">Bienvenue dans Biolism</string>
+    <string name="biolism_onboard_step0_title">Bienvenue dans Métabolisme</string>
     <string name="biolism_onboard_step0_sub">Configurons ton profil en 3 étapes rapides. Ces données restent sur ton appareil et alimentent chaque calcul.</string>
     <string name="biolism_onboard_step1_title">Qui es-tu ?</string>
     <string name="biolism_onboard_step1_sub">Sexe et âge calibrent ta formule de BMR. Taille et poids sont les entrées principales.</string>
@@ -420,7 +420,7 @@
     <string name="biolism_liveweight_base">Base : %1$s kg</string>
     <string name="biolism_liveweight_fat_lost">%1$s g graisses</string>
     <string name="biolism_liveweight_glyco_lost">%1$s g glycogène+H₂O</string>
-    <string name="biolism_tracker_empty_title">Complète ton profil Biolism</string>
+    <string name="biolism_tracker_empty_title">Complète ton profil Métabolisme</string>
     <string name="biolism_tracker_empty_desc">Âge, sexe, taille et poids sont nécessaires pour calculer ton BMR et les flux de substrats.</string>
     <string name="biolism_goals_title">Objectifs quotidiens</string>
     <string name="biolism_goals_bmr_label">BMR (au repos)</string>
@@ -601,7 +601,7 @@
     <string name="onboarding_value_title">Pourquoi Scan\'eat</string>
     <string name="onboarding_value_transparency_title">Le calcul est visible</string>
     <string name="onboarding_value_transparency_body">Chaque score s\'appuie sur une formule consultable — sources et méthode incluses, pas juste un chiffre.</string>
-    <string name="onboarding_value_biolism_title">Biolism : votre métabolisme, en direct</string>
+    <string name="onboarding_value_biolism_title">Métabolisme : votre métabolisme, en direct</string>
     <string name="onboarding_value_biolism_body">Au-delà du scan, suivez votre BMR, votre cétose et votre jeûne en temps réel — un onglet dédié, inclus dans l\'app.</string>
     <string name="onboarding_start_button">Commencer</string>
     <string name="onboarding_config_title">Configuration</string>
@@ -739,7 +739,7 @@
     <string name="dashboard_calorie_surplus">EXCÉDENT</string>
     <string name="dashboard_calorie_deficit">DÉFICIT</string>
     <string name="dashboard_calorie_balanced">ÉQUILIBRÉ</string>
-    <string name="dashboard_calorie_source_biolism">TDEE Biolism</string>
+    <string name="dashboard_calorie_source_biolism">TDEE Métabolisme</string>
     <string name="dashboard_calorie_source_profile">TDEE profil</string>
 
     <!-- ── Recipes screen ─────────────────────────────────────────────────── -->
@@ -798,7 +798,7 @@
     <string name="history_item_summary">%1$s, note %2$s, %3$d sur 100</string>
 
     <!-- ── Reminders ──────────────────────────────────────────────────────── -->
-    <string name="reminders_channel_name">Rappels Biolism</string>
+    <string name="reminders_channel_name">Rappels Métabolisme</string>
     <string name="reminders_title">Rappels</string>
     <string name="reminders_enable_notifications">Activer les notifications</string>
     <string name="reminders_breakfast">Petit-déjeuner</string>
