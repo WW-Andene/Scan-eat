@@ -287,6 +287,28 @@
     <string name="biolism_macro_potassium_value">≥ %1$d mg</string>
     <string name="biolism_macro_potassium_sub">NASEM DRI 2019 · contre l\'excrétion sodique</string>
 
+    <!-- ── Biolism: Substrate Flux card ───────────────────────────────────── -->
+    <string name="biolism_flux_title">Flux de substrats</string>
+    <string name="biolism_flux_badge">LIVE</string>
+    <string name="biolism_flux_ox_rate_title">Taux d\'oxydation</string>
+    <string name="biolism_flux_fat_ox">Oxyd. graisses</string>
+    <string name="biolism_flux_fat_kcal_g">9,0 kcal/g</string>
+    <string name="biolism_flux_carb_ox">Oxyd. glucides</string>
+    <string name="biolism_flux_carb_kcal_g">4,0 kcal/g</string>
+    <string name="biolism_flux_protein_ox">Oxyd. protéines</string>
+    <string name="biolism_flux_protein_kcal_g">4,1 kcal/g</string>
+    <string name="biolism_flux_ffa">Flux AGL lipolyse</string>
+    <string name="biolism_flux_ffa_sub">adipose→plasma</string>
+    <string name="biolism_flux_acetyl_coa_total">Acétyl-CoA (total)</string>
+    <string name="biolism_flux_beta_ox">  ↳ β-oxydation</string>
+    <string name="biolism_flux_glycolysis">  ↳ glycolyse (PDH)</string>
+    <string name="biolism_flux_protein_aa">  ↳ protéines (AA)</string>
+    <string name="biolism_flux_bhb">β-Hydroxybutyrate</string>
+    <string name="biolism_flux_bhb_none">— (pas de cétose)</string>
+    <string name="biolism_flux_bhb_activation">activation CPT-I %1$.0f%% · McGarry 1980</string>
+    <string name="biolism_flux_gluconeogenesis">Gluconéogenèse</string>
+    <string name="biolism_flux_gng_sub">%1$.0f%% du catabolisme protéique → GNG · Cahill 1966</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>
