@@ -5,8 +5,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.domain.engine.biolism.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -18,9 +20,25 @@ import javax.inject.Singleton
 private val Context.biolismStore: DataStore<Preferences>
     by preferencesDataStore(name = "biolism_prefs")
 
+/** Maps the app-wide profile's sex/activity onto Biolism's own vocabulary. */
+private fun fr.scanneat.domain.model.Sex.toBiolismSex(): BiolismSex = when (this) {
+    fr.scanneat.domain.model.Sex.MALE          -> BiolismSex.MALE
+    fr.scanneat.domain.model.Sex.FEMALE        -> BiolismSex.FEMALE
+    fr.scanneat.domain.model.Sex.NOT_SPECIFIED -> BiolismSex.NOT_SPECIFIED
+}
+
+private fun fr.scanneat.domain.model.ActivityLevel.toBiolismActivityId(): String = when (this) {
+    fr.scanneat.domain.model.ActivityLevel.SEDENTARY         -> "sedentary"
+    fr.scanneat.domain.model.ActivityLevel.LIGHTLY_ACTIVE     -> "light"
+    fr.scanneat.domain.model.ActivityLevel.MODERATELY_ACTIVE  -> "moderate"
+    fr.scanneat.domain.model.ActivityLevel.VERY_ACTIVE        -> "very"
+    fr.scanneat.domain.model.ActivityLevel.EXTRA_ACTIVE       -> "extra"
+}
+
 @Singleton
 class BiolismRepository @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val userPreferences: UserPreferences,
 ) {
     private val store = context.biolismStore
 
@@ -67,19 +85,38 @@ class BiolismRepository @Inject constructor(
     // ─────────────────────────────────────────────────────────────────────────
     // Profile
     // ─────────────────────────────────────────────────────────────────────────
-    val profile: Flow<BiolismProfile> = store.data.map { p ->
-        BiolismProfile(
-            sex        = BiolismSex.values().firstOrNull { it.name == p[K_SEX] } ?: BiolismSex.NOT_SPECIFIED,
-            ageYears   = p[K_AGE] ?: 0,
-            heightCm   = p[K_HEIGHT]?.toDouble() ?: 0.0,
-            weightKg   = p[K_WEIGHT]?.toDouble() ?: 0.0,
-            activityId = p[K_ACTIVITY] ?: "sedentary",
-            ethnicityId= p[K_ETHNICITY] ?: "caucasian",
-            waistCm    = p[K_WAIST]?.toDouble() ?: 0.0,
-            hipCm      = p[K_HIP]?.toDouble() ?: 0.0,
-            neckCm     = p[K_NECK]?.toDouble() ?: 0.0,
-            cycleDay   = p[K_CYCLE_DAY] ?: 14,
-        )
+    // Sex/age/height/weight/activity are shared with the app-wide profile so the user only
+    // fills them in once — Biolism only keeps its own copy once the user explicitly edits and
+    // saves them from within Biolism (K_SEX present means an explicit Biolism-side override).
+    val profile: Flow<BiolismProfile> = combine(store.data, userPreferences.profile) { p, mainProfile ->
+        val hasOwnOverride = p[K_SEX] != null
+        val ethnicityId = p[K_ETHNICITY] ?: "caucasian"
+        val waistCm      = p[K_WAIST]?.toDouble() ?: 0.0
+        val hipCm        = p[K_HIP]?.toDouble()   ?: 0.0
+        val neckCm       = p[K_NECK]?.toDouble()  ?: 0.0
+        val cycleDay     = p[K_CYCLE_DAY] ?: 14
+
+        if (hasOwnOverride) {
+            BiolismProfile(
+                sex         = BiolismSex.values().firstOrNull { it.name == p[K_SEX] } ?: BiolismSex.NOT_SPECIFIED,
+                ageYears    = p[K_AGE] ?: 0,
+                heightCm    = p[K_HEIGHT]?.toDouble() ?: 0.0,
+                weightKg    = p[K_WEIGHT]?.toDouble() ?: 0.0,
+                activityId  = p[K_ACTIVITY] ?: "sedentary",
+                ethnicityId = ethnicityId,
+                waistCm     = waistCm, hipCm = hipCm, neckCm = neckCm, cycleDay = cycleDay,
+            )
+        } else {
+            BiolismProfile(
+                sex         = mainProfile.sex.toBiolismSex(),
+                ageYears    = mainProfile.ageYears ?: 0,
+                heightCm    = mainProfile.heightCm ?: 0.0,
+                weightKg    = mainProfile.weightKg ?: 0.0,
+                activityId  = mainProfile.activityLevel.toBiolismActivityId(),
+                ethnicityId = ethnicityId,
+                waistCm     = waistCm, hipCm = hipCm, neckCm = neckCm, cycleDay = cycleDay,
+            )
+        }
     }
 
     suspend fun saveProfile(profile: BiolismProfile) = store.edit { p ->

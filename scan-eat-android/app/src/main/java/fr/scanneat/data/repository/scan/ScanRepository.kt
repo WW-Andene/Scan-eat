@@ -16,10 +16,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import okhttp3.OkHttpClient
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Inject
 import javax.inject.Singleton
+
+/** Thrown when a barcode has no Open Food Facts entry and no photos were supplied to fall back on. */
+class ProductNotFoundException(message: String) : Exception(message)
 
 @Singleton
 class ScanRepository @Inject constructor(
@@ -86,6 +90,7 @@ class ScanRepository @Inject constructor(
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
         val serverUrl = prefs.serverUrl.first()
+        val model     = prefs.groqModel.first().ifBlank { DEFAULT_MODEL }
 
         getCachedByBarcode(barcode)?.let { cached ->
             return@runCatching Pair(cached, persist(cached))
@@ -93,7 +98,7 @@ class ScanRepository @Inject constructor(
 
         val result = when (apiMode) {
             ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode)
-            ApiMode.DIRECT -> scoreDirectBarcode(barcode, images, apiKey, lang)
+            ApiMode.DIRECT -> scoreDirectBarcode(barcode, images, apiKey, lang, model)
         }
         Pair(result, persist(result))
     }
@@ -105,12 +110,13 @@ class ScanRepository @Inject constructor(
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
         val serverUrl = prefs.serverUrl.first()
+        val model     = prefs.groqModel.first().ifBlank { DEFAULT_MODEL }
 
         val result = when (apiMode) {
             ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode = null)
             ApiMode.DIRECT -> {
                 if (apiKey.isBlank()) error("Groq API key not configured")
-                val parsed = ocrParser.parseLabel(images, apiKey, lang = lang)
+                val parsed = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
                 ScanResult(
                     product  = parsed.product,
                     audit    = scoreProduct(parsed.product),
@@ -149,8 +155,13 @@ class ScanRepository @Inject constructor(
         images: List<ImagePayload>,
         apiKey: String,
         lang: String,
+        model: String,
     ): ScanResult {
-        val offResponse = runCatching { offApi.getProduct(barcode) }.getOrNull()
+        val offResponse = try {
+            offApi.getProduct(barcode)
+        } catch (e: HttpException) {
+            if (e.code() == 404) null else throw e
+        }
         val offProduct  = offResponse?.product?.let { dto ->
             mapOffProduct(OffProductResponse(
                 productName       = dto.productName,
@@ -174,7 +185,7 @@ class ScanRepository @Inject constructor(
 
         val (finalProduct, source, warnings) = when {
             offProduct != null && isOffSparse(offProduct) && images.isNotEmpty() && apiKey.isNotBlank() -> {
-                val parsed    = ocrParser.parseLabel(images, apiKey, lang = lang)
+                val parsed    = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
                 val merged    = mergeOffWithLlm(offProduct, parsed.product)
                 val conflicts = detectSourceConflicts(offProduct, parsed.product)
                 Triple(merged, ScanSource.MERGED,
@@ -182,10 +193,10 @@ class ScanRepository @Inject constructor(
             }
             offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
             images.isNotEmpty() && apiKey.isNotBlank() -> {
-                val parsed = ocrParser.parseLabel(images, apiKey, lang = lang)
+                val parsed = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
                 Triple(parsed.product, ScanSource.LLM, parsed.warnings)
             }
-            else -> error("No OFF data and no images — cannot score")
+            else -> throw ProductNotFoundException("Produit introuvable dans Open Food Facts — ajoutez une photo pour continuer")
         }
 
         val audit = scoreProduct(finalProduct)

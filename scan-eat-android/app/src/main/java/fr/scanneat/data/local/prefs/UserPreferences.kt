@@ -22,6 +22,7 @@ class UserPreferences @Inject constructor(
 
     companion object {
         val KEY_API_KEY              = stringPreferencesKey("groq_api_key")
+        val KEY_GROQ_MODEL           = stringPreferencesKey("groq_model")
         val KEY_API_MODE             = stringPreferencesKey("api_mode")
         val KEY_SERVER_URL           = stringPreferencesKey("server_url")
         val KEY_LANGUAGE             = stringPreferencesKey("language")
@@ -44,12 +45,15 @@ class UserPreferences @Inject constructor(
     // ---- API / app settings ----
 
     val groqApiKey: Flow<String>  = store.data.map { it[KEY_API_KEY]    ?: "" }
+    /** Empty string means "use the built-in default" (see OcrParser.DEFAULT_MODEL). */
+    val groqModel: Flow<String>   = store.data.map { it[KEY_GROQ_MODEL] ?: "" }
     val apiMode: Flow<ApiMode>    = store.data.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }
     val serverUrl: Flow<String>   = store.data.map { it[KEY_SERVER_URL] ?: "" }
     val language: Flow<String>    = store.data.map { it[KEY_LANGUAGE]   ?: "fr" }
     val theme: Flow<String>       = store.data.map { it[KEY_THEME]      ?: "oled" }
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = key }
+    suspend fun setGroqModel(model: String) = store.edit { it[KEY_GROQ_MODEL] = model }
     suspend fun setApiMode(mode: ApiMode)   = store.edit { it[KEY_API_MODE]   = mode.key }
     suspend fun setServerUrl(url: String)   = store.edit { it[KEY_SERVER_URL] = url }
     suspend fun setLanguage(lang: String)   = store.edit { it[KEY_LANGUAGE]   = lang }

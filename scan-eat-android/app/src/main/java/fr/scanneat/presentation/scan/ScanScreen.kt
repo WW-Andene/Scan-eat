@@ -171,15 +171,30 @@ fun ScanScreen(
 
         // ── Error ──────────────────────────────────────────────────────────────
         if (state.value is ScanUiState.Error) {
-            val msg = (state.value as ScanUiState.Error).message
-            Surface(modifier = Modifier.fillMaxWidth().padding(16.dp),
-                color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(12.dp)) {
-                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error)
-                    Spacer(Modifier.width(8.dp))
-                    Text(msg, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
-                    IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Close, "Fermer", tint = MaterialTheme.colorScheme.onErrorContainer)
+            val error = state.value as ScanUiState.Error
+            if (error.needsPhoto) {
+                Surface(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    color = SurfaceVariant, shape = RoundedCornerShape(12.dp)) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.CameraAlt, null, tint = AccentGreen)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Produit non trouvé dans la base — photographiez l'étiquette pour continuer",
+                            Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
+                        IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Close, "Fermer", tint = OnSurface)
+                        }
+                    }
+                }
+            } else {
+                Surface(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(12.dp)) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp))
+                        Text(error.message, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                        IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Close, "Fermer", tint = MaterialTheme.colorScheme.onErrorContainer)
+                        }
                     }
                 }
             }
@@ -200,6 +215,9 @@ fun CameraPreview(
     DisposableEffect(Unit) { onDispose { executor.shutdown() } }
 
     var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
+    var camera: Camera? by remember { mutableStateOf(null) }
+    var hasFlash by remember { mutableStateOf(false) }
+    var torchOn by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         androidx.compose.ui.viewinterop.AndroidView(
@@ -242,12 +260,30 @@ fun CameraPreview(
                         }
                     runCatching {
                         provider.unbindAll()
-                        provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture, analysis)
+                        camera = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture, analysis)
+                        hasFlash = camera?.cameraInfo?.hasFlashUnit() == true
                     }
                 }, ContextCompat.getMainExecutor(ctx))
                 previewView
             },
         )
+
+        if (hasFlash) {
+            FloatingActionButton(
+                onClick = {
+                    torchOn = !torchOn
+                    camera?.cameraControl?.enableTorch(torchOn)
+                },
+                modifier       = Modifier.align(Alignment.TopEnd).padding(16.dp).size(40.dp),
+                containerColor = if (torchOn) AccentGreen else SurfaceVariant,
+            ) {
+                Icon(
+                    if (torchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                    "Activer/désactiver le flash",
+                    tint = if (torchOn) Color.Black else OnSurface,
+                )
+            }
+        }
 
         FloatingActionButton(
             onClick = {

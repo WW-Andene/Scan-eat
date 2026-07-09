@@ -12,12 +12,14 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(private val prefs: UserPreferences) : ViewModel() {
     val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val groqModel = prefs.groqModel.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val mode      = prefs.apiMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ApiMode.DIRECT)
     val serverUrl = prefs.serverUrl.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val language  = prefs.language.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     val theme     = prefs.theme.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "oled")
 
     fun saveApiKey(key: String)    = viewModelScope.launch { prefs.setGroqApiKey(key.trim()) }
+    fun saveGroqModel(model: String) = viewModelScope.launch { prefs.setGroqModel(model.trim()) }
     fun setMode(m: ApiMode)        = viewModelScope.launch { prefs.setApiMode(m) }
     fun saveServerUrl(url: String) = viewModelScope.launch { prefs.setServerUrl(url.trim()) }
     fun setLanguage(lang: String)  = viewModelScope.launch { prefs.setLanguage(lang) }

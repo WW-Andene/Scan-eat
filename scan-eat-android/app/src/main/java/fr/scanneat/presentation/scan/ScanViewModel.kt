@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.ImagePayload
+import fr.scanneat.data.repository.scan.ProductNotFoundException
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +26,7 @@ sealed class ScanUiState {
     data object Idle     : ScanUiState()
     data object Scanning : ScanUiState()
     data class  Success(val result: ScanResult, val persistedId: Long) : ScanUiState()
-    data class  Error(val message: String) : ScanUiState()
+    data class  Error(val message: String, val needsPhoto: Boolean = false) : ScanUiState()
 }
 
 @HiltViewModel
@@ -89,7 +90,13 @@ class ScanViewModel @Inject constructor(
                 }
                 result.fold(
                     onSuccess = { (scanResult, id) -> _state.value = ScanUiState.Success(scanResult, id) },
-                    onFailure = { _state.value = ScanUiState.Error(it.message ?: "Erreur inconnue") },
+                    onFailure = { e ->
+                        _state.value = if (e is ProductNotFoundException) {
+                            ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
+                        } else {
+                            ScanUiState.Error(e.message ?: "Erreur inconnue")
+                        }
+                    },
                 )
             } finally {
                 scoreMutex.unlock()

@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.data.local.prefs.ApiMode
+import fr.scanneat.domain.engine.nutrition.DEFAULT_MODEL
+import fr.scanneat.domain.engine.nutrition.FALLBACK_MODEL
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -30,6 +32,7 @@ fun SettingsScreen(
     onOpenProfile: () -> Unit = {},
 ) {
     val apiKey    = viewModel.apiKey.collectAsStateWithLifecycle()
+    val groqModel = viewModel.groqModel.collectAsStateWithLifecycle()
     val mode      = viewModel.mode.collectAsStateWithLifecycle()
     val serverUrl = viewModel.serverUrl.collectAsStateWithLifecycle()
     val language  = viewModel.language.collectAsStateWithLifecycle()
@@ -38,6 +41,7 @@ fun SettingsScreen(
     var keyVisible  by remember { mutableStateOf(false) }
     var localKey    by remember(apiKey.value)    { mutableStateOf(apiKey.value) }
     var localUrl    by remember(serverUrl.value) { mutableStateOf(serverUrl.value) }
+    var localModel  by remember(groqModel.value) { mutableStateOf(groqModel.value) }
 
     Scaffold(
         topBar = {
@@ -98,6 +102,35 @@ fun SettingsScreen(
                     )
                     Text("Clé gratuite sur console.groq.com", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                     Button(onClick = { viewModel.saveApiKey(localKey) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
+                        Text("Sauvegarder", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
+                // ---- Groq model ----
+                SettingsSection("Modèle Groq") {
+                    Text(
+                        "Laissez vide pour utiliser le modèle par défaut ($DEFAULT_MODEL). Si l'analyse échoue avec une erreur de modèle, essayez-en un autre depuis console.groq.com/docs/models.",
+                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(DEFAULT_MODEL, FALLBACK_MODEL).forEach { m ->
+                            FilterChip(
+                                selected = localModel == m,
+                                onClick  = { localModel = m },
+                                label    = { Text(m.substringAfterLast('/'), maxLines = 1) },
+                                colors   = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                ),
+                            )
+                        }
+                    }
+                    OutlinedTextField(
+                        value = localModel, onValueChange = { localModel = it },
+                        modifier = Modifier.fillMaxWidth(), label = { Text("ID du modèle (optionnel)") },
+                        singleLine = true, shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                    )
+                    Button(onClick = { viewModel.saveGroqModel(localModel) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
                         Text("Sauvegarder", color = Color.Black, fontWeight = FontWeight.SemiBold)
                     }
                 }
