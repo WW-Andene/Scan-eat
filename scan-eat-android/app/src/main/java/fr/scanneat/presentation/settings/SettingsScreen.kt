@@ -24,6 +24,7 @@ import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.domain.engine.nutrition.DEFAULT_MODEL
 import fr.scanneat.domain.engine.nutrition.FALLBACK_MODEL
+import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -222,6 +223,26 @@ fun SettingsScreen(
                         )
                     }
                 }
+                Spacer(Modifier.height(6.dp))
+                // Live preview so the effect of the chosen mode is visible right here,
+                // not just later on a scan result.
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Grade.entries.forEach { grade ->
+                        val c = gradeColor(grade)
+                        Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f)) {
+                            Text(
+                                grade.label,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall, color = c, fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Reminders — meal, hydration, and weigh-in notifications live here, not in Biolism
+            SettingsSection(stringResource(R.string.settings_section_reminders)) {
+                fr.scanneat.presentation.reminders.RemindersCard()
             }
 
             // Profile shortcut

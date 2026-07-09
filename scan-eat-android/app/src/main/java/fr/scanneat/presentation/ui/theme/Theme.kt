@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,23 +81,28 @@ private val LightGoldAccent = Color(0xFF8B6914)
 /** "none" | "deuteranopia" | "protanopia" | "tritanopia" — read by gradeColor() and friends. */
 val LocalColorblindMode = staticCompositionLocalOf { "none" }
 
-/** Wider letter/line spacing measurably helps dyslexic readers even without a specialty typeface. */
+/**
+ * Wider letter/word spacing, taller lines, and a slightly heavier weight —
+ * all measurable dyslexia accommodations even without a specialty typeface.
+ * Deliberately strong enough to be obvious the instant it's toggled, not a
+ * barely-there tweak: the whole point is the user can tell it's working.
+ */
 private fun Typography.withDyslexicSpacing(): Typography = copy(
-    displayLarge   = displayLarge.copy(letterSpacing = 0.5.sp, lineHeight = displayLarge.lineHeight * 1.15f),
-    displayMedium  = displayMedium.copy(letterSpacing = 0.5.sp, lineHeight = displayMedium.lineHeight * 1.15f),
-    displaySmall   = displaySmall.copy(letterSpacing = 0.5.sp, lineHeight = displaySmall.lineHeight * 1.15f),
-    headlineLarge  = headlineLarge.copy(letterSpacing = 0.4.sp, lineHeight = headlineLarge.lineHeight * 1.15f),
-    headlineMedium = headlineMedium.copy(letterSpacing = 0.4.sp, lineHeight = headlineMedium.lineHeight * 1.15f),
-    headlineSmall  = headlineSmall.copy(letterSpacing = 0.4.sp, lineHeight = headlineSmall.lineHeight * 1.15f),
-    titleLarge     = titleLarge.copy(letterSpacing = 0.3.sp, lineHeight = titleLarge.lineHeight * 1.15f),
-    titleMedium    = titleMedium.copy(letterSpacing = 0.3.sp, lineHeight = titleMedium.lineHeight * 1.15f),
-    titleSmall     = titleSmall.copy(letterSpacing = 0.3.sp, lineHeight = titleSmall.lineHeight * 1.15f),
-    bodyLarge      = bodyLarge.copy(letterSpacing = 0.4.sp, lineHeight = bodyLarge.lineHeight * 1.2f),
-    bodyMedium     = bodyMedium.copy(letterSpacing = 0.4.sp, lineHeight = bodyMedium.lineHeight * 1.2f),
-    bodySmall      = bodySmall.copy(letterSpacing = 0.4.sp, lineHeight = bodySmall.lineHeight * 1.2f),
-    labelLarge     = labelLarge.copy(letterSpacing = 0.3.sp, lineHeight = labelLarge.lineHeight * 1.2f),
-    labelMedium    = labelMedium.copy(letterSpacing = 0.3.sp, lineHeight = labelMedium.lineHeight * 1.2f),
-    labelSmall     = labelSmall.copy(letterSpacing = 0.3.sp, lineHeight = labelSmall.lineHeight * 1.2f),
+    displayLarge   = displayLarge.copy(letterSpacing = 1.2.sp, lineHeight = displayLarge.lineHeight * 1.35f),
+    displayMedium  = displayMedium.copy(letterSpacing = 1.2.sp, lineHeight = displayMedium.lineHeight * 1.35f),
+    displaySmall   = displaySmall.copy(letterSpacing = 1.2.sp, lineHeight = displaySmall.lineHeight * 1.35f),
+    headlineLarge  = headlineLarge.copy(letterSpacing = 1.0.sp, lineHeight = headlineLarge.lineHeight * 1.35f),
+    headlineMedium = headlineMedium.copy(letterSpacing = 1.0.sp, lineHeight = headlineMedium.lineHeight * 1.35f, fontWeight = FontWeight.Black),
+    headlineSmall  = headlineSmall.copy(letterSpacing = 1.0.sp, lineHeight = headlineSmall.lineHeight * 1.35f),
+    titleLarge     = titleLarge.copy(letterSpacing = 0.8.sp, lineHeight = titleLarge.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    titleMedium    = titleMedium.copy(letterSpacing = 0.8.sp, lineHeight = titleMedium.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    titleSmall     = titleSmall.copy(letterSpacing = 0.8.sp, lineHeight = titleSmall.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    bodyLarge      = bodyLarge.copy(letterSpacing = 1.0.sp, lineHeight = bodyLarge.lineHeight * 1.45f, fontSize = bodyLarge.fontSize * 1.08f),
+    bodyMedium     = bodyMedium.copy(letterSpacing = 1.0.sp, lineHeight = bodyMedium.lineHeight * 1.45f, fontSize = bodyMedium.fontSize * 1.08f),
+    bodySmall      = bodySmall.copy(letterSpacing = 0.9.sp, lineHeight = bodySmall.lineHeight * 1.45f, fontSize = bodySmall.fontSize * 1.08f),
+    labelLarge     = labelLarge.copy(letterSpacing = 0.8.sp, lineHeight = labelLarge.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    labelMedium    = labelMedium.copy(letterSpacing = 0.8.sp, lineHeight = labelMedium.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    labelSmall     = labelSmall.copy(letterSpacing = 0.7.sp, lineHeight = labelSmall.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
 )
 
 /**

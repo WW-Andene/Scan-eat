@@ -291,6 +291,7 @@
     <string name="settings_theme_light">Clair</string>
     <string name="settings_section_profile">Profil nutritionnel</string>
     <string name="settings_section_accessibility">Accessibilité</string>
+    <string name="settings_section_reminders">Rappels</string>
     <string name="settings_dyslexic_font">Police adaptée dyslexie</string>
     <string name="settings_dyslexic_font_hint">Interlettrage et espacement des lignes augmentés pour une lecture plus facile</string>
     <string name="settings_colorblind_mode">Mode daltonien</string>

@@ -291,6 +291,7 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
+    <string name="settings_section_reminders">Reminders</string>
     <string name="settings_dyslexic_font">Dyslexia-friendly font</string>
     <string name="settings_dyslexic_font_hint">Wider letter and line spacing for easier reading</string>
     <string name="settings_colorblind_mode">Colorblind mode</string>
