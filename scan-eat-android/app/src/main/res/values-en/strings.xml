@@ -363,6 +363,17 @@
     <string name="biolism_sesshist_yes">Yes</string>
     <string name="biolism_sesshist_cancel">Cancel</string>
 
+    <!-- ── Biolism: Tracker — Ketosis section ─────────────────────────────── -->
+    <string name="biolism_ketosis_label">Ketosis</string>
+    <string name="biolism_ketosis_desc">&lt; 50g carbs · fat = main fuel · RQ ≈ 0.70</string>
+    <string name="biolism_ketosis_oxi_active">ox. %1$d%% fat · npRQ %2$.3f</string>
+    <string name="biolism_ketosis_nprq_inactive">npRQ %1$.3f</string>
+    <string name="biolism_ketosis_time_label">Ketosis time:</string>
+    <string name="biolism_ketosis_adapted_label">Keto-adapted</string>
+    <string name="biolism_ketosis_auto_badge">AUTO</string>
+    <string name="biolism_ketosis_3weeks_required">3+ weeks required</string>
+    <string name="biolism_ketosis_adapted_desc">Brain ~70%% ketones · RQ floor 0.715</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>

@@ -364,6 +364,17 @@
     <string name="biolism_sesshist_yes">Oui</string>
     <string name="biolism_sesshist_cancel">Annuler</string>
 
+    <!-- ── Biolism: Tracker — Ketosis section ─────────────────────────────── -->
+    <string name="biolism_ketosis_label">Cétose</string>
+    <string name="biolism_ketosis_desc">&lt; 50g glucides · graisse = carburant principal · RQ ≈ 0.70</string>
+    <string name="biolism_ketosis_oxi_active">oxi. %1$d%% graisses · npRQ %2$.3f</string>
+    <string name="biolism_ketosis_nprq_inactive">npRQ %1$.3f</string>
+    <string name="biolism_ketosis_time_label">Temps cétose :</string>
+    <string name="biolism_ketosis_adapted_label">Kéto-adapté</string>
+    <string name="biolism_ketosis_auto_badge">AUTO</string>
+    <string name="biolism_ketosis_3weeks_required">3+ semaines requis</string>
+    <string name="biolism_ketosis_adapted_desc">Cerveau ~70%% cétones · RQ plancher 0.715</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>

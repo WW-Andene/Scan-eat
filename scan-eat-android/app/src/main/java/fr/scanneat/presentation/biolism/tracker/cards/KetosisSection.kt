@@ -9,8 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.StepperChip
 import fr.scanneat.presentation.ui.theme.*
 
@@ -34,15 +36,15 @@ internal fun KetosisToggleRow(
                     Checkbox(checked = active, onCheckedChange = { onToggle() },
                         colors = CheckboxDefaults.colors(checkedColor = Teal, uncheckedColor = Teal.copy(0.4f)))
                     Column {
-                        Text("Cétose", style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
-                        Text("< 50g glucides · graisse = carburant principal · RQ ≈ 0.70",
+                        Text(stringResource(R.string.biolism_ketosis_label), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.biolism_ketosis_desc),
                             style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     }
                 }
                 Surface(shape = RoundedCornerShape(4.dp), color = TealHaze,
                     border = BorderStroke(1.dp, TealGlow)) {
-                    Text(if (active) "oxi. ${fatPct}% graisses · npRQ ${String.format("%.3f", npRq)}"
-                         else "npRQ ${String.format("%.3f", npRq)}",
+                    Text(if (active) stringResource(R.string.biolism_ketosis_oxi_active, fatPct, npRq)
+                         else stringResource(R.string.biolism_ketosis_nprq_inactive, npRq),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                 }
@@ -50,7 +52,7 @@ internal fun KetosisToggleRow(
             if (active) {
                 // +/- stepper row
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Temps cétose :", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                    Text(stringResource(R.string.biolism_ketosis_time_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     listOf("6h" to 6.0, "12h" to 12.0, "24h" to 24.0, "1s" to 168.0, "1m" to 720.0).forEach { (label, h) ->
                         StepperChip(label = label, color = Teal, onMinus = { onAddHours(-h) }, onPlus = { onAddHours(h) })
                     }
@@ -75,17 +77,17 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                     colors = CheckboxDefaults.colors(checkedColor = Gold, uncheckedColor = Gold.copy(0.4f)))
                 Column {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Kéto-adapté", style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.biolism_ketosis_adapted_label), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
                         if (threeWeeks) {
                             Surface(shape = RoundedCornerShape(4.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
-                                Text("AUTO", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                Text(stringResource(R.string.biolism_ketosis_auto_badge), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold)
                             }
                         } else {
-                            Text("3+ semaines requis", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                            Text(stringResource(R.string.biolism_ketosis_3weeks_required), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                         }
                     }
-                    Text("Cerveau ~70% cétones · RQ plancher 0.715", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                    Text(stringResource(R.string.biolism_ketosis_adapted_desc), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                 }
             }
             Surface(shape = RoundedCornerShape(4.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
