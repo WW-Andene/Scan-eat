@@ -227,4 +227,22 @@
     <string name="onboarding_profile_body">Fill in your profile (sex, age, weight, diet, allergens) to get a personal score tailored to your nutritional needs. You can do this later from the Profile tab.</string>
     <string name="onboarding_profile_cta">Set up my profile now</string>
     <string name="onboarding_profile_skip">Skip, set up later</string>
+
+    <!-- ── Activity screen ────────────────────────────────────────────────── -->
+    <string name="activity_title">Activity</string>
+    <string name="activity_type_walking">Brisk walking</string>
+    <string name="activity_type_running">Running</string>
+    <string name="activity_type_cycling">Cycling</string>
+    <string name="activity_type_swimming">Swimming</string>
+    <string name="activity_type_strength">Strength</string>
+    <string name="activity_type_yoga">Yoga</string>
+    <string name="activity_type_hiit">HIIT</string>
+    <string name="activity_type_other">Other</string>
+    <string name="activity_kcal_burned_label">kcal burned</string>
+    <string name="activity_minutes_label">minutes</string>
+    <string name="activity_entry_summary">%1$d min · %2$d kcal</string>
+    <string name="activity_empty">No activity logged today.</string>
+    <string name="activity_add_dialog_title">Log an activity</string>
+    <string name="activity_type_label">Type</string>
+    <string name="activity_duration_label">Duration (minutes)</string>
 </resources>
