@@ -225,7 +225,7 @@ private val FR_TO_EN: Map<String, String> by lazy {
 }
 
 private val PAIRINGS: Map<String, PairingsResult> = mapOf(
-    "almond" to PairingsResult("almond", "amandes" ?: "almond", 2318, listOf(
+    "almond" to PairingsResult("almond", "amandes", 2318, listOf(
         PairingEntry("cherry", "cerise", 178),
         PairingEntry("vanilla", "vanille", 712),
         PairingEntry("wheat", "blé", 1353),
@@ -235,7 +235,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("apricot", "abricot", 103),
         PairingEntry("cocoa", "cacao", 393)
     )),
-    "anise" to PairingsResult("anise", "anis" ?: "anise", 223, listOf(
+    "anise" to PairingsResult("anise", "anis", 223, listOf(
         PairingEntry("nut", null, 68),
         PairingEntry("seed", null, 56),
         PairingEntry("ginger", "gingembre", 75),
@@ -245,7 +245,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("pumpkin", "potiron", 17),
         PairingEntry("egg", "œuf", 143)
     )),
-    "apple" to PairingsResult("apple", "pomme" ?: "apple", 2414, listOf(
+    "apple" to PairingsResult("apple", "pomme", 2414, listOf(
         PairingEntry("cinnamon", "cannelle", 1051),
         PairingEntry("raisin", "raisin sec", 381),
         PairingEntry("nutmeg", "muscade", 364),
@@ -255,7 +255,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cider", null, 178),
         PairingEntry("cane_molasses", null, 636)
     )),
-    "apricot" to PairingsResult("apricot", "abricot" ?: "apricot", 620, listOf(
+    "apricot" to PairingsResult("apricot", "abricot", 620, listOf(
         PairingEntry("plum", null, 39),
         PairingEntry("almond", "amandes", 103),
         PairingEntry("fig", "figue", 18),
@@ -265,7 +265,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cranberry", "canneberge", 37),
         PairingEntry("date", "datte", 22)
     )),
-    "artichoke" to PairingsResult("artichoke", "artichaut" ?: "artichoke", 391, listOf(
+    "artichoke" to PairingsResult("artichoke", "artichaut", 391, listOf(
         PairingEntry("parmesan_cheese", "parmesan", 128),
         PairingEntry("olive_oil", "huile d'olive", 214),
         PairingEntry("olive", "olive", 71),
@@ -275,7 +275,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("feta_cheese", "feta", 26),
         PairingEntry("basil", "basilic", 75)
     )),
-    "asparagus" to PairingsResult("asparagus", "asperge" ?: "asparagus", 438, listOf(
+    "asparagus" to PairingsResult("asparagus", "asperge", 438, listOf(
         PairingEntry("parmesan_cheese", "parmesan", 102),
         PairingEntry("olive_oil", "huile d'olive", 163),
         PairingEntry("ham", null, 40),
@@ -285,7 +285,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("tarragon", "estragon", 21),
         PairingEntry("pea", "petit pois", 32)
     )),
-    "avocado" to PairingsResult("avocado", "avocat" ?: "avocado", 649, listOf(
+    "avocado" to PairingsResult("avocado", "avocat", 649, listOf(
         PairingEntry("cilantro", "coriandre", 228),
         PairingEntry("lime_juice", "jus de citron vert", 181),
         PairingEntry("lettuce", "salade verte", 115),
@@ -295,7 +295,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("corn", "maïs", 160),
         PairingEntry("black_bean", null, 42)
     )),
-    "bacon" to PairingsResult("bacon", "bacon" ?: "bacon", 2154, listOf(
+    "bacon" to PairingsResult("bacon", "bacon", 2154, listOf(
         PairingEntry("onion", "oignon", 1258),
         PairingEntry("potato", "pomme de terre", 383),
         PairingEntry("cheddar_cheese", "cheddar", 333),
@@ -305,7 +305,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("vinegar", "vinaigre", 500),
         PairingEntry("cured_pork", null, 53)
     )),
-    "banana" to PairingsResult("banana", "banane" ?: "banana", 982, listOf(
+    "banana" to PairingsResult("banana", "banane", 982, listOf(
         PairingEntry("pineapple", "ananas", 173),
         PairingEntry("strawberry", "fraise", 122),
         PairingEntry("vanilla", "vanille", 400),
@@ -315,7 +315,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("kiwi", null, 24),
         PairingEntry("coconut", "noix de coco", 103)
     )),
-    "barley" to PairingsResult("barley", "orge" ?: "barley", 232, listOf(
+    "barley" to PairingsResult("barley", "orge", 232, listOf(
         PairingEntry("soybean", "soja", 65),
         PairingEntry("cereal", null, 22),
         PairingEntry("carrot", "carotte", 79),
@@ -325,7 +325,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("beef_broth", "bouillon de bœuf", 20),
         PairingEntry("malt", null, 5)
     )),
-    "basil" to PairingsResult("basil", "basilic" ?: "basil", 3779, listOf(
+    "basil" to PairingsResult("basil", "basilic", 3779, listOf(
         PairingEntry("oregano", "origan", 1350),
         PairingEntry("tomato", "tomate", 2273),
         PairingEntry("olive_oil", "huile d'olive", 2205),
@@ -335,7 +335,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("rosemary", "romarin", 736),
         PairingEntry("garlic", "ail", 2685)
     )),
-    "beef" to PairingsResult("beef", "boeuf" ?: "beef", 4820, listOf(
+    "beef" to PairingsResult("beef", "boeuf", 4820, listOf(
         PairingEntry("onion", "oignon", 3315),
         PairingEntry("tomato", "tomate", 2107),
         PairingEntry("beef_broth", "bouillon de bœuf", 410),
@@ -345,7 +345,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("celery_oil", "huile de céleri", 341),
         PairingEntry("soy_sauce", "sauce soja", 688)
     )),
-    "beef_broth" to PairingsResult("beef_broth", "bouillon de bœuf" ?: "beef_broth", 835, listOf(
+    "beef_broth" to PairingsResult("beef_broth", "bouillon de bœuf", 835, listOf(
         PairingEntry("beef", "boeuf", 410),
         PairingEntry("carrot", "carotte", 236),
         PairingEntry("bay", null, 137),
@@ -355,7 +355,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("garlic", "ail", 501),
         PairingEntry("sake", null, 63)
     )),
-    "beer" to PairingsResult("beer", "bière" ?: "beer", 303, listOf(
+    "beer" to PairingsResult("beer", "bière", 303, listOf(
         PairingEntry("tamarind", "tamarin", 38),
         PairingEntry("mustard", "moutarde", 64),
         PairingEntry("meat", null, 25),
@@ -365,7 +365,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cayenne", "cayenne", 84),
         PairingEntry("garlic", "ail", 148)
     )),
-    "beet" to PairingsResult("beet", "betterave" ?: "beet", 231, listOf(
+    "beet" to PairingsResult("beet", "betterave", 231, listOf(
         PairingEntry("vinegar", "vinaigre", 132),
         PairingEntry("cider", null, 34),
         PairingEntry("horseradish", null, 18),
@@ -375,7 +375,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("olive_oil", "huile d'olive", 94),
         PairingEntry("shallot", "échalote", 24)
     )),
-    "bell_pepper" to PairingsResult("bell_pepper", "poivron" ?: "bell_pepper", 5846, listOf(
+    "bell_pepper" to PairingsResult("bell_pepper", "poivron", 5846, listOf(
         PairingEntry("garlic", "ail", 3626),
         PairingEntry("olive_oil", "huile d'olive", 2358),
         PairingEntry("oregano", "origan", 1064),
@@ -385,7 +385,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("tomato", "tomate", 2111),
         PairingEntry("cayenne", "cayenne", 1796)
     )),
-    "black_pepper" to PairingsResult("black_pepper", "poivre noir" ?: "black_pepper", 9752, listOf(
+    "black_pepper" to PairingsResult("black_pepper", "poivre noir", 9752, listOf(
         PairingEntry("garlic", "ail", 5422),
         PairingEntry("onion", "oignon", 5429),
         PairingEntry("olive_oil", "huile d'olive", 3253),
@@ -395,7 +395,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("bay", null, 745),
         PairingEntry("beef", "boeuf", 1686)
     )),
-    "black_tea" to PairingsResult("black_tea", "thé noir" ?: "black_tea", 37, listOf(
+    "black_tea" to PairingsResult("black_tea", "thé noir", 37, listOf(
         PairingEntry("tea", null, 5),
         PairingEntry("cardamom", "cardamome", 5),
         PairingEntry("ginger", "gingembre", 12),
@@ -405,7 +405,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cinnamon", "cannelle", 11),
         PairingEntry("soy_sauce", "sauce soja", 7)
     )),
-    "blackberry" to PairingsResult("blackberry", "mûre" ?: "blackberry", 164, listOf(
+    "blackberry" to PairingsResult("blackberry", "mûre", 164, listOf(
         PairingEntry("raspberry", "framboise", 51),
         PairingEntry("blueberry", "myrtille", 41),
         PairingEntry("berry", null, 15),
@@ -415,7 +415,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("gelatin", null, 21),
         PairingEntry("vanilla", "vanille", 64)
     )),
-    "blue_cheese" to PairingsResult("blue_cheese", "fromage bleu" ?: "blue_cheese", 395, listOf(
+    "blue_cheese" to PairingsResult("blue_cheese", "fromage bleu", 395, listOf(
         PairingEntry("lettuce", "salade verte", 47),
         PairingEntry("vinegar", "vinaigre", 130),
         PairingEntry("walnut", "noix", 58),
@@ -425,7 +425,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("bacon", "bacon", 42),
         PairingEntry("grape_juice", null, 21)
     )),
-    "blueberry" to PairingsResult("blueberry", "myrtille" ?: "blueberry", 464, listOf(
+    "blueberry" to PairingsResult("blueberry", "myrtille", 464, listOf(
         PairingEntry("strawberry", "fraise", 130),
         PairingEntry("raspberry", "framboise", 95),
         PairingEntry("blackberry", "mûre", 41),
@@ -435,7 +435,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("banana", "banane", 42),
         PairingEntry("kiwi", null, 14)
     )),
-    "bread" to PairingsResult("bread", "pain" ?: "bread", 4552, listOf(
+    "bread" to PairingsResult("bread", "pain", 4552, listOf(
         PairingEntry("parmesan_cheese", "parmesan", 611),
         PairingEntry("mozzarella_cheese", "mozzarella", 318),
         PairingEntry("swiss_cheese", null, 176),
@@ -445,7 +445,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lettuce", "salade verte", 258),
         PairingEntry("onion", "oignon", 2082)
     )),
-    "broccoli" to PairingsResult("broccoli", "brocoli" ?: "broccoli", 901, listOf(
+    "broccoli" to PairingsResult("broccoli", "brocoli", 901, listOf(
         PairingEntry("cauliflower", "chou-fleur", 106),
         PairingEntry("macaroni", "macaronis", 195),
         PairingEntry("cheddar_cheese", "cheddar", 193),
@@ -455,7 +455,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("chicken", "poulet", 200),
         PairingEntry("cheese", "fromage", 126)
     )),
-    "buckwheat" to PairingsResult("buckwheat", "sarrasin" ?: "buckwheat", 69, listOf(
+    "buckwheat" to PairingsResult("buckwheat", "sarrasin", 69, listOf(
         PairingEntry("radish", "radis", 19),
         PairingEntry("katsuobushi", null, 6),
         PairingEntry("sesame_oil", null, 20),
@@ -465,7 +465,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("wasabi", null, 5),
         PairingEntry("scallion", "ciboule", 26)
     )),
-    "butter" to PairingsResult("butter", "beurre" ?: "butter", 20734, listOf(
+    "butter" to PairingsResult("butter", "beurre", 20734, listOf(
         PairingEntry("wheat", "blé", 13075),
         PairingEntry("vanilla", "vanille", 6154),
         PairingEntry("milk", "lait", 7655),
@@ -475,7 +475,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cane_molasses", null, 4078),
         PairingEntry("cream", "crème", 5061)
     )),
-    "buttermilk" to PairingsResult("buttermilk", "babeurre" ?: "buttermilk", 1633, listOf(
+    "buttermilk" to PairingsResult("buttermilk", "babeurre", 1633, listOf(
         PairingEntry("egg", "œuf", 1285),
         PairingEntry("wheat", "blé", 1167),
         PairingEntry("vegetable_oil", "huile végétale", 584),
@@ -485,7 +485,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lard", "saindoux", 199),
         PairingEntry("butter", "beurre", 867)
     )),
-    "cabbage" to PairingsResult("cabbage", "chou" ?: "cabbage", 935, listOf(
+    "cabbage" to PairingsResult("cabbage", "chou", 935, listOf(
         PairingEntry("carrot", "carotte", 325),
         PairingEntry("vinegar", "vinaigre", 395),
         PairingEntry("seed", null, 100),
@@ -495,7 +495,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("soy_sauce", "sauce soja", 157),
         PairingEntry("onion", "oignon", 524)
     )),
-    "cardamom" to PairingsResult("cardamom", "cardamome" ?: "cardamom", 368, listOf(
+    "cardamom" to PairingsResult("cardamom", "cardamome", 368, listOf(
         PairingEntry("cinnamon", "cannelle", 164),
         PairingEntry("ginger", "gingembre", 115),
         PairingEntry("coriander", null, 55),
@@ -505,7 +505,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("pistachio", "pistache", 18),
         PairingEntry("lamb", "agneau", 23)
     )),
-    "carrot" to PairingsResult("carrot", "carotte" ?: "carrot", 3570, listOf(
+    "carrot" to PairingsResult("carrot", "carotte", 3570, listOf(
         PairingEntry("celery", "céleri", 1197),
         PairingEntry("potato", "pomme de terre", 806),
         PairingEntry("onion", "oignon", 2344),
@@ -515,7 +515,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("pea", "petit pois", 295),
         PairingEntry("thyme", "thym", 549)
     )),
-    "cashew" to PairingsResult("cashew", "noix de cajou" ?: "cashew", 199, listOf(
+    "cashew" to PairingsResult("cashew", "noix de cajou", 199, listOf(
         PairingEntry("nut", null, 29),
         PairingEntry("turmeric", "curcuma", 25),
         PairingEntry("brown_rice", null, 13),
@@ -525,7 +525,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("chicken", "poulet", 52),
         PairingEntry("coriander", null, 24)
     )),
-    "cauliflower" to PairingsResult("cauliflower", "chou-fleur" ?: "cauliflower", 325, listOf(
+    "cauliflower" to PairingsResult("cauliflower", "chou-fleur", 325, listOf(
         PairingEntry("broccoli", "brocoli", 106),
         PairingEntry("carrot", "carotte", 104),
         PairingEntry("turmeric", "curcuma", 44),
@@ -535,7 +535,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cheddar_cheese", "cheddar", 53),
         PairingEntry("celery", "céleri", 59)
     )),
-    "cayenne" to PairingsResult("cayenne", "cayenne" ?: "cayenne", 7948, listOf(
+    "cayenne" to PairingsResult("cayenne", "cayenne", 7948, listOf(
         PairingEntry("cumin", "cumin", 1849),
         PairingEntry("garlic", "ail", 5340),
         PairingEntry("cilantro", "coriandre", 1415),
@@ -545,7 +545,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lime_juice", "jus de citron vert", 726),
         PairingEntry("bell_pepper", "poivron", 1796)
     )),
-    "celery" to PairingsResult("celery", "céleri" ?: "celery", 3603, listOf(
+    "celery" to PairingsResult("celery", "céleri", 3603, listOf(
         PairingEntry("carrot", "carotte", 1197),
         PairingEntry("onion", "oignon", 2714),
         PairingEntry("sage", "sauge", 387),
@@ -555,7 +555,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("bay", null, 444),
         PairingEntry("green_bell_pepper", "poivron vert", 581)
     )),
-    "celery_oil" to PairingsResult("celery_oil", "huile de céleri" ?: "celery_oil", 994, listOf(
+    "celery_oil" to PairingsResult("celery_oil", "huile de céleri", 994, listOf(
         PairingEntry("corn", "maïs", 994),
         PairingEntry("vinegar", "vinaigre", 994),
         PairingEntry("tomato", "tomate", 994),
@@ -565,7 +565,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cane_molasses", null, 522),
         PairingEntry("beef", "boeuf", 341)
     )),
-    "cheddar_cheese" to PairingsResult("cheddar_cheese", "cheddar" ?: "cheddar_cheese", 3029, listOf(
+    "cheddar_cheese" to PairingsResult("cheddar_cheese", "cheddar", 3029, listOf(
         PairingEntry("onion", "oignon", 1773),
         PairingEntry("cayenne", "cayenne", 834),
         PairingEntry("bacon", "bacon", 333),
@@ -575,7 +575,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("ham", null, 220),
         PairingEntry("green_bell_pepper", "poivron vert", 330)
     )),
-    "cheese" to PairingsResult("cheese", "fromage" ?: "cheese", 3281, listOf(
+    "cheese" to PairingsResult("cheese", "fromage", 3281, listOf(
         PairingEntry("macaroni", "macaronis", 644),
         PairingEntry("tomato", "tomate", 1240),
         PairingEntry("basil", "basilic", 604),
@@ -585,7 +585,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("bread", "pain", 509),
         PairingEntry("garlic", "ail", 1444)
     )),
-    "cherry" to PairingsResult("cherry", "cerise" ?: "cherry", 1083, listOf(
+    "cherry" to PairingsResult("cherry", "cerise", 1083, listOf(
         PairingEntry("pineapple", "ananas", 239),
         PairingEntry("almond", "amandes", 178),
         PairingEntry("pecan", "noix de pécan", 163),
@@ -595,7 +595,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cherry_brandy", null, 20),
         PairingEntry("brandy", null, 57)
     )),
-    "chicken" to PairingsResult("chicken", "poulet" ?: "chicken", 5292, listOf(
+    "chicken" to PairingsResult("chicken", "poulet", 5292, listOf(
         PairingEntry("chicken_broth", "bouillon de poulet", 1000),
         PairingEntry("pepper", "poivre", 1651),
         PairingEntry("garlic", "ail", 2572),
@@ -605,7 +605,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("mushroom", "champignon", 726),
         PairingEntry("cumin", "cumin", 686)
     )),
-    "chicken_broth" to PairingsResult("chicken_broth", "bouillon de poulet" ?: "chicken_broth", 3454, listOf(
+    "chicken_broth" to PairingsResult("chicken_broth", "bouillon de poulet", 3454, listOf(
         PairingEntry("chicken", "poulet", 1000),
         PairingEntry("celery", "céleri", 756),
         PairingEntry("thyme", "thym", 659),
@@ -615,7 +615,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("bay", null, 335),
         PairingEntry("garlic", "ail", 1785)
     )),
-    "chickpea" to PairingsResult("chickpea", "pois chiche" ?: "chickpea", 404, listOf(
+    "chickpea" to PairingsResult("chickpea", "pois chiche", 404, listOf(
         PairingEntry("cumin", "cumin", 155),
         PairingEntry("olive_oil", "huile d'olive", 244),
         PairingEntry("coriander", null, 71),
@@ -625,7 +625,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("tomato", "tomate", 191),
         PairingEntry("garlic", "ail", 269)
     )),
-    "chinese_cabbage" to PairingsResult("chinese_cabbage", "chou chinois" ?: "chinese_cabbage", 161, listOf(
+    "chinese_cabbage" to PairingsResult("chinese_cabbage", "chou chinois", 161, listOf(
         PairingEntry("shrimp", "crevette", 108),
         PairingEntry("fish", "poisson", 107),
         PairingEntry("ginger", "gingembre", 130),
@@ -635,7 +635,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("vegetable", null, 75),
         PairingEntry("roasted_sesame_seed", null, 47)
     )),
-    "chive" to PairingsResult("chive", "ciboulette" ?: "chive", 1315, listOf(
+    "chive" to PairingsResult("chive", "ciboulette", 1315, listOf(
         PairingEntry("cucumber", "concombre", 577),
         PairingEntry("parsley", "persil", 756),
         PairingEntry("mustard", "moutarde", 643),
@@ -645,7 +645,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("chervil", null, 22),
         PairingEntry("egg", "œuf", 791)
     )),
-    "cilantro" to PairingsResult("cilantro", "coriandre" ?: "cilantro", 2249, listOf(
+    "cilantro" to PairingsResult("cilantro", "coriandre", 2249, listOf(
         PairingEntry("cayenne", "cayenne", 1415),
         PairingEntry("lime_juice", "jus de citron vert", 582),
         PairingEntry("cumin", "cumin", 773),
@@ -655,7 +655,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("garlic", "ail", 1446),
         PairingEntry("coriander", null, 291)
     )),
-    "cinnamon" to PairingsResult("cinnamon", "cannelle" ?: "cinnamon", 5600, listOf(
+    "cinnamon" to PairingsResult("cinnamon", "cannelle", 5600, listOf(
         PairingEntry("nutmeg", "muscade", 1480),
         PairingEntry("apple", "pomme", 1051),
         PairingEntry("raisin", "raisin sec", 872),
@@ -665,7 +665,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("walnut", "noix", 874),
         PairingEntry("wheat", "blé", 3643)
     )),
-    "cocoa" to PairingsResult("cocoa", "cacao" ?: "cocoa", 4795, listOf(
+    "cocoa" to PairingsResult("cocoa", "cacao", 4795, listOf(
         PairingEntry("vanilla", "vanille", 2830),
         PairingEntry("milk", "lait", 2509),
         PairingEntry("coffee", "café", 427),
@@ -675,7 +675,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("butter", "beurre", 3131),
         PairingEntry("walnut", "noix", 670)
     )),
-    "coconut" to PairingsResult("coconut", "noix de coco" ?: "coconut", 1709, listOf(
+    "coconut" to PairingsResult("coconut", "noix de coco", 1709, listOf(
         PairingEntry("vanilla", "vanille", 728),
         PairingEntry("pineapple", "ananas", 236),
         PairingEntry("turmeric", "curcuma", 200),
@@ -685,7 +685,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("oat", "avoine", 170),
         PairingEntry("rum", "rhum", 111)
     )),
-    "coffee" to PairingsResult("coffee", "café" ?: "coffee", 713, listOf(
+    "coffee" to PairingsResult("coffee", "café", 713, listOf(
         PairingEntry("cocoa", "cacao", 427),
         PairingEntry("vanilla", "vanille", 357),
         PairingEntry("cream", "crème", 333),
@@ -695,7 +695,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cane_molasses", null, 177),
         PairingEntry("whiskey", null, 14)
     )),
-    "corn" to PairingsResult("corn", "maïs" ?: "corn", 4764, listOf(
+    "corn" to PairingsResult("corn", "maïs", 4764, listOf(
         PairingEntry("celery_oil", "huile de céleri", 994),
         PairingEntry("tomato", "tomate", 2082),
         PairingEntry("cayenne", "cayenne", 1492),
@@ -705,7 +705,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("tamarind", "tamarin", 402),
         PairingEntry("garlic", "ail", 2222)
     )),
-    "cottage_cheese" to PairingsResult("cottage_cheese", "fromage blanc" ?: "cottage_cheese", 348, listOf(
+    "cottage_cheese" to PairingsResult("cottage_cheese", "fromage blanc", 348, listOf(
         PairingEntry("mozzarella_cheese", "mozzarella", 65),
         PairingEntry("macaroni", "macaronis", 87),
         PairingEntry("parmesan_cheese", "parmesan", 87),
@@ -715,7 +715,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("oregano", "origan", 51),
         PairingEntry("egg", "œuf", 204)
     )),
-    "crab" to PairingsResult("crab", "crabe" ?: "crab", 550, listOf(
+    "crab" to PairingsResult("crab", "crabe", 550, listOf(
         PairingEntry("lovage", null, 53),
         PairingEntry("shrimp", "crevette", 134),
         PairingEntry("tamarind", "tamarin", 85),
@@ -725,7 +725,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("tabasco_pepper", null, 55),
         PairingEntry("clam", null, 32)
     )),
-    "cranberry" to PairingsResult("cranberry", "canneberge" ?: "cranberry", 914, listOf(
+    "cranberry" to PairingsResult("cranberry", "canneberge", 914, listOf(
         PairingEntry("berry", null, 83),
         PairingEntry("orange", "orange", 151),
         PairingEntry("apple", "pomme", 177),
@@ -735,7 +735,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("orange_peel", null, 54),
         PairingEntry("raspberry", "framboise", 62)
     )),
-    "cream" to PairingsResult("cream", "crème" ?: "cream", 10145, listOf(
+    "cream" to PairingsResult("cream", "crème", 10145, listOf(
         PairingEntry("milk", "lait", 4029),
         PairingEntry("vanilla", "vanille", 3040),
         PairingEntry("chive", "ciboulette", 709),
@@ -745,7 +745,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("butter", "beurre", 5061),
         PairingEntry("egg", "œuf", 5017)
     )),
-    "cream_cheese" to PairingsResult("cream_cheese", "cream cheese" ?: "cream_cheese", 2838, listOf(
+    "cream_cheese" to PairingsResult("cream_cheese", "cream cheese", 2838, listOf(
         PairingEntry("cream", "crème", 1090),
         PairingEntry("vanilla", "vanille", 992),
         PairingEntry("pecan", "noix de pécan", 323),
@@ -755,7 +755,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("strawberry", "fraise", 156),
         PairingEntry("gelatin", null, 186)
     )),
-    "cucumber" to PairingsResult("cucumber", "concombre" ?: "cucumber", 1810, listOf(
+    "cucumber" to PairingsResult("cucumber", "concombre", 1810, listOf(
         PairingEntry("chive", "ciboulette", 577),
         PairingEntry("mustard", "moutarde", 765),
         PairingEntry("parsley", "persil", 728),
@@ -765,7 +765,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lettuce", "salade verte", 173),
         PairingEntry("radish", "radis", 101)
     )),
-    "cumin" to PairingsResult("cumin", "cumin" ?: "cumin", 3220, listOf(
+    "cumin" to PairingsResult("cumin", "cumin", 3220, listOf(
         PairingEntry("coriander", null, 1242),
         PairingEntry("turmeric", "curcuma", 1034),
         PairingEntry("fenugreek", null, 857),
@@ -775,7 +775,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("bell_pepper", "poivron", 1005),
         PairingEntry("pepper", "poivre", 1328)
     )),
-    "date" to PairingsResult("date", "datte" ?: "date", 375, listOf(
+    "date" to PairingsResult("date", "datte", 375, listOf(
         PairingEntry("walnut", "noix", 156),
         PairingEntry("raisin", "raisin sec", 80),
         PairingEntry("cherry", "cerise", 58),
@@ -785,7 +785,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("wheat", "blé", 269),
         PairingEntry("vanilla", "vanille", 142)
     )),
-    "dill" to PairingsResult("dill", "aneth" ?: "dill", 1108, listOf(
+    "dill" to PairingsResult("dill", "aneth", 1108, listOf(
         PairingEntry("salmon", "saumon", 83),
         PairingEntry("vinegar", "vinaigre", 363),
         PairingEntry("smoked_salmon", "saumon fumé", 30),
@@ -795,7 +795,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lemon_juice", "jus de citron", 214),
         PairingEntry("yogurt", "yaourt", 72)
     )),
-    "egg" to PairingsResult("egg", "œuf" ?: "egg", 20941, listOf(
+    "egg" to PairingsResult("egg", "œuf", 20941, listOf(
         PairingEntry("wheat", "blé", 13946),
         PairingEntry("vanilla", "vanille", 6879),
         PairingEntry("milk", "lait", 8201),
@@ -805,7 +805,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cocoa", "cacao", 3160),
         PairingEntry("yeast", "levure", 2329)
     )),
-    "fennel" to PairingsResult("fennel", "fenouil" ?: "fennel", 907, listOf(
+    "fennel" to PairingsResult("fennel", "fenouil", 907, listOf(
         PairingEntry("pork_sausage", null, 415),
         PairingEntry("olive_oil", "huile d'olive", 519),
         PairingEntry("lavender", null, 42),
@@ -815,7 +815,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("tomato", "tomate", 412),
         PairingEntry("oregano", "origan", 185)
     )),
-    "feta_cheese" to PairingsResult("feta_cheese", "feta" ?: "feta_cheese", 621, listOf(
+    "feta_cheese" to PairingsResult("feta_cheese", "feta", 621, listOf(
         PairingEntry("olive_oil", "huile d'olive", 398),
         PairingEntry("olive", "olive", 154),
         PairingEntry("tomato", "tomate", 317),
@@ -825,7 +825,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("basil", "basilic", 139),
         PairingEntry("lettuce", "salade verte", 64)
     )),
-    "fig" to PairingsResult("fig", "figue" ?: "fig", 139, listOf(
+    "fig" to PairingsResult("fig", "figue", 139, listOf(
         PairingEntry("apricot", "abricot", 18),
         PairingEntry("honey", "miel", 34),
         PairingEntry("goat_cheese", "chèvre", 10),
@@ -835,7 +835,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("grape_juice", null, 14),
         PairingEntry("orange", "orange", 19)
     )),
-    "fish" to PairingsResult("fish", "poisson" ?: "fish", 1878, listOf(
+    "fish" to PairingsResult("fish", "poisson", 1878, listOf(
         PairingEntry("chinese_cabbage", "chou chinois", 107),
         PairingEntry("shrimp", "crevette", 278),
         PairingEntry("scallion", "ciboule", 498),
@@ -845,7 +845,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lemongrass", "citronnelle", 73),
         PairingEntry("soybean", "soja", 186)
     )),
-    "garlic" to PairingsResult("garlic", "ail" ?: "garlic", 16893, listOf(
+    "garlic" to PairingsResult("garlic", "ail", 16893, listOf(
         PairingEntry("tomato", "tomate", 6767),
         PairingEntry("cayenne", "cayenne", 5340),
         PairingEntry("olive_oil", "huile d'olive", 6188),
@@ -855,7 +855,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("basil", "basilic", 2685),
         PairingEntry("bell_pepper", "poivron", 3626)
     )),
-    "ginger" to PairingsResult("ginger", "gingembre" ?: "ginger", 3809, listOf(
+    "ginger" to PairingsResult("ginger", "gingembre", 3809, listOf(
         PairingEntry("soy_sauce", "sauce soja", 1180),
         PairingEntry("sesame_oil", null, 518),
         PairingEntry("cinnamon", "cannelle", 1175),
@@ -865,7 +865,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("chinese_cabbage", "chou chinois", 130),
         PairingEntry("sake", null, 250)
     )),
-    "goat_cheese" to PairingsResult("goat_cheese", "chèvre" ?: "goat_cheese", 259, listOf(
+    "goat_cheese" to PairingsResult("goat_cheese", "chèvre", 259, listOf(
         PairingEntry("olive_oil", "huile d'olive", 161),
         PairingEntry("basil", "basilic", 61),
         PairingEntry("beet", "betterave", 13),
@@ -875,7 +875,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("shallot", "échalote", 25),
         PairingEntry("thyme", "thym", 44)
     )),
-    "grape" to PairingsResult("grape", "raisin" ?: "grape", 345, listOf(
+    "grape" to PairingsResult("grape", "raisin", 345, listOf(
         PairingEntry("strawberry", "fraise", 66),
         PairingEntry("apple", "pomme", 95),
         PairingEntry("mandarin", "mandarine", 27),
@@ -885,7 +885,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("gelatin", null, 46),
         PairingEntry("yogurt", "yaourt", 38)
     )),
-    "grapefruit" to PairingsResult("grapefruit", "pamplemousse" ?: "grapefruit", 114, listOf(
+    "grapefruit" to PairingsResult("grapefruit", "pamplemousse", 114, listOf(
         PairingEntry("orange", "orange", 30),
         PairingEntry("grape", "raisin", 11),
         PairingEntry("avocado", "avocat", 14),
@@ -895,7 +895,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lime", "citron vert", 12),
         PairingEntry("honey", "miel", 19)
     )),
-    "green_bell_pepper" to PairingsResult("green_bell_pepper", "poivron vert" ?: "green_bell_pepper", 2578, listOf(
+    "green_bell_pepper" to PairingsResult("green_bell_pepper", "poivron vert", 2578, listOf(
         PairingEntry("onion", "oignon", 2176),
         PairingEntry("tomato", "tomate", 1461),
         PairingEntry("bell_pepper", "poivron", 838),
@@ -905,7 +905,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("garlic", "ail", 1400),
         PairingEntry("mushroom", "champignon", 431)
     )),
-    "green_tea" to PairingsResult("green_tea", "thé vert" ?: "green_tea", 32, listOf(
+    "green_tea" to PairingsResult("green_tea", "thé vert", 32, listOf(
         PairingEntry("soybean", "soja", 5),
         PairingEntry("cream_cheese", "cream cheese", 5),
         PairingEntry("ginger", "gingembre", 5),
@@ -915,7 +915,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("milk", "lait", 9),
         PairingEntry("egg", "œuf", 12)
     )),
-    "gruyere_cheese" to PairingsResult("gruyere_cheese", "gruyère" ?: "gruyere_cheese", 44, listOf(
+    "gruyere_cheese" to PairingsResult("gruyere_cheese", "gruyère", 44, listOf(
         PairingEntry("milk_fat", null, 16),
         PairingEntry("cheese", "fromage", 27),
         PairingEntry("ham", null, 12),
@@ -925,7 +925,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("black_pepper", "poivre noir", 19),
         PairingEntry("butter", "beurre", 32)
     )),
-    "hazelnut" to PairingsResult("hazelnut", "noisette" ?: "hazelnut", 288, listOf(
+    "hazelnut" to PairingsResult("hazelnut", "noisette", 288, listOf(
         PairingEntry("cocoa", "cacao", 111),
         PairingEntry("vanilla", "vanille", 98),
         PairingEntry("coffee", "café", 18),
@@ -935,7 +935,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("egg", "œuf", 164),
         PairingEntry("almond", "amandes", 30)
     )),
-    "honey" to PairingsResult("honey", "miel" ?: "honey", 2480, listOf(
+    "honey" to PairingsResult("honey", "miel", 2480, listOf(
         PairingEntry("whole_grain_wheat_flour", null, 184),
         PairingEntry("sake", null, 169),
         PairingEntry("soy_sauce", "sauce soja", 395),
@@ -945,7 +945,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("orange_juice", "jus d'orange", 199),
         PairingEntry("orange", "orange", 182)
     )),
-    "kelp" to PairingsResult("kelp", "varech" ?: "kelp", 178, listOf(
+    "kelp" to PairingsResult("kelp", "varech", 178, listOf(
         PairingEntry("sake", null, 80),
         PairingEntry("shiitake", null, 60),
         PairingEntry("radish", "radis", 58),
@@ -955,7 +955,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("fish", "poisson", 85),
         PairingEntry("katsuobushi", null, 18)
     )),
-    "kidney_bean" to PairingsResult("kidney_bean", "haricot rouge" ?: "kidney_bean", 442, listOf(
+    "kidney_bean" to PairingsResult("kidney_bean", "haricot rouge", 442, listOf(
         PairingEntry("bean", null, 150),
         PairingEntry("tomato", "tomate", 322),
         PairingEntry("cayenne", "cayenne", 244),
@@ -965,7 +965,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lima_bean", null, 31),
         PairingEntry("black_bean", null, 44)
     )),
-    "lamb" to PairingsResult("lamb", "agneau" ?: "lamb", 472, listOf(
+    "lamb" to PairingsResult("lamb", "agneau", 472, listOf(
         PairingEntry("mint", "menthe", 90),
         PairingEntry("olive_oil", "huile d'olive", 262),
         PairingEntry("rosemary", "romarin", 97),
@@ -975,7 +975,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("black_pepper", "poivre noir", 208),
         PairingEntry("coriander", null, 63)
     )),
-    "lard" to PairingsResult("lard", "saindoux" ?: "lard", 3051, listOf(
+    "lard" to PairingsResult("lard", "saindoux", 3051, listOf(
         PairingEntry("wheat", "blé", 2772),
         PairingEntry("egg", "œuf", 2323),
         PairingEntry("vanilla", "vanille", 1111),
@@ -985,7 +985,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cocoa", "cacao", 542),
         PairingEntry("nutmeg", "muscade", 340)
     )),
-    "leek" to PairingsResult("leek", "poireau" ?: "leek", 411, listOf(
+    "leek" to PairingsResult("leek", "poireau", 411, listOf(
         PairingEntry("chicken_broth", "bouillon de poulet", 147),
         PairingEntry("carrot", "carotte", 132),
         PairingEntry("thyme", "thym", 113),
@@ -995,7 +995,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("turnip", null, 22),
         PairingEntry("white_wine", "vin blanc", 72)
     )),
-    "lemon" to PairingsResult("lemon", "citron" ?: "lemon", 3024, listOf(
+    "lemon" to PairingsResult("lemon", "citron", 3024, listOf(
         PairingEntry("lemon_juice", "jus de citron", 740),
         PairingEntry("lime", "citron vert", 275),
         PairingEntry("orange", "orange", 254),
@@ -1005,7 +1005,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("orange_juice", "jus d'orange", 189),
         PairingEntry("olive_oil", "huile d'olive", 761)
     )),
-    "lemon_juice" to PairingsResult("lemon_juice", "jus de citron" ?: "lemon_juice", 5022, listOf(
+    "lemon_juice" to PairingsResult("lemon_juice", "jus de citron", 5022, listOf(
         PairingEntry("lemon_peel", null, 390),
         PairingEntry("lemon", "citron", 740),
         PairingEntry("olive_oil", "huile d'olive", 1557),
@@ -1015,7 +1015,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("yogurt", "yaourt", 218),
         PairingEntry("lettuce", "salade verte", 233)
     )),
-    "lemongrass" to PairingsResult("lemongrass", "citronnelle" ?: "lemongrass", 137, listOf(
+    "lemongrass" to PairingsResult("lemongrass", "citronnelle", 137, listOf(
         PairingEntry("galanga", null, 28),
         PairingEntry("thai_pepper", null, 27),
         PairingEntry("fish", "poisson", 73),
@@ -1025,7 +1025,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("coriander", null, 54),
         PairingEntry("lime_juice", "jus de citron vert", 46)
     )),
-    "lentil" to PairingsResult("lentil", "lentille" ?: "lentil", 250, listOf(
+    "lentil" to PairingsResult("lentil", "lentille", 250, listOf(
         PairingEntry("carrot", "carotte", 94),
         PairingEntry("cumin", "cumin", 89),
         PairingEntry("turmeric", "curcuma", 54),
@@ -1035,7 +1035,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("barley", "orge", 17),
         PairingEntry("celery", "céleri", 66)
     )),
-    "lettuce" to PairingsResult("lettuce", "salade verte" ?: "lettuce", 1152, listOf(
+    "lettuce" to PairingsResult("lettuce", "salade verte", 1152, listOf(
         PairingEntry("avocado", "avocat", 115),
         PairingEntry("vinegar", "vinaigre", 460),
         PairingEntry("cucumber", "concombre", 173),
@@ -1045,7 +1045,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("scallion", "ciboule", 240),
         PairingEntry("olive", "olive", 129)
     )),
-    "lime" to PairingsResult("lime", "citron vert" ?: "lime", 1069, listOf(
+    "lime" to PairingsResult("lime", "citron vert", 1069, listOf(
         PairingEntry("lime_juice", "jus de citron vert", 250),
         PairingEntry("cilantro", "coriandre", 285),
         PairingEntry("lemon", "citron", 275),
@@ -1055,7 +1055,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("avocado", "avocat", 87),
         PairingEntry("rum", "rhum", 70)
     )),
-    "lime_juice" to PairingsResult("lime_juice", "jus de citron vert" ?: "lime_juice", 1423, listOf(
+    "lime_juice" to PairingsResult("lime_juice", "jus de citron vert", 1423, listOf(
         PairingEntry("cilantro", "coriandre", 582),
         PairingEntry("lime", "citron vert", 250),
         PairingEntry("cayenne", "cayenne", 726),
@@ -1065,7 +1065,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cumin", "cumin", 313),
         PairingEntry("fish", "poisson", 203)
     )),
-    "lobster" to PairingsResult("lobster", "homard" ?: "lobster", 126, listOf(
+    "lobster" to PairingsResult("lobster", "homard", 126, listOf(
         PairingEntry("clam", null, 18),
         PairingEntry("mussel", null, 10),
         PairingEntry("scallop", "coquille Saint-Jacques", 12),
@@ -1075,7 +1075,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("bay", null, 19),
         PairingEntry("sherry", null, 11)
     )),
-    "macaroni" to PairingsResult("macaroni", "macaronis" ?: "macaroni", 3073, listOf(
+    "macaroni" to PairingsResult("macaroni", "macaronis", 3073, listOf(
         PairingEntry("parmesan_cheese", "parmesan", 1136),
         PairingEntry("basil", "basilic", 1017),
         PairingEntry("tomato", "tomate", 1582),
@@ -1085,7 +1085,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("garlic", "ail", 1898),
         PairingEntry("oregano", "origan", 522)
     )),
-    "mandarin" to PairingsResult("mandarin", "mandarine" ?: "mandarin", 278, listOf(
+    "mandarin" to PairingsResult("mandarin", "mandarine", 278, listOf(
         PairingEntry("pineapple", "ananas", 119),
         PairingEntry("gelatin", null, 60),
         PairingEntry("grape", "raisin", 27),
@@ -1095,7 +1095,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lettuce", "salade verte", 35),
         PairingEntry("kiwi", null, 10)
     )),
-    "mango" to PairingsResult("mango", "mangue" ?: "mango", 388, listOf(
+    "mango" to PairingsResult("mango", "mangue", 388, listOf(
         PairingEntry("lime_juice", "jus de citron vert", 109),
         PairingEntry("cilantro", "coriandre", 96),
         PairingEntry("coriander", null, 66),
@@ -1105,7 +1105,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("turmeric", "curcuma", 52),
         PairingEntry("ginger", "gingembre", 93)
     )),
-    "maple_syrup" to PairingsResult("maple_syrup", "sirop d'érable" ?: "maple_syrup", 467, listOf(
+    "maple_syrup" to PairingsResult("maple_syrup", "sirop d'érable", 467, listOf(
         PairingEntry("cider", null, 42),
         PairingEntry("cane_molasses", null, 140),
         PairingEntry("cinnamon", "cannelle", 112),
@@ -1115,7 +1115,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("oat", "avoine", 37),
         PairingEntry("walnut", "noix", 60)
     )),
-    "melon" to PairingsResult("melon", "melon" ?: "melon", 153, listOf(
+    "melon" to PairingsResult("melon", "melon", 153, listOf(
         PairingEntry("watermelon", "pastèque", 22),
         PairingEntry("lime_juice", "jus de citron vert", 40),
         PairingEntry("grape", "raisin", 21),
@@ -1125,7 +1125,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("pineapple", "ananas", 26),
         PairingEntry("strawberry", "fraise", 19)
     )),
-    "milk" to PairingsResult("milk", "lait" ?: "milk", 12885, listOf(
+    "milk" to PairingsResult("milk", "lait", 12885, listOf(
         PairingEntry("wheat", "blé", 8542),
         PairingEntry("vanilla", "vanille", 4576),
         PairingEntry("egg", "œuf", 8201),
@@ -1135,7 +1135,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cocoa", "cacao", 2509),
         PairingEntry("cream", "crème", 4029)
     )),
-    "mint" to PairingsResult("mint", "menthe" ?: "mint", 930, listOf(
+    "mint" to PairingsResult("mint", "menthe", 930, listOf(
         PairingEntry("lamb", "agneau", 90),
         PairingEntry("lime_juice", "jus de citron vert", 132),
         PairingEntry("yogurt", "yaourt", 98),
@@ -1145,7 +1145,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("feta_cheese", "feta", 64),
         PairingEntry("cilantro", "coriandre", 127)
     )),
-    "mozzarella_cheese" to PairingsResult("mozzarella_cheese", "mozzarella" ?: "mozzarella_cheese", 1289, listOf(
+    "mozzarella_cheese" to PairingsResult("mozzarella_cheese", "mozzarella", 1289, listOf(
         PairingEntry("basil", "basilic", 647),
         PairingEntry("parmesan_cheese", "parmesan", 467),
         PairingEntry("tomato", "tomate", 822),
@@ -1155,7 +1155,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cured_pork", null, 86),
         PairingEntry("pork_sausage", null, 175)
     )),
-    "mushroom" to PairingsResult("mushroom", "champignon" ?: "mushroom", 3317, listOf(
+    "mushroom" to PairingsResult("mushroom", "champignon", 3317, listOf(
         PairingEntry("onion", "oignon", 2008),
         PairingEntry("macaroni", "macaronis", 512),
         PairingEntry("chicken", "poulet", 726),
@@ -1165,7 +1165,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("garlic", "ail", 1591),
         PairingEntry("egg_noodle", null, 108)
     )),
-    "mustard" to PairingsResult("mustard", "moutarde" ?: "mustard", 4096, listOf(
+    "mustard" to PairingsResult("mustard", "moutarde", 4096, listOf(
         PairingEntry("vinegar", "vinaigre", 1880),
         PairingEntry("cucumber", "concombre", 765),
         PairingEntry("chive", "ciboulette", 643),
@@ -1175,7 +1175,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("onion", "oignon", 2431),
         PairingEntry("vegetable_oil", "huile végétale", 1619)
     )),
-    "nutmeg" to PairingsResult("nutmeg", "muscade" ?: "nutmeg", 2512, listOf(
+    "nutmeg" to PairingsResult("nutmeg", "muscade", 2512, listOf(
         PairingEntry("cinnamon", "cannelle", 1480),
         PairingEntry("pumpkin", "potiron", 348),
         PairingEntry("ginger", "gingembre", 521),
@@ -1185,7 +1185,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("egg", "œuf", 1626),
         PairingEntry("cane_molasses", null, 738)
     )),
-    "oat" to PairingsResult("oat", "avoine" ?: "oat", 1267, listOf(
+    "oat" to PairingsResult("oat", "avoine", 1267, listOf(
         PairingEntry("cane_molasses", null, 813),
         PairingEntry("vanilla", "vanille", 631),
         PairingEntry("raisin", "raisin sec", 235),
@@ -1195,7 +1195,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cocoa", "cacao", 344),
         PairingEntry("peanut_butter", "beurre de cacahuète", 128)
     )),
-    "olive" to PairingsResult("olive", "olive" ?: "olive", 1795, listOf(
+    "olive" to PairingsResult("olive", "olive", 1795, listOf(
         PairingEntry("tomato", "tomate", 912),
         PairingEntry("pimento", null, 124),
         PairingEntry("olive_oil", "huile d'olive", 830),
@@ -1205,7 +1205,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("oregano", "origan", 350),
         PairingEntry("garlic", "ail", 1079)
     )),
-    "olive_oil" to PairingsResult("olive_oil", "huile d'olive" ?: "olive_oil", 9843, listOf(
+    "olive_oil" to PairingsResult("olive_oil", "huile d'olive", 9843, listOf(
         PairingEntry("garlic", "ail", 6188),
         PairingEntry("basil", "basilic", 2205),
         PairingEntry("tomato", "tomate", 3803),
@@ -1215,7 +1215,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("parmesan_cheese", "parmesan", 1457),
         PairingEntry("black_pepper", "poivre noir", 3253)
     )),
-    "onion" to PairingsResult("onion", "oignon" ?: "onion", 18030, listOf(
+    "onion" to PairingsResult("onion", "oignon", 18030, listOf(
         PairingEntry("tomato", "tomate", 6806),
         PairingEntry("garlic", "ail", 9573),
         PairingEntry("green_bell_pepper", "poivron vert", 2176),
@@ -1225,7 +1225,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("beef", "boeuf", 3315),
         PairingEntry("pepper", "poivre", 5231)
     )),
-    "orange" to PairingsResult("orange", "orange" ?: "orange", 1703, listOf(
+    "orange" to PairingsResult("orange", "orange", 1703, listOf(
         PairingEntry("orange_juice", "jus d'orange", 527),
         PairingEntry("bitter_orange", null, 52),
         PairingEntry("cranberry", "canneberge", 151),
@@ -1235,7 +1235,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("pineapple", "ananas", 161),
         PairingEntry("grape", "raisin", 62)
     )),
-    "orange_juice" to PairingsResult("orange_juice", "jus d'orange" ?: "orange_juice", 1692, listOf(
+    "orange_juice" to PairingsResult("orange_juice", "jus d'orange", 1692, listOf(
         PairingEntry("orange", "orange", 527),
         PairingEntry("orange_peel", null, 251),
         PairingEntry("pineapple", "ananas", 179),
@@ -1245,7 +1245,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("ginger", "gingembre", 228),
         PairingEntry("lime_juice", "jus de citron vert", 112)
     )),
-    "oregano" to PairingsResult("oregano", "origan" ?: "oregano", 3179, listOf(
+    "oregano" to PairingsResult("oregano", "origan", 3179, listOf(
         PairingEntry("basil", "basilic", 1350),
         PairingEntry("tomato", "tomate", 1778),
         PairingEntry("rosemary", "romarin", 671),
@@ -1255,7 +1255,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("olive_oil", "huile d'olive", 1442),
         PairingEntry("cumin", "cumin", 664)
     )),
-    "parmesan_cheese" to PairingsResult("parmesan_cheese", "parmesan" ?: "parmesan_cheese", 3167, listOf(
+    "parmesan_cheese" to PairingsResult("parmesan_cheese", "parmesan", 3167, listOf(
         PairingEntry("macaroni", "macaronis", 1136),
         PairingEntry("basil", "basilic", 984),
         PairingEntry("mozzarella_cheese", "mozzarella", 467),
@@ -1265,7 +1265,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("parsley", "persil", 752),
         PairingEntry("cheese", "fromage", 513)
     )),
-    "parsley" to PairingsResult("parsley", "persil" ?: "parsley", 5562, listOf(
+    "parsley" to PairingsResult("parsley", "persil", 5562, listOf(
         PairingEntry("chive", "ciboulette", 756),
         PairingEntry("olive_oil", "huile d'olive", 2304),
         PairingEntry("cucumber", "concombre", 728),
@@ -1275,7 +1275,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("garlic", "ail", 2844),
         PairingEntry("thyme", "thym", 794)
     )),
-    "pea" to PairingsResult("pea", "petit pois" ?: "pea", 1099, listOf(
+    "pea" to PairingsResult("pea", "petit pois", 1099, listOf(
         PairingEntry("carrot", "carotte", 295),
         PairingEntry("rice", "riz", 229),
         PairingEntry("chicken_broth", "bouillon de poulet", 197),
@@ -1285,7 +1285,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("potato", "pomme de terre", 171),
         PairingEntry("scallion", "ciboule", 193)
     )),
-    "peach" to PairingsResult("peach", "pêche" ?: "peach", 527, listOf(
+    "peach" to PairingsResult("peach", "pêche", 527, listOf(
         PairingEntry("raspberry", "framboise", 35),
         PairingEntry("orange_juice", "jus d'orange", 54),
         PairingEntry("nectarine", null, 9),
@@ -1295,7 +1295,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("blueberry", "myrtille", 23),
         PairingEntry("grape", "raisin", 17)
     )),
-    "peanut" to PairingsResult("peanut", "cacahuète" ?: "peanut", 447, listOf(
+    "peanut" to PairingsResult("peanut", "cacahuète", 447, listOf(
         PairingEntry("peanut_butter", "beurre de cacahuète", 133),
         PairingEntry("cocoa", "cacao", 138),
         PairingEntry("popcorn", null, 17),
@@ -1305,7 +1305,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("gelatin", null, 41),
         PairingEntry("vanilla", "vanille", 141)
     )),
-    "peanut_butter" to PairingsResult("peanut_butter", "beurre de cacahuète" ?: "peanut_butter", 992, listOf(
+    "peanut_butter" to PairingsResult("peanut_butter", "beurre de cacahuète", 992, listOf(
         PairingEntry("cocoa", "cacao", 477),
         PairingEntry("peanut", "cacahuète", 133),
         PairingEntry("vanilla", "vanille", 452),
@@ -1315,7 +1315,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cereal", null, 30),
         PairingEntry("gelatin", null, 81)
     )),
-    "pear" to PairingsResult("pear", "poire" ?: "pear", 468, listOf(
+    "pear" to PairingsResult("pear", "poire", 468, listOf(
         PairingEntry("radish", "radis", 50),
         PairingEntry("pear_brandy", null, 9),
         PairingEntry("ginger", "gingembre", 98),
@@ -1325,7 +1325,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("nut", null, 40),
         PairingEntry("sesame_oil", null, 41)
     )),
-    "pecan" to PairingsResult("pecan", "noix de pécan" ?: "pecan", 2176, listOf(
+    "pecan" to PairingsResult("pecan", "noix de pécan", 2176, listOf(
         PairingEntry("vanilla", "vanille", 1069),
         PairingEntry("cane_molasses", null, 768),
         PairingEntry("butter", "beurre", 1483),
@@ -1335,7 +1335,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cinnamon", "cannelle", 533),
         PairingEntry("cream_cheese", "cream cheese", 323)
     )),
-    "pepper" to PairingsResult("pepper", "poivre" ?: "pepper", 9059, listOf(
+    "pepper" to PairingsResult("pepper", "poivre", 9059, listOf(
         PairingEntry("fenugreek", null, 854),
         PairingEntry("turmeric", "curcuma", 899),
         PairingEntry("onion", "oignon", 5231),
@@ -1345,7 +1345,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("tomato", "tomate", 2769),
         PairingEntry("chicken", "poulet", 1651)
     )),
-    "pineapple" to PairingsResult("pineapple", "ananas" ?: "pineapple", 1615, listOf(
+    "pineapple" to PairingsResult("pineapple", "ananas", 1615, listOf(
         PairingEntry("cherry", "cerise", 239),
         PairingEntry("gelatin", null, 259),
         PairingEntry("mandarin", "mandarine", 119),
@@ -1355,7 +1355,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("orange_juice", "jus d'orange", 179),
         PairingEntry("orange", "orange", 161)
     )),
-    "pistachio" to PairingsResult("pistachio", "pistache" ?: "pistachio", 219, listOf(
+    "pistachio" to PairingsResult("pistachio", "pistache", 219, listOf(
         PairingEntry("almond", "amandes", 55),
         PairingEntry("rose", null, 11),
         PairingEntry("cardamom", "cardamome", 18),
@@ -1365,7 +1365,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cocoa", "cacao", 49),
         PairingEntry("milk_fat", null, 17)
     )),
-    "pork" to PairingsResult("pork", "porc" ?: "pork", 1961, listOf(
+    "pork" to PairingsResult("pork", "porc", 1961, listOf(
         PairingEntry("soy_sauce", "sauce soja", 435),
         PairingEntry("garlic", "ail", 1124),
         PairingEntry("celery_oil", "huile de céleri", 162),
@@ -1375,7 +1375,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("ginger", "gingembre", 324),
         PairingEntry("mustard", "moutarde", 338)
     )),
-    "potato" to PairingsResult("potato", "pomme de terre" ?: "potato", 3539, listOf(
+    "potato" to PairingsResult("potato", "pomme de terre", 3539, listOf(
         PairingEntry("carrot", "carotte", 806),
         PairingEntry("onion", "oignon", 2168),
         PairingEntry("pepper", "poivre", 1207),
@@ -1385,7 +1385,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("black_pepper", "poivre noir", 988),
         PairingEntry("leek", "poireau", 107)
     )),
-    "pumpkin" to PairingsResult("pumpkin", "potiron" ?: "pumpkin", 799, listOf(
+    "pumpkin" to PairingsResult("pumpkin", "potiron", 799, listOf(
         PairingEntry("nutmeg", "muscade", 348),
         PairingEntry("cinnamon", "cannelle", 495),
         PairingEntry("ginger", "gingembre", 353),
@@ -1395,7 +1395,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("soybean", "soja", 61),
         PairingEntry("wheat", "blé", 489)
     )),
-    "radish" to PairingsResult("radish", "radis" ?: "radish", 509, listOf(
+    "radish" to PairingsResult("radish", "radis", 509, listOf(
         PairingEntry("scallion", "ciboule", 261),
         PairingEntry("kelp", "varech", 58),
         PairingEntry("chinese_cabbage", "chou chinois", 52),
@@ -1405,7 +1405,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("soybean", "soja", 97),
         PairingEntry("vegetable", null, 112)
     )),
-    "raisin" to PairingsResult("raisin", "raisin sec" ?: "raisin", 1903, listOf(
+    "raisin" to PairingsResult("raisin", "raisin sec", 1903, listOf(
         PairingEntry("cinnamon", "cannelle", 872),
         PairingEntry("walnut", "noix", 465),
         PairingEntry("apple", "pomme", 381),
@@ -1415,7 +1415,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("wheat", "blé", 1176),
         PairingEntry("date", "datte", 80)
     )),
-    "raspberry" to PairingsResult("raspberry", "framboise" ?: "raspberry", 781, listOf(
+    "raspberry" to PairingsResult("raspberry", "framboise", 781, listOf(
         PairingEntry("blueberry", "myrtille", 95),
         PairingEntry("blackberry", "mûre", 51),
         PairingEntry("strawberry", "fraise", 109),
@@ -1425,7 +1425,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cream", "crème", 281),
         PairingEntry("vanilla", "vanille", 250)
     )),
-    "red_wine" to PairingsResult("red_wine", "vin rouge" ?: "red_wine", 1391, listOf(
+    "red_wine" to PairingsResult("red_wine", "vin rouge", 1391, listOf(
         PairingEntry("vinegar", "vinaigre", 851),
         PairingEntry("olive_oil", "huile d'olive", 711),
         PairingEntry("beef_broth", "bouillon de bœuf", 132),
@@ -1435,7 +1435,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("onion", "oignon", 776),
         PairingEntry("beef", "boeuf", 278)
     )),
-    "rice" to PairingsResult("rice", "riz" ?: "rice", 3385, listOf(
+    "rice" to PairingsResult("rice", "riz", 3385, listOf(
         PairingEntry("sesame_oil", null, 471),
         PairingEntry("soybean", "soja", 405),
         PairingEntry("soy_sauce", "sauce soja", 739),
@@ -1445,7 +1445,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("seaweed", "algue", 101),
         PairingEntry("ginger", "gingembre", 569)
     )),
-    "roasted_beef" to PairingsResult("roasted_beef", "boeuf rôti" ?: "roasted_beef", 222, listOf(
+    "roasted_beef" to PairingsResult("roasted_beef", "boeuf rôti", 222, listOf(
         PairingEntry("beef", "boeuf", 94),
         PairingEntry("beef_broth", "bouillon de bœuf", 37),
         PairingEntry("horseradish", null, 22),
@@ -1455,7 +1455,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("garlic", "ail", 124),
         PairingEntry("red_wine", "vin rouge", 23)
     )),
-    "roquefort_cheese" to PairingsResult("roquefort_cheese", "roquefort" ?: "roquefort_cheese", 23, listOf(
+    "roquefort_cheese" to PairingsResult("roquefort_cheese", "roquefort", 23, listOf(
         PairingEntry("lettuce", "salade verte", 6),
         PairingEntry("mustard", "moutarde", 8),
         PairingEntry("vinegar", "vinaigre", 9),
@@ -1464,7 +1464,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cream", "crème", 9),
         PairingEntry("tomato", "tomate", 5)
     )),
-    "rosemary" to PairingsResult("rosemary", "romarin" ?: "rosemary", 1890, listOf(
+    "rosemary" to PairingsResult("rosemary", "romarin", 1890, listOf(
         PairingEntry("thyme", "thym", 1042),
         PairingEntry("basil", "basilic", 736),
         PairingEntry("oregano", "origan", 671),
@@ -1474,7 +1474,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("black_pepper", "poivre noir", 830),
         PairingEntry("garlic", "ail", 1205)
     )),
-    "rum" to PairingsResult("rum", "rhum" ?: "rum", 599, listOf(
+    "rum" to PairingsResult("rum", "rhum", 599, listOf(
         PairingEntry("coconut", "noix de coco", 111),
         PairingEntry("pineapple", "ananas", 102),
         PairingEntry("lime", "citron vert", 70),
@@ -1484,7 +1484,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("gin", null, 14),
         PairingEntry("nutmeg", "muscade", 83)
     )),
-    "saffron" to PairingsResult("saffron", "safran" ?: "saffron", 236, listOf(
+    "saffron" to PairingsResult("saffron", "safran", 236, listOf(
         PairingEntry("white_wine", "vin blanc", 61),
         PairingEntry("olive_oil", "huile d'olive", 142),
         PairingEntry("chicken_broth", "bouillon de poulet", 75),
@@ -1494,7 +1494,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("rice", "riz", 61),
         PairingEntry("pea", "petit pois", 33)
     )),
-    "sage" to PairingsResult("sage", "sauge" ?: "sage", 903, listOf(
+    "sage" to PairingsResult("sage", "sauge", 903, listOf(
         PairingEntry("marjoram", null, 254),
         PairingEntry("rosemary", "romarin", 352),
         PairingEntry("thyme", "thym", 431),
@@ -1504,7 +1504,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("turkey", "dinde", 108),
         PairingEntry("onion", "oignon", 545)
     )),
-    "salmon" to PairingsResult("salmon", "saumon" ?: "salmon", 433, listOf(
+    "salmon" to PairingsResult("salmon", "saumon", 433, listOf(
         PairingEntry("dill", "aneth", 83),
         PairingEntry("lemon", "citron", 79),
         PairingEntry("lemon_juice", "jus de citron", 101),
@@ -1514,7 +1514,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("soy_sauce", "sauce soja", 62),
         PairingEntry("tarragon", "estragon", 18)
     )),
-    "scallion" to PairingsResult("scallion", "ciboule" ?: "scallion", 4342, listOf(
+    "scallion" to PairingsResult("scallion", "ciboule", 4342, listOf(
         PairingEntry("sesame_oil", null, 791),
         PairingEntry("soy_sauce", "sauce soja", 1193),
         PairingEntry("cayenne", "cayenne", 1646),
@@ -1524,7 +1524,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("radish", "radis", 261),
         PairingEntry("rice", "riz", 763)
     )),
-    "scallop" to PairingsResult("scallop", "coquille Saint-Jacques" ?: "scallop", 268, listOf(
+    "scallop" to PairingsResult("scallop", "coquille Saint-Jacques", 268, listOf(
         PairingEntry("shrimp", "crevette", 94),
         PairingEntry("white_wine", "vin blanc", 89),
         PairingEntry("clam", null, 45),
@@ -1534,7 +1534,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("lobster", "homard", 12),
         PairingEntry("parsley", "persil", 78)
     )),
-    "seaweed" to PairingsResult("seaweed", "algue" ?: "seaweed", 188, listOf(
+    "seaweed" to PairingsResult("seaweed", "algue", 188, listOf(
         PairingEntry("wasabi", null, 34),
         PairingEntry("katsuobushi", null, 21),
         PairingEntry("rice", "riz", 101),
@@ -1544,7 +1544,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("soy_sauce", "sauce soja", 75),
         PairingEntry("fish", "poisson", 56)
     )),
-    "sesame_seed" to PairingsResult("sesame_seed", "graines de sésame" ?: "sesame_seed", 655, listOf(
+    "sesame_seed" to PairingsResult("sesame_seed", "graines de sésame", 655, listOf(
         PairingEntry("sesame_oil", null, 163),
         PairingEntry("soy_sauce", "sauce soja", 233),
         PairingEntry("scallion", "ciboule", 175),
@@ -1554,7 +1554,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("wasabi", null, 21),
         PairingEntry("seaweed", "algue", 27)
     )),
-    "shallot" to PairingsResult("shallot", "échalote" ?: "shallot", 1186, listOf(
+    "shallot" to PairingsResult("shallot", "échalote", 1186, listOf(
         PairingEntry("olive_oil", "huile d'olive", 591),
         PairingEntry("white_wine", "vin blanc", 231),
         PairingEntry("tarragon", "estragon", 91),
@@ -1564,7 +1564,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("sherry", null, 73),
         PairingEntry("fish", "poisson", 137)
     )),
-    "shrimp" to PairingsResult("shrimp", "crevette" ?: "shrimp", 1543, listOf(
+    "shrimp" to PairingsResult("shrimp", "crevette", 1543, listOf(
         PairingEntry("chinese_cabbage", "chou chinois", 108),
         PairingEntry("fish", "poisson", 278),
         PairingEntry("scallion", "ciboule", 423),
@@ -1574,7 +1574,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("scallop", "coquille Saint-Jacques", 94),
         PairingEntry("cayenne", "cayenne", 597)
     )),
-    "smoked_salmon" to PairingsResult("smoked_salmon", "saumon fumé" ?: "smoked_salmon", 97, listOf(
+    "smoked_salmon" to PairingsResult("smoked_salmon", "saumon fumé", 97, listOf(
         PairingEntry("dill", "aneth", 30),
         PairingEntry("salmon_roe", null, 5),
         PairingEntry("chive", "ciboulette", 21),
@@ -1584,7 +1584,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("tarragon", "estragon", 6),
         PairingEntry("cucumber", "concombre", 12)
     )),
-    "soy_sauce" to PairingsResult("soy_sauce", "sauce soja" ?: "soy_sauce", 3236, listOf(
+    "soy_sauce" to PairingsResult("soy_sauce", "sauce soja", 3236, listOf(
         PairingEntry("sesame_oil", null, 947),
         PairingEntry("sake", null, 521),
         PairingEntry("ginger", "gingembre", 1180),
@@ -1594,7 +1594,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("rice", "riz", 739),
         PairingEntry("garlic", "ail", 2090)
     )),
-    "soybean" to PairingsResult("soybean", "soja" ?: "soybean", 1028, listOf(
+    "soybean" to PairingsResult("soybean", "soja", 1028, listOf(
         PairingEntry("sesame_oil", null, 327),
         PairingEntry("soy_sauce", "sauce soja", 431),
         PairingEntry("rice", "riz", 405),
@@ -1604,7 +1604,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("vegetable", null, 221),
         PairingEntry("kelp", "varech", 71)
     )),
-    "star_anise" to PairingsResult("star_anise", "anis étoilé" ?: "star_anise", 91, listOf(
+    "star_anise" to PairingsResult("star_anise", "anis étoilé", 91, listOf(
         PairingEntry("ginger", "gingembre", 42),
         PairingEntry("tangerine", null, 5),
         PairingEntry("cardamom", "cardamome", 10),
@@ -1614,7 +1614,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cilantro", "coriandre", 16),
         PairingEntry("shallot", "échalote", 11)
     )),
-    "strawberry" to PairingsResult("strawberry", "fraise" ?: "strawberry", 1073, listOf(
+    "strawberry" to PairingsResult("strawberry", "fraise", 1073, listOf(
         PairingEntry("blueberry", "myrtille", 130),
         PairingEntry("gelatin", null, 189),
         PairingEntry("kiwi", null, 48),
@@ -1624,7 +1624,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("grape", "raisin", 66),
         PairingEntry("rhubarb", null, 38)
     )),
-    "sweet_potato" to PairingsResult("sweet_potato", "patate douce" ?: "sweet_potato", 518, listOf(
+    "sweet_potato" to PairingsResult("sweet_potato", "patate douce", 518, listOf(
         PairingEntry("yam", null, 45),
         PairingEntry("nutmeg", "muscade", 102),
         PairingEntry("cane_molasses", null, 187),
@@ -1634,7 +1634,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("orange_juice", "jus d'orange", 52),
         PairingEntry("parsnip", null, 12)
     )),
-    "tamarind" to PairingsResult("tamarind", "tamarin" ?: "tamarind", 1663, listOf(
+    "tamarind" to PairingsResult("tamarind", "tamarin", 1663, listOf(
         PairingEntry("cane_molasses", null, 1604),
         PairingEntry("vinegar", "vinaigre", 1603),
         PairingEntry("celery_oil", "huile de céleri", 337),
@@ -1644,7 +1644,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("beef", "boeuf", 522),
         PairingEntry("garlic", "ail", 1030)
     )),
-    "tarragon" to PairingsResult("tarragon", "estragon" ?: "tarragon", 476, listOf(
+    "tarragon" to PairingsResult("tarragon", "estragon", 476, listOf(
         PairingEntry("shallot", "échalote", 91),
         PairingEntry("chervil", null, 19),
         PairingEntry("white_wine", "vin blanc", 93),
@@ -1654,7 +1654,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("vinegar", "vinaigre", 145),
         PairingEntry("lemon_juice", "jus de citron", 106)
     )),
-    "thyme" to PairingsResult("thyme", "thym" ?: "thyme", 3041, listOf(
+    "thyme" to PairingsResult("thyme", "thym", 3041, listOf(
         PairingEntry("rosemary", "romarin", 1042),
         PairingEntry("marjoram", null, 348),
         PairingEntry("sage", "sauge", 431),
@@ -1664,7 +1664,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("celery", "céleri", 753),
         PairingEntry("black_pepper", "poivre noir", 1298)
     )),
-    "tomato" to PairingsResult("tomato", "tomate" ?: "tomato", 9905, listOf(
+    "tomato" to PairingsResult("tomato", "tomate", 9905, listOf(
         PairingEntry("garlic", "ail", 6767),
         PairingEntry("onion", "oignon", 6806),
         PairingEntry("basil", "basilic", 2273),
@@ -1674,7 +1674,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("olive_oil", "huile d'olive", 3803),
         PairingEntry("green_bell_pepper", "poivron vert", 1461)
     )),
-    "tuna" to PairingsResult("tuna", "thon" ?: "tuna", 443, listOf(
+    "tuna" to PairingsResult("tuna", "thon", 443, listOf(
         PairingEntry("wasabi", null, 23),
         PairingEntry("olive", "olive", 59),
         PairingEntry("lettuce", "salade verte", 44),
@@ -1684,7 +1684,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("egg_noodle", null, 20),
         PairingEntry("vinegar", "vinaigre", 136)
     )),
-    "turkey" to PairingsResult("turkey", "dinde" ?: "turkey", 891, listOf(
+    "turkey" to PairingsResult("turkey", "dinde", 891, listOf(
         PairingEntry("sage", "sauge", 108),
         PairingEntry("celery", "céleri", 220),
         PairingEntry("chicken_broth", "bouillon de poulet", 198),
@@ -1694,7 +1694,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("smoke", null, 50),
         PairingEntry("rosemary", "romarin", 107)
     )),
-    "turmeric" to PairingsResult("turmeric", "curcuma" ?: "turmeric", 1233, listOf(
+    "turmeric" to PairingsResult("turmeric", "curcuma", 1233, listOf(
         PairingEntry("fenugreek", null, 862),
         PairingEntry("coriander", null, 971),
         PairingEntry("cumin", "cumin", 1034),
@@ -1704,7 +1704,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("chicken", "poulet", 383),
         PairingEntry("cilantro", "coriandre", 230)
     )),
-    "vanilla" to PairingsResult("vanilla", "vanille" ?: "vanilla", 9017, listOf(
+    "vanilla" to PairingsResult("vanilla", "vanille", 9017, listOf(
         PairingEntry("cocoa", "cacao", 2830),
         PairingEntry("egg", "œuf", 6879),
         PairingEntry("wheat", "blé", 6808),
@@ -1714,7 +1714,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("pecan", "noix de pécan", 1069),
         PairingEntry("cream", "crème", 3040)
     )),
-    "vegetable_oil" to PairingsResult("vegetable_oil", "huile végétale" ?: "vegetable_oil", 10754, listOf(
+    "vegetable_oil" to PairingsResult("vegetable_oil", "huile végétale", 10754, listOf(
         PairingEntry("egg", "œuf", 6145),
         PairingEntry("cucumber", "concombre", 937),
         PairingEntry("mustard", "moutarde", 1619),
@@ -1724,7 +1724,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("soy_sauce", "sauce soja", 1068),
         PairingEntry("scallion", "ciboule", 1343)
     )),
-    "vinegar" to PairingsResult("vinegar", "vinaigre" ?: "vinegar", 7691, listOf(
+    "vinegar" to PairingsResult("vinegar", "vinaigre", 7691, listOf(
         PairingEntry("tamarind", "tamarin", 1603),
         PairingEntry("celery_oil", "huile de céleri", 994),
         PairingEntry("cider", null, 968),
@@ -1734,7 +1734,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cane_molasses", null, 2267),
         PairingEntry("tomato", "tomate", 2609)
     )),
-    "walnut" to PairingsResult("walnut", "noix" ?: "walnut", 2738, listOf(
+    "walnut" to PairingsResult("walnut", "noix", 2738, listOf(
         PairingEntry("vanilla", "vanille", 1281),
         PairingEntry("raisin", "raisin sec", 465),
         PairingEntry("cinnamon", "cannelle", 874),
@@ -1744,7 +1744,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("egg", "œuf", 1882),
         PairingEntry("cane_molasses", null, 875)
     )),
-    "watermelon" to PairingsResult("watermelon", "pastèque" ?: "watermelon", 107, listOf(
+    "watermelon" to PairingsResult("watermelon", "pastèque", 107, listOf(
         PairingEntry("melon", "melon", 22),
         PairingEntry("lime_juice", "jus de citron vert", 30),
         PairingEntry("mint", "menthe", 19),
@@ -1754,7 +1754,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("feta_cheese", "feta", 9),
         PairingEntry("lime", "citron vert", 11)
     )),
-    "wheat" to PairingsResult("wheat", "blé" ?: "wheat", 20769, listOf(
+    "wheat" to PairingsResult("wheat", "blé", 20769, listOf(
         PairingEntry("egg", "œuf", 13946),
         PairingEntry("butter", "beurre", 13075),
         PairingEntry("vanilla", "vanille", 6808),
@@ -1764,7 +1764,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("cocoa", "cacao", 3302),
         PairingEntry("cinnamon", "cannelle", 3643)
     )),
-    "white_wine" to PairingsResult("white_wine", "vin blanc" ?: "white_wine", 2165, listOf(
+    "white_wine" to PairingsResult("white_wine", "vin blanc", 2165, listOf(
         PairingEntry("olive_oil", "huile d'olive", 1119),
         PairingEntry("parsley", "persil", 682),
         PairingEntry("shallot", "échalote", 231),
@@ -1774,7 +1774,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("scallop", "coquille Saint-Jacques", 89),
         PairingEntry("clam", null, 113)
     )),
-    "yeast" to PairingsResult("yeast", "levure" ?: "yeast", 3397, listOf(
+    "yeast" to PairingsResult("yeast", "levure", 3397, listOf(
         PairingEntry("wheat", "blé", 3326),
         PairingEntry("milk", "lait", 2122),
         PairingEntry("egg", "œuf", 2329),
@@ -1784,7 +1784,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("mozzarella_cheese", "mozzarella", 162),
         PairingEntry("cheddar_cheese", "cheddar", 306)
     )),
-    "yogurt" to PairingsResult("yogurt", "yaourt" ?: "yogurt", 1043, listOf(
+    "yogurt" to PairingsResult("yogurt", "yaourt", 1043, listOf(
         PairingEntry("turmeric", "curcuma", 118),
         PairingEntry("mint", "menthe", 98),
         PairingEntry("coriander", null, 128),
@@ -1794,7 +1794,7 @@ private val PAIRINGS: Map<String, PairingsResult> = mapOf(
         PairingEntry("banana", "banane", 85),
         PairingEntry("lemon_juice", "jus de citron", 218)
     )),
-    "zucchini" to PairingsResult("zucchini", "courgette" ?: "zucchini", 1093, listOf(
+    "zucchini" to PairingsResult("zucchini", "courgette", 1093, listOf(
         PairingEntry("squash", null, 145),
         PairingEntry("basil", "basilic", 287),
         PairingEntry("tomato", "tomate", 463),
