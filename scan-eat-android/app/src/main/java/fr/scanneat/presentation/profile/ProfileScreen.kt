@@ -12,12 +12,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
@@ -53,8 +56,8 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mon profil", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
+                title = { Text(stringResource(R.string.profile_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
                     TextButton(onClick = {
                         viewModel.save(Profile(
@@ -71,7 +74,7 @@ fun ProfileScreen(
                             isMenstruating = isMenstruating,
                         ))
                     }) {
-                        Text("Sauvegarder", color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.common_save), color = AccentGreen, fontWeight = FontWeight.SemiBold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -93,24 +96,24 @@ fun ProfileScreen(
             if (bmi.value != null || tdee.value != null) {
                 Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Row(modifier = Modifier.padding(14.dp), horizontalArrangement = Arrangement.SpaceAround) {
-                        bmi.value?.let { MetricChip("IMC", "${it}") }
-                        tdee.value?.let { MetricChip("TDEE", "${it.roundToInt()} kcal") }
+                        bmi.value?.let { MetricChip(stringResource(R.string.profile_bmi_label), "${it}") }
+                        tdee.value?.let { MetricChip("TDEE", stringResource(R.string.profile_tdee_kcal, it.roundToInt())) }
                     }
                 }
             }
 
             // ---- Identity ----
-            ProfileSection("Identité") {
-                OutlinedInput("Prénom (optionnel)", name) { name = it }
+            ProfileSection(stringResource(R.string.profile_section_identity)) {
+                OutlinedInput(stringResource(R.string.profile_field_name), name) { name = it }
                 SexSelector(sex) { sex = it }
-                OutlinedInput("Âge (ans)", age, KeyboardType.Number) { age = it }
+                OutlinedInput(stringResource(R.string.profile_field_age), age, KeyboardType.Number) { age = it }
             }
 
             // ---- Body ----
-            ProfileSection("Corps") {
-                OutlinedInput("Taille (cm)", heightCm, KeyboardType.Decimal) { heightCm = it }
-                OutlinedInput("Poids actuel (kg)", weightKg, KeyboardType.Decimal) { weightKg = it }
-                OutlinedInput("Poids cible (kg)", goalWeightKg, KeyboardType.Decimal) { goalWeightKg = it }
+            ProfileSection(stringResource(R.string.profile_section_body)) {
+                OutlinedInput(stringResource(R.string.profile_field_height), heightCm, KeyboardType.Decimal) { heightCm = it }
+                OutlinedInput(stringResource(R.string.profile_field_weight), weightKg, KeyboardType.Decimal) { weightKg = it }
+                OutlinedInput(stringResource(R.string.profile_field_goal_weight), goalWeightKg, KeyboardType.Decimal) { goalWeightKg = it }
                 if (sex == Sex.FEMALE) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
@@ -118,24 +121,24 @@ fun ProfileScreen(
                             onCheckedChange = { isMenstruating = it },
                             colors = CheckboxDefaults.colors(checkedColor = AccentGreen),
                         )
-                        Text("En âge menstruel (ajuste le besoin en fer)", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
+                        Text(stringResource(R.string.profile_menstruating_checkbox), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
                     }
                 }
             }
 
             // ---- Activity ----
-            ProfileSection("Activité") {
+            ProfileSection(stringResource(R.string.profile_section_activity)) {
                 ActivitySelector(activity) { activity = it }
                 GoalSelector(goal) { goal = it }
             }
 
             // ---- Diet ----
-            ProfileSection("Alimentation") {
+            ProfileSection(stringResource(R.string.profile_section_diet)) {
                 DietSelector(diet) { diet = it }
             }
 
             // ---- Allergens ----
-            ProfileSection("Allergènes déclarés") {
+            ProfileSection(stringResource(R.string.profile_section_allergens)) {
                 AllergenSelector(allergens) { allergens = it }
             }
 
@@ -191,7 +194,11 @@ private fun OutlinedInput(
 private fun SexSelector(current: Sex, onSelect: (Sex) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Sex.values().forEach { s ->
-            val label = when (s) { Sex.MALE -> "Homme"; Sex.FEMALE -> "Femme"; Sex.NOT_SPECIFIED -> "Non précisé" }
+            val label = when (s) {
+                Sex.MALE -> stringResource(R.string.sex_male)
+                Sex.FEMALE -> stringResource(R.string.sex_female)
+                Sex.NOT_SPECIFIED -> stringResource(R.string.sex_not_specified)
+            }
             FilterChip(
                 selected = current == s, onClick = { onSelect(s) }, label = { Text(label, fontSize = 12.sp) },
                 colors = FilterChipDefaults.filterChipColors(
@@ -206,9 +213,9 @@ private fun SexSelector(current: Sex, onSelect: (Sex) -> Unit) {
 @Composable
 private fun ActivitySelector(current: ActivityLevel, onSelect: (ActivityLevel) -> Unit) {
     val labels = mapOf(
-        ActivityLevel.SEDENTARY to "Sédentaire", ActivityLevel.LIGHTLY_ACTIVE to "Peu actif",
-        ActivityLevel.MODERATELY_ACTIVE to "Modéré", ActivityLevel.VERY_ACTIVE to "Très actif",
-        ActivityLevel.EXTRA_ACTIVE to "Extrême",
+        ActivityLevel.SEDENTARY to stringResource(R.string.activity_sedentary), ActivityLevel.LIGHTLY_ACTIVE to stringResource(R.string.activity_lightly_active),
+        ActivityLevel.MODERATELY_ACTIVE to stringResource(R.string.activity_moderately_active), ActivityLevel.VERY_ACTIVE to stringResource(R.string.activity_very_active),
+        ActivityLevel.EXTRA_ACTIVE to stringResource(R.string.activity_extra_active),
     )
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         ActivityLevel.values().forEach { lvl ->
@@ -230,7 +237,11 @@ private fun ActivitySelector(current: ActivityLevel, onSelect: (ActivityLevel) -
 
 @Composable
 private fun GoalSelector(current: Goal, onSelect: (Goal) -> Unit) {
-    val labels = mapOf(Goal.LOSE to "Perdre du poids", Goal.MAINTAIN to "Maintenir", Goal.GAIN to "Prendre du poids")
+    val labels = mapOf(
+        Goal.LOSE to stringResource(R.string.goal_lose),
+        Goal.MAINTAIN to stringResource(R.string.goal_maintain),
+        Goal.GAIN to stringResource(R.string.goal_gain),
+    )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Goal.values().forEach { g ->
             FilterChip(
@@ -251,18 +262,19 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         FilterChip(
             selected = current == DietKey.NONE, onClick = { onSelect(DietKey.NONE) },
-            label = { Text("Aucun", fontSize = 12.sp) },
+            label = { Text(stringResource(R.string.diet_none), fontSize = 12.sp) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                 labelColor = OnBackground.copy(0.7f),
             ),
         )
+        val isEnglish = Locale.current.language == "en"
         diets.chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { d ->
                     FilterChip(
                         selected = current == d, onClick = { onSelect(d) },
-                        label = { Text(d.labelFr, fontSize = 11.sp) },
+                        label = { Text(if (isEnglish) d.labelEn else d.labelFr, fontSize = 11.sp) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                             labelColor = OnBackground.copy(0.7f),
@@ -274,19 +286,22 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
     }
 }
 
-private val ALLERGEN_LABELS = mapOf(
-    "gluten" to "Gluten", "lactose" to "Lactose", "eggs" to "Œufs",
-    "nuts" to "Fruits à coque", "peanuts" to "Arachides", "soy" to "Soja",
-    "fish" to "Poisson", "crustaceans" to "Crustacés", "molluscs" to "Mollusques",
-    "sesame" to "Sésame", "celery" to "Céleri", "mustard" to "Moutarde",
-    "sulfites" to "Sulfites", "lupin" to "Lupin",
+@Composable
+private fun allergenLabels(): Map<String, String> = mapOf(
+    "gluten" to stringResource(R.string.allergen_gluten), "lactose" to stringResource(R.string.allergen_lactose),
+    "eggs" to stringResource(R.string.allergen_eggs), "nuts" to stringResource(R.string.allergen_nuts),
+    "peanuts" to stringResource(R.string.allergen_peanuts), "soy" to stringResource(R.string.allergen_soy),
+    "fish" to stringResource(R.string.allergen_fish), "crustaceans" to stringResource(R.string.allergen_crustaceans),
+    "molluscs" to stringResource(R.string.allergen_molluscs), "sesame" to stringResource(R.string.allergen_sesame),
+    "celery" to stringResource(R.string.allergen_celery), "mustard" to stringResource(R.string.allergen_mustard),
+    "sulfites" to stringResource(R.string.allergen_sulfites), "lupin" to stringResource(R.string.allergen_lupin),
 )
 
 @Composable
 private fun AllergenSelector(current: Set<String>, onSelect: (Set<String>) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Sélectionne les allergènes à surveiller", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-        ALLERGEN_LABELS.entries.chunked(3).forEach { row ->
+        Text(stringResource(R.string.profile_allergen_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+        allergenLabels().entries.chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { (key, label) ->
                     FilterChip(

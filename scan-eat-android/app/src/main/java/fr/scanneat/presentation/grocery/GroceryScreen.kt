@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -20,6 +21,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.R
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
@@ -56,14 +58,14 @@ fun GroceryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Liste de courses", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
+                title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
                     if (items.value.isNotEmpty()) {
                         IconButton(onClick = {
                             clipboard.setText(AnnotatedString(formatGroceryList(items.value)))
                             snack = true
-                        }) { Icon(Icons.Default.ContentCopy, "Copier", tint = AccentGreen) }
+                        }) { Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentGreen) }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -75,7 +77,7 @@ fun GroceryScreen(
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("🛒", style = MaterialTheme.typography.displaySmall)
-                    Text("Créez des recettes pour générer la liste de courses automatiquement.",
+                    Text(stringResource(R.string.grocery_empty_body),
                         color = OnBackground.copy(0.5f))
                 }
             }
@@ -86,7 +88,7 @@ fun GroceryScreen(
             ) {
                 item { Spacer(Modifier.height(4.dp)) }
                 item {
-                    Text("${items.value.size} articles · agrégé depuis vos recettes",
+                    Text(stringResource(R.string.grocery_item_count, items.value.size),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 }
                 items(items.value) { item ->
@@ -100,7 +102,7 @@ fun GroceryScreen(
                                 }
                             }
                             if (item.grams > 0) {
-                                Text("${item.grams} g", style = MaterialTheme.typography.labelLarge, color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge, color = AccentGreen, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }

@@ -42,4 +42,66 @@
     <string name="mealplan_day_today">%1$s · Aujourd\'hui</string>
     <string name="mealplan_recipe_prefix">📖 %1$s</string>
     <string name="mealplan_template_prefix">📋 %1$s</string>
+
+    <!-- ── Biolism shell ──────────────────────────────────────────────────── -->
+    <string name="biolism_subtitle">Métabolisme · Science · Précision</string>
+    <string name="biolism_tab_tracker">Tracker</string>
+    <string name="biolism_tab_data">Données</string>
+    <string name="biolism_tab_profile">Profil</string>
+
+    <!-- ── Scan history screen ────────────────────────────────────────────── -->
+    <string name="history_title">Historique</string>
+    <string name="history_search_placeholder">Rechercher…</string>
+    <string name="history_score_category">%1$d/100 · %2$s</string>
+    <string name="history_empty">Aucun scan enregistré.</string>
+    <string name="history_empty_query">Aucun résultat pour \"%1$s\".</string>
+
+    <!-- ── Grocery list screen ────────────────────────────────────────────── -->
+    <string name="grocery_title">Liste de courses</string>
+    <string name="grocery_empty_body">Créez des recettes pour générer la liste de courses automatiquement.</string>
+    <string name="grocery_item_count">%1$d articles · agrégé depuis vos recettes</string>
+    <string name="grocery_grams">%1$d g</string>
+
+    <!-- ── Profile screen ─────────────────────────────────────────────────── -->
+    <string name="profile_title">Mon profil</string>
+    <string name="profile_bmi_label">IMC</string>
+    <string name="profile_tdee_kcal">%1$d kcal</string>
+    <string name="profile_section_identity">Identité</string>
+    <string name="profile_section_body">Corps</string>
+    <string name="profile_section_activity">Activité</string>
+    <string name="profile_section_diet">Alimentation</string>
+    <string name="profile_section_allergens">Allergènes déclarés</string>
+    <string name="profile_field_name">Prénom (optionnel)</string>
+    <string name="profile_field_age">Âge (ans)</string>
+    <string name="profile_field_height">Taille (cm)</string>
+    <string name="profile_field_weight">Poids actuel (kg)</string>
+    <string name="profile_field_goal_weight">Poids cible (kg)</string>
+    <string name="profile_menstruating_checkbox">En âge menstruel (ajuste le besoin en fer)</string>
+    <string name="profile_allergen_hint">Sélectionne les allergènes à surveiller</string>
+    <string name="sex_male">Homme</string>
+    <string name="sex_female">Femme</string>
+    <string name="sex_not_specified">Non précisé</string>
+    <string name="activity_sedentary">Sédentaire</string>
+    <string name="activity_lightly_active">Peu actif</string>
+    <string name="activity_moderately_active">Modéré</string>
+    <string name="activity_very_active">Très actif</string>
+    <string name="activity_extra_active">Extrême</string>
+    <string name="goal_lose">Perdre du poids</string>
+    <string name="goal_maintain">Maintenir</string>
+    <string name="goal_gain">Prendre du poids</string>
+    <string name="diet_none">Aucun</string>
+    <string name="allergen_gluten">Gluten</string>
+    <string name="allergen_lactose">Lactose</string>
+    <string name="allergen_eggs">Œufs</string>
+    <string name="allergen_nuts">Fruits à coque</string>
+    <string name="allergen_peanuts">Arachides</string>
+    <string name="allergen_soy">Soja</string>
+    <string name="allergen_fish">Poisson</string>
+    <string name="allergen_crustaceans">Crustacés</string>
+    <string name="allergen_molluscs">Mollusques</string>
+    <string name="allergen_sesame">Sésame</string>
+    <string name="allergen_celery">Céleri</string>
+    <string name="allergen_mustard">Moutarde</string>
+    <string name="allergen_sulfites">Sulfites</string>
+    <string name="allergen_lupin">Lupin</string>
 </resources>

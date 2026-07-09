@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -23,6 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.R
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
@@ -43,8 +45,8 @@ fun ScanHistoryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Historique", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
+                title = { Text(stringResource(R.string.history_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -56,7 +58,7 @@ fun ScanHistoryScreen(
                 value = query.value,
                 onValueChange = { viewModel.setQuery(it) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Rechercher…", color = OnBackground.copy(0.4f)) },
+                placeholder = { Text(stringResource(R.string.history_search_placeholder), color = OnBackground.copy(0.4f)) },
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
                 trailingIcon = {
                     if (query.value.isNotEmpty()) IconButton(onClick = { viewModel.setQuery("") }) {
@@ -97,7 +99,7 @@ fun ScanHistoryScreen(
                         }
                         Column(Modifier.weight(1f)) {
                             Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1)
-                            Text("${scan.audit.score}/100 · ${scan.product.category.key.replace('_', ' ')}", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                            Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                         }
                         Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(20.dp))
                     }
@@ -105,7 +107,7 @@ fun ScanHistoryScreen(
                 if (scans.value.isEmpty()) {
                     item {
                         Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text(if (query.value.isBlank()) "Aucun scan enregistré." else "Aucun résultat pour \"${query.value}\".", color = OnBackground.copy(0.4f))
+                            Text(if (query.value.isBlank()) stringResource(R.string.history_empty) else stringResource(R.string.history_empty_query, query.value), color = OnBackground.copy(0.4f))
                         }
                     }
                 }

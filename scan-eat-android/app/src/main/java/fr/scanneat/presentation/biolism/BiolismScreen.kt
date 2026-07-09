@@ -10,14 +10,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import fr.scanneat.R
 import fr.scanneat.presentation.biolism.bioProfile.BiolismProfileScreen
 import fr.scanneat.presentation.biolism.data.DataScreen
 import fr.scanneat.presentation.biolism.tracker.TrackerScreen
 import fr.scanneat.presentation.ui.theme.*
 
-private enum class BiolismTab(val label: String) {
-    TRACKER("Tracker"), DATA("Données"), PROFILE("Profil")
+private enum class BiolismTab(@androidx.annotation.StringRes val labelRes: Int) {
+    TRACKER(R.string.biolism_tab_tracker), DATA(R.string.biolism_tab_data), PROFILE(R.string.biolism_tab_profile)
 }
 
 @Composable
@@ -36,9 +38,9 @@ fun BiolismScreen() {
                 .padding(top = 12.dp, bottom = 8.dp),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("Biolism", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 22.sp), color = LocalGoldAccent.current)
+                Text(stringResource(R.string.tab_biolism), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 22.sp), color = LocalGoldAccent.current)
             }
-            Text("Métabolisme · Science · Précision", style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
+            Text(stringResource(R.string.biolism_subtitle), style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
             Spacer(Modifier.height(10.dp))
             // Sub-tab row
             Row(
@@ -55,7 +57,7 @@ fun BiolismScreen() {
                         border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, GoldBorder) else null,
                     ) {
                         Text(
-                            tab.label,
+                            stringResource(tab.labelRes),
                             modifier = Modifier.padding(vertical = 8.dp),
                             style = MaterialTheme.typography.labelMedium,
                             color = if (isActive) LocalGoldAccent.current else fgColor.copy(0.5f),
