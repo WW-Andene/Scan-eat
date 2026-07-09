@@ -393,6 +393,12 @@
     <string name="biolism_hero_legend_fat">Fat %1$d%%</string>
     <string name="biolism_hero_legend_carbs">Carbs %1$d%%</string>
     <string name="biolism_hero_legend_protein">Protein %1$d%%</string>
+    <string name="biolism_fasting_label">Fasting</string>
+    <string name="biolism_fasting_status_anchored">%1$s · metabolic state anchored</string>
+    <string name="biolism_fasting_status_prompt">Log a meal or adjust the time below</string>
+    <string name="biolism_fasting_status_disabled">Disabled — enable to track fasting</string>
+    <string name="biolism_fasting_log_meal">I ate</string>
+    <string name="biolism_fasting_time_label">Fasting time:</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>

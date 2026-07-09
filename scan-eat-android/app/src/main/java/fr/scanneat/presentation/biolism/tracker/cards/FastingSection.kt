@@ -9,8 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.StepperChip
 import fr.scanneat.presentation.biolism.tracker.formatFastingTime
 import fr.scanneat.presentation.ui.theme.*
@@ -32,10 +34,10 @@ internal fun FastingRow(
                     Checkbox(checked = active, onCheckedChange = { onToggle() },
                         colors = CheckboxDefaults.colors(checkedColor = Violet, uncheckedColor = Violet.copy(0.4f)))
                     Column {
-                        Text("Jeûne", style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
-                        Text(if (active && fastFmt != null) "$fastFmt · état métabolique ancré"
-                             else if (active) "Logger un repas ou ajuster le temps ci-dessous"
-                             else "Désactivé — activer pour suivre le jeûne",
+                        Text(stringResource(R.string.biolism_fasting_label), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
+                        Text(if (active && fastFmt != null) stringResource(R.string.biolism_fasting_status_anchored, fastFmt)
+                             else if (active) stringResource(R.string.biolism_fasting_status_prompt)
+                             else stringResource(R.string.biolism_fasting_status_disabled),
                             style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     }
                 }
@@ -53,7 +55,7 @@ internal fun FastingRow(
                             color = VioletHaze,
                             border = BorderStroke(1.dp, Violet.copy(0.4f)),
                         ) {
-                            Text("J'ai mangé", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            Text(stringResource(R.string.biolism_fasting_log_meal), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -61,7 +63,7 @@ internal fun FastingRow(
             }
             if (active) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Temps de jeûne :", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                    Text(stringResource(R.string.biolism_fasting_time_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     listOf("6h" to 6.0, "12h" to 12.0, "24h" to 24.0, "1s" to 168.0, "1m" to 720.0).forEach { (label, h) ->
                         StepperChip(label = label, color = Violet, onMinus = { onAddHours(-h) }, onPlus = { onAddHours(h) })
                     }

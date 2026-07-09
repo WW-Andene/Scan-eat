@@ -394,6 +394,12 @@
     <string name="biolism_hero_legend_fat">Graisses %1$d%%</string>
     <string name="biolism_hero_legend_carbs">Glucides %1$d%%</string>
     <string name="biolism_hero_legend_protein">Protéines %1$d%%</string>
+    <string name="biolism_fasting_label">Jeûne</string>
+    <string name="biolism_fasting_status_anchored">%1$s · état métabolique ancré</string>
+    <string name="biolism_fasting_status_prompt">Logger un repas ou ajuster le temps ci-dessous</string>
+    <string name="biolism_fasting_status_disabled">Désactivé — activer pour suivre le jeûne</string>
+    <string name="biolism_fasting_log_meal">J\'ai mangé</string>
+    <string name="biolism_fasting_time_label">Temps de jeûne :</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
