@@ -58,6 +58,7 @@ fun CustomFoodScreen(
         containerColor = Background,
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            val customNames = remember(foods.value) { foods.value.mapTo(hashSetOf()) { it.name } }
             // Search bar
             OutlinedTextField(
                 value = query.value,
@@ -110,7 +111,6 @@ fun CustomFoodScreen(
                     }
                 }
 
-                val customNames = remember(foods.value) { foods.value.mapTo(hashSetOf()) { it.name } }
                 items(displayList, key = { it.name }) { entry ->
                     FoodEntryRow(
                         entry    = entry,
