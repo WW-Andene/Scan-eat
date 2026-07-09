@@ -157,6 +157,28 @@
     <string name="biolism_burn_glycogen_depleted">Glycogen depleted</string>
     <string name="biolism_burn_protein_catabolised">Protein catabolised</string>
 
+    <!-- ── Biolism: Equations card ────────────────────────────────────────── -->
+    <!-- Formula/substituted-value strings are left in French in the source
+         (see values/strings.xml comment) — only chrome and titles are
+         localized. -->
+    <string name="biolism_eq_title">Equations &amp; sources</string>
+    <string name="biolism_eq_badge">REFERENCE</string>
+    <string name="biolism_eq_disclaimer">Every value shown in Biolism derives from a published formula. Below: the formula, your current numbers substituted, and the source.</string>
+    <string name="biolism_eq_bmr_msj">BMR — Mifflin-St Jeor (1990)</string>
+    <string name="biolism_eq_bmr_km">BMR — Katch-McArdle (1996)</string>
+    <string name="biolism_eq_bodyfat">Body fat — Deurenberg (1991)</string>
+    <string name="biolism_eq_bsa">Body surface area — DuBois (1916)</string>
+    <string name="biolism_eq_gas_exchange">Gas exchange — Weir (1949) / Frayn (1983)</string>
+    <string name="biolism_eq_substrate_ox">Substrate oxidation — Atwater</string>
+    <string name="biolism_eq_ffa_flux">FFA lipolytic flux — Wolfe (1990)</string>
+    <string name="biolism_eq_bhb">β-hydroxybutyrate — McGarry &amp; Foster (1980)</string>
+    <string name="biolism_eq_acetyl_coa">Acetyl-CoA — Berg, Tymoczko &amp; Stryer (2015)</string>
+    <string name="biolism_eq_gluconeogenesis">Gluconeogenesis — Cahill (1966) / Jungas (1992)</string>
+    <string name="biolism_eq_heat_dissipation">Heat dissipation — Fanger (1970)</string>
+    <string name="biolism_eq_water_loss">Water losses — Moran (2007) / Pinnagoda (1990)</string>
+    <string name="biolism_eq_ibw">Ideal body weight — Devine/Robinson/Miller</string>
+    <string name="biolism_eq_macro_floors">Macro floors — Phillips &amp; Van Loon (2011) / Cahill (2006)</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>

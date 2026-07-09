@@ -157,6 +157,29 @@
     <string name="biolism_burn_glycogen_depleted">Glycogène déplété</string>
     <string name="biolism_burn_protein_catabolised">Protéines catabolisées</string>
 
+    <!-- ── Biolism: Equations card ────────────────────────────────────────── -->
+    <!-- Formula/substituted-value strings are left in French (not extracted) —
+         they mix dense math notation with French variable names; translating
+         them at volume risks subtly misrepresenting the physiology. Only the
+         card chrome and equation titles are localized here. -->
+    <string name="biolism_eq_title">Équations &amp; sources</string>
+    <string name="biolism_eq_badge">RÉFÉRENCE</string>
+    <string name="biolism_eq_disclaimer">Chaque valeur affichée dans Biolism dérive d\'une formule publiée. Ci-dessous : la formule, tes chiffres actuels substitués, et la source.</string>
+    <string name="biolism_eq_bmr_msj">BMR — Mifflin-St Jeor (1990)</string>
+    <string name="biolism_eq_bmr_km">BMR — Katch-McArdle (1996)</string>
+    <string name="biolism_eq_bodyfat">Masse grasse — Deurenberg (1991)</string>
+    <string name="biolism_eq_bsa">Surface corporelle — DuBois (1916)</string>
+    <string name="biolism_eq_gas_exchange">Échanges gazeux — Weir (1949) / Frayn (1983)</string>
+    <string name="biolism_eq_substrate_ox">Oxydation substrats — Atwater</string>
+    <string name="biolism_eq_ffa_flux">Flux lipolytique AGL — Wolfe (1990)</string>
+    <string name="biolism_eq_bhb">β-hydroxybutyrate — McGarry &amp; Foster (1980)</string>
+    <string name="biolism_eq_acetyl_coa">Acétyl-CoA — Berg, Tymoczko &amp; Stryer (2015)</string>
+    <string name="biolism_eq_gluconeogenesis">Gluconéogenèse — Cahill (1966) / Jungas (1992)</string>
+    <string name="biolism_eq_heat_dissipation">Dissipation thermique — Fanger (1970)</string>
+    <string name="biolism_eq_water_loss">Pertes hydriques — Moran (2007) / Pinnagoda (1990)</string>
+    <string name="biolism_eq_ibw">Poids idéal — Devine/Robinson/Miller</string>
+    <string name="biolism_eq_macro_floors">Planchers macros — Phillips &amp; Van Loon (2011) / Cahill (2006)</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>
