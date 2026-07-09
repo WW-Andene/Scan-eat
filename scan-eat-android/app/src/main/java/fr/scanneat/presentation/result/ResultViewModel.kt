@@ -56,7 +56,7 @@ class ResultViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val scanId: Long = savedStateHandle.get<String>("scanId")?.toLongOrNull() ?: 0L
+    private val scanId: Long = savedStateHandle.get<Long>("scanId") ?: 0L
 
     private val _logState = MutableStateFlow<LogState>(LogState.Idle)
 
