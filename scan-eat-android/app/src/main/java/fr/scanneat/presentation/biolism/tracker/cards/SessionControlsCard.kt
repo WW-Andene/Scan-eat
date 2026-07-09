@@ -16,8 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.Teal
 
@@ -36,7 +38,7 @@ internal fun SessionControls(
         ) {
             Icon(if (running) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.Black)
             Spacer(Modifier.width(4.dp))
-            Text(if (running) "Pause" else if (hasElapsed) "Reprendre" else "Démarrer",
+            Text(if (running) stringResource(R.string.biolism_sessctrl_pause) else if (hasElapsed) stringResource(R.string.biolism_sessctrl_resume) else stringResource(R.string.biolism_sessctrl_start),
                 color = Color.Black, fontWeight = FontWeight.Bold)
         }
         if (hasElapsed) {
@@ -45,13 +47,13 @@ internal fun SessionControls(
                     OutlinedButton(onClick = {}, enabled = false, shape = RoundedCornerShape(12.dp)) {
                         Icon(Icons.Default.Check, null, tint = Teal, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Sauvegardé", color = Teal)
+                        Text(stringResource(R.string.biolism_sessctrl_saved), color = Teal)
                     }
                 } else {
                     OutlinedButton(onClick = onSave, shape = RoundedCornerShape(12.dp)) {
                         Icon(Icons.Default.Save, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Sauver")
+                        Text(stringResource(R.string.biolism_sessctrl_save))
                     }
                 }
             }

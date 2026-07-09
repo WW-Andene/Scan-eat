@@ -429,6 +429,11 @@
     <string name="biolism_goals_sessions_label">Sessions aujourd\'hui</string>
     <string name="biolism_goals_sessions_note">enregistrées aujourd\'hui</string>
     <string name="biolism_goals_kcal_per_day">%1$.1f kcal/j</string>
+    <string name="biolism_sessctrl_pause">Pause</string>
+    <string name="biolism_sessctrl_resume">Reprendre</string>
+    <string name="biolism_sessctrl_start">Démarrer</string>
+    <string name="biolism_sessctrl_saved">Sauvegardé</string>
+    <string name="biolism_sessctrl_save">Sauver</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
