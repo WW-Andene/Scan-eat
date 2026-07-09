@@ -188,7 +188,7 @@ fun ScanScreen(
             if (state.value is ScanUiState.Error) {
                 val error = state.value as ScanUiState.Error
                 if (error.needsPhoto) {
-                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = 16.dp, bottom = 96.dp),
+                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
                         color = SurfaceVariant, shape = RoundedCornerShape(12.dp)) {
                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.CameraAlt, null, tint = AccentGreen)
@@ -201,7 +201,7 @@ fun ScanScreen(
                         }
                     }
                 } else {
-                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = 16.dp, bottom = 96.dp),
+                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
                         color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(12.dp)) {
                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error)
