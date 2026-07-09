@@ -576,6 +576,11 @@
     <string name="diary_cd_prev_day">Jour précédent</string>
     <string name="diary_today_button">Aujourd\'hui</string>
     <string name="diary_cd_next_day">Jour suivant</string>
+    <string name="diary_tab_meals">Repas</string>
+    <string name="diary_tab_weight">Poids</string>
+    <string name="diary_tab_water">Eau</string>
+    <string name="diary_tab_activity">Activité</string>
+    <string name="diary_tab_fasting">Jeûne</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Log it\'.</string>

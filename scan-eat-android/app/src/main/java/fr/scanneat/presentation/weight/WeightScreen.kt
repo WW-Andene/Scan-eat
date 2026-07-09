@@ -28,10 +28,17 @@ import java.time.format.DateTimeFormatter
 
 private val fmt = DateTimeFormatter.ofPattern("dd MMM")
 
+/**
+ * [embedded] = true skips this screen's own Scaffold/TopAppBar — used when
+ * hosted as a Journal sub-tab, where the tab row itself is the header and a
+ * second nested app bar (with a dead-end back arrow) would be redundant
+ * chrome. Standalone push-navigation callers leave it false.
+ */
 @Composable
 fun WeightScreen(
     viewModel: WeightViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    embedded: Boolean = false,
 ) {
     val entries  = viewModel.entries.collectAsStateWithLifecycle()
     val summary  = viewModel.summary.collectAsStateWithLifecycle()
@@ -47,17 +54,7 @@ fun WeightScreen(
     fun dispWeight(kg: Double): String =
         if (useImperial) "%.1f lb".format(kg * 2.20462) else "%.1f kg".format(kg)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
-            )
-        },
-        containerColor = Background,
-    ) { padding ->
+    val content = @Composable { padding: PaddingValues ->
         val reversedEntries = remember(entries.value) { entries.value.reversed() }
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
@@ -166,6 +163,29 @@ fun WeightScreen(
             }
             item { Spacer(Modifier.height(32.dp)) }
         }
+    }
+
+    if (embedded) {
+        Box(Modifier.fillMaxSize()) {
+            content(PaddingValues(0.dp))
+            FloatingActionButton(
+                onClick = { showAdd = true },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                containerColor = AccentGreen,
+            ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
+        }
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
+                    navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen) } },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
+                )
+            },
+            containerColor = Background,
+        ) { padding -> content(padding) }
     }
 
     if (showAdd) {

@@ -39,7 +39,6 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBack: () -> Unit,
     isTabRoot: Boolean = false,
-    onOpenProfile: () -> Unit = {},
 ) {
     val apiKey    = viewModel.apiKey.collectAsStateWithLifecycle()
     val groqModel = viewModel.groqModel.collectAsStateWithLifecycle()
@@ -288,21 +287,6 @@ fun SettingsScreen(
             // Reminders — meal, hydration, and weigh-in notifications live here, not in Biolism
             SettingsSection(stringResource(R.string.settings_section_reminders)) {
                 fr.scanneat.presentation.reminders.RemindersCard()
-            }
-
-            // Profile shortcut
-            SettingsSection(stringResource(R.string.settings_section_profile)) {
-                Text(stringResource(R.string.settings_profile_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                Button(
-                    onClick = onOpenProfile,
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(Icons.Default.Person, null, tint = Color.Black, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.settings_profile_button), color = Color.Black, fontWeight = FontWeight.SemiBold)
-                }
             }
 
             // Backup — local export/import, no cloud account required

@@ -47,11 +47,18 @@ private fun typeLabels(): Map<ActivityType, String> = mapOf(
     ActivityType.OTHER to stringResource(R.string.activity_type_other),
 )
 
+/**
+ * [embedded] = true skips this screen's own Scaffold/TopAppBar — used when
+ * hosted as a Journal sub-tab, where the tab row itself is the header and a
+ * second nested app bar (with a dead-end back arrow) would be redundant
+ * chrome. Standalone push-navigation callers leave it false.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ActivityScreen(
     viewModel: ActivityViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    embedded: Boolean = false,
 ) {
     // Refresh date when screen becomes active (handles midnight crossing)
     LaunchedEffect(Unit) { viewModel.refreshDate() }
@@ -63,17 +70,7 @@ fun ActivityScreen(
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     val typeLabels = typeLabels()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.activity_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
-            )
-        },
-        containerColor = Background,
-    ) { padding ->
+    val content = @Composable { padding: PaddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -124,6 +121,29 @@ fun ActivityScreen(
 
             item { Spacer(Modifier.height(32.dp)) }
         }
+    }
+
+    if (embedded) {
+        Box(Modifier.fillMaxSize()) {
+            content(PaddingValues(0.dp))
+            FloatingActionButton(
+                onClick = { showAdd = true },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                containerColor = AccentGreen,
+            ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
+        }
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.activity_title), color = OnBackground) },
+                    navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen) } },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
+                )
+            },
+            containerColor = Background,
+        ) { padding -> content(padding) }
     }
 
     if (showAdd) {

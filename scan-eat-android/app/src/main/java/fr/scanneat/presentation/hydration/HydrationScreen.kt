@@ -33,10 +33,17 @@ import javax.inject.Inject
 
 
 
+/**
+ * [embedded] = true skips this screen's own Scaffold/TopAppBar — used when
+ * hosted as a Journal sub-tab, where the tab row itself is the header and a
+ * second nested app bar (with a dead-end back arrow) would be redundant
+ * chrome. Standalone push-navigation callers leave it false.
+ */
 @Composable
 fun HydrationScreen(
     viewModel: HydrationViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    embedded: Boolean = false,
 ) {
     val intake = viewModel.intake.collectAsStateWithLifecycle()
     val goal   = viewModel.goal.collectAsStateWithLifecycle()
@@ -44,16 +51,7 @@ fun HydrationScreen(
     val goalGlasses = goal.value / HYD_GLASS_ML
     val pct = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.hydration_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
-            )
-        },
-        containerColor = Background,
-    ) { padding ->
+    val content = @Composable { padding: PaddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -151,4 +149,18 @@ fun HydrationScreen(
         }
     }
 
+    if (embedded) {
+        content(PaddingValues(0.dp))
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.hydration_title), color = OnBackground) },
+                    navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
+                )
+            },
+            containerColor = Background,
+        ) { padding -> content(padding) }
+    }
 }

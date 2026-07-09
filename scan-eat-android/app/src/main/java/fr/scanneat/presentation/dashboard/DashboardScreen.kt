@@ -13,14 +13,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.ListAlt
-import androidx.compose.material.icons.filled.MonitorWeight
-import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,16 +43,11 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     onBack: () -> Unit,
-    onOpenWeight: () -> Unit = {},
-    onOpenFasting: () -> Unit = {},
-    onOpenHydration: () -> Unit = {},
-    onOpenActivity: () -> Unit = {},
     onOpenHistory: () -> Unit = {},
     onOpenRecipes: () -> Unit = {},
     onOpenTemplates: () -> Unit = {},
     onOpenMealPlan: () -> Unit = {},
     onOpenGrocery: () -> Unit = {},
-    onOpenProfile: () -> Unit = {},
     onOpenCustomFoods: () -> Unit = {},
 ) {
     val state = viewModel.state.collectAsStateWithLifecycle()
@@ -107,17 +97,11 @@ fun DashboardScreen(
                 item { GapCloserCard(gaps = s.gapSuggestions) }
             }
 
-            // ---- Feature tiles ----
+            // ---- Feature tiles — meal-planning tools only; daily logging tasks
+            // (weight, fasting, water, activity) live in Journal now, and Profile's
+            // canonical entry point is Journal's top bar, not a Dashboard tile. ----
             item {
                 Text(stringResource(R.string.dashboard_features_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-            }
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeatureTile(Icons.Default.MonitorWeight, stringResource(R.string.dashboard_tile_weight),    Modifier.weight(1f), onClick = onOpenWeight)
-                    FeatureTile(Icons.Default.Timer, stringResource(R.string.dashboard_tile_fasting),    Modifier.weight(1f), onClick = onOpenFasting)
-                    FeatureTile(Icons.Default.Opacity, stringResource(R.string.dashboard_tile_water),       Modifier.weight(1f), onClick = onOpenHydration)
-                    FeatureTile(Icons.Default.DirectionsRun, stringResource(R.string.dashboard_tile_activity), Modifier.weight(1f), onClick = onOpenActivity)
-                }
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -125,12 +109,6 @@ fun DashboardScreen(
                     FeatureTile(Icons.Default.ListAlt, stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
                     FeatureTile(Icons.Default.CalendarMonth, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
                     FeatureTile(Icons.Default.ShoppingCart, stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
-                }
-            }
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FeatureTile(Icons.Default.Person, stringResource(R.string.dashboard_tile_profile), Modifier.weight(1f), onClick = onOpenProfile)
-                    Spacer(Modifier.weight(3f))
                 }
             }
 
