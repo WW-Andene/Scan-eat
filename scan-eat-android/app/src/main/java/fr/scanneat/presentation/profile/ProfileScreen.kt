@@ -192,9 +192,10 @@ private fun OutlinedInput(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SexSelector(current: Sex, onSelect: (Sex) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Sex.values().forEach { s ->
             val label = when (s) {
                 Sex.MALE -> stringResource(R.string.sex_male)
@@ -237,6 +238,7 @@ private fun ActivitySelector(current: ActivityLevel, onSelect: (ActivityLevel) -
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun GoalSelector(current: Goal, onSelect: (Goal) -> Unit) {
     val labels = mapOf(
@@ -244,11 +246,11 @@ private fun GoalSelector(current: Goal, onSelect: (Goal) -> Unit) {
         Goal.MAINTAIN to stringResource(R.string.goal_maintain),
         Goal.GAIN to stringResource(R.string.goal_gain),
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Goal.values().forEach { g ->
             FilterChip(
                 selected = current == g, onClick = { onSelect(g) },
-                label = { Text(labels[g] ?: g.name, fontSize = 12.sp) },
+                label = { Text(labels[g] ?: g.name, fontSize = 12.sp, maxLines = 1) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                     labelColor = OnBackground.copy(0.7f),

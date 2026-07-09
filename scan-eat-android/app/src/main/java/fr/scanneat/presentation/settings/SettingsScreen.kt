@@ -27,6 +27,7 @@ import fr.scanneat.domain.engine.nutrition.FALLBACK_MODEL
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),

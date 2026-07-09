@@ -366,6 +366,7 @@ private fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary
   }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun GapCloserCard(gaps: List<GapEntry>) {
   Box(Modifier.fillMaxWidth().glassSheen()) {
@@ -378,7 +379,7 @@ private fun GapCloserCard(gaps: List<GapEntry>) {
                         stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, gap.deficit.toString()),
                         style = MaterialTheme.typography.labelMedium, color = AmberWarning,
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         gap.suggestions.take(3).forEach { s ->
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
