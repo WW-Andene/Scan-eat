@@ -211,6 +211,35 @@
     <string name="biolism_thermo_ml_h_and_day_signed">%1$+.2f mL/h · %2$+.0f mL/j</string>
     <string name="biolism_thermo_net_balance_sub">métab. − insensibles</string>
 
+    <!-- ── Biolism: Daily Energy card ─────────────────────────────────────── -->
+    <string name="biolism_energy_title">Énergie quotidienne (TDEE)</string>
+    <string name="biolism_energy_keto_badge">KÉTO −%1$d%%</string>
+    <string name="biolism_energy_tdee_label">Dépense Totale Journalière</string>
+    <string name="biolism_energy_tdee_sub">kcal/jour · BMR × %1$.3f</string>
+    <string name="biolism_energy_activity_level">Niveau d\'activité</string>
+    <string name="biolism_energy_bmr_avg">BMR moyen</string>
+    <string name="biolism_energy_bmr_avg_sub">kcal/j (consensus)</string>
+    <string name="biolism_energy_kcal_j">kcal/j</string>
+    <string name="biolism_energy_km_sub">kcal/j · masse maigre</string>
+    <string name="biolism_energy_bmr_suppressed">BMR supprimé</string>
+    <string name="biolism_energy_bmr_suppressed_sub">kcal/j · T3 adj.</string>
+    <string name="biolism_energy_deficit">Déficit (−500 kcal)</string>
+    <string name="biolism_energy_kcal_per_day_value">%1$.1f kcal/j</string>
+    <string name="biolism_energy_deficit_sub">~0,45 kg/semaine perdu</string>
+    <string name="biolism_energy_surplus">Surplus (+300 kcal)</string>
+    <string name="biolism_energy_surplus_sub">objectif prise de masse maigre</string>
+    <string name="biolism_energy_balance_title">Solde énergétique réel — Aujourd\'hui</string>
+    <string name="biolism_energy_intake">Apport (Journal)</string>
+    <string name="biolism_energy_intake_sub">aliments scannés/consignés</string>
+    <string name="biolism_energy_expenditure">Dépense (TDEE + sport)</string>
+    <string name="biolism_energy_expenditure_sub">TDEE %1$.0f + sport %2$.0f</string>
+    <string name="biolism_energy_net_balance">Bilan net</string>
+    <string name="biolism_energy_status_surplus">EXCÉDENT</string>
+    <string name="biolism_energy_status_deficit">DÉFICIT</string>
+    <string name="biolism_energy_status_balanced">ÉQUILIBRÉ</string>
+    <string name="biolism_energy_weight_impact">Impact estimé sur le poids</string>
+    <string name="biolism_energy_weight_impact_sub">règle des 7700 kcal/kg · estimation informative</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>

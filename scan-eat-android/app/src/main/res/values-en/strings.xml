@@ -210,6 +210,35 @@
     <string name="biolism_thermo_ml_h_and_day_signed">%1$+.2f mL/h · %2$+.0f mL/day</string>
     <string name="biolism_thermo_net_balance_sub">metabolic − insensible</string>
 
+    <!-- ── Biolism: Daily Energy card ─────────────────────────────────────── -->
+    <string name="biolism_energy_title">Daily Energy (TDEE)</string>
+    <string name="biolism_energy_keto_badge">KETO −%1$d%%</string>
+    <string name="biolism_energy_tdee_label">Total Daily Expenditure</string>
+    <string name="biolism_energy_tdee_sub">kcal/day · BMR × %1$.3f</string>
+    <string name="biolism_energy_activity_level">Activity level</string>
+    <string name="biolism_energy_bmr_avg">Average BMR</string>
+    <string name="biolism_energy_bmr_avg_sub">kcal/day (consensus)</string>
+    <string name="biolism_energy_kcal_j">kcal/day</string>
+    <string name="biolism_energy_km_sub">kcal/day · lean mass</string>
+    <string name="biolism_energy_bmr_suppressed">Suppressed BMR</string>
+    <string name="biolism_energy_bmr_suppressed_sub">kcal/day · T3 adj.</string>
+    <string name="biolism_energy_deficit">Deficit (−500 kcal)</string>
+    <string name="biolism_energy_kcal_per_day_value">%1$.1f kcal/day</string>
+    <string name="biolism_energy_deficit_sub">~0.45 kg/week lost</string>
+    <string name="biolism_energy_surplus">Surplus (+300 kcal)</string>
+    <string name="biolism_energy_surplus_sub">lean mass gain goal</string>
+    <string name="biolism_energy_balance_title">Real energy balance — Today</string>
+    <string name="biolism_energy_intake">Intake (Diary)</string>
+    <string name="biolism_energy_intake_sub">scanned/logged foods</string>
+    <string name="biolism_energy_expenditure">Expenditure (TDEE + exercise)</string>
+    <string name="biolism_energy_expenditure_sub">TDEE %1$.0f + exercise %2$.0f</string>
+    <string name="biolism_energy_net_balance">Net balance</string>
+    <string name="biolism_energy_status_surplus">SURPLUS</string>
+    <string name="biolism_energy_status_deficit">DEFICIT</string>
+    <string name="biolism_energy_status_balanced">BALANCED</string>
+    <string name="biolism_energy_weight_impact">Estimated weight impact</string>
+    <string name="biolism_energy_weight_impact_sub">7700 kcal/kg rule · informational estimate</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>
