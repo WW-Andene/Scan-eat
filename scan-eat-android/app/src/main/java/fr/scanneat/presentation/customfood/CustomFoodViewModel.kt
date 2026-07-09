@@ -5,10 +5,14 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CustomFoodViewModel @Inject constructor(
     private val repo: CustomFoodRepository,
@@ -17,21 +21,20 @@ class CustomFoodViewModel @Inject constructor(
     val foods: StateFlow<List<FoodEntry>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _searchResults = MutableStateFlow<List<FoodEntry>>(emptyList())
-    val searchResults: StateFlow<List<FoodEntry>> = _searchResults.asStateFlow()
-
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
+    // Derived from the same live `foods` flow (not a separate repo.search() call), so
+    // results can never go stale after a save/delete the way a one-shot search snapshot
+    // could — and debounced + recomputed via combine instead of launching an unbounded,
+    // uncancelled coroutine per keystroke.
+    val searchResults: StateFlow<List<FoodEntry>> =
+        combine(_query.debounce(200), foods) { q, customs -> q to customs }
+            .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 10, customs) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun setQuery(q: String) {
         _query.value = q
-        if (q.isBlank()) {
-            _searchResults.value = emptyList()
-            return
-        }
-        viewModelScope.launch {
-            _searchResults.value = repo.search(q, limit = 10)
-        }
     }
 
     fun save(

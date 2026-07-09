@@ -6,9 +6,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.collectAsState
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import fr.scanneat.presentation.shell.MainShell
 import fr.scanneat.presentation.ui.theme.ScanEatTheme
@@ -30,11 +30,11 @@ class MainActivity : AppCompatActivity() {
         splashScreen.setKeepOnScreenCondition { !splashViewModel.ready.value }
 
         setContent {
-            val ready = splashViewModel.ready.collectAsState().value
+            val ready = splashViewModel.ready.collectAsStateWithLifecycle().value
             if (ready) {
-                val theme = splashViewModel.theme.collectAsState().value
-                val dyslexicFont = splashViewModel.dyslexicFont.collectAsState().value
-                val colorblindMode = splashViewModel.colorblindMode.collectAsState().value
+                val theme = splashViewModel.theme.collectAsStateWithLifecycle().value
+                val dyslexicFont = splashViewModel.dyslexicFont.collectAsStateWithLifecycle().value
+                val colorblindMode = splashViewModel.colorblindMode.collectAsStateWithLifecycle().value
                 SideEffect {
                     val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                     insetsController.isAppearanceLightStatusBars = theme == "light"

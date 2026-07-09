@@ -10,7 +10,6 @@ import dagger.assisted.AssistedInject
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import kotlinx.coroutines.flow.first
-import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
@@ -58,8 +57,12 @@ class ReminderWorker @AssistedInject constructor(
     ) {
         if (!on) return
         val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return
-        val withinWindow = kotlin.math.abs(Duration.between(target, now).toMinutes()) <= 15
-        if (withinWindow && !remindersRepo.wasFiredToday(lastFiredKey)) {
+        // Fire once on the first run at-or-after the target time, rather than only within
+        // a ±15min band: WorkManager's periodic jobs routinely run late under Doze/App
+        // Standby/manufacturer battery optimization, and a symmetric window silently drops
+        // the reminder for the rest of the day the moment the worker is delayed past it.
+        val dueNow = !now.isBefore(target) && !remindersRepo.wasFiredToday(lastFiredKey)
+        if (dueNow) {
             NotificationHelper.show(applicationContext, notifId, title, text)
             remindersRepo.markFiredToday(lastFiredKey)
         }

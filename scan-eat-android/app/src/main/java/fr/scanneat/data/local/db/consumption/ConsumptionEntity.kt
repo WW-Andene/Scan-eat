@@ -1,9 +1,13 @@
 package fr.scanneat.data.local.db.consumption
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "consumption_log")
+@Entity(
+    tableName = "consumption_log",
+    indices = [Index("profileId", "date")],
+)
 data class ConsumptionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val date: String,                // ISO date yyyy-MM-dd

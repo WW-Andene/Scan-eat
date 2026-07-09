@@ -19,7 +19,11 @@ class MealPlanViewModel @Inject constructor(private val repo: MealPlanRepository
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     fun setNote(date: LocalDate, meal: String, text: String) {
-        viewModelScope.launch { repo.setSlot(date, meal, if (text.isBlank()) null else MealPlanSlot.NoteSlot(text)) }
+        // Entries are newline-delimited in storage (see MealPlanRepository.serialize) —
+        // strip any embedded newline (e.g. from pasted clipboard text) so a note can't
+        // split across "lines" and corrupt the following entry.
+        val sanitized = text.replace("\n", " ")
+        viewModelScope.launch { repo.setSlot(date, meal, if (sanitized.isBlank()) null else MealPlanSlot.NoteSlot(sanitized)) }
     }
 
     fun clear(date: LocalDate, meal: String) {

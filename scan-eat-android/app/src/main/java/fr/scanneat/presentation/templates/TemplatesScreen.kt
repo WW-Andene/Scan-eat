@@ -57,7 +57,7 @@ fun TemplatesScreen(
                     }
                 }
             }
-            items(templates.value) { template ->
+            items(templates.value, key = { it.id }) { template ->
                 Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(14.dp))) {
                     Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -115,20 +115,7 @@ fun TemplatesScreen(
     }
 
     deleteTarget?.let { id ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            containerColor   = SurfaceVariant,
-            title   = { Text(stringResource(R.string.common_delete_confirm_title), color = OnBackground) },
-            text    = { Text(stringResource(R.string.common_delete_confirm_body), color = OnBackground.copy(0.7f)) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.delete(id); deleteTarget = null }) {
-                    Text(stringResource(R.string.common_delete), color = FlagRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
-            },
-        )
+        DeleteConfirmDialog(onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 
 }

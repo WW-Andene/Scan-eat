@@ -214,7 +214,7 @@ fun CameraPreview(
     val scanner        = remember { BarcodeScanning.getClient() }
 
     val executor = remember { Executors.newSingleThreadExecutor() }
-    DisposableEffect(Unit) { onDispose { executor.shutdown() } }
+    DisposableEffect(Unit) { onDispose { executor.shutdown(); scanner.close() } }
 
     var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
     var camera: Camera? by remember { mutableStateOf(null) }

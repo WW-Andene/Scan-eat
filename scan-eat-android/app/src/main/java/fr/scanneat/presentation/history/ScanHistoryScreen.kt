@@ -79,7 +79,7 @@ fun ScanHistoryScreen(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(scans.value) { scan ->
+                items(scans.value, key = { it.dbId }) { scan ->
                     val gradeColor = gradeColor(scan.audit.grade)
                     val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
                     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {

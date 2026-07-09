@@ -98,7 +98,7 @@ fun ActivityScreen(
                 }
             }
 
-            items(entries.value) { e ->
+            items(entries.value, key = { it.id }) { e ->
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(SurfaceVariant).padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -167,20 +167,7 @@ fun ActivityScreen(
     }
 
     deleteTarget?.let { id ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            containerColor   = SurfaceVariant,
-            title   = { Text(stringResource(R.string.common_delete_confirm_title), color = OnBackground) },
-            text    = { Text(stringResource(R.string.common_delete_confirm_body), color = OnBackground.copy(0.7f)) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.delete(id); deleteTarget = null }) {
-                    Text(stringResource(R.string.common_delete), color = FlagRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
-            },
-        )
+        DeleteConfirmDialog(onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 
 }

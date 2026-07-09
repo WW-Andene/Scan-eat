@@ -219,7 +219,11 @@ class TrackerViewModel @Inject constructor(
     fun addFastingHours(hours: Double) {
         val s = _timerState.value
         val deltaMs = (hours * 3_600_000L).toLong()
-        val newTs   = ((s.lastMealTs.takeIf { it > 0L } ?: System.currentTimeMillis()) - deltaMs).coerceAtLeast(0L)
+        // Upper-bounded at "now" too — unlike addKetoHours' single coerceAtLeast(0),
+        // repeatedly tapping the "-" stepper here could otherwise push lastMealTs into
+        // the future, making fastingHours negative and silently blanking the badge.
+        val newTs   = ((s.lastMealTs.takeIf { it > 0L } ?: System.currentTimeMillis()) - deltaMs)
+            .coerceIn(0L, System.currentTimeMillis())
         val next    = s.copy(fastingActive = true, lastMealTs = newTs)
         _timerState.value = next
         viewModelScope.launch { repo.saveTimerState(next) }

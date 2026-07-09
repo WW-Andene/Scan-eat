@@ -61,7 +61,7 @@ fun RecipesScreen(
                     }
                 }
             }
-            items(recipes.value) { recipe ->
+            items(recipes.value, key = { it.id }) { recipe ->
                 RecipeCard(recipe, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id })
             }
             item { Spacer(Modifier.height(32.dp)) }
@@ -72,20 +72,7 @@ fun RecipesScreen(
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
 
     deleteTarget?.let { id ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            containerColor   = SurfaceVariant,
-            title   = { Text(stringResource(R.string.common_delete_confirm_title), color = OnBackground) },
-            text    = { Text(stringResource(R.string.common_delete_confirm_body), color = OnBackground.copy(0.7f)) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.delete(id); deleteTarget = null }) {
-                    Text(stringResource(R.string.common_delete), color = FlagRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
-            },
-        )
+        DeleteConfirmDialog(onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 
 }

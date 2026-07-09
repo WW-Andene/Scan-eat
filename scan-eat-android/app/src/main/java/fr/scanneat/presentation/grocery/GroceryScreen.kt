@@ -17,34 +17,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.R
-import fr.scanneat.data.repository.planning.RecipeRepository
-import fr.scanneat.domain.engine.dashboard.*
-import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
-import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.presentation.ui.theme.*
-import kotlinx.coroutines.flow.*
-import javax.inject.Inject
-
-@HiltViewModel
-class GroceryViewModel @Inject constructor(repo: RecipeRepository) : ViewModel() {
-
-    val groceryItems: StateFlow<List<GroceryItem>> = repo.observeAll()
-        .map { recipes ->
-            aggregateGroceryList(recipes.map { r ->
-                GroceryRecipeInput(
-                    name       = r.name,
-                    components = r.components.map { c -> GroceryComponent(c.productName, c.grams) },
-                )
-            })
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-}
 
 @Composable
 fun GroceryScreen(
@@ -91,7 +67,7 @@ fun GroceryScreen(
                     Text(stringResource(R.string.grocery_item_count, items.value.size),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 }
-                items(items.value) { item ->
+                items(items.value, key = { it.name }) { item ->
                     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(10.dp))) {
                         Surface(shape = RoundedCornerShape(10.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically,

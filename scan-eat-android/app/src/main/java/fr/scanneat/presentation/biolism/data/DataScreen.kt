@@ -131,7 +131,10 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
 
             // Real energy balance — sourced from the Diary's actual logged intake, so this
             // reflects real consumption rather than a separate manual entry system.
-            val todaySessKcal = sessions.value.filter { isToday(it.timestamp) }.sumOf { it.kcalBurned }
+            // sessions.value only changes when a session is saved, but this scope
+            // recomposes every second (live tick) — remember so it's not re-scanned
+            // 60x/minute against the whole session history.
+            val todaySessKcal = remember(sessions.value) { sessions.value.filter { isToday(it.timestamp) }.sumOf { it.kcalBurned } }
             val totalOut = met.tdeeDay + todaySessKcal
             val netBal = todayIntake.value - totalOut
             Spacer(Modifier.height(8.dp))

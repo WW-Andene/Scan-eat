@@ -29,7 +29,11 @@ data class FastingState(
     val startMs: Long,
     val targetHours: Int,
 ) {
-    val elapsedMs: Long get() = System.currentTimeMillis() - startMs
+    // Clamped at 0: a backward clock change (manual set, NTP correction) would otherwise
+    // make this negative, which made the active-fast UI disappear entirely and let the
+    // user silently overwrite startMs by tapping "Start" again on what looked like an
+    // idle screen — the fast is still running, so it should never be hidden, just show 0.
+    val elapsedMs: Long get() = (System.currentTimeMillis() - startMs).coerceAtLeast(0L)
     val elapsedHours: Double get() = elapsedMs / 3_600_000.0
     val isActive: Boolean get() = elapsedHours in 0.0..targetHours.toDouble()
     val progressFraction: Float get() = (elapsedHours / targetHours).toFloat().coerceIn(0f, 1.2f)

@@ -31,7 +31,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MealTemplateEntity::class,
         RecipeEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -69,5 +69,16 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
                 "`profileId` TEXT NOT NULL, " +
                 "PRIMARY KEY(`id`))"
         )
+    }
+}
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v3 → v4: add indices to the two tables that grow largest over time.
+        // Without these, observeRecent/findByBarcode (run on every scan) and
+        // observeByDate/observeRange (run on every Diary/Dashboard load) do a full
+        // table scan — fine with a handful of rows, a real slowdown after months of use.
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_history_profileId_scannedAt` ON `scan_history` (`profileId`, `scannedAt`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_history_barcode_profileId` ON `scan_history` (`barcode`, `profileId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_consumption_log_profileId_date` ON `consumption_log` (`profileId`, `date`)")
     }
 }

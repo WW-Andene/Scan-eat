@@ -110,10 +110,11 @@ fun CustomFoodScreen(
                     }
                 }
 
-                items(displayList) { entry ->
+                val customNames = remember(foods.value) { foods.value.mapTo(hashSetOf()) { it.name } }
+                items(displayList, key = { it.name }) { entry ->
                     FoodEntryRow(
                         entry    = entry,
-                        isCustom = foods.value.any { it.name == entry.name },
+                        isCustom = entry.name in customNames,
                         onDelete = { deleteTarget = entry.name },
                     )
                 }

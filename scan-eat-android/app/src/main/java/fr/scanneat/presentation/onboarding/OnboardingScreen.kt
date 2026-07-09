@@ -15,33 +15,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
-import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.presentation.ui.theme.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences) : ViewModel() {
-
-    private val _done = MutableStateFlow(false)
-    val done: StateFlow<Boolean> = _done.asStateFlow()
-
-    fun setMode(mode: ApiMode) = viewModelScope.launch { prefs.setApiMode(mode) }
-    fun setApiKey(key: String) = viewModelScope.launch { prefs.setGroqApiKey(key) }
-    fun setServerUrl(url: String) = viewModelScope.launch { prefs.setServerUrl(url) }
-    fun skipApiSetup() { /* no key/server set — barcode-only OFF lookups still work */ }
-    fun finish() {
-        viewModelScope.launch { prefs.setOnboardingComplete(true) }
-        _done.value = true
-    }
-}
 
 @Composable
 fun OnboardingScreen(

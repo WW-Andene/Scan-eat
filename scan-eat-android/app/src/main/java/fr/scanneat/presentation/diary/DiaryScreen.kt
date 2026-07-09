@@ -75,6 +75,9 @@ fun DiaryScreen(
         containerColor = Background,
     ) { padding ->
         val s = summary.value
+        // Group by meal slot once per entries change, not re-filtered 4x (once per
+        // MealSlot) on every recomposition (e.g. every note keystroke).
+        val bySlot = remember(s.entries) { s.entries.groupBy { it.mealSlot } }
         LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -111,9 +114,8 @@ fun DiaryScreen(
                         }
                     }
                 } else {
-                    // Group by meal slot
                     MealSlot.values().forEach { slot ->
-                        val slotEntries = s.entries.filter { it.mealSlot == slot }
+                        val slotEntries = bySlot[slot].orEmpty()
                         if (slotEntries.isNotEmpty()) {
                             item {
                                 Text(
@@ -123,7 +125,7 @@ fun DiaryScreen(
                                     modifier = Modifier.padding(top = 4.dp),
                                 )
                             }
-                            items(slotEntries) { entry ->
+                            items(slotEntries, key = { it.id }) { entry ->
                                 DiaryEntryCard(entry = entry, onDelete = { deleteTarget = entry.id })
                             }
                         }

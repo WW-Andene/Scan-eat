@@ -70,7 +70,7 @@ fun FastingScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         val fs = state.value
-                        if (fs != null && fs.elapsedMs >= 0) {
+                        if (fs != null) {
                             // Active fast
                             val pct = fs.progressFraction.coerceIn(0f, 1f)
                             CircularProgressIndicator(
@@ -117,7 +117,7 @@ fun FastingScreen(
             // History
             if (history.value.isNotEmpty()) {
                 item { Text(stringResource(R.string.fasting_history_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold) }
-                items(history.value.take(20)) { c ->
+                items(history.value.take(20), key = { it.endMs }) { c ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                         Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) FlagGreen else AmberWarning)

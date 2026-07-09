@@ -138,7 +138,7 @@ fun DashboardScreen(
                     }
                 }
             } else {
-                items(s.recentScans) { scan -> ScanHistoryCard(scan) }
+                items(s.recentScans, key = { it.dbId }) { scan -> ScanHistoryCard(scan) }
             }
 
             item { Spacer(Modifier.height(32.dp)) }
