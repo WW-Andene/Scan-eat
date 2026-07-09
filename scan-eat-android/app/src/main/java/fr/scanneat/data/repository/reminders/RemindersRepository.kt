@@ -5,9 +5,11 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,6 +38,12 @@ class RemindersRepository @Inject constructor(
 ) {
     private val store = context.remindersDataStore
 
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
     companion object {
         val K_BREAKFAST_ON   = booleanPreferencesKey("rem_breakfast_on")
         val K_BREAKFAST_TIME = stringPreferencesKey("rem_breakfast_time")
@@ -55,7 +63,7 @@ class RemindersRepository @Inject constructor(
         val K_LAST_WEIGHT_NUDGE_DATE = stringPreferencesKey("rem_last_weight_nudge_date")
     }
 
-    val settings: Flow<ReminderSettings> = store.data.map { p ->
+    val settings: Flow<ReminderSettings> = storeData.map { p ->
         ReminderSettings(
             breakfastOn = p[K_BREAKFAST_ON] ?: false, breakfastTime = p[K_BREAKFAST_TIME] ?: "07:30",
             lunchOn     = p[K_LUNCH_ON] ?: false,      lunchTime     = p[K_LUNCH_TIME] ?: "12:30",
@@ -74,7 +82,7 @@ class RemindersRepository @Inject constructor(
     suspend fun setWeight(on: Boolean, thresholdDays: Int)    = store.edit { it[K_WEIGHT_ON] = on; it[K_WEIGHT_THRESHOLD] = thresholdDays }
 
     suspend fun wasFiredToday(key: Preferences.Key<String>): Boolean =
-        store.data.first()[key] == LocalDate.now().toString()
+        storeData.first()[key] == LocalDate.now().toString()
 
     suspend fun markFiredToday(key: Preferences.Key<String>) = store.edit { it[key] = LocalDate.now().toString() }
 

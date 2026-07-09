@@ -8,11 +8,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.domain.engine.biolism.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -40,6 +42,12 @@ class BiolismRepository @Inject constructor(
     private val userPreferences: UserPreferences,
 ) {
     private val store = context.biolismStore
+
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Keys
@@ -78,7 +86,7 @@ class BiolismRepository @Inject constructor(
         val K_ONBOARDED         = booleanPreferencesKey("bio_onboarded")
     }
 
-    val onboarded: Flow<Boolean> = store.data.map { it[K_ONBOARDED] ?: false }
+    val onboarded: Flow<Boolean> = storeData.map { it[K_ONBOARDED] ?: false }
     suspend fun setOnboarded(v: Boolean) = store.edit { it[K_ONBOARDED] = v }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -87,7 +95,7 @@ class BiolismRepository @Inject constructor(
     // Sex/age/height/weight/activity are shared with the app-wide profile so the user only
     // fills them in once — Biolism only keeps its own copy once the user explicitly edits and
     // saves them from within Biolism (K_SEX present means an explicit Biolism-side override).
-    val profile: Flow<BiolismProfile> = combine(store.data, userPreferences.profile) { p, mainProfile ->
+    val profile: Flow<BiolismProfile> = combine(storeData, userPreferences.profile) { p, mainProfile ->
         val hasOwnOverride = p[K_SEX] != null
         val ethnicityId = p[K_ETHNICITY] ?: "caucasian"
         val waistCm      = p[K_WAIST]?.toDouble() ?: 0.0
@@ -161,7 +169,7 @@ class BiolismRepository @Inject constructor(
         val ketoHours: Double get() = ketoElapsedMs / 3_600_000.0
     }
 
-    val timerState: Flow<TimerState> = store.data.map { p ->
+    val timerState: Flow<TimerState> = storeData.map { p ->
         TimerState(
             running          = p[K_SESS_RUNNING]   ?: false,
             wallStartMs      = p[K_SESS_WALL_START] ?: 0L,
@@ -197,7 +205,7 @@ class BiolismRepository @Inject constructor(
     suspend fun setKetosisOn(on: Boolean) = store.edit { p -> p[K_KETOSIS_ON] = on }
     suspend fun setKetoAdapted(on: Boolean) = store.edit { p -> p[K_KETO_ADAPTED] = on }
 
-    val manualHR: Flow<Int?> = store.data.map { p -> p[K_MANUAL_HR] }
+    val manualHR: Flow<Int?> = storeData.map { p -> p[K_MANUAL_HR] }
     suspend fun saveManualHR(bpm: Int?) = store.edit { p ->
         if (bpm != null) p[K_MANUAL_HR] = bpm else p.remove(K_MANUAL_HR)
     }
@@ -205,7 +213,7 @@ class BiolismRepository @Inject constructor(
     // ─────────────────────────────────────────────────────────────────────────
     // Session history (last 20 sessions)
     // ─────────────────────────────────────────────────────────────────────────
-    val sessions: Flow<List<BiolismSession>> = store.data.map { p ->
+    val sessions: Flow<List<BiolismSession>> = storeData.map { p ->
         val json = p[K_SESSIONS] ?: return@map emptyList()
         runCatching { Json.decodeFromString<List<SerializableSession>>(json) }
             .getOrElse { emptyList() }

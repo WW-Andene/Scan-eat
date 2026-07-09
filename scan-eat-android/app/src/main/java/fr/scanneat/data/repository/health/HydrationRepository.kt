@@ -11,8 +11,10 @@ import fr.scanneat.domain.engine.biolism.computeWaterNeedL
 import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Sex
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,11 +38,17 @@ class HydrationRepository @Inject constructor(
 ) {
     private val store = context.hydrationDataStore
 
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
     private fun key(date: LocalDate) = intPreferencesKey("hyd_${date}")
 
     /** Observe intake for a given date in mL. Emits 0 when none. */
     fun observe(date: LocalDate): Flow<Int> =
-        store.data.map { prefs -> prefs[key(date)] ?: 0 }
+        storeData.map { prefs -> prefs[key(date)] ?: 0 }
 
     /** Add (or subtract) mL for a date. Clamps to ≥ 0. */
     suspend fun add(date: LocalDate, ml: Int) {

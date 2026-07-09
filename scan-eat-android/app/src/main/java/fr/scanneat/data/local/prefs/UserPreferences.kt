@@ -8,7 +8,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,6 +21,12 @@ class UserPreferences @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     private val store = context.dataStore
+
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
 
     companion object {
         val KEY_API_KEY              = stringPreferencesKey("groq_api_key")
@@ -47,17 +55,17 @@ class UserPreferences @Inject constructor(
 
     // ---- API / app settings ----
 
-    val groqApiKey: Flow<String>  = store.data.map { it[KEY_API_KEY]    ?: "" }
+    val groqApiKey: Flow<String>  = storeData.map { it[KEY_API_KEY]    ?: "" }
     /** Empty string means "use the built-in default" (see OcrParser.DEFAULT_MODEL). */
-    val groqModel: Flow<String>   = store.data.map { it[KEY_GROQ_MODEL] ?: "" }
-    val apiMode: Flow<ApiMode>    = store.data.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }
-    val serverUrl: Flow<String>   = store.data.map { it[KEY_SERVER_URL] ?: "" }
-    val language: Flow<String>    = store.data.map { it[KEY_LANGUAGE]   ?: "fr" }
-    val theme: Flow<String>       = store.data.map { it[KEY_THEME]      ?: "oled" }
-    val onboardingComplete: Flow<Boolean> = store.data.map { it[KEY_ONBOARDING_COMPLETE] ?: false }
-    val dyslexicFont: Flow<Boolean>       = store.data.map { it[KEY_DYSLEXIC_FONT] ?: false }
+    val groqModel: Flow<String>   = storeData.map { it[KEY_GROQ_MODEL] ?: "" }
+    val apiMode: Flow<ApiMode>    = storeData.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }
+    val serverUrl: Flow<String>   = storeData.map { it[KEY_SERVER_URL] ?: "" }
+    val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE]   ?: "fr" }
+    val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "oled" }
+    val onboardingComplete: Flow<Boolean> = storeData.map { it[KEY_ONBOARDING_COMPLETE] ?: false }
+    val dyslexicFont: Flow<Boolean>       = storeData.map { it[KEY_DYSLEXIC_FONT] ?: false }
     /** "none" | "deuteranopia" | "protanopia" | "tritanopia" */
-    val colorblindMode: Flow<String>      = store.data.map { it[KEY_COLORBLIND_MODE] ?: "none" }
+    val colorblindMode: Flow<String>      = storeData.map { it[KEY_COLORBLIND_MODE] ?: "none" }
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = key }
     suspend fun setGroqModel(model: String) = store.edit { it[KEY_GROQ_MODEL] = model }
@@ -71,7 +79,7 @@ class UserPreferences @Inject constructor(
 
     // ---- Profile ----
 
-    val profile: Flow<Profile> = store.data.map { p ->
+    val profile: Flow<Profile> = storeData.map { p ->
         Profile(
             id             = p[KEY_ACTIVE_PROFILE] ?: "default",
             name           = p[KEY_PROFILE_NAME]   ?: "",

@@ -5,9 +5,11 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,11 +32,17 @@ class DayNotesRepository @Inject constructor(
 ) {
     private val store = context.notesDataStore
 
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
     private fun key(date: LocalDate) = stringPreferencesKey("note_${date}")
 
     /** Observe note for a given date. Emits "" when none set. */
     fun observe(date: LocalDate): Flow<String> =
-        store.data.map { prefs -> prefs[key(date)] ?: "" }
+        storeData.map { prefs -> prefs[key(date)] ?: "" }
 
     /** Set or clear a note. Truncates to DAY_NOTE_MAX_CHARS. */
     suspend fun set(date: LocalDate, text: String) {
@@ -47,7 +55,7 @@ class DayNotesRepository @Inject constructor(
 
     /** List all dates that have a note, sorted ascending. */
     suspend fun listDates(): List<LocalDate> {
-        val prefs = store.data.first()
+        val prefs = storeData.first()
         return prefs.asMap().keys
             .filter { it.name.startsWith("note_") }
             .mapNotNull { runCatching { LocalDate.parse(it.name.removePrefix("note_")) }.getOrNull() }

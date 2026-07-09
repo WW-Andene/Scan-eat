@@ -5,9 +5,11 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.time.LocalDate
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -55,9 +57,15 @@ class FastingRepository @Inject constructor(
 ) {
     private val store = context.fastingDataStore
 
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
     // ---- Current fast state ----
 
-    val state: Flow<FastingState?> = store.data.map { prefs ->
+    val state: Flow<FastingState?> = storeData.map { prefs ->
         val start  = prefs[KEY_START_MS] ?: return@map null
         val target = prefs[KEY_TARGET_HOURS] ?: 16
         FastingState(start, target)
@@ -106,7 +114,7 @@ class FastingRepository @Inject constructor(
 
     // ---- History ----
 
-    val history: Flow<List<FastCompletion>> = store.data.map { prefs ->
+    val history: Flow<List<FastCompletion>> = storeData.map { prefs ->
         loadHistory(prefs)
     }
 

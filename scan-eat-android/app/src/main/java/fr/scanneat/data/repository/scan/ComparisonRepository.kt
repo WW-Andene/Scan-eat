@@ -10,8 +10,10 @@ import fr.scanneat.domain.model.ScoreAudit
 import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.ScanSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -60,10 +62,17 @@ class ComparisonRepository @Inject constructor(
     private val moshi: Moshi,
 ) {
     private val store = context.comparisonDataStore
+
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
     private val snapshotAdapter = moshi.adapter(ScoreSnapshot::class.java)
 
     /** True when a comparison is armed AND within the 24 h TTL. */
-    val isArmed: Flow<Boolean> = store.data.map { prefs ->
+    val isArmed: Flow<Boolean> = storeData.map { prefs ->
         val armed   = prefs[KEY_ARMED] ?: false
         val armedAt = prefs[KEY_ARMED_AT] ?: 0L
         armed && (System.currentTimeMillis() - armedAt) < COMPARE_ARM_TTL_MS
@@ -84,7 +93,7 @@ class ComparisonRepository @Inject constructor(
      * Returns null if no valid armed snapshot. Clears the armed state.
      */
     suspend fun compare(next: ScanResult): ComparisonResult? {
-        val prefs = store.data.first()
+        val prefs = storeData.first()
 
         val armed   = prefs[KEY_ARMED] ?: false
         val armedAt = prefs[KEY_ARMED_AT] ?: 0L

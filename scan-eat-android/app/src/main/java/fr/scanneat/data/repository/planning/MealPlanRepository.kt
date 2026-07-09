@@ -5,8 +5,10 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -60,9 +62,15 @@ class MealPlanRepository @Inject constructor(
 ) {
     private val store = context.mealPlanDataStore
 
+    // DataStore.data throws IOException on read/corruption errors — fall back to
+    // an empty (default-valued) Preferences instead of crashing collectors.
+    private val storeData: Flow<Preferences> = store.data.catch { e ->
+        if (e is IOException) emit(emptyPreferences()) else throw e
+    }
+
     // ---- Observe ----
 
-    val weekPlan: Flow<Map<LocalDate, DayPlan>> = store.data.map { prefs ->
+    val weekPlan: Flow<Map<LocalDate, DayPlan>> = storeData.map { prefs ->
         deserialize(prefs[KEY_PLAN] ?: "")
     }
 
