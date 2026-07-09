@@ -87,6 +87,7 @@ class DataViewModel @Inject constructor(
     fun saveMeal(entry: MealEntry) = viewModelScope.launch { repo.saveMeal(entry) }
     fun clearMeal(slotId: String)  = viewModelScope.launch { repo.clearMeal(slotId) }
     fun saveManualHR(bpm: Int?)    = viewModelScope.launch { repo.saveManualHR(bpm) }
+    fun deleteSession(id: Long)    = viewModelScope.launch { repo.deleteSession(id) }
 }
 
 data class SessionCumulative(

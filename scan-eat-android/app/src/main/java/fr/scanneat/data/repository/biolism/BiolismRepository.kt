@@ -268,6 +268,13 @@ class BiolismRepository @Inject constructor(
         p[K_SESSIONS] = Json.encodeToString(updated)
     }
 
+    suspend fun deleteSession(id: Long) = store.edit { p ->
+        val current = runCatching {
+            Json.decodeFromString<List<SerializableSession>>(p[K_SESSIONS] ?: "[]")
+        }.getOrElse { emptyList() }
+        p[K_SESSIONS] = Json.encodeToString(current.filter { it.id != id })
+    }
+
     @Serializable
     private data class SerializableSession(
         val id: Long, val timestamp: String, val elapsedSec: Double,

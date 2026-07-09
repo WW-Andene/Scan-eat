@@ -429,39 +429,126 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             InfoRow("⚡ Potassium", "≥ ${if (profile.value.sex == BiolismSex.MALE) "3400" else "2600"} mg", "NASEM DRI 2019 · contre l'excrétion sodique", Violet)
         }}
 
+        // ── All-Time Summary ──────────────────────────────────────────────────
+        if (sessions.value.isNotEmpty()) {
+            item {
+                val allSessions = sessions.value
+                val totalKcal = allSessions.sumOf { it.kcalBurned }
+                val totalSec  = allSessions.sumOf { it.elapsedSec }
+                val avgKcal   = totalKcal / allSessions.size
+                val avgSec    = totalSec / allSessions.size
+                val spark     = allSessions.takeLast(7)
+                val sparkMax  = (spark.maxOfOrNull { it.kcalBurned } ?: 0.001).coerceAtLeast(0.001)
+                BioCard("Résumé global", badge = { TealBadge("${allSessions.size} SESSION${if (allSessions.size > 1) "S" else ""}") }) {
+                    MetCellGrid(listOf(
+                        Triple("Total brûlé", if (totalKcal >= 1000) "%.2fk".format(totalKcal / 1000) else "%.1f".format(totalKcal), "kcal"),
+                        Triple("Temps total", formatDuration((totalSec * 1000).toLong()), ""),
+                        Triple("Moyenne/session", "%.2f".format(avgKcal), "kcal"),
+                        Triple("Durée moyenne", formatDuration((avgSec * 1000).toLong()), ""),
+                    ))
+                    if (spark.size > 1) {
+                        Spacer(Modifier.height(8.dp))
+                        Label("${spark.size} dernières sessions — kcal brûlées", OnBackground.copy(0.4f))
+                        Row(Modifier.fillMaxWidth().height(52.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.Bottom) {
+                            spark.forEachIndexed { i, sess ->
+                                val isLast = i == spark.size - 1
+                                val h = (sess.kcalBurned / sparkMax * 48.0).coerceAtLeast(6.0).toInt()
+                                val alpha = 0.35f + 0.65f * (i / (spark.size - 1).coerceAtLeast(1).toFloat())
+                                Box(Modifier.weight(1f).height(h.dp).background(if (isLast) Gold else Gold.copy(alpha = alpha), RoundedCornerShape(2.dp)))
+                            }
+                        }
+                    }
+                }
+            }
+            item {
+                BioCard("Objectifs quotidiens") {
+                    InfoRow("BMR (au repos)", "%.1f kcal/j".format(met.bmrDay), "besoin métabolique de base", TextSecondary)
+                    InfoRow("TDEE (actif)", "%.1f kcal/j".format(met.tdeeDay), profile.value.activityMeta.label, Gold)
+                    InfoRow("Sessions aujourd'hui", "${sessions.value.count { isToday(it.timestamp) }}", "enregistrées aujourd'hui", Teal)
+                }
+            }
+        }
+
         // ── Caloric Balance ───────────────────────────────────────────────────
         item { CaloricBalanceCard(meals = meals.value, met = met, sessions = sessions.value, viewModel = viewModel) }
+
+        // ── Session Analytics ─────────────────────────────────────────────────
+        if (sessions.value.isNotEmpty()) {
+            item { SessionAnalyticsCard(sessions = sessions.value, currentWeightKg = profile.value.weightKg) }
+        }
 
         // ── Session History ────────────────────────────────────────────────────
         if (sessions.value.isNotEmpty()) {
             item {
-                BioCard("Historique des sessions", defaultOpen = false, badge = { TealBadge("${sessions.value.size}") }) {
-                    sessions.value.forEach { sess ->
+                val allSessions = sessions.value
+                val prKcal = allSessions.maxOf { it.kcalBurned }
+                val prDur  = allSessions.maxOf { it.elapsedSec }
+                val prRate = allSessions.maxOf { it.kcalPerMin }
+                var expandedId by remember { mutableStateOf<Long?>(null) }
+                var confirmDeleteId by remember { mutableStateOf<Long?>(null) }
+                BioCard("Historique des sessions", defaultOpen = false, badge = { TealBadge("${allSessions.size}") }) {
+                    allSessions.forEach { sess ->
                         val date = sess.timestamp.take(10)
                         val hh   = (sess.elapsedSec / 3600).toInt()
                         val mm   = ((sess.elapsedSec % 3600) / 60).toInt()
                         val dur  = if (hh > 0) "${hh}h ${mm.toString().padStart(2,'0')}m" else "${mm}m ${(sess.elapsedSec % 60).toInt()}s"
-                        Row(
-                            Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(Modifier.weight(1f)) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text(date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                                    if (sess.ketosis) {
-                                        Surface(shape = RoundedCornerShape(3.dp), color = TealHaze, border = androidx.compose.foundation.BorderStroke(1.dp, TealBorder)) {
-                                            Text("KÉTO", modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                                                style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
+                        val isExpanded = expandedId == sess.id
+                        val isConfirm  = confirmDeleteId == sess.id
+                        val isPRKcal = sess.kcalBurned >= prKcal && allSessions.size > 1
+                        val isPRDur  = sess.elapsedSec >= prDur && allSessions.size > 1
+                        val isPRRate = sess.kcalPerMin >= prRate && allSessions.size > 1
+
+                        Column(Modifier.fillMaxWidth().clickable { expandedId = if (isExpanded) null else sess.id }.padding(vertical = 6.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f)) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                                        if (sess.ketosis) {
+                                            Surface(shape = RoundedCornerShape(3.dp), color = TealHaze, border = androidx.compose.foundation.BorderStroke(1.dp, TealBorder)) {
+                                                Text("KÉTO", modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                                                    style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                        if (isPRKcal) Badge("🏅 kcal", Gold)
+                                        if (isPRDur) Badge("🏅 durée", Violet)
+                                        if (isPRRate) Badge("🏅 taux", Teal)
+                                    }
+                                    Text("${sess.activityLabel} · $dur · ${sess.kcalBurned.toInt()} kcal",
+                                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+                                    Spacer(Modifier.height(3.dp))
+                                    Row(Modifier.fillMaxWidth(0.6f).height(3.dp).background(OnBackground.copy(0.06f), RoundedCornerShape(2.dp))) {
+                                        Box(Modifier.fillMaxWidth(sess.fatFrac.toFloat().coerceIn(0f, 1f)).fillMaxHeight().background(Warm, RoundedCornerShape(2.dp)))
+                                    }
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text("%.4f kg".format(sess.fatLostKg), style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.SemiBold)
+                                    Text("graisse perdue", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+                                }
+                            }
+                            AnimatedVisibility(isExpanded) {
+                                Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    InfoRow("Taux moyen", "%.3f kcal/min".format(sess.kcalPerMin), "", TextSecondary)
+                                    InfoRow("BMR / TDEE", "%.0f / %.0f kcal/j".format(sess.bmrDay, sess.tdeeDay), "", TextSecondary)
+                                    InfoRow("Poids début → fin", "%.1f → %.1f kg".format(sess.startWeightKg, sess.endWeightKg), "", TextSecondary)
+                                    InfoRow("Fraction graisse", "%.0f%%".format(sess.fatFrac * 100), "", Warm)
+                                    if (!isConfirm) {
+                                        TextButton(onClick = { confirmDeleteId = sess.id }) {
+                                            Text("Supprimer", color = Danger, style = MaterialTheme.typography.labelSmall)
+                                        }
+                                    } else {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Text("Confirmer la suppression ?", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                                            TextButton(onClick = {
+                                                viewModel.deleteSession(sess.id)
+                                                confirmDeleteId = null
+                                                if (expandedId == sess.id) expandedId = null
+                                            }) { Text("Oui", color = Danger, fontWeight = FontWeight.Bold) }
+                                            TextButton(onClick = { confirmDeleteId = null }) {
+                                                Text("Annuler", color = OnBackground.copy(0.5f))
+                                            }
                                         }
                                     }
                                 }
-                                Text("${sess.activityLabel} · $dur · ${sess.kcalBurned.toInt()} kcal",
-                                    style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("%.4f kg".format(sess.fatLostKg), style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.SemiBold)
-                                Text("graisse perdue", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
                             }
                         }
                         HorizontalDivider(color = OnBackground.copy(0.06f))
@@ -581,6 +668,73 @@ private fun CaloricBalanceCard(
                     Text(if (netBal == null) "SAISIR REPAS" else if (netBal > 200) "EXCÉDENT" else if (netBal < -50) "DÉFICIT" else "ÉQUILIBRÉ",
                         style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.Bold)
                 }
+            }
+        }
+    }
+}
+
+// ── Session Analytics sub-card ────────────────────────────────────────────────
+@Composable
+private fun SessionAnalyticsCard(sessions: List<fr.scanneat.domain.engine.biolism.BiolismSession>, currentWeightKg: Double) {
+    val withRate = sessions.filter { it.elapsedSec > 0 }
+    val avgBurnRate = if (withRate.isNotEmpty())
+        withRate.sumOf { it.kcalBurned / (it.elapsedSec / 60.0) } / withRate.size
+    else 0.0
+    val totalFatLostKg = sessions.sumOf { it.fatLostKg }
+
+    val effScores = sessions.takeLast(8).map { it.kcalBurned / (it.elapsedSec / 60.0).coerceAtLeast(0.0001) }
+    val effMax = (effScores.maxOrNull() ?: 0.0).coerceAtLeast(0.001)
+
+    var rolling = 0.0
+    val compHistory = sessions.map { sess -> rolling += sess.fatLostKg; rolling }
+    val latestFatLost = compHistory.lastOrNull() ?: 0.0
+    val latestWeight = currentWeightKg - latestFatLost
+    val prevFatLost = if (compHistory.size >= 2) compHistory[compHistory.size - 2] else null
+    val sessionDelta = if (prevFatLost != null) latestFatLost - prevFatLost else latestFatLost
+    val deltaColor = if (sessionDelta > 0.0005) Teal else if (sessionDelta < -0.0005) Severe else TextSecondary
+    val trendLabel = if (sessionDelta > 0.0005) "↓ perte" else if (sessionDelta < -0.0005) "↑ gain" else "→ stable"
+    val weightDelta = latestWeight - currentWeightKg
+
+    BioCard("Analyse des sessions", defaultOpen = false, badge = { TealBadge("${sessions.size} SESSIONS") }) {
+        MetCellGrid(
+            listOf(
+                Triple("Taux moyen", "%.3f kcal/min".format(avgBurnRate), ""),
+                Triple("Graisse cumulée perdue", if (totalFatLostKg >= 0.01) "%.3f kg".format(totalFatLostKg) else "%.2f g".format(totalFatLostKg * 1000), ""),
+                Triple("Δ poids (dernière session)", "%s%.1f g".format(if (weightDelta > 0) "+" else "", weightDelta * 1000), trendLabel),
+                Triple("Meilleure efficacité", "%.3f kcal/min".format(effMax), ""),
+            ),
+            accents = listOf(TextSecondary, Teal, deltaColor, Gold),
+        )
+
+        if (effScores.size > 1) {
+            Spacer(Modifier.height(10.dp))
+            Label("Efficacité de session — ${effScores.size} dernières", OnBackground.copy(0.4f))
+            Row(Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.Bottom) {
+                effScores.forEachIndexed { i, score ->
+                    val isLast = i == effScores.size - 1
+                    val h = (score / effMax * 44.0).coerceAtLeast(4.0).toInt()
+                    val alpha = 0.35f + 0.65f * (i / (effScores.size - 1).coerceAtLeast(1).toFloat())
+                    Box(Modifier.weight(1f).height(h.dp).background(if (isLast) Violet else Violet.copy(alpha = alpha), RoundedCornerShape(2.dp)))
+                }
+            }
+        }
+
+        if (compHistory.size > 1) {
+            Spacer(Modifier.height(10.dp))
+            TintedPanel(Violet) {
+                Label("Tendance composition corporelle", Violet)
+                val last8 = compHistory.takeLast(8)
+                val maxFat = (last8.maxOrNull() ?: 0.001).coerceAtLeast(0.001)
+                Row(Modifier.fillMaxWidth().height(36.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.Bottom) {
+                    last8.forEachIndexed { i, fatLost ->
+                        val isLast = i == last8.size - 1
+                        val h = (fatLost / maxFat * 32.0).coerceAtLeast(3.0).toInt()
+                        Box(Modifier.weight(1f).height(h.dp).background(if (isLast) Teal else Teal.copy(alpha = 0.4f), RoundedCornerShape(2.dp)))
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                InfoRow("Graisse oxydée (cumul)", "%.1f g".format(totalFatLostKg * 1000), "", Teal)
+                InfoRow("Poids estimé actuel", "%.3f kg".format(latestWeight), "", deltaColor)
             }
         }
     }
