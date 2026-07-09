@@ -11,11 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
@@ -25,7 +27,6 @@ import java.time.format.DateTimeFormatter
 
 private val DAY_FMT = DateTimeFormatter.ofPattern("EEE d")
 private val MEALS   = listOf("breakfast", "lunch", "dinner", "snack")
-private val MEAL_LABELS = mapOf("breakfast" to "Petit-dej", "lunch" to "Déjeuner", "dinner" to "Dîner", "snack" to "Collation")
 
 @Composable
 fun MealPlanScreen(
@@ -37,8 +38,8 @@ fun MealPlanScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Plan de repas", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
+                title = { Text(stringResource(R.string.mealplan_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -55,7 +56,7 @@ fun MealPlanScreen(
                 Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            date.format(DAY_FMT) + if (isToday) " · Aujourd'hui" else "",
+                            if (isToday) stringResource(R.string.mealplan_day_today, date.format(DAY_FMT)) else date.format(DAY_FMT),
                             style = MaterialTheme.typography.titleSmall,
                             color = if (isToday) AccentGreen else OnSurface,
                             fontWeight = FontWeight.SemiBold,
@@ -63,7 +64,7 @@ fun MealPlanScreen(
                         MEALS.forEach { meal ->
                             val slot = dayPlan[meal]
                             MealPlanRow(
-                                meal  = MEAL_LABELS[meal] ?: meal,
+                                meal  = mealLabel(meal),
                                 slot  = slot,
                                 onEdit = { text -> viewModel.setNote(date, meal, text) },
                                 onClear = { viewModel.clear(date, meal) },
@@ -76,6 +77,15 @@ fun MealPlanScreen(
         }
     }
 
+}
+
+@Composable
+private fun mealLabel(key: String): String = when (key) {
+    "breakfast" -> stringResource(R.string.meal_breakfast)
+    "lunch"     -> stringResource(R.string.meal_lunch)
+    "dinner"    -> stringResource(R.string.meal_dinner)
+    "snack"     -> stringResource(R.string.meal_snack)
+    else        -> key
 }
 
 @Composable
@@ -92,22 +102,22 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
             )
             IconButton(onClick = { onEdit(text); editing = false }, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Check, "OK", tint = AccentGreen, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Check, stringResource(R.string.common_ok), tint = AccentGreen, modifier = Modifier.size(18.dp))
             }
         } else {
             val label = when (slot) {
                 is MealPlanSlot.NoteSlot     -> slot.text
-                is MealPlanSlot.RecipeSlot   -> "📖 ${slot.name}"
-                is MealPlanSlot.TemplateSlot -> "📋 ${slot.name}"
-                null -> "—"
+                is MealPlanSlot.RecipeSlot   -> stringResource(R.string.mealplan_recipe_prefix, slot.name)
+                is MealPlanSlot.TemplateSlot -> stringResource(R.string.mealplan_template_prefix, slot.name)
+                null -> stringResource(R.string.common_dash)
             }
             Text(label, style = MaterialTheme.typography.bodySmall, color = if (slot != null) OnSurface else OnSurface.copy(0.3f), modifier = Modifier.weight(1f))
             IconButton(onClick = { editing = true }, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Edit, "Modifier", tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             if (slot != null) {
                 IconButton(onClick = onClear, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Default.Close, "Effacer", tint = OnSurface.copy(0.3f), modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.Close, stringResource(R.string.common_clear), tint = OnSurface.copy(0.3f), modifier = Modifier.size(14.dp))
                 }
             }
         }

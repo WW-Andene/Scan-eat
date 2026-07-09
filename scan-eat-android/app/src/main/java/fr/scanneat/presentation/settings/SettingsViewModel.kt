@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.settings
 
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +24,10 @@ class SettingsViewModel @Inject constructor(private val prefs: UserPreferences) 
     fun saveGroqModel(model: String) = viewModelScope.launch { prefs.setGroqModel(model.trim()) }
     fun setMode(m: ApiMode)        = viewModelScope.launch { prefs.setApiMode(m) }
     fun saveServerUrl(url: String) = viewModelScope.launch { prefs.setServerUrl(url.trim()) }
-    fun setLanguage(lang: String)  = viewModelScope.launch { prefs.setLanguage(lang) }
+    fun setLanguage(lang: String) {
+        // Drives both the OCR prompt language (persisted) and the actual app UI locale.
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
+        viewModelScope.launch { prefs.setLanguage(lang) }
+    }
     fun setTheme(t: String)        = viewModelScope.launch { prefs.setTheme(t) }
 }

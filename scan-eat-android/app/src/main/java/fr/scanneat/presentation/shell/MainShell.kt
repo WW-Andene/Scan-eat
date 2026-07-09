@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -44,10 +45,10 @@ fun MainShell(startOnboarding: Boolean = false) {
                                     restoreState    = true
                                 }
                             },
-                            icon  = { Icon(tab.icon, tab.label,
+                            icon  = { Icon(tab.icon, stringResource(tab.labelRes),
                                 tint = if (isSelected) AccentGreen else IconInactive,
                                 modifier = Modifier.size(22.dp)) },
-                            label = { Text(tab.label, style = MaterialTheme.typography.labelSmall,
+                            label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
                                 color = if (isSelected) AccentGreen else IconInactive) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor   = AccentGreen,

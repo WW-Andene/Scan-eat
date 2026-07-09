@@ -8,4 +8,38 @@
     <string name="result_log_it">Log it</string>
     <string name="diary_title">Today\'s Diary</string>
     <string name="dashboard_title">Dashboard</string>
+
+    <!-- ── Common actions, shared across screens ─────────────────────────── -->
+    <string name="common_back">Back</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_add">Add</string>
+    <string name="common_remove">Remove</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_close">Close</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_clear">Clear</string>
+    <string name="common_ok">OK</string>
+    <string name="common_copy">Copy</string>
+    <string name="common_create">Create</string>
+    <string name="common_dash">—</string>
+
+    <!-- ── Meal slots, shared across Diary / Result / MealPlan ───────────── -->
+    <string name="meal_breakfast">Breakfast</string>
+    <string name="meal_lunch">Lunch</string>
+    <string name="meal_dinner">Dinner</string>
+    <string name="meal_snack">Snack</string>
+
+    <!-- ── Bottom navigation tabs ─────────────────────────────────────────── -->
+    <string name="tab_scan">Scanner</string>
+    <string name="tab_diary">Diary</string>
+    <string name="tab_dashboard">Dashboard</string>
+    <string name="tab_biolism">Biolism</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- ── Meal Plan screen ───────────────────────────────────────────────── -->
+    <string name="mealplan_title">Meal Plan</string>
+    <string name="mealplan_day_today">%1$s · Today</string>
+    <string name="mealplan_recipe_prefix">📖 %1$s</string>
+    <string name="mealplan_template_prefix">📋 %1$s</string>
 </resources>
