@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base theme delegates to Compose; window background = OLED black -->
-    <style name="Theme.ScanEat" parent="android:Theme.Material.NoActionBar">
+    <!-- Base theme delegates to Compose; window background = OLED black.
+         Must descend from Theme.AppCompat (not a plain platform theme) —
+         MainActivity is an AppCompatActivity, required for per-app language
+         switching (AppCompatDelegate) to actually apply on API 26-32. -->
+    <style name="Theme.ScanEat" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:statusBarColor">@android:color/black</item>
         <item name="android:navigationBarColor">@android:color/black</item>
