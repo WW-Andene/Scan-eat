@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import fr.scanneat.R
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.presentation.ui.theme.*
 import java.util.concurrent.Executors
@@ -73,9 +75,9 @@ fun ScanScreen(
     Column(modifier = Modifier.fillMaxSize().background(Background)) {
         // ── Header ────────────────────────────────────────────────────────────
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
-            Text("Scan'eat", style = MaterialTheme.typography.headlineMedium, color = OnBackground, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = OnBackground, fontWeight = FontWeight.Bold)
             Text(
-                barcode.value?.let { "Code : $it" } ?: "Photographiez une étiquette → score 0–100",
+                barcode.value?.let { stringResource(R.string.scan_barcode_prefix, it) } ?: stringResource(R.string.scan_hint),
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
             )
         }
@@ -109,15 +111,15 @@ fun ScanScreen(
                 ) {
                     Icon(Icons.Default.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
                     Spacer(Modifier.height(16.dp))
-                    Text("Accès à la caméra requis", style = MaterialTheme.typography.titleMedium,
+                    Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
                         color = OnBackground, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(8.dp))
-                    Text("Scan'eat utilise la caméra pour lire les codes-barres et photographier les étiquettes.",
+                    Text(stringResource(R.string.camera_permission_rationale),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
                     Spacer(Modifier.height(24.dp))
                     Button(onClick = { permLauncher.launch(Manifest.permission.CAMERA) },
                         colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {
-                        Text("Autoriser", color = Color.Black)
+                        Text(stringResource(R.string.common_allow), color = Color.Black)
                     }
                 }
             }
@@ -136,7 +138,7 @@ fun ScanScreen(
                 when (state.value) {
                     is ScanUiState.Scanning -> CircularProgressIndicator(
                         color = Color.Black, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                    else -> Icon(Icons.Default.Search, "Scanner", tint = Color.Black)
+                    else -> Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
                 }
             }
         }
@@ -144,7 +146,7 @@ fun ScanScreen(
         // ── Photo queue ────────────────────────────────────────────────────────
         if (images.value.isNotEmpty()) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
-                Text("${images.value.size} photo(s)", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                Text(stringResource(R.string.scan_photo_count, images.value.size), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
                 Spacer(Modifier.height(6.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     itemsIndexed(images.value) { index, payload ->
@@ -152,7 +154,7 @@ fun ScanScreen(
                             .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
                             val bmp = remember(payload) { payload.thumbnail }
                             if (bmp != null) {
-                                Image(bitmap = bmp.asImageBitmap(), contentDescription = "Photo ${index + 1}",
+                                Image(bitmap = bmp.asImageBitmap(), contentDescription = stringResource(R.string.scan_photo_index, index + 1),
                                     modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                             } else {
                                 Box(Modifier.fillMaxSize().background(SurfaceVariant), contentAlignment = Alignment.Center) {
@@ -161,7 +163,7 @@ fun ScanScreen(
                             }
                             IconButton(onClick = { viewModel.removePhoto(index) },
                                 modifier = Modifier.align(Alignment.TopEnd).size(22.dp).background(Background.copy(0.6f), CircleShape)) {
-                                Icon(Icons.Default.Close, "Retirer", tint = OnSurface, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(14.dp))
                             }
                         }
                     }
@@ -178,10 +180,10 @@ fun ScanScreen(
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.CameraAlt, null, tint = AccentGreen)
                         Spacer(Modifier.width(8.dp))
-                        Text("Produit non trouvé dans la base — photographiez l'étiquette pour continuer",
+                        Text(stringResource(R.string.scan_needs_photo),
                             Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
                         IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Close, "Fermer", tint = OnSurface)
+                            Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface)
                         }
                     }
                 }
@@ -193,7 +195,7 @@ fun ScanScreen(
                         Spacer(Modifier.width(8.dp))
                         Text(error.message, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
                         IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Close, "Fermer", tint = MaterialTheme.colorScheme.onErrorContainer)
+                            Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = MaterialTheme.colorScheme.onErrorContainer)
                         }
                     }
                 }
@@ -279,7 +281,7 @@ fun CameraPreview(
             ) {
                 Icon(
                     if (torchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                    "Activer/désactiver le flash",
+                    stringResource(R.string.scan_flash_toggle),
                     tint = if (torchOn) Color.Black else OnSurface,
                 )
             }
@@ -296,7 +298,7 @@ fun CameraPreview(
             modifier       = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             containerColor = SurfaceVariant,
         ) {
-            Icon(Icons.Default.CameraAlt, "Capturer", tint = OnSurface)
+            Icon(Icons.Default.CameraAlt, stringResource(R.string.scan_capture), tint = OnSurface)
         }
     }
 }

@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Scan\'eat</string>
-    <string name="scan_hint">Photograph a label to get a score 0–100</string>
-    <string name="camera_permission_rationale">Camera access is needed to scan barcodes and photograph food labels.</string>
+    <string name="scan_hint">Photograph a label → score 0–100</string>
+    <string name="scan_barcode_prefix">Code: %1$s</string>
+    <string name="camera_permission_rationale">Scan\'eat uses the camera to read barcodes and photograph food labels.</string>
+    <string name="scan_camera_permission_title">Camera access required</string>
+    <string name="common_allow">Allow</string>
+    <string name="scan_cd_scan">Scan</string>
+    <string name="scan_photo_count">%1$d photo(s)</string>
+    <string name="scan_photo_index">Photo %1$d</string>
+    <string name="scan_needs_photo">Product not found in the database — photograph the label to continue</string>
+    <string name="scan_flash_toggle">Toggle flash</string>
+    <string name="scan_capture">Capture</string>
     <string name="settings_groq_key">Groq API Key</string>
     <string name="settings_server_url">Server URL</string>
     <string name="result_log_it">Log it</string>

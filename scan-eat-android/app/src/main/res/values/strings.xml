@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Scan\'eat</string>
-    <string name="scan_hint">Photographiez une étiquette pour obtenir un score 0–100</string>
-    <string name="camera_permission_rationale">L\'accès à la caméra est nécessaire pour scanner les codes-barres et photographier les étiquettes.</string>
+    <string name="scan_hint">Photographiez une étiquette → score 0–100</string>
+    <string name="scan_barcode_prefix">Code : %1$s</string>
+    <string name="camera_permission_rationale">Scan\'eat utilise la caméra pour lire les codes-barres et photographier les étiquettes.</string>
+    <string name="scan_camera_permission_title">Accès à la caméra requis</string>
+    <string name="common_allow">Autoriser</string>
+    <string name="scan_cd_scan">Scanner</string>
+    <string name="scan_photo_count">%1$d photo(s)</string>
+    <string name="scan_photo_index">Photo %1$d</string>
+    <string name="scan_needs_photo">Produit non trouvé dans la base — photographiez l\'étiquette pour continuer</string>
+    <string name="scan_flash_toggle">Activer/désactiver le flash</string>
+    <string name="scan_capture">Capturer</string>
     <string name="settings_groq_key">Clé Groq API</string>
     <string name="settings_server_url">URL du serveur</string>
     <string name="result_log_it">Journaliser</string>
