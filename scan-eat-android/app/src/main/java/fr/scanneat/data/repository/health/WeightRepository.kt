@@ -34,23 +34,33 @@ data class WeightSummary(
 )
 
 @Singleton
-class WeightRepository @Inject constructor(private val dao: WeightDao) {
+class WeightRepository @Inject constructor(
+    private val dao: WeightDao,
+    private val healthConnect: HealthConnectRepository,
+) {
 
     fun observeAll(profileId: String = "default"): Flow<List<WeightEntry>> =
         dao.observeAll(profileId).map { list -> list.map { it.toDomain() } }
 
-    /** Upsert — one entry per day, newest write wins (mirrors weight-log.js). */
+    /**
+     * Upsert — one entry per day, newest write wins (mirrors weight-log.js).
+     * Also mirrors to Health Connect when the user has granted sync permission
+     * (writeWeight() no-ops silently otherwise — sync is opt-in, never a hard
+     * dependency for the local log to succeed).
+     */
     suspend fun log(date: LocalDate, weightKg: Double, notes: String = "", profileId: String = "default") {
         require(weightKg > 0 && weightKg <= 400) { "Invalid weight: $weightKg" }
         val existing = dao.findByDate(date.toString(), profileId)
+        val rounded = (weightKg * 10.0).roundToInt() / 10.0
         dao.upsert(WeightEntity(
             id        = existing?.id ?: UUID.randomUUID().toString(),
             date      = date.toString(),
-            weightKg  = (weightKg * 10.0).roundToInt() / 10.0,
+            weightKg  = rounded,
             notes     = notes,
             loggedAt  = System.currentTimeMillis(),
             profileId = profileId,
         ))
+        healthConnect.writeWeight(date, rounded)
     }
 
     suspend fun delete(id: String) = dao.delete(id)

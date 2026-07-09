@@ -25,6 +25,7 @@ androidx-test-junit  = "1.2.1"
 espresso             = "3.6.1"
 mockk                = "1.13.12"
 kotlinx-serialization = "1.7.3"
+health-connect        = "1.1.0-alpha07"
 
 [libraries]
 # Kotlin + Coroutines
@@ -89,6 +90,9 @@ camerax-view    = { group = "androidx.camera", name = "camera-view",    version.
 
 # ML Kit
 mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit-barcode" }
+
+# Health Connect
+health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "health-connect" }
 
 # Testing
 junit               = { group = "junit",                      name = "junit",              version.ref = "junit" }

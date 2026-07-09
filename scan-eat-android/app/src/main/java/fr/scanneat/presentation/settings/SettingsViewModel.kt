@@ -10,6 +10,8 @@ import fr.scanneat.data.backup.BackupRepository
 import fr.scanneat.data.backup.BackupSummary
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.HealthConnectAvailability
+import fr.scanneat.data.repository.health.HealthConnectRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,6 +32,7 @@ enum class BackupErrorKey { UNSUPPORTED_VERSION, MALFORMED, IO }
 class SettingsViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val backupRepository: BackupRepository,
+    private val healthConnect: HealthConnectRepository,
 ) : ViewModel() {
     val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val groqModel = prefs.groqModel.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -99,4 +102,21 @@ class SettingsViewModel @Inject constructor(
 
     fun reportExportWriteFailed() { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) }
     fun clearBackupState() { _backupState.value = BackupUiState.Idle }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Health Connect
+    // ─────────────────────────────────────────────────────────────────────────
+    val healthConnectPermissions: Set<String> get() = HealthConnectRepository.PERMISSIONS
+
+    private val _healthConnectAvailability = MutableStateFlow(HealthConnectAvailability.UNSUPPORTED)
+    val healthConnectAvailability: StateFlow<HealthConnectAvailability> = _healthConnectAvailability.asStateFlow()
+
+    private val _healthConnectConnected = MutableStateFlow(false)
+    val healthConnectConnected: StateFlow<Boolean> = _healthConnectConnected.asStateFlow()
+
+    /** Call on screen entry and after returning from the permission dialog — Health Connect state isn't observable as a Flow. */
+    fun refreshHealthConnectStatus() {
+        _healthConnectAvailability.value = healthConnect.availability()
+        viewModelScope.launch { _healthConnectConnected.value = healthConnect.hasPermissions() }
+    }
 }

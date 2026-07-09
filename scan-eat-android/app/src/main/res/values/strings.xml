@@ -692,6 +692,12 @@
     <string name="settings_backup_error_unsupported_version">Ce fichier provient d\'une version plus récente de l\'app et ne peut pas être importé.</string>
     <string name="settings_backup_error_malformed">Fichier de sauvegarde invalide ou corrompu.</string>
     <string name="settings_backup_error_io">Erreur lors de la lecture ou l\'écriture du fichier.</string>
+    <string name="settings_section_health_connect">Health Connect</string>
+    <string name="settings_healthconnect_hint">Synchronisez votre poids avec Health Connect pour le partager avec d\'autres apps santé.</string>
+    <string name="settings_healthconnect_connect_button">Connecter</string>
+    <string name="settings_healthconnect_connected">Connecté</string>
+    <string name="settings_healthconnect_not_installed">App Health Connect non installée sur cet appareil.</string>
+    <string name="settings_healthconnect_unsupported">Health Connect n\'est pas disponible sur cet appareil.</string>
 
     <!-- ── Dashboard screen ───────────────────────────────────────────────── -->
     <plurals name="dashboard_streak">

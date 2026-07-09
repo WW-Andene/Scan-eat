@@ -2,6 +2,7 @@ package fr.scanneat.presentation.settings
 
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.health.connect.client.PermissionController
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
+import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.scan.DEFAULT_MODEL
 import fr.scanneat.data.repository.scan.FALLBACK_MODEL
 import fr.scanneat.domain.model.Grade
@@ -49,6 +51,8 @@ fun SettingsScreen(
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val savedField = viewModel.savedField.collectAsStateWithLifecycle()
     val backupState = viewModel.backupState.collectAsStateWithLifecycle()
+    val healthConnectAvailability = viewModel.healthConnectAvailability.collectAsStateWithLifecycle()
+    val healthConnectConnected = viewModel.healthConnectConnected.collectAsStateWithLifecycle()
 
     var keyVisible  by remember { mutableStateOf(false) }
     var localKey    by remember(apiKey.value)    { mutableStateOf(apiKey.value) }
@@ -91,6 +95,11 @@ fun SettingsScreen(
             exportLauncher.launch("scaneat-backup-${LocalDate.now()}.json")
         }
     }
+
+    val healthConnectLauncher = rememberLauncherForActivityResult(PermissionController.createRequestPermissionResultContract()) {
+        viewModel.refreshHealthConnectStatus()
+    }
+    LaunchedEffect(Unit) { viewModel.refreshHealthConnectStatus() }
 
     Scaffold(
         topBar = {
@@ -335,6 +344,32 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall, color = FlagRed,
                     )
                     else -> {}
+                }
+            }
+
+            // Health Connect — platform weight sync
+            SettingsSection(stringResource(R.string.settings_section_health_connect)) {
+                Text(stringResource(R.string.settings_healthconnect_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                when (healthConnectAvailability.value) {
+                    HealthConnectAvailability.AVAILABLE -> {
+                        if (healthConnectConnected.value) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.Check, null, tint = AccentGreen, modifier = Modifier.size(18.dp))
+                                Text(stringResource(R.string.settings_healthconnect_connected), style = MaterialTheme.typography.bodySmall, color = AccentGreen)
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = { healthConnectLauncher.launch(viewModel.healthConnectPermissions) },
+                                shape = RoundedCornerShape(12.dp),
+                            ) {
+                                Icon(Icons.Default.MonitorHeart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text(stringResource(R.string.settings_healthconnect_connect_button), color = OnBackground)
+                            }
+                        }
+                    }
+                    HealthConnectAvailability.NOT_INSTALLED -> Text(stringResource(R.string.settings_healthconnect_not_installed), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+                    HealthConnectAvailability.UNSUPPORTED   -> Text(stringResource(R.string.settings_healthconnect_unsupported), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                 }
             }
 
