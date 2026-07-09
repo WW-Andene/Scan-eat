@@ -592,6 +592,11 @@
 
     <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
     <string name="onboarding_welcome_body">Scan a barcode or photograph a label to get a 0–100 nutrition score based on the product\'s actual composition.</string>
+    <string name="onboarding_value_title">Why Scan\'eat</string>
+    <string name="onboarding_value_transparency_title">The score isn\'t a black box</string>
+    <string name="onboarding_value_transparency_body">Every score comes with a formula you can inspect — sources and method included, not just a number.</string>
+    <string name="onboarding_value_biolism_title">Biolism: your metabolism, live</string>
+    <string name="onboarding_value_biolism_body">Beyond scanning, track your BMR, ketosis, and fasting in real time — a dedicated tab, built in.</string>
     <string name="onboarding_start_button">Get Started</string>
     <string name="onboarding_config_title">Configuration</string>
     <string name="onboarding_config_body">Scan\'eat uses an AI vision model to read labels. Choose how to call it:</string>

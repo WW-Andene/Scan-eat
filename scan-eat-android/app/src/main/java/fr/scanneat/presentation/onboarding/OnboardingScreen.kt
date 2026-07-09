@@ -62,8 +62,34 @@ fun OnboardingScreen(
                     ) { Text(stringResource(R.string.onboarding_start_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
                 }
 
-                // ---- Page 1: API mode ----
+                // ---- Page 1: Value proposition — what sets this apart ----
                 1 -> {
+                    Text(stringResource(R.string.onboarding_value_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
+
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        ValueCard(
+                            icon    = Icons.Default.Fingerprint,
+                            title   = stringResource(R.string.onboarding_value_transparency_title),
+                            body    = stringResource(R.string.onboarding_value_transparency_body),
+                        )
+                        ValueCard(
+                            icon    = Icons.Default.MonitorHeart,
+                            title   = stringResource(R.string.onboarding_value_biolism_title),
+                            body    = stringResource(R.string.onboarding_value_biolism_body),
+                        )
+                    }
+
+                    Spacer(Modifier.weight(1f))
+                    Button(
+                        onClick = { page = 2 },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                        shape = RoundedCornerShape(12.dp),
+                    ) { Text(stringResource(R.string.onboarding_continue_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
+                }
+
+                // ---- Page 2: API mode ----
+                2 -> {
                     Text(stringResource(R.string.onboarding_config_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
                     Text(
                         stringResource(R.string.onboarding_config_body),
@@ -110,7 +136,7 @@ fun OnboardingScreen(
                             viewModel.setMode(selectedMode)
                             if (apiKey.isNotBlank()) viewModel.setApiKey(apiKey)
                             if (serverUrl.isNotBlank()) viewModel.setServerUrl(serverUrl)
-                            page = 2
+                            page = 3
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = (selectedMode == ApiMode.DIRECT && apiKey.isNotBlank()) ||
@@ -119,13 +145,13 @@ fun OnboardingScreen(
                         shape = RoundedCornerShape(12.dp),
                     ) { Text(stringResource(R.string.onboarding_continue_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
                     TextButton(
-                        onClick = { viewModel.skipApiSetup(); page = 2 },
+                        onClick = { viewModel.skipApiSetup(); page = 3 },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.onboarding_api_skip), color = OnBackground.copy(0.5f)) }
                 }
 
-                // ---- Page 2: Profile prompt ----
-                2 -> {
+                // ---- Page 3: Profile prompt ----
+                3 -> {
                     Text(stringResource(R.string.onboarding_profile_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
                     Text(
                         stringResource(R.string.onboarding_profile_body),
@@ -149,6 +175,19 @@ fun OnboardingScreen(
         }
     }
 
+}
+
+@Composable
+private fun ValueCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, body: String) {
+    Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(icon, null, tint = AccentGreen, modifier = Modifier.size(28.dp))
+            Column {
+                Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
+                Text(body, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+            }
+        }
+    }
 }
 
 @Composable

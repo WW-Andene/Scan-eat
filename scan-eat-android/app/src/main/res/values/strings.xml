@@ -593,6 +593,11 @@
 
     <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
     <string name="onboarding_welcome_body">Scannez un code-barres ou photographiez une étiquette pour obtenir un score nutritionnel 0–100 basé sur la composition réelle du produit.</string>
+    <string name="onboarding_value_title">Pourquoi Scan\'eat</string>
+    <string name="onboarding_value_transparency_title">Le calcul est visible</string>
+    <string name="onboarding_value_transparency_body">Chaque score s\'appuie sur une formule consultable — sources et méthode incluses, pas juste un chiffre.</string>
+    <string name="onboarding_value_biolism_title">Biolism : votre métabolisme, en direct</string>
+    <string name="onboarding_value_biolism_body">Au-delà du scan, suivez votre BMR, votre cétose et votre jeûne en temps réel — un onglet dédié, inclus dans l\'app.</string>
     <string name="onboarding_start_button">Commencer</string>
     <string name="onboarding_config_title">Configuration</string>
     <string name="onboarding_config_body">Scan\'eat utilise un modèle de vision par IA pour lire les étiquettes. Choisissez comment l\'appeler :</string>
