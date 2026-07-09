@@ -260,6 +260,33 @@
     <string name="biolism_physio_hr_diff_value">%1$+.1f bpm (%2$.0f%%)</string>
     <string name="biolism_physio_sv_implied">VS impliqué : %1$.1f mL</string>
 
+    <!-- ── Biolism: Macro Targets card ────────────────────────────────────── -->
+    <string name="biolism_macro_title">Objectifs macros &amp; nutrition</string>
+    <string name="biolism_macro_badge">MINIMUMS JOURNALIERS</string>
+    <string name="biolism_macro_tdee_label">TDEE</string>
+    <string name="biolism_macro_tdee_value">%1$.0f kcal · BMR %2$.0f × %3$.3f · MMC %4$.1f kg</string>
+    <string name="biolism_macro_protein">Protéines</string>
+    <string name="biolism_macro_protein_sub">%1$.1f g/kg MMC × %2$.1f kg</string>
+    <string name="biolism_macro_carbs">Glucides</string>
+    <string name="biolism_macro_carbs_sub_keto">Cétose &gt;24h · Cahill 2006</string>
+    <string name="biolism_macro_carbs_sub_brain">Besoin cérébral · IOM 2005</string>
+    <string name="biolism_macro_fat">Lipides</string>
+    <string name="biolism_macro_fat_sub">Résiduel TDEE · min. AGE = %1$.0f g</string>
+    <string name="biolism_macro_total_min">Total minimum</string>
+    <string name="biolism_macro_total_min_sub">prot + glucides + lipides</string>
+    <string name="biolism_macro_tdee_delta">TDEE %1$.0f · %2$+.0f kcal</string>
+    <string name="biolism_macro_extra_title">Objectifs complémentaires</string>
+    <string name="biolism_macro_water">Eau</string>
+    <string name="biolism_macro_water_sub">EFSA 2010 · %1$.1f L</string>
+    <string name="biolism_macro_water_sub_activity">EFSA 2010 · %1$.1f L + %2$.1f L activité</string>
+    <string name="biolism_macro_fiber">Fibres alimentaires</string>
+    <string name="biolism_macro_fiber_sub">EFSA 2017 · apport suffisant pour transit &amp; microbiote</string>
+    <string name="biolism_macro_sodium">Sodium</string>
+    <string name="biolism_macro_sodium_sub">WHO 2012 · cible AHA 1500 mg · limite NHANES 2300 mg</string>
+    <string name="biolism_macro_potassium">Potassium</string>
+    <string name="biolism_macro_potassium_value">≥ %1$d mg</string>
+    <string name="biolism_macro_potassium_sub">NASEM DRI 2019 · contre l\'excrétion sodique</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>
