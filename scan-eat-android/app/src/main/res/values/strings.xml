@@ -106,6 +106,36 @@
     <string name="biolism_body_bai_label">Indice Adiposité Corporelle</string>
     <string name="biolism_body_bai_sub">Bergman 2011</string>
 
+    <!-- ── Biolism: Hormones card ─────────────────────────────────────────── -->
+    <string name="biolism_hormones_title">Hormones</string>
+    <string name="biolism_hormones_badge">ESTIMATION</string>
+    <string name="biolism_hormones_disclaimer">Estimations basées sur âge, sexe, composition corporelle et contexte métabolique. Pas un substitut à une analyse sanguine.</string>
+    <string name="biolism_hormones_sex_section">Hormones sexuelles</string>
+    <string name="biolism_hormones_testosterone">Testostérone</string>
+    <string name="biolism_hormones_estradiol">Estradiol (E2)</string>
+    <string name="biolism_hormones_progesterone">Progestérone</string>
+    <string name="biolism_hormones_dheas">DHEA-S</string>
+    <string name="biolism_hormones_metabolic_section">Hormones métaboliques</string>
+    <string name="biolism_hormones_insulin">Insuline</string>
+    <string name="biolism_hormones_glucagon">Glucagon</string>
+    <string name="biolism_hormones_cortisol">Cortisol</string>
+    <string name="biolism_hormones_ft3">T3 libre</string>
+    <string name="biolism_hormones_appetite_section">Appétit &amp; croissance</string>
+    <string name="biolism_hormones_leptin">Leptine</string>
+    <string name="biolism_hormones_ghrelin">Ghréline</string>
+    <string name="biolism_hormones_gh">GH (moyen/j)</string>
+    <string name="biolism_hormones_igf1">IGF-1</string>
+    <string name="biolism_hormones_mod_ketosis">Cétose (%1$dh) →</string>
+    <string name="biolism_hormones_mod_ketosis_tags">T↑ · Insuline↓ · Glucagon↑ · T3↓ · Leptine↓</string>
+    <string name="biolism_hormones_mod_fasting">Jeûne (%1$dh) →</string>
+    <string name="biolism_hormones_mod_fasting_tags">GH↑ · Glucagon↑ · Cortisol↑ · Ghréline↑</string>
+    <string name="biolism_hormones_mod_adapted">Céto-adapté →</string>
+    <string name="biolism_hormones_mod_adapted_tags">Ghréline↓↓ · Leptine adaptée · T3 nadir</string>
+    <string name="biolism_hormones_mod_highfat">Masse grasse élevée (%1$d%%) →</string>
+    <string name="biolism_hormones_mod_highfat_tags_male">T↓ · E2↑ · Résistance insuline ↑</string>
+    <string name="biolism_hormones_mod_highfat_tags_female">E2↑ · Résistance insuline ↑</string>
+    <string name="biolism_hormones_modifiers_title">Modificateurs actifs</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>

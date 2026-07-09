@@ -106,6 +106,36 @@
     <string name="biolism_body_bai_label">Body Adiposity Index</string>
     <string name="biolism_body_bai_sub">Bergman 2011</string>
 
+    <!-- ── Biolism: Hormones card ─────────────────────────────────────────── -->
+    <string name="biolism_hormones_title">Hormones</string>
+    <string name="biolism_hormones_badge">ESTIMATE</string>
+    <string name="biolism_hormones_disclaimer">Estimates based on age, sex, body composition and metabolic context. Not a substitute for a blood test.</string>
+    <string name="biolism_hormones_sex_section">Sex hormones</string>
+    <string name="biolism_hormones_testosterone">Testosterone</string>
+    <string name="biolism_hormones_estradiol">Estradiol (E2)</string>
+    <string name="biolism_hormones_progesterone">Progesterone</string>
+    <string name="biolism_hormones_dheas">DHEA-S</string>
+    <string name="biolism_hormones_metabolic_section">Metabolic hormones</string>
+    <string name="biolism_hormones_insulin">Insulin</string>
+    <string name="biolism_hormones_glucagon">Glucagon</string>
+    <string name="biolism_hormones_cortisol">Cortisol</string>
+    <string name="biolism_hormones_ft3">Free T3</string>
+    <string name="biolism_hormones_appetite_section">Appetite &amp; growth</string>
+    <string name="biolism_hormones_leptin">Leptin</string>
+    <string name="biolism_hormones_ghrelin">Ghrelin</string>
+    <string name="biolism_hormones_gh">GH (avg/day)</string>
+    <string name="biolism_hormones_igf1">IGF-1</string>
+    <string name="biolism_hormones_mod_ketosis">Ketosis (%1$dh) →</string>
+    <string name="biolism_hormones_mod_ketosis_tags">T↑ · Insulin↓ · Glucagon↑ · T3↓ · Leptin↓</string>
+    <string name="biolism_hormones_mod_fasting">Fasting (%1$dh) →</string>
+    <string name="biolism_hormones_mod_fasting_tags">GH↑ · Glucagon↑ · Cortisol↑ · Ghrelin↑</string>
+    <string name="biolism_hormones_mod_adapted">Keto-adapted →</string>
+    <string name="biolism_hormones_mod_adapted_tags">Ghrelin↓↓ · Adapted leptin · T3 nadir</string>
+    <string name="biolism_hormones_mod_highfat">High fat mass (%1$d%%) →</string>
+    <string name="biolism_hormones_mod_highfat_tags_male">T↓ · E2↑ · Insulin resistance ↑</string>
+    <string name="biolism_hormones_mod_highfat_tags_female">E2↑ · Insulin resistance ↑</string>
+    <string name="biolism_hormones_modifiers_title">Active modifiers</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>
