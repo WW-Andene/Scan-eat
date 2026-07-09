@@ -21,7 +21,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun FastingRow(
     active: Boolean, fastingHours: Double, onToggle: () -> Unit, onLogMeal: () -> Unit, onAddHours: (Double) -> Unit,
 ) {
-    val fastFmt = formatFastingTime(fastingHours)
+    val fastFmt = formatFastingTime(fastingHours, stringResource(R.string.biolism_unit_week), stringResource(R.string.biolism_unit_day))
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),

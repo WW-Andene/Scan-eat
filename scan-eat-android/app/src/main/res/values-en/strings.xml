@@ -433,6 +433,9 @@
     <string name="biolism_sessctrl_start">Start</string>
     <string name="biolism_sessctrl_saved">Saved</string>
     <string name="biolism_sessctrl_save">Save</string>
+    <string name="biolism_datascreen_empty_tab_hint">Profile tab</string>
+    <string name="biolism_unit_week">w</string>
+    <string name="biolism_unit_day">d</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>

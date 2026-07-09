@@ -43,12 +43,12 @@ internal fun formatElapsed(sec: Double): String {
     else "${s}s"
 }
 
-internal fun formatFastingTime(fh: Double): String? {
+internal fun formatFastingTime(fh: Double, weekUnit: String, dayUnit: String): String? {
     if (fh <= 0) return null
     return when {
         fh >= 720  -> "${"%.1f".format(fh / 720)}mo"
-        fh >= 168  -> "${(fh / 168).toInt()}s ${((fh % 168) / 24).toInt()}j"
-        fh >= 48   -> "${(fh / 24).toInt()}j ${(fh % 24).toInt()}h"
+        fh >= 168  -> "${(fh / 168).toInt()}$weekUnit ${((fh % 168) / 24).toInt()}$dayUnit"
+        fh >= 48   -> "${(fh / 24).toInt()}$dayUnit ${(fh % 24).toInt()}h"
         fh >= 1    -> "${fh.toInt()}h ${((fh % 1) * 60).toInt()}m"
         else       -> "${(fh * 60).toInt()}m"
     }
