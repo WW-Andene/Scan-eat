@@ -171,7 +171,7 @@ private fun BioInput(label: String, value: String, keyboardType: KeyboardType = 
         value = value, onValueChange = onValue, label = { Text(label, fontSize = 12.sp) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.18f),
             focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,

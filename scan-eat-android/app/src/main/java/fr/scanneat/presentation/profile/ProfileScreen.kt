@@ -177,7 +177,7 @@ private fun OutlinedInput(
         modifier      = Modifier.fillMaxWidth(),
         singleLine    = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        shape  = RoundedCornerShape(10.dp),
+        shape  = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor   = AccentGreen,
             unfocusedBorderColor = OnBackground.copy(0.2f),

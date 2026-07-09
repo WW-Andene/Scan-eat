@@ -73,7 +73,7 @@ fun OnboardingScreen(
                         onClick = { page = 1 },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(12.dp),
                     ) { Text("Commencer", color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
                 }
 
@@ -106,7 +106,7 @@ fun OnboardingScreen(
                             label = { Text("Clé Groq (gsk_…)") },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(12.dp),
                         )
                         Text("Clé gratuite sur console.groq.com", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                     } else {
@@ -115,7 +115,7 @@ fun OnboardingScreen(
                             label = { Text("URL du serveur") },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(12.dp),
                         )
                     }
 
@@ -131,7 +131,7 @@ fun OnboardingScreen(
                         enabled = (selectedMode == ApiMode.DIRECT && apiKey.isNotBlank()) ||
                                   (selectedMode == ApiMode.SERVER && serverUrl.isNotBlank()),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                        shape = RoundedCornerShape(14.dp),
+                        shape = RoundedCornerShape(12.dp),
                     ) { Text("Continuer", color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
                 }
 
@@ -148,7 +148,7 @@ fun OnboardingScreen(
                             onClick = { viewModel.finish(); onGoToProfile() },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(12.dp),
                         ) { Text("Configurer mon profil maintenant", color = Color.Black, fontWeight = FontWeight.SemiBold) }
                         TextButton(
                             onClick = { viewModel.finish() },
