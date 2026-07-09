@@ -1,0 +1,72 @@
+package fr.scanneat.presentation.biolism.tracker.cards
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import fr.scanneat.presentation.biolism.tracker.StepperChip
+import fr.scanneat.presentation.biolism.tracker.formatFastingTime
+import fr.scanneat.presentation.ui.theme.*
+
+@Composable
+internal fun FastingRow(
+    active: Boolean, fastingHours: Double, onToggle: () -> Unit, onLogMeal: () -> Unit, onAddHours: (Double) -> Unit,
+) {
+    val fastFmt = formatFastingTime(fastingHours)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = if (active && fastingHours > 0) VioletHaze else VioletTrace,
+        border = BorderStroke(1.dp, if (active && fastingHours > 0) VioletBorder else VioletTrace),
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Checkbox(checked = active, onCheckedChange = { onToggle() },
+                        colors = CheckboxDefaults.colors(checkedColor = Violet, uncheckedColor = Violet.copy(0.4f)))
+                    Column {
+                        Text("Jeûne", style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
+                        Text(if (active && fastFmt != null) "$fastFmt · état métabolique ancré"
+                             else if (active) "Logger un repas ou ajuster le temps ci-dessous"
+                             else "Désactivé — activer pour suivre le jeûne",
+                            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                    }
+                }
+                if (active) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (fastFmt != null) {
+                            Surface(shape = RoundedCornerShape(4.dp), color = VioletHaze, border = BorderStroke(1.dp, VioletGlow)) {
+                                Text(fastFmt, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        Surface(
+                            modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable { onLogMeal() },
+                            shape = RoundedCornerShape(4.dp),
+                            color = VioletHaze,
+                            border = BorderStroke(1.dp, Violet.copy(0.4f)),
+                        ) {
+                            Text("J'ai mangé", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+            if (active) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Temps de jeûne :", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                    listOf("6h" to 6.0, "12h" to 12.0, "24h" to 24.0, "1s" to 168.0, "1m" to 720.0).forEach { (label, h) ->
+                        StepperChip(label = label, color = Violet, onMinus = { onAddHours(-h) }, onPlus = { onAddHours(h) })
+                    }
+                }
+            }
+        }
+    }
+}
