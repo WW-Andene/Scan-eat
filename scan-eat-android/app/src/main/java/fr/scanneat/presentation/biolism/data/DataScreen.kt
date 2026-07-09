@@ -705,20 +705,22 @@ private fun BioCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var open by remember { mutableStateOf(defaultOpen) }
-    Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { open = !open },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Box(Modifier.width(2.dp).height(16.dp).background(Gold, RoundedCornerShape(1.dp)))
-                Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                badge?.invoke()
-                Icon(if (open) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(20.dp))
-            }
-            AnimatedVisibility(open) {
-                Column(Modifier.padding(top = 12.dp), content = content)
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f)) {
+        Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable { open = !open },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Box(Modifier.width(2.dp).height(16.dp).background(Gold, RoundedCornerShape(1.dp)))
+                    Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    badge?.invoke()
+                    Icon(if (open) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(20.dp))
+                }
+                AnimatedVisibility(open) {
+                    Column(Modifier.padding(top = 12.dp), content = content)
+                }
             }
         }
     }

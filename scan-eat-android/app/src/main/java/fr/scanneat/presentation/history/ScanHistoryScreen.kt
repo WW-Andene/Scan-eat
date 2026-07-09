@@ -82,30 +82,32 @@ fun ScanHistoryScreen(
                 items(scans.value) { scan ->
                     val gradeColor = gradeColor(scan.audit.grade)
                     val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(SurfaceVariant)
-                            .clickable { if (scan.dbId > 0) onOpenResult(scan.dbId) }
-                            .clearAndSetSemantics { contentDescription = summary }
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Surface(shape = RoundedCornerShape(8.dp), color = gradeColor.copy(0.2f)) {
-                            Text(
-                                scan.audit.grade.label,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = gradeColor, fontWeight = FontWeight.Bold,
-                            )
+                    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(SurfaceVariant)
+                                .clickable { if (scan.dbId > 0) onOpenResult(scan.dbId) }
+                                .clearAndSetSemantics { contentDescription = summary }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Surface(shape = RoundedCornerShape(8.dp), color = gradeColor.copy(0.2f)) {
+                                Text(
+                                    scan.audit.grade.label,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = gradeColor, fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            Column(Modifier.weight(1f)) {
+                                Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1)
+                                Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                            }
+                            Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(20.dp))
                         }
-                        Column(Modifier.weight(1f)) {
-                            Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1)
-                            Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                        }
-                        Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(20.dp))
                     }
                 }
                 if (scans.value.isEmpty()) {

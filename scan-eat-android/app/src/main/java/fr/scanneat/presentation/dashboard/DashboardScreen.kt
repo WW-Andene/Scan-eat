@@ -153,7 +153,7 @@ fun DashboardScreen(
 
 @Composable
 private fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
-    Box(modifier = Modifier.fillMaxWidth().glassSheen()) {
+    Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(18.dp))) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), color = SurfaceVariant) {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
@@ -205,7 +205,7 @@ private fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
         else R.string.dashboard_calorie_balanced
     val sourceRes = if (balance.tdeeFromBiolism) R.string.dashboard_calorie_source_biolism else R.string.dashboard_calorie_source_profile
 
-    Box(modifier = Modifier.fillMaxWidth().glassSheen()) {
+    Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(20.dp))) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = SurfaceVariant) {
             Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(
@@ -262,6 +262,7 @@ private fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
 
 @Composable
 private fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
+  Box(Modifier.fillMaxWidth().glassSheen()) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -307,6 +308,7 @@ private fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
             }
         }
     }
+  }
 }
 
 @Composable
@@ -335,6 +337,7 @@ private fun WeekDeltaCard(delta: WeekOverWeekDelta) {
 
 @Composable
 private fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary, forecast: WeightForecast) {
+  Box(Modifier.fillMaxWidth().glassSheen()) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.weight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
@@ -360,10 +363,12 @@ private fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary
             }
         }
     }
+  }
 }
 
 @Composable
 private fun GapCloserCard(gaps: List<GapEntry>) {
+  Box(Modifier.fillMaxWidth().glassSheen()) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.dashboard_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
@@ -392,35 +397,38 @@ private fun GapCloserCard(gaps: List<GapEntry>) {
             }
         }
     }
+  }
 }
 
 @Composable
 private fun ScanHistoryCard(scan: ScanResult) {
     val gradeColor = gradeColor(scan.audit.grade)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceVariant)
-            .padding(12.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Surface(shape = RoundedCornerShape(8.dp), color = gradeColor.copy(0.2f)) {
-            Text(
-                scan.audit.grade.label,
-                modifier   = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                style      = MaterialTheme.typography.labelLarge,
-                color      = gradeColor,
-                fontWeight = FontWeight.Bold,
-            )
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(SurfaceVariant)
+                .padding(12.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Surface(shape = RoundedCornerShape(8.dp), color = gradeColor.copy(0.2f)) {
+                Text(
+                    scan.audit.grade.label,
+                    modifier   = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    style      = MaterialTheme.typography.labelLarge,
+                    color      = gradeColor,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1)
+                Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')),
+                    style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+            }
+            Text("${scan.audit.score}", style = MaterialTheme.typography.titleMedium, color = gradeColor, fontWeight = FontWeight.Bold)
         }
-        Column(modifier = Modifier.weight(1f)) {
-            Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1)
-            Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')),
-                style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-        }
-        Text("${scan.audit.score}", style = MaterialTheme.typography.titleMedium, color = gradeColor, fontWeight = FontWeight.Bold)
     }
 }
 
