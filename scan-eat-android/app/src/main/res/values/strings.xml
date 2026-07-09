@@ -400,6 +400,16 @@
     <string name="biolism_fasting_status_disabled">Désactivé — activer pour suivre le jeûne</string>
     <string name="biolism_fasting_log_meal">J\'ai mangé</string>
     <string name="biolism_fasting_time_label">Temps de jeûne :</string>
+    <string name="biolism_summary_title">Résumé global</string>
+    <plurals name="biolism_summary_session_count">
+        <item quantity="one">%1$d SESSION</item>
+        <item quantity="other">%1$d SESSIONS</item>
+    </plurals>
+    <string name="biolism_summary_total_burned">Total brûlé</string>
+    <string name="biolism_summary_total_time">Temps total</string>
+    <string name="biolism_summary_avg_session">Moyenne/session</string>
+    <string name="biolism_summary_avg_duration">Durée moyenne</string>
+    <string name="biolism_summary_spark_label">%1$d dernières sessions — kcal brûlées</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
