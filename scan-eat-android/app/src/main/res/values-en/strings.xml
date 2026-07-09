@@ -179,6 +179,37 @@
     <string name="biolism_eq_ibw">Ideal body weight — Devine/Robinson/Miller</string>
     <string name="biolism_eq_macro_floors">Macro floors — Phillips &amp; Van Loon (2011) / Cahill (2006)</string>
 
+    <!-- ── Biolism: Thermoregulation card ─────────────────────────────────── -->
+    <string name="biolism_thermo_title">Thermoregulation &amp; heat</string>
+    <string name="biolism_thermo_badge">FANGER 1970</string>
+    <string name="biolism_thermo_dissipation_label">Heat dissipation — %1$.3f W total</string>
+    <string name="biolism_thermo_radiation">Radiation</string>
+    <string name="biolism_thermo_radiation_sub">~45%% · IR longwave</string>
+    <string name="biolism_thermo_convection">Convection</string>
+    <string name="biolism_thermo_convection_sub">~30%% · natural</string>
+    <string name="biolism_thermo_evaporation">Evaporation</string>
+    <string name="biolism_thermo_evaporation_sub">~23%% · skin + resp.</string>
+    <string name="biolism_thermo_conduction">Conduction</string>
+    <string name="biolism_thermo_conduction_sub">~2%% · direct contact</string>
+    <string name="biolism_thermo_transepidermal">  ↳ transepidermal</string>
+    <string name="biolism_thermo_transepidermal_sub">~15%% · skin diffusion</string>
+    <string name="biolism_thermo_respiratory">  ↳ respiratory</string>
+    <string name="biolism_thermo_respiratory_sub">~8%% · respiratory evaporation</string>
+    <string name="biolism_thermo_iwl_title">Insensible water losses</string>
+    <string name="biolism_thermo_rwl_label">Resp. (RWL)</string>
+    <string name="biolism_thermo_tewl_label">Transepidermal</string>
+    <string name="biolism_thermo_iwl_total_label">Total (IWL)</string>
+    <string name="biolism_thermo_metwater_label">Metabolic water produced</string>
+    <string name="biolism_thermo_ml_per_day">%1$.0f mL/day</string>
+    <string name="biolism_thermo_balance_title">Water balance — turnover</string>
+    <string name="biolism_thermo_metwater_full">Metabolic water produced</string>
+    <string name="biolism_thermo_ml_h_and_day">%1$.2f mL/h · %2$.0f mL/day</string>
+    <string name="biolism_thermo_insensible_losses">Insensible losses</string>
+    <string name="biolism_thermo_excl_urine_sweat">excluding urine and sweat</string>
+    <string name="biolism_thermo_net_balance">Net balance</string>
+    <string name="biolism_thermo_ml_h_and_day_signed">%1$+.2f mL/h · %2$+.0f mL/day</string>
+    <string name="biolism_thermo_net_balance_sub">metabolic − insensible</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>

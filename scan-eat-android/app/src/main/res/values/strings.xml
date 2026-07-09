@@ -180,6 +180,37 @@
     <string name="biolism_eq_ibw">Poids idéal — Devine/Robinson/Miller</string>
     <string name="biolism_eq_macro_floors">Planchers macros — Phillips &amp; Van Loon (2011) / Cahill (2006)</string>
 
+    <!-- ── Biolism: Thermoregulation card ─────────────────────────────────── -->
+    <string name="biolism_thermo_title">Thermorégulation &amp; chaleur</string>
+    <string name="biolism_thermo_badge">FANGER 1970</string>
+    <string name="biolism_thermo_dissipation_label">Dissipation thermique — %1$.3f W total</string>
+    <string name="biolism_thermo_radiation">Rayonnement</string>
+    <string name="biolism_thermo_radiation_sub">~45%% · IR longwave</string>
+    <string name="biolism_thermo_convection">Convection</string>
+    <string name="biolism_thermo_convection_sub">~30%% · naturelle</string>
+    <string name="biolism_thermo_evaporation">Évaporation</string>
+    <string name="biolism_thermo_evaporation_sub">~23%% · peau + resp.</string>
+    <string name="biolism_thermo_conduction">Conduction</string>
+    <string name="biolism_thermo_conduction_sub">~2%% · contact direct</string>
+    <string name="biolism_thermo_transepidermal">  ↳ transépidermique</string>
+    <string name="biolism_thermo_transepidermal_sub">~15%% · diffusion cutanée</string>
+    <string name="biolism_thermo_respiratory">  ↳ respiratoire</string>
+    <string name="biolism_thermo_respiratory_sub">~8%% · évaporation respiratoire</string>
+    <string name="biolism_thermo_iwl_title">Pertes hydriques insensibles</string>
+    <string name="biolism_thermo_rwl_label">Resp. (RWL)</string>
+    <string name="biolism_thermo_tewl_label">Transépidermique</string>
+    <string name="biolism_thermo_iwl_total_label">Total (IWL)</string>
+    <string name="biolism_thermo_metwater_label">Eau métab. produite</string>
+    <string name="biolism_thermo_ml_per_day">%1$.0f mL/j</string>
+    <string name="biolism_thermo_balance_title">Bilan hydrique — turnover</string>
+    <string name="biolism_thermo_metwater_full">Eau métabolique produite</string>
+    <string name="biolism_thermo_ml_h_and_day">%1$.2f mL/h · %2$.0f mL/j</string>
+    <string name="biolism_thermo_insensible_losses">Pertes insensibles</string>
+    <string name="biolism_thermo_excl_urine_sweat">hors urine et sueur</string>
+    <string name="biolism_thermo_net_balance">Bilan net</string>
+    <string name="biolism_thermo_ml_h_and_day_signed">%1$+.2f mL/h · %2$+.0f mL/j</string>
+    <string name="biolism_thermo_net_balance_sub">métab. − insensibles</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>
