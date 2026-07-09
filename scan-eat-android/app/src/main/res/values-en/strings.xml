@@ -412,6 +412,13 @@
     <string name="biolism_organheat_title">Organ heat</string>
     <string name="biolism_organheat_kcal_per_day">· %1$.1f kcal/day</string>
     <string name="biolism_common_ref_range">ref: %1$.0f–%2$.0f %3$s</string>
+    <string name="biolism_liveweight_title">Live weight</string>
+    <string name="biolism_liveweight_method_ketosis">9,300 kcal/kg (triglycerides)</string>
+    <string name="biolism_liveweight_method_normal">Wishnofsky · 7,700 kcal/kg</string>
+    <string name="biolism_liveweight_delta">Δ %1$s g</string>
+    <string name="biolism_liveweight_base">Base: %1$s kg</string>
+    <string name="biolism_liveweight_fat_lost">%1$s g fat</string>
+    <string name="biolism_liveweight_glyco_lost">%1$s g glycogen+H₂O</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
