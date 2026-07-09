@@ -65,7 +65,7 @@ fun MainShell(startOnboarding: Boolean = false) {
     ) { padding ->
         AppNavGraph(
             navController    = navController,
-            startDestination = if (startOnboarding) AppRoutes.ONBOARDING else TopTab.Scan.route,
+            startDestination = if (startOnboarding) AppRoutes.ONBOARDING else TopTab.Dashboard.route,
             modifier         = Modifier.padding(padding),
         )
     }

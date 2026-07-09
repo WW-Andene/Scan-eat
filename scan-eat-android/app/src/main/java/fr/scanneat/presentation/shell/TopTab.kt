@@ -14,7 +14,7 @@ sealed class TopTab(val route: String, @StringRes val labelRes: Int, val icon: I
     data object Settings  : TopTab(AppRoutes.SETTINGS,  R.string.tab_settings,  Icons.Default.Settings)
 }
 
-val TOP_TABS = listOf(TopTab.Scan, TopTab.Diary, TopTab.Dashboard, TopTab.Biolism, TopTab.Settings)
+val TOP_TABS = listOf(TopTab.Dashboard, TopTab.Diary, TopTab.Scan, TopTab.Biolism, TopTab.Settings)
 
 // Tab root routes — bottom nav visible, back arrow hidden
 val TAB_ROOT_ROUTES = TOP_TABS.map { it.route }.toSet()
