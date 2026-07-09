@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.WeightRecord
-import androidx.health.connect.client.records.metadata.Metadata
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Mass
@@ -64,7 +63,6 @@ class HealthConnectRepository @Inject constructor(
             time = instant,
             zoneOffset = ZoneId.systemDefault().rules.getOffset(instant),
             weight = Mass.kilograms(weightKg),
-            metadata = Metadata.manualEntry(),
         )
         client().insertRecords(listOf(record))
     }

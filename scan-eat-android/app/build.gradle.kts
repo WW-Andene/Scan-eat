@@ -129,6 +129,7 @@ dependencies {
 
     // Health Connect
     implementation(libs.health.connect.client)
+    implementation(libs.guava)
 
     // Tests
     testImplementation(libs.junit)

@@ -26,6 +26,7 @@ espresso             = "3.6.1"
 mockk                = "1.13.12"
 kotlinx-serialization = "1.7.3"
 health-connect        = "1.1.0-alpha07"
+guava                 = "33.3.1-android"
 
 [libraries]
 # Kotlin + Coroutines
@@ -93,6 +94,10 @@ mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version
 
 # Health Connect
 health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "health-connect" }
+# Forces a single, Android-flavored Guava resolution — health-connect-client and
+# CameraX otherwise resolve conflicting ListenableFuture providers (real Guava vs
+# the lightweight listenablefuture-only shim), which breaks CameraX at compile time.
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 
 # Testing
 junit               = { group = "junit",                      name = "junit",              version.ref = "junit" }
