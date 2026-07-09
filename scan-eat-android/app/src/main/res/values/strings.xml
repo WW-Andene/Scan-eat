@@ -104,4 +104,38 @@
     <string name="allergen_mustard">Moutarde</string>
     <string name="allergen_sulfites">Sulfites</string>
     <string name="allergen_lupin">Lupin</string>
+
+    <!-- ── Log sheet (portion selector) ───────────────────────────────────── -->
+    <string name="logsheet_title">Journaliser</string>
+    <string name="logsheet_quantity_label">Quantité (g)</string>
+    <string name="logsheet_preset_grams">%1$d g</string>
+    <string name="logsheet_preset_package">%1$d g (paquet)</string>
+    <string name="logsheet_preset_half">%1$d g (½)</string>
+    <string name="logsheet_meal_label">Repas</string>
+    <string name="logsheet_confirm_plain">Confirmer</string>
+    <string name="logsheet_confirm_with_kcal">Confirmer · %1$d kcal</string>
+
+    <!-- ── Biolism profile screen ─────────────────────────────────────────── -->
+    <string name="bioprofile_saved">✓ Profil sauvegardé</string>
+    <string name="bioprofile_sex_male">♂ Homme</string>
+    <string name="bioprofile_sex_female">♀ Femme</string>
+    <string name="bioprofile_field_weight">Poids (kg)</string>
+    <string name="bioprofile_section_activity">Niveau d\'activité</string>
+    <string name="bioprofile_section_ethnicity">Origine ethnique (correction IMC/BF\%)</string>
+    <string name="bioprofile_ethnicity_hint">Ajuste le calcul de la masse grasse selon Deurenberg et al. 1998 et les seuils OMS 2004.</string>
+    <string name="bioprofile_section_circumferences">Circonférences (déverrouille BF\% Navy + indicateurs viscéraux)</string>
+    <string name="bioprofile_circumferences_hint">Optionnel — fournit Navy BF\%, WHtR, WHR (méthode Hodgdon &amp; Beckett 1984).</string>
+    <string name="bioprofile_field_waist">Tour de taille (cm)</string>
+    <string name="bioprofile_field_hip">Tour des hanches (cm) — femmes</string>
+    <string name="bioprofile_field_neck">Tour de cou (cm)</string>
+    <string name="bioprofile_section_cycle">Cycle menstruel (hormones phase-précises)</string>
+    <string name="bioprofile_cycle_hint">Jour 1 = premier jour des règles. Utilisé pour modéliser E2 et progestérone selon la phase.</string>
+    <string name="bioprofile_field_cycle_day">Jour du cycle (1–28)</string>
+    <string name="bioprofile_phase_menstrual">Menstruelle · E2 bas ~50 pg/mL</string>
+    <string name="bioprofile_phase_follicular">Folliculaire · E2 en hausse 60–200 pg/mL</string>
+    <string name="bioprofile_phase_ovulation">Ovulation · pic E2 ~350 pg/mL</string>
+    <string name="bioprofile_phase_luteal_early">Lutéale précoce · E2 100–200 pg/mL, progest. en hausse</string>
+    <string name="bioprofile_phase_luteal_late">Lutéale tardive · E2 et progest. en baisse</string>
+    <string name="bioprofile_cycle_day_summary">Jour %1$d : %2$s</string>
+    <string name="bioprofile_save_button">Sauvegarder le profil</string>
 </resources>

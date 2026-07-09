@@ -104,4 +104,38 @@
     <string name="allergen_mustard">Mustard</string>
     <string name="allergen_sulfites">Sulfites</string>
     <string name="allergen_lupin">Lupin</string>
+
+    <!-- ── Log sheet (portion selector) ───────────────────────────────────── -->
+    <string name="logsheet_title">Log Meal</string>
+    <string name="logsheet_quantity_label">Quantity (g)</string>
+    <string name="logsheet_preset_grams">%1$d g</string>
+    <string name="logsheet_preset_package">%1$d g (pack)</string>
+    <string name="logsheet_preset_half">%1$d g (½)</string>
+    <string name="logsheet_meal_label">Meal</string>
+    <string name="logsheet_confirm_plain">Confirm</string>
+    <string name="logsheet_confirm_with_kcal">Confirm · %1$d kcal</string>
+
+    <!-- ── Biolism profile screen ─────────────────────────────────────────── -->
+    <string name="bioprofile_saved">✓ Profile saved</string>
+    <string name="bioprofile_sex_male">♂ Male</string>
+    <string name="bioprofile_sex_female">♀ Female</string>
+    <string name="bioprofile_field_weight">Weight (kg)</string>
+    <string name="bioprofile_section_activity">Activity level</string>
+    <string name="bioprofile_section_ethnicity">Ethnic background (BMI/BF\% correction)</string>
+    <string name="bioprofile_ethnicity_hint">Adjusts fat-mass calculation per Deurenberg et al. 1998 and WHO 2004 thresholds.</string>
+    <string name="bioprofile_section_circumferences">Circumferences (unlocks Navy BF\% + visceral indicators)</string>
+    <string name="bioprofile_circumferences_hint">Optional — provides Navy BF\%, WHtR, WHR (Hodgdon &amp; Beckett 1984 method).</string>
+    <string name="bioprofile_field_waist">Waist circumference (cm)</string>
+    <string name="bioprofile_field_hip">Hip circumference (cm) — women</string>
+    <string name="bioprofile_field_neck">Neck circumference (cm)</string>
+    <string name="bioprofile_section_cycle">Menstrual cycle (phase-precise hormones)</string>
+    <string name="bioprofile_cycle_hint">Day 1 = first day of period. Used to model E2 and progesterone by phase.</string>
+    <string name="bioprofile_field_cycle_day">Cycle day (1–28)</string>
+    <string name="bioprofile_phase_menstrual">Menstrual · low E2 ~50 pg/mL</string>
+    <string name="bioprofile_phase_follicular">Follicular · E2 rising 60–200 pg/mL</string>
+    <string name="bioprofile_phase_ovulation">Ovulation · E2 peak ~350 pg/mL</string>
+    <string name="bioprofile_phase_luteal_early">Early luteal · E2 100–200 pg/mL, progesterone rising</string>
+    <string name="bioprofile_phase_luteal_late">Late luteal · E2 and progesterone falling</string>
+    <string name="bioprofile_cycle_day_summary">Day %1$d: %2$s</string>
+    <string name="bioprofile_save_button">Save profile</string>
 </resources>

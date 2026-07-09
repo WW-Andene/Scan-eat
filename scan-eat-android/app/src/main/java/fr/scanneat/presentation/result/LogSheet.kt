@@ -8,10 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.scanneat.R
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.Product
 import fr.scanneat.presentation.ui.theme.*
@@ -68,7 +70,7 @@ fun LogSheet(
         ) {
             // Title
             Text(
-                "Journaliser",
+                stringResource(R.string.logsheet_title),
                 style      = MaterialTheme.typography.titleLarge,
                 color      = OnSurface,
                 fontWeight = FontWeight.Bold,
@@ -84,7 +86,7 @@ fun LogSheet(
                 OutlinedTextField(
                     value         = portionText,
                     onValueChange = { portionText = it.filter { c -> c.isDigit() || c == '.' } },
-                    label         = { Text("Quantité (g)") },
+                    label         = { Text(stringResource(R.string.logsheet_quantity_label)) },
                     suffix        = { Text("g", color = OnSurface.copy(0.5f)) },
                     singleLine    = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -106,14 +108,23 @@ fun LogSheet(
             }
 
             // Quick-pick presets
+            val presetGrams = stringResource(R.string.logsheet_preset_grams, 100)
+            val presetPackage = product.weightG?.takeIf { it in 10.0..2000.0 }?.let { w ->
+                stringResource(R.string.logsheet_preset_package, w.toInt())
+            }
+            val presetHalf = product.weightG?.takeIf { it in 40.0..2000.0 }?.let { w ->
+                stringResource(R.string.logsheet_preset_half, (w / 2).toInt())
+            }
+            val preset200 = stringResource(R.string.logsheet_preset_grams, 200)
+            val preset50  = stringResource(R.string.logsheet_preset_grams, 50)
             val presets = buildList {
-                add(Pair("100 g", 100.0))
+                add(Pair(presetGrams, 100.0))
                 product.weightG?.takeIf { it in 10.0..2000.0 }?.let { w ->
-                    add(Pair("${w.toInt()} g (paquet)", w))
-                    if (w >= 40) add(Pair("${(w / 2).toInt()} g (½)", w / 2))
+                    presetPackage?.let { add(Pair(it, w)) }
+                    if (w >= 40) presetHalf?.let { add(Pair(it, w / 2)) }
                 }
-                add(Pair("200 g", 200.0))
-                add(Pair("50 g", 50.0))
+                add(Pair(preset200, 200.0))
+                add(Pair(preset50, 50.0))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 presets.take(4).forEach { (label, g) ->
@@ -131,13 +142,13 @@ fun LogSheet(
             }
 
             // Meal slot selector
-            Text("Repas", style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f))
+            Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MealSlot.entries.forEach { slot ->
                     FilterChip(
                         selected  = selectedSlot == slot,
                         onClick   = { selectedSlot = slot },
-                        label     = { Text(slot.label, fontSize = 11.sp) },
+                        label     = { Text(slot.label(), fontSize = 11.sp) },
                         colors    = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = AccentGreen.copy(0.2f),
                             selectedLabelColor     = AccentGreen,
@@ -159,18 +170,11 @@ fun LogSheet(
                 shape    = RoundedCornerShape(12.dp),
             ) {
                 Text(
-                    "Confirmer${kcalPreview?.let { " · $it kcal" } ?: ""}",
+                    kcalPreview?.let { stringResource(R.string.logsheet_confirm_with_kcal, it) } ?: stringResource(R.string.logsheet_confirm_plain),
                     color      = Color.Black,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
         }
     }
-}
-
-private val MealSlot.label: String get() = when (this) {
-    MealSlot.BREAKFAST -> "Petit-dej"
-    MealSlot.LUNCH     -> "Déjeuner"
-    MealSlot.SNACK     -> "Collation"
-    MealSlot.DINNER    -> "Dîner"
 }

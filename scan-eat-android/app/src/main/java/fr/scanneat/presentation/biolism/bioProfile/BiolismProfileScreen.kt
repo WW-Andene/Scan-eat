@@ -10,12 +10,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
 
@@ -52,27 +54,31 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
 
         if (saved.value) {
             Surface(shape = RoundedCornerShape(10.dp), color = Teal.copy(0.1f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f)), modifier = Modifier.fillMaxWidth()) {
-                Text("✓ Profil sauvegardé", modifier = Modifier.padding(12.dp), color = Teal, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.bioprofile_saved), modifier = Modifier.padding(12.dp), color = Teal, fontWeight = FontWeight.Bold)
             }
         }
 
         // ── Identity ──────────────────────────────────────────────────────────
-        ProfileSection("Identité") {
+        ProfileSection(stringResource(R.string.profile_section_identity)) {
             // Sex
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 BiolismSex.values().forEach { s ->
-                    val label = when(s) { BiolismSex.MALE -> "♂ Homme"; BiolismSex.FEMALE -> "♀ Femme"; else -> "Non précisé" }
+                    val label = when(s) {
+                        BiolismSex.MALE -> stringResource(R.string.bioprofile_sex_male)
+                        BiolismSex.FEMALE -> stringResource(R.string.bioprofile_sex_female)
+                        else -> stringResource(R.string.sex_not_specified)
+                    }
                     FilterChip(selected = sex == s, onClick = { sex = s }, label = { Text(label, fontSize = 12.sp) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold, labelColor = OnBackground.copy(0.6f)))
                 }
             }
-            BioInput("Âge (ans)", age, KeyboardType.Number) { age = it }
-            BioInput("Taille (cm)", height, KeyboardType.Decimal) { height = it }
-            BioInput("Poids (kg)", weight, KeyboardType.Decimal) { weight = it }
+            BioInput(stringResource(R.string.profile_field_age), age, KeyboardType.Number) { age = it }
+            BioInput(stringResource(R.string.profile_field_height), height, KeyboardType.Decimal) { height = it }
+            BioInput(stringResource(R.string.bioprofile_field_weight), weight, KeyboardType.Decimal) { weight = it }
         }
 
         // ── Activity ──────────────────────────────────────────────────────────
-        ProfileSection("Niveau d'activité") {
+        ProfileSection(stringResource(R.string.bioprofile_section_activity)) {
             ACTIVITY_LEVELS.forEach { lvl ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                     Column(Modifier.weight(1f)) {
@@ -87,8 +93,8 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         }
 
         // ── Ethnicity ─────────────────────────────────────────────────────────
-        ProfileSection("Origine ethnique (correction IMC/BF%)") {
-            Text("Ajuste le calcul de la masse grasse selon Deurenberg et al. 1998 et les seuils OMS 2004.",
+        ProfileSection(stringResource(R.string.bioprofile_section_ethnicity)) {
+            Text(stringResource(R.string.bioprofile_ethnicity_hint),
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
             ETHNICITY_OPTIONS.forEach { opt ->
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -104,31 +110,31 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         }
 
         // ── Circumferences ────────────────────────────────────────────────────
-        ProfileSection("Circonférences (déverrouille BF% Navy + indicateurs viscéraux)") {
-            Text("Optionnel — fournit Navy BF%, WHtR, WHR (méthode Hodgdon & Beckett 1984).",
+        ProfileSection(stringResource(R.string.bioprofile_section_circumferences)) {
+            Text(stringResource(R.string.bioprofile_circumferences_hint),
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
-            BioInput("Tour de taille (cm)", waist, KeyboardType.Decimal) { waist = it }
-            BioInput("Tour des hanches (cm) — femmes", hip, KeyboardType.Decimal) { hip = it }
-            BioInput("Tour de cou (cm)", neck, KeyboardType.Decimal) { neck = it }
+            BioInput(stringResource(R.string.bioprofile_field_waist), waist, KeyboardType.Decimal) { waist = it }
+            BioInput(stringResource(R.string.bioprofile_field_hip), hip, KeyboardType.Decimal) { hip = it }
+            BioInput(stringResource(R.string.bioprofile_field_neck), neck, KeyboardType.Decimal) { neck = it }
         }
 
         // ── Cycle (female) ────────────────────────────────────────────────────
         if (sex == BiolismSex.FEMALE) {
-            ProfileSection("Cycle menstruel (hormones phase-précises)") {
-                Text("Jour 1 = premier jour des règles. Utilisé pour modéliser E2 et progestérone selon la phase.",
+            ProfileSection(stringResource(R.string.bioprofile_section_cycle)) {
+                Text(stringResource(R.string.bioprofile_cycle_hint),
                     style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
-                BioInput("Jour du cycle (1–28)", cycleDay, KeyboardType.Number) { v -> if (v.toIntOrNull()?.let { it in 1..28 } != false) cycleDay = v }
+                BioInput(stringResource(R.string.bioprofile_field_cycle_day), cycleDay, KeyboardType.Number) { v -> if (v.toIntOrNull()?.let { it in 1..28 } != false) cycleDay = v }
                 Slider(value = (cycleDay.toIntOrNull() ?: 14).toFloat(), onValueChange = { cycleDay = it.toInt().toString() },
                     valueRange = 1f..28f, steps = 26, colors = SliderDefaults.colors(thumbColor = Gold, activeTrackColor = Gold))
                 val cd = cycleDay.toIntOrNull() ?: 14
                 val phaseLabel = when {
-                    cd <= 5  -> "Menstruelle · E2 bas ~50 pg/mL"
-                    cd <= 13 -> "Folliculaire · E2 en hausse 60–200 pg/mL"
-                    cd == 14 -> "Ovulation · pic E2 ~350 pg/mL"
-                    cd <= 21 -> "Lutéale précoce · E2 100–200 pg/mL, progest. en hausse"
-                    else     -> "Lutéale tardive · E2 et progest. en baisse"
+                    cd <= 5  -> stringResource(R.string.bioprofile_phase_menstrual)
+                    cd <= 13 -> stringResource(R.string.bioprofile_phase_follicular)
+                    cd == 14 -> stringResource(R.string.bioprofile_phase_ovulation)
+                    cd <= 21 -> stringResource(R.string.bioprofile_phase_luteal_early)
+                    else     -> stringResource(R.string.bioprofile_phase_luteal_late)
                 }
-                Text("Jour $cd : $phaseLabel", style = MaterialTheme.typography.bodySmall, color = Violet)
+                Text(stringResource(R.string.bioprofile_cycle_day_summary, cd, phaseLabel), style = MaterialTheme.typography.bodySmall, color = Violet)
             }
         }
 
@@ -152,7 +158,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             colors = ButtonDefaults.buttonColors(containerColor = Gold),
             shape = RoundedCornerShape(12.dp),
         ) {
-            Text("Sauvegarder le profil", color = Color.Black, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.bioprofile_save_button), color = Color.Black, fontWeight = FontWeight.Bold)
         }
     }
 }
