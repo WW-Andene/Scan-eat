@@ -14,11 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.*
@@ -36,9 +38,9 @@ fun RecipesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recettes", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
-                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, "Nouvelle recette", tint = AccentGreen) } },
+                title = { Text(stringResource(R.string.recipes_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentGreen) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -53,7 +55,7 @@ fun RecipesScreen(
                     Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("🍳", style = MaterialTheme.typography.displaySmall)
-                            Text("Aucune recette. Créez votre première recette multi-ingrédients.", color = OnBackground.copy(0.5f))
+                            Text(stringResource(R.string.recipes_empty_body), color = OnBackground.copy(0.5f))
                         }
                     }
                 }
@@ -77,19 +79,19 @@ private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit) 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(recipe.name, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                    Text("${recipe.totalKcal.toInt()} kcal · ${recipe.components.size} ingrédients · ${recipe.totalGrams.toInt()} g",
+                    Text(stringResource(R.string.recipes_summary, recipe.totalKcal.toInt(), recipe.components.size, recipe.totalGrams.toInt()),
                         style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                 }
                 Row {
-                    IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, "Logger", tint = AccentGreen) }
-                    IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, "Supprimer", tint = OnSurface.copy(0.4f)) }
+                    IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentGreen) }
+                    IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
                 }
             }
             recipe.components.take(3).forEach { c ->
-                Text("• ${c.productName} · ${c.grams.toInt()} g · ${c.kcal.toInt()} kcal",
+                Text(stringResource(R.string.templates_item_summary, c.productName, c.grams.toInt(), c.kcal.toInt()),
                     style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
             }
-            if (recipe.components.size > 3) Text("+ ${recipe.components.size - 3} de plus…", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
+            if (recipe.components.size > 3) Text(stringResource(R.string.templates_more_items, recipe.components.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
         }
     }
 }
@@ -105,18 +107,18 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor  = SurfaceVariant,
-        title = { Text("Nouvelle recette", color = OnBackground) },
+        title = { Text(stringResource(R.string.recipes_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nom de la recette") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
                 HorizontalDivider(color = OnBackground.copy(0.1f))
-                Text("Ingrédients", style = MaterialTheme.typography.labelMedium, color = AccentGreen)
+                Text(stringResource(R.string.recipes_ingredients_label), style = MaterialTheme.typography.labelMedium, color = AccentGreen)
                 components.forEach { c ->
-                    Text("• ${c.productName} ${c.grams.toInt()}g ${c.kcal.toInt()}kcal", style = MaterialTheme.typography.bodySmall, color = OnSurface)
+                    Text(stringResource(R.string.recipes_ingredient_summary_compact, c.productName, c.grams.toInt(), c.kcal.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(value = newIngName, onValueChange = { newIngName = it }, label = { Text("Ingrédient") }, modifier = Modifier.weight(2f), singleLine = true,
+                    OutlinedTextField(value = newIngName, onValueChange = { newIngName = it }, label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
                     OutlinedTextField(value = newIngGrams, onValueChange = { newIngGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -132,15 +134,15 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
                         components = components + RecipeComponent(newIngName, g, k)
                         newIngName = ""; newIngGrams = ""; newIngKcal = ""
                     }
-                }) { Text("+ Ajouter ingrédient", color = AccentGreen) }
+                }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentGreen) }
             }
         },
         confirmButton = {
             TextButton(onClick = { if (name.isNotBlank() && components.isNotEmpty()) onSave(name, components) }, enabled = name.isNotBlank() && components.isNotEmpty()) {
-                Text("Créer", color = AccentGreen)
+                Text(stringResource(R.string.common_create), color = AccentGreen)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler", color = OnBackground.copy(0.6f)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )
 }
 
@@ -151,22 +153,22 @@ private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealS
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
-        title = { Text("Logger « ${recipe.name} »", color = OnBackground) },
+        title = { Text(stringResource(R.string.recipes_log_dialog_title, recipe.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Repas", style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     MealSlot.values().forEach { s ->
                         FilterChip(selected = slot == s, onClick = { slot = s }, label = { Text(s.name.take(3), style = MaterialTheme.typography.labelSmall) },
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen, labelColor = OnBackground.copy(0.7f)))
                     }
                 }
-                OutlinedTextField(value = fractionText, onValueChange = { fractionText = it }, label = { Text("Portion (1.0 = entière)") }, singleLine = true,
+                OutlinedTextField(value = fractionText, onValueChange = { fractionText = it }, label = { Text(stringResource(R.string.recipes_portion_label)) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
             }
         },
-        confirmButton = { TextButton(onClick = { fractionText.toDoubleOrNull()?.let { onLog(slot, it) } }) { Text("Logger", color = AccentGreen) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler", color = OnBackground.copy(0.6f)) } },
+        confirmButton = { TextButton(onClick = { fractionText.toDoubleOrNull()?.let { onLog(slot, it) } }) { Text(stringResource(R.string.common_log), color = AccentGreen) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )
 }

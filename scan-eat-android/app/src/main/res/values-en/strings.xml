@@ -313,4 +313,18 @@
     <string name="dashboard_gap_title">Close the Gaps</string>
     <string name="dashboard_gap_entry">%1$s: −%2$s missing</string>
     <string name="dashboard_gap_suggestion">%1$s · %2$d g</string>
+
+    <!-- ── Recipes screen ─────────────────────────────────────────────────── -->
+    <string name="recipes_title">Recipes</string>
+    <string name="recipes_cd_new">New recipe</string>
+    <string name="recipes_empty_body">No recipes yet. Create your first multi-ingredient recipe.</string>
+    <string name="recipes_summary">%1$d kcal · %2$d ingredients · %3$d g</string>
+    <string name="recipes_add_dialog_title">New Recipe</string>
+    <string name="recipes_field_name">Recipe name</string>
+    <string name="recipes_ingredients_label">Ingredients</string>
+    <string name="recipes_ingredient_summary_compact">• %1$s %2$dg %3$dkcal</string>
+    <string name="recipes_field_ingredient">Ingredient</string>
+    <string name="recipes_add_ingredient_button">+ Add ingredient</string>
+    <string name="recipes_log_dialog_title">Log “%1$s”</string>
+    <string name="recipes_portion_label">Portion (1.0 = whole)</string>
 </resources>
