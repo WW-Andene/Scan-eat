@@ -62,12 +62,12 @@ fun HydrationScreen(
                 CircularProgressIndicator(
                     progress = { pct.coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFF29B6F6),
+                    color = HydrationBlue,
                     trackColor = SurfaceVariant,
                     strokeWidth = 14.dp,
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${intake.value}", style = MaterialTheme.typography.headlineLarge, color = Color(0xFF29B6F6), fontWeight = FontWeight.Bold)
+                    Text("${intake.value}", style = MaterialTheme.typography.headlineLarge, color = HydrationBlue, fontWeight = FontWeight.Bold)
                     Text("/ ${goal.value} mL", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                     Text("${glasses} / ${goalGlasses} verres", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), fontSize = 11.sp)
                 }
@@ -98,7 +98,7 @@ fun HydrationScreen(
 
                 FloatingActionButton(
                     onClick = { viewModel.addGlass() },
-                    containerColor = Color(0xFF29B6F6),
+                    containerColor = HydrationBlue,
                     shape = CircleShape,
                     modifier = Modifier.size(56.dp),
                 ) { Icon(Icons.Default.Add, "Ajouter", tint = Color.Black) }

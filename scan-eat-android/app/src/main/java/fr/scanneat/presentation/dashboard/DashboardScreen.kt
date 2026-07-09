@@ -73,7 +73,7 @@ fun DashboardScreen(
                 item {
                     StatChip(
                         icon  = Icons.Default.LocalFireDepartment,
-                        color = Color(0xFFFF6B35),
+                        color = CalorieOrange,
                         label = "${s.streak} jour${if (s.streak > 1) "s" else ""} de suite",
                     )
                 }
@@ -375,15 +375,6 @@ private fun ScanHistoryCard(scan: ScanResult) {
         }
         Text("${scan.audit.score}", style = MaterialTheme.typography.titleMedium, color = gradeColor, fontWeight = FontWeight.Bold)
     }
-}
-
-private fun gradeColor(grade: Grade): Color = when (grade) {
-    Grade.A_PLUS -> Color(0xFF4CAF50)
-    Grade.A      -> Color(0xFF8BC34A)
-    Grade.B      -> Color(0xFFCDDC39)
-    Grade.C      -> Color(0xFFFF9800)
-    Grade.D      -> Color(0xFFFF5722)
-    Grade.F      -> Color(0xFFF44336)
 }
 
 @Composable

@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -117,7 +116,3 @@ fun ScanHistoryScreen(
 
 }
 
-private fun gradeColor(grade: Grade): Color = when (grade) {
-    Grade.A_PLUS -> Color(0xFF4CAF50); Grade.A -> Color(0xFF8BC34A); Grade.B -> Color(0xFFCDDC39)
-    Grade.C -> Color(0xFFFF9800); Grade.D -> Color(0xFFFF5722); Grade.F -> Color(0xFFF44336)
-}

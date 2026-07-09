@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import fr.scanneat.domain.model.Grade
 
 // ============================================================================
 // SCAN'EAT + BIOLISM — Unified Design Token System
@@ -69,3 +70,17 @@ val IconInactive    = Color(0xFF4E5468)
 val TextSecondary   = Color(0xFF7E859E)
 val TextMuted       = Color(0xFF454A60)
 val TextLabel       = Color(0xFF5C6278)
+
+// ── Feature accents outside the Scan'eat/Biolism systems ──────────────────────
+val HydrationBlue   = Color(0xFF29B6F6)
+val CalorieOrange   = Color(0xFFFF6B35)
+
+// ── Grade → color (single source of truth — was duplicated per screen) ────────
+fun gradeColor(grade: Grade): Color = when (grade) {
+    Grade.A_PLUS -> Color(0xFF4CAF50)
+    Grade.A      -> Color(0xFF8BC34A)
+    Grade.B      -> Color(0xFFCDDC39)
+    Grade.C      -> Color(0xFFFF9800)
+    Grade.D      -> Color(0xFFFF5722)
+    Grade.F      -> Color(0xFFF44336)
+}

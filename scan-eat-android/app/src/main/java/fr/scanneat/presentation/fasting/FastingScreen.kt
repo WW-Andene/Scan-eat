@@ -52,7 +52,7 @@ fun FastingScreen(
             if (streak.value > 0) {
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Default.LocalFireDepartment, null, tint = Color(0xFFFF6B35))
+                        Icon(Icons.Default.LocalFireDepartment, null, tint = CalorieOrange)
                         Text("${streak.value} jour${if (streak.value > 1) "s" else ""} consécutifs", style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                     }
                 }
