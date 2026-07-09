@@ -4,6 +4,9 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.data.remote.api.*
 import fr.scanneat.domain.model.*
+import kotlinx.coroutines.delay
+import retrofit2.HttpException
+import java.io.IOException
 
 // ============================================================================
 // OCR PARSER — port of src/ocr-parser.ts
@@ -290,6 +293,13 @@ Output ONLY the JSON. No explanation.
             ContentPart(type = "image_url", imageUrl = ImageUrl("data:${img.mime};base64,${img.base64}"))
         } + ContentPart(type = "text", text = text)
 
+    /** Retryable: rate limiting (429), server errors (5xx), and transient network I/O failures. */
+    private fun isRetryable(err: Throwable): Boolean = when (err) {
+        is HttpException -> err.code() == 429 || err.code() in 500..599
+        is IOException    -> true
+        else              -> false
+    }
+
     private suspend fun callWithRetry(
         apiKey: String,
         primaryModel: String,
@@ -299,7 +309,7 @@ Output ONLY the JSON. No explanation.
         var lastErr: Throwable? = null
         repeat(maxRetries) { attempt ->
             val model = if (attempt == maxRetries - 1) FALLBACK_MODEL else primaryModel
-            runCatching {
+            val result = runCatching {
                 val resp = groqApi.chatCompletions(
                     auth    = "Bearer $apiKey",
                     request = ChatRequest(
@@ -307,8 +317,13 @@ Output ONLY the JSON. No explanation.
                         messages = listOf(ChatMessage(role = "user", content = content)),
                     ),
                 )
-                return resp.choices.firstOrNull()?.message?.content ?: ""
-            }.onFailure { lastErr = it }
+                resp.choices.firstOrNull()?.message?.content ?: ""
+            }
+            result.onSuccess { return it }
+            val err = result.exceptionOrNull()!!
+            lastErr = err
+            if (!isRetryable(err)) throw err
+            if (attempt < maxRetries - 1) delay(500L * (attempt + 1))
         }
         throw lastErr ?: RuntimeException("All LLM retries exhausted")
     }
