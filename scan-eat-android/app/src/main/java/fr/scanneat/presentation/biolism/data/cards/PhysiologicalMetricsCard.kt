@@ -6,9 +6,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
@@ -24,29 +26,29 @@ fun PhysiologicalMetricsCard(
     manualHR: Int?,
     onSaveManualHR: (Int) -> Unit,
 ) {
-    BioCard("Métriques physiologiques", defaultOpen = false, badge = { VioletBadge("LIVE") }) {
+    BioCard(stringResource(R.string.biolism_physio_title), defaultOpen = false, badge = { VioletBadge(stringResource(R.string.biolism_physio_badge)) }) {
         MetCellGrid(listOf(
-            Triple("V̇E (ventilation)", "%.2f L/min".format(met.vePerMin), "VO₂ / (FiO₂ − FeO₂)"),
-            Triple("FC estimée (repos)", "%.1f bpm".format(met.hrEstimated), "Fick · VS 70mL"),
-            Triple("Production ATP", "%.2f mmol/min".format(met.atpMmolPerMin), "Berg 2015"),
-            Triple("Eau métabolique", "%.3f g/min".format(met.metWaterPerMin), "Hill 2004"),
+            Triple(stringResource(R.string.biolism_physio_ve), "%.2f L/min".format(met.vePerMin), "VO₂ / (FiO₂ − FeO₂)"),
+            Triple(stringResource(R.string.biolism_physio_hr_estimated), "%.1f bpm".format(met.hrEstimated), "Fick · VS 70mL"),
+            Triple(stringResource(R.string.biolism_physio_atp_production), "%.2f mmol/min".format(met.atpMmolPerMin), "Berg 2015"),
+            Triple(stringResource(R.string.biolism_physio_metwater), "%.3f g/min".format(met.metWaterPerMin), "Hill 2004"),
         ))
-        InfoRow("Excrétion azote (N₂)", "%.4f mg/min · %.2f g/j".format(
+        InfoRow(stringResource(R.string.biolism_physio_n2_excretion), stringResource(R.string.biolism_physio_n2_value,
             met.nExcrGPerDay / 1440.0 * 1000, met.nExcrGPerDay), "", Violet)
         val estGluc = BiolismEngine.computeBloodGlucoseMmol(
             weightKg = profile.weightKg, kcalSec = met.kcalSec, carbFrac = met.sub.carbFrac,
             ketoHours = s.ketoHours, fastingHours = s.fastingHours, ketosis = s.ketosisOn,
             elapsedSec = s.elapsedMs / 1000.0,
         )
-        InfoRow("Glycémie estimée", "%.2f mmol/L".format(estGluc), "modèle cinétique simplifié · Guyton & Hall 2016",
+        InfoRow(stringResource(R.string.biolism_physio_glucose), "%.2f mmol/L".format(estGluc), stringResource(R.string.biolism_physio_glucose_sub),
             if (estGluc < 3.0) Danger else if (estGluc < 3.9) Warm else Teal)
         cum?.let { c ->
             Spacer(Modifier.height(8.dp))
             TintedPanel(Violet) {
-                Label("Cumul de session", Violet)
-                InfoRow("Eau métabolique totale", "%.3f g".format(c.metWaterTotalG), "", Teal)
-                InfoRow("ATP total", if (c.atpTotalMmol >= 1000) "%.2f mol".format(c.atpTotalMmol / 1000) else "%.2f mmol".format(c.atpTotalMmol), "", Gold)
-                InfoRow("N₂ excrété total", if (c.n2ExcretedMg >= 1000) "%.4f g".format(c.n2ExcretedMg / 1000) else "%.3f mg".format(c.n2ExcretedMg), "", Violet)
+                Label(stringResource(R.string.biolism_physio_session_cum), Violet)
+                InfoRow(stringResource(R.string.biolism_physio_metwater_total), "%.3f g".format(c.metWaterTotalG), "", Teal)
+                InfoRow(stringResource(R.string.biolism_physio_atp_total), if (c.atpTotalMmol >= 1000) "%.2f mol".format(c.atpTotalMmol / 1000) else "%.2f mmol".format(c.atpTotalMmol), "", Gold)
+                InfoRow(stringResource(R.string.biolism_physio_n2_total), if (c.n2ExcretedMg >= 1000) "%.4f g".format(c.n2ExcretedMg / 1000) else "%.3f mg".format(c.n2ExcretedMg), "", Violet)
             }
         }
 
@@ -54,21 +56,21 @@ fun PhysiologicalMetricsCard(
         Spacer(Modifier.height(8.dp))
         var hrText by remember { mutableStateOf(manualHR?.toString() ?: "") }
         TintedPanel(Violet) {
-            Label("Vérification FC (Fick)", Violet)
+            Label(stringResource(R.string.biolism_physio_hr_check_title), Violet)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = hrText, onValueChange = { hrText = it; it.toIntOrNull()?.let { bpm -> onSaveManualHR(bpm) } },
-                    label = { Text("FC repos (bpm)") }, singleLine = true,
+                    label = { Text(stringResource(R.string.biolism_physio_hr_input_label)) }, singleLine = true,
                     modifier = Modifier.width(140.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Violet, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                 )
                 manualHR?.let { mhr ->
                     val diff = mhr - met.hrEstimated
                     Column {
-                        Text("%+.1f bpm (%.0f%%)".format(diff, abs(diff) / met.hrEstimated * 100),
+                        Text(stringResource(R.string.biolism_physio_hr_diff_value, diff, abs(diff) / met.hrEstimated * 100),
                             style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold,
                             color = if (abs(diff) <= 10) Teal else if (abs(diff) <= 20) Gold else Danger)
-                        Text("VS impliqué : %.1f mL".format(met.vo2PerMin * 1000 / (mhr * 0.05)),
+                        Text(stringResource(R.string.biolism_physio_sv_implied, met.vo2PerMin * 1000 / (mhr * 0.05)),
                             style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                     }
                 }

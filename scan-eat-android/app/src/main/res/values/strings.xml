@@ -240,6 +240,26 @@
     <string name="biolism_energy_weight_impact">Impact estimé sur le poids</string>
     <string name="biolism_energy_weight_impact_sub">règle des 7700 kcal/kg · estimation informative</string>
 
+    <!-- ── Biolism: Physiological Metrics card ────────────────────────────── -->
+    <string name="biolism_physio_title">Métriques physiologiques</string>
+    <string name="biolism_physio_badge">LIVE</string>
+    <string name="biolism_physio_ve">V̇E (ventilation)</string>
+    <string name="biolism_physio_hr_estimated">FC estimée (repos)</string>
+    <string name="biolism_physio_atp_production">Production ATP</string>
+    <string name="biolism_physio_metwater">Eau métabolique</string>
+    <string name="biolism_physio_n2_excretion">Excrétion azote (N₂)</string>
+    <string name="biolism_physio_n2_value">%1$.4f mg/min · %2$.2f g/j</string>
+    <string name="biolism_physio_glucose">Glycémie estimée</string>
+    <string name="biolism_physio_glucose_sub">modèle cinétique simplifié · Guyton &amp; Hall 2016</string>
+    <string name="biolism_physio_session_cum">Cumul de session</string>
+    <string name="biolism_physio_metwater_total">Eau métabolique totale</string>
+    <string name="biolism_physio_atp_total">ATP total</string>
+    <string name="biolism_physio_n2_total">N₂ excrété total</string>
+    <string name="biolism_physio_hr_check_title">Vérification FC (Fick)</string>
+    <string name="biolism_physio_hr_input_label">FC repos (bpm)</string>
+    <string name="biolism_physio_hr_diff_value">%1$+.1f bpm (%2$.0f%%)</string>
+    <string name="biolism_physio_sv_implied">VS impliqué : %1$.1f mL</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>

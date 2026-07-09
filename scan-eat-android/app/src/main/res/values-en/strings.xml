@@ -239,6 +239,26 @@
     <string name="biolism_energy_weight_impact">Estimated weight impact</string>
     <string name="biolism_energy_weight_impact_sub">7700 kcal/kg rule · informational estimate</string>
 
+    <!-- ── Biolism: Physiological Metrics card ────────────────────────────── -->
+    <string name="biolism_physio_title">Physiological metrics</string>
+    <string name="biolism_physio_badge">LIVE</string>
+    <string name="biolism_physio_ve">V̇E (ventilation)</string>
+    <string name="biolism_physio_hr_estimated">Estimated HR (rest)</string>
+    <string name="biolism_physio_atp_production">ATP production</string>
+    <string name="biolism_physio_metwater">Metabolic water</string>
+    <string name="biolism_physio_n2_excretion">Nitrogen excretion (N₂)</string>
+    <string name="biolism_physio_n2_value">%1$.4f mg/min · %2$.2f g/day</string>
+    <string name="biolism_physio_glucose">Estimated blood glucose</string>
+    <string name="biolism_physio_glucose_sub">simplified kinetic model · Guyton &amp; Hall 2016</string>
+    <string name="biolism_physio_session_cum">Session cumulative</string>
+    <string name="biolism_physio_metwater_total">Total metabolic water</string>
+    <string name="biolism_physio_atp_total">Total ATP</string>
+    <string name="biolism_physio_n2_total">Total N₂ excreted</string>
+    <string name="biolism_physio_hr_check_title">HR check (Fick)</string>
+    <string name="biolism_physio_hr_input_label">Resting HR (bpm)</string>
+    <string name="biolism_physio_hr_diff_value">%1$+.1f bpm (%2$.0f%%)</string>
+    <string name="biolism_physio_sv_implied">Implied SV: %1$.1f mL</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>
