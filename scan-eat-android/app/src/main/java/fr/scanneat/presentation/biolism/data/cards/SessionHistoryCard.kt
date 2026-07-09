@@ -18,8 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.BiolismSession
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
@@ -31,7 +33,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
     val prRate = sessions.maxOf { it.kcalPerMin }
     var expandedId by remember { mutableStateOf<Long?>(null) }
     var confirmDeleteId by remember { mutableStateOf<Long?>(null) }
-    BioCard("Historique des sessions", defaultOpen = false, badge = { TealBadge("${sessions.size}") }) {
+    BioCard(stringResource(R.string.biolism_sesshist_title), defaultOpen = false, badge = { TealBadge("${sessions.size}") }) {
         sessions.forEach { sess ->
             val date = sess.timestamp.take(10)
             val hh   = (sess.elapsedSec / 3600).toInt()
@@ -50,13 +52,13 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
                             Text(date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                             if (sess.ketosis) {
                                 Surface(shape = RoundedCornerShape(3.dp), color = TealHaze, border = BorderStroke(1.dp, TealBorder)) {
-                                    Text("KÉTO", modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                                    Text(stringResource(R.string.biolism_sesshist_keto_badge), modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
                                         style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                                 }
                             }
-                            if (isPRKcal) Badge("Record kcal", Gold)
-                            if (isPRDur) Badge("Record durée", Violet)
-                            if (isPRRate) Badge("Record taux", Teal)
+                            if (isPRKcal) Badge(stringResource(R.string.biolism_sesshist_record_kcal), Gold)
+                            if (isPRDur) Badge(stringResource(R.string.biolism_sesshist_record_duration), Violet)
+                            if (isPRRate) Badge(stringResource(R.string.biolism_sesshist_record_rate), Teal)
                         }
                         Text("${sess.activityLabel} · $dur · ${sess.kcalBurned.toInt()} kcal",
                             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
@@ -67,29 +69,29 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text("%.4f kg".format(sess.fatLostKg), style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.SemiBold)
-                        Text("graisse perdue", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+                        Text(stringResource(R.string.biolism_sesshist_fat_lost_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
                     }
                 }
                 AnimatedVisibility(isExpanded) {
                     Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        InfoRow("Taux moyen", "%.3f kcal/min".format(sess.kcalPerMin), "", TextSecondary)
-                        InfoRow("BMR / TDEE", "%.0f / %.0f kcal/j".format(sess.bmrDay, sess.tdeeDay), "", TextSecondary)
-                        InfoRow("Poids début → fin", "%.1f → %.1f kg".format(sess.startWeightKg, sess.endWeightKg), "", TextSecondary)
-                        InfoRow("Fraction graisse", "%.0f%%".format(sess.fatFrac * 100), "", Warm)
+                        InfoRow(stringResource(R.string.biolism_sesshist_avg_rate), "%.3f kcal/min".format(sess.kcalPerMin), "", TextSecondary)
+                        InfoRow(stringResource(R.string.biolism_sesshist_bmr_tdee), stringResource(R.string.biolism_sesshist_bmr_tdee_value, sess.bmrDay, sess.tdeeDay), "", TextSecondary)
+                        InfoRow(stringResource(R.string.biolism_sesshist_weight_start_end), "%.1f → %.1f kg".format(sess.startWeightKg, sess.endWeightKg), "", TextSecondary)
+                        InfoRow(stringResource(R.string.biolism_sesshist_fat_fraction), "%.0f%%".format(sess.fatFrac * 100), "", Warm)
                         if (!isConfirm) {
                             TextButton(onClick = { confirmDeleteId = sess.id }) {
-                                Text("Supprimer", color = Danger, style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.biolism_sesshist_delete), color = Danger, style = MaterialTheme.typography.labelSmall)
                             }
                         } else {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text("Confirmer la suppression ?", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                                Text(stringResource(R.string.biolism_sesshist_confirm_delete), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
                                 TextButton(onClick = {
                                     onDelete(sess.id)
                                     confirmDeleteId = null
                                     if (expandedId == sess.id) expandedId = null
-                                }) { Text("Oui", color = Danger, fontWeight = FontWeight.Bold) }
+                                }) { Text(stringResource(R.string.biolism_sesshist_yes), color = Danger, fontWeight = FontWeight.Bold) }
                                 TextButton(onClick = { confirmDeleteId = null }) {
-                                    Text("Annuler", color = OnBackground.copy(0.5f))
+                                    Text(stringResource(R.string.biolism_sesshist_cancel), color = OnBackground.copy(0.5f))
                                 }
                             }
                         }

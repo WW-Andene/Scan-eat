@@ -346,6 +346,23 @@
     <string name="biolism_sessan_fat_oxidised_cum">Fat oxidised (cumulative)</string>
     <string name="biolism_sessan_est_weight">Estimated current weight</string>
 
+    <!-- ── Biolism: Session History card ──────────────────────────────────── -->
+    <string name="biolism_sesshist_title">Session history</string>
+    <string name="biolism_sesshist_keto_badge">KETO</string>
+    <string name="biolism_sesshist_record_kcal">Kcal record</string>
+    <string name="biolism_sesshist_record_duration">Duration record</string>
+    <string name="biolism_sesshist_record_rate">Rate record</string>
+    <string name="biolism_sesshist_fat_lost_label">fat lost</string>
+    <string name="biolism_sesshist_avg_rate">Average rate</string>
+    <string name="biolism_sesshist_bmr_tdee">BMR / TDEE</string>
+    <string name="biolism_sesshist_bmr_tdee_value">%1$.0f / %2$.0f kcal/day</string>
+    <string name="biolism_sesshist_weight_start_end">Weight start → end</string>
+    <string name="biolism_sesshist_fat_fraction">Fat fraction</string>
+    <string name="biolism_sesshist_delete">Delete</string>
+    <string name="biolism_sesshist_confirm_delete">Confirm deletion?</string>
+    <string name="biolism_sesshist_yes">Yes</string>
+    <string name="biolism_sesshist_cancel">Cancel</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>
