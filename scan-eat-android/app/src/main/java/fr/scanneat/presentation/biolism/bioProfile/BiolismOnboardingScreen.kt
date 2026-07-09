@@ -16,25 +16,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
 
 private data class OnboardStep(val icon: ImageVector, val title: String, val sub: String, val optional: Boolean = false)
 
-private val ONBOARD_STEPS = listOf(
-    OnboardStep(Icons.Default.MonitorHeart, "Bienvenue dans Biolism",
-        "Configurons ton profil en 3 étapes rapides. Ces données restent sur ton appareil et alimentent chaque calcul."),
-    OnboardStep(Icons.Default.Person, "Qui es-tu ?",
-        "Sexe et âge calibrent ta formule de BMR. Taille et poids sont les entrées principales."),
-    OnboardStep(Icons.Default.Straighten, "Mesures corporelles",
-        "Débloque le BF% Navy, le ratio taille/hanches et les indicateurs de graisse viscérale.", optional = true),
-    OnboardStep(Icons.Default.Bolt, "Niveau d'activité",
-        "À quel point es-tu actif au quotidien ? Ceci multiplie ton BMR pour estimer ta dépense totale."),
+@Composable
+private fun rememberOnboardSteps(): List<OnboardStep> = listOf(
+    OnboardStep(Icons.Default.MonitorHeart, stringResource(R.string.biolism_onboard_step0_title), stringResource(R.string.biolism_onboard_step0_sub)),
+    OnboardStep(Icons.Default.Person, stringResource(R.string.biolism_onboard_step1_title), stringResource(R.string.biolism_onboard_step1_sub)),
+    OnboardStep(Icons.Default.Straighten, stringResource(R.string.biolism_onboard_step2_title), stringResource(R.string.biolism_onboard_step2_sub), optional = true),
+    OnboardStep(Icons.Default.Bolt, stringResource(R.string.biolism_onboard_step3_title), stringResource(R.string.biolism_onboard_step3_sub)),
 )
 
 @Composable
@@ -60,7 +59,8 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
         1 -> sex != BiolismSex.NOT_SPECIFIED && age.isNotBlank() && height.isNotBlank() && weight.isNotBlank()
         else -> true
     }
-    val s = ONBOARD_STEPS[step]
+    val onboardSteps = rememberOnboardSteps()
+    val s = onboardSteps[step]
 
     Box(Modifier.fillMaxSize().background(Background), contentAlignment = Alignment.Center) {
         Surface(shape = RoundedCornerShape(20.dp), color = SurfaceVariant, modifier = Modifier.padding(20.dp).fillMaxWidth()) {
@@ -69,7 +69,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    (1 until ONBOARD_STEPS.size).forEach { i ->
+                    (1 until onboardSteps.size).forEach { i ->
                         Box(
                             Modifier.weight(1f).height(4.dp).background(
                                 when {
@@ -87,25 +87,25 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                 Text(s.title, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                 Row {
                     Text(s.sub, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
-                    if (s.optional) Text(" (optionnel)", style = MaterialTheme.typography.bodyMedium, color = Teal, fontWeight = FontWeight.Bold)
+                    if (s.optional) Text(stringResource(R.string.biolism_onboard_optional_suffix), style = MaterialTheme.typography.bodyMedium, color = Teal, fontWeight = FontWeight.Bold)
                 }
 
                 when (step) {
                     1 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(BiolismSex.MALE to "Homme", BiolismSex.FEMALE to "Femme").forEach { (v, label) ->
+                            listOf(BiolismSex.MALE to stringResource(R.string.biolism_onboard_male), BiolismSex.FEMALE to stringResource(R.string.biolism_onboard_female)).forEach { (v, label) ->
                                 FilterChip(selected = sex == v, onClick = { sex = v }, label = { Text(label) },
                                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold))
                             }
                         }
-                        OnboardField("Âge (ans)", age, KeyboardType.Number) { age = it }
-                        OnboardField("Taille (cm)", height, KeyboardType.Decimal) { height = it }
-                        OnboardField("Poids (kg)", weight, KeyboardType.Decimal) { weight = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_age_label), age, KeyboardType.Number) { age = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_height_label), height, KeyboardType.Decimal) { height = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_weight_label), weight, KeyboardType.Decimal) { weight = it }
                     }
                     2 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        OnboardField("Tour de taille (cm)", waist, KeyboardType.Decimal) { waist = it }
-                        OnboardField("Tour des hanches (cm)", hip, KeyboardType.Decimal) { hip = it }
-                        OnboardField("Tour de cou (cm)", neck, KeyboardType.Decimal) { neck = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_waist_label), waist, KeyboardType.Decimal) { waist = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_hip_label), hip, KeyboardType.Decimal) { hip = it }
+                        OnboardField(stringResource(R.string.biolism_onboard_neck_label), neck, KeyboardType.Decimal) { neck = it }
                     }
                     3 -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         ACTIVITY_LEVELS.forEach { lvl ->
@@ -129,21 +129,21 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     if (step == 0) {
                         TextButton(onClick = { viewModel.skipOnboarding() }) {
-                            Text("Passer", color = OnBackground.copy(0.5f))
+                            Text(stringResource(R.string.biolism_onboard_skip), color = OnBackground.copy(0.5f))
                         }
                     } else {
-                        TextButton(onClick = { step -= 1 }) { Text("Retour", color = OnBackground.copy(0.5f)) }
+                        TextButton(onClick = { step -= 1 }) { Text(stringResource(R.string.biolism_onboard_back), color = OnBackground.copy(0.5f)) }
                     }
                     Button(
                         onClick = {
-                            if (step < ONBOARD_STEPS.size - 1) step += 1
+                            if (step < onboardSteps.size - 1) step += 1
                             else viewModel.completeOnboarding(buildProfile())
                         },
                         enabled = canAdvance,
                         colors = ButtonDefaults.buttonColors(containerColor = Gold, disabledContainerColor = Gold.copy(0.3f)),
                         shape = RoundedCornerShape(12.dp),
                     ) {
-                        Text(if (step < ONBOARD_STEPS.size - 1) "Suivant" else "Terminer", color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text(if (step < onboardSteps.size - 1) stringResource(R.string.biolism_onboard_next) else stringResource(R.string.biolism_onboard_finish), color = Color.Black, fontWeight = FontWeight.Bold)
                     }
                 }
             }

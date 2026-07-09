@@ -308,6 +308,29 @@
     <string name="biolism_flux_gluconeogenesis">Gluconeogenesis</string>
     <string name="biolism_flux_gng_sub">%1$.0f%% of protein catabolism → GNG · Cahill 1966</string>
 
+    <!-- ── Biolism: Onboarding wizard ─────────────────────────────────────── -->
+    <string name="biolism_onboard_step0_title">Welcome to Biolism</string>
+    <string name="biolism_onboard_step0_sub">Let\'s set up your profile in 3 quick steps. This data stays on your device and feeds every calculation.</string>
+    <string name="biolism_onboard_step1_title">Who are you?</string>
+    <string name="biolism_onboard_step1_sub">Sex and age calibrate your BMR formula. Height and weight are the main inputs.</string>
+    <string name="biolism_onboard_step2_title">Body measurements</string>
+    <string name="biolism_onboard_step2_sub">Unlocks Navy BF%%, waist/hip ratio, and visceral fat indicators.</string>
+    <string name="biolism_onboard_step3_title">Activity level</string>
+    <string name="biolism_onboard_step3_sub">How active are you day to day? This multiplies your BMR to estimate total expenditure.</string>
+    <string name="biolism_onboard_optional_suffix"> (optional)</string>
+    <string name="biolism_onboard_male">Male</string>
+    <string name="biolism_onboard_female">Female</string>
+    <string name="biolism_onboard_age_label">Age (years)</string>
+    <string name="biolism_onboard_height_label">Height (cm)</string>
+    <string name="biolism_onboard_weight_label">Weight (kg)</string>
+    <string name="biolism_onboard_waist_label">Waist circumference (cm)</string>
+    <string name="biolism_onboard_hip_label">Hip circumference (cm)</string>
+    <string name="biolism_onboard_neck_label">Neck circumference (cm)</string>
+    <string name="biolism_onboard_skip">Skip</string>
+    <string name="biolism_onboard_back">Back</string>
+    <string name="biolism_onboard_next">Next</string>
+    <string name="biolism_onboard_finish">Finish</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>

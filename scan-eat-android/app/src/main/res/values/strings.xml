@@ -309,6 +309,29 @@
     <string name="biolism_flux_gluconeogenesis">Gluconéogenèse</string>
     <string name="biolism_flux_gng_sub">%1$.0f%% du catabolisme protéique → GNG · Cahill 1966</string>
 
+    <!-- ── Biolism: Onboarding wizard ─────────────────────────────────────── -->
+    <string name="biolism_onboard_step0_title">Bienvenue dans Biolism</string>
+    <string name="biolism_onboard_step0_sub">Configurons ton profil en 3 étapes rapides. Ces données restent sur ton appareil et alimentent chaque calcul.</string>
+    <string name="biolism_onboard_step1_title">Qui es-tu ?</string>
+    <string name="biolism_onboard_step1_sub">Sexe et âge calibrent ta formule de BMR. Taille et poids sont les entrées principales.</string>
+    <string name="biolism_onboard_step2_title">Mesures corporelles</string>
+    <string name="biolism_onboard_step2_sub">Débloque le BF%% Navy, le ratio taille/hanches et les indicateurs de graisse viscérale.</string>
+    <string name="biolism_onboard_step3_title">Niveau d\'activité</string>
+    <string name="biolism_onboard_step3_sub">À quel point es-tu actif au quotidien ? Ceci multiplie ton BMR pour estimer ta dépense totale.</string>
+    <string name="biolism_onboard_optional_suffix"> (optionnel)</string>
+    <string name="biolism_onboard_male">Homme</string>
+    <string name="biolism_onboard_female">Femme</string>
+    <string name="biolism_onboard_age_label">Âge (ans)</string>
+    <string name="biolism_onboard_height_label">Taille (cm)</string>
+    <string name="biolism_onboard_weight_label">Poids (kg)</string>
+    <string name="biolism_onboard_waist_label">Tour de taille (cm)</string>
+    <string name="biolism_onboard_hip_label">Tour des hanches (cm)</string>
+    <string name="biolism_onboard_neck_label">Tour de cou (cm)</string>
+    <string name="biolism_onboard_skip">Passer</string>
+    <string name="biolism_onboard_back">Retour</string>
+    <string name="biolism_onboard_next">Suivant</string>
+    <string name="biolism_onboard_finish">Terminer</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>
