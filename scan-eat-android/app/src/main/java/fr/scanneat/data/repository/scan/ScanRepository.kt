@@ -86,15 +86,20 @@ class ScanRepository @Inject constructor(
         barcode: String,
         images: List<ImagePayload> = emptyList(),
         lang: String = "fr",
+        online: Boolean = true,
     ): Result<Pair<ScanResult, Long>> = runCatching {
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
         val serverUrl = prefs.serverUrl.first()
         val model     = prefs.groqModel.first().ifBlank { DEFAULT_MODEL }
 
+        // A barcode already scanned before is served straight from the local
+        // cache — only a genuinely new lookup needs a connection, so this check
+        // happens after the cache read instead of gating every scan up front.
         getCachedByBarcode(barcode)?.let { cached ->
             return@runCatching Pair(cached, persist(cached))
         }
+        if (!online) error("Pas de connexion internet")
 
         val result = when (apiMode) {
             ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode)
@@ -106,7 +111,9 @@ class ScanRepository @Inject constructor(
     suspend fun scoreFromImages(
         images: List<ImagePayload>,
         lang: String = "fr",
+        online: Boolean = true,
     ): Result<Pair<ScanResult, Long>> = runCatching {
+        if (!online) error("Pas de connexion internet")
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
         val serverUrl = prefs.serverUrl.first()
@@ -150,6 +157,30 @@ class ScanRepository @Inject constructor(
 
     // ---- Direct mode ----
 
+    /**
+     * Looks up a barcode on OFF, retrying with the UPC-A⇄EAN-13 alternate form
+     * on a 404. Scanners hand back the code as printed (12-digit UPC-A on many
+     * North American cans, 13-digit EAN-13 elsewhere), but OFF entries are
+     * sometimes only indexed under the other form of the same GTIN — without
+     * this retry, a real product misses purely because of a leading zero.
+     */
+    private suspend fun fetchOffProduct(barcode: String): OffResponse? {
+        suspend fun lookup(code: String): OffResponse? = try {
+            offApi.getProduct(code)
+        } catch (e: HttpException) {
+            if (e.code() == 404) null else throw e
+        }
+
+        lookup(barcode)?.product?.let { return OffResponse(status = 1, product = it) }
+
+        val altBarcode = when {
+            barcode.length == 12 -> "0$barcode"
+            barcode.length == 13 && barcode.startsWith("0") -> barcode.substring(1)
+            else -> null
+        }
+        return altBarcode?.let { lookup(it) }
+    }
+
     private suspend fun scoreDirectBarcode(
         barcode: String,
         images: List<ImagePayload>,
@@ -157,11 +188,7 @@ class ScanRepository @Inject constructor(
         lang: String,
         model: String,
     ): ScanResult {
-        val offResponse = try {
-            offApi.getProduct(barcode)
-        } catch (e: HttpException) {
-            if (e.code() == 404) null else throw e
-        }
+        val offResponse = fetchOffProduct(barcode)
         val offProduct  = offResponse?.product?.let { dto ->
             mapOffProduct(OffProductResponse(
                 productName       = dto.productName,

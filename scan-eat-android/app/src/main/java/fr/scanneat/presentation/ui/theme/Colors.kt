@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import fr.scanneat.domain.model.Grade
@@ -21,10 +22,20 @@ import fr.scanneat.domain.model.Grade
 // active states. Semantic colors (Flag*, grade colors) stay a separate scale on
 // purpose — accent means "you can act here," semantic colors mean "this is good
 // or bad," and the two must never be the same hue or they stop being readable.
-val Background      = Color(0xFF0F0D12)  // near-black, faint warm-plum undertone
-val OnBackground    = Color(0xFFEFEAE6)
-val SurfaceVariant  = Color(0xFF1C1820)
-val OnSurface       = Color(0xFFCFC7CC)
+// Raw OLED literals — consumed only by Theme.kt to build the OLED color scheme
+// (can't reference MaterialTheme.colorScheme while constructing it).
+internal val OledBackgroundRaw     = Color(0xFF0F0D12)  // near-black, faint warm-plum undertone
+internal val OledOnBackgroundRaw   = Color(0xFFEFEAE6)
+internal val OledSurfaceVariantRaw = Color(0xFF1C1820)
+internal val OledOnSurfaceRaw      = Color(0xFFCFC7CC)
+
+// Theme-reactive roles. Every screen reads these instead of a fixed literal, so
+// switching OLED/Sombre/Clair in Settings actually repaints the app — previously
+// these were hardcoded OLED-black constants and the theme picker changed nothing.
+val Background:     Color @Composable get() = MaterialTheme.colorScheme.background
+val OnBackground:   Color @Composable get() = MaterialTheme.colorScheme.onBackground
+val SurfaceVariant: Color @Composable get() = MaterialTheme.colorScheme.surfaceVariant
+val OnSurface:      Color @Composable get() = MaterialTheme.colorScheme.onSurface
 
 // ── Scan'eat accent ───────────────────────────────────────────────────────────
 val AccentGreen     = Color(0xFFD97C56)  // sober warm coral — the app's one brand accent
@@ -94,7 +105,9 @@ private val NormalGradeColors = mapOf(
     Grade.D      to Color(0xFFFF5722),
     Grade.F      to Color(0xFFF44336),
 )
-private val ColorblindSafeGradeColors = mapOf(
+// Safe for protanopia/deuteranopia (red-green confusion): diverges on the
+// blue↔orange/brown axis instead, which that pair of deficiencies still sees fine.
+private val ProtanDeuteranSafeGradeColors = mapOf(
     Grade.A_PLUS to Color(0xFF0072B2),
     Grade.A      to Color(0xFF56B4E9),
     Grade.B      to Color(0xFFE6C619),
@@ -103,8 +116,24 @@ private val ColorblindSafeGradeColors = mapOf(
     Grade.F      to Color(0xFF8B2E00),
 )
 
+// Safe for tritanopia (blue-yellow confusion) — the blue/orange scale above is
+// one of the worst choices here since it sits right on the confused axis. This
+// scale stays on teal↔red instead, which tritanopia leaves largely intact.
+private val TritanopiaSafeGradeColors = mapOf(
+    Grade.A_PLUS to Color(0xFF0B7A75),
+    Grade.A      to Color(0xFF4FB3AC),
+    Grade.B      to Color(0xFFB5B5B5),
+    Grade.C      to Color(0xFFE8998D),
+    Grade.D      to Color(0xFFD45D5D),
+    Grade.F      to Color(0xFFA62B2B),
+)
+
 @Composable
 fun gradeColor(grade: Grade): Color {
-    val palette = if (LocalColorblindMode.current == "none") NormalGradeColors else ColorblindSafeGradeColors
+    val palette = when (LocalColorblindMode.current) {
+        "protanopia", "deuteranopia" -> ProtanDeuteranSafeGradeColors
+        "tritanopia"                 -> TritanopiaSafeGradeColors
+        else                         -> NormalGradeColors
+    }
     return palette.getValue(grade)
 }

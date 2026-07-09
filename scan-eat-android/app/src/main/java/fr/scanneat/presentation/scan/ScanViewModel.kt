@@ -74,19 +74,20 @@ class ScanViewModel @Inject constructor(
             _state.value = ScanUiState.Error("Scannez un code-barres ou prenez une photo")
             return
         }
-        if (!isOnline()) {
-            _state.value = ScanUiState.Error("Pas de connexion internet")
-            return
-        }
         if (!scoreMutex.tryLock()) return   // already scoring — ignore double-tap
         viewModelScope.launch {
             try {
                 _state.value = ScanUiState.Scanning
                 val lang   = prefs.language.first()    // Fix 15/21: thread language into scan
+                val online = isOnline()
+                // A barcode already scanned before is served from the local cache
+                // and needs no connection — only a real lookup requires one, so
+                // the connectivity check happens inside the repo, after the cache
+                // read, instead of blocking every scan up front.
                 val result = if (barcode != null) {
-                    scanRepo.scoreBarcode(barcode, imgs, lang)
+                    scanRepo.scoreBarcode(barcode, imgs, lang, online)
                 } else {
-                    scanRepo.scoreFromImages(imgs, lang)
+                    scanRepo.scoreFromImages(imgs, lang, online)
                 }
                 result.fold(
                     onSuccess = { (scanResult, id) -> _state.value = ScanUiState.Success(scanResult, id) },

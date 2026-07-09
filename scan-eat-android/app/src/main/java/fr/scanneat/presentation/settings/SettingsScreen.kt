@@ -206,7 +206,7 @@ fun SettingsScreen(
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(stringResource(R.string.settings_colorblind_mode), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(
                         "none" to stringResource(R.string.settings_colorblind_none),
                         "deuteranopia" to stringResource(R.string.settings_colorblind_deuteranopia),
@@ -216,7 +216,7 @@ fun SettingsScreen(
                         FilterChip(
                             selected = colorblindMode.value == key,
                             onClick  = { viewModel.setColorblindMode(key) },
-                            label    = { Text(label) },
+                            label    = { Text(label, maxLines = 1) },
                             colors   = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                             ),

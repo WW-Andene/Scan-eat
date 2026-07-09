@@ -97,7 +97,12 @@ private fun parseWeightG(quantity: String?): Double? {
  * Pure function — no network, no side effects.
  */
 fun mapOffProduct(off: OffProductResponse): Product? {
-    val nm = off.nutriments ?: return null
+    // A missing/empty nutriments table doesn't mean the product wasn't found —
+    // plenty of real, well-known OFF entries (this is what broke plain sodas
+    // like Coca-Cola) only have name/brand filled in. Treat it as zero rather
+    // than aborting the whole lookup; isOffSparse() below will flag it for the
+    // photo/LLM fallback instead of forcing a false "product not found".
+    val nm = off.nutriments ?: emptyMap()
     val name = (off.productNameFr ?: off.productName ?: off.genericNameFr ?: "").trim()
         .takeIf { it.isNotEmpty() } ?: return null
 
@@ -164,12 +169,11 @@ fun isOffSparse(p: Product): Boolean {
     val hasNutrition   = n.energyKcal > 0 || n.proteinG > 0 || n.carbsG > 0
     val hasIngredients = p.ingredients.size >= 3
     val hasCategory    = p.category != ProductCategory.OTHER
-    val hasMicros = listOfNotNull(
-        n.ironMg, n.calciumMg, n.magnesiumMg, n.potassiumMg, n.zincMg,
-        n.vitAUg, n.vitCMg, n.vitDUg, n.vitEMg, n.vitKUg,
-        n.b12Ug,
-    ).any { it > 0 }
-    return !hasNutrition || !hasIngredients || !hasCategory || !hasMicros
+    // Micronutrients are legitimately absent from most nutrition-facts panels
+    // (a can of soda reporting zero vitamins isn't "sparse data", it's correct)
+    // so their absence no longer counts against a product — this was flagging
+    // almost every packaged product as sparse and forcing needless LLM merges.
+    return !hasNutrition || !hasIngredients || !hasCategory
 }
 
 // ============================================================================

@@ -8,8 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import fr.scanneat.R
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Color schemes
@@ -21,12 +24,12 @@ private val OledColors = darkColorScheme(
     secondary        = AccentGreen,
     onSecondary      = Color.Black,
     tertiary         = Teal,
-    background       = Background,
-    onBackground     = OnBackground,
-    surface          = SurfaceVariant,
-    onSurface        = OnSurface,
-    surfaceVariant   = SurfaceVariant,
-    onSurfaceVariant = OnSurface,
+    background       = OledBackgroundRaw,
+    onBackground     = OledOnBackgroundRaw,
+    surface          = OledSurfaceVariantRaw,
+    onSurface        = OledOnSurfaceRaw,
+    surfaceVariant   = OledSurfaceVariantRaw,
+    onSurfaceVariant = OledOnSurfaceRaw,
     error            = FlagRed,
     onError          = Color.White,
     errorContainer   = Color(0x26EF5350),
@@ -81,28 +84,36 @@ private val LightGoldAccent = Color(0xFF8B6914)
 /** "none" | "deuteranopia" | "protanopia" | "tritanopia" — read by gradeColor() and friends. */
 val LocalColorblindMode = staticCompositionLocalOf { "none" }
 
+// OpenDyslexic (SIL OFL 1.1, https://opendyslexic.org) — the actual dyslexia
+// typeface, not just a spacing tweak on the default font. Weighted-bottom
+// letterforms are the whole point: switching it on must look like a different
+// font, not just bolder text in the same one.
+private val OpenDyslexicFontFamily = FontFamily(
+    Font(R.font.open_dyslexic_regular, FontWeight.Normal),
+    Font(R.font.open_dyslexic_bold, FontWeight.Bold),
+)
+
 /**
- * Wider letter/word spacing, taller lines, and a slightly heavier weight —
- * all measurable dyslexia accommodations even without a specialty typeface.
- * Deliberately strong enough to be obvious the instant it's toggled, not a
- * barely-there tweak: the whole point is the user can tell it's working.
+ * Real typeface swap plus wider letter/word spacing and taller lines — all
+ * measurable dyslexia accommodations. Deliberately strong enough to be obvious
+ * the instant it's toggled, not a barely-there tweak.
  */
 private fun Typography.withDyslexicSpacing(): Typography = copy(
-    displayLarge   = displayLarge.copy(letterSpacing = 1.2.sp, lineHeight = displayLarge.lineHeight * 1.35f),
-    displayMedium  = displayMedium.copy(letterSpacing = 1.2.sp, lineHeight = displayMedium.lineHeight * 1.35f),
-    displaySmall   = displaySmall.copy(letterSpacing = 1.2.sp, lineHeight = displaySmall.lineHeight * 1.35f),
-    headlineLarge  = headlineLarge.copy(letterSpacing = 1.0.sp, lineHeight = headlineLarge.lineHeight * 1.35f),
-    headlineMedium = headlineMedium.copy(letterSpacing = 1.0.sp, lineHeight = headlineMedium.lineHeight * 1.35f, fontWeight = FontWeight.Black),
-    headlineSmall  = headlineSmall.copy(letterSpacing = 1.0.sp, lineHeight = headlineSmall.lineHeight * 1.35f),
-    titleLarge     = titleLarge.copy(letterSpacing = 0.8.sp, lineHeight = titleLarge.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
-    titleMedium    = titleMedium.copy(letterSpacing = 0.8.sp, lineHeight = titleMedium.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
-    titleSmall     = titleSmall.copy(letterSpacing = 0.8.sp, lineHeight = titleSmall.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
-    bodyLarge      = bodyLarge.copy(letterSpacing = 1.0.sp, lineHeight = bodyLarge.lineHeight * 1.45f, fontSize = bodyLarge.fontSize * 1.08f),
-    bodyMedium     = bodyMedium.copy(letterSpacing = 1.0.sp, lineHeight = bodyMedium.lineHeight * 1.45f, fontSize = bodyMedium.fontSize * 1.08f),
-    bodySmall      = bodySmall.copy(letterSpacing = 0.9.sp, lineHeight = bodySmall.lineHeight * 1.45f, fontSize = bodySmall.fontSize * 1.08f),
-    labelLarge     = labelLarge.copy(letterSpacing = 0.8.sp, lineHeight = labelLarge.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
-    labelMedium    = labelMedium.copy(letterSpacing = 0.8.sp, lineHeight = labelMedium.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
-    labelSmall     = labelSmall.copy(letterSpacing = 0.7.sp, lineHeight = labelSmall.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    displayLarge   = displayLarge.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 1.2.sp, lineHeight = displayLarge.lineHeight * 1.35f),
+    displayMedium  = displayMedium.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 1.2.sp, lineHeight = displayMedium.lineHeight * 1.35f),
+    displaySmall   = displaySmall.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 1.2.sp, lineHeight = displaySmall.lineHeight * 1.35f),
+    headlineLarge  = headlineLarge.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 1.0.sp, lineHeight = headlineLarge.lineHeight * 1.35f),
+    headlineMedium = headlineMedium.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 1.0.sp, lineHeight = headlineMedium.lineHeight * 1.35f, fontWeight = FontWeight.Black),
+    headlineSmall  = headlineSmall.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 1.0.sp, lineHeight = headlineSmall.lineHeight * 1.35f),
+    titleLarge     = titleLarge.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 0.8.sp, lineHeight = titleLarge.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    titleMedium    = titleMedium.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 0.8.sp, lineHeight = titleMedium.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    titleSmall     = titleSmall.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 0.8.sp, lineHeight = titleSmall.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    bodyLarge      = bodyLarge.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 1.0.sp, lineHeight = bodyLarge.lineHeight * 1.45f, fontSize = bodyLarge.fontSize * 1.08f),
+    bodyMedium     = bodyMedium.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 1.0.sp, lineHeight = bodyMedium.lineHeight * 1.45f, fontSize = bodyMedium.fontSize * 1.08f),
+    bodySmall      = bodySmall.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 0.9.sp, lineHeight = bodySmall.lineHeight * 1.45f, fontSize = bodySmall.fontSize * 1.08f),
+    labelLarge     = labelLarge.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 0.8.sp, lineHeight = labelLarge.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    labelMedium    = labelMedium.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 0.8.sp, lineHeight = labelMedium.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
+    labelSmall     = labelSmall.copy(fontFamily = OpenDyslexicFontFamily, letterSpacing = 0.7.sp, lineHeight = labelSmall.lineHeight * 1.35f, fontWeight = FontWeight.Bold),
 )
 
 /**
