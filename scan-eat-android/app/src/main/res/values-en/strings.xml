@@ -331,6 +331,21 @@
     <string name="biolism_onboard_next">Next</string>
     <string name="biolism_onboard_finish">Finish</string>
 
+    <!-- ── Biolism: Session Analytics card ────────────────────────────────── -->
+    <string name="biolism_sessan_trend_loss">↓ loss</string>
+    <string name="biolism_sessan_trend_gain">↑ gain</string>
+    <string name="biolism_sessan_trend_stable">→ stable</string>
+    <string name="biolism_sessan_title">Session analytics</string>
+    <string name="biolism_sessan_badge">%1$d SESSIONS</string>
+    <string name="biolism_sessan_avg_rate">Average rate</string>
+    <string name="biolism_sessan_fat_lost">Cumulative fat lost</string>
+    <string name="biolism_sessan_weight_delta">Δ weight (last session)</string>
+    <string name="biolism_sessan_best_efficiency">Best efficiency</string>
+    <string name="biolism_sessan_efficiency_chart">Session efficiency — last %1$d</string>
+    <string name="biolism_sessan_body_comp_trend">Body composition trend</string>
+    <string name="biolism_sessan_fat_oxidised_cum">Fat oxidised (cumulative)</string>
+    <string name="biolism_sessan_est_weight">Estimated current weight</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>

@@ -6,7 +6,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.BiolismSession
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
@@ -29,23 +31,25 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
     val prevFatLost = if (compHistory.size >= 2) compHistory[compHistory.size - 2] else null
     val sessionDelta = if (prevFatLost != null) latestFatLost - prevFatLost else latestFatLost
     val deltaColor = if (sessionDelta > 0.0005) Teal else if (sessionDelta < -0.0005) Severe else TextSecondary
-    val trendLabel = if (sessionDelta > 0.0005) "↓ perte" else if (sessionDelta < -0.0005) "↑ gain" else "→ stable"
+    val trendLabel = if (sessionDelta > 0.0005) stringResource(R.string.biolism_sessan_trend_loss)
+        else if (sessionDelta < -0.0005) stringResource(R.string.biolism_sessan_trend_gain)
+        else stringResource(R.string.biolism_sessan_trend_stable)
     val weightDelta = latestWeight - currentWeightKg
 
-    BioCard("Analyse des sessions", defaultOpen = false, badge = { TealBadge("${sessions.size} SESSIONS") }) {
+    BioCard(stringResource(R.string.biolism_sessan_title), defaultOpen = false, badge = { TealBadge(stringResource(R.string.biolism_sessan_badge, sessions.size)) }) {
         MetCellGrid(
             listOf(
-                Triple("Taux moyen", "%.3f kcal/min".format(avgBurnRate), ""),
-                Triple("Graisse cumulée perdue", if (totalFatLostKg >= 0.01) "%.3f kg".format(totalFatLostKg) else "%.2f g".format(totalFatLostKg * 1000), ""),
-                Triple("Δ poids (dernière session)", "%s%.1f g".format(if (weightDelta > 0) "+" else "", weightDelta * 1000), trendLabel),
-                Triple("Meilleure efficacité", "%.3f kcal/min".format(effMax), ""),
+                Triple(stringResource(R.string.biolism_sessan_avg_rate), "%.3f kcal/min".format(avgBurnRate), ""),
+                Triple(stringResource(R.string.biolism_sessan_fat_lost), if (totalFatLostKg >= 0.01) "%.3f kg".format(totalFatLostKg) else "%.2f g".format(totalFatLostKg * 1000), ""),
+                Triple(stringResource(R.string.biolism_sessan_weight_delta), "%s%.1f g".format(if (weightDelta > 0) "+" else "", weightDelta * 1000), trendLabel),
+                Triple(stringResource(R.string.biolism_sessan_best_efficiency), "%.3f kcal/min".format(effMax), ""),
             ),
             accents = listOf(TextSecondary, Teal, deltaColor, Gold),
         )
 
         if (effScores.size > 1) {
             Spacer(Modifier.height(10.dp))
-            Label("Efficacité de session — ${effScores.size} dernières", OnBackground.copy(0.4f))
+            Label(stringResource(R.string.biolism_sessan_efficiency_chart, effScores.size), OnBackground.copy(0.4f))
             Row(Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.Bottom) {
                 effScores.forEachIndexed { i, score ->
                     val isLast = i == effScores.size - 1
@@ -59,7 +63,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
         if (compHistory.size > 1) {
             Spacer(Modifier.height(10.dp))
             TintedPanel(Violet) {
-                Label("Tendance composition corporelle", Violet)
+                Label(stringResource(R.string.biolism_sessan_body_comp_trend), Violet)
                 val last8 = compHistory.takeLast(8)
                 val maxFat = (last8.maxOrNull() ?: 0.001).coerceAtLeast(0.001)
                 Row(Modifier.fillMaxWidth().height(36.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.Bottom) {
@@ -70,8 +74,8 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                InfoRow("Graisse oxydée (cumul)", "%.1f g".format(totalFatLostKg * 1000), "", Teal)
-                InfoRow("Poids estimé actuel", "%.3f kg".format(latestWeight), "", deltaColor)
+                InfoRow(stringResource(R.string.biolism_sessan_fat_oxidised_cum), "%.1f g".format(totalFatLostKg * 1000), "", Teal)
+                InfoRow(stringResource(R.string.biolism_sessan_est_weight), "%.3f kg".format(latestWeight), "", deltaColor)
             }
         }
     }
