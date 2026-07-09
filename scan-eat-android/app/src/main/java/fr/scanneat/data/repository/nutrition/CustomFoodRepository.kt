@@ -1,7 +1,6 @@
 package fr.scanneat.data.repository.nutrition
 
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.squareup.moshi.JsonClass
 import fr.scanneat.data.local.db.customfood.CustomFoodDao
 import fr.scanneat.data.local.db.customfood.CustomFoodEntity
@@ -24,7 +23,10 @@ import javax.inject.Singleton
 // ============================================================================
 
 @Singleton
-class CustomFoodRepository @Inject constructor(private val dao: CustomFoodDao) {
+class CustomFoodRepository @Inject constructor(
+    private val dao: CustomFoodDao,
+    private val moshi: Moshi,
+) {
 
     fun observeAll(profileId: String = "default"): Flow<List<FoodEntry>> =
         dao.observeAll(profileId).map { list -> list.map { it.toFoodEntry() } }
@@ -115,10 +117,7 @@ class CustomFoodRepository @Inject constructor(private val dao: CustomFoodDao) {
         val aliases: List<String> = emptyList(),
     )
 
-    private val jsonAdapter = Moshi.Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
-        .adapter(CustomFoodJson::class.java)
+    private val jsonAdapter = moshi.adapter(CustomFoodJson::class.java)
 
     private fun CustomFoodEntity.toFoodEntry(): FoodEntry {
         val j = runCatching { jsonAdapter.fromJson(nutritionJson) }.getOrNull()

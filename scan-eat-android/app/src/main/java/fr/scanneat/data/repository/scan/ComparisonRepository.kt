@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.domain.model.ScoreAudit
@@ -58,9 +57,9 @@ data class ComparisonResult(
 @Singleton
 class ComparisonRepository @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val moshi: Moshi,
 ) {
     private val store = context.comparisonDataStore
-    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     private val snapshotAdapter = moshi.adapter(ScoreSnapshot::class.java)
 
     /** True when a comparison is armed AND within the 24 h TTL. */

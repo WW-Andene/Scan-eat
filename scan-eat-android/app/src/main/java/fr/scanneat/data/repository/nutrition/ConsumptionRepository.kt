@@ -34,6 +34,11 @@ class ConsumptionRepository @Inject constructor(
         dao.insert(entry.toEntity())
     }
 
+    /** Atomic multi-entry write — use when logging a template or recipe that expands to several entries. */
+    suspend fun logAll(entries: List<DiaryEntry>) {
+        dao.insertAll(entries.map { it.toEntity() })
+    }
+
     suspend fun update(entry: DiaryEntry) {
         dao.update(entry.toEntity())
     }

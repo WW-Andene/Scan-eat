@@ -21,6 +21,10 @@ interface ConsumptionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ConsumptionEntity): Long
 
+    /** Room wraps a multi-row @Insert in a single transaction automatically. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<ConsumptionEntity>): List<Long>
+
     @Update
     suspend fun update(entity: ConsumptionEntity)
 

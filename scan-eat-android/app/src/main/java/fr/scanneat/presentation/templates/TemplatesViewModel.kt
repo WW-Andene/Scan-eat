@@ -24,7 +24,7 @@ class TemplatesViewModel @Inject constructor(
 
     fun logTemplate(template: MealTemplate, date: LocalDate = LocalDate.now(), mealOverride: MealSlot? = null) {
         viewModelScope.launch {
-            repo.expand(template, date, mealOverride).forEach { consumptionRepo.log(it) }
+            consumptionRepo.logAll(repo.expand(template, date, mealOverride))
         }
     }
 }
