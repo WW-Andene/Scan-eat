@@ -22,8 +22,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
-import fr.scanneat.domain.engine.nutrition.DEFAULT_MODEL
-import fr.scanneat.domain.engine.nutrition.FALLBACK_MODEL
+import fr.scanneat.data.repository.scan.DEFAULT_MODEL
+import fr.scanneat.data.repository.scan.FALLBACK_MODEL
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
 

@@ -5,7 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import fr.scanneat.data.remote.api.GroqApi
-import fr.scanneat.domain.engine.nutrition.OcrParser
+import fr.scanneat.data.repository.scan.OcrParser
 import javax.inject.Singleton
 
 @Module

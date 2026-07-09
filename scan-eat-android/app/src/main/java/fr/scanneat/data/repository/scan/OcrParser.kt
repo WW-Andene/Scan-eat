@@ -1,4 +1,4 @@
-package fr.scanneat.domain.engine.nutrition
+package fr.scanneat.data.repository.scan
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -11,6 +11,9 @@ import fr.scanneat.domain.model.*
 // Vision LLM (Groq Llama 4 Scout) reads packaging image → draft Product
 // → deterministic post-processor re-validates percentages, E-numbers,
 // whole-food flags, generic oils, hidden sugars.
+//
+// Lives in data/ (not domain/) — it performs network I/O against GroqApi,
+// which is data-layer behavior; the domain layer must stay pure.
 // ============================================================================
 
 const val DEFAULT_MODEL   = "meta-llama/llama-4-scout-17b-16e-instruct"
