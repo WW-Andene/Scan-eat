@@ -24,6 +24,7 @@ fun MainShell(startOnboarding: Boolean = false) {
 
     Scaffold(
         containerColor = Background,
+        contentWindowInsets = WindowInsets.systemBars,
         bottomBar = {
             AnimatedVisibility(visible = showNav, enter = fadeIn(), exit = fadeOut()) {
                 NavigationBar(

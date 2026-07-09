@@ -4,33 +4,40 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import dagger.hilt.android.AndroidEntryPoint
-import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.presentation.shell.MainShell
 import fr.scanneat.presentation.ui.theme.ScanEatTheme
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject lateinit var prefs: UserPreferences
+    private val splashViewModel: SplashViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Single blocking read on first frame — determines start destination only
-        val apiKey    = runBlocking { prefs.groqApiKey.first() }
-        val serverUrl = runBlocking { prefs.serverUrl.first() }
-        val needsOnboarding = apiKey.isBlank() && serverUrl.isBlank()
+        splashScreen.setKeepOnScreenCondition { !splashViewModel.ready.value }
 
         setContent {
-            val theme = prefs.theme.collectAsState(initial = "oled").value
-            ScanEatTheme(theme = theme) {
-                MainShell(startOnboarding = needsOnboarding)
+            val ready = splashViewModel.ready.collectAsState().value
+            if (ready) {
+                val theme = splashViewModel.theme.collectAsState().value
+                SideEffect {
+                    val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                    insetsController.isAppearanceLightStatusBars = theme == "light"
+                    insetsController.isAppearanceLightNavigationBars = theme == "light"
+                }
+
+                ScanEatTheme(theme = theme) {
+                    MainShell(startOnboarding = splashViewModel.needsOnboarding)
+                }
             }
         }
     }

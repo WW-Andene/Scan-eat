@@ -1,7 +1,14 @@
 package fr.scanneat.presentation.shell
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,6 +43,10 @@ fun AppNavGraph(
         navController    = navController,
         startDestination = startDestination,
         modifier         = modifier,
+        enterTransition  = { if (isTabSwitch()) fadeIn(tween(200)) else slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+        exitTransition   = { if (isTabSwitch()) fadeOut(tween(200)) else slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) },
+        popEnterTransition = { if (isTabSwitch()) fadeIn(tween(200)) else slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300)) },
+        popExitTransition  = { if (isTabSwitch()) fadeOut(tween(200)) else slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)) },
     ) {
         // ── Onboarding ────────────────────────────────────────────────────
         composable(AppRoutes.ONBOARDING) {
@@ -115,3 +126,7 @@ fun AppNavGraph(
         }
     }
 }
+
+/** Tab-root ↔ tab-root switches use fade-through; everything else is a peer-level push/pop (slide). */
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.isTabSwitch(): Boolean =
+    initialState.destination.route in TAB_ROOT_ROUTES && targetState.destination.route in TAB_ROOT_ROUTES

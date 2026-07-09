@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.scan
 
 import android.graphics.Bitmap
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,6 +32,7 @@ sealed class ScanUiState {
 class ScanViewModel @Inject constructor(
     private val scanRepo: ScanRepository,
     private val prefs: UserPreferences,       // Fix 15/21: read language from preferences
+    private val connectivityManager: ConnectivityManager,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
@@ -70,6 +73,10 @@ class ScanViewModel @Inject constructor(
             _state.value = ScanUiState.Error("Scannez un code-barres ou prenez une photo")
             return
         }
+        if (!isOnline()) {
+            _state.value = ScanUiState.Error("Pas de connexion internet")
+            return
+        }
         if (!scoreMutex.tryLock()) return   // already scoring — ignore double-tap
         viewModelScope.launch {
             try {
@@ -91,6 +98,12 @@ class ScanViewModel @Inject constructor(
     }
 
     fun dismissError() { _state.value = ScanUiState.Idle }
+
+    private fun isOnline(): Boolean {
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
 
     private fun Bitmap.toPayload(): ImagePayload {
         val out = ByteArrayOutputStream()

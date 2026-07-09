@@ -69,6 +69,7 @@ dependencies {
 
     // Core
     implementation(libs.core.ktx)
+    implementation(libs.core.splashscreen)
 
     // Compose
     implementation(platform(libs.compose.bom))
