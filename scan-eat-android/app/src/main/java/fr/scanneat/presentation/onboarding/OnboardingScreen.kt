@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -16,6 +17,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.presentation.ui.theme.*
@@ -61,9 +63,9 @@ fun OnboardingScreen(
                 // ---- Page 0: Welcome ----
                 0 -> {
                     Text("🥦", fontSize = 64.sp)
-                    Text("Scan'eat", style = MaterialTheme.typography.headlineLarge, color = OnBackground, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                     Text(
-                        "Scannez un code-barres ou photographiez une étiquette pour obtenir un score nutritionnel 0–100 basé sur la composition réelle du produit.",
+                        stringResource(R.string.onboarding_welcome_body),
                         style = MaterialTheme.typography.bodyMedium,
                         color = OnBackground.copy(0.7f),
                         textAlign = TextAlign.Center,
@@ -74,28 +76,28 @@ fun OnboardingScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
                         shape = RoundedCornerShape(12.dp),
-                    ) { Text("Commencer", color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.onboarding_start_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
                 }
 
                 // ---- Page 1: API mode ----
                 1 -> {
-                    Text("Configuration", style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.onboarding_config_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
                     Text(
-                        "Scan'eat utilise un modèle de vision par IA pour lire les étiquettes. Choisissez comment l'appeler :",
+                        stringResource(R.string.onboarding_config_body),
                         style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.7f), textAlign = TextAlign.Center,
                     )
 
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         ModeCard(
                             selected  = selectedMode == ApiMode.DIRECT,
-                            title     = "Mode Direct",
-                            subtitle  = "Votre clé Groq (gratuite). Données traitées par Groq.",
+                            title     = stringResource(R.string.onboarding_mode_direct_title),
+                            subtitle  = stringResource(R.string.onboarding_mode_direct_subtitle),
                             onClick   = { selectedMode = ApiMode.DIRECT },
                         )
                         ModeCard(
                             selected  = selectedMode == ApiMode.SERVER,
-                            title     = "Mode Serveur",
-                            subtitle  = "Votre propre backend Ktor. Aucune donnée ne quitte votre infrastructure.",
+                            title     = stringResource(R.string.onboarding_mode_server_title),
+                            subtitle  = stringResource(R.string.onboarding_mode_server_subtitle),
                             onClick   = { selectedMode = ApiMode.SERVER },
                         )
                     }
@@ -103,16 +105,16 @@ fun OnboardingScreen(
                     if (selectedMode == ApiMode.DIRECT) {
                         OutlinedTextField(
                             value = apiKey, onValueChange = { apiKey = it },
-                            label = { Text("Clé Groq (gsk_…)") },
+                            label = { Text(stringResource(R.string.onboarding_api_key_label)) },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                             shape = RoundedCornerShape(12.dp),
                         )
-                        Text("Clé gratuite sur console.groq.com", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+                        Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                     } else {
                         OutlinedTextField(
                             value = serverUrl, onValueChange = { serverUrl = it },
-                            label = { Text("URL du serveur") },
+                            label = { Text(stringResource(R.string.settings_server_url)) },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                             shape = RoundedCornerShape(12.dp),
@@ -132,14 +134,14 @@ fun OnboardingScreen(
                                   (selectedMode == ApiMode.SERVER && serverUrl.isNotBlank()),
                         colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
                         shape = RoundedCornerShape(12.dp),
-                    ) { Text("Continuer", color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.onboarding_continue_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
                 }
 
                 // ---- Page 2: Profile prompt ----
                 2 -> {
-                    Text("Personnalisation", style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.onboarding_profile_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
                     Text(
-                        "Complétez votre profil (sexe, âge, poids, régime, allergènes) pour obtenir un score personnel adapté à vos besoins nutritionnels. Vous pouvez le faire plus tard dans l'onglet Profil.",
+                        stringResource(R.string.onboarding_profile_body),
                         style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.7f), textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.weight(1f))
@@ -149,11 +151,11 @@ fun OnboardingScreen(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
                             shape = RoundedCornerShape(12.dp),
-                        ) { Text("Configurer mon profil maintenant", color = Color.Black, fontWeight = FontWeight.SemiBold) }
+                        ) { Text(stringResource(R.string.onboarding_profile_cta), color = Color.Black, fontWeight = FontWeight.SemiBold) }
                         TextButton(
                             onClick = { viewModel.finish() },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text("Passer, configurer plus tard", color = OnBackground.copy(0.5f)) }
+                        ) { Text(stringResource(R.string.onboarding_profile_skip), color = OnBackground.copy(0.5f)) }
                     }
                 }
             }

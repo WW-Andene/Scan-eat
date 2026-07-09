@@ -210,4 +210,21 @@
     <string name="diary_macro_carbs">Glucides</string>
     <string name="diary_macro_fat">Lipides</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
+
+    <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
+    <string name="onboarding_welcome_body">Scannez un code-barres ou photographiez une étiquette pour obtenir un score nutritionnel 0–100 basé sur la composition réelle du produit.</string>
+    <string name="onboarding_start_button">Commencer</string>
+    <string name="onboarding_config_title">Configuration</string>
+    <string name="onboarding_config_body">Scan\'eat utilise un modèle de vision par IA pour lire les étiquettes. Choisissez comment l\'appeler :</string>
+    <string name="onboarding_mode_direct_title">Mode Direct</string>
+    <string name="onboarding_mode_direct_subtitle">Votre clé Groq (gratuite). Données traitées par Groq.</string>
+    <string name="onboarding_mode_server_title">Mode Serveur</string>
+    <string name="onboarding_mode_server_subtitle">Votre propre backend Ktor. Aucune donnée ne quitte votre infrastructure.</string>
+    <string name="onboarding_api_key_label">Clé Groq (gsk_…)</string>
+    <string name="onboarding_api_key_hint">Clé gratuite sur console.groq.com</string>
+    <string name="onboarding_continue_button">Continuer</string>
+    <string name="onboarding_profile_title">Personnalisation</string>
+    <string name="onboarding_profile_body">Complétez votre profil (sexe, âge, poids, régime, allergènes) pour obtenir un score personnel adapté à vos besoins nutritionnels. Vous pouvez le faire plus tard dans l\'onglet Profil.</string>
+    <string name="onboarding_profile_cta">Configurer mon profil maintenant</string>
+    <string name="onboarding_profile_skip">Passer, configurer plus tard</string>
 </resources>

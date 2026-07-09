@@ -210,4 +210,21 @@
     <string name="diary_macro_carbs">Carbs</string>
     <string name="diary_macro_fat">Fat</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
+
+    <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
+    <string name="onboarding_welcome_body">Scan a barcode or photograph a label to get a 0–100 nutrition score based on the product\'s actual composition.</string>
+    <string name="onboarding_start_button">Get Started</string>
+    <string name="onboarding_config_title">Configuration</string>
+    <string name="onboarding_config_body">Scan\'eat uses an AI vision model to read labels. Choose how to call it:</string>
+    <string name="onboarding_mode_direct_title">Direct Mode</string>
+    <string name="onboarding_mode_direct_subtitle">Your own Groq key (free). Data processed by Groq.</string>
+    <string name="onboarding_mode_server_title">Server Mode</string>
+    <string name="onboarding_mode_server_subtitle">Your own Ktor backend. No data leaves your infrastructure.</string>
+    <string name="onboarding_api_key_label">Groq key (gsk_…)</string>
+    <string name="onboarding_api_key_hint">Free key at console.groq.com</string>
+    <string name="onboarding_continue_button">Continue</string>
+    <string name="onboarding_profile_title">Personalization</string>
+    <string name="onboarding_profile_body">Fill in your profile (sex, age, weight, diet, allergens) to get a personal score tailored to your nutritional needs. You can do this later from the Profile tab.</string>
+    <string name="onboarding_profile_cta">Set up my profile now</string>
+    <string name="onboarding_profile_skip">Skip, set up later</string>
 </resources>
