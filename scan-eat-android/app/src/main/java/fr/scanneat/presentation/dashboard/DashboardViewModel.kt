@@ -10,6 +10,7 @@ import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
 import fr.scanneat.domain.engine.biolism.BiolismProfile
+import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*

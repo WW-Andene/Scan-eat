@@ -7,6 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.domain.engine.biolism.ACTIVITY_LEVELS
 import fr.scanneat.domain.engine.biolism.BiolismEngine
 import fr.scanneat.domain.engine.biolism.BiolismSex
+import fr.scanneat.domain.engine.biolism.computeWaterNeedL
 import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Sex
 import kotlinx.coroutines.flow.Flow
