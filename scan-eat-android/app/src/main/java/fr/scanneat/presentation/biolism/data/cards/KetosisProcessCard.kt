@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.scanneat.R
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
@@ -16,9 +18,9 @@ import fr.scanneat.presentation.ui.theme.*
 fun KetosisProcessCard(s: TimerState, met: MetabolicResult) {
     val phase = BiolismEngine.ketoPhaseInfo(s.ketoHours, s.ketoAdapted)
     val phaseColor = colorFromToken(phase.colorToken)
-    BioCard("Processus de cétose", badge = { Badge(phase.label.uppercase(), phaseColor) }) {
+    BioCard(stringResource(R.string.biolism_ketoproc_title), badge = { Badge(phase.label.uppercase(), phaseColor) }) {
         Text(formatDuration(s.ketoElapsedMs), style = MaterialTheme.typography.displaySmall.copy(fontSize = 24.sp, fontWeight = FontWeight.Medium), color = phaseColor)
-        Text("en cétose", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+        Text(stringResource(R.string.biolism_ketoproc_elapsed_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
         Spacer(Modifier.height(6.dp))
         Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         Spacer(Modifier.height(8.dp))
@@ -30,17 +32,17 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult) {
         Spacer(Modifier.height(10.dp))
         MetCellGrid(
             listOf(
-                Triple("Temps en cétose", formatDuration(s.ketoElapsedMs), ""),
-                if (s.fastingHours > 0) Triple("Jeûne", "%.1f h".format(s.fastingHours), "")
-                else Triple("Taux GNG", "%.2f g/h".format(met.gngGPerHr), ""),
-                Triple("Cétones est.", phase.estimatedKetoneMmol, ""),
-                Triple("RQ en direct", "%.3f".format(met.sub.rq), ""),
+                Triple(stringResource(R.string.biolism_ketoproc_time_label), formatDuration(s.ketoElapsedMs), ""),
+                if (s.fastingHours > 0) Triple(stringResource(R.string.biolism_ketoproc_fasting), "%.1f h".format(s.fastingHours), "")
+                else Triple(stringResource(R.string.biolism_ketoproc_gng_rate), "%.2f g/h".format(met.gngGPerHr), ""),
+                Triple(stringResource(R.string.biolism_ketoproc_ketones_est), phase.estimatedKetoneMmol, ""),
+                Triple(stringResource(R.string.biolism_ketoproc_live_rq), "%.3f".format(met.sub.rq), ""),
             ),
             accents = listOf(phaseColor, Gold, TextSecondary, phaseColor),
         )
         if (s.ketoHours >= 1440) {
             Spacer(Modifier.height(8.dp))
-            Text("Attention : jeûne prolongé : réserves de graisse en voie d'épuisement, le catabolisme protéique augmente à nouveau.",
+            Text(stringResource(R.string.biolism_ketoproc_warning),
                 style = MaterialTheme.typography.labelSmall, color = Severe, fontWeight = FontWeight.SemiBold)
         }
     }

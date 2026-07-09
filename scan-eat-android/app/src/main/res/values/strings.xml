@@ -375,6 +375,16 @@
     <string name="biolism_ketosis_3weeks_required">3+ semaines requis</string>
     <string name="biolism_ketosis_adapted_desc">Cerveau ~70%% cétones · RQ plancher 0.715</string>
 
+    <!-- ── Biolism: Ketosis Process card ──────────────────────────────────── -->
+    <string name="biolism_ketoproc_title">Processus de cétose</string>
+    <string name="biolism_ketoproc_elapsed_label">en cétose</string>
+    <string name="biolism_ketoproc_time_label">Temps en cétose</string>
+    <string name="biolism_ketoproc_fasting">Jeûne</string>
+    <string name="biolism_ketoproc_gng_rate">Taux GNG</string>
+    <string name="biolism_ketoproc_ketones_est">Cétones est.</string>
+    <string name="biolism_ketoproc_live_rq">RQ en direct</string>
+    <string name="biolism_ketoproc_warning">Attention : jeûne prolongé : réserves de graisse en voie d\'épuisement, le catabolisme protéique augmente à nouveau.</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>

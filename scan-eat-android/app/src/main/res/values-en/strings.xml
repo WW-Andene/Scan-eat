@@ -374,6 +374,16 @@
     <string name="biolism_ketosis_3weeks_required">3+ weeks required</string>
     <string name="biolism_ketosis_adapted_desc">Brain ~70%% ketones · RQ floor 0.715</string>
 
+    <!-- ── Biolism: Ketosis Process card ──────────────────────────────────── -->
+    <string name="biolism_ketoproc_title">Ketosis process</string>
+    <string name="biolism_ketoproc_elapsed_label">in ketosis</string>
+    <string name="biolism_ketoproc_time_label">Time in ketosis</string>
+    <string name="biolism_ketoproc_fasting">Fasting</string>
+    <string name="biolism_ketoproc_gng_rate">GNG rate</string>
+    <string name="biolism_ketoproc_ketones_est">Est. ketones</string>
+    <string name="biolism_ketoproc_live_rq">Live RQ</string>
+    <string name="biolism_ketoproc_warning">Warning: prolonged fast — fat reserves are depleting, protein catabolism is rising again.</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>
