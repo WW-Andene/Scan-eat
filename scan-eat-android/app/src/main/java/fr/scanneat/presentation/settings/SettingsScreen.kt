@@ -95,7 +95,7 @@ fun SettingsScreen(
                         visualTransformation = if (keyVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { keyVisible = !keyVisible }) {
-                                Icon(if (keyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null, tint = OnBackground.copy(0.6f))
+                                Icon(if (keyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, stringResource(R.string.settings_toggle_key_visibility), tint = OnBackground.copy(0.6f))
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

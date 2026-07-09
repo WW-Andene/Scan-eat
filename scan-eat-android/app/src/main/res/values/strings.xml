@@ -363,4 +363,9 @@
     <string name="result_show_more">Voir plus</string>
     <string name="result_notes_title">Notes</string>
     <string name="result_warning_item">• %1$s</string>
+
+    <!-- ── Accessibility labels ───────────────────────────────────────────── -->
+    <string name="common_clear_search">Effacer la recherche</string>
+    <string name="settings_toggle_key_visibility">Afficher/masquer la clé</string>
+    <string name="history_item_summary">%1$s, note %2$s, %3$d sur 100</string>
 </resources>

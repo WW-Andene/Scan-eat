@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -62,7 +64,7 @@ fun ScanHistoryScreen(
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
                 trailingIcon = {
                     if (query.value.isNotEmpty()) IconButton(onClick = { viewModel.setQuery("") }) {
-                        Icon(Icons.Default.Close, null, tint = OnBackground.copy(0.5f))
+                        Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
                     }
                 },
                 singleLine = true,
@@ -79,12 +81,14 @@ fun ScanHistoryScreen(
             ) {
                 items(scans.value) { scan ->
                     val gradeColor = gradeColor(scan.audit.grade)
+                    val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(SurfaceVariant)
                             .clickable { if (scan.dbId > 0) onOpenResult(scan.dbId) }
+                            .clearAndSetSemantics { contentDescription = summary }
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),

@@ -7,6 +7,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,7 +54,7 @@ fun BiolismScreen() {
                     val isActive = tab == activeTab
                     Surface(
                         onClick = { activeTab = tab },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).semantics { role = Role.Tab; selected = isActive },
                         shape = RoundedCornerShape(8.dp),
                         color = if (isActive) GoldHaze else OnBackground.copy(0.03f),
                         border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, GoldBorder) else null,

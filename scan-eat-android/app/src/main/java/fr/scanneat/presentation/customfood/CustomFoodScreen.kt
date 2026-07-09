@@ -70,7 +70,7 @@ fun CustomFoodScreen(
                 trailingIcon = {
                     if (query.value.isNotEmpty()) {
                         IconButton(onClick = { viewModel.setQuery("") }) {
-                            Icon(Icons.Default.Close, null, tint = OnBackground.copy(0.5f))
+                            Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
                         }
                     }
                 },
