@@ -71,6 +71,9 @@ fun DashboardScreen(
             // ---- Today's macro ring ----
             item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }
 
+            // ---- Caloric balance (in vs out, deficit/surplus) ----
+            s.calorieBalance?.let { item { CalorieBalanceCard(it) } }
+
             // ---- Streak ----
             if (s.streak > 0) {
                 item {
@@ -186,6 +189,49 @@ private fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
                     color      = color,
                     trackColor = SurfaceVariant.copy(alpha = 0.3f),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalorieBalanceCard(balance: CalorieBalance) {
+    val isSurplus = balance.net > 200
+    val isDeficit = balance.net < -50
+    val balColor = if (isSurplus) FlagRed else if (isDeficit) AccentGreen else AmberWarning
+    val statusRes = if (isSurplus) R.string.dashboard_calorie_surplus
+        else if (isDeficit) R.string.dashboard_calorie_deficit
+        else R.string.dashboard_calorie_balanced
+    val sourceRes = if (balance.tdeeFromBiolism) R.string.dashboard_calorie_source_biolism else R.string.dashboard_calorie_source_profile
+
+    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(stringResource(R.string.dashboard_calorie_balance_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(sourceRes), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+            }
+
+            val pct = (balance.kcalIn / balance.tdee).toFloat().coerceIn(0f, 1.2f)
+            LinearProgressIndicator(
+                progress   = { pct.coerceIn(0f, 1f) },
+                modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                color      = if (isSurplus) FlagRed else AccentGreen,
+                trackColor = SurfaceVariant.copy(alpha = 0.3f),
+            )
+            Text(
+                stringResource(R.string.dashboard_calorie_in_out, balance.kcalIn.roundToInt(), balance.tdee.roundToInt()),
+                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+            )
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.dashboard_calorie_net), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        (if (balance.net >= 0) "+" else "") + "${balance.net.roundToInt()} kcal",
+                        style = MaterialTheme.typography.titleMedium, color = balColor, fontWeight = FontWeight.Bold,
+                    )
+                    Text(stringResource(statusRes), style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }

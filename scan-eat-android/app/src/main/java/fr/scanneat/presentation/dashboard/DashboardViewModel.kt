@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.domain.engine.biolism.BiolismEngine
+import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -18,9 +21,22 @@ import kotlinx.coroutines.flow.*
 import java.time.LocalDate
 import javax.inject.Inject
 
+/**
+ * The single, merged calorie-balance readout (real Diary intake vs TDEE).
+ * TDEE prefers Biolism's richer estimate when a valid Biolism profile exists,
+ * falling back to the main Profile's PAL-based TDEE otherwise.
+ */
+data class CalorieBalance(
+    val kcalIn: Double,
+    val tdee: Double,
+    val tdeeFromBiolism: Boolean,
+    val net: Double,
+)
+
 data class DashboardUiState(
     val todayTotals: ConsumedNutrition = ConsumedNutrition.ZERO,
     val targets: DailyTargets? = null,
+    val calorieBalance: CalorieBalance? = null,
     val streak: Int = 0,
     val weekly: RollupResult? = null,
     val weekDelta: WeekOverWeekDelta? = null,
@@ -37,13 +53,14 @@ class DashboardViewModel @Inject constructor(
     private val weightRepo: WeightRepository,
     private val scanRepo: ScanRepository,
     private val prefs: UserPreferences,
+    private val biolismRepo: BiolismRepository,
 ) : ViewModel() {
 
     // Combine 4 flows with the type-safe 4-parameter lambda (not the array form).
     // flatMapLatest wraps the suspend calls cleanly.
     private val from = LocalDate.now().minusDays(30)
 
-    // Combine 5 flows — the 30-day range is now a Flow itself,
+    // Combine 6 flows — the 30-day range is now a Flow itself,
     // so DashboardViewModel never issues a suspend DB call on every upstream tick.
     val state: StateFlow<DashboardUiState> = combine(
         consumptionRepo.observeDay(LocalDate.now()),
@@ -51,15 +68,17 @@ class DashboardViewModel @Inject constructor(
         prefs.profile,
         weightRepo.observeAll(),
         scanRepo.observeHistory(limit = 20),
+        biolismRepo.profile,
     ) { args ->
         @Suppress("UNCHECKED_CAST")
         val today      = args[0] as DailySummary
         val allEntries = args[1] as List<DiaryEntry>
         val profile    = args[2] as Profile
         val scans      = args[4] as List<ScanResult>
-        Quadruple(today, allEntries, profile, scans)
+        val bioProfile = args[5] as BiolismProfile
+        Quintuple(today, allEntries, profile, scans, bioProfile)
     }
-        .flatMapLatest { (today, allEntries, profile, scans) ->
+        .flatMapLatest { (today, allEntries, profile, scans, bioProfile) ->
             flow {
                 val targets   = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
                 val thisWeek  = weeklyRollup(allEntries, LocalDate.now())
@@ -72,9 +91,21 @@ class DashboardViewModel @Inject constructor(
                     closeTheGap(today.totals, targets, FOOD_DB)
                 else emptyList()
 
+                val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
+                val tdee = bioTdee ?: targets?.kcal
+                val calorieBalance = tdee?.let {
+                    CalorieBalance(
+                        kcalIn          = today.totals.energyKcal,
+                        tdee            = it,
+                        tdeeFromBiolism = bioTdee != null,
+                        net             = today.totals.energyKcal - it,
+                    )
+                }
+
                 emit(DashboardUiState(
                     todayTotals    = today.totals,
                     targets        = targets,
+                    calorieBalance = calorieBalance,
                     streak         = logStreakDays(allEntries),
                     weekly         = thisWeek,
                     weekDelta      = weekOverWeekDelta(thisWeek, priorWeek),
@@ -87,6 +118,6 @@ class DashboardViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
-    // Local Quadruple to carry 4 values cleanly through flatMapLatest
-    private data class Quadruple<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
+    // Local Quintuple to carry 5 values cleanly through flatMapLatest
+    private data class Quintuple<A, B, C, D, E>(val a: A, val b: B, val c: C, val d: D, val e: E)
 }

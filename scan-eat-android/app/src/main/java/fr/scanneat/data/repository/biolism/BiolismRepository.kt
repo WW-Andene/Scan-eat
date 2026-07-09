@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -68,12 +67,6 @@ class BiolismRepository @Inject constructor(
         val K_KETO_ADAPTED      = booleanPreferencesKey("bio_keto_adapted")
         val K_FASTING_ACTIVE    = booleanPreferencesKey("bio_fasting_active")
         val K_LAST_MEAL_TS      = longPreferencesKey("bio_last_meal_ts")      // epoch ms, 0 = not set
-
-        // Caloric balance — stored as JSON per date ("YYYY-MM-DD" → MealEntryDay json)
-        // We use a single large key for today's data (max 5 MB per DataStore key is fine)
-        val K_CALORIC_TODAY     = stringPreferencesKey("bio_caloric_today")   // JSON
-        val K_CALORIC_DATE      = stringPreferencesKey("bio_caloric_date")    // the date K_CALORIC_TODAY covers
-        val K_HISTORY_7D        = stringPreferencesKey("bio_caloric_7d")      // JSON list[DayEntry]
 
         // Session history (last 20 sessions, JSON list)
         val K_SESSIONS          = stringPreferencesKey("bio_sessions")
@@ -207,77 +200,6 @@ class BiolismRepository @Inject constructor(
     val manualHR: Flow<Int?> = store.data.map { p -> p[K_MANUAL_HR] }
     suspend fun saveManualHR(bpm: Int?) = store.edit { p ->
         if (bpm != null) p[K_MANUAL_HR] = bpm else p.remove(K_MANUAL_HR)
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Caloric balance diary — simple per-slot kcal + macros, today only
-    // ─────────────────────────────────────────────────────────────────────────
-    @Serializable
-    data class MealEntry(
-        val slotId: String,
-        val kcal: Double,
-        val proteinG: Double = 0.0,
-        val carbsG: Double = 0.0,
-        val fatG: Double = 0.0,
-        val ts: Long = System.currentTimeMillis(),
-    )
-
-    @Serializable
-    data class DayEntries(val date: String, val meals: List<MealEntry>)
-
-    val todayMeals: Flow<List<MealEntry>> = store.data.map { p ->
-        val today = LocalDate.now().toString()
-        val storedDate = p[K_CALORIC_DATE]
-        if (storedDate == today) {
-            val json = p[K_CALORIC_TODAY] ?: return@map emptyList()
-            runCatching { Json.decodeFromString<List<MealEntry>>(json) }.getOrElse { emptyList() }
-        } else emptyList()
-    }
-
-    suspend fun saveMeal(entry: MealEntry) = store.edit { p ->
-        val today = LocalDate.now().toString()
-        val storedDate = p[K_CALORIC_DATE]
-        val current: List<MealEntry> = if (storedDate == today) {
-            runCatching {
-                Json.decodeFromString<List<MealEntry>>(p[K_CALORIC_TODAY] ?: "[]")
-            }.getOrElse { emptyList() }
-        } else emptyList()
-        val updated = current.filter { it.slotId != entry.slotId } + entry
-        p[K_CALORIC_DATE]  = today
-        p[K_CALORIC_TODAY] = Json.encodeToString(updated)
-        recordTodayHistory(p, updated, today)
-    }
-
-    suspend fun clearMeal(slotId: String) = store.edit { p ->
-        val today = LocalDate.now().toString()
-        if (p[K_CALORIC_DATE] != today) return@edit
-        val current = runCatching {
-            Json.decodeFromString<List<MealEntry>>(p[K_CALORIC_TODAY] ?: "[]")
-        }.getOrElse { emptyList() }
-        val updated = current.filter { it.slotId != slotId }
-        p[K_CALORIC_TODAY] = Json.encodeToString(updated)
-        recordTodayHistory(p, updated, today)
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // 7-day kcal intake history — one snapshot per date, rolling window
-    // ─────────────────────────────────────────────────────────────────────────
-    @Serializable
-    data class DayKcalEntry(val date: String, val kcal: Double)
-
-    val history7d: Flow<List<DayKcalEntry>> = store.data.map { p ->
-        val json = p[K_HISTORY_7D] ?: return@map emptyList()
-        runCatching { Json.decodeFromString<List<DayKcalEntry>>(json) }.getOrElse { emptyList() }
-    }
-
-    private fun recordTodayHistory(p: MutablePreferences, meals: List<MealEntry>, today: String) {
-        val totalKcal = meals.sumOf { it.kcal }
-        val current = runCatching {
-            Json.decodeFromString<List<DayKcalEntry>>(p[K_HISTORY_7D] ?: "[]")
-        }.getOrElse { emptyList() }
-        val updated = (current.filter { it.date != today } + DayKcalEntry(today, totalKcal))
-            .sortedBy { it.date }.takeLast(7)
-        p[K_HISTORY_7D] = Json.encodeToString(updated)
     }
 
     // ─────────────────────────────────────────────────────────────────────────

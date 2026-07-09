@@ -20,22 +20,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import fr.scanneat.data.repository.biolism.BiolismRepository.MealEntry
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.*
 
 @Composable
 fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
-    val profile  = viewModel.profile.collectAsStateWithLifecycle()
-    val timer    = viewModel.timer.collectAsStateWithLifecycle()
-    val m        = viewModel.metabolics.collectAsStateWithLifecycle()
-    val hormones = viewModel.hormones.collectAsStateWithLifecycle()
-    val meals    = viewModel.meals.collectAsStateWithLifecycle()
-    val sessions = viewModel.sessions.collectAsStateWithLifecycle()
-    val manualHR = viewModel.manualHR.collectAsStateWithLifecycle()
-    val cum      = viewModel.sessionCumulative.collectAsStateWithLifecycle()
-    val hist7d   = viewModel.history7d.collectAsStateWithLifecycle()
+    val profile     = viewModel.profile.collectAsStateWithLifecycle()
+    val timer       = viewModel.timer.collectAsStateWithLifecycle()
+    val m           = viewModel.metabolics.collectAsStateWithLifecycle()
+    val hormones    = viewModel.hormones.collectAsStateWithLifecycle()
+    val sessions    = viewModel.sessions.collectAsStateWithLifecycle()
+    val manualHR    = viewModel.manualHR.collectAsStateWithLifecycle()
+    val cum         = viewModel.sessionCumulative.collectAsStateWithLifecycle()
+    val todayIntake = viewModel.todayIntakeKcal.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle()  // force recomposition every second
 
     val met = m.value
@@ -130,6 +128,22 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             Spacer(Modifier.height(6.dp))
             InfoRow("Déficit (−500 kcal)", "%.1f kcal/j".format(met.tdeeDay - 500), "~0,45 kg/semaine perdu", Teal)
             InfoRow("Surplus (+300 kcal)", "%.1f kcal/j".format(met.tdeeDay + 300), "objectif prise de masse maigre", Violet)
+
+            // Real energy balance — sourced from the Diary's actual logged intake, so this
+            // reflects real consumption rather than a separate manual entry system.
+            val todaySessKcal = sessions.value.filter { isToday(it.timestamp) }.sumOf { it.kcalBurned }
+            val totalOut = met.tdeeDay + todaySessKcal
+            val netBal = todayIntake.value - totalOut
+            Spacer(Modifier.height(8.dp))
+            TintedPanel(if (netBal > 200) Danger else if (netBal < -50) Teal else Gold) {
+                Label("Solde énergétique réel — Aujourd'hui", if (netBal > 200) Danger else if (netBal < -50) Teal else Gold)
+                InfoRow("Apport (Journal)", "%.0f kcal".format(todayIntake.value), "aliments scannés/consignés", Teal)
+                InfoRow("Dépense (TDEE + sport)", "%.0f kcal".format(totalOut), "TDEE %.0f + sport %.0f".format(met.tdeeDay, todaySessKcal), Gold)
+                InfoRow("Bilan net", "%+.0f kcal".format(netBal),
+                    if (netBal > 200) "EXCÉDENT" else if (netBal < -50) "DÉFICIT" else "ÉQUILIBRÉ",
+                    if (netBal > 200) Danger else if (netBal < -50) Teal else Gold)
+                InfoRow("Impact estimé sur le poids", "%+.3f kg".format(netBal / 7700.0), "règle des 7700 kcal/kg · estimation informative", TextSecondary)
+            }
         }}
 
         // ── Burn Rate ─────────────────────────────────────────────────────────
@@ -473,9 +487,6 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         // ── Equations & sources ────────────────────────────────────────────────
         item { EquationsCard(met = met, profile = profile.value) }
 
-        // ── Caloric Balance ───────────────────────────────────────────────────
-        item { CaloricBalanceCard(meals = meals.value, met = met, sessions = sessions.value, history7d = hist7d.value, viewModel = viewModel) }
-
         // ── Session Analytics ─────────────────────────────────────────────────
         if (sessions.value.isNotEmpty()) {
             item { SessionAnalyticsCard(sessions = sessions.value, currentWeightKg = profile.value.weightKg) }
@@ -618,199 +629,6 @@ private fun EqBlock(title: String, formula: String, substituted: String) {
         Text(substituted, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f), fontWeight = FontWeight.Medium)
     }
     HorizontalDivider(color = OnBackground.copy(0.06f))
-}
-
-// ── Caloric Balance sub-card ────────────────────────────────────────────────────
-@Composable
-private fun CaloricBalanceCard(
-    meals: List<MealEntry>, met: MetabolicResult,
-    sessions: List<fr.scanneat.domain.engine.biolism.BiolismSession>,
-    history7d: List<fr.scanneat.data.repository.biolism.BiolismRepository.DayKcalEntry>,
-    viewModel: DataViewModel,
-) {
-    val slots = listOf("breakfast" to "Petit-déjeuner", "lunch" to "Déjeuner", "dinner" to "Dîner", "snack" to "Collations")
-    var editingSlot by remember { mutableStateOf<String?>(null) }
-    var editKcal by remember { mutableStateOf("") }
-    var editProt by remember { mutableStateOf("") }
-    var editCarb by remember { mutableStateOf("") }
-    var editFat  by remember { mutableStateOf("") }
-
-    val totalIn   = meals.sumOf { it.kcal }
-    val totalProt = meals.sumOf { it.proteinG }
-    val totalCarb = meals.sumOf { it.carbsG }
-    val totalFat  = meals.sumOf { it.fatG }
-
-    val todaySessKcal = sessions.filter { isToday(it.timestamp) }.sumOf { it.kcalBurned }
-    val totalOut  = met.tdeeDay + todaySessKcal
-    val netBal    = if (totalIn > 0) totalIn - totalOut else null
-
-    BioCard("Bilan calorique — Aujourd'hui", defaultOpen = true, badge = { TealBadge(if (met.sub.fatFrac > 0.5) "KÉTO" else "MIXTE") }) {
-        slots.forEach { (slotId, label) ->
-            val entry = meals.firstOrNull { it.slotId == slotId }
-            val isEditing = editingSlot == slotId
-
-            Surface(
-                modifier = Modifier.fillMaxWidth().clickable {
-                    if (isEditing) { editingSlot = null } else {
-                        editingSlot = slotId
-                        editKcal = entry?.kcal?.toInt()?.toString() ?: ""
-                        editProt = entry?.proteinG?.toInt()?.toString() ?: ""
-                        editCarb = entry?.carbsG?.toInt()?.toString() ?: ""
-                        editFat  = entry?.fatG?.toInt()?.toString() ?: ""
-                    }
-                },
-                shape = RoundedCornerShape(8.dp),
-                color = if (entry != null) TealTrace else OnBackground.copy(0.02f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, if (entry != null) TealBorder else OnBackground.copy(0.08f)),
-            ) {
-                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(Modifier.weight(1f)) {
-                        Text(label, style = MaterialTheme.typography.bodySmall, color = if (entry != null) OnBackground else OnBackground.copy(0.6f), fontWeight = FontWeight.Medium)
-                        if (entry != null) {
-                            Text("${entry.kcal.toInt()} kcal · P ${entry.proteinG.toInt()}g · G ${entry.carbsG.toInt()}g · L ${entry.fatG.toInt()}g",
-                                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
-                        } else {
-                            Text("Appuyer pour saisir", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
-                        }
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (entry != null) {
-                            IconButton(onClick = { viewModel.clearMeal(slotId) }, modifier = Modifier.size(28.dp)) {
-                                Icon(Icons.Default.Close, null, tint = OnBackground.copy(0.3f), modifier = Modifier.size(14.dp))
-                            }
-                        }
-                        Text(if (isEditing) "▲" else "▼", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
-                    }
-                }
-            }
-            AnimatedVisibility(isEditing) {
-                Column(
-                    modifier = Modifier.background(TealTrace, RoundedCornerShape(0.dp, 0.dp, 8.dp, 8.dp)).padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("kcal" to editKcal to { v: String -> editKcal = v },
-                               "P g"  to editProt to { v: String -> editProt = v },
-                               "G g"  to editCarb to { v: String -> editCarb = v },
-                               "L g"  to editFat  to { v: String -> editFat  = v },
-                        ).forEach { (labelVal, setter) ->
-                            val (l, v) = labelVal
-                            OutlinedTextField(value = v, onValueChange = setter, label = { Text(l, fontSize = 10.sp) },
-                                modifier = Modifier.weight(1f), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Teal, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
-                        }
-                    }
-                    Button(onClick = {
-                        viewModel.saveMeal(MealEntry(
-                            slotId = slotId, kcal = editKcal.toDoubleOrNull() ?: 0.0,
-                            proteinG = editProt.toDoubleOrNull() ?: 0.0,
-                            carbsG   = editCarb.toDoubleOrNull() ?: 0.0,
-                            fatG     = editFat.toDoubleOrNull()  ?: 0.0,
-                        )); editingSlot = null
-                    }, colors = ButtonDefaults.buttonColors(containerColor = Teal), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        Text("Enregistrer", color = Color.Black, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-            Spacer(Modifier.height(6.dp))
-        }
-
-        if (totalIn > 0) {
-            HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = 8.dp))
-
-            // Today's-intake gauge vs TDEE
-            val kcalPct = (totalIn / met.tdeeDay * 100.0).coerceAtMost(120.0)
-            Label("Apport du jour vs TDEE", OnBackground.copy(0.4f))
-            LinearProgressIndicator(
-                progress = { (kcalPct / 100.0).toFloat().coerceIn(0f, 1f) },
-                modifier = Modifier.fillMaxWidth().height(5.dp),
-                color = if (totalIn > met.tdeeDay) Danger else Teal,
-                trackColor = OnBackground.copy(0.06f),
-            )
-            Text("%.0f / %.0f kcal".format(totalIn, met.tdeeDay), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
-            Spacer(Modifier.height(8.dp))
-
-            // Per-macro progress bars vs targets
-            listOf(
-                Triple("Protéines", totalProt to met.macroProtMinG, Violet),
-                Triple("Glucides", totalCarb to met.macroCarbMinG, Teal),
-                Triple("Lipides", totalFat to met.macroFatMinG, Warm),
-            ).forEach { (label, vals, color) ->
-                val (value, target) = vals
-                if (value > 0) {
-                    val pct = (value / target.coerceAtLeast(0.001) * 100.0).coerceAtMost(100.0)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
-                        Text("%.1fg / %.0fg".format(value, target), style = MaterialTheme.typography.labelSmall, color = color)
-                    }
-                    LinearProgressIndicator(
-                        progress = { (pct / 100.0).toFloat().coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth().height(4.dp).padding(bottom = 6.dp),
-                        color = color, trackColor = OnBackground.copy(0.06f),
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(4.dp))
-            val balColor = if (netBal == null) TextMuted else if (netBal > 200) Danger else if (netBal < -50) Teal else Gold
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Column {
-                    Text("Bilan net", style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
-                    Text("${totalIn.toInt()} entrées − ${totalOut.toInt()} sorties", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(if (netBal != null) "%+.0f kcal".format(netBal) else "—",
-                        style = MaterialTheme.typography.titleLarge, color = balColor, fontWeight = FontWeight.Bold)
-                    Text(if (netBal == null) "SAISIR REPAS" else if (netBal > 200) "EXCÉDENT" else if (netBal < -50) "DÉFICIT" else "ÉQUILIBRÉ",
-                        style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            // Surplus/deficit bidirectional gauge
-            if (netBal != null) {
-                Spacer(Modifier.height(6.dp))
-                Box(Modifier.fillMaxWidth().height(6.dp).background(OnBackground.copy(0.06f), RoundedCornerShape(3.dp))) {
-                    Box(Modifier.fillMaxHeight().width(1.dp).align(Alignment.Center).background(OnBackground.copy(0.2f)))
-                    val frac = (kotlin.math.abs(netBal) / met.tdeeDay * 100.0).coerceAtMost(50.0).toFloat() / 100f
-                    Box(
-                        Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(frac)
-                            .align(if (netBal > 0) Alignment.CenterEnd else Alignment.CenterStart)
-                            .background(if (netBal > 0) Danger else Teal, RoundedCornerShape(3.dp)),
-                    )
-                }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("← déficit", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
-                    Text("équilibré", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
-                    Text("surplus →", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
-                }
-            }
-        }
-
-        // 7-day intake sparkline
-        if (history7d.size > 1) {
-            Spacer(Modifier.height(10.dp))
-            Label("Historique 7 jours", OnBackground.copy(0.4f))
-            val sparkMax = (history7d.maxOfOrNull { it.kcal } ?: 0.0).coerceAtLeast(met.tdeeDay * 1.2)
-            val todayStr = java.time.LocalDate.now().toString()
-            Row(Modifier.fillMaxWidth().height(44.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
-                history7d.forEach { day ->
-                    val isTodayEntry = day.date == todayStr
-                    val aboveTdee = day.kcal > met.tdeeDay
-                    val h = (if (day.kcal > 0) (day.kcal / sparkMax * 40.0).coerceAtLeast(6.0) else 3.0).toInt()
-                    val color = when {
-                        isTodayEntry && aboveTdee -> Danger
-                        isTodayEntry -> Teal
-                        aboveTdee -> Danger.copy(alpha = 0.4f)
-                        else -> Teal.copy(alpha = 0.3f)
-                    }
-                    Box(Modifier.weight(1f).height(h.dp).background(color, RoundedCornerShape(2.dp)))
-                }
-            }
-            Text("TDEE réf : %.0f kcal/j".format(met.tdeeDay), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
-        }
-    }
 }
 
 // ── Session Analytics sub-card ────────────────────────────────────────────────
