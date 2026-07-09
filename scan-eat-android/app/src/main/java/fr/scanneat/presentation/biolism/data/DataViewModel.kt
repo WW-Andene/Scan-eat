@@ -54,8 +54,50 @@ class DataViewModel @Inject constructor(
         BiolismEngine.computeHormones(p, m, s.ketoHours, s.fastingHours, s.ketoAdapted)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // ── Session-cumulative totals — grow with elapsed time since session start ──
+    val sessionCumulative: StateFlow<SessionCumulative?> = combine(metabolics, timer, tick) { m, s, _ ->
+        if (m == null) return@combine null
+        val elapsedSec = s.elapsedMs / 1000.0
+        if (elapsedSec <= 0.0) return@combine null
+        val ketosis = s.ketosisOn
+        val kcalTotal = m.kcalSec * elapsedSec
+        val kcalFromProtein = kcalTotal * m.sub.protFrac
+        val kcalFromFat = kcalTotal * m.sub.fatFrac
+        val glycogenDepletedKcal = if (ketosis) {
+            kotlin.math.min(kcalTotal * m.sub.carbFrac, GLYCOGEN_KCAL)
+        } else 0.0
+        val glycogenFraction = if (ketosis) kotlin.math.min(1.0, glycogenDepletedKcal / GLYCOGEN_KCAL) else 0.0
+        val kcalPerKgFat = if (ketosis) 7700.0 + (9300.0 - 7700.0) * glycogenFraction else 7700.0
+        val atpPerKcal = m.sub.fatFrac * 0.0453 + m.sub.carbFrac * 0.0453 + m.sub.protFrac * 0.0444
+        SessionCumulative(
+            kcalTotal = kcalTotal,
+            o2LitersTotal = (m.vo2PerMin / 60.0) * elapsedSec,
+            co2LitersTotal = (m.vco2PerMin / 60.0) * elapsedSec,
+            fatOxidisedMg = (kcalFromFat / kcalPerKgFat) * 1_000_000.0,
+            glycogenDepletedG = glycogenDepletedKcal / 4.0,
+            glycogenWaterG = (glycogenDepletedKcal / 4.0) * WATER_PER_GLYC,
+            proteinCatabolisedMg = (kcalFromProtein / 4.1) * 1000.0,
+            n2ExcretedMg = (kcalFromProtein / 4.1) * 1000.0 * 0.16,
+            metWaterTotalG = (m.metWaterPerMin / 60.0) * elapsedSec,
+            atpTotalMmol = atpPerKcal * kcalTotal * 1000.0,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     // ── Caloric balance ───────────────────────────────────────────────────────
     fun saveMeal(entry: MealEntry) = viewModelScope.launch { repo.saveMeal(entry) }
     fun clearMeal(slotId: String)  = viewModelScope.launch { repo.clearMeal(slotId) }
     fun saveManualHR(bpm: Int?)    = viewModelScope.launch { repo.saveManualHR(bpm) }
 }
+
+data class SessionCumulative(
+    val kcalTotal: Double,
+    val o2LitersTotal: Double,
+    val co2LitersTotal: Double,
+    val fatOxidisedMg: Double,
+    val glycogenDepletedG: Double,
+    val glycogenWaterG: Double,
+    val proteinCatabolisedMg: Double,
+    val n2ExcretedMg: Double,
+    val metWaterTotalG: Double,
+    val atpTotalMmol: Double,
+)

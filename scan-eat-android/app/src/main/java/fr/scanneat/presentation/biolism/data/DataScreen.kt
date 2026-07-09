@@ -34,6 +34,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val meals    = viewModel.meals.collectAsStateWithLifecycle()
     val sessions = viewModel.sessions.collectAsStateWithLifecycle()
     val manualHR = viewModel.manualHR.collectAsStateWithLifecycle()
+    val cum      = viewModel.sessionCumulative.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle()  // force recomposition every second
 
     val met = m.value
@@ -81,11 +82,12 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             // IBW
             Spacer(Modifier.height(8.dp))
             Label("Poids idéal", OnBackground.copy(0.4f))
+            val ibwDelta = profile.value.weightKg - met.ibwMean
             MetCellGrid(listOf(
                 Triple("Devine", "%.1f kg".format(met.ibwDevine), "1974"),
                 Triple("Robinson", "%.1f kg".format(met.ibwRobinson), "1983"),
                 Triple("Miller", "%.1f kg".format(met.ibwMiller), "1983"),
-                Triple("Moyenne", "%.1f kg".format(met.ibwMean), ""),
+                Triple("Moyenne", "%.1f kg".format(met.ibwMean), "%s%.1f kg vs actuel".format(if (ibwDelta > 0) "+" else "", ibwDelta)),
             ))
             // Visceral
             Spacer(Modifier.height(8.dp))
@@ -118,11 +120,15 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                 Text("%.1f".format(met.tdeeDay), style = MaterialTheme.typography.displaySmall.copy(fontSize = 34.sp, fontWeight = FontWeight.W500), color = Gold)
                 Text("kcal/jour · BMR × %.3f".format(met.tdeeDay / met.bmrDay.coerceAtLeast(1.0)), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
             }
+            InfoRow("Niveau d'activité", profile.value.activityMeta.label, profile.value.activityMeta.note, Gold)
             MetCellGrid(listOf(
                 Triple("BMR moyen", "%.1f".format(met.bmrDay), "kcal/j (consensus)"),
                 Triple("Mifflin-St Jeor", "%.1f".format(met.bmrMsj), "kcal/j"),
                 Triple("Katch-McArdle", "%.1f".format(met.bmrKm), "kcal/j · masse maigre"),
             ) + if (s.ketosisOn) listOf(Triple("BMR supprimé", "%.1f".format(met.bmrDay * met.ketoSupprFactor), "kcal/j · T3 adj.")) else emptyList())
+            Spacer(Modifier.height(6.dp))
+            InfoRow("Déficit (−500 kcal)", "%.1f kcal/j".format(met.tdeeDay - 500), "~0,45 kg/semaine perdu", Teal)
+            InfoRow("Surplus (+300 kcal)", "%.1f kcal/j".format(met.tdeeDay + 300), "objectif prise de masse maigre", Violet)
         }}
 
         // ── Burn Rate ─────────────────────────────────────────────────────────
@@ -134,10 +140,25 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                 Triple("Par jour", "%.1f".format(met.bmrDay), "kcal/j"),
             ))
             Spacer(Modifier.height(6.dp))
+            InfoRow("Répartition substrats", "G %d%% · Gluc %d%% · P %d%%".format(
+                (met.sub.fatFrac * 100).toInt(), (met.sub.carbFrac * 100).toInt(), (met.sub.protFrac * 100).toInt()),
+                "fraction de l'énergie totale", TextSecondary)
             InfoRow("Sortie thermodynamique", "%.4f W".format(met.watts), "", Gold)
             InfoRow("VO₂ consommé", "%.4f L/min".format(met.vo2PerMin), "", Violet)
             InfoRow("CO₂ produit", "%.4f L/min".format(met.vco2PerMin), "", TextSecondary)
             InfoRow("Équiv. oxycalorique", "%.4f kcal/L O₂".format(met.sub.oxycaloric), "", if (s.ketosisOn) Teal else TextSecondary)
+            cum.value?.let { c ->
+                Spacer(Modifier.height(8.dp))
+                TintedPanel(if (s.ketosisOn) Teal else Gold) {
+                    Label("Cumul de session", if (s.ketosisOn) Teal else Gold)
+                    InfoRow("kcal brûlées", "%.4f kcal".format(c.kcalTotal), "", if (s.ketosisOn) Teal else Gold)
+                    InfoRow("O₂ consommé", "%.4f L".format(c.o2LitersTotal), "", Violet)
+                    InfoRow("CO₂ produit", "%.4f L".format(c.co2LitersTotal), "", TextSecondary)
+                    InfoRow("Graisse oxydée", "%.2f mg".format(c.fatOxidisedMg), "", if (s.ketosisOn) Teal else Warm)
+                    if (s.ketosisOn) InfoRow("Glycogène déplété", "%.2f g".format(c.glycogenDepletedG), "+ %.2f g H₂O".format(c.glycogenWaterG), Gold)
+                    InfoRow("Protéines catabolisées", "%.2f mg".format(c.proteinCatabolisedMg), "%.2f mg N₂".format(c.n2ExcretedMg), Violet)
+                }
+            }
         }}
 
         // ── Substrate Flux ────────────────────────────────────────────────────
@@ -158,9 +179,47 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             InfoRow("  ↳ glycolyse (PDH)", "%.3f mmol/min".format(met.acCoaCarbMmolMin), "", TextSecondary)
             InfoRow("  ↳ protéines (AA)", "%.3f mmol/min".format(met.acCoaProtMmolMin), "", Violet)
             Spacer(Modifier.height(4.dp))
-            InfoRow("β-Hydroxybutyrate", if (met.bhbMmolPerMin > 0) "%.4f mmol/min".format(met.bhbMmolPerMin) else "— (pas de cétose)", "", Teal)
-            InfoRow("Gluconéogenèse", "%.3f g glucose/h".format(met.gngGPerHr), "", Gold)
+            InfoRow("β-Hydroxybutyrate", if (met.bhbMmolPerMin > 0) "%.4f mmol/min".format(met.bhbMmolPerMin) else "— (pas de cétose)",
+                if (met.ketoActivation > 0) "activation CPT-I %.0f%% · McGarry 1980".format(met.ketoActivation * 100) else "", Teal)
+            InfoRow("Gluconéogenèse", "%.3f g glucose/h".format(met.gngGPerHr),
+                "%.0f%% du catabolisme protéique → GNG · Cahill 1966".format(met.gngProtFrac * 100), Gold)
         }}
+
+        // ── Ketosis Process ─────────────────────────────────────────────────────
+        if (s.ketosisOn) {
+            item {
+                val phase = BiolismEngine.ketoPhaseInfo(s.ketoHours, s.ketoAdapted)
+                val phaseColor = colorFromToken(phase.colorToken)
+                BioCard("Processus de cétose", badge = { Badge(phase.label.uppercase(), phaseColor) }) {
+                    Text(formatDuration(s.ketoElapsedMs), style = MaterialTheme.typography.displaySmall.copy(fontSize = 24.sp, fontWeight = FontWeight.Medium), color = phaseColor)
+                    Text("en cétose", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                    Spacer(Modifier.height(6.dp))
+                    Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    Spacer(Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { (phase.progressPct / 100.0).toFloat().coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().height(4.dp),
+                        color = phaseColor, trackColor = OnBackground.copy(0.06f),
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    MetCellGrid(
+                        listOf(
+                            Triple("Temps en cétose", formatDuration(s.ketoElapsedMs), ""),
+                            if (s.fastingHours > 0) Triple("Jeûne", "%.1f h".format(s.fastingHours), "")
+                            else Triple("Taux GNG", "%.2f g/h".format(met.gngGPerHr), ""),
+                            Triple("Cétones est.", phase.estimatedKetoneMmol, ""),
+                            Triple("RQ en direct", "%.3f".format(met.sub.rq), ""),
+                        ),
+                        accents = listOf(phaseColor, Gold, TextSecondary, phaseColor),
+                    )
+                    if (s.ketoHours >= 1440) {
+                        Spacer(Modifier.height(8.dp))
+                        Text("⚠ Jeûne prolongé : réserves de graisse en voie d'épuisement, le catabolisme protéique augmente à nouveau.",
+                            style = MaterialTheme.typography.labelSmall, color = Severe, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
 
         // ── Organ Heat ────────────────────────────────────────────────────────
         item { BioCard("Chaleur organique", badge = { VioletBadge("ELIA 1992") }) {
@@ -202,20 +261,27 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                 ),
                 accents = listOf(Warm, Teal, Violet, TextMuted)
             )
+            InfoRow("  ↳ transépidermique", "%.4f W".format(met.heatEvapSkinW), "~15% · diffusion cutanée", Violet)
+            InfoRow("  ↳ respiratoire", "%.4f W".format(met.heatEvapRespW), "~8% · évaporation respiratoire", Violet)
             Spacer(Modifier.height(8.dp))
             Label("Pertes hydriques insensibles", OnBackground.copy(0.4f))
             MetCellGrid(
                 listOf(
-                    Triple("Resp. (RWL)", "%.2f mL/h".format(met.rwlMlPerHr), "humidité expirée"),
-                    Triple("Transépidermique", "%.2f mL/h".format(met.tewlMlPerHr), "Pinnagoda 1990"),
+                    Triple("Resp. (RWL)", "%.2f mL/h".format(met.rwlMlPerHr), "%.0f mL/j".format(met.rwlMlPerHr * 24)),
+                    Triple("Transépidermique", "%.2f mL/h".format(met.tewlMlPerHr), "%.0f mL/j".format(met.tewlMlPerHr * 24)),
                     Triple("Total (IWL)", "%.2f mL/h".format(met.iwlMlPerHr), "%.0f mL/j".format(met.iwlMlPerHr * 24)),
                     Triple("Eau métab. produite", "%.2f mL/h".format(met.metWaterMlPerHr), "Hill 2004"),
                 ),
                 accents = listOf(Teal, Violet, Gold, Teal)
             )
-            InfoRow("Bilan hydrique net", "%+.2f mL/h".format(met.netHydroBalMlPerHr),
-                "(métab. − insensibles, hors urine et sueur)",
-                if (met.netHydroBalMlPerHr >= 0) Teal else Warm)
+            Spacer(Modifier.height(8.dp))
+            TintedPanel(Teal) {
+                Label("Bilan hydrique — turnover", Teal)
+                InfoRow("Eau métabolique produite", "%.2f mL/h · %.0f mL/j".format(met.metWaterMlPerHr, met.metWaterMlPerHr * 24), "", Teal)
+                InfoRow("Pertes insensibles", "%.2f mL/h · %.0f mL/j".format(met.iwlMlPerHr, met.iwlMlPerHr * 24), "hors urine et sueur", Warm)
+                InfoRow("Bilan net", "%+.2f mL/h · %+.0f mL/j".format(met.netHydroBalMlPerHr, met.netHydroBalMlPerHr * 24),
+                    "métab. − insensibles", if (met.netHydroBalMlPerHr >= 0) Teal else Warm)
+            }
         }}
 
         // ── Physiological metrics ──────────────────────────────────────────────
@@ -228,6 +294,22 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             ))
             InfoRow("Excrétion azote (N₂)", "%.4f mg/min · %.2f g/j".format(
                 met.nExcrGPerDay / 1440.0 * 1000, met.nExcrGPerDay), "", Violet)
+            val estGluc = BiolismEngine.computeBloodGlucoseMmol(
+                weightKg = profile.value.weightKg, kcalSec = met.kcalSec, carbFrac = met.sub.carbFrac,
+                ketoHours = s.ketoHours, fastingHours = s.fastingHours, ketosis = s.ketosisOn,
+                elapsedSec = s.elapsedMs / 1000.0,
+            )
+            InfoRow("🩸 Glycémie estimée", "%.2f mmol/L".format(estGluc), "modèle cinétique simplifié · Guyton & Hall 2016",
+                if (estGluc < 3.0) Danger else if (estGluc < 3.9) Warm else Teal)
+            cum.value?.let { c ->
+                Spacer(Modifier.height(8.dp))
+                TintedPanel(Violet) {
+                    Label("Cumul de session", Violet)
+                    InfoRow("Eau métabolique totale", "%.3f g".format(c.metWaterTotalG), "", Teal)
+                    InfoRow("ATP total", if (c.atpTotalMmol >= 1000) "%.2f mol".format(c.atpTotalMmol / 1000) else "%.2f mmol".format(c.atpTotalMmol), "", Gold)
+                    InfoRow("N₂ excrété total", if (c.n2ExcretedMg >= 1000) "%.4f g".format(c.n2ExcretedMg / 1000) else "%.3f mg".format(c.n2ExcretedMg), "", Violet)
+                }
+            }
 
             // Manual HR cross-check
             Spacer(Modifier.height(8.dp))
@@ -290,12 +372,35 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                         Triple("GH (moyen/j)", h.gh, "Hartman 1992"),
                         Triple("IGF-1", h.igf1, "Giustina 2008"),
                     ).forEach { (name, reading, note) -> HormoneRow(name, reading, note) }
+
+                    val kh = s.ketoHours; val fh = s.fastingHours
+                    val modifiers = buildList {
+                        if (kh > 24) add(Triple("Cétose (${kh.toInt()}h) →", "T↑ · Insuline↓ · Glucagon↑ · T3↓ · Leptine↓", Teal))
+                        if (fh > 12) add(Triple("Jeûne (${fh.toInt()}h) →", "GH↑ · Glucagon↑ · Cortisol↑ · Ghréline↑", Violet))
+                        if (s.ketoAdapted) add(Triple("Céto-adapté →", "Ghréline↓↓ · Leptine adaptée · T3 nadir", Gold))
+                        if (met.bfPct > 25) add(Triple("Masse grasse élevée (${met.bfPct.toInt()}%) →",
+                            "${if (profile.value.sex == BiolismSex.MALE) "T↓ · E2↑" else "E2↑"} · Résistance insuline ↑", Warm))
+                    }
+                    if (modifiers.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        TintedPanel(OnBackground) {
+                            Label("Modificateurs actifs", OnBackground.copy(0.4f))
+                            modifiers.forEach { (label, tags, color) ->
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                                    Text(tags, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Medium)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
         // ── Macro Targets ─────────────────────────────────────────────────────
         item { BioCard("Objectifs macros & nutrition", defaultOpen = false, badge = { GoldBadge("MINIMUMS JOURNALIERS") }) {
+            InfoRow("TDEE", "%.0f kcal · BMR %.0f × %.3f · MMC %.1f kg".format(met.tdeeDay, met.bmrDay, profile.value.activityMeta.mult, met.ffm), "", Gold)
+            Spacer(Modifier.height(4.dp))
             MacroTargetRow("Protéines", met.macroProtMinG, "g", "%.1f g/kg MMC × %.1f kg".format(met.protGPerKgFfm, met.ffm), Violet)
             MacroTargetRow("Glucides", met.macroCarbMinG, "g", if (met.macroCarbMinG < 50) "Cétose >24h · Cahill 2006" else "Besoin cérébral · IOM 2005", Teal)
             MacroTargetRow("Lipides", met.macroFatMinG, "g", "Résiduel TDEE · min. AGE = %.0f g".format(met.essentialFatMinG), Warm)
@@ -315,6 +420,13 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                     }
                 }
             }
+            Spacer(Modifier.height(10.dp))
+            Label("Objectifs complémentaires", OnBackground.copy(0.4f))
+            InfoRow("💧 Eau", "≥ %.1f L".format(met.waterNeedL),
+                "EFSA 2010 · ${if (profile.value.sex == BiolismSex.MALE) "♂ 2,5" else "♀ 2,0"} L${if (profile.value.activityMeta.mult >= 1.55) " + 0,5 L activité" else ""}", Teal)
+            InfoRow("🌾 Fibres alimentaires", "≥ 25 g", "EFSA 2017 · apport suffisant pour transit & microbiote", Gold)
+            InfoRow("🧂 Sodium", "1500–2300 mg", "WHO 2012 · cible AHA 1500 mg · limite NHANES 2300 mg", Warm)
+            InfoRow("⚡ Potassium", "≥ ${if (profile.value.sex == BiolismSex.MALE) "3400" else "2600"} mg", "NASEM DRI 2019 · contre l'excrétion sodique", Violet)
         }}
 
         // ── Caloric Balance ───────────────────────────────────────────────────
@@ -654,6 +766,14 @@ private fun colorFromToken(token: String): Color = when (token) {
     "Severe"      -> Severe
     "IconInactive"-> IconInactive
     else          -> TextSecondary
+}
+
+private fun formatDuration(ms: Long): String {
+    val totalSec = ms / 1000
+    val h = totalSec / 3600
+    val m = (totalSec % 3600) / 60
+    val sec = totalSec % 60
+    return if (h > 0) "%dh %02dm".format(h, m) else "%dm %02ds".format(m, sec)
 }
 
 private fun isToday(iso: String): Boolean {

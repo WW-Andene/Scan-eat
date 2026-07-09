@@ -4,6 +4,11 @@ import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import fr.scanneat.domain.engine.biolism.ACTIVITY_LEVELS
+import fr.scanneat.domain.engine.biolism.BiolismEngine
+import fr.scanneat.domain.engine.biolism.BiolismSex
+import fr.scanneat.domain.model.ActivityLevel
+import fr.scanneat.domain.model.Sex
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -14,7 +19,8 @@ import javax.inject.Singleton
 // HYDRATION REPOSITORY — port of public/features/hydration.js
 //
 // Tracks daily water intake in mL. Default glass = 250 mL.
-// Goal is derived from profile weight (30 mL/kg, minimum 1500 mL).
+// Goal is derived from BiolismEngine.computeWaterNeedL (EFSA 2010 gender
+// baseline + activity bonus), matching the Biolism engine's own formula.
 // Storage: DataStore (one key per day, same pattern as DayNotesRepository).
 // ============================================================================
 
@@ -58,11 +64,25 @@ class HydrationRepository @Inject constructor(
     suspend fun removeGlass(date: LocalDate = LocalDate.now()) = add(date, -HYD_GLASS_ML)
 
     /**
-     * Derive daily water goal from body weight.
-     * 30 mL/kg, minimum 1500 mL, maximum 4000 mL.
+     * Derive daily water goal from sex + activity level via BiolismEngine's
+     * EFSA-based formula (2.5L male / 2.0L female + 0.5L activity bonus).
      */
-    fun goalMl(weightKg: Double?): Int {
-        if (weightKg == null || weightKg <= 0) return HYD_DEFAULT_GOAL_ML
-        return (weightKg * 30).toInt().coerceIn(1500, 4000)
+    fun goalMl(sex: Sex, activityLevel: ActivityLevel): Int {
+        if (sex == Sex.NOT_SPECIFIED) return HYD_DEFAULT_GOAL_ML
+        val biolismSex = when (sex) {
+            Sex.MALE -> BiolismSex.MALE
+            Sex.FEMALE -> BiolismSex.FEMALE
+            Sex.NOT_SPECIFIED -> BiolismSex.NOT_SPECIFIED
+        }
+        val activityId = when (activityLevel) {
+            ActivityLevel.SEDENTARY -> "sedentary"
+            ActivityLevel.LIGHTLY_ACTIVE -> "light"
+            ActivityLevel.MODERATELY_ACTIVE -> "moderate"
+            ActivityLevel.VERY_ACTIVE -> "very"
+            ActivityLevel.EXTRA_ACTIVE -> "extra"
+        }
+        val mult = ACTIVITY_LEVELS.find { it.id == activityId }?.mult ?: 1.55
+        val waterNeedL = BiolismEngine.computeWaterNeedL(biolismSex, mult)
+        return (waterNeedL * 1000).toInt()
     }
 }

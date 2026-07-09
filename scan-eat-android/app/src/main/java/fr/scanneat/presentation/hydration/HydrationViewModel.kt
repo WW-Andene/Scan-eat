@@ -20,7 +20,7 @@ class HydrationViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     val goal: StateFlow<Int> = prefs.profile
-        .map { repo.goalMl(it.weightKg) }
+        .map { repo.goalMl(it.sex, it.activityLevel) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
 
     fun addGlass()    = viewModelScope.launch { repo.addGlass() }
