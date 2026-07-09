@@ -55,8 +55,19 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 }
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        // v2 → v3: added RecipeEntity
-        // Already handled via fallbackToDestructiveMigration during development.
-        // Populate with real ALTER TABLE / CREATE TABLE statements for production.
+        // v2 → v3: added RecipeEntity. This was previously a no-op comment, which
+        // meant Room used this (empty) registered migration instead of falling back
+        // to fallbackToDestructiveMigration() — anyone upgrading from a v2 install
+        // hit "no such table: recipes" the moment Recipes/Grocery/Templates opened.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `recipes` (" +
+                "`id` TEXT NOT NULL, " +
+                "`name` TEXT NOT NULL, " +
+                "`servings` INTEGER NOT NULL, " +
+                "`componentsJson` TEXT NOT NULL, " +
+                "`createdAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
     }
 }

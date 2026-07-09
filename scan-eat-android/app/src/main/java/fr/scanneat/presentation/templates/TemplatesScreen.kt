@@ -31,6 +31,7 @@ fun TemplatesScreen(
 ) {
     val templates = viewModel.templates.collectAsStateWithLifecycle()
     var logTarget by remember { mutableStateOf<MealTemplate?>(null) }
+    var deleteTarget by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -70,7 +71,7 @@ fun TemplatesScreen(
                                     IconButton(onClick = { logTarget = template }, modifier = Modifier.size(36.dp)) {
                                         Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentGreen)
                                     }
-                                    IconButton(onClick = { viewModel.delete(template.id) }, modifier = Modifier.size(36.dp)) {
+                                    IconButton(onClick = { deleteTarget = template.id }, modifier = Modifier.size(36.dp)) {
                                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
                                     }
                                 }
@@ -110,6 +111,23 @@ fun TemplatesScreen(
             },
             confirmButton = { TextButton(onClick = { viewModel.logTemplate(t, mealOverride = slot); logTarget = null }) { Text(stringResource(R.string.common_log), color = AccentGreen) } },
             dismissButton = { TextButton(onClick = { logTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        )
+    }
+
+    deleteTarget?.let { id ->
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null },
+            containerColor   = SurfaceVariant,
+            title   = { Text(stringResource(R.string.common_delete_confirm_title), color = OnBackground) },
+            text    = { Text(stringResource(R.string.common_delete_confirm_body), color = OnBackground.copy(0.7f)) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.delete(id); deleteTarget = null }) {
+                    Text(stringResource(R.string.common_delete), color = FlagRed)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
+            },
         )
     }
 

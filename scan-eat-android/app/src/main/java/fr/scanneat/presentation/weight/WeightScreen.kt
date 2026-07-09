@@ -42,6 +42,7 @@ fun WeightScreen(
     var notesText by remember { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
     var useImperial by remember { mutableStateOf(false) }
+    var deleteTarget by remember { mutableStateOf<String?>(null) }
 
     fun dispWeight(kg: Double): String =
         if (useImperial) "%.1f lb".format(kg * 2.20462) else "%.1f kg".format(kg)
@@ -156,7 +157,7 @@ fun WeightScreen(
                         }
                     }
                     Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
-                    IconButton(onClick = { viewModel.delete(e.id) }, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = { deleteTarget = e.id }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }
@@ -196,6 +197,23 @@ fun WeightScreen(
             },
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
             containerColor = SurfaceVariant,
+        )
+    }
+
+    deleteTarget?.let { id ->
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null },
+            containerColor   = SurfaceVariant,
+            title   = { Text(stringResource(R.string.common_delete_confirm_title), color = OnBackground) },
+            text    = { Text(stringResource(R.string.common_delete_confirm_body), color = OnBackground.copy(0.7f)) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.delete(id); deleteTarget = null }) {
+                    Text(stringResource(R.string.common_delete), color = FlagRed)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
+            },
         )
     }
 
