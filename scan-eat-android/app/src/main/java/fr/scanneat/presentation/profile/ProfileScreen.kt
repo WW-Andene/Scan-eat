@@ -94,10 +94,12 @@ fun ProfileScreen(
 
             // ---- BMI / TDEE preview ----
             if (bmi.value != null || tdee.value != null) {
-                Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                    Row(modifier = Modifier.padding(14.dp), horizontalArrangement = Arrangement.SpaceAround) {
-                        bmi.value?.let { MetricChip(stringResource(R.string.profile_bmi_label), "${it}") }
-                        tdee.value?.let { MetricChip("TDEE", stringResource(R.string.profile_tdee_kcal, it.roundToInt())) }
+                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
+                    Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                        Row(modifier = Modifier.padding(14.dp), horizontalArrangement = Arrangement.SpaceAround) {
+                            bmi.value?.let { MetricChip(stringResource(R.string.profile_bmi_label), "${it}") }
+                            tdee.value?.let { MetricChip("TDEE", stringResource(R.string.profile_tdee_kcal, it.roundToInt())) }
+                        }
                     }
                 }
             }

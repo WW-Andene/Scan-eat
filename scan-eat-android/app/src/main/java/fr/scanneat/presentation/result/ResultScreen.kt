@@ -141,6 +141,7 @@ private fun ResultContent(
 
         // Comparison card (Fix 11)
         comparisonResult?.let { cmp ->
+            Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape    = RoundedCornerShape(12.dp),
@@ -164,10 +165,12 @@ private fun ResultContent(
                             style = MaterialTheme.typography.bodySmall, color = FlagGreen)
                 }
             }
+            }
         }
 
         // Pairings card
         if (pairings.isNotEmpty()) {
+            Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
             Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.08f)) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
@@ -177,10 +180,12 @@ private fun ResultContent(
                     }
                 }
             }
+            }
         }
 
         // Diet veto banner
         if (personalScore?.veto == true) {
+            Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape    = RoundedCornerShape(12.dp),
@@ -193,11 +198,13 @@ private fun ResultContent(
                         color = OnBackground, modifier = Modifier.weight(1f))
                 }
             }
+            }
         }
 
         // Allergen warnings
         val allergens = personalScore?.allergenHits.orEmpty()
         if (allergens.isNotEmpty()) {
+            Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape    = RoundedCornerShape(12.dp),
@@ -215,6 +222,7 @@ private fun ResultContent(
                             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.85f))
                     }
                 }
+            }
             }
         }
 
@@ -445,13 +453,15 @@ private fun NRow(label: String, value: String) {
 
 @Composable
 private fun WarningsSection(warnings: List<String>) {
-    Column(modifier = Modifier.fillMaxWidth()
-        .clip(RoundedCornerShape(8.dp))
-        .background(AmberWarning.copy(0.1f))
-        .padding(12.dp)) {
-        Text(stringResource(R.string.result_notes_title), style = MaterialTheme.typography.labelMedium,
-            color = AmberWarning, fontWeight = FontWeight.SemiBold)
-        warnings.forEach { Text(stringResource(R.string.result_warning_item, it), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f)) }
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(8.dp))) {
+        Column(modifier = Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(AmberWarning.copy(0.1f))
+            .padding(12.dp)) {
+            Text(stringResource(R.string.result_notes_title), style = MaterialTheme.typography.labelMedium,
+                color = AmberWarning, fontWeight = FontWeight.SemiBold)
+            warnings.forEach { Text(stringResource(R.string.result_warning_item, it), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f)) }
+        }
     }
 }
 

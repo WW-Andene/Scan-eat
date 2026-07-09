@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.hydration
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -61,9 +63,17 @@ fun HydrationScreen(
 
             // Big ring
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp)) {
+                Box(
+                    modifier = Modifier
+                        .size(200.dp)
+                        .background(
+                            Brush.radialGradient(listOf(HydrationBlue.copy(alpha = 0.2f), Color.Transparent)),
+                            CircleShape,
+                        ),
+                )
                 CircularProgressIndicator(
                     progress = { pct.coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.size(180.dp),
                     color = HydrationBlue,
                     trackColor = SurfaceVariant,
                     strokeWidth = 14.dp,
@@ -101,10 +111,12 @@ fun HydrationScreen(
             }
 
             if (pct >= 1f) {
-                Surface(shape = RoundedCornerShape(12.dp), color = FlagGreen.copy(0.15f)) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Default.CheckCircle, null, tint = FlagGreen, modifier = Modifier.size(18.dp))
-                        Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = FlagGreen)
+                Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
+                    Surface(shape = RoundedCornerShape(12.dp), color = FlagGreen.copy(0.15f)) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Default.CheckCircle, null, tint = FlagGreen, modifier = Modifier.size(18.dp))
+                            Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = FlagGreen)
+                        }
                     }
                 }
             }

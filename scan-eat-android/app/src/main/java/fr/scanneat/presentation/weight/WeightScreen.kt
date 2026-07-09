@@ -80,6 +80,7 @@ fun WeightScreen(
             // Summary card
             summary.value?.let { s ->
                 item {
+                    Box(Modifier.fillMaxWidth().glassSheen()) {
                     Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -112,6 +113,7 @@ fun WeightScreen(
                             }
                         }
                     }
+                    }
                 }
             }
 
@@ -121,6 +123,7 @@ fun WeightScreen(
                     val last8 = entries.value.takeLast(8)
                     val minW = last8.minOf { it.weightKg }
                     val maxW = (last8.maxOf { it.weightKg }).coerceAtLeast(minW + 0.1)
+                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
                     Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp)) {
                             Text("Tendance — ${last8.size} dernières pesées", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
@@ -134,11 +137,13 @@ fun WeightScreen(
                             }
                         }
                     }
+                    }
                 }
             }
 
             // Entries
             items(entries.value.reversed()) { e ->
+                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(10.dp))) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(SurfaceVariant).padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -154,6 +159,7 @@ fun WeightScreen(
                     IconButton(onClick = { viewModel.delete(e.id) }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
+                }
                 }
             }
             item { Spacer(Modifier.height(32.dp)) }
