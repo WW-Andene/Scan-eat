@@ -420,6 +420,8 @@
     <string name="biolism_liveweight_base">Base : %1$s kg</string>
     <string name="biolism_liveweight_fat_lost">%1$s g graisses</string>
     <string name="biolism_liveweight_glyco_lost">%1$s g glycogène+H₂O</string>
+    <string name="biolism_tracker_empty_title">Complète ton profil Biolism</string>
+    <string name="biolism_tracker_empty_desc">Âge, sexe, taille et poids sont nécessaires pour calculer ton BMR et les flux de substrats.</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>

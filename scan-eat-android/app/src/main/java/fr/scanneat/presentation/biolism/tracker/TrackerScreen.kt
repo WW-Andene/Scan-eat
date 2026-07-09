@@ -14,11 +14,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.cards.*
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -159,9 +161,9 @@ private fun EmptyProfilePrompt() {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(48.dp))
-            Text("Complète ton profil Biolism", style = MaterialTheme.typography.titleSmall,
+            Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall,
                 color = OnBackground, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-            Text("Âge, sexe, taille et poids sont nécessaires pour calculer ton BMR et les flux de substrats.",
+            Text(stringResource(R.string.biolism_tracker_empty_desc),
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
                 textAlign = TextAlign.Center)
         }
