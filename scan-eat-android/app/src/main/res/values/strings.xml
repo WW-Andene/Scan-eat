@@ -245,4 +245,19 @@
     <string name="activity_add_dialog_title">Ajouter une activité</string>
     <string name="activity_type_label">Type</string>
     <string name="activity_duration_label">Durée (minutes)</string>
+
+    <!-- ── Fasting screen ─────────────────────────────────────────────────── -->
+    <string name="fasting_title">Jeûne intermittent</string>
+    <plurals name="fasting_streak">
+        <item quantity="one">%1$d jour consécutifs</item>
+        <item quantity="other">%1$d jours consécutifs</item>
+    </plurals>
+    <string name="fasting_target_progress">/ %1$dh objectif</string>
+    <string name="fasting_finish_button">Terminer</string>
+    <string name="fasting_start_title">Commencer un jeûne</string>
+    <string name="fasting_target_duration_label">Durée cible</string>
+    <string name="fasting_hours_chip">%1$dh</string>
+    <string name="fasting_start_button">Démarrer %1$dh</string>
+    <string name="fasting_history_title">Historique</string>
+    <string name="fasting_history_entry">%1$sh / %2$dh</string>
 </resources>

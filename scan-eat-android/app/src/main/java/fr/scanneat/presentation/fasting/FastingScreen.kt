@@ -13,11 +13,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -35,8 +38,8 @@ fun FastingScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Jeûne intermittent", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
+                title = { Text(stringResource(R.string.fasting_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -53,7 +56,7 @@ fun FastingScreen(
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.LocalFireDepartment, null, tint = CalorieOrange)
-                        Text("${streak.value} jour${if (streak.value > 1) "s" else ""} consécutifs", style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
+                        Text(pluralStringResource(R.plurals.fasting_streak, streak.value, streak.value), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -78,24 +81,24 @@ fun FastingScreen(
                             val h = (fs.elapsedMs / 3_600_000L).toInt()
                             val m = ((fs.elapsedMs % 3_600_000L) / 60_000L).toInt()
                             Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentGreen, fontWeight = FontWeight.Bold)
-                            Text("/ ${fs.targetHours}h objectif", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                            Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 OutlinedButton(onClick = { viewModel.cancel() }, border = ButtonDefaults.outlinedButtonBorder) {
-                                    Text("Annuler", color = OnBackground.copy(0.7f))
+                                    Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.7f))
                                 }
                                 Button(onClick = { viewModel.stop() }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {
-                                    Text("Terminer", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                                    Text(stringResource(R.string.fasting_finish_button), color = Color.Black, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         } else {
                             // Not active
-                            Text("Commencer un jeûne", style = MaterialTheme.typography.titleMedium, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                            Text("Durée cible", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                            Text(stringResource(R.string.fasting_start_title), style = MaterialTheme.typography.titleMedium, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.fasting_target_duration_label), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 listOf(12, 16, 18, 20, 24).forEach { h ->
                                     FilterChip(
                                         selected = targetHours == h, onClick = { targetHours = h },
-                                        label = { Text("${h}h", fontSize = 12.sp) },
+                                        label = { Text(stringResource(R.string.fasting_hours_chip, h), fontSize = 12.sp) },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                                             labelColor = OnBackground.copy(0.7f),
@@ -104,7 +107,7 @@ fun FastingScreen(
                                 }
                             }
                             Button(onClick = { viewModel.start(targetHours) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), modifier = Modifier.fillMaxWidth()) {
-                                Text("Démarrer ${targetHours}h", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.fasting_start_button, targetHours), color = Color.Black, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -113,11 +116,11 @@ fun FastingScreen(
 
             // History
             if (history.value.isNotEmpty()) {
-                item { Text("Historique", style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold) }
+                item { Text(stringResource(R.string.fasting_history_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold) }
                 items(history.value.take(20)) { c ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                        Text("${c.achievedHours}h / ${c.targetHours}h", style = MaterialTheme.typography.bodySmall, color = if (c.reached) FlagGreen else AmberWarning)
+                        Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) FlagGreen else AmberWarning)
                         Icon(if (c.reached) Icons.Default.CheckCircle else Icons.Default.Close, null, tint = if (c.reached) FlagGreen else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
                     }
                 }

@@ -245,4 +245,19 @@
     <string name="activity_add_dialog_title">Log an activity</string>
     <string name="activity_type_label">Type</string>
     <string name="activity_duration_label">Duration (minutes)</string>
+
+    <!-- ── Fasting screen ─────────────────────────────────────────────────── -->
+    <string name="fasting_title">Intermittent Fasting</string>
+    <plurals name="fasting_streak">
+        <item quantity="one">%1$d consecutive day</item>
+        <item quantity="other">%1$d consecutive days</item>
+    </plurals>
+    <string name="fasting_target_progress">/ %1$dh goal</string>
+    <string name="fasting_finish_button">Finish</string>
+    <string name="fasting_start_title">Start a fast</string>
+    <string name="fasting_target_duration_label">Target duration</string>
+    <string name="fasting_hours_chip">%1$dh</string>
+    <string name="fasting_start_button">Start %1$dh</string>
+    <string name="fasting_history_title">History</string>
+    <string name="fasting_history_entry">%1$sh / %2$dh</string>
 </resources>
