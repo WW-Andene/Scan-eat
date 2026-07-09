@@ -66,5 +66,5 @@ sealed class BackupImportError : Exception() {
     /** The file's formatVersion is newer than this app build knows how to read. */
     data class UnsupportedVersion(val found: Int, val supported: Int) : BackupImportError()
     /** The file isn't valid JSON, or doesn't match the expected BackupBundle shape. */
-    data class Malformed(val cause: Throwable) : BackupImportError()
+    data class Malformed(val underlyingCause: Throwable) : BackupImportError()
 }

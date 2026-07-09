@@ -1,7 +1,6 @@
 package fr.scanneat.data.backup
 
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.adapter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.data.local.db.activity.ActivityEntity
 import fr.scanneat.data.local.db.consumption.ConsumptionEntity
@@ -24,7 +23,7 @@ import org.junit.Test
 class BackupBundleTest {
 
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-    private val adapter = moshi.adapter<BackupBundle>()
+    private val adapter = moshi.adapter(BackupBundle::class.java)
 
     private fun sampleBundle() = BackupBundle(
         exportedAtMs = 1_700_000_000_000L,

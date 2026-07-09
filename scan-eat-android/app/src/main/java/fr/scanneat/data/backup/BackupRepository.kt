@@ -2,7 +2,6 @@ package fr.scanneat.data.backup
 
 import androidx.room.withTransaction
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.adapter
 import fr.scanneat.BuildConfig
 import fr.scanneat.data.local.db.AppDatabase
 import fr.scanneat.data.local.db.activity.ActivityDao
@@ -38,7 +37,7 @@ class BackupRepository @Inject constructor(
     private val recipeDao: RecipeDao,
     private val moshi: Moshi,
 ) {
-    private val bundleAdapter = moshi.adapter<BackupBundle>()
+    private val bundleAdapter = moshi.adapter(BackupBundle::class.java)
 
     /** Reads every table and serializes to a pretty-printed JSON string. */
     suspend fun exportToJson(): String {
