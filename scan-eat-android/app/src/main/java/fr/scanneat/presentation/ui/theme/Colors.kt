@@ -16,13 +16,18 @@ import fr.scanneat.domain.model.Grade
 // ============================================================================
 
 // ── Shared neutrals ──────────────────────────────────────────────────────────
-val Background      = Color(0xFF000000)  // OLED black
-val OnBackground    = Color(0xFFEEEEEE)
-val SurfaceVariant  = Color(0xFF1A1A1A)
-val OnSurface       = Color(0xFFCCCCCC)
+// Nectar: a near-black ground with a faint warm undertone (not flat OLED grey),
+// paired with one sober warm-coral brand accent used app-wide for actions and
+// active states. Semantic colors (Flag*, grade colors) stay a separate scale on
+// purpose — accent means "you can act here," semantic colors mean "this is good
+// or bad," and the two must never be the same hue or they stop being readable.
+val Background      = Color(0xFF0F0D12)  // near-black, faint warm-plum undertone
+val OnBackground    = Color(0xFFEFEAE6)
+val SurfaceVariant  = Color(0xFF1C1820)
+val OnSurface       = Color(0xFFCFC7CC)
 
 // ── Scan'eat accent ───────────────────────────────────────────────────────────
-val AccentGreen     = Color(0xFF5BCA8E)
+val AccentGreen     = Color(0xFFD97C56)  // sober warm coral — the app's one brand accent
 val FlagRed         = Color(0xFFEF5350)
 val FlagGreen       = Color(0xFF66BB6A)
 val AmberWarning    = Color(0xFFFFA726)

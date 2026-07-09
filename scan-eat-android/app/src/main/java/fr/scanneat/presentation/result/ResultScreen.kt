@@ -3,6 +3,7 @@ package fr.scanneat.presentation.result
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -247,17 +248,27 @@ private fun ResultContent(
 @Composable
 private fun ScoreRing(score: Int, grade: Grade) {
     val color = gradeColor(grade)
-    Box(modifier = Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(210.dp)
+                .background(
+                    androidx.compose.ui.graphics.Brush.radialGradient(
+                        listOf(color.copy(alpha = 0.24f), Color.Transparent),
+                    ),
+                    CircleShape,
+                ),
+        )
         CircularProgressIndicator(
             progress    = { score / 100f },
-            modifier    = Modifier.size(160.dp),
+            modifier    = Modifier.size(178.dp),
             color       = color,
-            strokeWidth = 12.dp,
+            strokeWidth = 14.dp,
             trackColor  = SurfaceVariant,
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(grade.label, fontSize = 40.sp, fontWeight = FontWeight.Bold, color = color)
-            Text(stringResource(R.string.result_score_out_of_100, score), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+            Text(grade.label, fontSize = 56.sp, fontWeight = FontWeight.Black, color = color)
+            Text(stringResource(R.string.result_score_out_of_100, score), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
         }
     }
 }

@@ -310,6 +310,10 @@
         <item quantity="one">%1$d day streak</item>
         <item quantity="other">%1$d days streak</item>
     </plurals>
+    <plurals name="dashboard_streak_unit">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
     <string name="dashboard_features_title">Features</string>
     <string name="dashboard_tile_weight">Weight</string>
     <string name="dashboard_tile_fasting">Fasting</string>

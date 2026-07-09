@@ -301,7 +301,7 @@ fun CameraPreview(
                     }
                 })
             },
-            modifier       = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp),
             containerColor = SurfaceVariant,
         ) {
             Icon(Icons.Default.CameraAlt, stringResource(R.string.scan_capture), tint = OnSurface)

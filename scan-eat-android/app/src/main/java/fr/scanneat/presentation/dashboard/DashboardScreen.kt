@@ -68,22 +68,11 @@ fun DashboardScreen(
         ) {
             item { Spacer(Modifier.height(4.dp)) }
 
-            // ---- Today's macro ring ----
+            // ---- Caloric balance — the hero card, streak badge overlapping its corner ----
+            s.calorieBalance?.let { item { CalorieBalanceCard(it, streak = s.streak) } }
+
+            // ---- Today's macros as rings ----
             item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }
-
-            // ---- Caloric balance (in vs out, deficit/surplus) ----
-            s.calorieBalance?.let { item { CalorieBalanceCard(it) } }
-
-            // ---- Streak ----
-            if (s.streak > 0) {
-                item {
-                    StatChip(
-                        icon  = Icons.Default.LocalFireDepartment,
-                        color = CalorieOrange,
-                        label = pluralStringResource(R.plurals.dashboard_streak, s.streak, s.streak),
-                    )
-                }
-            }
 
             // ---- Weekly bars ----
             s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets) } }
@@ -164,38 +153,50 @@ fun DashboardScreen(
 
 @Composable
 private fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
-    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.roundToInt()}", "kcal",
-                    targets?.kcal?.roundToInt())
-                MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.roundToInt()}", "g",
-                    targets?.proteinGTarget?.roundToInt())
-                MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.roundToInt()}", "g", null)
-                MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.roundToInt()}", "g", null)
-            }
-            // Kcal progress bar
-            targets?.let { t ->
-                val pct = (totals.energyKcal / t.kcal).toFloat().coerceIn(0f, 1.2f)
-                val color = when {
-                    pct > 1.1f -> FlagRed
-                    pct > 0.9f -> FlagGreen
-                    else       -> AccentGreen
+    Box(modifier = Modifier.fillMaxWidth().glassSheen()) {
+        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), color = SurfaceVariant) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                val kcalPct = targets?.let { (totals.energyKcal / it.kcal).toFloat() }
+                val kcalColor = when {
+                    kcalPct == null  -> AccentGreen
+                    kcalPct > 1.1f   -> FlagRed
+                    kcalPct > 0.9f   -> FlagGreen
+                    else             -> AccentGreen
                 }
-                LinearProgressIndicator(
-                    progress   = { pct.coerceIn(0f, 1f) },
-                    modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                    color      = color,
-                    trackColor = SurfaceVariant.copy(alpha = 0.3f),
-                )
+                val protPct = targets?.proteinGTarget?.takeIf { it > 0 }?.let { (totals.proteinG / it).toFloat() }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                    MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor)
+                    MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentGreen)
+                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", null, AccentGreen)
+                    MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", null, AccentGreen)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun CalorieBalanceCard(balance: CalorieBalance) {
+private fun MacroRing(label: String, value: Int, unit: String, pct: Float?, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.size(52.dp), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(
+                progress   = { pct?.coerceIn(0f, 1f) ?: 1f },
+                modifier   = Modifier.fillMaxSize(),
+                color      = if (pct != null) color else OnSurface.copy(alpha = 0.12f),
+                strokeWidth = 4.dp,
+                trackColor = OnSurface.copy(alpha = 0.12f),
+            )
+            Text(value.toString(), style = MaterialTheme.typography.labelMedium, color = OnBackground, fontWeight = FontWeight.Bold)
+        }
+        Spacer(Modifier.height(5.dp))
+        Text(unit, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+    }
+}
+
+@Composable
+private fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
     val isSurplus = balance.net > 200
     val isDeficit = balance.net < -50
     val balColor = if (isSurplus) FlagRed else if (isDeficit) AccentGreen else AmberWarning
@@ -204,61 +205,55 @@ private fun CalorieBalanceCard(balance: CalorieBalance) {
         else R.string.dashboard_calorie_balanced
     val sourceRes = if (balance.tdeeFromBiolism) R.string.dashboard_calorie_source_biolism else R.string.dashboard_calorie_source_profile
 
-    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.dashboard_calorie_balance_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                Text(stringResource(sourceRes), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+    Box(modifier = Modifier.fillMaxWidth().glassSheen()) {
+        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = SurfaceVariant) {
+            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(stringResource(R.string.dashboard_calorie_balance_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(sourceRes), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                }
+
+                Text(
+                    (if (balance.net >= 0) "+" else "") + "${balance.net.roundToInt()} kcal",
+                    style = MaterialTheme.typography.displaySmall.copy(fontSize = 32.sp), color = balColor, fontWeight = FontWeight.Black,
+                )
+                Text(stringResource(statusRes), style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.SemiBold)
+
+                val pct = (balance.kcalIn / balance.tdee).toFloat().coerceIn(0f, 1.2f)
+                LinearProgressIndicator(
+                    progress   = { pct.coerceIn(0f, 1f) },
+                    modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                    color      = if (isSurplus) FlagRed else AccentGreen,
+                    trackColor = SurfaceVariant.copy(alpha = 0.3f),
+                )
+                Text(
+                    stringResource(R.string.dashboard_calorie_in_out, balance.kcalIn.roundToInt(), balance.tdee.roundToInt()),
+                    style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+                )
             }
+        }
 
-            val pct = (balance.kcalIn / balance.tdee).toFloat().coerceIn(0f, 1.2f)
-            LinearProgressIndicator(
-                progress   = { pct.coerceIn(0f, 1f) },
-                modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                color      = if (isSurplus) FlagRed else AccentGreen,
-                trackColor = SurfaceVariant.copy(alpha = 0.3f),
-            )
-            Text(
-                stringResource(R.string.dashboard_calorie_in_out, balance.kcalIn.roundToInt(), balance.tdee.roundToInt()),
-                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
-            )
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.dashboard_calorie_net), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        (if (balance.net >= 0) "+" else "") + "${balance.net.roundToInt()} kcal",
-                        style = MaterialTheme.typography.titleMedium, color = balColor, fontWeight = FontWeight.Bold,
-                    )
-                    Text(stringResource(statusRes), style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.SemiBold)
+        if (streak > 0) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 8.dp, y = (-10).dp)
+                    .size(46.dp),
+                shape = RoundedCornerShape(50),
+                color = AccentGreen,
+                shadowElevation = 6.dp,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("$streak", style = MaterialTheme.typography.labelLarge, color = Color.Black, fontWeight = FontWeight.Black)
+                        Text(
+                            pluralStringResource(R.plurals.dashboard_streak_unit, streak),
+                            style = MaterialTheme.typography.labelSmall, color = Color.Black.copy(0.7f), fontSize = 7.sp,
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun MacroItem(label: String, value: String, unit: String, target: Int?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.titleMedium, color = AccentGreen, fontWeight = FontWeight.Bold)
-        Text(unit, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f))
-        target?.let { Text(stringResource(R.string.dashboard_macro_target, it), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp) }
-    }
-}
-
-@Composable
-private fun StatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, label: String) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(color.copy(0.15f))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Icon(icon, null, tint = color, modifier = Modifier.size(16.dp))
-        Text(label, style = MaterialTheme.typography.labelMedium, color = color, fontWeight = FontWeight.SemiBold)
     }
 }
 

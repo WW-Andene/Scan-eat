@@ -310,6 +310,10 @@
         <item quantity="one">%1$d jour de suite</item>
         <item quantity="other">%1$d jours de suite</item>
     </plurals>
+    <plurals name="dashboard_streak_unit">
+        <item quantity="one">jour</item>
+        <item quantity="other">jours</item>
+    </plurals>
     <string name="dashboard_features_title">Fonctionnalités</string>
     <string name="dashboard_tile_weight">Poids</string>
     <string name="dashboard_tile_fasting">Jeûne</string>
