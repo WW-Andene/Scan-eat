@@ -1,0 +1,47 @@
+package fr.scanneat.presentation.biolism.data.cards
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
+import fr.scanneat.domain.engine.biolism.*
+import fr.scanneat.presentation.biolism.data.*
+import fr.scanneat.presentation.ui.theme.*
+
+@Composable
+fun KetosisProcessCard(s: TimerState, met: MetabolicResult) {
+    val phase = BiolismEngine.ketoPhaseInfo(s.ketoHours, s.ketoAdapted)
+    val phaseColor = colorFromToken(phase.colorToken)
+    BioCard("Processus de cétose", badge = { Badge(phase.label.uppercase(), phaseColor) }) {
+        Text(formatDuration(s.ketoElapsedMs), style = MaterialTheme.typography.displaySmall.copy(fontSize = 24.sp, fontWeight = FontWeight.Medium), color = phaseColor)
+        Text("en cétose", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+        Spacer(Modifier.height(6.dp))
+        Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+        Spacer(Modifier.height(8.dp))
+        LinearProgressIndicator(
+            progress = { (phase.progressPct / 100.0).toFloat().coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxWidth().height(4.dp),
+            color = phaseColor, trackColor = OnBackground.copy(0.06f),
+        )
+        Spacer(Modifier.height(10.dp))
+        MetCellGrid(
+            listOf(
+                Triple("Temps en cétose", formatDuration(s.ketoElapsedMs), ""),
+                if (s.fastingHours > 0) Triple("Jeûne", "%.1f h".format(s.fastingHours), "")
+                else Triple("Taux GNG", "%.2f g/h".format(met.gngGPerHr), ""),
+                Triple("Cétones est.", phase.estimatedKetoneMmol, ""),
+                Triple("RQ en direct", "%.3f".format(met.sub.rq), ""),
+            ),
+            accents = listOf(phaseColor, Gold, TextSecondary, phaseColor),
+        )
+        if (s.ketoHours >= 1440) {
+            Spacer(Modifier.height(8.dp))
+            Text("Attention : jeûne prolongé : réserves de graisse en voie d'épuisement, le catabolisme protéique augmente à nouveau.",
+                style = MaterialTheme.typography.labelSmall, color = Severe, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
