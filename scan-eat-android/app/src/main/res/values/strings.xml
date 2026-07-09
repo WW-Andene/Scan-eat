@@ -156,4 +156,22 @@
     <string name="bioprofile_phase_luteal_late">Lutéale tardive · E2 et progest. en baisse</string>
     <string name="bioprofile_cycle_day_summary">Jour %1$d : %2$s</string>
     <string name="bioprofile_save_button">Sauvegarder le profil</string>
+
+    <!-- ── Custom food screen ─────────────────────────────────────────────── -->
+    <string name="customfood_title">Mes aliments</string>
+    <string name="customfood_search_placeholder">Rechercher dans FOOD_DB + vos aliments…</string>
+    <string name="customfood_empty_body">Aucun aliment personnalisé.\nAppuyez sur + pour en créer un.</string>
+    <string name="customfood_empty_query">Aucun résultat pour « %1$s »</string>
+    <string name="customfood_delete_confirm_title">Supprimer « %1$s » ?</string>
+    <string name="customfood_delete_confirm_body">Cet aliment sera retiré de vos aliments personnalisés.</string>
+    <string name="customfood_macro_summary">%1$d kcal · P %2$dg · G %3$dg · L %4$dg / 100g</string>
+    <string name="customfood_custom_badge">perso</string>
+    <string name="customfood_add_title">Nouvel aliment (pour 100 g)</string>
+    <string name="customfood_field_name">Nom *</string>
+    <string name="customfood_field_kcal">kcal *</string>
+    <string name="customfood_field_protein">Prot. g</string>
+    <string name="customfood_field_carbs">Glucides g</string>
+    <string name="customfood_field_fat">Lipides g</string>
+    <string name="customfood_field_fiber">Fibres g</string>
+    <string name="customfood_field_salt">Sel g</string>
 </resources>

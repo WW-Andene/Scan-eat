@@ -156,4 +156,22 @@
     <string name="bioprofile_phase_luteal_late">Late luteal · E2 and progesterone falling</string>
     <string name="bioprofile_cycle_day_summary">Day %1$d: %2$s</string>
     <string name="bioprofile_save_button">Save profile</string>
+
+    <!-- ── Custom food screen ─────────────────────────────────────────────── -->
+    <string name="customfood_title">My Foods</string>
+    <string name="customfood_search_placeholder">Search FOOD_DB + your foods…</string>
+    <string name="customfood_empty_body">No custom foods yet.\nTap + to create one.</string>
+    <string name="customfood_empty_query">No results for “%1$s”</string>
+    <string name="customfood_delete_confirm_title">Delete “%1$s”?</string>
+    <string name="customfood_delete_confirm_body">This food will be removed from your custom foods.</string>
+    <string name="customfood_macro_summary">%1$d kcal · P %2$dg · C %3$dg · F %4$dg / 100g</string>
+    <string name="customfood_custom_badge">custom</string>
+    <string name="customfood_add_title">New food (per 100 g)</string>
+    <string name="customfood_field_name">Name *</string>
+    <string name="customfood_field_kcal">kcal *</string>
+    <string name="customfood_field_protein">Protein g</string>
+    <string name="customfood_field_carbs">Carbs g</string>
+    <string name="customfood_field_fat">Fat g</string>
+    <string name="customfood_field_fiber">Fiber g</string>
+    <string name="customfood_field_salt">Salt g</string>
 </resources>

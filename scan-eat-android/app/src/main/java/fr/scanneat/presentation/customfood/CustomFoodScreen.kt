@@ -14,12 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.ui.theme.*
 
@@ -39,15 +41,15 @@ fun CustomFoodScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mes aliments", color = OnBackground) },
+                title = { Text(stringResource(R.string.customfood_title), color = OnBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground)
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
                     }
                 },
                 actions = {
                     IconButton(onClick = { showAdd = true }) {
-                        Icon(Icons.Default.Add, "Ajouter", tint = AccentGreen)
+                        Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -63,7 +65,7 @@ fun CustomFoodScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Rechercher dans FOOD_DB + vos aliments…", color = OnBackground.copy(0.4f)) },
+                placeholder = { Text(stringResource(R.string.customfood_search_placeholder), color = OnBackground.copy(0.4f)) },
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
                 trailingIcon = {
                     if (query.value.isNotEmpty()) {
@@ -99,8 +101,8 @@ fun CustomFoodScreen(
                                 Text("🥗", fontSize = 40.sp)
                                 Text(
                                     if (query.value.isBlank())
-                                        "Aucun aliment personnalisé.\nAppuyez sur + pour en créer un."
-                                    else "Aucun résultat pour « ${query.value} »",
+                                        stringResource(R.string.customfood_empty_body)
+                                    else stringResource(R.string.customfood_empty_query, query.value),
                                     color = OnBackground.copy(0.5f),
                                 )
                             }
@@ -137,16 +139,16 @@ fun CustomFoodScreen(
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
             containerColor   = SurfaceVariant,
-            title = { Text("Supprimer « $name » ?", color = OnBackground) },
-            text  = { Text("Cet aliment sera retiré de vos aliments personnalisés.", color = OnBackground.copy(0.7f)) },
+            title = { Text(stringResource(R.string.customfood_delete_confirm_title, name), color = OnBackground) },
+            text  = { Text(stringResource(R.string.customfood_delete_confirm_body), color = OnBackground.copy(0.7f)) },
             confirmButton = {
                 TextButton(onClick = { viewModel.delete(name); deleteTarget = null }) {
-                    Text("Supprimer", color = FlagRed)
+                    Text(stringResource(R.string.common_delete), color = FlagRed)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { deleteTarget = null }) {
-                    Text("Annuler", color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
                 }
             },
         )
@@ -181,7 +183,7 @@ private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Un
                         color = AccentGreen.copy(0.15f),
                     ) {
                         Text(
-                            "perso",
+                            stringResource(R.string.customfood_custom_badge),
                             modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = AccentGreen,
@@ -191,7 +193,7 @@ private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Un
                 }
             }
             Text(
-                "${entry.kcal.toInt()} kcal · P ${entry.proteinG.toInt()}g · G ${entry.carbsG.toInt()}g · L ${entry.fatG.toInt()}g / 100g",
+                stringResource(R.string.customfood_macro_summary, entry.kcal.toInt(), entry.proteinG.toInt(), entry.carbsG.toInt(), entry.fatG.toInt()),
                 style = MaterialTheme.typography.bodySmall,
                 color = OnSurface.copy(0.55f),
             )
@@ -199,7 +201,7 @@ private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Un
         if (isCustom) {
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                 Icon(
-                    Icons.Default.Close, "Supprimer",
+                    Icons.Default.Close, stringResource(R.string.common_delete),
                     tint = OnSurface.copy(0.4f),
                     modifier = Modifier.size(16.dp),
                 )
@@ -226,21 +228,21 @@ private fun AddFoodDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor   = SurfaceVariant,
-        title = { Text("Nouvel aliment (pour 100 g)", color = OnBackground) },
+        title = { Text(stringResource(R.string.customfood_add_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                FoodField("Nom *", name, KeyboardType.Text) { name = it }
+                FoodField(stringResource(R.string.customfood_field_name), name, KeyboardType.Text) { name = it }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FoodField("kcal *", kcal, KeyboardType.Decimal, Modifier.weight(1f)) { kcal = it }
-                    FoodField("Prot. g", prot, KeyboardType.Decimal, Modifier.weight(1f)) { prot = it }
+                    FoodField(stringResource(R.string.customfood_field_kcal), kcal, KeyboardType.Decimal, Modifier.weight(1f)) { kcal = it }
+                    FoodField(stringResource(R.string.customfood_field_protein), prot, KeyboardType.Decimal, Modifier.weight(1f)) { prot = it }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FoodField("Glucides g", carb, KeyboardType.Decimal, Modifier.weight(1f)) { carb = it }
-                    FoodField("Lipides g", fat, KeyboardType.Decimal, Modifier.weight(1f)) { fat = it }
+                    FoodField(stringResource(R.string.customfood_field_carbs), carb, KeyboardType.Decimal, Modifier.weight(1f)) { carb = it }
+                    FoodField(stringResource(R.string.customfood_field_fat), fat, KeyboardType.Decimal, Modifier.weight(1f)) { fat = it }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FoodField("Fibres g", fib, KeyboardType.Decimal, Modifier.weight(1f)) { fib = it }
-                    FoodField("Sel g", salt, KeyboardType.Decimal, Modifier.weight(1f)) { salt = it }
+                    FoodField(stringResource(R.string.customfood_field_fiber), fib, KeyboardType.Decimal, Modifier.weight(1f)) { fib = it }
+                    FoodField(stringResource(R.string.customfood_field_salt), salt, KeyboardType.Decimal, Modifier.weight(1f)) { salt = it }
                 }
             }
         },
@@ -259,12 +261,12 @@ private fun AddFoodDialog(
                 },
                 enabled = valid,
             ) {
-                Text("Créer", color = if (valid) AccentGreen else OnBackground.copy(0.3f))
+                Text(stringResource(R.string.common_create), color = if (valid) AccentGreen else OnBackground.copy(0.3f))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = OnBackground.copy(0.6f))
+                Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
             }
         },
     )
