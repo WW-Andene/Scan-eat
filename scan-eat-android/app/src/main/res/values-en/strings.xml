@@ -183,4 +183,13 @@
     <string name="templates_item_summary">• %1$s · %2$d g · %3$d kcal</string>
     <string name="templates_more_items">+ %1$d more…</string>
     <string name="templates_log_dialog_title">Log “%1$s”</string>
+
+    <!-- ── Weight screen ──────────────────────────────────────────────────── -->
+    <string name="weight_title">Weight</string>
+    <string name="weight_kg">%1$s kg</string>
+    <string name="weight_delta_kg">%1$s kg (30d)</string>
+    <string name="weight_trend_kg_week">%1$s kg/wk</string>
+    <string name="weight_goal_forecast">Goal in %1$dd</string>
+    <string name="weight_dialog_title">Log weight</string>
+    <string name="weight_field_kg">Weight (kg)</string>
 </resources>

@@ -14,11 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.presentation.ui.theme.*
 import java.time.format.DateTimeFormatter
@@ -41,9 +43,9 @@ fun WeightScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Poids", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
-                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, "Ajouter", tint = AccentGreen) } },
+                title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -60,17 +62,17 @@ fun WeightScreen(
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Column {
-                                    Text("${s.latestKg} kg", style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
+                                    Text(stringResource(R.string.weight_kg, s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
                                     val sign = if (s.deltaKg >= 0) "+" else ""
                                     val dColor = if (s.deltaKg <= 0) FlagGreen else FlagRed
-                                    Text("$sign${s.deltaKg} kg (30j)", style = MaterialTheme.typography.labelSmall, color = dColor)
+                                    Text(stringResource(R.string.weight_delta_kg, "$sign${s.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = dColor)
                                 }
                                 Column(horizontalAlignment = Alignment.End) {
                                     val tSign = if (s.trendKgPerWeek >= 0) "+" else ""
-                                    Text("${tSign}${s.trendKgPerWeek} kg/sem.", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                                    Text(stringResource(R.string.weight_trend_kg_week, "$tSign${s.trendKgPerWeek}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                                     if (forecast.value is WeightForecast.Ok) {
                                         val f = forecast.value as WeightForecast.Ok
-                                        Text("Objectif dans ${f.days}j", style = MaterialTheme.typography.labelSmall, color = AccentGreen)
+                                        Text(stringResource(R.string.weight_goal_forecast, f.days), style = MaterialTheme.typography.labelSmall, color = AccentGreen)
                                     }
                                 }
                             }
@@ -87,9 +89,9 @@ fun WeightScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(e.date.format(fmt), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                    Text("${e.weightKg} kg", style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.weight_kg, e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
                     IconButton(onClick = { viewModel.delete(e.id) }, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Close, "Supprimer", tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -100,11 +102,11 @@ fun WeightScreen(
     if (showAdd) {
         AlertDialog(
             onDismissRequest = { showAdd = false },
-            title = { Text("Enregistrer le poids", color = OnBackground) },
+            title = { Text(stringResource(R.string.weight_dialog_title), color = OnBackground) },
             text = {
                 OutlinedTextField(
                     value = kgText, onValueChange = { kgText = it },
-                    label = { Text("Poids (kg)") }, singleLine = true,
+                    label = { Text(stringResource(R.string.weight_field_kg)) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                 )
@@ -112,9 +114,9 @@ fun WeightScreen(
             confirmButton = {
                 TextButton(onClick = {
                     kgText.toDoubleOrNull()?.let { viewModel.log(it); kgText = ""; showAdd = false }
-                }) { Text("Sauvegarder", color = AccentGreen) }
+                }) { Text(stringResource(R.string.common_save), color = AccentGreen) }
             },
-            dismissButton = { TextButton(onClick = { showAdd = false }) { Text("Annuler", color = OnBackground.copy(0.6f)) } },
+            dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
             containerColor = SurfaceVariant,
         )
     }
