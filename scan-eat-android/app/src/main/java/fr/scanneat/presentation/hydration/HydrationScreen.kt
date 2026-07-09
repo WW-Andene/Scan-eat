@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.HYD_GLASS_ML
 import fr.scanneat.data.repository.health.HydrationRepository
@@ -43,8 +45,8 @@ fun HydrationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Hydratation", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
+                title = { Text(stringResource(R.string.hydration_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -68,8 +70,8 @@ fun HydrationScreen(
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("${intake.value}", style = MaterialTheme.typography.headlineLarge, color = HydrationBlue, fontWeight = FontWeight.Bold)
-                    Text("/ ${goal.value} mL", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                    Text("${glasses} / ${goalGlasses} verres", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), fontSize = 11.sp)
+                    Text(stringResource(R.string.hydration_goal_ml, goal.value), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.hydration_glasses_count, glasses, goalGlasses), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), fontSize = 11.sp)
                 }
             }
 
@@ -77,7 +79,7 @@ fun HydrationScreen(
                 Surface(shape = RoundedCornerShape(12.dp), color = FlagGreen.copy(0.15f)) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.CheckCircle, null, tint = FlagGreen, modifier = Modifier.size(18.dp))
-                        Text("Objectif atteint ! 🎉", style = MaterialTheme.typography.bodyMedium, color = FlagGreen)
+                        Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = FlagGreen)
                     }
                 }
             }
@@ -89,11 +91,11 @@ fun HydrationScreen(
                     containerColor = SurfaceVariant,
                     shape = CircleShape,
                     modifier = Modifier.size(56.dp),
-                ) { Icon(Icons.Default.Remove, "Retirer", tint = OnSurface) }
+                ) { Icon(Icons.Default.Remove, stringResource(R.string.common_remove), tint = OnSurface) }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${HYD_GLASS_ML} mL", style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
-                    Text("par verre", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                    Text(stringResource(R.string.hydration_glass_ml, HYD_GLASS_ML), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
+                    Text(stringResource(R.string.hydration_per_glass_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                 }
 
                 FloatingActionButton(
@@ -101,11 +103,11 @@ fun HydrationScreen(
                     containerColor = HydrationBlue,
                     shape = CircleShape,
                     modifier = Modifier.size(56.dp),
-                ) { Icon(Icons.Default.Add, "Ajouter", tint = Color.Black) }
+                ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
             }
 
             Text(
-                "Objectif : ${goal.value} mL/j (30 mL × poids corporel)",
+                stringResource(R.string.hydration_goal_footer, goal.value),
                 style = MaterialTheme.typography.bodySmall,
                 color = OnBackground.copy(0.4f),
             )

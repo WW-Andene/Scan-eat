@@ -12,6 +12,15 @@
     <string name="scan_needs_photo">Produit non trouvé dans la base — photographiez l\'étiquette pour continuer</string>
     <string name="scan_flash_toggle">Activer/désactiver le flash</string>
     <string name="scan_capture">Capturer</string>
+
+    <!-- ── Hydration screen ───────────────────────────────────────────────── -->
+    <string name="hydration_title">Hydratation</string>
+    <string name="hydration_goal_ml">/ %1$d mL</string>
+    <string name="hydration_glasses_count">%1$d / %2$d verres</string>
+    <string name="hydration_goal_reached">Objectif atteint ! 🎉</string>
+    <string name="hydration_glass_ml">%1$d mL</string>
+    <string name="hydration_per_glass_label">par verre</string>
+    <string name="hydration_goal_footer">Objectif : %1$d mL/j (30 mL × poids corporel)</string>
     <string name="settings_groq_key">Clé Groq API</string>
     <string name="settings_server_url">URL du serveur</string>
     <string name="result_log_it">Journaliser</string>

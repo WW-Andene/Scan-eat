@@ -12,6 +12,15 @@
     <string name="scan_needs_photo">Product not found in the database — photograph the label to continue</string>
     <string name="scan_flash_toggle">Toggle flash</string>
     <string name="scan_capture">Capture</string>
+
+    <!-- ── Hydration screen ───────────────────────────────────────────────── -->
+    <string name="hydration_title">Hydration</string>
+    <string name="hydration_goal_ml">/ %1$d mL</string>
+    <string name="hydration_glasses_count">%1$d / %2$d glasses</string>
+    <string name="hydration_goal_reached">Goal reached! 🎉</string>
+    <string name="hydration_glass_ml">%1$d mL</string>
+    <string name="hydration_per_glass_label">per glass</string>
+    <string name="hydration_goal_footer">Goal: %1$d mL/day (30 mL × body weight)</string>
     <string name="settings_groq_key">Groq API Key</string>
     <string name="settings_server_url">Server URL</string>
     <string name="result_log_it">Log it</string>
