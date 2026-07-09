@@ -21,6 +21,7 @@ class DataViewModel @Inject constructor(
     val meals    = repo.todayMeals.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val sessions = repo.sessions.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val manualHR = repo.manualHR.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val history7d = repo.history7d.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Fix 12: tick drives wall-clock recalculation of elapsed/keto/fasting times
     // so DataScreen shows live values even while the tracker is running.

@@ -35,6 +35,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val sessions = viewModel.sessions.collectAsStateWithLifecycle()
     val manualHR = viewModel.manualHR.collectAsStateWithLifecycle()
     val cum      = viewModel.sessionCumulative.collectAsStateWithLifecycle()
+    val hist7d   = viewModel.history7d.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle()  // force recomposition every second
 
     val met = m.value
@@ -470,7 +471,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         }
 
         // ── Caloric Balance ───────────────────────────────────────────────────
-        item { CaloricBalanceCard(meals = meals.value, met = met, sessions = sessions.value, viewModel = viewModel) }
+        item { CaloricBalanceCard(meals = meals.value, met = met, sessions = sessions.value, history7d = hist7d.value, viewModel = viewModel) }
 
         // ── Session Analytics ─────────────────────────────────────────────────
         if (sessions.value.isNotEmpty()) {
@@ -565,7 +566,9 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
 @Composable
 private fun CaloricBalanceCard(
     meals: List<MealEntry>, met: MetabolicResult,
-    sessions: List<fr.scanneat.domain.engine.biolism.BiolismSession>, viewModel: DataViewModel,
+    sessions: List<fr.scanneat.domain.engine.biolism.BiolismSession>,
+    history7d: List<fr.scanneat.data.repository.biolism.BiolismRepository.DayKcalEntry>,
+    viewModel: DataViewModel,
 ) {
     val slots = listOf("breakfast" to "🌅 Petit-déjeuner", "lunch" to "🥗 Déjeuner", "dinner" to "🍽️ Dîner", "snack" to "🍎 Collations")
     var editingSlot by remember { mutableStateOf<String?>(null) }
@@ -656,6 +659,41 @@ private fun CaloricBalanceCard(
 
         if (totalIn > 0) {
             HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = 8.dp))
+
+            // Today's-intake gauge vs TDEE
+            val kcalPct = (totalIn / met.tdeeDay * 100.0).coerceAtMost(120.0)
+            Label("Apport du jour vs TDEE", OnBackground.copy(0.4f))
+            LinearProgressIndicator(
+                progress = { (kcalPct / 100.0).toFloat().coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxWidth().height(5.dp),
+                color = if (totalIn > met.tdeeDay) Danger else Teal,
+                trackColor = OnBackground.copy(0.06f),
+            )
+            Text("%.0f / %.0f kcal".format(totalIn, met.tdeeDay), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+            Spacer(Modifier.height(8.dp))
+
+            // Per-macro progress bars vs targets
+            listOf(
+                Triple("Protéines", totalProt to met.macroProtMinG, Violet),
+                Triple("Glucides", totalCarb to met.macroCarbMinG, Teal),
+                Triple("Lipides", totalFat to met.macroFatMinG, Warm),
+            ).forEach { (label, vals, color) ->
+                val (value, target) = vals
+                if (value > 0) {
+                    val pct = (value / target.coerceAtLeast(0.001) * 100.0).coerceAtMost(100.0)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                        Text("%.1fg / %.0fg".format(value, target), style = MaterialTheme.typography.labelSmall, color = color)
+                    }
+                    LinearProgressIndicator(
+                        progress = { (pct / 100.0).toFloat().coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().height(4.dp).padding(bottom = 6.dp),
+                        color = color, trackColor = OnBackground.copy(0.06f),
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(4.dp))
             val balColor = if (netBal == null) TextMuted else if (netBal > 200) Danger else if (netBal < -50) Teal else Gold
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
@@ -669,6 +707,50 @@ private fun CaloricBalanceCard(
                         style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.Bold)
                 }
             }
+
+            // Surplus/deficit bidirectional gauge
+            if (netBal != null) {
+                Spacer(Modifier.height(6.dp))
+                Box(Modifier.fillMaxWidth().height(6.dp).background(OnBackground.copy(0.06f), RoundedCornerShape(3.dp))) {
+                    Box(Modifier.fillMaxHeight().width(1.dp).align(Alignment.Center).background(OnBackground.copy(0.2f)))
+                    val frac = (kotlin.math.abs(netBal) / met.tdeeDay * 100.0).coerceAtMost(50.0).toFloat() / 100f
+                    Box(
+                        Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(frac)
+                            .align(if (netBal > 0) Alignment.CenterEnd else Alignment.CenterStart)
+                            .background(if (netBal > 0) Danger else Teal, RoundedCornerShape(3.dp)),
+                    )
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("← déficit", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+                    Text("équilibré", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+                    Text("surplus →", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+                }
+            }
+        }
+
+        // 7-day intake sparkline
+        if (history7d.size > 1) {
+            Spacer(Modifier.height(10.dp))
+            Label("Historique 7 jours", OnBackground.copy(0.4f))
+            val sparkMax = (history7d.maxOfOrNull { it.kcal } ?: 0.0).coerceAtLeast(met.tdeeDay * 1.2)
+            val todayStr = java.time.LocalDate.now().toString()
+            Row(Modifier.fillMaxWidth().height(44.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
+                history7d.forEach { day ->
+                    val isTodayEntry = day.date == todayStr
+                    val aboveTdee = day.kcal > met.tdeeDay
+                    val h = (if (day.kcal > 0) (day.kcal / sparkMax * 40.0).coerceAtLeast(6.0) else 3.0).toInt()
+                    val color = when {
+                        isTodayEntry && aboveTdee -> Danger
+                        isTodayEntry -> Teal
+                        aboveTdee -> Danger.copy(alpha = 0.4f)
+                        else -> Teal.copy(alpha = 0.3f)
+                    }
+                    Box(Modifier.weight(1f).height(h.dp).background(color, RoundedCornerShape(2.dp)))
+                }
+            }
+            Text("TDEE réf : %.0f kcal/j".format(met.tdeeDay), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
         }
     }
 }

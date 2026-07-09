@@ -239,6 +239,7 @@ class BiolismRepository @Inject constructor(
         val updated = current.filter { it.slotId != entry.slotId } + entry
         p[K_CALORIC_DATE]  = today
         p[K_CALORIC_TODAY] = Json.encodeToString(updated)
+        recordTodayHistory(p, updated, today)
     }
 
     suspend fun clearMeal(slotId: String) = store.edit { p ->
@@ -247,7 +248,30 @@ class BiolismRepository @Inject constructor(
         val current = runCatching {
             Json.decodeFromString<List<MealEntry>>(p[K_CALORIC_TODAY] ?: "[]")
         }.getOrElse { emptyList() }
-        p[K_CALORIC_TODAY] = Json.encodeToString(current.filter { it.slotId != slotId })
+        val updated = current.filter { it.slotId != slotId }
+        p[K_CALORIC_TODAY] = Json.encodeToString(updated)
+        recordTodayHistory(p, updated, today)
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // 7-day kcal intake history — one snapshot per date, rolling window
+    // ─────────────────────────────────────────────────────────────────────────
+    @Serializable
+    data class DayKcalEntry(val date: String, val kcal: Double)
+
+    val history7d: Flow<List<DayKcalEntry>> = store.data.map { p ->
+        val json = p[K_HISTORY_7D] ?: return@map emptyList()
+        runCatching { Json.decodeFromString<List<DayKcalEntry>>(json) }.getOrElse { emptyList() }
+    }
+
+    private fun recordTodayHistory(p: MutablePreferences, meals: List<MealEntry>, today: String) {
+        val totalKcal = meals.sumOf { it.kcal }
+        val current = runCatching {
+            Json.decodeFromString<List<DayKcalEntry>>(p[K_HISTORY_7D] ?: "[]")
+        }.getOrElse { emptyList() }
+        val updated = (current.filter { it.date != today } + DayKcalEntry(today, totalKcal))
+            .sortedBy { it.date }.takeLast(7)
+        p[K_HISTORY_7D] = Json.encodeToString(updated)
     }
 
     // ─────────────────────────────────────────────────────────────────────────
