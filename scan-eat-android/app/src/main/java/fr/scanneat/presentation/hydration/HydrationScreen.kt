@@ -75,6 +75,31 @@ fun HydrationScreen(
                 }
             }
 
+            // Glass grid — filled up to current intake, gold accent past goal
+            val totalGlassCells = maxOf(goalGlasses, glasses)
+            if (totalGlassCells > 0) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    (0 until totalGlassCells).chunked(8).forEach { row ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            row.forEach { i ->
+                                val filled = i < glasses
+                                val overGoal = i >= goalGlasses
+                                Icon(
+                                    Icons.Default.Opacity,
+                                    contentDescription = null,
+                                    tint = when {
+                                        !filled -> OnBackground.copy(0.15f)
+                                        overGoal -> Gold
+                                        else -> HydrationBlue
+                                    },
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             if (pct >= 1f) {
                 Surface(shape = RoundedCornerShape(12.dp), color = FlagGreen.copy(0.15f)) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

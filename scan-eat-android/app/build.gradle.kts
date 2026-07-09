@@ -43,6 +43,12 @@ android {
             )
             buildConfigField("String", "DEFAULT_GROQ_ENDPOINT", "\"https://api.groq.com/openai/v1/chat/completions\"")
             buildConfigField("String", "OFF_ENDPOINT",          "\"https://world.openfoodfacts.org/api/v2/product\"")
+            // Separate schema dir from debug: debug + release KSP tasks can run in parallel
+            // (e.g. `./gradlew test`), and both writing room.schemaLocation to the same path
+            // races and can throw "Empty schema file" (IllegalStateException) intermittently.
+            ksp {
+                arg("room.schemaLocation", "$projectDir/schemas/release")
+            }
         }
     }
 

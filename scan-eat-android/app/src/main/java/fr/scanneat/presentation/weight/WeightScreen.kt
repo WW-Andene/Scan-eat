@@ -36,9 +36,15 @@ fun WeightScreen(
     val entries  = viewModel.entries.collectAsStateWithLifecycle()
     val summary  = viewModel.summary.collectAsStateWithLifecycle()
     val forecast = viewModel.forecast.collectAsStateWithLifecycle()
+    val goalWeightKg = viewModel.goalWeightKg.collectAsStateWithLifecycle()
 
     var kgText by remember { mutableStateOf("") }
+    var notesText by remember { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
+    var useImperial by remember { mutableStateOf(false) }
+
+    fun dispWeight(kg: Double): String =
+        if (useImperial) "%.1f lb".format(kg * 2.20462) else "%.1f kg".format(kg)
 
     Scaffold(
         topBar = {
@@ -55,6 +61,22 @@ fun WeightScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            // Unit toggle
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(false to "kg", true to "lb").forEach { (imperial, label) ->
+                            FilterChip(
+                                selected = useImperial == imperial,
+                                onClick = { useImperial = imperial },
+                                label = { Text(label) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen),
+                            )
+                        }
+                    }
+                }
+            }
+
             // Summary card
             summary.value?.let { s ->
                 item {
@@ -62,7 +84,7 @@ fun WeightScreen(
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Column {
-                                    Text(stringResource(R.string.weight_kg, s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
+                                    Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
                                     val sign = if (s.deltaKg >= 0) "+" else ""
                                     val dColor = if (s.deltaKg <= 0) FlagGreen else FlagRed
                                     Text(stringResource(R.string.weight_delta_kg, "$sign${s.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = dColor)
@@ -74,6 +96,40 @@ fun WeightScreen(
                                         val f = forecast.value as WeightForecast.Ok
                                         Text(stringResource(R.string.weight_goal_forecast, f.days), style = MaterialTheme.typography.labelSmall, color = AccentGreen)
                                     }
+                                }
+                            }
+                            goalWeightKg.value?.let { goal ->
+                                HorizontalDivider(color = OnSurface.copy(0.08f))
+                                val toGoal = s.latestKg - goal
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text("Objectif", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                    Text(
+                                        "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))} vers ${dispWeight(goal)}",
+                                        style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
+                                        color = if (kotlin.math.abs(toGoal) < 0.5) FlagGreen else AccentGreen,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Sparkline — last 8 entries
+            if (entries.value.size > 1) {
+                item {
+                    val last8 = entries.value.takeLast(8)
+                    val minW = last8.minOf { it.weightKg }
+                    val maxW = (last8.maxOf { it.weightKg }).coerceAtLeast(minW + 0.1)
+                    Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(12.dp)) {
+                            Text("Tendance — ${last8.size} dernières pesées", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Spacer(Modifier.height(8.dp))
+                            Row(Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
+                                last8.forEachIndexed { i, e ->
+                                    val isLast = i == last8.size - 1
+                                    val h = (((e.weightKg - minW) / (maxW - minW)) * 40.0 + 6.0).toInt()
+                                    Box(Modifier.weight(1f).height(h.dp).background(if (isLast) AccentGreen else AccentGreen.copy(alpha = 0.4f), RoundedCornerShape(2.dp)))
                                 }
                             }
                         }
@@ -88,8 +144,13 @@ fun WeightScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(e.date.format(fmt), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                    Text(stringResource(R.string.weight_kg, e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                    Column(Modifier.weight(1f)) {
+                        Text(e.date.format(fmt), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                        if (e.notes.isNotBlank()) {
+                            Text(e.notes, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                        }
+                    }
+                    Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
                     IconButton(onClick = { viewModel.delete(e.id) }, modifier = Modifier.size(32.dp)) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
@@ -104,16 +165,27 @@ fun WeightScreen(
             onDismissRequest = { showAdd = false },
             title = { Text(stringResource(R.string.weight_dialog_title), color = OnBackground) },
             text = {
-                OutlinedTextField(
-                    value = kgText, onValueChange = { kgText = it },
-                    label = { Text(stringResource(R.string.weight_field_kg)) }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedTextField(
+                        value = kgText, onValueChange = { kgText = it },
+                        label = { Text(if (useImperial) "Poids (lb)" else stringResource(R.string.weight_field_kg)) }, singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                    )
+                    OutlinedTextField(
+                        value = notesText, onValueChange = { notesText = it },
+                        label = { Text("Notes (optionnel)") }, singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                    )
+                }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    kgText.toDoubleOrNull()?.let { viewModel.log(it); kgText = ""; showAdd = false }
+                    kgText.toDoubleOrNull()?.let { v ->
+                        val kg = if (useImperial) v / 2.20462 else v
+                        viewModel.log(kg, notesText)
+                        kgText = ""; notesText = ""; showAdd = false
+                    }
                 }) { Text(stringResource(R.string.common_save), color = AccentGreen) }
             },
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
