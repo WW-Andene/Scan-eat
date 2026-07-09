@@ -383,6 +383,16 @@
     <string name="biolism_ketoproc_ketones_est">Est. ketones</string>
     <string name="biolism_ketoproc_live_rq">Live RQ</string>
     <string name="biolism_ketoproc_warning">Warning: prolonged fast — fat reserves are depleting, protein catabolism is rising again.</string>
+    <string name="biolism_hero_running">IN PROGRESS</string>
+    <string name="biolism_hero_paused">PAUSED</string>
+    <string name="biolism_hero_kcal_ketosis">Calories burned (ketosis)</string>
+    <string name="biolism_hero_kcal_label">Calories burned</string>
+    <string name="biolism_hero_oxidation">oxidation: %1$d%% fat · %2$d%% carbs · %3$d%% protein · npRQ %4$.3f</string>
+    <string name="biolism_hero_precision_low">← 1 digit</string>
+    <string name="biolism_hero_precision_high">4 digits →</string>
+    <string name="biolism_hero_legend_fat">Fat %1$d%%</string>
+    <string name="biolism_hero_legend_carbs">Carbs %1$d%%</string>
+    <string name="biolism_hero_legend_protein">Protein %1$d%%</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>

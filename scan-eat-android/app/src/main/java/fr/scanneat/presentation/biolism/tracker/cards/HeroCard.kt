@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.formatElapsed
 import fr.scanneat.presentation.ui.theme.*
 
@@ -35,12 +37,12 @@ internal fun HeroCard(
                 if (running)   Box(Modifier.size(6.dp).clip(CircleShape).background(Gold))
                 Surface(shape = RoundedCornerShape(4.dp), color = if (running) GoldHaze else VioletHaze,
                     border = BorderStroke(1.dp, if (running) GoldGlow else VioletGlow)) {
-                    Text(if (running) "EN COURS" else "PAUSE", modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    Text(if (running) stringResource(R.string.biolism_hero_running) else stringResource(R.string.biolism_hero_paused), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                         style = MaterialTheme.typography.labelSmall, color = if (running) Gold else Violet, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Text(if (ketosisOn) "Calories brûlées (cétose)" else "Calories brûlées",
+            Text(if (ketosisOn) stringResource(R.string.biolism_hero_kcal_ketosis) else stringResource(R.string.biolism_hero_kcal_label),
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
                 letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
 
@@ -51,12 +53,12 @@ internal fun HeroCard(
             )
             Text("kcal", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
             if (ketosisOn) {
-                Text("oxydation : ${fatPct}% graisses · ${carbPct}% glucides · ${protPct}% protéines · npRQ ${String.format("%.3f", npRq)}",
+                Text(stringResource(R.string.biolism_hero_oxidation, fatPct, carbPct, protPct, npRq),
                     style = MaterialTheme.typography.labelSmall, color = Teal.copy(0.8f))
             }
 
             TextButton(onClick = onPrecision) {
-                Text(if (precision) "← 1 chiffre" else "4 chiffres →",
+                Text(if (precision) stringResource(R.string.biolism_hero_precision_low) else stringResource(R.string.biolism_hero_precision_high),
                     style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
             }
 
@@ -72,9 +74,9 @@ internal fun HeroCard(
                     Box(Modifier.weight(protFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Violet.copy(0.7f)))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SubstrateLegendItem(if (ketosisOn) Teal else Warm, "Graisses $fatPct%")
-                    SubstrateLegendItem(Gold.copy(0.9f), "Glucides $carbPct%")
-                    SubstrateLegendItem(Violet, "Protéines $protPct%")
+                    SubstrateLegendItem(if (ketosisOn) Teal else Warm, stringResource(R.string.biolism_hero_legend_fat, fatPct))
+                    SubstrateLegendItem(Gold.copy(0.9f), stringResource(R.string.biolism_hero_legend_carbs, carbPct))
+                    SubstrateLegendItem(Violet, stringResource(R.string.biolism_hero_legend_protein, protPct))
                 }
             }
         }
