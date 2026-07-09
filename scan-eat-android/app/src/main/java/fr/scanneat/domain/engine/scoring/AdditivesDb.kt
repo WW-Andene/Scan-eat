@@ -1,5 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
+import java.text.Normalizer
+
 // ============================================================================
 // ADDITIVES DATABASE — port of scoring-engine.ts SECTION 2
 // Source citations preserved verbatim from the original TS engine.
@@ -256,9 +258,8 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
 
 /** Normalize for matching: lowercase, strip accents, collapse spaces. */
 fun normalizeForMatching(s: String): String =
-    s.lowercase()
-        .map { if (it.code in 0x0300..0x036F) ' ' else it }
-        .joinToString("")
+    Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD)
+        .replace(Regex("[\\u0300-\\u036f]"), "")
         .replace(Regex("[^a-z0-9\\s-]"), " ")
         .replace(Regex("\\s+"), " ")
         .trim()
