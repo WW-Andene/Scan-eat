@@ -8,6 +8,7 @@ import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 import javax.inject.Inject
@@ -78,8 +79,7 @@ class CustomFoodRepository @Inject constructor(
      * Custom foods win ties. Port of searchFoodDB() with extraFoods.
      */
     suspend fun search(query: String, limit: Int = 6, profileId: String = "default"): List<FoodEntry> {
-        val customs = dao.observeAll(profileId).map { it.map { e -> e.toFoodEntry() } }
-            .let { flow -> var r = emptyList<FoodEntry>(); flow.collect { r = it }; r }
+        val customs = dao.observeAll(profileId).first().map { it.toFoodEntry() }
         return searchFoodDB(query, limit, customs)
     }
 

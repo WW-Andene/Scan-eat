@@ -268,7 +268,7 @@ object BiolismEngine {
         val heatEvapResp = watts * 0.08
 
         // ── Insensible water loss ─────────────────────────────────────────────
-        val rwlMlHr    = vePerMin * 60.0 * (44.0 - 10.0) / 760.0 * (18.0 / 22.4) * 1000.0
+        val rwlMlHr    = vePerMin * 60.0 * (44.0 - 10.0) / 760.0 * (18.0 / 22.4)
         val tewlMlHr   = 0.45 * (bsa * 10000.0) / 1000.0   // Pinnagoda 1990
         val iwlMlHr    = rwlMlHr + tewlMlHr
         val metWaterMlHr   = metWaterMin * 60.0

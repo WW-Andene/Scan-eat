@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.*
+import kotlin.math.roundToInt
 
 // ============================================================================
 // FOOD SCORING ENGINE v2.2.0 — Kotlin port of scoring-engine.ts
@@ -603,12 +604,15 @@ private fun checkVeto(product: Product): VetoCondition {
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
         return VetoCondition(true, "Processed meat with nitrites + high salt + refined starch", 40)
 
+    // Beverage-specific rule checked first and it's the stricter cap (30 vs 40) —
+    // otherwise a very sugary soda hit the generic >30g rule first and got the
+    // looser cap, while a merely moderately sugary one got the stricter one.
     val sugars = n.addedSugarsG ?: n.sugarsG
-    if (product.category != ProductCategory.SNACK_SWEET && sugars > 30)
-        return VetoCondition(true, "Added sugar >30g/100g in non-confectionery", 40)
-
     if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
         return VetoCondition(true, "Sugar-sweetened beverage with no nutritional contribution", 30)
+
+    if (product.category != ProductCategory.SNACK_SWEET && sugars > 30)
+        return VetoCondition(true, "Added sugar >30g/100g in non-confectionery", 40)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
@@ -689,7 +693,7 @@ fun scoreProduct(input: Product): ScoreAudit {
     var score = (baseScore + bonusTotal + penaltyTotal).coerceIn(0.0, 100.0)
     val veto = checkVeto(product)
     if (veto.triggered && score > veto.cap) score = veto.cap.toDouble()
-    val finalScore = score.toInt()
+    val finalScore = score.roundToInt()
     val grade = scoreToGrade(finalScore)
 
     val pillars = ScoreAudit.Pillars(processing, nutritionalDensity, negativeNutrients, additiveRisk, ingredientIntegrity)

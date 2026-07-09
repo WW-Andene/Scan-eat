@@ -161,7 +161,7 @@ private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealS
                 Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     MealSlot.values().forEach { s ->
-                        FilterChip(selected = slot == s, onClick = { slot = s }, label = { Text(s.name.take(3), style = MaterialTheme.typography.labelSmall) },
+                        FilterChip(selected = slot == s, onClick = { slot = s }, label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen, labelColor = OnBackground.copy(0.7f)))
                     }
                 }

@@ -260,6 +260,7 @@ private fun GoalSelector(current: Goal, onSelect: (Goal) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
     val diets = DietKey.values().filter { it != DietKey.NONE }
@@ -273,18 +274,16 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
             ),
         )
         val isEnglish = Locale.current.language == "en"
-        diets.chunked(3).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { d ->
-                    FilterChip(
-                        selected = current == d, onClick = { onSelect(d) },
-                        label = { Text(if (isEnglish) d.labelEn else d.labelFr, fontSize = 11.sp) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
-                            labelColor = OnBackground.copy(0.7f),
-                        ),
-                    )
-                }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            diets.forEach { d ->
+                FilterChip(
+                    selected = current == d, onClick = { onSelect(d) },
+                    label = { Text(if (isEnglish) d.labelEn else d.labelFr, fontSize = 11.sp, maxLines = 1) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                        labelColor = OnBackground.copy(0.7f),
+                    ),
+                )
             }
         }
     }
@@ -301,25 +300,24 @@ private fun allergenLabels(): Map<String, String> = mapOf(
     "sulfites" to stringResource(R.string.allergen_sulfites), "lupin" to stringResource(R.string.allergen_lupin),
 )
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AllergenSelector(current: Set<String>, onSelect: (Set<String>) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(stringResource(R.string.profile_allergen_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-        allergenLabels().entries.chunked(3).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { (key, label) ->
-                    FilterChip(
-                        selected = key in current,
-                        onClick  = {
-                            onSelect(if (key in current) current - key else current + key)
-                        },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AmberWarning.copy(0.2f), selectedLabelColor = AmberWarning,
-                            labelColor = OnBackground.copy(0.7f),
-                        ),
-                    )
-                }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            allergenLabels().forEach { (key, label) ->
+                FilterChip(
+                    selected = key in current,
+                    onClick  = {
+                        onSelect(if (key in current) current - key else current + key)
+                    },
+                    label = { Text(label, fontSize = 11.sp, maxLines = 1) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AmberWarning.copy(0.2f), selectedLabelColor = AmberWarning,
+                        labelColor = OnBackground.copy(0.7f),
+                    ),
+                )
             }
         }
     }

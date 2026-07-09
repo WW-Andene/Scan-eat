@@ -47,7 +47,10 @@ private fun numOrNull(v: Any?): Double? = when (v) {
 
 private fun mapCategory(tags: List<String>?): ProductCategory {
     if (tags.isNullOrEmpty()) return ProductCategory.OTHER
-    val tag = tags.firstOrNull() ?: return ProductCategory.OTHER
+    // Scan the whole tag hierarchy, not just tags[0] — OFF often puts a generic
+    // parent tag (e.g. "en:beverages") first, which was mis-bucketing plenty of
+    // products before ever reaching their more specific tag further down the list.
+    val tag = tags.joinToString(" ")
     return when {
         "yogurt" in tag || "yaourt" in tag || "skyr" in tag -> ProductCategory.YOGURT
         "cheese" in tag || "fromage" in tag -> ProductCategory.CHEESE
@@ -167,7 +170,9 @@ fun mapOffProduct(off: OffProductResponse): Product? {
 fun isOffSparse(p: Product): Boolean {
     val n = p.nutrition
     val hasNutrition   = n.energyKcal > 0 || n.proteinG > 0 || n.carbsG > 0
-    val hasIngredients = p.ingredients.size >= 3
+    // A genuinely single/dual-ingredient product (water, salt, single-origin oil)
+    // isn't sparse data — only a fully empty ingredients list is a real gap.
+    val hasIngredients = p.ingredients.isNotEmpty()
     val hasCategory    = p.category != ProductCategory.OTHER
     // Micronutrients are legitimately absent from most nutrition-facts panels
     // (a can of soda reporting zero vitamins isn't "sparse data", it's correct)

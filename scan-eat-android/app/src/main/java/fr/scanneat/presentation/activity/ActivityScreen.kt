@@ -47,6 +47,7 @@ private fun typeLabels(): Map<ActivityType, String> = mapOf(
     ActivityType.OTHER to stringResource(R.string.activity_type_other),
 )
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ActivityScreen(
     viewModel: ActivityViewModel = hiltViewModel(),
@@ -133,18 +134,16 @@ fun ActivityScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     // Type picker
                     Text(stringResource(R.string.activity_type_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                    typeLabels.entries.chunked(4).forEach { row ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            row.forEach { (type, label) ->
-                                FilterChip(
-                                    selected = selectedType == type, onClick = { selectedType = type },
-                                    label = { Text(label, fontSize = 11.sp) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
-                                        labelColor = OnBackground.copy(0.7f),
-                                    ),
-                                )
-                            }
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        typeLabels.forEach { (type, label) ->
+                            FilterChip(
+                                selected = selectedType == type, onClick = { selectedType = type },
+                                label = { Text(label, fontSize = 11.sp, maxLines = 1) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                    labelColor = OnBackground.copy(0.7f),
+                                ),
+                            )
                         }
                     }
                     OutlinedTextField(

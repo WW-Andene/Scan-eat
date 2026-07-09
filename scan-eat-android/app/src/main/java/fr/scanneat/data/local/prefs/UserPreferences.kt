@@ -97,10 +97,13 @@ class UserPreferences @Inject constructor(
         p[KEY_ACTIVE_PROFILE]       = profile.id
         p[KEY_PROFILE_NAME]         = profile.name
         p[KEY_PROFILE_SEX]          = profile.sex.name
-        profile.ageYears?.let      { p[KEY_PROFILE_AGE]         = it }
-        profile.weightKg?.let      { p[KEY_PROFILE_WEIGHT]      = it.toFloat() }
-        profile.heightCm?.let      { p[KEY_PROFILE_HEIGHT]      = it.toFloat() }
-        profile.goalWeightKg?.let  { p[KEY_PROFILE_GOAL_WEIGHT] = it.toFloat() }
+        // Clearing a field must actually remove the stored value — leaving the old
+        // one behind made a blanked-out age/weight/height/goal silently reappear
+        // the next time Profile was opened.
+        profile.ageYears?.let      { p[KEY_PROFILE_AGE]         = it } ?: p.remove(KEY_PROFILE_AGE)
+        profile.weightKg?.let      { p[KEY_PROFILE_WEIGHT]      = it.toFloat() } ?: p.remove(KEY_PROFILE_WEIGHT)
+        profile.heightCm?.let      { p[KEY_PROFILE_HEIGHT]      = it.toFloat() } ?: p.remove(KEY_PROFILE_HEIGHT)
+        profile.goalWeightKg?.let  { p[KEY_PROFILE_GOAL_WEIGHT] = it.toFloat() } ?: p.remove(KEY_PROFILE_GOAL_WEIGHT)
         p[KEY_PROFILE_DIET]         = profile.diet.key
         p[KEY_PROFILE_ACTIVITY]     = profile.activityLevel.name
         p[KEY_PROFILE_GOAL]         = profile.goal.name

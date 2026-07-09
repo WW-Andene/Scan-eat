@@ -60,6 +60,13 @@ class ResultViewModel @Inject constructor(
 
     private val _logState = MutableStateFlow<LogState>(LogState.Idle)
 
+    // arm()/compare() disarm shared comparison state as a side effect, so they must run
+    // at most once per scan — WhileSubscribed(5000) can cancel and restart this flow
+    // (e.g. backgrounding the screen briefly) which would otherwise re-run the side
+    // effect and silently re-arm the current scan as its own comparison baseline.
+    private var comparisonResolved = false
+    private var cachedComparison: ComparisonResult? = null
+
     // Fix 2: Use a typed sealed class instead of Pair<Triple<...>> — clean and null-safe
     private val scanLoad: Flow<ScanLoad> = prefs.profile.flatMapLatest { profile ->
         flow {
@@ -69,11 +76,14 @@ class ResultViewModel @Inject constructor(
             if (scan == null) { emit(ScanLoad.Empty); return@flow }
 
             val personal   = computePersonalScore(scan.audit, scan.product, profile)
-            val comparison = if (comparisonRepo.isArmed.first()) comparisonRepo.compare(scan)
-                             else { comparisonRepo.arm(scan); null }
+            if (!comparisonResolved) {
+                comparisonResolved = true
+                cachedComparison = if (comparisonRepo.isArmed.first()) comparisonRepo.compare(scan)
+                                   else { comparisonRepo.arm(scan); null }
+            }
             val pairs      = findPairings(scan.product.name, limit = 5)
 
-            emit(ScanLoad.Loaded(scan, personal, comparison, pairs))
+            emit(ScanLoad.Loaded(scan, personal, cachedComparison, pairs))
         }
     }
 
@@ -91,6 +101,7 @@ class ResultViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ResultUiState())
 
     fun log(portionG: Double, mealSlot: MealSlot) {
+        if (_logState.value is LogState.Loading) return   // guard against double-tap double-logging
         val scan = state.value.scanResult ?: return
         viewModelScope.launch {
             _logState.value = LogState.Loading

@@ -110,7 +110,7 @@ private fun rollup(entries: List<DiaryEntry>, end: LocalDate, windowDays: Int): 
         satFatG  = buckets.sumOf { it.satFatG },
         sugarsG  = buckets.sumOf { it.sugarsG },
         saltG    = buckets.sumOf { it.saltG },
-        count    = entries.size,
+        count    = buckets.sumOf { it.count },
     )
 
     val avg = NutrientTotals(
@@ -139,8 +139,10 @@ data class WeekOverWeekDelta(
 )
 
 fun weekOverWeekDelta(current: RollupResult, prior: RollupResult): WeekOverWeekDelta {
-    fun delta(a: Double, b: Double) = if (b == 0.0) 0.0 else
-        ((a - b) * 10).roundToInt() / 10.0
+    // Plain subtraction, not a ratio — a zero-guard here isn't protecting against
+    // division by zero, it was silently reporting "no change" whenever the prior
+    // week had no logged data at all, hiding a real (and often large) jump.
+    fun delta(a: Double, b: Double) = ((a - b) * 10).roundToInt() / 10.0
     return WeekOverWeekDelta(
         kcal     = delta(current.avg.kcal,     prior.avg.kcal),
         proteinG = delta(current.avg.proteinG, prior.avg.proteinG),
