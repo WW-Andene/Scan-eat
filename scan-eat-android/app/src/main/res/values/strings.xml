@@ -260,4 +260,31 @@
     <string name="fasting_start_button">Démarrer %1$dh</string>
     <string name="fasting_history_title">Historique</string>
     <string name="fasting_history_entry">%1$sh / %2$dh</string>
+
+    <!-- ── Settings screen ────────────────────────────────────────────────── -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_section_api_mode">Mode API</string>
+    <string name="settings_mode_direct">Direct</string>
+    <string name="settings_mode_server">Serveur</string>
+    <string name="settings_mode_direct_desc">Appelle Groq directement avec votre clé.</string>
+    <string name="settings_mode_server_desc">Appelle votre backend Ktor à l\'URL ci-dessous.</string>
+    <string name="settings_section_groq_key">Clé Groq</string>
+    <string name="settings_groq_key_placeholder">gsk_…</string>
+    <string name="settings_section_groq_model">Modèle Groq</string>
+    <string name="settings_groq_model_hint">Laissez vide pour utiliser le modèle par défaut (%1$s). Si l\'analyse échoue avec une erreur de modèle, essayez-en un autre depuis console.groq.com/docs/models.</string>
+    <string name="settings_groq_model_id_placeholder">ID du modèle (optionnel)</string>
+    <string name="settings_server_url_placeholder">https://…</string>
+    <string name="settings_section_language">Langue</string>
+    <string name="settings_lang_fr">Français</string>
+    <string name="settings_lang_en">English</string>
+    <string name="settings_section_theme">Thème</string>
+    <string name="settings_theme_oled">OLED</string>
+    <string name="settings_theme_dark">Sombre</string>
+    <string name="settings_theme_light">Clair</string>
+    <string name="settings_section_profile">Profil nutritionnel</string>
+    <string name="settings_profile_hint">Sexe, âge, taille, poids, régime, allergènes — requis pour le score personnalisé.</string>
+    <string name="settings_profile_button">Modifier mon profil</string>
+    <string name="settings_section_about">À propos</string>
+    <string name="settings_about_version">Scan\'eat v0.1.0 · Moteur de scoring v2.2.0</string>
+    <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
 </resources>

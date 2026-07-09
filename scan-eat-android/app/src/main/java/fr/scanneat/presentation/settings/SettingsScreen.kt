@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.domain.engine.nutrition.DEFAULT_MODEL
 import fr.scanneat.domain.engine.nutrition.FALLBACK_MODEL
@@ -46,10 +48,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Paramètres", color = OnBackground) },
+                title = { Text(stringResource(R.string.settings_title), color = OnBackground) },
                 navigationIcon = {
                     if (!isTabRoot) {
-                        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) }
+                        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -64,13 +66,13 @@ fun SettingsScreen(
             Spacer(Modifier.height(4.dp))
 
             // ---- API Mode ----
-            SettingsSection("Mode API") {
+            SettingsSection(stringResource(R.string.settings_section_api_mode)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ApiMode.entries.forEach { m ->
                         FilterChip(
                             selected = mode.value == m,
                             onClick  = { viewModel.setMode(m) },
-                            label    = { Text(if (m == ApiMode.DIRECT) "Direct" else "Serveur") },
+                            label    = { Text(if (m == ApiMode.DIRECT) stringResource(R.string.settings_mode_direct) else stringResource(R.string.settings_mode_server)) },
                             colors   = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                             ),
@@ -78,18 +80,18 @@ fun SettingsScreen(
                     }
                 }
                 Text(
-                    if (mode.value == ApiMode.DIRECT) "Appelle Groq directement avec votre clé."
-                    else "Appelle votre backend Ktor à l'URL ci-dessous.",
+                    if (mode.value == ApiMode.DIRECT) stringResource(R.string.settings_mode_direct_desc)
+                    else stringResource(R.string.settings_mode_server_desc),
                     style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
                 )
             }
 
             // ---- Groq API key ----
             if (mode.value == ApiMode.DIRECT) {
-                SettingsSection("Clé Groq") {
+                SettingsSection(stringResource(R.string.settings_section_groq_key)) {
                     OutlinedTextField(
                         value = localKey, onValueChange = { localKey = it },
-                        modifier = Modifier.fillMaxWidth(), label = { Text("gsk_…") },
+                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_groq_key_placeholder)) },
                         visualTransformation = if (keyVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { keyVisible = !keyVisible }) {
@@ -100,16 +102,16 @@ fun SettingsScreen(
                         singleLine = true, shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                     )
-                    Text("Clé gratuite sur console.groq.com", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+                    Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                     Button(onClick = { viewModel.saveApiKey(localKey) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
-                        Text("Sauvegarder", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.common_save), color = Color.Black, fontWeight = FontWeight.SemiBold)
                     }
                 }
 
                 // ---- Groq model ----
-                SettingsSection("Modèle Groq") {
+                SettingsSection(stringResource(R.string.settings_section_groq_model)) {
                     Text(
-                        "Laissez vide pour utiliser le modèle par défaut ($DEFAULT_MODEL). Si l'analyse échoue avec une erreur de modèle, essayez-en un autre depuis console.groq.com/docs/models.",
+                        stringResource(R.string.settings_groq_model_hint, DEFAULT_MODEL),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -126,36 +128,36 @@ fun SettingsScreen(
                     }
                     OutlinedTextField(
                         value = localModel, onValueChange = { localModel = it },
-                        modifier = Modifier.fillMaxWidth(), label = { Text("ID du modèle (optionnel)") },
+                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_groq_model_id_placeholder)) },
                         singleLine = true, shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                     )
                     Button(onClick = { viewModel.saveGroqModel(localModel) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
-                        Text("Sauvegarder", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.common_save), color = Color.Black, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
 
             // ---- Server URL ----
             if (mode.value == ApiMode.SERVER) {
-                SettingsSection("URL du serveur") {
+                SettingsSection(stringResource(R.string.settings_server_url)) {
                     OutlinedTextField(
                         value = localUrl, onValueChange = { localUrl = it },
-                        modifier = Modifier.fillMaxWidth(), label = { Text("https://…") },
+                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_server_url_placeholder)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                         singleLine = true, shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                     )
                     Button(onClick = { viewModel.saveServerUrl(localUrl) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
-                        Text("Sauvegarder", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.common_save), color = Color.Black, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
 
             // Fix 4: Language toggle
-            SettingsSection("Langue") {
+            SettingsSection(stringResource(R.string.settings_section_language)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("fr" to "Français", "en" to "English").forEach { (code, label) ->
+                    listOf("fr" to stringResource(R.string.settings_lang_fr), "en" to stringResource(R.string.settings_lang_en)).forEach { (code, label) ->
                         FilterChip(
                             selected = language.value == code,
                             onClick  = { viewModel.setLanguage(code) },
@@ -169,9 +171,9 @@ fun SettingsScreen(
             }
 
             // Fix 4: Theme toggle
-            SettingsSection("Thème") {
+            SettingsSection(stringResource(R.string.settings_section_theme)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("oled" to "OLED", "dark" to "Sombre", "light" to "Clair").forEach { (key, label) ->
+                    listOf("oled" to stringResource(R.string.settings_theme_oled), "dark" to stringResource(R.string.settings_theme_dark), "light" to stringResource(R.string.settings_theme_light)).forEach { (key, label) ->
                         FilterChip(
                             selected = theme.value == key,
                             onClick  = { viewModel.setTheme(key) },
@@ -185,8 +187,8 @@ fun SettingsScreen(
             }
 
             // Profile shortcut
-            SettingsSection("Profil nutritionnel") {
-                Text("Sexe, âge, taille, poids, régime, allergènes — requis pour le score personnalisé.", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            SettingsSection(stringResource(R.string.settings_section_profile)) {
+                Text(stringResource(R.string.settings_profile_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 Button(
                     onClick = onOpenProfile,
                     colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
@@ -195,14 +197,14 @@ fun SettingsScreen(
                 ) {
                     Icon(Icons.Default.Person, null, tint = Color.Black, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Modifier mon profil", color = Color.Black, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.settings_profile_button), color = Color.Black, fontWeight = FontWeight.SemiBold)
                 }
             }
 
             // About
-            SettingsSection("À propos") {
-                Text("Scan'eat v0.1.0 · Moteur de scoring v2.2.0", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                Text("minSdk 26 · Kotlin + Jetpack Compose", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+            SettingsSection(stringResource(R.string.settings_section_about)) {
+                Text(stringResource(R.string.settings_about_version), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
             }
 
             Spacer(Modifier.height(40.dp))

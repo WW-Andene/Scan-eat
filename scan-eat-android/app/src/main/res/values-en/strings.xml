@@ -260,4 +260,31 @@
     <string name="fasting_start_button">Start %1$dh</string>
     <string name="fasting_history_title">History</string>
     <string name="fasting_history_entry">%1$sh / %2$dh</string>
+
+    <!-- ── Settings screen ────────────────────────────────────────────────── -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_api_mode">API Mode</string>
+    <string name="settings_mode_direct">Direct</string>
+    <string name="settings_mode_server">Server</string>
+    <string name="settings_mode_direct_desc">Calls Groq directly with your key.</string>
+    <string name="settings_mode_server_desc">Calls your Ktor backend at the URL below.</string>
+    <string name="settings_section_groq_key">Groq Key</string>
+    <string name="settings_groq_key_placeholder">gsk_…</string>
+    <string name="settings_section_groq_model">Groq Model</string>
+    <string name="settings_groq_model_hint">Leave blank to use the default model (%1$s). If analysis fails with a model error, try another one from console.groq.com/docs/models.</string>
+    <string name="settings_groq_model_id_placeholder">Model ID (optional)</string>
+    <string name="settings_server_url_placeholder">https://…</string>
+    <string name="settings_section_language">Language</string>
+    <string name="settings_lang_fr">Français</string>
+    <string name="settings_lang_en">English</string>
+    <string name="settings_section_theme">Theme</string>
+    <string name="settings_theme_oled">OLED</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_section_profile">Nutrition Profile</string>
+    <string name="settings_profile_hint">Sex, age, height, weight, diet, allergens — required for the personal score.</string>
+    <string name="settings_profile_button">Edit my profile</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_about_version">Scan\'eat v0.1.0 · Scoring engine v2.2.0</string>
+    <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
 </resources>
