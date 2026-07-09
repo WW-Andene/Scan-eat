@@ -192,4 +192,22 @@
     <string name="weight_goal_forecast">Objectif dans %1$dj</string>
     <string name="weight_dialog_title">Enregistrer le poids</string>
     <string name="weight_field_kg">Poids (kg)</string>
+
+    <!-- ── Diary screen ───────────────────────────────────────────────────── -->
+    <string name="diary_header">Journal</string>
+    <string name="diary_cd_prev_day">Jour précédent</string>
+    <string name="diary_today_button">Aujourd\'hui</string>
+    <string name="diary_cd_next_day">Jour suivant</string>
+    <string name="diary_note_label">Note du jour</string>
+    <string name="diary_cd_save_note">Sauver</string>
+    <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Log it\'.</string>
+    <string name="diary_meal_breakfast">Petit-déjeuner</string>
+    <string name="diary_delete_confirm_title">Supprimer cette entrée ?</string>
+    <string name="diary_delete_confirm_body">Cette action est irréversible.</string>
+    <string name="diary_totals_title">Totaux du jour</string>
+    <string name="diary_macro_calories">Calories</string>
+    <string name="diary_macro_protein">Protéines</string>
+    <string name="diary_macro_carbs">Glucides</string>
+    <string name="diary_macro_fat">Lipides</string>
+    <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
 </resources>

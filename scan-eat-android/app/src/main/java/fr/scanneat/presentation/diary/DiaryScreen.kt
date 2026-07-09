@@ -12,12 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 import java.time.format.DateTimeFormatter
@@ -49,22 +51,22 @@ fun DiaryScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Journal", color = OnBackground, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.diary_header), color = OnBackground, fontWeight = FontWeight.Bold)
                         Text(selectedDate.value.format(DATE_FMT), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
                     }
                 },
                 navigationIcon = {
                     if (!isTabRoot) {
-                        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) }
+                        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.goToPreviousDay() }) { Icon(Icons.Default.ChevronLeft, "Jour précédent", tint = OnBackground) }
+                    IconButton(onClick = { viewModel.goToPreviousDay() }) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
                     if (!isToday.value) {
-                        TextButton(onClick = { viewModel.goToToday() }) { Text("Aujourd'hui", color = AccentGreen, style = MaterialTheme.typography.labelMedium) }
+                        TextButton(onClick = { viewModel.goToToday() }) { Text(stringResource(R.string.diary_today_button), color = AccentGreen, style = MaterialTheme.typography.labelMedium) }
                     }
                     IconButton(onClick = { viewModel.goToNextDay() }, enabled = !isToday.value) {
-                        Icon(Icons.Default.ChevronRight, "Jour suivant", tint = if (!isToday.value) OnBackground else OnBackground.copy(0.3f))
+                        Icon(Icons.Default.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday.value) OnBackground else OnBackground.copy(0.3f))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -83,14 +85,14 @@ fun DiaryScreen(
                 OutlinedTextField(
                     value = noteText,
                     onValueChange = { noteText = it },
-                    label = { Text("Note du jour") },
+                    label = { Text(stringResource(R.string.diary_note_label)) },
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
                     singleLine = false,
                     maxLines = 3,
                     trailingIcon = {
                         if (noteText != dayNote.value) {
                             IconButton(onClick = { viewModel.saveNote(noteText) }) {
-                                Icon(Icons.Default.Check, "Sauver", tint = AccentGreen)
+                                Icon(Icons.Default.Check, stringResource(R.string.diary_cd_save_note), tint = AccentGreen)
                             }
                         }
                     },
@@ -98,13 +100,13 @@ fun DiaryScreen(
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                 )
 
-                Text("Repas", style = MaterialTheme.typography.titleSmall, color = OnBackground,
+                Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.titleSmall, color = OnBackground,
                         fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
                 }
                 if (s.entries.isEmpty()) {
                     item {
                         Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("Rien d'enregistré. Scannez un produit et appuyez sur 'Log it'.",
+                            Text(stringResource(R.string.diary_empty_body),
                                 color = OnBackground.copy(0.5f))
                         }
                     }
@@ -115,7 +117,7 @@ fun DiaryScreen(
                         if (slotEntries.isNotEmpty()) {
                             item {
                                 Text(
-                                    slot.labelFr,
+                                    slot.diaryLabel(),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = AccentGreen.copy(0.8f),
                                     modifier = Modifier.padding(top = 4.dp),
@@ -137,15 +139,15 @@ fun DiaryScreen(
             AlertDialog(
                 onDismissRequest = { deleteTarget = null },
                 containerColor   = SurfaceVariant,
-                title   = { Text("Supprimer cette entrée ?", color = OnBackground) },
-                text    = { Text("Cette action est irréversible.", color = OnBackground.copy(0.7f)) },
+                title   = { Text(stringResource(R.string.diary_delete_confirm_title), color = OnBackground) },
+                text    = { Text(stringResource(R.string.diary_delete_confirm_body), color = OnBackground.copy(0.7f)) },
                 confirmButton = {
                     TextButton(onClick = { viewModel.deleteEntry(id); deleteTarget = null }) {
-                        Text("Supprimer", color = FlagRed)
+                        Text(stringResource(R.string.common_delete), color = FlagRed)
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { deleteTarget = null }) { Text("Annuler", color = OnBackground.copy(0.6f)) }
+                    TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                 },
             )
         }
@@ -155,12 +157,12 @@ fun DiaryScreen(
 private fun MacroSummaryCard(totals: ConsumedNutrition) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Totaux du jour", style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.diary_totals_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                MacroItem("Calories", "${totals.energyKcal.toInt()}", "kcal")
-                MacroItem("Protéines", "${totals.proteinG.toInt()}", "g")
-                MacroItem("Glucides", "${totals.carbsG.toInt()}", "g")
-                MacroItem("Lipides", "${totals.fatG.toInt()}", "g")
+                MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal")
+                MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g")
+                MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g")
+                MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g")
             }
         }
     }
@@ -184,18 +186,20 @@ private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1)
-            Text("${entry.portionG.toInt()}g · ${entry.consumed.energyKcal.toInt()} kcal",
+            Text(stringResource(R.string.diary_entry_summary, entry.portionG.toInt(), entry.consumed.energyKcal.toInt()),
                 style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
         }
         IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-            Icon(Icons.Default.Close, "Supprimer", tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+            Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
         }
     }
 }
 
-private val MealSlot.labelFr: String get() = when (this) {
-    MealSlot.BREAKFAST -> "Petit-déjeuner"
-    MealSlot.LUNCH     -> "Déjeuner"
-    MealSlot.SNACK     -> "Collation"
-    MealSlot.DINNER    -> "Dîner"
+/** Diary keeps its own (fuller) wording for breakfast — distinct from the abbreviated shared label. */
+@Composable
+private fun MealSlot.diaryLabel(): String = when (this) {
+    MealSlot.BREAKFAST -> stringResource(R.string.diary_meal_breakfast)
+    MealSlot.LUNCH     -> stringResource(R.string.meal_lunch)
+    MealSlot.SNACK     -> stringResource(R.string.meal_snack)
+    MealSlot.DINNER    -> stringResource(R.string.meal_dinner)
 }

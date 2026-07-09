@@ -192,4 +192,22 @@
     <string name="weight_goal_forecast">Goal in %1$dd</string>
     <string name="weight_dialog_title">Log weight</string>
     <string name="weight_field_kg">Weight (kg)</string>
+
+    <!-- ── Diary screen ───────────────────────────────────────────────────── -->
+    <string name="diary_header">Diary</string>
+    <string name="diary_cd_prev_day">Previous day</string>
+    <string name="diary_today_button">Today</string>
+    <string name="diary_cd_next_day">Next day</string>
+    <string name="diary_note_label">Note of the day</string>
+    <string name="diary_cd_save_note">Save</string>
+    <string name="diary_empty_body">Nothing logged yet. Scan a product and tap \'Log it\'.</string>
+    <string name="diary_meal_breakfast">Breakfast</string>
+    <string name="diary_delete_confirm_title">Delete this entry?</string>
+    <string name="diary_delete_confirm_body">This action cannot be undone.</string>
+    <string name="diary_totals_title">Today\'s totals</string>
+    <string name="diary_macro_calories">Calories</string>
+    <string name="diary_macro_protein">Protein</string>
+    <string name="diary_macro_carbs">Carbs</string>
+    <string name="diary_macro_fat">Fat</string>
+    <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
 </resources>
