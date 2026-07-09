@@ -39,8 +39,19 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
     var hip        by remember(p) { mutableStateOf(p.hipCm.takeIf { it > 0 }?.toString() ?: "") }
     var neck       by remember(p) { mutableStateOf(p.neckCm.takeIf { it > 0 }?.toString() ?: "") }
     var cycleDay   by remember(p) { mutableStateOf(p.cycleDay.toString()) }
+    var useImperial by remember { mutableStateOf(false) }
 
     LaunchedEffect(saved.value) { if (saved.value) viewModel.clearSaved() }
+
+    fun dispWeight(kg: Double): String = if (useImperial) "%.1f lb".format(kg * 2.20462) else "%.1f kg".format(kg)
+    fun dispCirc(cm: Double): String = if (useImperial) "%.1f in".format(cm / 2.54) else "%.1f cm".format(cm)
+    fun dispHeight(cm: Double): String {
+        if (!useImperial) return "%.1f cm".format(cm)
+        val totalIn = cm / 2.54
+        val ft = (totalIn / 12).toInt()
+        val inch = totalIn % 12
+        return "$ft′ ${"%.1f".format(inch)}″"
+    }
 
     Column(
         modifier = Modifier
@@ -55,6 +66,48 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         if (saved.value) {
             Surface(shape = RoundedCornerShape(10.dp), color = Teal.copy(0.1f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f)), modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.bioprofile_saved), modifier = Modifier.padding(12.dp), color = Teal, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf(false to "cm/kg", true to "ft/lb").forEach { (imperial, label) ->
+                    FilterChip(
+                        selected = useImperial == imperial,
+                        onClick = { useImperial = imperial },
+                        label = { Text(label, fontSize = 11.sp) },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
+                    )
+                }
+            }
+        }
+
+        // ── Overview (read-only recap) ──────────────────────────────────────────
+        val hasData = p.ageYears > 0 || p.heightCm > 0 || p.weightKg > 0 || p.sex != BiolismSex.NOT_SPECIFIED
+        if (hasData) {
+            Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.bioprofile_overview_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+                        Surface(shape = RoundedCornerShape(4.dp), color = Teal.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f))) {
+                            Text(stringResource(R.string.bioprofile_overview_saved_badge), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    val activityLabel = ACTIVITY_LEVELS.firstOrNull { it.id == p.activityId }?.label ?: "—"
+                    val ethnicityLabel = ETHNICITY_OPTIONS.firstOrNull { it.id == p.ethnicityId }?.label ?: "—"
+                    OverviewRow(stringResource(R.string.profile_field_age), if (p.ageYears > 0) "${p.ageYears}" else null)
+                    OverviewRow(stringResource(R.string.bioprofile_field_weight), if (p.weightKg > 0) dispWeight(p.weightKg) else null)
+                    OverviewRow(stringResource(R.string.profile_field_height), if (p.heightCm > 0) dispHeight(p.heightCm) else null)
+                    OverviewRow(stringResource(R.string.bioprofile_section_activity), activityLabel)
+                    OverviewRow(stringResource(R.string.bioprofile_field_waist), if (p.waistCm > 0) dispCirc(p.waistCm) else null)
+                    OverviewRow(stringResource(R.string.bioprofile_field_hip), if (p.hipCm > 0) dispCirc(p.hipCm) else null)
+                    OverviewRow(stringResource(R.string.bioprofile_field_neck), if (p.neckCm > 0) dispCirc(p.neckCm) else null)
+                    OverviewRow(stringResource(R.string.bioprofile_section_ethnicity), ethnicityLabel)
+                    if (p.sex == BiolismSex.FEMALE) {
+                        OverviewRow(stringResource(R.string.bioprofile_field_cycle_day), "${p.cycleDay} / 28")
+                    }
+                }
             }
         }
 
@@ -73,8 +126,14 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                 }
             }
             BioInput(stringResource(R.string.profile_field_age), age, KeyboardType.Number) { age = it }
-            BioInput(stringResource(R.string.profile_field_height), height, KeyboardType.Decimal) { height = it }
-            BioInput(stringResource(R.string.bioprofile_field_weight), weight, KeyboardType.Decimal) { weight = it }
+            BioInputUnit(
+                stringResource(R.string.profile_field_height), stringResource(R.string.profile_field_height_imperial),
+                height, useImperial, { it / 2.54 }, { it * 2.54 },
+            ) { height = it }
+            BioInputUnit(
+                stringResource(R.string.bioprofile_field_weight), stringResource(R.string.bioprofile_field_weight_imperial),
+                weight, useImperial, { it * 2.20462 }, { it / 2.20462 },
+            ) { weight = it }
         }
 
         // ── Activity ──────────────────────────────────────────────────────────
@@ -113,9 +172,18 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         ProfileSection(stringResource(R.string.bioprofile_section_circumferences)) {
             Text(stringResource(R.string.bioprofile_circumferences_hint),
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
-            BioInput(stringResource(R.string.bioprofile_field_waist), waist, KeyboardType.Decimal) { waist = it }
-            BioInput(stringResource(R.string.bioprofile_field_hip), hip, KeyboardType.Decimal) { hip = it }
-            BioInput(stringResource(R.string.bioprofile_field_neck), neck, KeyboardType.Decimal) { neck = it }
+            BioInputUnit(
+                stringResource(R.string.bioprofile_field_waist), stringResource(R.string.bioprofile_field_waist_imperial),
+                waist, useImperial, { it / 2.54 }, { it * 2.54 },
+            ) { waist = it }
+            BioInputUnit(
+                stringResource(R.string.bioprofile_field_hip), stringResource(R.string.bioprofile_field_hip_imperial),
+                hip, useImperial, { it / 2.54 }, { it * 2.54 },
+            ) { hip = it }
+            BioInputUnit(
+                stringResource(R.string.bioprofile_field_neck), stringResource(R.string.bioprofile_field_neck_imperial),
+                neck, useImperial, { it / 2.54 }, { it * 2.54 },
+            ) { neck = it }
         }
 
         // ── Cycle (female) ────────────────────────────────────────────────────
@@ -169,6 +237,47 @@ private fun ProfileSection(title: String, content: @Composable ColumnScope.() ->
         Text(title, style = MaterialTheme.typography.titleSmall, color = Gold, fontWeight = FontWeight.SemiBold)
         content()
     }
+}
+
+@Composable
+private fun OverviewRow(label: String, value: String?) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+        Text(value ?: "—", style = MaterialTheme.typography.bodySmall, color = if (value != null) OnBackground else OnBackground.copy(0.3f), fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun BioInputUnit(
+    metricLabel: String,
+    imperialLabel: String,
+    metricValue: String,
+    useImperial: Boolean,
+    toImperial: (Double) -> Double,
+    toMetric: (Double) -> Double,
+    onMetricChange: (String) -> Unit,
+) {
+    val display = if (useImperial) metricValue.toDoubleOrNull()?.let { "%.1f".format(toImperial(it)) } ?: "" else metricValue
+    OutlinedTextField(
+        value = display,
+        onValueChange = { input ->
+            val d = input.toDoubleOrNull()
+            onMetricChange(when {
+                input.isBlank() -> ""
+                d == null -> metricValue
+                useImperial -> "%.2f".format(toMetric(d))
+                else -> input
+            })
+        },
+        label = { Text(if (useImperial) imperialLabel else metricLabel, fontSize = 12.sp) },
+        modifier = Modifier.fillMaxWidth(), singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.18f),
+            focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,
+        ),
+    )
 }
 
 @Composable

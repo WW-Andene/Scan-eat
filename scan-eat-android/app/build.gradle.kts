@@ -77,6 +77,9 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.core.splashscreen)
     implementation(libs.appcompat)   // per-app language switching (AppCompatDelegate)
+    implementation(libs.work.runtime.ktx)
+    implementation(libs.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
 
     // Compose
     implementation(platform(libs.compose.bom))

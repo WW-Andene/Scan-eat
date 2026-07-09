@@ -561,6 +561,9 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             }
         }
 
+        // ── Reminders ──────────────────────────────────────────────────────────
+        item { fr.scanneat.presentation.reminders.RemindersCard() }
+
         item { Spacer(Modifier.height(16.dp)) }
     }
 }

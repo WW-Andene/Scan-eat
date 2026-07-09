@@ -92,6 +92,7 @@
     <string name="profile_field_name">First name (optional)</string>
     <string name="profile_field_age">Age (years)</string>
     <string name="profile_field_height">Height (cm)</string>
+    <string name="profile_field_height_imperial">Height (in)</string>
     <string name="profile_field_weight">Current weight (kg)</string>
     <string name="profile_field_goal_weight">Goal weight (kg)</string>
     <string name="profile_menstruating_checkbox">Of menstruating age (adjusts iron needs)</string>
@@ -135,17 +136,23 @@
 
     <!-- ── Biolism profile screen ─────────────────────────────────────────── -->
     <string name="bioprofile_saved">✓ Profile saved</string>
+    <string name="bioprofile_overview_title">Overview</string>
+    <string name="bioprofile_overview_saved_badge">SAVED</string>
     <string name="bioprofile_sex_male">♂ Male</string>
     <string name="bioprofile_sex_female">♀ Female</string>
     <string name="bioprofile_field_weight">Weight (kg)</string>
+    <string name="bioprofile_field_weight_imperial">Weight (lb)</string>
     <string name="bioprofile_section_activity">Activity level</string>
     <string name="bioprofile_section_ethnicity">Ethnic background (BMI/BF\% correction)</string>
     <string name="bioprofile_ethnicity_hint">Adjusts fat-mass calculation per Deurenberg et al. 1998 and WHO 2004 thresholds.</string>
     <string name="bioprofile_section_circumferences">Circumferences (unlocks Navy BF\% + visceral indicators)</string>
     <string name="bioprofile_circumferences_hint">Optional — provides Navy BF\%, WHtR, WHR (Hodgdon &amp; Beckett 1984 method).</string>
     <string name="bioprofile_field_waist">Waist circumference (cm)</string>
+    <string name="bioprofile_field_waist_imperial">Waist circumference (in)</string>
     <string name="bioprofile_field_hip">Hip circumference (cm) — women</string>
+    <string name="bioprofile_field_hip_imperial">Hip circumference (in) — women</string>
     <string name="bioprofile_field_neck">Neck circumference (cm)</string>
+    <string name="bioprofile_field_neck_imperial">Neck circumference (in)</string>
     <string name="bioprofile_section_cycle">Menstrual cycle (phase-precise hormones)</string>
     <string name="bioprofile_cycle_hint">Day 1 = first day of period. Used to model E2 and progesterone by phase.</string>
     <string name="bioprofile_field_cycle_day">Cycle day (1–28)</string>
@@ -368,4 +375,17 @@
     <string name="common_clear_search">Clear search</string>
     <string name="settings_toggle_key_visibility">Show/hide key</string>
     <string name="history_item_summary">%1$s, grade %2$s, %3$d out of 100</string>
+
+    <!-- ── Reminders ──────────────────────────────────────────────────────── -->
+    <string name="reminders_channel_name">Biolism Reminders</string>
+    <string name="reminders_title">Reminders</string>
+    <string name="reminders_enable_notifications">Enable notifications</string>
+    <string name="reminders_breakfast">Breakfast</string>
+    <string name="reminders_lunch">Lunch</string>
+    <string name="reminders_dinner">Dinner</string>
+    <string name="reminders_hydration">Hydration</string>
+    <string name="reminders_weight">Weigh-in</string>
+    <string name="reminders_test_body">This is a test reminder.</string>
+    <string name="reminders_every_n_hours">%1$dh</string>
+    <string name="reminders_every_n_days">%1$dd</string>
 </resources>

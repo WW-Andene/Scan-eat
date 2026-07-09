@@ -92,6 +92,7 @@
     <string name="profile_field_name">Prénom (optionnel)</string>
     <string name="profile_field_age">Âge (ans)</string>
     <string name="profile_field_height">Taille (cm)</string>
+    <string name="profile_field_height_imperial">Taille (in)</string>
     <string name="profile_field_weight">Poids actuel (kg)</string>
     <string name="profile_field_goal_weight">Poids cible (kg)</string>
     <string name="profile_menstruating_checkbox">En âge menstruel (ajuste le besoin en fer)</string>
@@ -135,17 +136,23 @@
 
     <!-- ── Biolism profile screen ─────────────────────────────────────────── -->
     <string name="bioprofile_saved">✓ Profil sauvegardé</string>
+    <string name="bioprofile_overview_title">Aperçu</string>
+    <string name="bioprofile_overview_saved_badge">ENREGISTRÉ</string>
     <string name="bioprofile_sex_male">♂ Homme</string>
     <string name="bioprofile_sex_female">♀ Femme</string>
     <string name="bioprofile_field_weight">Poids (kg)</string>
+    <string name="bioprofile_field_weight_imperial">Poids (lb)</string>
     <string name="bioprofile_section_activity">Niveau d\'activité</string>
     <string name="bioprofile_section_ethnicity">Origine ethnique (correction IMC/BF\%)</string>
     <string name="bioprofile_ethnicity_hint">Ajuste le calcul de la masse grasse selon Deurenberg et al. 1998 et les seuils OMS 2004.</string>
     <string name="bioprofile_section_circumferences">Circonférences (déverrouille BF\% Navy + indicateurs viscéraux)</string>
     <string name="bioprofile_circumferences_hint">Optionnel — fournit Navy BF\%, WHtR, WHR (méthode Hodgdon &amp; Beckett 1984).</string>
     <string name="bioprofile_field_waist">Tour de taille (cm)</string>
+    <string name="bioprofile_field_waist_imperial">Tour de taille (in)</string>
     <string name="bioprofile_field_hip">Tour des hanches (cm) — femmes</string>
+    <string name="bioprofile_field_hip_imperial">Tour des hanches (in) — femmes</string>
     <string name="bioprofile_field_neck">Tour de cou (cm)</string>
+    <string name="bioprofile_field_neck_imperial">Tour de cou (in)</string>
     <string name="bioprofile_section_cycle">Cycle menstruel (hormones phase-précises)</string>
     <string name="bioprofile_cycle_hint">Jour 1 = premier jour des règles. Utilisé pour modéliser E2 et progestérone selon la phase.</string>
     <string name="bioprofile_field_cycle_day">Jour du cycle (1–28)</string>
@@ -368,4 +375,17 @@
     <string name="common_clear_search">Effacer la recherche</string>
     <string name="settings_toggle_key_visibility">Afficher/masquer la clé</string>
     <string name="history_item_summary">%1$s, note %2$s, %3$d sur 100</string>
+
+    <!-- ── Reminders ──────────────────────────────────────────────────────── -->
+    <string name="reminders_channel_name">Rappels Biolism</string>
+    <string name="reminders_title">Rappels</string>
+    <string name="reminders_enable_notifications">Activer les notifications</string>
+    <string name="reminders_breakfast">Petit-déjeuner</string>
+    <string name="reminders_lunch">Déjeuner</string>
+    <string name="reminders_dinner">Dîner</string>
+    <string name="reminders_hydration">Hydratation</string>
+    <string name="reminders_weight">Pesée</string>
+    <string name="reminders_test_body">Ceci est un rappel de test.</string>
+    <string name="reminders_every_n_hours">%1$dh</string>
+    <string name="reminders_every_n_days">%1$dj</string>
 </resources>
