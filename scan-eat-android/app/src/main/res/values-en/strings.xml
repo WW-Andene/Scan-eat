@@ -682,6 +682,15 @@
     <string name="settings_section_about">About</string>
     <string name="settings_about_version">Scan\'eat v0.1.0 · Scoring engine v2.2.0</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
+    <string name="settings_section_backup">Backup</string>
+    <string name="settings_backup_hint">Export your data (scans, diary, weight, custom foods, recipes…) to a file you can restore later, on this device or another.</string>
+    <string name="settings_backup_export_button">Export my data</string>
+    <string name="settings_backup_import_button">Restore a backup</string>
+    <string name="settings_backup_working">Working…</string>
+    <string name="settings_backup_import_success">%1$d items restored.</string>
+    <string name="settings_backup_error_unsupported_version">This file comes from a newer app version and can\'t be imported.</string>
+    <string name="settings_backup_error_malformed">Invalid or corrupted backup file.</string>
+    <string name="settings_backup_error_io">Error reading or writing the file.</string>
 
     <!-- ── Dashboard screen ───────────────────────────────────────────────── -->
     <plurals name="dashboard_streak">

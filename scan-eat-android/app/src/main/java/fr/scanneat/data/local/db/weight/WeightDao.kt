@@ -18,6 +18,13 @@ interface WeightDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: WeightEntity)
 
+    /** Full unfiltered read/write pair for backup export/import. */
+    @Query("SELECT * FROM weight_log WHERE profileId = :profileId")
+    suspend fun getAllForBackup(profileId: String = "default"): List<WeightEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<WeightEntity>)
+
     @Query("DELETE FROM weight_log WHERE id = :id")
     suspend fun delete(id: String)
 

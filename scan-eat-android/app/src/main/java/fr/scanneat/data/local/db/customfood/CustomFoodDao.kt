@@ -17,6 +17,13 @@ interface CustomFoodDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: CustomFoodEntity)
 
+    /** Full unfiltered read/write pair for backup export/import. */
+    @Query("SELECT * FROM custom_foods WHERE profileId = :profileId")
+    suspend fun getAllForBackup(profileId: String = "default"): List<CustomFoodEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<CustomFoodEntity>)
+
     @Query("DELETE FROM custom_foods WHERE id = :id")
     suspend fun delete(id: String)
 

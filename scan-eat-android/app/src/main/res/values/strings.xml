@@ -683,6 +683,15 @@
     <string name="settings_section_about">À propos</string>
     <string name="settings_about_version">Scan\'eat v0.1.0 · Moteur de scoring v2.2.0</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
+    <string name="settings_section_backup">Sauvegarde</string>
+    <string name="settings_backup_hint">Exportez vos données (scans, journal, poids, aliments personnalisés, recettes…) dans un fichier que vous pouvez restaurer plus tard, sur cet appareil ou un autre.</string>
+    <string name="settings_backup_export_button">Exporter mes données</string>
+    <string name="settings_backup_import_button">Restaurer une sauvegarde</string>
+    <string name="settings_backup_working">Traitement en cours…</string>
+    <string name="settings_backup_import_success">%1$d éléments restaurés.</string>
+    <string name="settings_backup_error_unsupported_version">Ce fichier provient d\'une version plus récente de l\'app et ne peut pas être importé.</string>
+    <string name="settings_backup_error_malformed">Fichier de sauvegarde invalide ou corrompu.</string>
+    <string name="settings_backup_error_io">Erreur lors de la lecture ou l\'écriture du fichier.</string>
 
     <!-- ── Dashboard screen ───────────────────────────────────────────────── -->
     <plurals name="dashboard_streak">

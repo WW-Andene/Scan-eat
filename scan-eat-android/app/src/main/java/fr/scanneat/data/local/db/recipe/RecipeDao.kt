@@ -17,6 +17,13 @@ interface RecipeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: RecipeEntity)
 
+    /** Full unfiltered read/write pair for backup export/import. */
+    @Query("SELECT * FROM recipes WHERE profileId = :profileId")
+    suspend fun getAllForBackup(profileId: String = "default"): List<RecipeEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<RecipeEntity>)
+
     @Query("DELETE FROM recipes WHERE id = :id")
     suspend fun delete(id: String)
 }

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.settings
 
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,6 +29,7 @@ import fr.scanneat.data.repository.scan.DEFAULT_MODEL
 import fr.scanneat.data.repository.scan.FALLBACK_MODEL
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
+import java.time.LocalDate
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -44,6 +48,7 @@ fun SettingsScreen(
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val savedField = viewModel.savedField.collectAsStateWithLifecycle()
+    val backupState = viewModel.backupState.collectAsStateWithLifecycle()
 
     var keyVisible  by remember { mutableStateOf(false) }
     var localKey    by remember(apiKey.value)    { mutableStateOf(apiKey.value) }
@@ -54,6 +59,36 @@ fun SettingsScreen(
         if (savedField.value != null) {
             kotlinx.coroutines.delay(2000)
             viewModel.clearSavedField()
+        }
+    }
+
+    val context = LocalContext.current
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        val state = backupState.value
+        if (uri != null && state is BackupUiState.ExportReady) {
+            val wrote = runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { it.write(state.json.toByteArray()) }
+            }.isSuccess
+            if (wrote) viewModel.clearBackupState() else viewModel.reportExportWriteFailed()
+        } else {
+            viewModel.clearBackupState()
+        }
+    }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            val json = runCatching {
+                context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            }.getOrNull()
+            if (json != null) viewModel.importFromJson(json) else viewModel.reportExportWriteFailed()
+        }
+    }
+    // The JSON is generated in the ViewModel (testable, no Android dependency); once it's
+    // ready this launches the system "save file" picker, which needs an Activity context
+    // the ViewModel doesn't have.
+    LaunchedEffect(backupState.value) {
+        val state = backupState.value
+        if (state is BackupUiState.ExportReady) {
+            exportLauncher.launch("scaneat-backup-${LocalDate.now()}.json")
         }
     }
 
@@ -258,6 +293,48 @@ fun SettingsScreen(
                     Icon(Icons.Default.Person, null, tint = Color.Black, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.settings_profile_button), color = Color.Black, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            // Backup — local export/import, no cloud account required
+            SettingsSection(stringResource(R.string.settings_section_backup)) {
+                Text(stringResource(R.string.settings_backup_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                val working = backupState.value is BackupUiState.Working
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { viewModel.prepareExport() },
+                        enabled = !working,
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Icon(Icons.Default.Upload, null, tint = Color.Black, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.settings_backup_export_button), color = Color.Black, fontWeight = FontWeight.SemiBold)
+                    }
+                    OutlinedButton(
+                        onClick = { importLauncher.launch(arrayOf("application/json")) },
+                        enabled = !working,
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.settings_backup_import_button), color = OnBackground)
+                    }
+                }
+                when (val s = backupState.value) {
+                    is BackupUiState.Working -> Text(stringResource(R.string.settings_backup_working), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    is BackupUiState.ImportSuccess -> Text(stringResource(R.string.settings_backup_import_success, s.summary.total), style = MaterialTheme.typography.bodySmall, color = AccentGreen)
+                    is BackupUiState.Error -> Text(
+                        stringResource(
+                            when (s.messageKey) {
+                                BackupErrorKey.UNSUPPORTED_VERSION -> R.string.settings_backup_error_unsupported_version
+                                BackupErrorKey.MALFORMED           -> R.string.settings_backup_error_malformed
+                                BackupErrorKey.IO                  -> R.string.settings_backup_error_io
+                            },
+                        ),
+                        style = MaterialTheme.typography.bodySmall, color = FlagRed,
+                    )
+                    else -> {}
                 }
             }
 

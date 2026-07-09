@@ -17,6 +17,13 @@ interface MealTemplateDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: MealTemplateEntity)
 
+    /** Full unfiltered read/write pair for backup export/import. */
+    @Query("SELECT * FROM meal_templates WHERE profileId = :profileId")
+    suspend fun getAllForBackup(profileId: String = "default"): List<MealTemplateEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<MealTemplateEntity>)
+
     @Query("DELETE FROM meal_templates WHERE id = :id")
     suspend fun delete(id: String)
 }

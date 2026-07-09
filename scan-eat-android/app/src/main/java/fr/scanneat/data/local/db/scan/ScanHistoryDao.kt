@@ -20,6 +20,13 @@ interface ScanHistoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ScanHistoryEntity): Long
 
+    /** Full unfiltered read/write pair for backup export/import. */
+    @Query("SELECT * FROM scan_history WHERE profileId = :profileId")
+    suspend fun getAllForBackup(profileId: String = "default"): List<ScanHistoryEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List<ScanHistoryEntity>)
+
     @Query("DELETE FROM scan_history WHERE id = :id")
     suspend fun delete(id: Long)
 

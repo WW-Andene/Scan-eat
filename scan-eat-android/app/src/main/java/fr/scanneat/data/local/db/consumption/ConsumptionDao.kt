@@ -25,6 +25,10 @@ interface ConsumptionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<ConsumptionEntity>): List<Long>
 
+    /** Full unfiltered read for backup export. */
+    @Query("SELECT * FROM consumption_log WHERE profileId = :profileId")
+    suspend fun getAllForBackup(profileId: String = "default"): List<ConsumptionEntity>
+
     @Update
     suspend fun update(entity: ConsumptionEntity)
 
