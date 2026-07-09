@@ -43,7 +43,7 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Paramètres", color = OnBackground) },
-                navigationIcon = if (isTabRoot) null else {{ IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } }},
+                navigationIcon = if (isTabRoot) {} else { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },

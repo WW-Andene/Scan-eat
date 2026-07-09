@@ -36,8 +36,8 @@ fun HydrationScreen(
 ) {
     val intake = viewModel.intake.collectAsStateWithLifecycle()
     val goal   = viewModel.goal.collectAsStateWithLifecycle()
-    val glasses = intake.value / HydrationRepository.HYD_GLASS_ML
-    val goalGlasses = goal.value / HydrationRepository.HYD_GLASS_ML
+    val glasses = intake.value / HYD_GLASS_ML
+    val goalGlasses = goal.value / HYD_GLASS_ML
     val pct = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
 
     Scaffold(
@@ -92,7 +92,7 @@ fun HydrationScreen(
                 ) { Icon(Icons.Default.Remove, "Retirer", tint = OnSurface) }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${HydrationRepository.HYD_GLASS_ML} mL", style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
+                    Text("${HYD_GLASS_ML} mL", style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
                     Text("par verre", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                 }
 
