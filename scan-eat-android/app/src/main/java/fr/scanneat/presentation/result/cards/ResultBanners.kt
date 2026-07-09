@@ -1,0 +1,110 @@
+package fr.scanneat.presentation.result.cards
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.data.repository.scan.ComparisonResult
+import fr.scanneat.domain.engine.scoring.AllergenHit
+import fr.scanneat.presentation.ui.theme.*
+
+// Conditional alert/context banners shown above the pillar breakdown —
+// grouped in one file since each is a small, single-purpose Surface.
+
+@Composable
+internal fun ComparisonCard(cmp: ComparisonResult) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape    = RoundedCornerShape(12.dp),
+            color    = AccentGreen.copy(alpha = 0.1f),
+        ) {
+            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
+                    color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                val delta = cmp.scoreDelta
+                val dColor = if (delta >= 0) FlagGreen else FlagRed
+                val dSign  = if (delta >= 0) "+" else ""
+                Text("${cmp.prev.name} → ${cmp.next.name}",
+                    style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+                Text(stringResource(R.string.result_comparison_score, "$dSign$delta"),
+                    style = MaterialTheme.typography.bodyMedium, color = dColor, fontWeight = FontWeight.Bold)
+                if (cmp.addedRedFlags.isNotEmpty())
+                    Text(stringResource(R.string.result_comparison_new_issues, cmp.addedRedFlags.joinToString()),
+                        style = MaterialTheme.typography.bodySmall, color = FlagRed)
+                if (cmp.removedRedFlags.isNotEmpty())
+                    Text(stringResource(R.string.result_comparison_resolved_issues, cmp.removedRedFlags.joinToString()),
+                        style = MaterialTheme.typography.bodySmall, color = FlagGreen)
+            }
+        }
+    }
+}
+
+@Composable
+internal fun PairingsCard(pairings: List<String>) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
+        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.08f)) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
+                    color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                pairings.forEach { pair ->
+                    Text(stringResource(R.string.result_pairing_item, pair), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun DietVetoBanner(reason: String?) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape    = RoundedCornerShape(12.dp),
+            color    = FlagRed.copy(alpha = 0.15f),
+        ) {
+            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Default.Block, null, tint = FlagRed, modifier = Modifier.size(20.dp))
+                Text(reason ?: "", style = MaterialTheme.typography.bodySmall,
+                    color = OnBackground, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+internal fun AllergenWarningsCard(allergens: List<AllergenHit>) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape    = RoundedCornerShape(12.dp),
+            color    = AmberWarning.copy(alpha = 0.15f),
+        ) {
+            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.Warning, null, tint = AmberWarning, modifier = Modifier.size(18.dp))
+                    Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
+                        color = AmberWarning, fontWeight = FontWeight.SemiBold)
+                }
+                allergens.forEach { hit ->
+                    Text(stringResource(R.string.result_allergen_hit, hit.labelFr, hit.triggers.joinToString()),
+                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.85f))
+                }
+            }
+        }
+    }
+}
