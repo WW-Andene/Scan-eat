@@ -6,62 +6,70 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
-    BioCard("Composition corporelle", defaultOpen = true, badge = { BmiChip(met) }) {
+    BioCard(stringResource(R.string.biolism_body_title), defaultOpen = true, badge = { BmiChip(met) }) {
         MetCellGrid(listOf(
-            Triple("IMC", "%.1f".format(met.bmi), "kg/m² · WHO 2000"),
-            Triple("Graisse corporelle", "%.1f%%".format(met.bfPct), "Deurenberg 1991"),
-            Triple("Masse maigre", "%.1f kg".format(met.ffm), "sans graisse"),
-            Triple("Masse grasse", "%.1f kg".format(met.fm), "graisse adipocytaire"),
+            Triple(stringResource(R.string.biolism_body_bmi_label), "%.1f".format(met.bmi), stringResource(R.string.biolism_body_bmi_sub)),
+            Triple(stringResource(R.string.biolism_body_fat_label), "%.1f%%".format(met.bfPct), stringResource(R.string.biolism_body_fat_sub)),
+            Triple(stringResource(R.string.biolism_body_lean_label), "%.1f kg".format(met.ffm), stringResource(R.string.biolism_body_lean_sub)),
+            Triple(stringResource(R.string.biolism_body_fatmass_label), "%.1f kg".format(met.fm), stringResource(R.string.biolism_body_fatmass_sub)),
         ))
         // Navy tape (when available)
         met.navyBfPct?.let { navy ->
             Spacer(Modifier.height(8.dp))
             TintedPanel(Teal) {
-                Label("Méthode Navy Tape — Hodgdon & Beckett 1984", Teal)
+                Label(stringResource(R.string.biolism_body_navy_method), Teal)
                 MetCellGrid(listOf(
-                    Triple("Navy BF%", "%.1f%%".format(navy), "mesuré au ruban"),
-                    Triple("Navy masse maigre", "%.1f kg".format(met.navyFfm ?: 0.0), "masse maigre"),
-                    Triple("Navy masse grasse", "%.1f kg".format(met.navyFm ?: 0.0), "masse grasse"),
-                    Triple("Δ vs Deurenberg", "%+.1f%%".format(navy - met.bfPct), ""),
+                    Triple(stringResource(R.string.biolism_body_navy_bf_label), "%.1f%%".format(navy), stringResource(R.string.biolism_body_navy_bf_sub)),
+                    Triple(stringResource(R.string.biolism_body_navy_lean_label), "%.1f kg".format(met.navyFfm ?: 0.0), stringResource(R.string.biolism_body_navy_lean_sub)),
+                    Triple(stringResource(R.string.biolism_body_navy_fat_label), "%.1f kg".format(met.navyFm ?: 0.0), stringResource(R.string.biolism_body_navy_fat_sub)),
+                    Triple(stringResource(R.string.biolism_body_navy_delta_label), "%+.1f%%".format(navy - met.bfPct), ""),
                 ))
             }
         }
         // IBW
         Spacer(Modifier.height(8.dp))
-        Label("Poids idéal", OnBackground.copy(0.4f))
+        Label(stringResource(R.string.biolism_body_ibw_title), OnBackground.copy(0.4f))
         val ibwDelta = profile.weightKg - met.ibwMean
         MetCellGrid(listOf(
-            Triple("Devine", "%.1f kg".format(met.ibwDevine), "1974"),
-            Triple("Robinson", "%.1f kg".format(met.ibwRobinson), "1983"),
-            Triple("Miller", "%.1f kg".format(met.ibwMiller), "1983"),
-            Triple("Moyenne", "%.1f kg".format(met.ibwMean), "%s%.1f kg vs actuel".format(if (ibwDelta > 0) "+" else "", ibwDelta)),
+            Triple(stringResource(R.string.biolism_body_ibw_devine), "%.1f kg".format(met.ibwDevine), stringResource(R.string.biolism_body_ibw_devine_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_robinson), "%.1f kg".format(met.ibwRobinson), stringResource(R.string.biolism_body_ibw_robinson_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_miller), "%.1f kg".format(met.ibwMiller), stringResource(R.string.biolism_body_ibw_miller_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_mean), "%.1f kg".format(met.ibwMean),
+                stringResource(R.string.biolism_body_ibw_delta_sub, if (ibwDelta > 0) "+" else "", ibwDelta)),
         ))
         // Visceral
         Spacer(Modifier.height(8.dp))
         TintedPanel(Gold) {
-            Label("Indicateurs graisse viscérale", Gold)
+            Label(stringResource(R.string.biolism_body_visceral_title), Gold)
+            val riskThin = stringResource(R.string.biolism_body_risk_thin)
+            val riskHealthy = stringResource(R.string.biolism_body_risk_healthy)
+            val riskCentral = stringResource(R.string.biolism_body_risk_central)
+            val riskHigh = stringResource(R.string.biolism_body_risk_high)
+            val riskLow = stringResource(R.string.biolism_body_risk_low)
             met.whtr?.let { v ->
-                InfoRow("Tour taille/Taille (WHtR)", "%.3f".format(v),
-                    if (v < 0.40) "Mince" else if (v < 0.50) "Sain" else if (v < 0.60) "Risque central" else "Risque élevé",
+                InfoRow(stringResource(R.string.biolism_body_whtr_label), "%.3f".format(v),
+                    if (v < 0.40) riskThin else if (v < 0.50) riskHealthy else if (v < 0.60) riskCentral else riskHigh,
                     if (v < 0.50) Teal else if (v < 0.60) Gold else Danger)
-            } ?: Text("Ajouter Tour de taille dans Profil pour déverrouiller WHtR",
+            } ?: Text(stringResource(R.string.biolism_body_whtr_prompt),
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
             met.whr?.let { v ->
                 val thresh = if (profile.sex == BiolismSex.MALE) 0.90 else 0.85
-                InfoRow("Tour taille/Hanches (WHR)", "%.3f".format(v),
-                    if (v < thresh) "Faible risque" else "Risque élevé",
+                InfoRow(stringResource(R.string.biolism_body_whr_label), "%.3f".format(v),
+                    if (v < thresh) riskLow else riskHigh,
                     if (v < thresh) Teal else Danger)
             }
             met.bai?.let { v ->
-                InfoRow("Indice Adiposité Corporelle", "%.1f%%".format(v), "Bergman 2011", Gold)
+                InfoRow(stringResource(R.string.biolism_body_bai_label), "%.1f%%".format(v), stringResource(R.string.biolism_body_bai_sub), Gold)
             }
         }
     }

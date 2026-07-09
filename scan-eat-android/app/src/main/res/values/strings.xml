@@ -67,6 +67,45 @@
     <string name="biolism_tab_data">Données</string>
     <string name="biolism_tab_profile">Profil</string>
 
+    <!-- ── Biolism: Body Composition card ────────────────────────────────── -->
+    <string name="biolism_body_title">Composition corporelle</string>
+    <string name="biolism_body_bmi_label">IMC</string>
+    <string name="biolism_body_bmi_sub">kg/m² · WHO 2000</string>
+    <string name="biolism_body_fat_label">Graisse corporelle</string>
+    <string name="biolism_body_fat_sub">Deurenberg 1991</string>
+    <string name="biolism_body_lean_label">Masse maigre</string>
+    <string name="biolism_body_lean_sub">sans graisse</string>
+    <string name="biolism_body_fatmass_label">Masse grasse</string>
+    <string name="biolism_body_fatmass_sub">graisse adipocytaire</string>
+    <string name="biolism_body_navy_method">Méthode Navy Tape — Hodgdon &amp; Beckett 1984</string>
+    <string name="biolism_body_navy_bf_label">Navy BF%%</string>
+    <string name="biolism_body_navy_bf_sub">mesuré au ruban</string>
+    <string name="biolism_body_navy_lean_label">Navy masse maigre</string>
+    <string name="biolism_body_navy_lean_sub">masse maigre</string>
+    <string name="biolism_body_navy_fat_label">Navy masse grasse</string>
+    <string name="biolism_body_navy_fat_sub">masse grasse</string>
+    <string name="biolism_body_navy_delta_label">Δ vs Deurenberg</string>
+    <string name="biolism_body_ibw_title">Poids idéal</string>
+    <string name="biolism_body_ibw_devine">Devine</string>
+    <string name="biolism_body_ibw_devine_sub">1974</string>
+    <string name="biolism_body_ibw_robinson">Robinson</string>
+    <string name="biolism_body_ibw_robinson_sub">1983</string>
+    <string name="biolism_body_ibw_miller">Miller</string>
+    <string name="biolism_body_ibw_miller_sub">1983</string>
+    <string name="biolism_body_ibw_mean">Moyenne</string>
+    <string name="biolism_body_ibw_delta_sub">%1$s%2$.1f kg vs actuel</string>
+    <string name="biolism_body_visceral_title">Indicateurs graisse viscérale</string>
+    <string name="biolism_body_whtr_label">Tour taille/Taille (WHtR)</string>
+    <string name="biolism_body_risk_thin">Mince</string>
+    <string name="biolism_body_risk_healthy">Sain</string>
+    <string name="biolism_body_risk_central">Risque central</string>
+    <string name="biolism_body_risk_high">Risque élevé</string>
+    <string name="biolism_body_whtr_prompt">Ajouter Tour de taille dans Profil pour déverrouiller WHtR</string>
+    <string name="biolism_body_whr_label">Tour taille/Hanches (WHR)</string>
+    <string name="biolism_body_risk_low">Faible risque</string>
+    <string name="biolism_body_bai_label">Indice Adiposité Corporelle</string>
+    <string name="biolism_body_bai_sub">Bergman 2011</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>

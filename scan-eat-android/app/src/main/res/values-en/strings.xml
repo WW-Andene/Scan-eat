@@ -67,6 +67,45 @@
     <string name="biolism_tab_data">Data</string>
     <string name="biolism_tab_profile">Profile</string>
 
+    <!-- ── Biolism: Body Composition card ────────────────────────────────── -->
+    <string name="biolism_body_title">Body composition</string>
+    <string name="biolism_body_bmi_label">BMI</string>
+    <string name="biolism_body_bmi_sub">kg/m² · WHO 2000</string>
+    <string name="biolism_body_fat_label">Body fat</string>
+    <string name="biolism_body_fat_sub">Deurenberg 1991</string>
+    <string name="biolism_body_lean_label">Lean mass</string>
+    <string name="biolism_body_lean_sub">fat-free</string>
+    <string name="biolism_body_fatmass_label">Fat mass</string>
+    <string name="biolism_body_fatmass_sub">adipose tissue</string>
+    <string name="biolism_body_navy_method">Navy Tape method — Hodgdon &amp; Beckett 1984</string>
+    <string name="biolism_body_navy_bf_label">Navy BF%%</string>
+    <string name="biolism_body_navy_bf_sub">tape-measured</string>
+    <string name="biolism_body_navy_lean_label">Navy lean mass</string>
+    <string name="biolism_body_navy_lean_sub">lean mass</string>
+    <string name="biolism_body_navy_fat_label">Navy fat mass</string>
+    <string name="biolism_body_navy_fat_sub">fat mass</string>
+    <string name="biolism_body_navy_delta_label">Δ vs Deurenberg</string>
+    <string name="biolism_body_ibw_title">Ideal body weight</string>
+    <string name="biolism_body_ibw_devine">Devine</string>
+    <string name="biolism_body_ibw_devine_sub">1974</string>
+    <string name="biolism_body_ibw_robinson">Robinson</string>
+    <string name="biolism_body_ibw_robinson_sub">1983</string>
+    <string name="biolism_body_ibw_miller">Miller</string>
+    <string name="biolism_body_ibw_miller_sub">1983</string>
+    <string name="biolism_body_ibw_mean">Average</string>
+    <string name="biolism_body_ibw_delta_sub">%1$s%2$.1f kg vs current</string>
+    <string name="biolism_body_visceral_title">Visceral fat indicators</string>
+    <string name="biolism_body_whtr_label">Waist/Height (WHtR)</string>
+    <string name="biolism_body_risk_thin">Thin</string>
+    <string name="biolism_body_risk_healthy">Healthy</string>
+    <string name="biolism_body_risk_central">Central risk</string>
+    <string name="biolism_body_risk_high">High risk</string>
+    <string name="biolism_body_whtr_prompt">Add waist circumference in Profile to unlock WHtR</string>
+    <string name="biolism_body_whr_label">Waist/Hip (WHR)</string>
+    <string name="biolism_body_risk_low">Low risk</string>
+    <string name="biolism_body_bai_label">Body Adiposity Index</string>
+    <string name="biolism_body_bai_sub">Bergman 2011</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
     <string name="history_search_placeholder">Search…</string>
