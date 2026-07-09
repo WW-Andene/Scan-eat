@@ -136,6 +136,27 @@
     <string name="biolism_hormones_mod_highfat_tags_female">E2↑ · Résistance insuline ↑</string>
     <string name="biolism_hormones_modifiers_title">Modificateurs actifs</string>
 
+    <!-- ── Biolism: Burn Rate card ────────────────────────────────────────── -->
+    <string name="biolism_burn_title">Taux de combustion</string>
+    <string name="biolism_burn_badge">RQ %1$.3f</string>
+    <string name="biolism_burn_per_second">Par seconde</string>
+    <string name="biolism_burn_per_minute">Par minute</string>
+    <string name="biolism_burn_per_hour">Par heure</string>
+    <string name="biolism_burn_per_day">Par jour</string>
+    <string name="biolism_burn_per_day_unit">kcal/j</string>
+    <string name="biolism_burn_substrate_split">Répartition substrats</string>
+    <string name="biolism_burn_substrate_split_note">fraction de l\'énergie totale</string>
+    <string name="biolism_burn_thermo_output">Sortie thermodynamique</string>
+    <string name="biolism_burn_vo2">VO₂ consommé</string>
+    <string name="biolism_burn_co2">CO₂ produit</string>
+    <string name="biolism_burn_oxycal">Équiv. oxycalorique</string>
+    <string name="biolism_burn_session_cum">Cumul de session</string>
+    <string name="biolism_burn_kcal_burned">kcal brûlées</string>
+    <string name="biolism_burn_o2_consumed">O₂ consommé</string>
+    <string name="biolism_burn_fat_oxidised">Graisse oxydée</string>
+    <string name="biolism_burn_glycogen_depleted">Glycogène déplété</string>
+    <string name="biolism_burn_protein_catabolised">Protéines catabolisées</string>
+
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>
