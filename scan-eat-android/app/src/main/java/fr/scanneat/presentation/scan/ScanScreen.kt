@@ -24,6 +24,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -71,67 +72,108 @@ fun ScanScreen(
         }
     }
 
-    // No Scaffold here — MainShell provides the outer Scaffold + NavigationBar
-    Column(modifier = Modifier.fillMaxSize().background(Background)) {
-        // ── Header ────────────────────────────────────────────────────────────
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
-            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = OnBackground, fontWeight = FontWeight.Bold)
-            Text(
-                barcode.value?.let { stringResource(R.string.scan_barcode_prefix, it) } ?: stringResource(R.string.scan_hint),
-                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
+    // No Scaffold here — MainShell provides the outer Scaffold + NavigationBar.
+    // Full-bleed: the camera preview is the base layer for the whole tab, edge to
+    // edge; header, photo queue, error banner, and both action buttons float on
+    // top of it instead of sharing the screen as stacked siblings (the previous
+    // layout left the camera only the leftover space between a header row and a
+    // separate button row below it).
+    Box(modifier = Modifier.fillMaxSize().background(Background)) {
+        if (hasCamera) {
+            CameraPreview(
+                onBarcodeDetected = { viewModel.onBarcodeDetected(it) },
+                onPhotoCaptured   = { viewModel.addPhoto(it) },
             )
-        }
-
-        // ── Camera / permission ────────────────────────────────────────────────
-        Box(modifier = Modifier.weight(1f)) {
-            if (hasCamera) {
-                CameraPreview(
-                    onBarcodeDetected = { viewModel.onBarcodeDetected(it) },
-                    onPhotoCaptured   = { viewModel.addPhoto(it) },
-                )
-                barcode.value?.let { bc ->
-                    Surface(
-                        modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        color = SurfaceVariant.copy(0.9f),
-                    ) {
-                        Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.QrCodeScanner, null, tint = AccentGreen, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(bc, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
-                        }
-                    }
-                }
-            } else {
-                // Camera permission request UI
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Icon(Icons.Default.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
-                        color = OnBackground, textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(8.dp))
-                    Text(stringResource(R.string.camera_permission_rationale),
-                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(24.dp))
-                    Button(onClick = { permLauncher.launch(Manifest.permission.CAMERA) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {
-                        Text(stringResource(R.string.common_allow), color = Color.Black)
-                    }
+        } else {
+            // Camera permission request UI — no camera feed behind it, so this fills the screen itself.
+            Column(
+                modifier = Modifier.fillMaxSize().padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Icon(Icons.Default.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
+                Spacer(Modifier.height(16.dp))
+                Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
+                    color = OnBackground, textAlign = TextAlign.Center)
+                Spacer(Modifier.height(8.dp))
+                Text(stringResource(R.string.camera_permission_rationale),
+                    style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
+                Spacer(Modifier.height(24.dp))
+                Button(onClick = { permLauncher.launch(Manifest.permission.CAMERA) },
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {
+                    Text(stringResource(R.string.common_allow), color = Color.Black)
                 }
             }
         }
 
-        // ── Scan FAB ──────────────────────────────────────────────────────────
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.Center,
-        ) {
+        if (hasCamera) {
+            // ── Header — top-start, scrimmed so it stays legible over any camera scene ──
+            Column(
+                modifier = Modifier.fillMaxWidth().align(Alignment.TopStart)
+                    .background(Brush.verticalGradient(listOf(Color.Black.copy(0.55f), Color.Transparent)))
+                    .padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 28.dp),
+            ) {
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                Text(
+                    barcode.value?.let { stringResource(R.string.scan_barcode_prefix, it) } ?: stringResource(R.string.scan_hint),
+                    style = MaterialTheme.typography.bodySmall, color = Color.White.copy(0.8f),
+                )
+            }
+
+            barcode.value?.let { bc ->
+                Surface(
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 96.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = SurfaceVariant.copy(0.9f),
+                ) {
+                    Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.QrCodeScanner, null, tint = AccentGreen, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(bc, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
+                    }
+                }
+            }
+
+            // ── Photo queue — floats below the header, distinct corner from the button cluster ──
+            if (images.value.isNotEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = 88.dp)
+                        .padding(horizontal = 16.dp),
+                ) {
+                    Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f)) {
+                        Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                            Text(stringResource(R.string.scan_photo_count, images.value.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
+                            Spacer(Modifier.height(6.dp))
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                itemsIndexed(images.value) { index, payload ->
+                                    Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
+                                        .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
+                                        val bmp = remember(payload) { payload.thumbnail }
+                                        if (bmp != null) {
+                                            Image(bitmap = bmp.asImageBitmap(), contentDescription = stringResource(R.string.scan_photo_index, index + 1),
+                                                modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                                        } else {
+                                            Box(Modifier.fillMaxSize().background(SurfaceVariant), contentAlignment = Alignment.Center) {
+                                                Icon(Icons.Default.Image, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(20.dp))
+                                            }
+                                        }
+                                        IconButton(onClick = { viewModel.removePhoto(index) },
+                                            modifier = Modifier.align(Alignment.TopEnd).size(20.dp).background(Background.copy(0.6f), CircleShape)) {
+                                            Icon(Icons.Default.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Score FAB — bottom-end, distinct corner from CameraPreview's own
+            // flash toggle (top-end) and photo-capture button (bottom-center) ──
             FloatingActionButton(
                 onClick = { viewModel.score() },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp),
                 containerColor = AccentGreen,
                 shape = CircleShape,
             ) {
@@ -141,61 +183,33 @@ fun ScanScreen(
                     else -> Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
                 }
             }
-        }
 
-        // ── Photo queue ────────────────────────────────────────────────────────
-        if (images.value.isNotEmpty()) {
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
-                Text(stringResource(R.string.scan_photo_count, images.value.size), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
-                Spacer(Modifier.height(6.dp))
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    itemsIndexed(images.value) { index, payload ->
-                        Box(modifier = Modifier.size(72.dp).clip(RoundedCornerShape(8.dp))
-                            .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
-                            val bmp = remember(payload) { payload.thumbnail }
-                            if (bmp != null) {
-                                Image(bitmap = bmp.asImageBitmap(), contentDescription = stringResource(R.string.scan_photo_index, index + 1),
-                                    modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                            } else {
-                                Box(Modifier.fillMaxSize().background(SurfaceVariant), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.Image, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(24.dp))
-                                }
-                            }
-                            IconButton(onClick = { viewModel.removePhoto(index) },
-                                modifier = Modifier.align(Alignment.TopEnd).size(22.dp).background(Background.copy(0.6f), CircleShape)) {
-                                Icon(Icons.Default.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(14.dp))
+            // ── Error — floats just above the button cluster ──
+            if (state.value is ScanUiState.Error) {
+                val error = state.value as ScanUiState.Error
+                if (error.needsPhoto) {
+                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = 16.dp, bottom = 96.dp),
+                        color = SurfaceVariant, shape = RoundedCornerShape(12.dp)) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.CameraAlt, null, tint = AccentGreen)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.scan_needs_photo),
+                                Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
+                            IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
+                                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface)
                             }
                         }
                     }
-                }
-            }
-        }
-
-        // ── Error ──────────────────────────────────────────────────────────────
-        if (state.value is ScanUiState.Error) {
-            val error = state.value as ScanUiState.Error
-            if (error.needsPhoto) {
-                Surface(modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    color = SurfaceVariant, shape = RoundedCornerShape(12.dp)) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.CameraAlt, null, tint = AccentGreen)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.scan_needs_photo),
-                            Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
-                        IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface)
-                        }
-                    }
-                }
-            } else {
-                Surface(modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(12.dp)) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.width(8.dp))
-                        Text(error.message, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
-                        IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = MaterialTheme.colorScheme.onErrorContainer)
+                } else {
+                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal = 16.dp, bottom = 96.dp),
+                        color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(12.dp)) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error)
+                            Spacer(Modifier.width(8.dp))
+                            Text(error.message, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
+                            IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
+                                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = MaterialTheme.colorScheme.onErrorContainer)
+                            }
                         }
                     }
                 }
