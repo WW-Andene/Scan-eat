@@ -412,6 +412,7 @@
     <string name="biolism_summary_spark_label">%1$d dernières sessions — kcal brûlées</string>
     <string name="biolism_organheat_title">Chaleur organique</string>
     <string name="biolism_organheat_kcal_per_day">· %1$.1f kcal/j</string>
+    <string name="biolism_common_ref_range">réf: %1$.0f–%2$.0f %3$s</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>

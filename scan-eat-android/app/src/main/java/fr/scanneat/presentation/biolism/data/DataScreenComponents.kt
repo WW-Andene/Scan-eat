@@ -17,9 +17,11 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.HormoneReading
 import fr.scanneat.presentation.ui.theme.*
 
@@ -152,7 +154,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 )
             }
         }
-        Text("réf: %.0f–%.0f %s".format(h.refLow, h.refHigh, h.unit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.25f))
+        Text(stringResource(R.string.biolism_common_ref_range, h.refLow, h.refHigh, h.unit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.25f))
     }
 }
 

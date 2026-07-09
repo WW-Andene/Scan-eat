@@ -411,6 +411,7 @@
     <string name="biolism_summary_spark_label">Last %1$d sessions — kcal burned</string>
     <string name="biolism_organheat_title">Organ heat</string>
     <string name="biolism_organheat_kcal_per_day">· %1$.1f kcal/day</string>
+    <string name="biolism_common_ref_range">ref: %1$.0f–%2$.0f %3$s</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
