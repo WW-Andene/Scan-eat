@@ -174,4 +174,13 @@
     <string name="customfood_field_fat">Lipides g</string>
     <string name="customfood_field_fiber">Fibres g</string>
     <string name="customfood_field_salt">Sel g</string>
+
+    <!-- ── Templates screen ───────────────────────────────────────────────── -->
+    <string name="templates_title">Modèles de repas</string>
+    <string name="templates_empty_body">Les modèles de repas sont créés automatiquement lorsque vous enregistrez un repas depuis le journal.</string>
+    <string name="templates_summary">%1$d kcal · %2$d articles · %3$s</string>
+    <string name="common_log">Logger</string>
+    <string name="templates_item_summary">• %1$s · %2$d g · %3$d kcal</string>
+    <string name="templates_more_items">+ %1$d de plus…</string>
+    <string name="templates_log_dialog_title">Logger « %1$s »</string>
 </resources>

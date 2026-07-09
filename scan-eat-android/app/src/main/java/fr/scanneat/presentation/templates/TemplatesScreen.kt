@@ -10,10 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
@@ -33,8 +35,8 @@ fun TemplatesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Modèles de repas", color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, "Retour", tint = OnBackground) } },
+                title = { Text(stringResource(R.string.templates_title), color = OnBackground) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -49,7 +51,7 @@ fun TemplatesScreen(
                     Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("📋", style = MaterialTheme.typography.displaySmall)
-                            Text("Les modèles de repas sont créés automatiquement lorsque vous enregistrez un repas depuis le journal.", color = OnBackground.copy(0.5f))
+                            Text(stringResource(R.string.templates_empty_body), color = OnBackground.copy(0.5f))
                         }
                     }
                 }
@@ -60,24 +62,24 @@ fun TemplatesScreen(
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(template.name, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                                Text("${template.totalKcal} kcal · ${template.items.size} articles · ${template.meal.name.lowercase()}",
+                                Text(stringResource(R.string.templates_summary, template.totalKcal, template.items.size, template.meal.name.lowercase()),
                                     style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                             }
                             Row {
                                 IconButton(onClick = { logTarget = template }, modifier = Modifier.size(36.dp)) {
-                                    Icon(Icons.Default.Add, "Logger", tint = AccentGreen)
+                                    Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentGreen)
                                 }
                                 IconButton(onClick = { viewModel.delete(template.id) }, modifier = Modifier.size(36.dp)) {
-                                    Icon(Icons.Default.Close, "Supprimer", tint = OnSurface.copy(0.4f))
+                                    Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
                                 }
                             }
                         }
                         template.items.take(3).forEach { item ->
-                            Text("• ${item.productName} · ${item.grams.toInt()} g · ${item.kcal.toInt()} kcal",
+                            Text(stringResource(R.string.templates_item_summary, item.productName, item.grams.toInt(), item.kcal.toInt()),
                                 style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
                         }
                         if (template.items.size > 3) {
-                            Text("+ ${template.items.size - 3} de plus…", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
+                            Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
                         }
                     }
                 }
@@ -91,10 +93,10 @@ fun TemplatesScreen(
         AlertDialog(
             onDismissRequest = { logTarget = null },
             containerColor = SurfaceVariant,
-            title = { Text("Logger « ${t.name} »", color = OnBackground) },
+            title = { Text(stringResource(R.string.templates_log_dialog_title, t.name), color = OnBackground) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Repas", style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                    Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         MealSlot.values().forEach { s ->
                             FilterChip(selected = slot == s, onClick = { slot = s },
@@ -104,8 +106,8 @@ fun TemplatesScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { viewModel.logTemplate(t, mealOverride = slot); logTarget = null }) { Text("Logger", color = AccentGreen) } },
-            dismissButton = { TextButton(onClick = { logTarget = null }) { Text("Annuler", color = OnBackground.copy(0.6f)) } },
+            confirmButton = { TextButton(onClick = { viewModel.logTemplate(t, mealOverride = slot); logTarget = null }) { Text(stringResource(R.string.common_log), color = AccentGreen) } },
+            dismissButton = { TextButton(onClick = { logTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )
     }
 
