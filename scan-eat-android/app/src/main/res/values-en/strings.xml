@@ -409,6 +409,8 @@
     <string name="biolism_summary_avg_session">Average/session</string>
     <string name="biolism_summary_avg_duration">Average duration</string>
     <string name="biolism_summary_spark_label">Last %1$d sessions — kcal burned</string>
+    <string name="biolism_organheat_title">Organ heat</string>
+    <string name="biolism_organheat_kcal_per_day">· %1$.1f kcal/day</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>

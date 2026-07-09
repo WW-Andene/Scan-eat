@@ -410,6 +410,8 @@
     <string name="biolism_summary_avg_session">Moyenne/session</string>
     <string name="biolism_summary_avg_duration">Durée moyenne</string>
     <string name="biolism_summary_spark_label">%1$d dernières sessions — kcal brûlées</string>
+    <string name="biolism_organheat_title">Chaleur organique</string>
+    <string name="biolism_organheat_kcal_per_day">· %1$.1f kcal/j</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
