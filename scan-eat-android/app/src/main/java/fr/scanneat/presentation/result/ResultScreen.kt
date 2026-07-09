@@ -12,12 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -47,15 +49,15 @@ fun ResultScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Score", color = OnBackground) },
+                title = { Text(stringResource(R.string.result_title), color = OnBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = OnBackground)
+                        Icon(Icons.Default.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
                     }
                 },
                 actions = {
                     TextButton(onClick = { showSheet = true }) {
-                        Text("Log it", color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.result_log_it), color = AccentGreen, fontWeight = FontWeight.SemiBold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -142,20 +144,20 @@ private fun ResultContent(
                 color    = AccentGreen.copy(alpha = 0.1f),
             ) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("Comparaison A→B", style = MaterialTheme.typography.labelMedium,
+                    Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
                         color = AccentGreen, fontWeight = FontWeight.SemiBold)
                     val delta = cmp.scoreDelta
                     val dColor = if (delta >= 0) FlagGreen else FlagRed
                     val dSign  = if (delta >= 0) "+" else ""
                     Text("${cmp.prev.name} → ${cmp.next.name}",
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
-                    Text("Score : $dSign$delta pts",
+                    Text(stringResource(R.string.result_comparison_score, "$dSign$delta"),
                         style = MaterialTheme.typography.bodyMedium, color = dColor, fontWeight = FontWeight.Bold)
                     if (cmp.addedRedFlags.isNotEmpty())
-                        Text("Nouveaux problèmes : ${cmp.addedRedFlags.joinToString()}",
+                        Text(stringResource(R.string.result_comparison_new_issues, cmp.addedRedFlags.joinToString()),
                             style = MaterialTheme.typography.bodySmall, color = FlagRed)
                     if (cmp.removedRedFlags.isNotEmpty())
-                        Text("Problèmes résolus : ${cmp.removedRedFlags.joinToString()}",
+                        Text(stringResource(R.string.result_comparison_resolved_issues, cmp.removedRedFlags.joinToString()),
                             style = MaterialTheme.typography.bodySmall, color = FlagGreen)
                 }
             }
@@ -165,10 +167,10 @@ private fun ResultContent(
         if (pairings.isNotEmpty()) {
             Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.08f)) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("Se marie bien avec", style = MaterialTheme.typography.labelMedium,
+                    Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
                         color = AccentGreen, fontWeight = FontWeight.SemiBold)
                     pairings.forEach { pair ->
-                        Text("· $pair", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
+                        Text(stringResource(R.string.result_pairing_item, pair), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
                     }
                 }
             }
@@ -202,11 +204,11 @@ private fun ResultContent(
                     Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.Warning, null, tint = AmberWarning, modifier = Modifier.size(18.dp))
-                        Text("Allergènes détectés", style = MaterialTheme.typography.labelMedium,
+                        Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
                             color = AmberWarning, fontWeight = FontWeight.SemiBold)
                     }
                     allergens.forEach { hit ->
-                        Text("• ${hit.labelFr} (${hit.triggers.joinToString()})",
+                        Text(stringResource(R.string.result_allergen_hit, hit.labelFr, hit.triggers.joinToString()),
                             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.85f))
                     }
                 }
@@ -255,7 +257,7 @@ private fun ScoreRing(score: Int, grade: Grade) {
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(grade.label, fontSize = 40.sp, fontWeight = FontWeight.Bold, color = color)
-            Text("$score / 100", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+            Text(stringResource(R.string.result_score_out_of_100, score), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         }
     }
 }
@@ -272,7 +274,7 @@ private fun DualScoreRing(
         verticalAlignment     = Alignment.CenterVertically,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Score classique", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+            Text(stringResource(R.string.result_classic_score_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
             Spacer(Modifier.height(4.dp))
             Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(
@@ -290,7 +292,7 @@ private fun DualScoreRing(
         }
         Icon(Icons.Default.ArrowForward, null, tint = OnBackground.copy(0.3f), modifier = Modifier.size(20.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Score personnel", style = MaterialTheme.typography.labelSmall,
+            Text(stringResource(R.string.result_personal_score_label), style = MaterialTheme.typography.labelSmall,
                 color = if (veto) FlagRed else AccentGreen)
             Spacer(Modifier.height(4.dp))
             Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
@@ -315,7 +317,7 @@ private fun DualScoreRing(
 @Composable
 private fun AdjustmentsSection(adjustments: List<PersonalAdjustment>) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Ajustements personnels", style = MaterialTheme.typography.titleSmall,
+        Text(stringResource(R.string.result_adjustments_title), style = MaterialTheme.typography.titleSmall,
             color = OnBackground, fontWeight = FontWeight.SemiBold)
         adjustments.filter { !it.veto }.forEach { adj ->
             val color = when {
@@ -364,7 +366,7 @@ private fun FlagRow(text: String, isRed: Boolean) {
 @Composable
 private fun PillarsSection(pillars: ScoreAudit.Pillars) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Détail des piliers", style = MaterialTheme.typography.titleSmall,
+        Text(stringResource(R.string.result_pillars_title), style = MaterialTheme.typography.titleSmall,
             color = OnBackground, fontWeight = FontWeight.SemiBold)
         listOf(pillars.processing, pillars.nutritionalDensity, pillars.negativeNutrients,
                pillars.additiveRisk, pillars.ingredientIntegrity).forEach { PillarRow(it) }
@@ -378,7 +380,7 @@ private fun PillarRow(pillar: PillarScore) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(pillar.name, style = MaterialTheme.typography.labelMedium, color = OnBackground)
-            Text("${pillar.score.toInt()}/${pillar.max}", style = MaterialTheme.typography.labelMedium,
+            Text(stringResource(R.string.result_pillar_score, pillar.score.toInt(), pillar.max), style = MaterialTheme.typography.labelMedium,
                 color = color, fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(4.dp))
@@ -395,27 +397,27 @@ private fun PillarRow(pillar: PillarScore) {
 private fun NutritionTable(nutrition: NutritionPer100g) {
     var expanded by remember { mutableStateOf(false) }
     Column {
-        Text("Nutrition / 100 g", style = MaterialTheme.typography.titleSmall,
+        Text(stringResource(R.string.result_nutrition_title), style = MaterialTheme.typography.titleSmall,
             color = OnBackground, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(8.dp))
-        NRow("Énergie", "${nutrition.energyKcal.toInt()} kcal")
-        NRow("Lipides", "${nutrition.fatG} g")
-        NRow("  dont saturés", "${nutrition.saturatedFatG} g")
-        NRow("Glucides", "${nutrition.carbsG} g")
-        NRow("  dont sucres", "${nutrition.sugarsG} g")
-        NRow("Fibres", "${nutrition.fiberG} g")
-        NRow("Protéines", "${nutrition.proteinG} g")
-        NRow("Sel", "${nutrition.saltG} g")
+        NRow(stringResource(R.string.result_nutri_energy), "${nutrition.energyKcal.toInt()} kcal")
+        NRow(stringResource(R.string.result_nutri_fat), "${nutrition.fatG} g")
+        NRow(stringResource(R.string.result_nutri_saturated), "${nutrition.saturatedFatG} g")
+        NRow(stringResource(R.string.result_nutri_carbs), "${nutrition.carbsG} g")
+        NRow(stringResource(R.string.result_nutri_sugars), "${nutrition.sugarsG} g")
+        NRow(stringResource(R.string.result_nutri_fiber), "${nutrition.fiberG} g")
+        NRow(stringResource(R.string.result_nutri_protein), "${nutrition.proteinG} g")
+        NRow(stringResource(R.string.result_nutri_salt), "${nutrition.saltG} g")
         if (expanded) {
-            nutrition.transFatG?.let { NRow("Acides gras trans", "${it} g") }
-            nutrition.ironMg?.let { NRow("Fer", "${it} mg") }
-            nutrition.calciumMg?.let { NRow("Calcium", "${it} mg") }
-            nutrition.vitDUg?.let { NRow("Vitamine D", "${it} µg") }
-            nutrition.b12Ug?.let { NRow("Vitamine B12", "${it} µg") }
-            nutrition.vitCMg?.let { NRow("Vitamine C", "${it} mg") }
+            nutrition.transFatG?.let { NRow(stringResource(R.string.result_nutri_transfat), "${it} g") }
+            nutrition.ironMg?.let { NRow(stringResource(R.string.result_nutri_iron), "${it} mg") }
+            nutrition.calciumMg?.let { NRow(stringResource(R.string.result_nutri_calcium), "${it} mg") }
+            nutrition.vitDUg?.let { NRow(stringResource(R.string.result_nutri_vitd), "${it} µg") }
+            nutrition.b12Ug?.let { NRow(stringResource(R.string.result_nutri_vitb12), "${it} µg") }
+            nutrition.vitCMg?.let { NRow(stringResource(R.string.result_nutri_vitc), "${it} mg") }
         }
         TextButton(onClick = { expanded = !expanded }) {
-            Text(if (expanded) "Voir moins" else "Voir plus", color = AccentGreen, fontSize = 12.sp)
+            Text(if (expanded) stringResource(R.string.result_show_less) else stringResource(R.string.result_show_more), color = AccentGreen, fontSize = 12.sp)
         }
     }
 }
@@ -436,9 +438,9 @@ private fun WarningsSection(warnings: List<String>) {
         .clip(RoundedCornerShape(8.dp))
         .background(AmberWarning.copy(0.1f))
         .padding(12.dp)) {
-        Text("Notes", style = MaterialTheme.typography.labelMedium,
+        Text(stringResource(R.string.result_notes_title), style = MaterialTheme.typography.labelMedium,
             color = AmberWarning, fontWeight = FontWeight.SemiBold)
-        warnings.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f)) }
+        warnings.forEach { Text(stringResource(R.string.result_warning_item, it), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f)) }
     }
 }
 

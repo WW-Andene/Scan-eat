@@ -327,4 +327,40 @@
     <string name="recipes_add_ingredient_button">+ Add ingredient</string>
     <string name="recipes_log_dialog_title">Log “%1$s”</string>
     <string name="recipes_portion_label">Portion (1.0 = whole)</string>
+
+    <!-- ── Result screen ──────────────────────────────────────────────────── -->
+    <string name="result_title">Score</string>
+    <string name="result_score_out_of_100">%1$d / 100</string>
+    <string name="result_comparison_title">A→B Comparison</string>
+    <string name="result_comparison_score">Score: %1$s pts</string>
+    <string name="result_comparison_new_issues">New issues: %1$s</string>
+    <string name="result_comparison_resolved_issues">Resolved issues: %1$s</string>
+    <string name="result_pairings_title">Pairs well with</string>
+    <string name="result_pairing_item">· %1$s</string>
+    <string name="result_allergens_title">Allergens Detected</string>
+    <string name="result_allergen_hit">• %1$s (%2$s)</string>
+    <string name="result_adjustments_title">Personal Adjustments</string>
+    <string name="result_classic_score_label">Classic Score</string>
+    <string name="result_personal_score_label">Personal Score</string>
+    <string name="result_pillars_title">Pillar Breakdown</string>
+    <string name="result_pillar_score">%1$d/%2$d</string>
+    <string name="result_nutrition_title">Nutrition / 100 g</string>
+    <string name="result_nutri_energy">Energy</string>
+    <string name="result_nutri_fat">Fat</string>
+    <string name="result_nutri_saturated">  of which saturates</string>
+    <string name="result_nutri_carbs">Carbs</string>
+    <string name="result_nutri_sugars">  of which sugars</string>
+    <string name="result_nutri_fiber">Fiber</string>
+    <string name="result_nutri_protein">Protein</string>
+    <string name="result_nutri_salt">Salt</string>
+    <string name="result_nutri_transfat">Trans fats</string>
+    <string name="result_nutri_iron">Iron</string>
+    <string name="result_nutri_calcium">Calcium</string>
+    <string name="result_nutri_vitd">Vitamin D</string>
+    <string name="result_nutri_vitb12">Vitamin B12</string>
+    <string name="result_nutri_vitc">Vitamin C</string>
+    <string name="result_show_less">Show less</string>
+    <string name="result_show_more">Show more</string>
+    <string name="result_notes_title">Notes</string>
+    <string name="result_warning_item">• %1$s</string>
 </resources>
