@@ -13,6 +13,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -253,9 +255,7 @@ private fun ScoreRing(score: Int, grade: Grade) {
             modifier = Modifier
                 .size(210.dp)
                 .background(
-                    androidx.compose.ui.graphics.Brush.radialGradient(
-                        listOf(color.copy(alpha = 0.24f), Color.Transparent),
-                    ),
+                    Brush.radialGradient(listOf(color.copy(alpha = 0.24f), Color.Transparent)),
                     CircleShape,
                 ),
         )
