@@ -28,7 +28,8 @@ import fr.scanneat.domain.model.Grade
 // (can't reference MaterialTheme.colorScheme while constructing it).
 internal val OledBackgroundRaw     = Color(0xFF0F0D12)  // near-black, faint warm-plum undertone
 internal val OledOnBackgroundRaw   = Color(0xFFEFEAE6)
-internal val OledSurfaceVariantRaw = Color(0xFF1C1820)
+internal val OledSurfaceRaw        = Color(0xFF1C1820)
+internal val OledSurfaceVariantRaw = Color(0xFF2C2631)  // one step lighter than surface — the elevation tier Dark already has
 internal val OledOnSurfaceRaw      = Color(0xFFCFC7CC)
 
 // Theme-reactive roles. Every screen reads these instead of a fixed literal, so

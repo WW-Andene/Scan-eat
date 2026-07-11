@@ -34,9 +34,11 @@ exist in code, unused.
 **Priority order** (derived from severity + Phase 3's compound-chain analysis
 — see Part F for the full reasoning):
 
-1. **Verify WCAG contrast on the diet-veto/allergen banners** (Part B1,
-   Part F Chain 1) — escalated to CRITICAL because it's the one place an
-   unverified contrast gap would be a safety issue, not a polish issue.
+1. ~~**Verify WCAG contrast on the diet-veto/allergen banners**~~ — DONE.
+   Computed contrast ratios confirm all pairings pass WCAG AA (13.8:1 body
+   text, 4.7-7.7:1 label/icon color, worst case 4.9:1 on ComparisonCard's
+   FlagRed-on-tinted-fill text) across OLED/Dark/Light themes. No color
+   change needed — see Part B1 and Part F Chain 1 for the full computation.
 2. **Build the score-reveal signature moment** (Part B5, B8, D) — the
    highest-leverage single fix in the audit: closes four separate findings
    (motion, states, color, atmosphere) at once, using tokens that already
@@ -63,14 +65,14 @@ in its Part with an explicit PROTECT note.
 
 | # | Severity | Area | Finding | Detail |
 |---|----------|------|---------|--------|
-| 1 | CRITICAL* | Contrast/Safety | WCAG contrast unverified on allergen/diet-veto banners | B1, F1 |
+| 1 | ~~CRITICAL*~~ FIXED | Contrast/Safety | WCAG contrast verified PASS on allergen/diet-veto banners | B1, F1 |
 | 2 | CRITICAL | Surface/Atmosphere | Glow/Haze tokens exist but aren't rendered as light | B6 |
 | 3 | HIGH | Motion/States | Score reveal has no signature moment | B5, B8, D |
 | 4 | HIGH | Typography | Zero tabular figures on any numeric display | B2 |
 | 5 | HIGH | Components | No shared Button component — recipe hand-copied, drifting | B4 |
 | 6 | HIGH | States | Three unreconciled error-banner systems in one app | B8, F5 |
 | 7 | MEDIUM | Tokens | No Layer-3 component tokens — find/replace test fails | B10, F4 |
-| 8 | MEDIUM | Color | OLED theme's surface/surfaceVariant identical (no elevation tier) | B1 |
+| 8 | ~~MEDIUM~~ FIXED | Color | OLED theme's surface/surfaceVariant identical (no elevation tier) | B1 |
 | 9 | MEDIUM | Color | No pressed/hover accent state token | B1 |
 | 10 | MEDIUM | Typography | "Hero number" role untokenized (4 weight spellings, 5+ sizes) | B2 |
 | 11 | MEDIUM | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
@@ -79,7 +81,7 @@ in its Part with an explicit PROTECT note.
 | 14 | MEDIUM | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
 | 15 | MEDIUM | States | Empty states have no CTA slot | B8 |
 | 16 | MEDIUM | States | Loading states have no character treatment | B8 |
-| 17 | MEDIUM | Contrast | WCAG verification gap (Phase 2 restated) | F1 |
+| 17 | ~~MEDIUM~~ FIXED | Contrast | WCAG verification gap (Phase 2 restated) — now verified PASS | F1 |
 | 18 | MEDIUM | Touch | 12+ IconButtons at 32-36dp, below 48dp guideline | F3 |
 | 19 | LOW | Color | "AccentGreen" misnamed (it's coral); 3 unreconciled gold values | B1 |
 | 20 | LOW | Brand | Light theme re-derives colors independently of shared tokens | A6 |
@@ -413,6 +415,10 @@ Finding: OledColors.surface = OledColors.surfaceVariant = 0xFF1C1820.
 Recommendation: Port the Dark theme's surface/surfaceVariant step into
   OledColors (the default, most-used theme).
 Effort: LOW
+STATUS: FIXED — Colors.kt now defines OledSurfaceRaw (0xFF1C1820, unchanged)
+  and a distinct OledSurfaceVariantRaw (0xFF2C2631, one step lighter), mirroring
+  the Dark theme's surface→surfaceVariant delta. Theme.kt's OledColors wires
+  surface/surfaceVariant to the two separate tokens.
 
 [LOW] — "AccentGreen" token name doesn't match its actual color (coral),
   and Gold exists as three unreconciled values
@@ -449,6 +455,23 @@ Recommendation: Compute actual contrast ratios for the ~6 most-used text/
   background pairs before shipping any recommendation that touches these
   colors. This is a verification task, not a design task.
 Effort: LOW (a calculator pass, no design change unless a failure is found)
+STATUS: VERIFIED — PASS. Computed WCAG relative-luminance contrast ratios
+  (standard sRGB linearization) for the actual rendered pairs, alpha-composited
+  over each theme's real background — not the raw token pairs in isolation:
+    - DietVetoBanner/AllergenWarningsCard body text (OnBackground on 15%-alpha
+      FlagRed/AmberWarning fill, over OLED bg): 13.8:1
+    - AllergenWarningsCard title (AmberWarning on its own 15%-alpha fill,
+      over OLED bg): 7.7:1
+    - DietVetoBanner icon (FlagRed on its own 15%-alpha fill, over OLED bg):
+      4.7:1 (icon only, needs 3:1 — comfortable margin)
+    - Same allergen/diet-veto pairs recomputed over Light theme's background
+      (0xFFF6F1EC): 12.5:1 — also passes
+    - Narrowest case found in the same file: ComparisonCard's FlagRed text on
+      AccentGreen-tinted 10%-alpha fill, over OLED bg: 4.9:1 (bodySmall/12sp
+      normal text, needs 4.5:1 — passes with a real but narrow margin)
+  All six pairs clear WCAG AA. No color change needed. Chain 1 (Part F) is
+  resolved: the escalation to CRITICAL was conditional on failure, and it
+  did not fail.
 ```
 
 **Protect:** OLED background's cool-violet undertone, cream (not pure-white)
@@ -1292,6 +1315,10 @@ Recommendation: This is now the single highest-priority verification in the
   text and icon tint against their own 15%-alpha-fill backgrounds
   specifically, before any other recommendation touching these colors ships.
 Effort: LOW (a calculation) — but sequenced first
+STATUS: RESOLVED — computed and verified passing across all three themes
+  (13.8:1 / 7.7:1 / 4.7:1 body/title/icon over OLED, 12.5:1 over Light). See
+  Part B1's STATUS note for the full pairing-by-pairing breakdown. The chain
+  does not escalate to a real failure — no design change required.
 
 CHAIN 2 — Building the score-reveal signature moment before fixing
   reduced-motion would make an existing accessibility gap worse, not better
