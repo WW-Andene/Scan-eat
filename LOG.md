@@ -409,3 +409,15 @@ decision:  Split into heavyState (the 5-flow combine, unchanged
            computation) + a separate lightweight combine(heavyState,
            scanHistory) that merges recentScans via .copy(). A new scan
            now only triggers a cheap copy, not the full recomputation.
+
+### App-audit §E4/L2 — 4 hero-number displays leaned on an undefined displaySmall slot
+context:   ScanEatTypography (Type.kt) explicitly tunes every style slot
+           it defines but never defined displaySmall - it silently fell
+           back to Material3's baseline default. HeroCard, DailyEnergyCard,
+           KetosisProcessCard, CalorieBalanceCard all build their hero-
+           number style from displaySmall.copy(fontSize=X, fontWeight=Y),
+           inheriting an un-tuned lineHeight/letterSpacing instead of
+           this app's own deliberate ratio.
+decision:  Defined displaySmall (36sp/42sp, ~1.167x ratio consistent with
+           the app's other slots) so these 4 hero elements inherit a
+           tuned baseline before their per-usage size/weight overrides.
