@@ -1356,4 +1356,77 @@ Recommendation: No code change — add to the §DP3 Character Future-Proofing
 Effort: N/A (a documented rule, not a code change)
 ```
 
-Section F complete.
+## CATEGORY G — ACCESSIBILITY
+
+```
+[PROTECT — verified this session, not just assumed] — Icon-only buttons
+  consistently carry real contentDescription strings, not null/decorative
+Dimension: §G1 (Action labels), §G5 (ContentDescription audit)
+Finding: Spot-checked IconButton/Icon pairs across CustomFoodScreen,
+  DiaryScreen, ScanHistoryScreen, MealPlanScreen — every sampled icon-only
+  button passes a real `stringResource(...)` (e.g. `common_back`,
+  `diary_cd_prev_day`, `common_clear_search`), not `null`. This reflects
+  this project's own prior accessibility pass (task #22, P-2).
+Why it matters: Confirmed, not assumed — this genuinely passes the check
+  rather than being an untested assumption carried over from memory.
+Recommendation: None — maintain the pattern (real stringResource, never
+  null) as new icon-only buttons are added; this is exactly the kind of
+  thing that regresses silently if it isn't a habit.
+
+[CROSS-REFERENCE — already identified] — Touch target sizing (48dp
+  minimum)
+Dimension: §G1 (Touch target size)
+Finding: See §H3 below for the specific evidence (14 IconButtons at
+  32-36dp, confirmed via fresh grep this session) — presented once there
+  rather than duplicated here, since §H3 is the more specific home for it.
+
+[CROSS-REFERENCE — already identified] — WCAG numeric contrast ratios
+Dimension: §G1 (Text/non-text contrast)
+Finding: See §E3 above (Phase 2) — the single highest-priority open
+  verification item in the whole audit, not re-stated here.
+
+[MEDIUM, restated from Phase 1 under its correct category] — Zero reduced-
+  motion accommodation anywhere in the app
+Dimension: §G4 (Reduced motion respected)
+Finding: Already found in Phase 1 §DM3: confirmed zero matches for
+  `Settings.Global.ANIMATOR_DURATION_SCALE` or any equivalent check
+  anywhere in the codebase or Settings UI. Restating here because §G4 is
+  its correct home category (this is a real accessibility compliance gap,
+  not just a character/motion-craft observation) — not a duplicate finding,
+  a re-categorization of the same evidence.
+Why it matters: A user with `ANIMATOR_DURATION_SCALE` set to 0 (a real,
+  common accessibility setting, not hypothetical) gets zero acknowledgment
+  from this app currently — every tween() plays at full duration regardless.
+Recommendation: Same as Phase 1's §DM3 recommendation: read the animator
+  duration scale once and gate all animation calls (nav transitions, and
+  the planned score-reveal signature) behind it.
+Effort: LOW-MEDIUM
+
+[PROTECT — no fallback needed] — No frosted-glass/blur effects exist, so
+  §G4's "reduced transparency" concern doesn't apply
+Dimension: §G4 (Reduced transparency)
+Finding: Confirmed in Phase 1 (§DSA1): glassSheen() uses alpha-blended
+  gradient overlays, not real `backdrop-filter`/blur — there's no frosted-
+  glass effect anywhere that would need an opaque fallback for reduced-
+  transparency users.
+Recommendation: None now — but if the Phase 1 §DSA1 recommendation to add
+  radial-glow atmosphere is implemented, that new effect should be checked
+  against reduced-transparency at that time (a glow/haze overlay is a much
+  milder case than frosted blur, but worth a quick check when it's built).
+Effort: N/A now; a follow-up check when §DSA1 is implemented
+
+[DEFERRED — requires live-device verification, not assertable from code
+  alone] — §G2 Screen Reader Trace, §G3 Keyboard/Switch Access
+Finding: These sections require actually running the app with TalkBack
+  enabled (or Switch Access) to trace the real interaction/announcement
+  behavior — this can't be honestly verified by reading source code alone,
+  and this sandbox has no way to run the Android app on a device/emulator
+  with TalkBack active.
+Recommendation: Flagging as a genuine scope gap rather than guessing at a
+  pass/fail. A real device/emulator TalkBack trace of the core scan→result
+  flow would be the highest-value next accessibility action beyond what
+  this audit can verify.
+Effort: N/A (needs different tooling than this session has)
+```
+
+Section G complete.
