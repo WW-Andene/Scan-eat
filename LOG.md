@@ -170,3 +170,12 @@ boundary) / UI(nav label overflow) / UX(favorites empty state) /
 Old-feature(fasting disambiguation) / Data(weight_log profile index).
 Commits: 668624b 3480840 0d04cb3 7722015 3a94402 8420cb4 be581b6 b06a610
 175d5fb <round-10-pending>. CI check due now.
+
+### 2026-07-11 CI fix — round 9 broke the build
+context:   values-en/strings.xml:biolism_fasting_status_disabled had an
+           unescaped apostrophe in "Journal's" — aapt2 failed with
+           "Invalid unicode escape sequence in string" / "does not
+           contain a valid string resource". Broke rounds 9 and 10 CI
+           (10 inherited 9's break, no new issue of its own).
+fix:       Escaped the apostrophe (Journal\'s), matching every other
+           apostrophe in both strings.xml files.

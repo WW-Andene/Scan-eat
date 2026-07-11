@@ -396,7 +396,7 @@
     <string name="biolism_fasting_label">Fasting mode (estimates)</string>
     <string name="biolism_fasting_status_anchored">%1$s · metabolic state anchored</string>
     <string name="biolism_fasting_status_prompt">Log a meal or adjust the time below</string>
-    <string name="biolism_fasting_status_disabled">Disabled — enable to adjust hormone/ketosis estimates below. Separate from Journal's timer.</string>
+    <string name="biolism_fasting_status_disabled">Disabled — enable to adjust hormone/ketosis estimates below. Separate from Journal\'s timer.</string>
     <string name="biolism_fasting_log_meal">I ate</string>
     <string name="biolism_fasting_time_label">Fasting time:</string>
     <string name="biolism_summary_title">Global summary</string>
