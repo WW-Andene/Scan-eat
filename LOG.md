@@ -1177,3 +1177,25 @@ decision:  Switched both to ButtonDefaults.outlinedButtonBorder(enabled = true) 
            threaded through either), so this is behavior-identical, just
            using the current, non-deprecated API shape.
 reversal:  trivial (2 call-site updates, identical rendered result)
+
+### App-audit §M1/L4 — AGP 8.5.2 was untested against this project's compileSdk 35
+context:   Every CI build log this session has shown: "This Android
+           Gradle plugin (8.5.2) was tested up to compileSdk = 34...You
+           are strongly encouraged to update your project to use a newer
+           Android Gradle plugin." A real, tool-flagged version mismatch,
+           not a guess - AGP itself says it wasn't validated against the
+           SDK level this project actually targets.
+decision:  Bumped AGP to 8.6.0 (the officially documented minimum version
+           with compileSdk 35 support, confirmed via Android's own AGP
+           release notes) rather than jumping to whatever the newest
+           available version is - smallest version bump that actually
+           resolves the flagged mismatch. Verified the existing Gradle
+           wrapper (8.9) already satisfies AGP 8.6's Gradle 8.7+
+           requirement, so no wrapper bump needed alongside it.
+why:       Unlike the earlier Health Connect alpha-dependency case (a
+           runtime library with real API-surface risk and no live CI to
+           verify against), this is a build-time-only plugin bump and
+           this session now has a proven, working release-build CI check
+           on every commit - a bad bump fails fast and visibly instead of
+           shipping broken.
+verify:    CI check pending on this commit before continuing further.
