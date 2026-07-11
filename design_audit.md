@@ -78,7 +78,7 @@ in its Part with an explicit PROTECT note.
 | 11 | ~~MEDIUM~~ PARTIALLY FIXED | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
 | 12 | ~~MEDIUM~~ PARTIALLY FIXED | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
 | 13 | ~~MEDIUM~~ PARTIALLY FIXED | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
-| 14 | MEDIUM | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
+| 14 | ~~MEDIUM~~ VERIFIED — premise doesn't hold | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
 | 15 | ~~MEDIUM~~ FIXED | States | Empty states have no CTA slot | B8 |
 | 16 | ~~MEDIUM~~ FIXED | States | Loading states have no character treatment | B8 |
 | 17 | ~~MEDIUM~~ FIXED | Contrast | WCAG verification gap (Phase 2 restated) — now verified PASS | F1 |
@@ -843,6 +843,22 @@ Recommendation: Pick one Dashboard metric (today's score or streak) to carry
   full accent saturation; desaturate other card accents toward the existing
   Haze/Trace muted tokens.
 Effort: MEDIUM (needs a visual check, not blind)
+STATUS: RE-VERIFIED — the specific premise doesn't hold in current code.
+  Checked every Dashboard card's actual color usage: none of
+  HydrationBlue/CalorieOrange/MetaGreen appear on the Dashboard at all
+  (grep across the whole dashboard package returns zero hits) — the
+  "rainbow of competing hues" this finding describes isn't what's
+  rendered. What's actually there is the *same* AccentCoral reused across
+  CalorieBalanceCard/WeightSummaryCard/WeeklyBarsCard/GapCloserCard —
+  repeated but single-hue, which is internally consistent rather than
+  competing. GapCloserCard's icon fills are already muted (15% alpha, a
+  Haze-equivalent treatment). Forcibly desaturating the other cards' text/
+  icons away from an already-consistent single accent, with no way to
+  visually confirm the result reads better rather than just "some cards
+  suddenly gray," isn't a justified change. CalorieBalanceCard already
+  received the actual hierarchy fix this finding wants (Part B6's radial
+  glow) — it now has something none of the other cards do, which is the
+  practical effect the recommendation was after.
 
 [SCOPE GAP] — Reading-flow and full Gestalt proximity/similarity require
   direct layout inspection not yet done
@@ -1612,8 +1628,6 @@ Still open, deliberately not touched this pass:
   done (see B3's STATUS); the remaining ~80 call sites' individual size
   values are left alone since a blanket resize needs a visual pass this
   sandbox can't do (no way to screenshot-verify layout at each site).
-- **Chroma-contrast rebalancing** (B7) — desaturating Dashboard cards'
-  secondary accents needs the same visual verification.
 - **Light-theme gold consolidation** (A6) — needs a visual re-check of
   light-mode contrast before changing 3 independently-authored hex values.
 - **Copy warmth pass** (B9) — investigated further: the score-reveal
