@@ -89,6 +89,12 @@ class GroqService {
             requestTimeoutMillis  = 30_000
             connectTimeoutMillis  = 10_000
         }
+        // Without this, a 429/500 from Groq is fed to the ChatResponse
+        // deserializer and surfaces as a serialization error whose message
+        // never contains the status code — so mapError() could never map
+        // rate limits to 429 and every Groq error reached clients as a
+        // generic 500.
+        expectSuccess = true
     }
 
     /**
@@ -125,6 +131,10 @@ class GroqService {
                 return resp.choices.firstOrNull()?.message?.content
                     ?: throw RuntimeException("Empty response from Groq")
             }.onFailure { e ->
+                // A 4xx other than 429 (bad key, malformed request) will fail
+                // identically on every retry and on the fallback model — fail
+                // fast instead of burning attempts against it.
+                if (e is ClientRequestException && e.response.status != HttpStatusCode.TooManyRequests) throw e
                 lastErr = e
                 log.warn("Groq attempt $attempt failed (model=$useModel): ${e.message}")
             }

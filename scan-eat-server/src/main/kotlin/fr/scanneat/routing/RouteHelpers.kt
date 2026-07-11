@@ -49,6 +49,8 @@ fun mapError(err: Throwable): Pair<HttpStatusCode, ErrorResponse> {
             HttpStatusCode.PayloadTooLarge, ErrorResponse("Request body too large"))
         "rate_limit" in msg.lowercase() || "429" in msg -> Pair(
             HttpStatusCode.TooManyRequests, ErrorResponse("rate_limit"))
+        "401" in msg || "403" in msg -> Pair(
+            HttpStatusCode.Unauthorized, ErrorResponse("invalid_api_key"))
         "service_unavailable" in msg.lowercase() -> Pair(
             HttpStatusCode.ServiceUnavailable, ErrorResponse("service_unavailable"))
         else -> Pair(HttpStatusCode.InternalServerError, ErrorResponse("Internal error"))
