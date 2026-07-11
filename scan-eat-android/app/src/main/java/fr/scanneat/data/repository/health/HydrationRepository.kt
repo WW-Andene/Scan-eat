@@ -46,6 +46,26 @@ class HydrationRepository @Inject constructor(
 
     private fun key(date: LocalDate) = intPreferencesKey("hyd_${date}")
 
+    private val KEY_PREFIX = "hyd_"
+    private val PRUNE_KEEP_DAYS = 90L
+
+    /**
+     * Drop keys older than [PRUNE_KEEP_DAYS] — every day of use otherwise adds a
+     * permanent "hyd_<date>" key that's never removed, and DataStore loads the
+     * whole preferences file into memory on first access, so years of use means
+     * thousands of stale keys parsed on every app start.
+     */
+    private fun prune(prefs: MutablePreferences) {
+        val cutoff = LocalDate.now().minusDays(PRUNE_KEEP_DAYS)
+        // Materialize before mutating — removing from prefs while iterating its
+        // own live key view risks a ConcurrentModificationException.
+        val staleKeys = prefs.asMap().keys.filter { pref ->
+            pref.name.startsWith(KEY_PREFIX) &&
+                runCatching { LocalDate.parse(pref.name.removePrefix(KEY_PREFIX)) }.getOrNull()?.isBefore(cutoff) == true
+        }
+        for (pref in staleKeys) prefs.remove(pref)
+    }
+
     /** Observe intake for a given date in mL. Emits 0 when none. */
     fun observe(date: LocalDate): Flow<Int> =
         storeData.map { prefs -> prefs[key(date)] ?: 0 }
@@ -56,6 +76,7 @@ class HydrationRepository @Inject constructor(
             val current = prefs[key(date)] ?: 0
             val next = (current + ml).coerceAtLeast(0)
             prefs[key(date)] = next
+            prune(prefs)
         }
     }
 
@@ -63,6 +84,7 @@ class HydrationRepository @Inject constructor(
     suspend fun set(date: LocalDate, ml: Int) {
         store.edit { prefs ->
             prefs[key(date)] = ml.coerceAtLeast(0)
+            prune(prefs)
         }
     }
 
