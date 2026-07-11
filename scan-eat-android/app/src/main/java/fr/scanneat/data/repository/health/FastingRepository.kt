@@ -118,12 +118,18 @@ class FastingRepository @Inject constructor(
         loadHistory(prefs)
     }
 
-    /** Current streak: consecutive days with at least one completed fast reaching target. */
+    /**
+     * Current streak: consecutive days with at least one completed fast reaching
+     * target. Same 1-day grace as DashboardAggregator.logStreakDays — a fast
+     * still in progress today shouldn't zero out the streak before the day is
+     * even over, so the walk starts from yesterday when today has no completion yet.
+     */
     val streak: Flow<Int> = history.map { list ->
         if (list.isEmpty()) return@map 0
         val doneDates = list.filter { it.reached }.map { it.date }.toSortedSet().reversed()
-        var streak = 0
         var expected = LocalDate.now().toString()
+        if (expected !in doneDates) expected = LocalDate.now().minusDays(1).toString()
+        var streak = 0
         for (date in doneDates) {
             if (date == expected) {
                 streak++
