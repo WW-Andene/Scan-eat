@@ -61,25 +61,28 @@ class DashboardViewModel @Inject constructor(
     // flatMapLatest wraps the suspend calls cleanly.
     private val from = LocalDate.now().minusDays(30)
 
-    // Combine 6 flows — the 30-day range is now a Flow itself,
-    // so DashboardViewModel never issues a suspend DB call on every upstream tick.
-    val state: StateFlow<DashboardUiState> = combine(
+    // Combine 5 flows — the 30-day range is now a Flow itself, so
+    // DashboardViewModel never issues a suspend DB call on every upstream tick.
+    // recentScans is deliberately NOT in this combine: it changes on every
+    // single new scan, and merging it here would re-run the entire 30-day
+    // weekly rollup / gap-closer / Biolism TDEE recomputation on every scan
+    // even though none of that depends on the scan-history list. It's merged
+    // in separately below, as a cheap .copy().
+    private val heavyState: StateFlow<DashboardUiState> = combine(
         consumptionRepo.observeDay(LocalDate.now()),
         consumptionRepo.observeRange(from, LocalDate.now()),
         prefs.profile,
         weightRepo.observeAll(),
-        scanRepo.observeHistory(limit = 20),
         biolismRepo.profile,
     ) { args ->
         @Suppress("UNCHECKED_CAST")
         val today      = args[0] as DailySummary
         val allEntries = args[1] as List<DiaryEntry>
         val profile    = args[2] as Profile
-        val scans      = args[4] as List<ScanResult>
-        val bioProfile = args[5] as BiolismProfile
-        Quintuple(today, allEntries, profile, scans, bioProfile)
+        val bioProfile = args[4] as BiolismProfile
+        Quad(today, allEntries, profile, bioProfile)
     }
-        .flatMapLatest { (today, allEntries, profile, scans, bioProfile) ->
+        .flatMapLatest { (today, allEntries, profile, bioProfile) ->
             flow {
                 val targets   = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
                 val thisWeek  = weeklyRollup(allEntries, LocalDate.now())
@@ -113,12 +116,16 @@ class DashboardViewModel @Inject constructor(
                     weightSummary  = wSummary,
                     weightForecast = forecast,
                     gapSuggestions = gaps,
-                    recentScans    = scans,
                 ))
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
-    // Local Quintuple to carry 5 values cleanly through flatMapLatest
-    private data class Quintuple<A, B, C, D, E>(val a: A, val b: B, val c: C, val d: D, val e: E)
+    val state: StateFlow<DashboardUiState> = combine(
+        heavyState, scanRepo.observeHistory(limit = 20),
+    ) { s, scans -> s.copy(recentScans = scans) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
+
+    // Local tuple to carry 4 values cleanly through flatMapLatest
+    private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 }

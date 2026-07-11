@@ -397,3 +397,15 @@ decision:  Track whether a request has already happened once; if a
            denial comes back with shouldShowRequestPermissionRationale
            == false after that, treat it as permanent and swap the
            button to "Open Settings" (ACTION_APPLICATION_DETAILS_SETTINGS).
+
+### App-audit §D1/L2 — Dashboard recomputed 30-day rollup on every new scan
+context:   scanRepo.observeHistory(20) was combined into the same
+           flatMapLatest that recomputes weekly rollups, gap-closer
+           suggestions, weight forecast, and Biolism TDEE - every single
+           new scan re-triggered all of that expensive, logically-
+           unrelated work, even though only the recentScans field
+           actually needs the scan-history stream.
+decision:  Split into heavyState (the 5-flow combine, unchanged
+           computation) + a separate lightweight combine(heavyState,
+           scanHistory) that merges recentScans via .copy(). A new scan
+           now only triggers a cheap copy, not the full recomputation.
