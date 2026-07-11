@@ -500,3 +500,115 @@ importance/sound overrides on the old channel are the only thing lost —
 acceptable for a rename this early.
 
 ---
+
+### F24 · HIGH · Bug — the weight delta shown to the user is computed with a precedence error
+
+**Where:** `scan-eat-android/.../data/repository/health/WeightRepository.kt:92`
+
+**Finding:**
+
+```kotlin
+val delta = (latest.weightKg - first.weightKg * 10.0).roundToInt() / 10.0
+```
+
+`*` binds before `-`, so this computes `latest − (first × 10)` instead of
+`(latest − first) × 10`. For latest = 79 kg, first = 80 kg the intended
+delta is −1.0 kg; this yields `(79 − 800).roundToInt() / 10 = −72.1 kg`.
+The value renders on both the Weight screen (`WeightScreen.kt:94-96`) and
+the Dashboard weight card (`WeightSummaryCard.kt:28-33`), always as a huge
+negative number colored green ("losing weight").
+
+**How to fix:** Parenthesize the subtraction:
+
+```kotlin
+val delta = ((latest.weightKg - first.weightKg) * 10.0).roundToInt() / 10.0
+```
+
+and add a unit test pinning `summarize()`'s delta for a two-entry fixture
+(this is exactly the class of bug a one-line test catches forever).
+
+---
+
+### F25 · MEDIUM · Data — backup exports none of the DataStore-backed data
+
+**Where:** `scan-eat-android/.../data/backup/BackupRepository.kt:43-56`
+(`exportToJson`), vs the DataStore repositories (UserPreferences,
+HydrationRepository, FastingRepository, MealPlanRepository,
+DayNotesRepository, RemindersRepository, ComparisonRepository)
+
+**Finding:** The backup bundle covers the seven Room tables only. Its own
+doc comment promises restore "on this device or a new one after
+reinstalling," but a restore on a new device silently loses: the entire
+profile (age/weight/height/diet/allergens — which drives personal scoring),
+app settings (API mode, server URL, language, theme, accessibility modes),
+hydration history, fasting history and streak, the meal plan, day notes,
+and reminder settings. The user discovers this only after the old device
+is gone.
+
+**How to fix:** Add the DataStore payloads to `BackupBundle`: profile +
+settings as typed fields read from `UserPreferences`, and the
+feature stores either as typed lists (fasting history, meal plan) or as a
+raw `Map<String, String>` snapshot per store. On import, write them back
+before the Room transaction. Bump `BACKUP_FORMAT_VERSION`; old files
+simply leave the new fields null (the version guard already tolerates
+older files). Deliberately exclude the Groq API key from the export —
+a backup JSON shared for debugging must not leak a credential (ties into
+F12).
+
+---
+
+### F26 · LOW · Inconsistency — the fasting streak has no grace day but the journal streak does
+
+**Where:** `scan-eat-android/.../data/repository/health/FastingRepository.kt:122-134`
+vs `DashboardAggregator.logStreakDays` (:159-173)
+
+**Finding:** `logStreakDays` deliberately tolerates "today not yet logged"
+by starting the walk from yesterday. The fasting streak requires a
+completed fast dated *today* or reports the streak broken — so a user who
+fasts every day sees their fasting streak flip to 0 every morning until
+that day's fast completes, while the journal streak next to it stays
+intact. Two streaks, two rules.
+
+**How to fix:** Apply the same 1-day grace in `FastingRepository.streak`:
+if today's date isn't in `doneDates`, start `expected` at yesterday
+instead of returning 0 through the loop mismatch.
+
+---
+
+### F27 · LOW · Data — hydration DataStore grows by one key per day forever
+
+**Where:** `scan-eat-android/.../data/repository/health/HydrationRepository.kt:47`
+(`key(date)` = `hyd_<date>`, no pruning anywhere)
+
+**Finding:** Every day of use adds a permanent `hyd_2026-07-11`-style key.
+DataStore loads the whole preferences file into memory on first access, so
+years of use mean thousands of stale keys parsed on every app start.
+`MealPlanRepository` in the same codebase already prunes (KEEP_DAYS_PAST);
+hydration never does.
+
+**How to fix:** On repository init (or first `add()` per session), edit
+once and drop keys older than the longest window any UI reads (90 days
+covers the history views). If hydration history ever needs to be
+long-term (or backed up per F25), move it to a small Room table like
+weight/activity instead.
+
+---
+
+### F28 · LOW · Bug — a meal-plan note containing a newline corrupts the stored plan
+
+**Where:** `scan-eat-android/.../data/repository/planning/MealPlanRepository.kt:118-154`
+(newline-per-entry, pipe-delimited serialization)
+
+**Finding:** Entries are joined with `\n` and notes are stored as the last
+pipe field. A multi-line note (easy to type in any text field) splits into
+several lines on deserialize: the first parses as a truncated note, the
+rest fail the `parts.size < 5` check and are dropped — along with nothing
+else visibly wrong, so the user's plan quietly loses data. (Also: the
+`component5` operator extension at the bottom of the file is dead code.)
+
+**How to fix:** Sanitize on serialize — `slot.text.replace('\n', ' ')`
+(and same for names) — or switch the store to Moshi like the comparison
+repository, which removes the hand-rolled format entirely. Delete the
+unused `component5` extension while there.
+
+---
