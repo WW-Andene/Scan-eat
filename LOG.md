@@ -251,3 +251,16 @@ decision:  Added lang-aware offlineMessage()/missingApiKeyMessage()
            scoreViaServer) for a follow-up - it doesn't have `lang` in
            scope without a broader signature change, and is a rarer
            Server-mode misconfiguration path.
+
+### App-audit §G1/G2 — reminder Switches announce with no label
+context:   RemindersCard's 3 Switch composables (hydration, weight,
+           ReminderRow's per-meal switch) sit next to a Text label in a
+           Row but carry no contentDescription of their own - TalkBack
+           announces just "On/Off, Switch" with no indication of which
+           setting. Merging the whole Row's semantics wasn't safe here
+           (each row also holds an independent test-notification
+           IconButton fixed in an earlier round - merging would have
+           swallowed that control's own focus stop).
+decision:  Set contentDescription = <the adjacent label> directly on
+           each Switch via Modifier.semantics{}, leaving the IconButton
+           untouched and independently focusable.

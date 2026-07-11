@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -81,8 +83,10 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     IconButton(onClick = { NotificationHelper.show(context, 904, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) }) {
                         Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_hydration)), tint = HydrationBlue)
                     }
+                    val hydrationLabel = stringResource(R.string.reminders_hydration)
                     Switch(checked = s.hydrationOn, onCheckedChange = { viewModel.setHydration(it, s.hydrationIntervalHours) },
-                        colors = SwitchDefaults.colors(checkedTrackColor = HydrationBlue))
+                        colors = SwitchDefaults.colors(checkedTrackColor = HydrationBlue),
+                        modifier = Modifier.semantics { contentDescription = hydrationLabel })
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -105,8 +109,10 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     IconButton(onClick = { NotificationHelper.show(context, 905, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) }) {
                         Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_weight)), tint = Gold)
                     }
+                    val weightLabel = stringResource(R.string.reminders_weight)
                     Switch(checked = s.weightOn, onCheckedChange = { viewModel.setWeight(it, s.weightThresholdDays) },
-                        colors = SwitchDefaults.colors(checkedTrackColor = Gold))
+                        colors = SwitchDefaults.colors(checkedTrackColor = Gold),
+                        modifier = Modifier.semantics { contentDescription = weightLabel })
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -143,6 +149,7 @@ private fun ReminderRow(
         IconButton(onClick = onTest) {
             Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, label), tint = Gold)
         }
-        Switch(checked = on, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = Gold))
+        Switch(checked = on, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = Gold),
+            modifier = Modifier.semantics { contentDescription = label })
     }
 }
