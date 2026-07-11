@@ -19,10 +19,14 @@ fun scoreIngredientIntegrity(product: Product): PillarScore {
     val bonuses = mutableListOf<Deduction>()
     var score = 0.0
 
-    // 1. First 3 whole foods (+5)
+    // 1. First 3 whole foods (+5) — divide by the actual count taken (up to 3),
+    // not a fixed 3: a single-ingredient whole food (e.g. "Pommes") is 100%
+    // whole-food and deserves the full 5, not 1/3 of it just for having a
+    // short ingredient list.
     val first3 = product.ingredients.take(3)
     val first3Whole = first3.count { isWholeFood(it) }
-    val first3Score = ((first3Whole.toDouble() / 3.0) * 5.0).let { kotlin.math.round(it).toDouble() }
+    val first3Score = if (first3.isEmpty()) 0.0
+        else ((first3Whole.toDouble() / first3.size) * 5.0).let { kotlin.math.round(it).toDouble() }
     score += first3Score
     if (first3Score < 5) deductions += Deduction("ingredient_integrity", "Only $first3Whole/3 first ingredients are whole foods (${first3Score.toInt()}/5)", first3Score - 5, Severity.MODERATE)
     else bonuses += Deduction("ingredient_integrity", "First 3 ingredients are all whole foods", 5.0, Severity.INFO)

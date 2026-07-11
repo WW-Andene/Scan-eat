@@ -360,3 +360,13 @@ decision:  Did NOT bump the version blindly - no live CI feedback loop
            a different break, and Rule 8's "2am apply" test says this
            needs care, not a blind version bump. Added a clear comment
            flagging the risk and what to re-verify before ever bumping.
+
+### App-audit §A1/L2 — ingredient-integrity score divides by a fixed 3, not actual count
+context:   scoreIngredientIntegrity's "first 3 whole foods" sub-score
+           divided first3Whole by a hardcoded 3.0, not first3.size. A
+           single-ingredient whole food (e.g. "Pommes", 1/1 whole)
+           scored 1/3*5≈2 instead of the full 5 - simple whole foods
+           got penalized purely for having a short ingredient list,
+           backwards for a metric meant to reward whole-food simplicity.
+decision:  Divide by first3.size (guarded against empty) instead of a
+           fixed 3.
