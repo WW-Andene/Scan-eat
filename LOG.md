@@ -876,3 +876,29 @@ why:       Closes the gap directly rather than just documenting it -
            external API verification, just recognizing the existing
            workflow file's own scope gap.
 reversal:  trivial (one workflow step; doesn't touch app source)
+
+### App-audit §N1/L3 — entire scoring-engine flag vocabulary is English-only (discovered, queued)
+context:   Investigated whether AdditiveRiskPillar's additive `concern`
+           citations (English scientific text) leak into visible red
+           flags - they don't (Deduction.evidence is set but never read
+           anywhere in the presentation layer, confirmed by an exhaustive
+           grep - dead field). But the actual `reason` fields on all 44
+           Deduction(...) call sites across the 6 scoring-engine files ARE
+           what buildFlags() surfaces as visible red/green flags, and
+           every single one is hardcoded English, with zero lang-
+           awareness - a much bigger, systemic version of the N/L1/N/L2
+           findings (a few missed UI strings), affecting the actual
+           safety-relevant flag text on every scan result.
+decision:  Did not attempt the fix - correctly localizing this needs
+           threading `lang` through scoreProduct() and all 5 pillar
+           functions (a signature change to the core, most-tested pure
+           function in the app) plus ~44 bilingual string pairs, with no
+           local build/test loop in this sandbox to verify a change of
+           that size and centrality. Documented precisely in QUEUE.md
+           (exact file list + call-site count) for a dedicated pass with
+           real CI/test feedback at each step.
+why:       Rule 7/Rule 8 - a change this large and this central, done
+           blind, risks breaking the score computation itself (the app's
+           core value proposition) for the sake of a localization fix;
+           the smaller, already-fixed UI-string gaps didn't carry that
+           risk profile.

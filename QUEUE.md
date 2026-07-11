@@ -50,6 +50,26 @@ Data, Old feature, New feature — never the same category twice in a row.
   from this sandbox (no network access to Groq, no test key). Needs a
   live-API check before adding.
 
+- The entire scoring engine's Deduction/bonus "reason" text - 44 call
+  sites across ScoringEngine.kt, ProcessingPillar.kt,
+  NegativeNutrientsPillar.kt, AdditiveRiskPillar.kt,
+  IngredientIntegrityPillar.kt, NutritionalDensityPillar.kt - is
+  hardcoded English-only (e.g. "Saturated fat 12g/100g (>9 critical)",
+  "NOVA class 4 base score"), and these ARE the red/green flags actually
+  shown on every scan result (buildFlags() in ScoringEngine.kt reads
+  d.reason directly). A French-locale user (this app's default/primary
+  audience) sees English safety-flag text on every single scan,
+  regardless of the in-app language setting used everywhere else. Not a
+  couple of missed strings like the earlier N/L1/N/L2 findings - this is
+  the entire scoring engine's flag vocabulary. The correct fix threads
+  `lang` through scoreProduct() and all 5 pillar functions (breaking the
+  "pure function of Product alone" signature used everywhere, incl. every
+  existing test and the D/L1 fix's rescoring-in-place logic) and needs
+  ~44 bilingual string pairs - too large and too central to the app to
+  land correctly without local build/test verification, which this
+  sandbox doesn't have. Needs a dedicated pass with CI/test feedback
+  available at each step, not a single blind commit.
+
 ## Stuck
 (3-strike failures land here, per skill's FAILURE & RETRY rule)
 
