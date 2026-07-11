@@ -15,3 +15,26 @@ decision:  Iterate — one category per round, each round: find → verify →
 why:       Matches the explicit instruction and keeps each push
            independently bisectable/revertable if CI catches a regression.
 reversal:  n/a (process choice, not a code change)
+
+### 2026-07-11 Round 1 — UX/accessibility
+context:   RemindersCard.kt's 3 test-notification IconButtons used
+           contentDescription = null despite being functional controls.
+options:   Add per-row description vs. a generic shared one.
+decision:  Parameterized "Test reminder: %1$s" string, passed each row's
+           own label (breakfast/lunch/dinner/hydration/weight).
+why:       TalkBack announces the actual control instead of nothing.
+reversal:  trivial (string + 3 call-site edits)
+verify:    CI green — commit 668624b, run 29138064738.
+
+### 2026-07-11 Round 2 — UI
+context:   ScanHistoryScreen.kt, ScanHistoryCard.kt (dashboard), and
+           DiaryScreen.kt's DiaryEntryCard all render product/entry names
+           with maxLines=1 and no TextOverflow — Compose's default Clip
+           hard-cuts long names mid-glyph instead of ending in an ellipsis.
+           Common in practice: OFF product names are often long.
+options:   Fix one occurrence vs. all three (same root cause, confirmed by grep).
+decision:  Fixed all three — added overflow = TextOverflow.Ellipsis + the
+           missing import in each file.
+why:       Same bug, same fix, all three files display the same kind of data.
+reversal:  trivial (one param + one import per file)
+
