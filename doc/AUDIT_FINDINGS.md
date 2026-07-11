@@ -335,3 +335,70 @@ profiles ever become a feature. (a) is the direction the plumbing implies;
 (b) is one small migration.
 
 ---
+
+### F16 · MEDIUM · Inconsistency — the server's LLM parser missed the app's OcrParser fixes
+
+**Where:** `scan-eat-server/.../service/LlmLabelParser.kt` (prompts),
+`scan-eat-server/.../service/GroqService.kt:117-131` (`complete` retry loop)
+vs `scan-eat-android/.../data/repository/scan/OcrParser.kt`
+
+**Finding:** Same manual-copy drift as the scoring engine (F1), on the LLM
+side. Three concrete divergences, each one an app-side fix the server
+never received:
+
+1. *No prompt-injection hardening.* The app's label and identify prompts
+   both instruct the model to treat all text in the image strictly as
+   printed content, never as instructions. The server's `labelPrompt` /
+   `identifyFoodPrompt` (and the menu/recipe prompts) have none of this —
+   Server mode is the more exposed path and the less hardened one.
+2. *Text-only fallback for vision requests.* `GroqService.complete()`
+   switches to `FALLBACK_GROQ_MODEL` (llama-3.3-70b, text-only) on the
+   last attempt unconditionally. The app's `callWithRetry` explicitly
+   guards this with `hasImages` because sending images to a text-only
+   model guarantee-fails the final retry instead of giving it a real one.
+3. *No backoff.* The app delays `500ms × attempt` between retries; the
+   server hammers immediately, which is exactly wrong for the 429 case.
+   (Also, the server's identify prompt says "estimate conservatively"
+   where the app's says "never output a literal 0 unless the food
+   genuinely contains none" — the app version was tuned to stop the model
+   from returning all-zero nutrition.)
+
+**How to fix:** Port the app's versions: copy the two hardened prompts
+into `LlmLabelParser.kt` verbatim (they are plain strings), add
+`val hasImages = images.isNotEmpty()` to `complete()` and only use the
+fallback model when `!hasImages`, and add `delay(500L * (attempt + 1))`
+between attempts. Fold this into whatever drift guard F1 lands on.
+
+---
+
+### F17 · LOW · Inconsistency — OcrParser builds its own private Moshi
+
+**Where:** `scan-eat-android/.../data/repository/scan/OcrParser.kt:233`
+
+**Finding:** An earlier pass (Q-3) routed all repositories through the
+singleton Moshi provided by DI, but `OcrParser` still constructs its own
+`Moshi.Builder().add(KotlinJsonAdapterFactory()).build()` — a second
+reflection-based instance with its own adapter cache, and one more place
+adapter configuration can silently diverge from the app-wide instance.
+
+**How to fix:** Inject `Moshi` through the constructor
+(`class OcrParser(private val groqApi: GroqApi, moshi: Moshi)`) and update
+its provider in `DomainModule`/`NetworkModule` to pass the singleton.
+
+---
+
+### F18 · LOW · Data — re-logging weight writes duplicate Health Connect records
+
+**Where:** `scan-eat-android/.../data/repository/health/HealthConnectRepository.kt:59-68`
+
+**Finding:** `writeWeight()` inserts a new `WeightRecord` on every call.
+Logging weight twice on the same day (e.g. correcting a typo) leaves both
+records in Health Connect — other apps reading the store see two weigh-ins,
+and the stale value can't be corrected from Scan'eat.
+
+**How to fix:** Set `metadata = Metadata(clientRecordId = "scanneat-weight-$date", clientRecordVersion = System.currentTimeMillis())`
+on the record — Health Connect upserts by `clientRecordId` (higher
+`clientRecordVersion` replaces), so one record per day per app, updated in
+place on re-log.
+
+---
