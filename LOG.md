@@ -701,3 +701,18 @@ why:       These are independent, side-effect-free reads against a public
 reversal:  moderate (structural change to fetchOffProduct's control flow,
            but the priority-order-preserving await loop keeps the exact
            same observable behavior/return value as before - just faster)
+
+### App-audit §E1/L3 — back-arrow icon didn't mirror for RTL despite RTL being enabled
+context:   15 files used Icons.Default.ArrowBack (the legacy, non-mirrored
+           icon) for every top-bar back button across the app, even though
+           P-3 (task #23) explicitly enabled RTL support - a non-mirrored
+           left-pointing arrow in an RTL locale points the wrong direction
+           (should point right, toward where "back" is on that layout).
+decision:  Swapped all 15 to Icons.AutoMirrored.Filled.ArrowBack (auto-
+           flips per LayoutDirection) and updated each file's icon import
+           accordingly (13 wildcard-import files gained an explicit
+           automirrored.filled.ArrowBack import; 2 files with explicit
+           per-icon imports had their ArrowBack import line repointed to
+           the automirrored package).
+reversal:  trivial (icon symbol + import swap only, no behavior change
+           in LTR locales)
