@@ -1032,3 +1032,20 @@ why:       Consistency with an established, deliberate schema pattern
            profile in practice) but free to align now.
 reversal:  additive migration (index swap only), safe regardless of
            future multi-profile plans - same reasoning as §D/L1's weight_log fix.
+
+### App-audit §E1/L4 — more deprecated non-mirrored icons, caught via the CI build log itself
+context:   The M/L3 release-build CI run's compile warnings named 5 more
+           non-mirrored deprecated icons the §E1/L3 ArrowBack sweep didn't
+           search for: Icons.Default.ListAlt (DashboardScreen,
+           MealPlanScreen, TemplatesScreen - 3 sites), TrendingUp/
+           TrendingDown (WeekDeltaCard), MenuBook (TopTab, the Journal
+           bottom-nav icon), ArrowForward (ScoreDisplay's dual-score
+           arrow). Same RTL-correctness gap as §E1/L3, just different
+           icons the earlier grep for "ArrowBack" specifically missed.
+decision:  Swapped all 6 sites to their Icons.AutoMirrored.Filled
+           equivalents with matching import updates, verified via
+           Kotlin's own compiler deprecation warnings (not just an ad hoc
+           search) - a nice confirmation loop from the new release-build
+           CI check already paying for itself twice in one pass.
+reversal:  trivial (icon symbol + import swap only, identical LTR
+           rendering)

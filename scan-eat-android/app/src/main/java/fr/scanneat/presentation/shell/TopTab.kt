@@ -2,13 +2,14 @@ package fr.scanneat.presentation.shell
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import fr.scanneat.R
 
 sealed class TopTab(val route: String, @StringRes val labelRes: Int, val icon: ImageVector) {
     data object Scan      : TopTab(AppRoutes.SCAN,      R.string.tab_scan,      Icons.Default.QrCodeScanner)
-    data object Diary     : TopTab(AppRoutes.DIARY,     R.string.tab_diary,     Icons.Default.MenuBook)
+    data object Diary     : TopTab(AppRoutes.DIARY,     R.string.tab_diary,     Icons.AutoMirrored.Filled.MenuBook)
     data object Dashboard : TopTab(AppRoutes.DASHBOARD, R.string.tab_dashboard, Icons.Default.BarChart)
     data object Biolism   : TopTab(AppRoutes.BIOLISM,   R.string.tab_biolism,   Icons.Default.MonitorHeart)
     data object Settings  : TopTab(AppRoutes.SETTINGS,  R.string.tab_settings,  Icons.Default.Settings)

@@ -4,8 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,7 +34,7 @@ internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Icon(
-            if (delta.kcal >= 0) Icons.Default.TrendingUp else Icons.Default.TrendingDown,
+            if (delta.kcal >= 0) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
             null, tint = color, modifier = Modifier.size(16.dp),
         )
         Text(

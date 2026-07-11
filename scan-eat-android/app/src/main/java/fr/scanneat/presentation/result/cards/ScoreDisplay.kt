@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -79,7 +79,7 @@ internal fun DualScoreRing(
                 }
             }
         }
-        Icon(Icons.Default.ArrowForward, null, tint = OnBackground.copy(0.3f), modifier = Modifier.size(20.dp))
+        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = OnBackground.copy(0.3f), modifier = Modifier.size(20.dp))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.result_personal_score_label), style = MaterialTheme.typography.labelSmall,
                 color = if (veto) FlagRed else AccentGreen)

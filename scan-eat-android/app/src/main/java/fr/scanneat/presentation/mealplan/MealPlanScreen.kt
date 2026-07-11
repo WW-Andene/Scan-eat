@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -121,7 +122,7 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 when (slot) {
                     is MealPlanSlot.RecipeSlot   -> Icon(Icons.Default.RestaurantMenu, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
-                    is MealPlanSlot.TemplateSlot -> Icon(Icons.Default.ListAlt, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
+                    is MealPlanSlot.TemplateSlot -> Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
                     else -> {}
                 }
                 Text(label, style = MaterialTheme.typography.bodySmall, color = if (slot != null) OnSurface else OnSurface.copy(0.3f))

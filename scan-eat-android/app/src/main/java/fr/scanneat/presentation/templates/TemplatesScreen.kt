@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -49,7 +50,7 @@ fun TemplatesScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (templates.value.isEmpty()) {
-                item { EmptyListState(Icons.Default.ListAlt, stringResource(R.string.templates_empty_body)) }
+                item { EmptyListState(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_empty_body)) }
             }
             items(templates.value, key = { it.id }) { template ->
                 Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(14.dp))) {
