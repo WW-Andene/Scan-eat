@@ -264,3 +264,20 @@ context:   RemindersCard's 3 Switch composables (hydration, weight,
 decision:  Set contentDescription = <the adjacent label> directly on
            each Switch via Modifier.semantics{}, leaving the IconButton
            untouched and independently focusable.
+
+### App-audit §H3 — undersized touch target (self-introduced, round 5)
+context:   My own Favorites star IconButton (ScanHistoryScreen) was
+           28.dp - below this app's own consistent 32-36dp floor used by
+           14 other icon buttons across the app (delete/dismiss/log
+           buttons in dense list rows), and below the 48dp Android
+           accessibility guideline entirely.
+decision:  Bumped to 32dp - the app's own existing floor for this exact
+           pattern (compact icon button in a dense list row).
+queued:    The broader observation - all 15 spots (32-36dp) sit below
+           the 48dp guideline - is a bigger, consistent, deliberate
+           design-system choice across the whole app. Not blanket-fixing
+           it here: 15 spots in dense list rows without visual
+           verification is a real layout-regression risk, and it reads
+           as an intentional density tradeoff, not an oversight. Logged
+           to QUEUE.md as a design-system-level recommendation, not an
+           immediate fix.

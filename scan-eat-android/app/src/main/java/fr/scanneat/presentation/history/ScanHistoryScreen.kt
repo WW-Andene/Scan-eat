@@ -118,7 +118,7 @@ fun ScanHistoryScreen(
                                 Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                             }
-                            IconButton(onClick = { viewModel.toggleFavorite(scan) }, modifier = Modifier.size(28.dp)) {
+                            IconButton(onClick = { viewModel.toggleFavorite(scan) }, modifier = Modifier.size(32.dp)) {
                                 Icon(
                                     if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
                                     stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
