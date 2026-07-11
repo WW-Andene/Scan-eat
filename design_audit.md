@@ -1,17 +1,111 @@
 # Scan'eat — Full Deep Design Audit
 
-Running log of the design-aesthetic-audit-SKILL.md "full deep" pass (Phase 1:
-core aesthetic, per §EXEC). Findings use the skill's standard format:
-`[SEVERITY] — Title / Dimension / Finding / Why it matters / Recommendation / Effort`.
-Severity scale: CRITICAL / HIGH / MEDIUM / LOW / POLISH.
+A complete design/aesthetic audit run against the design-aesthetic-audit
+skill's "full deep" scope: Phase 1 (core aesthetic, 21 steps), Phase 2
+(expanded UI audit — visual design, UX/IA/copy, accessibility, mobile touch,
+design-system polish, mobile performance), and Phase 3 (cross-cutting
+compound-finding analysis). Findings use the standard template — Severity /
+Dimension / Finding / Why it matters / Recommendation / Effort. Severity
+scale: CRITICAL / HIGH / MEDIUM / LOW / POLISH.
 
-Evidence was gathered by three parallel code-reading passes (color/theme,
-typography/motion, components/icons/states) over the actual Kotlin/Compose
-source — not assumed. Sections not yet reached are listed at the bottom.
+Evidence comes from direct reads of the actual Kotlin/Compose source (three
+parallel research passes covering color/theme, typography/motion, and
+components/icons/states, plus targeted greps throughout), not assumption.
+Anything not independently verified is marked `[UNVERIFIED]` rather than
+asserted. This document is organized for reading, not in the skill's
+execution order — the original §-codes are kept on every finding so they
+can still be cross-referenced against the source skill files (see the
+Appendix).
 
 ---
 
-## §0. AESTHETIC CONTEXT
+## EXECUTIVE SUMMARY
+
+**What the design already says** (confirmed character, see Part A): Scan'eat
+reads as *a warm light glowing in a dark room* — a deliberate, well-engineered
+color system (OLED near-black + warm gold/coral/teal, CVD-safe grading) that
+promises atmosphere and depth. Everything outside the palette — icons,
+motion, elevation, shape — is currently generic Material/Compose defaults
+that don't deliver on what the color tokens already name. The single biggest
+opportunity in this audit is that the fix for this doesn't require new design
+decisions: the color tokens for the "glow" (Haze/Trace/Glow families) already
+exist in code, unused.
+
+**Priority order** (derived from severity + Phase 3's compound-chain analysis
+— see Part F for the full reasoning):
+
+1. **Verify WCAG contrast on the diet-veto/allergen banners** (Part B1,
+   Part F Chain 1) — escalated to CRITICAL because it's the one place an
+   unverified contrast gap would be a safety issue, not a polish issue.
+2. **Build the score-reveal signature moment** (Part B5, B8, D) — the
+   highest-leverage single fix in the audit: closes four separate findings
+   (motion, states, color, atmosphere) at once, using tokens that already
+   exist. Must ship together with reduced-motion gating (Part F Chain 2),
+   not before it.
+3. **Realize the Glow/Haze atmosphere tokens as actual rendered light**
+   (Part B6) — the concrete fix for the audit's core finding (Dimension 3
+   and 5 gaps in Part A).
+4. **Build the two missing Layer-3 components** — `ScanEatPrimaryButton`
+   and `ScanEatCard` (Part B4, B10, Part F Chain 4) — do this *before* the
+   naming/consolidation cleanups it unblocks, not after.
+5. **Unify the three error-state systems into one ErrorBanner component**
+   (Part B8, Part F Chain 5) — reprioritized from a polish finding to an
+   accessibility-compliance finding once cross-referenced against §G1.
+
+**What NOT to change:** the OLED background's cool-violet undertone, Gold's
+current moderate chroma, the CVD-safe grade-color system, `glassSheen()`'s
+mechanism, the icon set's internal consistency (100% filled Material Icons —
+keep, just tint), and the deliberate non-adoption of Material You Dynamic
+Color, real glassmorphism blur, and visual trend-chasing. Each is addressed
+in its Part with an explicit PROTECT note.
+
+### Master Findings Table
+
+| # | Severity | Area | Finding | Detail |
+|---|----------|------|---------|--------|
+| 1 | CRITICAL* | Contrast/Safety | WCAG contrast unverified on allergen/diet-veto banners | B1, F1 |
+| 2 | CRITICAL | Surface/Atmosphere | Glow/Haze tokens exist but aren't rendered as light | B6 |
+| 3 | HIGH | Motion/States | Score reveal has no signature moment | B5, B8, D |
+| 4 | HIGH | Typography | Zero tabular figures on any numeric display | B2 |
+| 5 | HIGH | Components | No shared Button component — recipe hand-copied, drifting | B4 |
+| 6 | HIGH | States | Three unreconciled error-banner systems in one app | B8, F5 |
+| 7 | MEDIUM | Tokens | No Layer-3 component tokens — find/replace test fails | B10, F4 |
+| 8 | MEDIUM | Color | OLED theme's surface/surfaceVariant identical (no elevation tier) | B1 |
+| 9 | MEDIUM | Color | No pressed/hover accent state token | B1 |
+| 10 | MEDIUM | Typography | "Hero number" role untokenized (4 weight spellings, 5+ sizes) | B2 |
+| 11 | MEDIUM | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
+| 12 | MEDIUM | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
+| 13 | MEDIUM | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
+| 14 | MEDIUM | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
+| 15 | MEDIUM | States | Empty states have no CTA slot | B8 |
+| 16 | MEDIUM | States | Loading states have no character treatment | B8 |
+| 17 | MEDIUM | Contrast | WCAG verification gap (Phase 2 restated) | F1 |
+| 18 | MEDIUM | Touch | 12+ IconButtons at 32-36dp, below 48dp guideline | F3 |
+| 19 | LOW | Color | "AccentGreen" misnamed (it's coral); 3 unreconciled gold values | B1 |
+| 20 | LOW | Brand | Light theme re-derives colors independently of shared tokens | A6 |
+| 21 | LOW | Tokens | No separator-weight taxonomy | A6, B10 |
+| 22 | LOW | Components | Nav tab-fade and bottom-nav tinting unconfirmed | B4 |
+| 23 | LOW | Typography | 3/15 type slots never hand-tuned | B2 |
+| 24 | LOW | UX | Scan error recovery is dismiss-only, no retry action | F2 |
+| 25 | LOW | Copy | Voice is competent but under-warm vs. confirmed character | B9, F2 |
+| 26 | POLISH | Color | No color/glow intensification at success moments | B1, B8 |
+| 27 | POLISH | Surface | No grain/noise texture | B6 |
+| 28 | POLISH | Typography | No letter-spacing/tracking on any type slot | B2 |
+| 29 | POLISH | Trends | Colors authored as hex, not OKLCH (documentation-only gap) | B11 |
+
+\* *Severity 1 is CRITICAL conditionally — HIGH until the contrast check is
+actually run; escalates to CRITICAL only if it fails. See Part F Chain 1.*
+
+Findings marked PROTECT (deliberate strengths, not gaps) are listed inline
+in each Part and are not numbered above — see especially Part A (color
+token hygiene, CVD-safe grading), Part B12 (trend restraint, Dynamic Color
+non-adoption), and Part E (IA rework history, mobile-performance discipline).
+
+---
+
+# PART A — IDENTITY & CHARACTER
+
+## A0. Aesthetic Context
 
 ```yaml
 Design Identity:
@@ -25,7 +119,6 @@ Design Identity:
   Intended style:    Inferable from the color-token naming itself (Glow/Haze/
                      Trace implies emanating light, i.e. atmospheric depth) —
                      more atmospheric/premium than what's currently rendered.
-  Personality:       Extracted below in §DP0 (not previously declared).
   Protected elements: OLED background, gold/coral/teal brand triad, the
                      CVD-safe grade-color system (genuinely well-engineered).
 
@@ -44,11 +137,7 @@ Five-Axis Quick Profile:
                         vs. competitors' generic green-scale branding
 ```
 
----
-
-## I. STYLE CLASSIFICATION
-
-### §DS1. Design Language Identification
+## A1. Style Classification
 
 ```
 Primary style: Cyberpunk/Terminal — recalibrated warm (dark OLED base +
@@ -67,32 +156,20 @@ Style-appropriate execution: The color system itself (Gold 0xFFC9A84C,
   requires actual blur (absent). The palette is ahead of the execution.
 ```
 
-### §DS2. Style Coherence Assessment
+**Style coherence gaps**: shape has no scale (12dp dominates at ~44% of
+sites, but 8/10/14/16/18/20dp are all also live for the same "card" role,
+no documented rule); `glassSheen()` — the one genuinely distinctive surface
+treatment — is applied to dashboard/result/diary/history/recipes cards but
+*not* to Biolism tracker cards, onboarding, settings, or `RemindersCard`;
+`ScanScreen.kt`'s primary permission button and `FastingScreen.kt`'s primary
+button both omit the `shape = RoundedCornerShape(12.dp)` param ~8 other
+primary buttons use (accidental drift, not intentional tension). **Clean**:
+zero hardcoded hex colors found in any Kotlin composable outside the theme
+directory. **Gap**: OLED scheme's `surface` and `surfaceVariant` are
+identical (`0xFF1C1820`) — no elevation-tier separation in the default
+theme, while the Dark (non-OLED) scheme does differentiate them correctly.
 
-- **Consistent style vocabulary**: Broken in two measurable ways — (1) shape
-  has no scale: card corner radius is 12dp at ~44% of sites but 8/10/14/16/
-  18/20dp are all also live for what reads as the same "card" role, with no
-  documented rule for which applies where; (2) `glassSheen()` — the one
-  genuinely distinctive surface treatment — is applied to dashboard/result/
-  diary/history/recipes cards but *not* to Biolism tracker cards, onboarding,
-  settings, or `RemindersCard`.
-- **Style inflection points**: `ScanScreen.kt`'s primary permission `Button`
-  and `FastingScreen.kt`'s primary `Button` both omit the
-  `shape = RoundedCornerShape(12.dp)` param that ~8 other primary buttons use.
-- **Intentional tension vs. accidental mixing**: Accidental — inline copy-
-  paste drift, not deliberate neo-brutalist tension.
-- **Theme attribute vs. hardcoded value audit**: Clean — zero hardcoded hex
-  colors found in any Kotlin composable outside the theme directory.
-- **Elevation vs. tonal surface mixing**: OLED scheme's `surface` and
-  `surfaceVariant` are identical (`0xFF1C1820`) — no elevation-tier
-  separation in the default theme; the Dark (non-OLED) scheme does
-  differentiate them.
-
----
-
-## XI. DESIGN CHARACTER SYSTEM
-
-### §DP0. Character Extraction
+## A2. Character Extraction
 
 ```
 Color character:
@@ -152,7 +229,7 @@ Emergent personality statement:
   (3) no shape scale — 9 distinct corner-radius values for one visual role.
 ```
 
-### §DP1. Character Dimensions Analysis
+## A3. Character Dimensions
 
 ```
 Dim1 Visual Voice:      CURRENT: Warm, Quiet-to-balanced, Terse-to-balanced
@@ -178,9 +255,7 @@ Dominant character: "Restrained warm-tech" / "warm ambient precision,
 Conflicting signals: The Gold/Teal/Violet/Warm Glow/Haze/Trace tokens name
   an atmospheric, glowing, deep visual world; the component layer (flat
   Surface fills, zero elevation, default icons, tween-only motion) never
-  cashes that check. [UNVERIFIED — to confirm in §DSA]: whether Glow/Haze/
-  Trace tokens are rendered anywhere as literal radial light pools, or exist
-  underused.
+  cashes that check.
 
 Primary coherence fix candidate: Realize the ambient-glow concept the
   tokens already name — soft radial light-pool backgrounds behind key
@@ -188,7 +263,7 @@ Primary coherence fix candidate: Realize the ambient-glow concept the
   is already declared in code, just not expressed.
 ```
 
-### §DP2. Design Character Brief — CONFIRMED BY USER
+## A4. Design Character Brief — CONFIRMED BY USER
 
 ```
 CHARACTER STATEMENT
@@ -219,13 +294,10 @@ REJECT: Full Material3 elevation/shadow system; true heavy glassmorphism
   (blur everywhere); a colorful/expressive custom icon library.
 ```
 
-**Status: user confirmed this brief — proceed.**
+This brief is the filter every subsequent finding and recommendation in
+this document was tested against.
 
----
-
-## IX. BRAND IDENTITY ENGINEERING
-
-### §DBI1. Brand Archetype Alignment
+## A5. Brand Archetype
 
 Closest fit: **The Craftsman** (warm neutrals, considered engineering,
 editorial restraint) with **Companion** undertones (warmth, health-support).
@@ -233,7 +305,7 @@ Currently only the color layer sends Craftsman signals (CVD-safe grade
 system, hue-consistent text tokens); icon/motion/shape send generic-utility
 signals instead, creating an archetype conflict within the same product.
 
-### §DBI3. Anti-Genericness Audit
+## A6. Anti-Genericness Audit
 
 **Already avoided (confirmed, not asserted):** no default Tailwind-blue
 equivalent; text-color stack (`TextSecondary`/`TextMuted`/`TextLabel`)
@@ -242,44 +314,41 @@ background is genuinely chromatic, not `#111827`/`#0f1117`.
 
 ```
 [MEDIUM] — Generic Material iconography with zero character calibration
-Dimension: §DBI3 signal #6
 Finding: 100% Icons.Default/AutoMirrored.Filled, 47 distinct icons, 85 call
   sites, 28 files — zero custom modification, ad hoc sizing (12-64dp, no
   shared token).
-Why it matters: Largest identity-strength gap (§DP1 Dim5) — palette is
+Why it matters: Largest identity-strength gap (A3 Dim5) — palette is
   Owned, icons are Borrowed from the single most common possible source.
 Recommendation: Keep Material Icons but apply consistent warm-gold tinting
   for active/selected state instead of default onSurface, and standardize
-  sizing into a token (20dp inline / 24dp nav / 40dp empty-state).
+  sizing into a token (20dp inline / 24dp nav / 40dp empty-state). Full
+  icon character brief in Part B3.
 Effort: LOW
 
 [MEDIUM] — Zero custom easing anywhere in the motion system
-Dimension: §DBI3 signal #9
 Finding: Every tween() call (AppNavGraph.kt, MainShell.kt) passes only a
   duration — no custom Easing object defined anywhere; all motion uses
   Compose's default FastOutSlowInEasing.
 Why it matters: Motion currently contradicts the warmth color establishes
-  (§DP1 Dim4). Default easing is the single most common motion signature in
+  (A3 Dim4). Default easing is the single most common motion signature in
   the Compose ecosystem — zero brand identity.
 Recommendation: Define one custom Easing curve for the score-reveal/grade-
-  ring animation — the app's "one unavoidable moment."
+  ring animation — the app's "one unavoidable moment" (Part D).
 Effort: LOW
 
 [LOW] — Light theme re-derives its own primary/secondary/tertiary hex
   instead of a documented transform from shared brand tokens
-Dimension: §DBI3 signal #8
 Finding: LightColors.primary=0xFFA07828, secondary=0xFFB05A38, tertiary=
   0xFF1A9090 — independently authored, not derived from Gold/AccentGreen/
   Teal. A fourth gold value, LightGoldAccent=0xFF8B6914, exists separately
   for Biolism-light-mode.
 Why it matters: A rebrand or accent-color change touches 3+ gold values
-  instead of 1 (§DTA2 find-and-replace test failure).
+  instead of 1 (see Part B10's find-and-replace test).
 Recommendation: Derive LightColors' primary/secondary/tertiary from Gold/
   AccentGreen/Teal via one documented OKLCH lightness-shift rule.
 Effort: MEDIUM (needs visual re-check of light-mode contrast)
 
 [LOW] — Single separator/border treatment, no heavy/light/accent taxonomy
-Dimension: §DBI3 signal #11
 Finding: glassSheen()'s hairline edge is the only border-like treatment,
   applied uniformly wherever used, with no weight distinction by context.
 Recommendation: Define 2-3 explicit separator opacities (20%/8%/accent-30%)
@@ -287,697 +356,17 @@ Recommendation: Define 2-3 explicit separator opacities (20%/8%/accent-30%)
 Effort: LOW
 ```
 
----
-
-## II. COLOR SCIENCE DEEP DIVE
+## A7. Design DNA Specification
 
 ```
-[MEDIUM] — Accent color has no dedicated pressed/hover-equivalent state token
-Dimension: §DC2
-Finding: Gold/AccentGreen/Teal are flat values with no "-pressed" sibling;
-  buttons rely entirely on Material3's default ripple (zero
-  RippleTheme/LocalRippleConfiguration customization anywhere).
-Recommendation: Add one AccentGreenPressed/GoldPressed token (~8% darker,
-  same hue) and apply via custom ripple color on the primary-button sites.
-Effort: LOW
-
-[MEDIUM] — OLED theme's surface and surfaceVariant are identical (no
-  elevation tier), while the Dark theme correctly differentiates them
-Dimension: §DC3
-Finding: OledColors.surface = OledColors.surfaceVariant = 0xFF1C1820.
-  DarkColors differentiates surface (0xFF221E27) from surfaceVariant
-  (0xFF322C38) — the correct pattern already exists elsewhere in the file.
-Recommendation: Port the Dark theme's surface/surfaceVariant step into
-  OledColors (the default, most-used theme).
-Effort: LOW
-
-[LOW] — "AccentGreen" token name doesn't match its actual color (coral),
-  and Gold exists as three unreconciled values
-Dimension: §DC2 / §DBI3 signal #8
-Finding: AccentGreen = 0xFFD97C56 (coral/terracotta). Gold exists as Gold
-  (0xFFC9A84C), LightGoldAccent (0xFF8B6914), LightColors.primary
-  (0xFFA07828) — three hex values for one brand hue.
-Recommendation: Rename AccentGreen → AccentCoral (~28 files, mechanical);
-  consolidate the three golds per the §DBI3 fix above.
-Effort: LOW (rename) / MEDIUM (gold consolidation)
-
-[POLISH] — Score/success moments don't intensify color beyond the standard
-  grade palette
-Dimension: §DC5
-Finding: gradeColor() applies identically for routine results and genuine
-  milestones — no color/glow intensification for success moments.
-Recommendation: Addressed properly under §DST4/§DP3 (states + motion), not
-  a standalone color fix.
-Effort: LOW
-```
-
-**Protect:** OLED background's cool-violet undertone, cream (not pure-white)
-primary text, zero hardcoded hex colors leaking outside the theme layer.
-
----
-
-## III. TYPOGRAPHY AS VISUAL EXPRESSION
-
-```
-[MEDIUM] — Base typeface is unmodified system Roboto, in tension with the
-  "warm" character established by color
-Dimension: §DT1
-Finding: No fontFamily set anywhere in ScanEatTypography (Type.kt); every
-  slot defaults to platform Roboto (neutral Grotesque/Geometric hybrid).
-Recommendation: A single warm-humanist swap (Plus Jakarta Sans or Manrope,
-  both bundlable) for body+heading.
-Effort: MEDIUM (font bundling + visual re-check across 15 type slots)
-
-[HIGH] — Zero tabular-figure treatment anywhere numbers are displayed
-Dimension: §DT3
-Finding: Confirmed zero "tabular"/FontFeatureSettings/font-variant-numeric
-  usage anywhere. Scores, nutrition values, weight entries, calorie totals
-  all render with Roboto's default proportional figures.
-Recommendation: Apply `TextStyle(fontFeatureSettings = "tnum")` to every
-  numeric display — NutritionTable.kt, weight-history rows, dashboard macro
-  cards, ScoreDisplay.
-Effort: LOW (one modifier, ~6-8 call sites)
-
-[MEDIUM] — "Hero number" role has no shared token — 4 weight spellings, 5+
-  concrete sizes
-Dimension: §DT2
-Finding: KetosisProcessCard (24sp/Medium), CalorieBalanceCard (32sp/Black),
-  DailyEnergyCard (34sp/W500), HeroCard (42sp/W500), ScoreDisplay (untethered
-  raw 56sp, no base at all).
-Recommendation: Add one ScanEatTypography.heroNumber style (canonical
-  FontWeight.Black) and let screens vary only fontSize from a defined
-  32/42/56sp scale.
-Effort: LOW (one shared style + ~6 call-site swaps)
-
-[LOW] — 3 of 15 M3 type slots (displayLarge, displayMedium, headlineSmall)
-  were never hand-tuned
-Dimension: §DT2
-Finding: Type.kt only overrides 11/15 slots; the untouched 3 silently use
-  M3's un-tuned defaults.
-Recommendation: Hand-tune the remaining 3 to match the rest, or confirm
-  they're unused and drop them from the "available slots" mental model.
-Effort: LOW
-
-[POLISH] — No letter-spacing/tracking adjustment on any of the 15 type slots
-Dimension: §DT2
-Finding: Every TextStyle override leaves letterSpacing at default (0.sp),
-  including labelSmall (11sp), which should carry +0.03-0.06em at that size.
-Recommendation: +0.02em on titleLarge/headlineMedium; +0.04em on
-  labelSmall/labelMedium.
-Effort: LOW
-```
-
-**Protect:** the hero-number scale-contrast instinct (56sp vs 12sp body) is
-correct compositionally — it needs a token, not a redesign. OpenDyslexic
-accessibility swap is real, considered craft.
-
----
-
-## XV. COMPONENT DESIGN CHARACTER
-
-```
-[HIGH] — No shared Button component; the primary-button recipe is hand-
-  copied inline across ~8+ files, with visible drift
-Dimension: §DCO1
-Finding: `ButtonDefaults.buttonColors(containerColor = AccentGreen)` + black
-  label + `RoundedCornerShape(12.dp)` repeated verbatim across Onboarding/
-  Settings/Scan/LogSheet/Fasting screens — but ScanScreen's permission button
-  and FastingScreen's primary button omit `shape`, silently reverting to
-  M3's default pill shape.
-Why it matters: Most-seen interactive element in the app; a coherence bug,
-  not a taste question. The §DBI3 "find and replace" test currently fails
-  here — changing the primary button means editing 8+ files by hand.
-Recommendation: Extract a `ScanEatPrimaryButton` composable once, in
-  presentation/ui/theme/, alongside EmptyListState.kt and
-  scanEatTextFieldColors() (both already prove this pattern works).
-Effort: MEDIUM (extraction + swap ~10 call sites)
-
-[MEDIUM] — Every "card" is a hand-rolled Surface; radius/color/glassSheen
-  presence all vary per screen with no shared component
-Dimension: §DCO3
-Finding: No M3 Card/ElevatedCard/OutlinedCard used anywhere. Biolism shares
-  one BioCard() wrapper; Dashboard/Result/Diary/Settings each hand-roll
-  Surface(...) independently (12/14/16/18/20dp radius scatter), and
-  glassSheen() coverage is inconsistent (present on Dashboard/Result/Diary/
-  History/Recipes/Templates/Weight/Grocery/Hydration; absent on Biolism
-  tracker/Onboarding/Settings/RemindersCard).
-Why it matters: glassSheen() is the app's single most distinctive surface
-  treatment — its inconsistent application means the signature finish is a
-  coin flip per screen.
-Recommendation: Generalize BioCard()'s pattern into one ScanEatCard()
-  primitive app-wide, glassSheen() on by default; standardize on 16dp for
-  cards, reserve 12dp for banners/chips.
-Effort: MEDIUM-HIGH (touches ~15+ files, each change mechanical)
-
-[LOW] — Navigation tab-switch fade (200ms) has no distinctive character;
-  bottom-nav active-state tinting unconfirmed
-Dimension: §DCO4
-Finding: MainShell.kt's NavigationBar show/hide uses bare fadeIn()/
-  fadeOut(). [UNVERIFIED]: whether the bottom nav's selected-tab treatment
-  uses Gold tinting or M3 defaults — needs a direct read of MainShell.kt/
-  TopTab.kt's NavigationBarItem call before treating as confirmed.
-Recommendation: Verify selectedIconColor/selectedTextColor args; set to
-  Gold if defaulted.
-Effort: LOW (verify first)
-
-[UNVERIFIED, LOOKS FINE] — Input fields (§DCO2) and modals/sheets (§DCO5)
-Finding: scanEatTextFieldColors() confirmed shared across ~7 screens with
-  AccentGreen focus color. LogSheet.kt's bottom sheet uses a distinct 20dp
-  top-corner radius — a defensible modal-tier distinction, not an
-  inconsistency.
-Recommendation: No fix needed at this pass.
-```
-
----
-
-## V. HIERARCHY & GESTALT PRINCIPLES
-
-```
-[PROTECT, NO FIX NEEDED] — Score ring correctly claims primary visual weight
-  on the Result screen
-Dimension: §DH1
-Finding: ScoreRing/DualScoreRing (178dp/110dp, largest element, highest-
-  saturation color via gradeColor(), centered, isolated) is unambiguously
-  the correct focal point.
-Recommendation: Use as the reference pattern for "what a focal moment looks
-  like" when extending atmosphere elsewhere (§DSA5).
-
-[MEDIUM] — Chroma contrast (one saturated element in a desaturated field) is
-  under-used outside the score ring
-Dimension: §DH4
-Finding: Dashboard cards each carry their own colored accent simultaneously
-  (AccentGreen streak badge, HydrationBlue, CalorieOrange, MetaGreen) rather
-  than one element per screen being the sole chroma-contrast focal point.
-Why it matters: When every card is colorful, none reads as more important —
-  the isolation principle that makes the Result screen work isn't available
-  on data-dense dashboard screens.
-Recommendation: Pick one Dashboard metric (today's score or streak) to carry
-  full accent saturation; desaturate other card accents toward the existing
-  Haze/Trace muted tokens.
-Effort: MEDIUM (needs a visual check, not blind)
-
-[SCOPE GAP] — Reading-flow (§DH2) and full Gestalt proximity/similarity
-  (§DH3) require direct layout inspection not yet done
-Recommendation: Defer to a follow-up pass reading DashboardScreen.kt/
-  DiaryScreen.kt's actual Column/Row structure directly.
-```
-
----
-
-## VI. SURFACE & ATMOSPHERE DESIGN
-
-```
-[CRITICAL] — The "ambient glow" color tokens (Glow/Haze/Trace families) are
-  defined but not confirmed to be rendered as actual light — the app's
-  material language is Flat while its color tokens promise Deep
-Dimension: §DSA1, §DSA4, §DSA5 (the concrete form of the §DP1 Dim3 CRITICAL
-  gap)
-Finding: Colors.kt defines 15+ dedicated alpha-variant tokens (GoldGlow/
-  GoldBorder/GoldHaze/GoldTrace, TealGlow/TealBorder/TealHaze/TealTrace,
-  VioletGlow/VioletBorder/VioletHaze/VioletTrace, WarmGlow/WarmHaze,
-  DangerGlow, MetaGreenHaze) whose names describe emitted/ambient light.
-  Evidence gathered so far shows only flat Surface fills + glassSheen()'s
-  top-light sheen; no Brush.radialGradient() or equivalent "light pool"
-  rendering confirmed. [UNVERIFIED — needs a direct grep for
-  "radialGradient|GoldHaze|TealGlow|VioletGlow" usage before treating this
-  as "tokens exist but are unused" rather than "not yet found"].
-Why it matters: The single highest-leverage fix in the audit — if unused,
-  realizing these tokens closes Dimension 3 and Dimension 5 simultaneously,
-  using values that already exist (zero new design decisions needed).
-Recommendation: Verify usage first, then apply a soft
-  `Brush.radialGradient()` using the Haze token (lowest intensity) as a
-  background-atmosphere layer behind 1-2 "focal" surfaces per screen (Result
-  screen's score ring, Dashboard's primary metric card), reserving the
-  brighter Glow token for the single most important element only —
-  explicitly not uniform across every card (the most common atmosphere-
-  hierarchy violation per §DSA5).
-Effort: MEDIUM (verify-then-implement; values already exist)
-
-[MEDIUM] — No established light source direction; the app's one shadow
-  (badge, 6dp) and glassSheen()'s "top-light" sheen aren't confirmed
-  consistent with each other
-Dimension: §DSA4
-Finding: glassSheen()'s doc comment describes a top-light gradient; the one
-  shadowElevation usage (streak badge) uses Compose's default (also
-  top-down), but the two haven't been verified against each other in the
-  same file.
-Recommendation: Declare "top-center, soft, warm" as the app's one documented
-  light source, noted once near the Colors.kt/Glass.kt token definitions.
-Effort: LOW
-
-[LOW] — No grain/noise texture layer exists anywhere
-Dimension: §DSA3
-Finding: No noise/grain overlay found in any surface treatment.
-Recommendation: Low priority relative to the Glow/Haze finding; revisit
-  only after the atmosphere-hierarchy fix lands, ~3% opacity on the OLED
-  background only (not cards).
-Effort: LOW, but LOW priority
-```
-
-## IV. MOTION ARCHITECTURE
-
-```
-[HIGH] — The app's "one unavoidable moment" (the score reveal) uses no
-  distinctive motion — driven by the same generic default as everything else
-Dimension: §DM5, §DP3 technique 5
-Finding: No animateFloatAsState/spring/Crossfade/updateTransition exists
-  anywhere in the codebase (confirmed, full-codebase grep). The score ring
-  (ScoreDisplay.kt) — the single most important value-delivery moment —
-  appears to render its final state without any distinct reveal animation.
-Why it matters: Per §DP3 technique 5, every product has one moment
-  deserving maximum character investment; this app's gets zero motion
-  investment currently.
-Recommendation: Add a signature reveal — the score ring's progress arc
-  animates in via animateFloatAsState with a custom (non-default) easing
-  over ~600-800ms, paired with the grade-color glow (from the §DSA fix)
-  intensifying as the arc completes.
-Effort: MEDIUM (isolated to one composable)
-
-[MEDIUM] — Zero reduced-motion accessibility handling anywhere
-Dimension: §DM3
-Finding: Confirmed zero matches for ANIMATOR_DURATION_SCALE or any
-  accessibility-driven motion-disable path anywhere in the codebase or
-  Settings UI.
-Why it matters: A real accessibility gap (also flagged under §G4 in Phase
-  2), not just a character question.
-Recommendation: Read Settings.Global.ANIMATOR_DURATION_SCALE once and gate
-  the new score-reveal animation (and existing nav transitions) behind it.
-Effort: LOW-MEDIUM
-
-[LOW, MOSTLY PROTECT] — Screen-transition timing is serviceable but generic
-  easing; the tab-switch/peer-navigation duration split itself is fine
-Dimension: §DM1, §DM2
-Finding: AppNavGraph.kt's tab-switch (200ms fade) vs peer-navigation (300ms
-  slide+fade) split is a reasonable, intentional-feeling structure — only
-  the easing curve is generic (already covered under §DBI3).
-Recommendation: No new fix beyond the custom-easing recommendation already
-  given; don't touch the 200/300ms split itself.
-Effort: N/A
-```
-
----
-
-## VII. ICONOGRAPHY SYSTEM
-
-```
-[MEDIUM] — Icon expressiveness sits at "Utilitarian," below what the
-  confirmed character (Craftsman/warm-glow) calls for
-Dimension: §DI3 (Expressiveness Spectrum)
-Finding: 100% default Material Icons, zero weight/style customization —
-  squarely "Utilitarian" tier. Given A5=Amplifies value and the confirmed
-  Craftsman-leaning character, "Calibrated" is the appropriate target
-  (library base + weight/tint matched to character) — not a full custom
-  icon system, which would be disproportionate effort for a non-revenue,
-  domain-conventional app.
-Recommendation: See Icon Character Brief below.
-Effort: LOW-MEDIUM
-```
-
-```
-ICON CHARACTER BRIEF
-  Product character: Warm light glowing in a dark room — quiet, confident,
-    health-serious, restrained (from confirmed §DP2)
-  Target expressiveness: Calibrated (not Signature/Illustrative — the
-    domain-conventional, non-revenue context doesn't justify a full custom
-    icon system; matching the existing Material Icons base with deliberate
-    tinting/sizing does)
-
-  Visual specification:
-    Grid:             Keep Material's native 24×24dp grid — no change needed
-    Stroke/fill:       Keep filled style (already 100% consistent, a real
-                       strength) — do not introduce Outlined/Rounded mixing
-    Corner treatment:  No change — inherits from Material's filled glyphs
-    Tint strategy:     Default/inactive icons stay OnBackground.copy(0.5-0.7)
-                       (current pattern, keep); active/selected icons (nav,
-                       toggled states) switch to Gold (0xFFC9A84C) instead of
-                       whatever each screen currently defaults to — this is
-                       the one calibration that actually connects icons to
-                       the brand palette
-    Size token:        Standardize the currently-ad-hoc 12-64dp range into
-                       3 named sizes: 20dp (inline/label-adjacent), 24dp
-                       (nav bar, matches Material's native grid), 40dp
-                       (empty states, matches EmptyListState.kt's existing
-                       value — don't change that one)
-    Unique motif:      None needed at Calibrated tier
-
-  What icons must express: Restraint and warmth through color, not through
-    novel shapes — the "glow" character comes from tint, not form
-  What icons must avoid: Any move toward a second icon library, outlined/
-    filled mixing, or expressive multi-color icon treatments (would violate
-    the confirmed "Quiet, not Playful" register)
-```
-
----
-
-## XIII. STATE DESIGN SYSTEM
-
-```
-[HIGH] — Error states use three unreconciled color/component systems across
-  the app, none matching the confirmed "warm glow" character
-Dimension: §DST3
-Finding: (1) ScanScreen's real-error case uses Material's colorScheme.error/
-  errorContainer tokens (the only place in the app using them at all); (2)
-  ResultBanners' diet-veto and allergen cards use custom FlagRed/
-  AmberWarning at 15% alpha; (3) SettingsScreen's backup error is a bare
-  colored Text with no container, icon, or structure at all — the most
-  minimal treatment found anywhere in the app.
-Why it matters: Per §DST3's character-specific guidance, "the error must
-  feel like this product's error" — right now it feels like three different
-  products' errors depending on which screen you're on. Given A2=High-
-  stakes/Emotional, allergen/diet-safety errors specifically deserve the
-  most consistent, trustworthy treatment in the whole app, not the most
-  fragmented one.
-Recommendation: Standardize on the custom FlagRed/AmberWarning system
-  (option 2) as the house error language — it's already palette-integrated
-  and nearly matches the "warm, restrained" character (unlike Material's
-  generic colorScheme.error). Build one shared ErrorBanner composable with
-  icon+text+optional-dismiss, and migrate ScanScreen's real-error case and
-  SettingsScreen's bare-text error onto it.
-Effort: MEDIUM (one new shared composable + 2-3 call-site migrations)
-
-[MEDIUM] — Empty states are correctly shared (EmptyListState.kt) but
-  minimal — icon + text only, no CTA, and not yet stress-tested against the
-  confirmed character
-Dimension: §DST1
-Finding: EmptyListState.kt (40dp icon at 50% opacity + message text) is used
-  consistently across Recipes/Templates/CustomFood — a genuine, deliberate
-  shared component (its own doc comment confirms this was extracted from
-  3 duplicated inline versions).
-Why it matters: Per §DST1, an empty state should contain a character-
-  positive visual element + explanation + primary action — this one has
-  only the first two. It's consistent (good), but at the floor of what the
-  skill considers complete.
-Recommendation: Add a primary action slot (optional param, only used where
-  a clear next step exists — e.g. "Add a recipe" CTA button on
-  RecipesScreen's empty state) rather than redesigning the whole component;
-  keep the icon/text pattern, which is already appropriately restrained for
-  a "Quiet" character (no illustration library needed).
-Effort: LOW (additive param, no visual regression risk)
-
-[MEDIUM] — Loading states have no shared skeleton pattern; scores/data-viz
-  bars reuse plain CircularProgressIndicator/LinearProgressIndicator with no
-  character-specific styling
-Dimension: §DST2
-Finding: The same two Material progress primitives serve both true
-  async-loading (ScanScreen's in-FAB spinner, ResultScreen's whole-screen
-  spinner) and static data-viz rings/bars (ScoreDisplay's grade ring,
-  CalorieBalanceCard's macro bar) — styled ad hoc per file (different
-  strokeWidth/color each time), with zero skeleton-style "shape of what's
-  coming" treatment anywhere.
-Why it matters: Lower priority than the error-state fragmentation (this one
-  is more about polish than trust), but the confirmed character calls for
-  a specific loading feel, and right now it's just "whatever
-  CircularProgressIndicator defaults to, tinted per-screen."
-Recommendation: For the specific case of ResultScreen's whole-screen
-  loading spinner (the wait immediately before the score reveal) —
-  standardize its color/stroke to match the new score-reveal motion
-  signature from §DM5, so the loading state visually sets up the reveal
-  rather than being generic.
-Effort: LOW (one call site, follows from the §DM5 fix already recommended)
-
-[POLISH] — No milestone/success-state intensification exists anywhere
-Dimension: §DST4
-Finding: Confirmed no distinct "milestone success" visual treatment (per
-  §DC5) — grade colors and layout are identical whether it's a routine scan
-  or a genuine first-A+/streak-milestone moment.
-Why it matters: Per §DST4, this is the single highest-emotional-receptivity
-  moment available and it's currently unexploited — lowest-urgency finding
-  in this batch since the app functions correctly without it.
-Recommendation: Defer to §DP3 (Deepening) — this is the same "one
-  unavoidable moment" finding as §DM5, viewed from the states lens rather
-  than the motion lens. Don't build two separate fixes for one moment.
-Effort: N/A (folds into §DM5's recommendation)
-```
-
----
-
-## XVI. COPY × VISUAL ALIGNMENT
-
-```
-[LOW] — Copy voice is competent but "invisible," slightly under the warmth
-  the confirmed character calls for
-Dimension: §DCVW1
-Finding: Sampled copy this session (e.g. "Non végan : ...", "URL du serveur
-  non configurée — configurez-la dans Réglages", "Server URL not
-  configured — set it up in Settings") sits at Formal-to-neutral, Terse,
-  and Impersonal-to-neutral on the voice dimensions — functionally correct
-  and clear, but doesn't lean toward "Voiced"/"Personal" the way the
-  confirmed "warm, quiet-confident" character would suggest (2-position gap
-  on Dimension 3, Personality presence).
-Why it matters: A genuinely low-cost, low-risk finding — copy tone is one
-  of the cheapest character levers available, and the app's current copy
-  isn't wrong, just under-warm relative to everything else in the
-  Character Brief.
-Recommendation: Not a wholesale rewrite — targeted warmth at the highest-
-  visibility moments only (per §DP3's "primary character carriers" idea):
-  the score-reveal verdict text and milestone messages are worth a warmer
-  pass; routine error/validation copy can stay terse-and-clear as-is (that's
-  appropriate for a health-safety context — over-warming an allergen warning
-  would be a mistake, not an improvement).
-Effort: LOW (copy-only changes at ~2-3 highest-visibility strings)
-
-[UNVERIFIED] — Full microcopy audit (§DCVW2) — button labels, field labels,
-  tooltip text — not systematically sampled in this pass
-Recommendation: Defer to a follow-up read of button/label strings.xml
-  entries specifically, rather than assert findings from the small sample
-  gathered incidentally this session.
-```
-
----
-
-## VIII. TREND CALIBRATION
-
-```
-[PROTECT — no fix needed] — The app's trend posture is Timeless-leaning,
-  which is correct for its axis profile
-Dimension: §DDT1, §DDT2
-Finding: Checked against the full trend inventory — no bento-grid layout, no
-  AI gradient mesh, no dot-grid background, no 3D elements, no variable-font
-  weight animation, no brutalist typography anywhere in the codebase. Dark-
-  mode-as-default is present, but that's baseline-expected in 2024+, not a
-  trend chase. The "glass" attempt (glassSheen()) is notably NOT the
-  mainstream backdrop-blur trend — it's a custom sheen-only approach,
-  meaning the app isn't even copying the current glass trend, it built its
-  own adjacent thing.
-Why it matters: Per §DDT2, "Timeless" posture is correct for institutional/
-  long-lifecycle/trust-dependent products — a health-scoring app chasing
-  "AI startup" visual signals (gradient mesh especially) would actively
-  undermine the credibility A2=High-stakes/Emotional demands. This is a
-  strength worth stating explicitly, not a gap to fix.
-Recommendation: None. Don't introduce trend-chasing elements to "modernize"
-  — the current restraint is on-character.
-Effort: N/A
-
-[POLISH] — Colors are authored as raw hex rather than a perceptually-uniform
-  space, which is a documentation/precision gap more than a visible one
-Dimension: §DDT1 (OKLCH adoption signal)
-Finding: All color tokens are `Color(0xFF...)` hex literals; no OKLCH
-  authoring or even OKLCH-equivalent documentation exists for how the
-  palette's lightness/chroma steps were chosen.
-Why it matters: Lowest-priority item in this batch — Android has no native
-  OKLCH color type, so this doesn't block anything functionally. It matters
-  only for future palette work (e.g. deriving the light-mode golds
-  correctly per the §DBI3/§DC2 finding above) — doing that derivation in
-  OKLCH terms (even if the final value ships as hex) would prevent the next
-  "three unreconciled golds" problem.
-Recommendation: When executing the light-mode gold consolidation fix
-  already recommended, do the derivation math in OKLCH and only convert to
-  hex at the end — document the OKLCH source values in a code comment next
-  to the resulting hex.
-Effort: LOW (process change for the next color-derivation task, not a
-  standalone fix)
-```
-
----
-
-## XIX. DESIGN TOKEN ARCHITECTURE
-
-```
-[MEDIUM] — Token architecture reaches Layer 2 (semantic) solidly but almost
-  never Layer 3 (component); the "find-and-replace" test fails concretely
-  for the accent color
-Dimension: §DTA1, §DTA2
-Finding: Layer 1 (primitives — Gold/AccentGreen/Teal/etc. in Colors.kt) and
-  Layer 2 (semantic — MaterialTheme.colorScheme mapping in Theme.kt) are
-  both genuinely present and reasonably disciplined. Layer 3 (component
-  tokens) barely exists: `scanEatTextFieldColors()` is the one real example;
-  buttons and cards have no equivalent, so they consume Layer 1 primitives
-  directly (`AccentGreen` imported and referenced at ~28 files) rather than
-  through a component-scoped token.
-Why it matters: This is the architectural root cause behind three separate
-  findings already raised (§DCO1 button drift, §DCO3 card drift, §DC2's
-  "AccentGreen" naming risk) — they're all symptoms of the same missing
-  Layer 3. The find-and-replace test concretely fails: changing the primary
-  accent today means touching ~28 files correctly, not editing 1 token
-  definition.
-Recommendation: This confirms (doesn't duplicate) the priority already
-  established: building `ScanEatPrimaryButton`/`ScanEatCard` (§DCO1/§DCO3
-  recommendations) IS the Layer 3 fix — once those exist, the accent color
-  only needs to change in 2 places (the two new components) instead of ~28.
-  No separate action needed beyond executing those two recommendations.
-Effort: N/A (already scoped under §DCO1/§DCO3 above)
-
-CHARACTER TOKEN AUDIT
-  ☑ Background surface lightness step — tokenized in Dark scheme; NOT
-    tokenized/absent in OLED scheme (§DC3 finding)
-  ☒ Primary accent hex — tokenized (Layer 1/2), but not OKLCH-verified for
-    perceptual consistency across the palette (§DDT1 note above)
-  ☒ Component border-radius — hardcoded per call site, no shared scale
-    (§DBI3/§DS2 finding — 9 distinct values in circulation)
-  ☑ Typography scale — tokenized via Type.kt (11/15 slots hand-tuned)
-  ☒ Transition durations — hardcoded per animation call, no named constants
-    (200/300ms repeated as literals, not DesignTokens.durationFast, etc.)
-  ☒ Shadow definitions — barely exist (one hardcoded 6dp value), not
-    tokenized
-  ☑ Focus ring style — tokenized for text fields via
-    scanEatTextFieldColors(); NOT tokenized for buttons (no distinct focus
-    state customization found)
-  ☐ Spacing base unit — unverified, deferred to §DH2 follow-up
-```
-
----
-
-## XIV. RESPONSIVE DESIGN CHARACTER
-
-```
-[SKIPPED — per skill's own skip rule]
-Finding: Scan'eat is a phone-primary Compose app. No WindowSizeClass usage,
-  no layout-sw600dp/layout-w840dp resource qualifiers, and no foldable-
-  aware layout logic were found or evidenced this session — the app appears
-  to be a single fixed-form-factor (phone portrait) layout with no
-  responsive/tablet/foldable adaptation built yet.
-Why skipped: §DRC's own execution rule: "Skip this section entirely if the
-  app is not responsive or is a single fixed-width layout." That's the
-  case here.
-Note (not a §DRC finding, flagged for completeness): tablet/foldable support
-  is a real absence, but it belongs to app-audit's §O (Development Scenario
-  Projection) or a future-feature backlog item, not this design-character
-  audit — building responsive layouts is a scope decision, not a character
-  fix.
-```
-
----
-
-## XI. DESIGN CHARACTER SYSTEM (continued)
-
-### §DP3. Character Deepening Protocol
-
-```
-1. CHARACTER TOKEN EXTRACTION
-   EXPRESSES the "warm glow" character correctly (protect these):
-     - Background 0xFF0F0D12 (cool-violet near-black, not neutral gray)
-     - Gold 0xFFC9A84C at its current moderate (not maxed) chroma
-     - The Glow/Haze/Trace alpha-family token structure itself (even if
-       under-rendered today — the naming convention is correct)
-     - glassSheen()'s top-light sheen mechanism
-   UNDERMINES the character (replace/fix):
-     - System Roboto with zero fontFamily customization (cold-neutral,
-       fights the "warm" signal)
-     - Default FastOutSlowInEasing everywhere (mechanical, fights
-       "considered/organic")
-     - 100% unmodified Material Icons (generic, fights "owned identity")
-     - Flat Surface fills with no radial-glow atmosphere (literally the
-       opposite of what "glow" tokens promise)
-
-2. CHARACTER STRESS TESTING
-   Already covered by dedicated sections above — restating as a scorecard:
-     Error states:   FAILS — 3 unreconciled systems (§DST3)
-     Empty states:   PASSES (minimally) — consistent, restrained, correct
-                      tier for the character (§DST1)
-     Loading states: FAILS — generic Material spinners, no character
-                      treatment (§DST2)
-     Edge-case/admin: SettingsScreen's bare-text error is the single
-                      weakest character moment found in the entire audit
-     Mobile breakpoint: N/A — phone-only app, no breakpoint to stress-test
-
-3. SENSORY VOCABULARY
-   Sensory reference: "An ember glowing quietly in a dark hearth."
-   Design implications not yet expressed:
-     - Light should look genuinely emanating (radial glow), not a flat fill
-       — ties directly to the §DSA1/§DSA5 finding
-     - The glow stays modest and warm — never blazing/neon (matches the
-       confirmed REJECT rule against "loud/Playful" treatments)
-     - Elements away from the "ember" (secondary chrome, dividers,
-       disabled states) should recede toward near-darkness, not compete —
-       ties to the §DH4 chroma-contrast finding on Dashboard cards
-     - Material should read as warm despite being dark — avoid cold-clinical
-       cues (harsh drop-shadows, neutral-gray dividers, pure-white light
-       theme surface) — ties to the §DSA2/§DC3/§DBI3 findings on OLED
-       elevation and light-mode's pure-white surface
-
-4. CHARACTER HIERARCHY
-   PRIMARY CARRIERS (max investment):
-     - The score/grade reveal (Result screen) — the app's "one unavoidable
-       moment," currently under-invested (§DM5/§DST4)
-     - Dashboard's primary metric card
-   SECONDARY CARRIERS (present, not dominant):
-     - Navigation bar, buttons, cards generally, diary/history rows
-   BACKGROUND ELEMENTS (consistent but quiet):
-     - Dividers, timestamps, disabled states, settings toggles — currently
-       mostly Material-default (character-neutral, see below)
-
-5. THE ONE UNAVOIDABLE MOMENT
-   Identified: the score/grade reveal on the Result screen — the moment a
-   user gets what they opened the app for.
-   Current state: renders instantly, same generic default motion as
-   everything else, no color/glow intensification beyond the standard
-   grade palette (already flagged individually at §DM5 and §DST4 — this is
-   the single point where those two findings converge).
-   This is the highest-leverage fix in the entire audit precisely because
-   it's one moment, already identified, already has the necessary color
-   tokens sitting unused (§DSA1's Glow/Haze finding) — implementing it
-   closes four separate findings at once (§DM5, §DST4, §DC5, part of §DSA1).
-
-6. CHARACTER-NEUTRAL AUDIT
-   Character-neutral elements found (don't violate, don't express):
-     - Dividers/separators — currently just glassSheen()'s hairline, no
-       heavy/light/accent distinction (already flagged, §DBI3 signal #11)
-     - Disabled button states — 100% Material default dimming, no warm-
-       toned disabled treatment
-     - [UNVERIFIED] Settings toggle switches — not confirmed whether
-       Switch colors are customized to Gold or left at M3 default; worth a
-       quick check before assuming either way
-   For each: the minimal fix is the same pattern already established
-   elsewhere in the app (tint toward Gold/coral at low intensity) rather
-   than a new visual language.
-
-7. CHARACTER FUTURE-PROOFING
-
-   Character Rules (apply to all new features):
-     1. Every new accent-colored element emits light onto the dark surface
-        around it via the existing Haze/Trace tokens — never a flat
-        saturated fill.
-     2. Every new numeric display uses tabular figures
-        (fontFeatureSettings="tnum") from day one.
-     3. Every new card/surface goes through the shared card component (once
-        built per §DCO3) — never a fresh hand-rolled Surface().
-     4. New motion stays within the established 200ms(tab)/300ms(peer-nav)
-        split, EXCEPT the one signature moment (score reveal), which alone
-        may use a slower, custom-eased animation.
-
-   Character Risks (watch as the product scales):
-     - Settings/admin-style screens are the classic place character
-       reverts to defaults — SettingsScreen's bare-text error (§DST3) is
-       already the weakest character moment found in this entire audit;
-       it will get worse, not better, as more settings ship, unless it's
-       explicitly held to the same standard as user-facing screens.
-     - Any future external surface (Play Store listing, marketing site)
-       needs to inherit this exact palette — right now the identity lives
-       only inside the app itself.
-```
-
-### §DBI2. Design DNA Specification
-
-```
-DESIGN DNA SPECIFICATION
   Color DNA:     Cool-violet-tinted OLED near-black (0xFF0F0D12) lit by warm
                  gold (0xFFC9A84C) primary + coral (0xFFD97C56) secondary +
                  sparing teal (0xFF38C8C8) tertiary — deliberate warm-on-cool
                  temperature contrast, moderate (not maxed) chroma throughout
   Type DNA:      Currently: system Roboto, 400-900 weight range, hero
                  numbers in Black weight (untokenized). Target: a warm-
-                 humanist swap (§DT1) at body/heading, hero-number role
-                 tokenized at 32/42/56sp
+                 humanist swap at body/heading, hero-number role tokenized
+                 at 32/42/56sp
   Shape DNA:     Currently undisciplined (9 radii in circulation). Target
                  house scale: 12dp banners/chips, 16dp cards, 20dp sheets/
                  modals — 3 values, each with a clear rule
@@ -994,7 +383,7 @@ DESIGN DNA SPECIFICATION
   SIGNATURE ELEMENT (as shipped today): The OLED-violet background paired
     with the gold-led CVD-safe grading ring — this is the one visual a
     screenshot of Scan'eat could be identified by right now.
-  SIGNATURE ELEMENT (target, once §DM5 lands): The score-reveal glow
+  SIGNATURE ELEMENT (target, once Part D lands): The score-reveal glow
     animation — the ring's arc completing while its grade-color glow
     intensifies via the Haze/Trace tokens. This would be a genuinely
     unmistakable, hard-to-copy moment, built entirely from values and
@@ -1003,46 +392,539 @@ DESIGN DNA SPECIFICATION
 
 ---
 
-## XVII. ILLUSTRATION & GRAPHIC LANGUAGE
+# PART B — VISUAL SYSTEM FINDINGS
+
+## B1. Color Science
 
 ```
-[SKIPPED — per skill's own skip rule]
-Finding: No custom illustrations, spot graphics, or illustrated empty-state
-  compositions exist anywhere in the app (confirmed — EmptyListState.kt
-  uses a Material icon, not an illustration; no illustration-related assets
-  found in res/drawable/ beyond launcher/notification icons).
-Why skipped: §DIL's own execution rule: "Skip when the app has no
-  illustrations, custom graphics, or spot illustrations." That's the case
-  here — this section has nothing to audit.
+[MEDIUM] — Accent color has no dedicated pressed/hover-equivalent state token
+Finding: Gold/AccentGreen/Teal are flat values with no "-pressed" sibling;
+  buttons rely entirely on Material3's default ripple (zero
+  RippleTheme/LocalRippleConfiguration customization anywhere).
+Recommendation: Add one AccentGreenPressed/GoldPressed token (~8% darker,
+  same hue) and apply via custom ripple color on the primary-button sites.
+Effort: LOW
+
+[MEDIUM] — OLED theme's surface and surfaceVariant are identical (no
+  elevation tier), while the Dark theme correctly differentiates them
+Finding: OledColors.surface = OledColors.surfaceVariant = 0xFF1C1820.
+  DarkColors differentiates surface (0xFF221E27) from surfaceVariant
+  (0xFF322C38) — the correct pattern already exists elsewhere in the file.
+Recommendation: Port the Dark theme's surface/surfaceVariant step into
+  OledColors (the default, most-used theme).
+Effort: LOW
+
+[LOW] — "AccentGreen" token name doesn't match its actual color (coral),
+  and Gold exists as three unreconciled values
+Finding: AccentGreen = 0xFFD97C56 (coral/terracotta). Gold exists as Gold
+  (0xFFC9A84C), LightGoldAccent (0xFF8B6914), LightColors.primary
+  (0xFFA07828) — three hex values for one brand hue.
+Recommendation: Rename AccentGreen → AccentCoral (~28 files, mechanical);
+  consolidate the three golds per Part A6's fix.
+Effort: LOW (rename) / MEDIUM (gold consolidation)
+
+[POLISH] — Score/success moments don't intensify color beyond the standard
+  grade palette
+Finding: gradeColor() applies identically for routine results and genuine
+  milestones — no color/glow intensification for success moments.
+Recommendation: Addressed properly under Part B8/Part D (states + motion),
+  not a standalone color fix.
+Effort: LOW
+
+[HIGH, unverified until computed] — WCAG numeric contrast ratios have not
+  been independently verified for any color pair in the app
+Finding: Exact hex values exist for every text/background pairing (e.g.
+  cream 0xFFEFEAE6 on OLED 0xFF0F0D12; TextSecondary 0xFF7E859E on the same
+  background; FlagRed/AmberWarning banner text at 15% alpha fills), but no
+  pass has computed actual contrast ratios against the WCAG 4.5:1 (normal
+  text) / 3:1 (large text, UI components) thresholds.
+Why it matters: The single most consequential unverified claim in the whole
+  audit — a well-considered palette can still fail basic legibility if a
+  specific pairing (most likely candidate: TextMuted 0xFF454A60 on OLED, or
+  banner text over 15%-alpha colored fills) falls under 4.5:1. Given
+  A2=High-stakes/Emotional (health/allergen data), a real failure here is a
+  correctness bug, not a taste question. See Part F Chain 1 for why this
+  escalates to CRITICAL specifically on the allergen/diet-veto banners.
+Recommendation: Compute actual contrast ratios for the ~6 most-used text/
+  background pairs before shipping any recommendation that touches these
+  colors. This is a verification task, not a design task.
+Effort: LOW (a calculator pass, no design change unless a failure is found)
 ```
 
-## XVIII. DATA VISUALIZATION CHARACTER
+**Protect:** OLED background's cool-violet undertone, cream (not pure-white)
+primary text, zero hardcoded hex colors leaking outside the theme layer.
+
+## B2. Typography
 
 ```
-[PARTIALLY COVERED ELSEWHERE, not a standalone gap]
-Finding: The app does use progress-ring/progress-bar data visualization
-  (ScoreDisplay's grade rings, dashboard macro rings/bars, Biolism's
-  LinearProgressIndicator usages) — these aren't absent, but they're built
-  from Material's CircularProgressIndicator/LinearProgressIndicator
-  primitives rather than a dedicated charting library, and their character
-  treatment was already audited under §DST2 (Loading State Design, since
-  the same primitives serve both loading and data-viz roles) and §DH1
-  (the score ring's correct focal-weight treatment).
-Why not a new section: There's no additional data-viz-specific finding here
-  beyond what's already been raised — treating this as its own section
-  would duplicate §DST2/§DH1 rather than add new evidence.
+[MEDIUM] — Base typeface is unmodified system Roboto, in tension with the
+  "warm" character established by color
+Finding: No fontFamily set anywhere in ScanEatTypography (Type.kt); every
+  slot defaults to platform Roboto (neutral Grotesque/Geometric hybrid).
+Recommendation: A single warm-humanist swap (Plus Jakarta Sans or Manrope,
+  both bundlable) for body+heading.
+Effort: MEDIUM (font bundling + visual re-check across 15 type slots)
+
+[HIGH] — Zero tabular-figure treatment anywhere numbers are displayed
+Finding: Confirmed zero "tabular"/FontFeatureSettings/font-variant-numeric
+  usage anywhere. Scores, nutrition values, weight entries, calorie totals
+  all render with Roboto's default proportional figures.
+Recommendation: Apply `TextStyle(fontFeatureSettings = "tnum")` to every
+  numeric display — NutritionTable.kt, weight-history rows, dashboard macro
+  cards, ScoreDisplay.
+Effort: LOW (one modifier, ~6-8 call sites)
+
+[MEDIUM] — "Hero number" role has no shared token — 4 weight spellings, 5+
+  concrete sizes
+Finding: KetosisProcessCard (24sp/Medium), CalorieBalanceCard (32sp/Black),
+  DailyEnergyCard (34sp/W500), HeroCard (42sp/W500), ScoreDisplay (untethered
+  raw 56sp, no base at all).
+Recommendation: Add one ScanEatTypography.heroNumber style (canonical
+  FontWeight.Black) and let screens vary only fontSize from a defined
+  32/42/56sp scale.
+Effort: LOW (one shared style + ~6 call-site swaps)
+
+[LOW] — 3 of 15 M3 type slots (displayLarge, displayMedium, headlineSmall)
+  were never hand-tuned
+Finding: Type.kt only overrides 11/15 slots; the untouched 3 silently use
+  M3's un-tuned defaults.
+Recommendation: Hand-tune the remaining 3 to match the rest, or confirm
+  they're unused and drop them from the "available slots" mental model.
+Effort: LOW
+
+[POLISH] — No letter-spacing/tracking adjustment on any of the 15 type slots
+Finding: Every TextStyle override leaves letterSpacing at default (0.sp),
+  including labelSmall (11sp), which should carry +0.03-0.06em at that size.
+Recommendation: +0.02em on titleLarge/headlineMedium; +0.04em on
+  labelSmall/labelMedium.
+Effort: LOW
+```
+
+**Protect:** the hero-number scale-contrast instinct (56sp vs 12sp body) is
+correct compositionally — it needs a token, not a redesign. OpenDyslexic
+accessibility swap is real, considered craft.
+
+## B3. Iconography
+
+```
+[MEDIUM] — Icon expressiveness sits at "Utilitarian," below what the
+  confirmed character (Craftsman/warm-glow) calls for
+Finding: 100% default Material Icons, zero weight/style customization —
+  squarely "Utilitarian" tier. Given A5=Amplifies value and the confirmed
+  Craftsman-leaning character, "Calibrated" is the appropriate target
+  (library base + weight/tint matched to character) — not a full custom
+  icon system, which would be disproportionate effort for a non-revenue,
+  domain-conventional app.
+Effort: LOW-MEDIUM
+```
+
+```
+ICON CHARACTER BRIEF
+  Target expressiveness: Calibrated (not Signature/Illustrative)
+  Grid:             Keep Material's native 24×24dp grid — no change needed
+  Stroke/fill:       Keep filled style (already 100% consistent, a real
+                       strength) — do not introduce Outlined/Rounded mixing
+  Corner treatment:  No change — inherits from Material's filled glyphs
+  Tint strategy:     Default/inactive icons stay OnBackground.copy(0.5-0.7)
+                       (current pattern, keep); active/selected icons (nav,
+                       toggled states) switch to Gold (0xFFC9A84C) instead —
+                       the one calibration that actually connects icons to
+                       the brand palette
+  Size token:        Standardize the currently-ad-hoc 12-64dp range into
+                       3 named sizes: 20dp (inline/label-adjacent), 24dp
+                       (nav bar, matches Material's native grid), 40dp
+                       (empty states, matches EmptyListState.kt's existing
+                       value — don't change that one)
+  What icons must avoid: Any move toward a second icon library, outlined/
+    filled mixing, or expressive multi-color icon treatments (would violate
+    the confirmed "Quiet, not Playful" register)
+```
+
+## B4. Components (Buttons, Cards, Navigation, Inputs, Modals)
+
+```
+[HIGH] — No shared Button component; the primary-button recipe is hand-
+  copied inline across ~8+ files, with visible drift
+Finding: `ButtonDefaults.buttonColors(containerColor = AccentGreen)` + black
+  label + `RoundedCornerShape(12.dp)` repeated verbatim across Onboarding/
+  Settings/Scan/LogSheet/Fasting screens — but ScanScreen's permission button
+  and FastingScreen's primary button omit `shape`, silently reverting to
+  M3's default pill shape.
+Why it matters: Most-seen interactive element in the app; a coherence bug,
+  not a taste question. The find-and-replace test (Part B10) currently
+  fails here — changing the primary button means editing 8+ files by hand.
+Recommendation: Extract a `ScanEatPrimaryButton` composable once, in
+  presentation/ui/theme/, alongside EmptyListState.kt and
+  scanEatTextFieldColors() (both already prove this pattern works).
+Effort: MEDIUM (extraction + swap ~10 call sites)
+
+[MEDIUM] — Every "card" is a hand-rolled Surface; radius/color/glassSheen
+  presence all vary per screen with no shared component
+Finding: No M3 Card/ElevatedCard/OutlinedCard used anywhere. Biolism shares
+  one BioCard() wrapper; Dashboard/Result/Diary/Settings each hand-roll
+  Surface(...) independently (12/14/16/18/20dp radius scatter), and
+  glassSheen() coverage is inconsistent (present on Dashboard/Result/Diary/
+  History/Recipes/Templates/Weight/Grocery/Hydration; absent on Biolism
+  tracker/Onboarding/Settings/RemindersCard).
+Why it matters: glassSheen() is the app's single most distinctive surface
+  treatment — its inconsistent application means the signature finish is a
+  coin flip per screen.
+Recommendation: Generalize BioCard()'s pattern into one ScanEatCard()
+  primitive app-wide, glassSheen() on by default; standardize on 16dp for
+  cards, reserve 12dp for banners/chips.
+Effort: MEDIUM-HIGH (touches ~15+ files, each change mechanical)
+
+[LOW] — Navigation tab-switch fade (200ms) has no distinctive character;
+  bottom-nav active-state tinting unconfirmed
+Finding: MainShell.kt's NavigationBar show/hide uses bare fadeIn()/
+  fadeOut(). [UNVERIFIED]: whether the bottom nav's selected-tab treatment
+  uses Gold tinting or M3 defaults — needs a direct read of MainShell.kt/
+  TopTab.kt's NavigationBarItem call before treating as confirmed.
+Recommendation: Verify selectedIconColor/selectedTextColor args; set to
+  Gold if defaulted.
+Effort: LOW (verify first)
+
+[LOOKS FINE] — Input fields and modals/sheets
+Finding: scanEatTextFieldColors() confirmed shared across ~7 screens with
+  AccentGreen focus color. LogSheet.kt's bottom sheet uses a distinct 20dp
+  top-corner radius — a defensible modal-tier distinction, not an
+  inconsistency.
+Recommendation: No fix needed.
+```
+
+## B5. Motion
+
+```
+[HIGH] — The app's "one unavoidable moment" (the score reveal) uses no
+  distinctive motion — driven by the same generic default as everything else
+Finding: No animateFloatAsState/spring/Crossfade/updateTransition exists
+  anywhere in the codebase (confirmed, full-codebase grep). The score ring
+  (ScoreDisplay.kt) — the single most important value-delivery moment —
+  appears to render its final state without any distinct reveal animation.
+Why it matters: Every product has one moment deserving maximum character
+  investment; this app's gets zero motion investment currently.
+Recommendation: Add a signature reveal — the score ring's progress arc
+  animates in via animateFloatAsState with a custom (non-default) easing
+  over ~600-800ms, paired with the grade-color glow (from Part B6)
+  intensifying as the arc completes. Full synthesis in Part D.
+Effort: MEDIUM (isolated to one composable)
+
+[MEDIUM] — Zero reduced-motion accessibility handling anywhere
+Finding: Confirmed zero matches for ANIMATOR_DURATION_SCALE or any
+  accessibility-driven motion-disable path anywhere in the codebase or
+  Settings UI.
+Why it matters: A real accessibility gap, not just a character question.
+  See Part F Chain 2 — this must be fixed together with, not after, the
+  score-reveal animation above.
+Recommendation: Read Settings.Global.ANIMATOR_DURATION_SCALE once and gate
+  the new score-reveal animation (and existing nav transitions) behind it.
+Effort: LOW-MEDIUM
+
+[LOW, MOSTLY PROTECT] — Screen-transition timing is serviceable but generic
+  easing; the tab-switch/peer-navigation duration split itself is fine
+Finding: AppNavGraph.kt's tab-switch (200ms fade) vs peer-navigation (300ms
+  slide+fade) split is a reasonable, intentional-feeling structure — only
+  the easing curve is generic (already covered under Part A6).
+Recommendation: No new fix beyond the custom-easing recommendation already
+  given; don't touch the 200/300ms split itself.
+Effort: N/A
+```
+
+## B6. Surface & Atmosphere
+
+```
+[CRITICAL] — The "ambient glow" color tokens (Glow/Haze/Trace families) are
+  defined but not confirmed to be rendered as actual light — the app's
+  material language is Flat while its color tokens promise Deep
+Finding: Colors.kt defines 15+ dedicated alpha-variant tokens (GoldGlow/
+  GoldBorder/GoldHaze/GoldTrace, TealGlow/TealBorder/TealHaze/TealTrace,
+  VioletGlow/VioletBorder/VioletHaze/VioletTrace, WarmGlow/WarmHaze,
+  DangerGlow, MetaGreenHaze) whose names describe emitted/ambient light.
+  Evidence gathered so far shows only flat Surface fills + glassSheen()'s
+  top-light sheen; no Brush.radialGradient() or equivalent "light pool"
+  rendering confirmed. [UNVERIFIED — needs a direct grep for
+  "radialGradient|GoldHaze|TealGlow|VioletGlow" usage before treating this
+  as "tokens exist but are unused" rather than "not yet found"].
+Why it matters: The single highest-leverage fix in the audit — if unused,
+  realizing these tokens closes Dimension 3 and Dimension 5 (Part A3)
+  simultaneously, using values that already exist (zero new design
+  decisions needed).
+Recommendation: Verify usage first, then apply a soft
+  `Brush.radialGradient()` using the Haze token (lowest intensity) as a
+  background-atmosphere layer behind 1-2 "focal" surfaces per screen (Result
+  screen's score ring, Dashboard's primary metric card), reserving the
+  brighter Glow token for the single most important element only —
+  explicitly not uniform across every card (the most common atmosphere-
+  hierarchy violation).
+Effort: MEDIUM (verify-then-implement; values already exist)
+
+[MEDIUM] — No established light source direction; the app's one shadow
+  (badge, 6dp) and glassSheen()'s "top-light" sheen aren't confirmed
+  consistent with each other
+Finding: glassSheen()'s doc comment describes a top-light gradient; the one
+  shadowElevation usage (streak badge) uses Compose's default (also
+  top-down), but the two haven't been verified against each other in the
+  same file.
+Recommendation: Declare "top-center, soft, warm" as the app's one documented
+  light source, noted once near the Colors.kt/Glass.kt token definitions.
+Effort: LOW
+
+[LOW] — No grain/noise texture layer exists anywhere
+Finding: No noise/grain overlay found in any surface treatment.
+Recommendation: Low priority relative to the Glow/Haze finding; revisit
+  only after the atmosphere-hierarchy fix lands, ~3% opacity on the OLED
+  background only (not cards).
+Effort: LOW, but LOW priority
+```
+
+## B7. Hierarchy & Gestalt
+
+```
+[PROTECT, NO FIX NEEDED] — Score ring correctly claims primary visual weight
+  on the Result screen
+Finding: ScoreRing/DualScoreRing (178dp/110dp, largest element, highest-
+  saturation color via gradeColor(), centered, isolated) is unambiguously
+  the correct focal point.
+Recommendation: Use as the reference pattern for "what a focal moment looks
+  like" when extending atmosphere elsewhere (Part B6).
+
+[MEDIUM] — Chroma contrast (one saturated element in a desaturated field) is
+  under-used outside the score ring
+Finding: Dashboard cards each carry their own colored accent simultaneously
+  (AccentGreen streak badge, HydrationBlue, CalorieOrange, MetaGreen) rather
+  than one element per screen being the sole chroma-contrast focal point.
+Why it matters: When every card is colorful, none reads as more important —
+  the isolation principle that makes the Result screen work isn't available
+  on data-dense dashboard screens.
+Recommendation: Pick one Dashboard metric (today's score or streak) to carry
+  full accent saturation; desaturate other card accents toward the existing
+  Haze/Trace muted tokens.
+Effort: MEDIUM (needs a visual check, not blind)
+
+[SCOPE GAP] — Reading-flow and full Gestalt proximity/similarity require
+  direct layout inspection not yet done
+Recommendation: Defer to a follow-up pass reading DashboardScreen.kt/
+  DiaryScreen.kt's actual Column/Row structure directly.
+```
+
+## B8. State Design (Empty, Loading, Error, Success)
+
+```
+[HIGH] — Error states use three unreconciled color/component systems across
+  the app, none matching the confirmed "warm glow" character
+Finding: (1) ScanScreen's real-error case uses Material's colorScheme.error/
+  errorContainer tokens (the only place in the app using them at all); (2)
+  ResultBanners' diet-veto and allergen cards use custom FlagRed/
+  AmberWarning at 15% alpha; (3) SettingsScreen's backup error is a bare
+  colored Text with no container, icon, or structure at all — the most
+  minimal treatment found anywhere in the app.
+Why it matters: "The error must feel like this product's error" — right
+  now it feels like three different products' errors depending on which
+  screen you're on. Given A2=High-stakes/Emotional, allergen/diet-safety
+  errors specifically deserve the most consistent, trustworthy treatment in
+  the whole app, not the most fragmented one. See Part F Chain 5 — the
+  SettingsScreen case specifically is also a §G1 accessibility finding
+  (status conveyed by color alone, no icon), not just a polish gap.
+Recommendation: Standardize on the custom FlagRed/AmberWarning system
+  (option 2) as the house error language — it's already palette-integrated
+  and nearly matches the "warm, restrained" character (unlike Material's
+  generic colorScheme.error). Build one shared ErrorBanner composable with
+  icon+text+optional-dismiss, and migrate ScanScreen's real-error case and
+  SettingsScreen's bare-text error onto it.
+Effort: MEDIUM (one new shared composable + 2-3 call-site migrations)
+
+[MEDIUM] — Empty states are correctly shared (EmptyListState.kt) but
+  minimal — icon + text only, no CTA
+Finding: EmptyListState.kt (40dp icon at 50% opacity + message text) is used
+  consistently across Recipes/Templates/CustomFood — a genuine, deliberate
+  shared component (its own doc comment confirms this was extracted from
+  3 duplicated inline versions).
+Why it matters: An empty state should contain a character-positive visual
+  element + explanation + primary action — this one has only the first two.
+  It's consistent (good), but at the floor of what's considered complete.
+Recommendation: Add a primary action slot (optional param, only used where
+  a clear next step exists — e.g. "Add a recipe" CTA on RecipesScreen's
+  empty state) rather than redesigning the whole component; keep the
+  icon/text pattern, appropriately restrained for a "Quiet" character.
+Effort: LOW (additive param, no visual regression risk)
+
+[MEDIUM] — Loading states have no shared skeleton pattern; scores/data-viz
+  bars reuse plain progress indicators with no character-specific styling
+Finding: The same Material progress primitives serve both true async-
+  loading (ScanScreen's in-FAB spinner, ResultScreen's whole-screen spinner)
+  and static data-viz rings/bars (ScoreDisplay's grade ring,
+  CalorieBalanceCard's macro bar) — styled ad hoc per file, with zero
+  skeleton-style "shape of what's coming" treatment anywhere.
+Recommendation: For ResultScreen's whole-screen loading spinner (the wait
+  immediately before the score reveal) — standardize its color/stroke to
+  match the new score-reveal motion signature (Part B5/D), so loading
+  visually sets up the reveal rather than being generic.
+Effort: LOW (one call site, follows from the Part B5 fix)
+
+[POLISH] — No milestone/success-state intensification exists anywhere
+Finding: Grade colors and layout are identical whether it's a routine scan
+  or a genuine first-A+/streak-milestone moment.
+Recommendation: This is the same "one unavoidable moment" finding as Part
+  B5, viewed from the states lens rather than the motion lens — see Part D,
+  don't build two separate fixes for one moment.
+Effort: N/A (folds into the Part D recommendation)
+```
+
+## B9. Copy × Visual Alignment
+
+```
+[LOW] — Copy voice is competent but "invisible," slightly under the warmth
+  the confirmed character calls for
+Finding: Sampled copy (e.g. "Non végan : ...", "URL du serveur non
+  configurée — configurez-la dans Réglages") sits at Formal-to-neutral,
+  Terse, and Impersonal-to-neutral on the voice dimensions — functionally
+  correct and clear, but doesn't lean toward "Voiced"/"Personal" the way
+  the confirmed "warm, quiet-confident" character would suggest.
+Why it matters: A genuinely low-cost, low-risk finding — copy tone is one
+  of the cheapest character levers available.
+Recommendation: Not a wholesale rewrite — targeted warmth at the highest-
+  visibility moments only: the score-reveal verdict text and milestone
+  messages are worth a warmer pass; routine error/validation copy can stay
+  terse-and-clear as-is (appropriate for a health-safety context —
+  over-warming an allergen warning would be a mistake, not an improvement).
+Effort: LOW (copy-only changes at ~2-3 highest-visibility strings)
+
+[UNVERIFIED] — Full microcopy audit (button labels, field labels, tooltip
+  text) not systematically sampled in this pass
+Recommendation: Defer to a follow-up read of button/label strings.xml
+  entries specifically, rather than assert findings from an incidental
+  sample.
+```
+
+## B10. Design Token Architecture
+
+```
+[MEDIUM] — Token architecture reaches Layer 2 (semantic) solidly but almost
+  never Layer 3 (component); the "find-and-replace" test fails concretely
+  for the accent color
+Finding: Layer 1 (primitives — Gold/AccentGreen/Teal/etc. in Colors.kt) and
+  Layer 2 (semantic — MaterialTheme.colorScheme mapping in Theme.kt) are
+  both genuinely present and reasonably disciplined. Layer 3 (component
+  tokens) barely exists: `scanEatTextFieldColors()` is the one real example;
+  buttons and cards have no equivalent, so they consume Layer 1 primitives
+  directly (`AccentGreen` imported and referenced at ~28 files) rather than
+  through a component-scoped token.
+Why it matters: This is the architectural root cause behind three separate
+  findings raised elsewhere (Part B4 button/card drift, Part B1's
+  "AccentGreen" naming risk) — see Part F Chain 4 for the full sequencing
+  argument (build components first, then rename/consolidate).
+Recommendation: Building `ScanEatPrimaryButton`/`ScanEatCard` (Part B4) IS
+  the Layer 3 fix — once those exist, the accent color only needs to change
+  in 2 places instead of ~28. No separate action needed.
+Effort: N/A (already scoped under Part B4)
+
+CHARACTER TOKEN AUDIT
+  ☑ Background surface lightness step — tokenized in Dark scheme; NOT
+    tokenized/absent in OLED scheme (Part B1)
+  ☒ Primary accent hex — tokenized (Layer 1/2), but not OKLCH-verified for
+    perceptual consistency across the palette (Part B11)
+  ☒ Component border-radius — hardcoded per call site, no shared scale
+    (9 distinct values in circulation)
+  ☑ Typography scale — tokenized via Type.kt (11/15 slots hand-tuned)
+  ☒ Transition durations — hardcoded per animation call, no named constants
+  ☒ Shadow definitions — barely exist (one hardcoded 6dp value), not
+    tokenized
+  ☑ Focus ring style — tokenized for text fields via
+    scanEatTextFieldColors(); NOT tokenized for buttons
+  ☐ Spacing base unit — unverified, deferred to Part B7 follow-up
+
+[MEDIUM, Phase 2 synthesis] — Accessibility properties (focus ring style,
+  minimum touch target, contrast-safe pairings) aren't encoded as tokens
+  anywhere — they're either absent or ad hoc per component
+Finding: Synthesizing three findings made separately in this audit — no
+  focus-ring-style token exists, no minimum-touch-target dimension token
+  exists (the 32/36dp IconButton sites in Part E have no shared
+  `@dimen/min_touch_target` to violate), and no contrast-safe color-pairing
+  documentation exists (Part B1's WCAG gap).
+Why it matters: This is the connective root cause behind three separate
+  findings — they're not three unrelated gaps, they're one missing layer
+  (accessibility-as-tokens) showing up three times.
+Recommendation: When building the Layer 3 component tokens (Part B4),
+  bake in a `MIN_TOUCH_TARGET = 48.dp` constant and a documented focus-ring
+  color (Gold at full opacity, 2dp) at the same time — this turns three
+  separate follow-up tasks into one.
+Effort: LOW (documentation + constants, enforced alongside the already-
+  planned component extraction)
+
+[LOW] — No design-system documentation exists anywhere in the codebase
+Finding: Colors.kt/Theme.kt/Type.kt have good inline comments explaining
+  individual decisions, but there's no single document describing the
+  design system as a whole.
+Recommendation: This audit document now serves that purpose — keep it
+  updated as fixes land, rather than starting a second design-system doc.
+Effort: N/A
+```
+
+## B11. Trend Calibration
+
+```
+[PROTECT — no fix needed] — The app's trend posture is Timeless-leaning,
+  which is correct for its axis profile
+Finding: Checked against the full trend inventory — no bento-grid layout,
+  no AI gradient mesh, no dot-grid background, no 3D elements, no variable-
+  font weight animation, no brutalist typography anywhere. Dark-mode-as-
+  default is present, but that's baseline-expected in 2024+, not a trend
+  chase. The "glass" attempt (glassSheen()) notably is NOT the mainstream
+  backdrop-blur trend — a custom sheen-only approach, meaning the app isn't
+  even copying the current glass trend, it built its own adjacent thing.
+Why it matters: "Timeless" posture is correct for institutional/long-
+  lifecycle/trust-dependent products — a health-scoring app chasing "AI
+  startup" visual signals would actively undermine the credibility
+  A2=High-stakes/Emotional demands.
+Recommendation: None. Don't introduce trend-chasing elements to "modernize"
+  — the current restraint is on-character.
+
+[POLISH] — Colors are authored as raw hex rather than a perceptually-uniform
+  space, which is a documentation/precision gap more than a visible one
+Finding: All color tokens are `Color(0xFF...)` hex literals; no OKLCH
+  authoring or equivalent documentation exists for how the palette's
+  lightness/chroma steps were chosen.
+Why it matters: Lowest priority in this section — Android has no native
+  OKLCH color type. Matters only for future palette work (deriving the
+  light-mode golds, Part A6) — doing that derivation in OKLCH terms would
+  prevent the next "three unreconciled golds" problem.
+Recommendation: When executing the light-mode gold consolidation, do the
+  derivation math in OKLCH and only convert to hex at the end.
+Effort: LOW (process change, not a standalone fix)
+```
+
+## B12. Sections Skipped or Folded (Illustration, Data Viz, Responsive)
+
+```
+Illustration & Graphic Language — SKIPPED: no custom illustrations, spot
+  graphics, or illustrated empty-state compositions exist anywhere in the
+  app (EmptyListState.kt uses a Material icon, not an illustration; no
+  illustration assets in res/drawable/ beyond launcher/notification icons).
+
+Data Visualization Character — FOLDED, not a standalone gap: the app does
+  use progress-ring/bar data visualization (ScoreDisplay's grade rings,
+  dashboard macro bars, Biolism's LinearProgressIndicator usages), but
+  they're built from Material's progress-indicator primitives, already
+  covered under Part B8 (Loading State Design) and Part B7 (the score
+  ring's correct focal-weight treatment) — a standalone section here would
+  duplicate rather than add evidence.
+
+Responsive Design Character — SKIPPED: Scan'eat is a phone-primary Compose
+  app. No WindowSizeClass usage, no layout-sw600dp/layout-w840dp resource
+  qualifiers, and no foldable-aware layout logic were found — a single
+  fixed-form-factor (phone portrait) layout with no responsive/tablet/
+  foldable adaptation built yet. (Tablet/foldable support is a real
+  absence, but it's a scope/roadmap decision, not a design-character fix.)
 ```
 
 ---
 
-## X. COMPETITIVE VISUAL POSITIONING
+# PART C — COMPETITIVE VISUAL POSITIONING
 
-Web search returned confirmed detail for Yuka (its light-background, color-
-coded 0-100 score identity is well-documented); Cronometer and Open Food
-Facts didn't return fetchable visual specifics this pass, so those two are
-marked `[UNVERIFIED beyond general knowledge]` rather than asserted as
-confirmed — per the skill's own accuracy rule, that's the honest way to
-handle incomplete research rather than filling gaps from memory.
+Web search confirmed detail for Yuka (its light-background, color-coded
+0-100 score identity is well-documented); Cronometer and Open Food Facts
+didn't return fetchable visual specifics, so those two are marked
+`[UNVERIFIED beyond general knowledge]` rather than asserted as confirmed.
 
 ```
 Product A: Yuka
@@ -1056,29 +938,19 @@ Product A: Yuka
                         same traffic-light convention Scan'eat's grade
                         system also uses, but on a light background instead
                         of dark.
-  Typography:          [UNVERIFIED beyond general knowledge — likely a
-                        standard mobile-default sans, not independently
-                        confirmed this pass]
-  Spatial density:     Simple, low-density, single-score-forward — optimized
-                        for instant legibility at a glance in-store, not for
-                        sustained data review.
   Signature element:   The 0-100 score number itself, at large scale, is
-                        the whole identity — there's little else to
-                        remember visually.
-  Genericness score:   2/5 — the traffic-light convention itself is now a
-                        category standard (many apps use it), but Yuka
-                        owns the "big number + light background" execution
-                        of it at mass-market scale.
+                        the whole identity.
+  Genericness score:   2/5 — the traffic-light convention is now a category
+                        standard, but Yuka owns the "big number + light
+                        background" execution at mass-market scale.
   Relation to this app: Yuka does NOT occupy the dark/atmospheric/premium
-                        territory Scan'eat is reaching for — this is real,
-                        confirmed whitespace (see below), not a guess.
+                        territory Scan'eat is reaching for — confirmed
+                        whitespace, not a guess.
 
-Product B: Cronometer [UNVERIFIED beyond general knowledge — not
-  independently re-confirmed via screenshot this pass]
+Product B: Cronometer [UNVERIFIED beyond general knowledge]
   Visual character:    Widely known as a light-mode-default, data-table-
                         dense tracker prioritizing full nutrient panels over
                         a single score — utility-first, not atmosphere-first.
-  Accent / palette:    Green-accented, generally light background.
   Relation to this app: If accurate, occupies a "quantitative depth, low
                         visual investment" position distinct from both Yuka
                         and Scan'eat.
@@ -1086,674 +958,449 @@ Product B: Cronometer [UNVERIFIED beyond general knowledge — not
 Product C: Open Food Facts (official app) [UNVERIFIED beyond general
   knowledge]
   Visual character:    Open-source, basic Material Design conventions,
-                        green branding, minimal custom visual investment —
-                        functional over designed.
-  Relation to this app: Likely the least visually invested of the three
-                        benchmarks; low competitive threat on aesthetics
-                        specifically, strong threat on data breadth (which
-                        is outside this audit's scope).
+                        green branding, minimal custom visual investment.
+  Relation to this app: Likely least visually invested of the three;
+                        low competitive threat on aesthetics, strong threat
+                        on data breadth (outside this audit's scope).
 
 WHITESPACE OPPORTUNITY
   Available position: "Dark, warm, atmospheric premium" in a category where
-    every major visible competitor (at minimum, the confirmed case of
-    Yuka) defaults to light-background, primary-color-forward, mass-market
-    clarity.
+    every major visible competitor (at minimum, Yuka) defaults to light-
+    background, primary-color-forward, mass-market clarity.
   Why it's available: Nutrition-scoring apps optimize for instant in-store
-    legibility (bright light, quick glance) — light backgrounds serve that
-    use case well, so competitors have little reason to invest in a dark/
-    atmospheric identity. Scan'eat's broader scope (Diary, Biolism/
-    metabolism modeling, weight tracking, meal planning) means it's used
-    in more contexts than "standing in a store aisle," which is exactly
-    where a considered dark identity has room to differentiate without
-    fighting the category's core use case.
-  Fit for this app: Strong — this is precisely the confirmed Character
-    Brief's territory, and it's currently unclaimed by the one competitor
-    with confirmed visual evidence.
-  Risk: Dark UI can read as harder to use in bright daylight (the exact
-    context barcode-scanning happens in) — worth verifying the scan
-    camera screen itself remains legible in direct sunlight regardless of
-    the app's dark theme choice (a real UX risk, not just an aesthetic one).
-  Claim strategy: (1) Ship the score-reveal glow moment (§DM5/§DP3) as the
-    single most memorable differentiator — nothing in the confirmed
-    evidence suggests any benchmark has an equivalent; (2) lean into the
-    metabolic/Biolism depth as a visual extension of "considered" (data
-    density done with craft, not just density); (3) keep the OLED-gold
-    identity consistent across every touchpoint, since it's currently the
-    strongest asset the app already owns.
+    legibility — light backgrounds serve that well, so competitors have
+    little reason to invest in a dark/atmospheric identity. Scan'eat's
+    broader scope (Diary, Biolism, weight tracking, meal planning) means
+    it's used in more contexts than "standing in a store aisle."
+  Risk: Dark UI can read as harder to use in bright daylight — the exact
+    context barcode-scanning happens in. Worth verifying the scan camera
+    screen remains legible in direct sunlight regardless of theme.
+  Claim strategy: (1) Ship the score-reveal glow moment (Part D) as the
+    single most memorable differentiator; (2) lean into the metabolic/
+    Biolism depth as a visual extension of "considered"; (3) keep the
+    OLED-gold identity consistent across every touchpoint.
 
-§DCP2 Positioning Matrix (axes: Clinical/data-dense ←→ Warm/atmospheric, ×
+Positioning Matrix (axes: Clinical/data-dense ←→ Warm/atmospheric ×
   Mass-market simplicity ←→ Considered depth):
-    Yuka:              Mass-market simple, closer to Clinical-neutral
-                        (light, score-forward, not warm)
-    Cronometer:         Considered depth, Clinical (data-table-dense)
-    Open Food Facts:    Mass-market simple, Clinical (utilitarian)
-    Scan'eat (current): Considered depth (Biolism, personal scoring), but
-                        pulled toward Clinical by the generic-icon/flat-
-                        surface execution gaps already identified
+    Yuka:              Mass-market simple, Clinical-neutral
+    Cronometer:         Considered depth, Clinical
+    Open Food Facts:    Mass-market simple, Clinical
+    Scan'eat (current): Considered depth, pulled toward Clinical by the
+                        generic-icon/flat-surface execution gaps
     Scan'eat (target):  Considered depth AND Warm/atmospheric — the one
-                        quadrant none of the three benchmarks credibly
-                        occupy
+                        quadrant none of the three benchmarks occupy
 
-§DCP3 Visual Differentiation Opportunities
-
-Differentiator: Dark, warm, "glowing" visual identity vs. the category's
-  light/score-forward convention
-Current state: Palette exists and is genuinely distinctive; execution
-  (icons, motion, elevation) doesn't yet deliver on it
-Target state: The confirmed Character Brief, fully realized per §DP3
-Effort: Medium (mostly already-scoped fixes from earlier sections)
-Competitive value: Differentiates from Yuka specifically (confirmed light-
-  background identity) and, if the general-knowledge read on Cronometer/OFF
-  holds, from the entire category's light-mode default
-
-Differentiator: A genuine "moment of delivery" (the score reveal) with its
-  own motion signature
-Current state: Absent — renders like every other state change in the app
-Target state: §DM5's glow-reveal recommendation
-Effort: Medium
-Competitive value: [UNVERIFIED — no confirmed evidence either way for any
-  benchmark's reveal-moment treatment] but a signature reveal moment is, by
-  the skill's own logic, inherently hard to copy regardless of what
-  competitors do, since it only works if it's unique to one product
+Visual Differentiation Opportunities:
+  1. Dark, warm, "glowing" identity vs. the category's light/score-forward
+     convention — palette exists and is distinctive, execution doesn't yet
+     deliver (Effort: Medium, mostly already-scoped fixes)
+  2. A genuine "moment of delivery" (score reveal) with its own motion
+     signature — currently absent, target is Part D's recommendation
+     (Effort: Medium)
 ```
 
 ---
 
-## PHASE 1 COMPLETE
+# PART D — CHARACTER DEEPENING PROTOCOL
 
-All 21 steps of the design-aesthetic-audit-SKILL.md "full deep" Phase 1 path
-are covered above: §0 → §DS1-2 → §DP0-2 (confirmed by user) → §DBI1+3 →
-§DC1-5 → §DT1-4 → §DCO1-6 → §DH1-4 → §DSA1-5 → §DM1-5 → §DI1-4 → §DST1-4 →
-§DCVW1-3 → §DIL1-3 (skipped, no illustrations) → §DDV1-3 (folded into
-§DST2/§DH1, no separate finding) → §DTA1-2 → §DRC1-3 (skipped, phone-only
-fixed layout) → §DDT1-2 → §DP3 → §DBI2 → §DCP1-3.
+The synthesis pass: given the confirmed character (Part A4), what's the
+concrete plan to make it more concentrated, consistent, and unmistakable.
 
-Phase 2 (expanded UI audit from app-audit-SKILL.md: §E1-10, §F1-6, §G1-4,
-§H3, §L3-5, §D5) — user has now authorized starting this phase.
+```
+1. CHARACTER TOKEN EXTRACTION
+   EXPRESSES the "warm glow" character correctly (protect these):
+     - Background 0xFF0F0D12 (cool-violet near-black, not neutral gray)
+     - Gold 0xFFC9A84C at its current moderate (not maxed) chroma
+     - The Glow/Haze/Trace alpha-family token structure itself (even if
+       under-rendered today — the naming convention is correct)
+     - glassSheen()'s top-light sheen mechanism
+   UNDERMINES the character (replace/fix):
+     - System Roboto with zero fontFamily customization
+     - Default FastOutSlowInEasing everywhere
+     - 100% unmodified Material Icons
+     - Flat Surface fills with no radial-glow atmosphere
+
+2. CHARACTER STRESS TEST SCORECARD
+     Error states:    FAILS — 3 unreconciled systems (Part B8)
+     Empty states:    PASSES (minimally) — consistent, restrained, correct
+                       tier for the character (Part B8)
+     Loading states:  FAILS — generic Material spinners, no character
+                       treatment (Part B8)
+     Edge-case/admin: SettingsScreen's bare-text error is the single
+                       weakest character moment found in the entire audit
+     Mobile breakpoint: N/A — phone-only app, no breakpoint to stress-test
+
+3. SENSORY VOCABULARY
+   Sensory reference: "An ember glowing quietly in a dark hearth."
+   Design implications:
+     - Light should look genuinely emanating (radial glow), not a flat
+       fill (Part B6)
+     - The glow stays modest and warm — never blazing/neon (matches the
+       REJECT rule against "loud/Playful" treatments)
+     - Elements away from the "ember" (secondary chrome, dividers,
+       disabled states) should recede toward near-darkness, not compete
+       (Part B7's chroma-contrast finding)
+     - Material should read as warm despite being dark — avoid cold-
+       clinical cues (harsh drop-shadows, neutral-gray dividers, pure-white
+       light-theme surface)
+
+4. CHARACTER HIERARCHY
+   PRIMARY CARRIERS (max investment): the score/grade reveal (Result
+     screen) — the "one unavoidable moment," currently under-invested;
+     Dashboard's primary metric card
+   SECONDARY CARRIERS: navigation bar, buttons, cards generally, diary/
+     history rows
+   BACKGROUND ELEMENTS: dividers, timestamps, disabled states, settings
+     toggles — currently mostly Material-default, character-neutral
+
+5. THE ONE UNAVOIDABLE MOMENT
+   Identified: the score/grade reveal on the Result screen — the moment a
+   user gets what they opened the app for. Currently renders instantly,
+   same generic default motion as everything else, no color/glow
+   intensification. This is the highest-leverage fix in the entire audit —
+   implementing it closes four separate findings at once (Part B5's motion
+   gap, Part B8's success-state gap, Part B1's color-intensification gap,
+   and part of Part B6's atmosphere gap).
+
+6. CHARACTER-NEUTRAL AUDIT
+   Found: dividers/separators (just glassSheen()'s hairline, no weight
+   taxonomy — Part A6); disabled button states (100% Material default
+   dimming); [UNVERIFIED] settings toggle switches (not confirmed whether
+   Switch colors are customized to Gold or left at M3 default). For each:
+   the minimal fix is the same pattern already established elsewhere
+   (tint toward Gold/coral at low intensity), not a new visual language.
+
+7. CHARACTER FUTURE-PROOFING
+   Rules for all new features:
+     1. Every new accent-colored element emits light via the existing
+        Haze/Trace tokens — never a flat saturated fill.
+     2. Every new numeric display uses tabular figures from day one.
+     3. Every new card/surface goes through the shared card component
+        (Part B4) — never a fresh hand-rolled Surface().
+     4. New motion stays within the established 200ms/300ms split, EXCEPT
+        the one signature moment (score reveal).
+     5. Streak/engagement mechanics never pair with loss-framed or urgent
+        copy — a broken streak resets quietly, without punitive messaging
+        (see Part E, Category F).
+   Risks to watch: Settings/admin-style screens are the classic place
+     character reverts to defaults — SettingsScreen's bare-text error is
+     already the weakest moment found; any future external surface (Play
+     Store listing, marketing site) needs to inherit this exact palette.
+```
 
 ---
 
-# PHASE 2 — EXPANDED UI AUDIT (from app-audit-SKILL.md)
+# PART E — PHASE 2: EXPANDED UI AUDIT
 
-Per the design-aesthetic-audit-SKILL.md "full deep" scope convention, Phase 2
-pulls in every UI-adjacent section from app-audit-SKILL.md. Where a Phase-2
-item substantially overlaps a Phase-1 finding, this cross-references rather
-than duplicates it (matching the two skills' own §COMPANION section-mapping
-table). New evidence and genuinely new findings are called out explicitly.
+Pulls in the UI-adjacent sections from app-audit-SKILL.md. Where an item
+substantially overlaps a Part A-D finding, this cross-references rather than
+duplicates it.
 
-## CATEGORY E — VISUAL DESIGN QUALITY & POLISH
+## Category E — Visual Design Quality & Polish
 
-```
-[CROSS-REFERENCE — no new finding needed]
-§E1 Design Token System        → see Phase 1 §DTA1-2, §DC2 (token layers,
-                                  find-and-replace test)
-§E2 Visual Rhythm & Spatial     → see Phase 1 §DH1-4 (focal point, chroma
-                                  contrast); spacing-scale specifics remain
-                                  an acknowledged scope gap in both passes
-§E3 Color Craft & Contrast      → see Phase 1 §DC1-5, §DBI3 (perceptual
-                                  architecture, dark-mode quality, WCAG
-                                  contrast not independently re-verified
-                                  numerically in either pass — flagged below
-                                  as the one genuinely open item)
-§E4 Typography Craft            → see Phase 1 §DT1-4 (type personality,
-                                  scale, tabular figures, tracking)
-§E6 Interaction Design Quality  → see Phase 1 §DM1-5, §DP3 (motion
-                                  vocabulary, signature moment)
-§E7 Overall Professionalism     → see Phase 1 §DP0-2, §DBI1-3 (character
-                                  extraction, anti-genericness)
-§E9 Visual Identity             → see Phase 1 §DBI2-3, §DCP1-3 (design DNA,
-                                  competitive whitespace)
-§E10 Data Storytelling          → see Phase 1 §DH1 (score ring focal
-                                  weight) — no dedicated chart library in
-                                  use, so most §E10 chart-specific items
-                                  (axis labeling, chart-type fit) don't apply
-```
+Design Token System, Visual Rhythm, Color Craft, Typography Craft,
+Interaction Design, Overall Professionalism, and Visual Identity are all
+covered by Parts A/B/C/D above — see the Master Findings Table for direct
+pointers. New findings from this category's structural/code lens:
 
 ```
 [HIGH] — WCAG numeric contrast ratios have not been independently verified
-  for any color pair in the app
-Dimension: §E3 (WCAG contrast compliance), §G1 (text contrast)
-Finding: Phase 1's color evidence gives exact hex values for every text/
-  background pairing (e.g. cream 0xFFEFEAE6 on OLED 0xFF0F0D12; TextSecondary
-  0xFF7E859E on the same background; FlagRed/AmberWarning banner text at 15%
-  alpha fills), but no pass in this audit has computed actual contrast
-  ratios against the WCAG 4.5:1 (normal text) / 3:1 (large text, UI
-  components) thresholds.
-Why it matters: This is the single most consequential unverified claim in
-  the entire audit so far — a beautiful, well-considered palette can still
-  fail basic legibility if a specific pairing (most likely candidate:
-  TextMuted 0xFF454A60 on OLED background, or banner text over 15%-alpha
-  colored fills) falls under 4.5:1. Given A2=High-stakes/Emotional (health/
-  allergen data), a real contrast failure here would be a correctness bug,
-  not a taste question.
-Recommendation: Compute actual contrast ratios for the ~6 most-used text/
-  background pairs (primary text/OLED bg, secondary text/OLED bg, muted
-  text/OLED bg, banner text/each 15%-alpha fill) before shipping any of the
-  Phase 1 recommendations that touch these colors. This is a verification
-  task, not a design task — flagging it rather than asserting pass/fail
-  without having actually computed it.
-Effort: LOW (a contrast-ratio calculator pass, no design change unless a
-  failure is found)
-
-[MEDIUM] — Per-component state completeness (§E5) not fully audited beyond
-  buttons/cards (already covered in Phase 1 §DCO1-6)
-Dimension: §E5
-Finding: Phase 1 covered buttons, cards, inputs, navigation, modals in
-  detail. Not directly evidenced this session: checkbox/radio/switch/slider/
-  dropdown component usage and state-completeness (the app may not use all
-  of these — e.g. no evidence of a slider anywhere; toggle switches exist
-  in Settings and Reminders but weren't independently re-verified for their
-  5-state completeness beyond the §DP3 "character-neutral" flag on switches).
-Recommendation: Not a new finding — restating the §DP3 unverified item
-  (settings toggle Switch coloring) as the one open component-state question,
-  rather than asserting new problems without evidence.
-Effort: N/A (already scoped)
+  (restated from Part B1 under its correct compliance category)
+See Part B1 for the full finding — this is the single highest-priority
+  open verification item in the whole audit.
 
 [MEDIUM] — Material You / Dynamic Color not used; static palette confirmed
   high-quality, so this is a deliberate, defensible choice — not a gap
-Dimension: §E11 (Material You / Dynamic Color)
-Finding: Confirmed in Phase 1 (§DC/§DS): no DynamicColors API usage
-  anywhere; all three theme schemes (OLED/Dark/Light) are hand-authored
-  static palettes.
-Why it matters: Per §E11's own guidance — "if not supported, verify the
-  static palette is high quality" — Phase 1 already established the static
-  palette IS high quality (deliberate, non-default, CVD-safe). Given the
-  confirmed Character Brief explicitly wants a specific warm-gold identity
-  (not a user-wallpaper-derived one), opting out of Dynamic Color is
-  correct, not a gap — Dynamic Color would directly undermine the "owned"
-  identity Phase 1 spent most of its effort trying to strengthen.
+Finding: No DynamicColors API usage anywhere; all three theme schemes
+  (OLED/Dark/Light) are hand-authored static palettes.
+Why it matters: The confirmed Character Brief explicitly wants a specific
+  warm-gold identity, not a user-wallpaper-derived one — Dynamic Color
+  would directly undermine the "owned" identity this audit is trying to
+  strengthen.
 Recommendation: None — protect this decision, don't add Dynamic Color.
-Effort: N/A
 
 [LOW] — Splash screen theme hardcoded black regardless of in-app theme
-  choice (same root cause as the §DS2 system-chrome finding)
-Dimension: §E11 (Splash screen quality)
+  choice (same root cause as the system-chrome finding, Part A1)
 Finding: `Theme.ScanEat.Starting` (themes.xml) is hardcoded black, same as
-  the main `Theme.ScanEat`'s native Android theme layer — consistent with
-  the already-identified §DS2 finding that system chrome doesn't track the
-  in-app light/dark/OLED picker (it's Compose-only theming).
-Why it matters: Minor, same root cause already documented — not a new
-  problem, just its most visible symptom (a user who selects Light theme
-  still sees a black splash screen on every cold start).
-Recommendation: Fold into the same future fix as the §DS2 finding (make
-  system-level theme, including splash, follow the in-app picker) rather
-  than fixing splash alone.
-Effort: LOW-MEDIUM (requires reading the in-app theme preference before
-  Activity Compose content is set, which has real Android lifecycle
-  constraints — worth scoping carefully, not a one-line fix)
+  the main theme's native Android layer — system chrome doesn't track the
+  in-app light/dark/OLED picker (Compose-only theming).
+Recommendation: Fold into the same future fix as the system-chrome finding
+  rather than fixing splash alone.
+Effort: LOW-MEDIUM (real Android lifecycle constraints — scope carefully)
 
-[UNVERIFIED] — RTL layout quality (§E11) not re-audited this session
-Finding: RTL support was added earlier in this project's history (task
-  #23, P-3). Not independently re-verified as part of this design audit
-  pass — no regression assumed, but also not re-confirmed.
-Recommendation: None at this time — noting the gap rather than asserting
-  either a pass or a regression without re-testing.
+[UNVERIFIED] — RTL layout quality not re-audited this session (added
+  earlier in this project's history; no regression assumed, not re-tested)
 ```
 
-## CATEGORY F — UX, INFORMATION ARCHITECTURE & COPY
+## Category F — UX, Information Architecture & Copy
 
 ```
-[PROTECT — no fix needed] — Information architecture has already been
-  through deliberate rework this project's history
-Dimension: §F1
-Finding: This project's own history (tasks #69-70, #75) shows active IA
-  discipline already applied: logging features consolidated into Journal,
-  Reminders relocated out of Settings into Journal, Profile placement
-  reversed to Settings-top per a considered decision — these aren't
-  default/accidental groupings, they're the result of prior IA passes.
-Why it matters: Stated as a protect, not a gap — the app already shows the
-  kind of "does this grouping match the user's mental model" thinking this
-  section is meant to surface.
-Recommendation: None.
+[PROTECT] — Information architecture has already been through deliberate
+  rework this project's history (logging consolidated into Journal,
+  Reminders relocated, Profile placement reversed per considered decisions)
+  — not a gap.
 
 [LOW] — Scan error recovery is dismiss-only, no explicit distinct "retry"
   action
-Dimension: §F2 (Error recovery flows)
-Finding: Confirmed in ScanViewModel.kt: `dismissError()` (line 134) sets
-  state directly to `ScanUiState.Idle` — there is no separate retry action;
-  dismissing an error just clears it, and the user must manually re-aim/
-  re-tap to scan again.
-Why it matters: Kept at LOW severity deliberately — a barcode scan is
-  inherently a single-step action (point camera, get result), unlike a
-  multi-step form where losing progress is costly. There's little state to
-  actually "retry from" here, so this is a minor friction point, not a
-  data-loss risk.
-Recommendation: If addressed, the highest-value version is contextual:
-  the real-error banner (Material errorContainer case, ScanScreen.kt
-  ~243-254) could offer a "Réessayer" action alongside dismiss when the
-  error is retryable (e.g. network timeout) vs. dismiss-only when it isn't
-  (e.g. "product not found" — retrying without a different photo/barcode
-  wouldn't help).
-Effort: LOW (one conditional action button)
-
-[CROSS-REFERENCE — no new finding] §F4 Copy Quality → see Phase 1 §DCVW1-2
-  (voice-character alignment: competent, slightly under-warm; targeted
-  fix recommended at high-visibility moments only)
-
-[CROSS-REFERENCE — no new finding] §F5 Micro-Interaction Quality → see
-  Phase 1 §DM1-5, §DCO1 (motion vocabulary, ripple/press feedback, focus
-  states)
+Finding: ScanViewModel.kt's `dismissError()` sets state directly to Idle —
+  no separate retry action; the user must manually re-aim/re-tap.
+Why it matters: Kept LOW deliberately — a barcode scan is a single-step
+  action, unlike a multi-step form where losing progress is costly.
+Recommendation: If addressed, offer a "Réessayer" action alongside dismiss
+  when the error is retryable (network timeout) vs. dismiss-only when it
+  isn't (product not found).
+Effort: LOW
 
 [LOW, MOSTLY PROTECT] — One retention mechanic (the Dashboard streak
-  badge) exists; tonally appropriate for this context, but worth naming
-  explicitly so it's not allowed to drift toward pressure patterns later
-Dimension: §F6 (Integrity over manipulation)
-Finding: CalorieBalanceCard's floating streak badge (confirmed in Phase 1
-  §DCO3: `Surface(shape=RoundedCornerShape(50), color=AccentGreen,
-  shadowElevation=6.dp)`) is the one engagement/streak mechanic found in
-  the app. Reminders (audited earlier this project's history) are opt-in
-  and use gentle, non-urgent copy — no FOMO/guilt language was found
-  anywhere in prior sessions' work on ReminderWorker.kt.
-Why it matters: Given A2=High-stakes/Emotional (health tracking), streak
-  mechanics have real potential to become manipulative (guilt over a
-  broken streak) if the product ever adds aggressive streak-loss
-  notifications or "don't lose your streak!" copy. Right now it doesn't —
-  worth stating as a standing rule rather than assuming it'll stay that way
-  by default as the app grows.
-Recommendation: No code change — add to the §DP3 Character Future-Proofing
-  rules (Phase 1): "streak mechanics never pair with loss-framed or urgent
-  copy; a broken streak resets quietly, without punitive messaging."
-Effort: N/A (a documented rule, not a code change)
+  badge) exists; tonally appropriate, but worth a standing rule so it
+  doesn't drift toward pressure patterns later
+Finding: CalorieBalanceCard's streak badge is the one engagement mechanic
+  in the app. Reminders are opt-in with gentle, non-urgent copy — no
+  FOMO/guilt language found anywhere.
+Recommendation: No code change — add to Part D's Future-Proofing rules:
+  streak mechanics never pair with loss-framed or urgent copy.
 ```
 
-## CATEGORY G — ACCESSIBILITY
+## Category G — Accessibility
 
 ```
-[PROTECT — verified this session, not just assumed] — Icon-only buttons
-  consistently carry real contentDescription strings, not null/decorative
-Dimension: §G1 (Action labels), §G5 (ContentDescription audit)
-Finding: Spot-checked IconButton/Icon pairs across CustomFoodScreen,
-  DiaryScreen, ScanHistoryScreen, MealPlanScreen — every sampled icon-only
-  button passes a real `stringResource(...)` (e.g. `common_back`,
-  `diary_cd_prev_day`, `common_clear_search`), not `null`. This reflects
-  this project's own prior accessibility pass (task #22, P-2).
-Why it matters: Confirmed, not assumed — this genuinely passes the check
-  rather than being an untested assumption carried over from memory.
-Recommendation: None — maintain the pattern (real stringResource, never
-  null) as new icon-only buttons are added; this is exactly the kind of
-  thing that regresses silently if it isn't a habit.
+[PROTECT — verified this session] — Icon-only buttons consistently carry
+  real contentDescription strings, not null/decorative
+Finding: Spot-checked across CustomFoodScreen, DiaryScreen,
+  ScanHistoryScreen, MealPlanScreen — every sampled icon-only button passes
+  a real stringResource, not null. Reflects this project's own prior
+  accessibility pass.
+Recommendation: Maintain the pattern as new icon-only buttons are added.
 
-[CROSS-REFERENCE — already identified] — Touch target sizing (48dp
-  minimum)
-Dimension: §G1 (Touch target size)
-Finding: See §H3 below for the specific evidence (14 IconButtons at
-  32-36dp, confirmed via fresh grep this session) — presented once there
-  rather than duplicated here, since §H3 is the more specific home for it.
+[MEDIUM] — Zero reduced-motion accommodation anywhere (restated from Part
+  B5 under its correct accessibility-compliance category)
+See Part B5 / Part F Chain 2 for the full finding and sequencing
+  requirement with the score-reveal animation.
 
-[CROSS-REFERENCE — already identified] — WCAG numeric contrast ratios
-Dimension: §G1 (Text/non-text contrast)
-Finding: See §E3 above (Phase 2) — the single highest-priority open
-  verification item in the whole audit, not re-stated here.
+[PROTECT] — No frosted-glass/blur effects exist, so "reduced transparency"
+  doesn't apply — glassSheen() uses alpha gradients, not real blur.
 
-[MEDIUM, restated from Phase 1 under its correct category] — Zero reduced-
-  motion accommodation anywhere in the app
-Dimension: §G4 (Reduced motion respected)
-Finding: Already found in Phase 1 §DM3: confirmed zero matches for
-  `Settings.Global.ANIMATOR_DURATION_SCALE` or any equivalent check
-  anywhere in the codebase or Settings UI. Restating here because §G4 is
-  its correct home category (this is a real accessibility compliance gap,
-  not just a character/motion-craft observation) — not a duplicate finding,
-  a re-categorization of the same evidence.
-Why it matters: A user with `ANIMATOR_DURATION_SCALE` set to 0 (a real,
-  common accessibility setting, not hypothetical) gets zero acknowledgment
-  from this app currently — every tween() plays at full duration regardless.
-Recommendation: Same as Phase 1's §DM3 recommendation: read the animator
-  duration scale once and gate all animation calls (nav transitions, and
-  the planned score-reveal signature) behind it.
-Effort: LOW-MEDIUM
-
-[PROTECT — no fallback needed] — No frosted-glass/blur effects exist, so
-  §G4's "reduced transparency" concern doesn't apply
-Dimension: §G4 (Reduced transparency)
-Finding: Confirmed in Phase 1 (§DSA1): glassSheen() uses alpha-blended
-  gradient overlays, not real `backdrop-filter`/blur — there's no frosted-
-  glass effect anywhere that would need an opaque fallback for reduced-
-  transparency users.
-Recommendation: None now — but if the Phase 1 §DSA1 recommendation to add
-  radial-glow atmosphere is implemented, that new effect should be checked
-  against reduced-transparency at that time (a glow/haze overlay is a much
-  milder case than frosted blur, but worth a quick check when it's built).
-Effort: N/A now; a follow-up check when §DSA1 is implemented
-
-[DEFERRED — requires live-device verification, not assertable from code
-  alone] — §G2 Screen Reader Trace, §G3 Keyboard/Switch Access
-Finding: These sections require actually running the app with TalkBack
-  enabled (or Switch Access) to trace the real interaction/announcement
-  behavior — this can't be honestly verified by reading source code alone,
-  and this sandbox has no way to run the Android app on a device/emulator
-  with TalkBack active.
-Recommendation: Flagging as a genuine scope gap rather than guessing at a
-  pass/fail. A real device/emulator TalkBack trace of the core scan→result
-  flow would be the highest-value next accessibility action beyond what
-  this audit can verify.
-Effort: N/A (needs different tooling than this session has)
+[DEFERRED — requires live-device verification] — Screen Reader Trace
+  (TalkBack) and Keyboard/Switch Access require actually running the app
+  with assistive tech active; this sandbox has no way to do that. A real
+  device/emulator TalkBack trace of the core scan→result flow would be the
+  highest-value next accessibility action beyond what this audit can verify.
 ```
 
-## CATEGORY H — PLATFORM COMPATIBILITY & RESILIENCE (§H3 only, per scope)
+## Category H3 — Mobile & Touch
 
 ```
-[MEDIUM, RE-CONFIRMED] — 12+ IconButtons across dense list rows sit at
+[MEDIUM, re-confirmed] — 12+ IconButtons across dense list rows sit at
   32-36dp, below the 48×48dp Android touch-target guideline
-Dimension: §H3 (Touch target sizing)
-Finding: Re-verified via fresh grep this session (not just carried over
-  from memory): `Modifier.size(32.dp)` at ActivityScreen.kt:108,
-  CustomFoodScreen.kt:186, DiaryScreen.kt:280, ScanHistoryScreen.kt:119,
-  MealPlanScreen.kt:109/112/135/140 (×4), ScanScreen.kt:237/249 (×2); and
-  `Modifier.size(36.dp)` at RecipesScreen.kt:87/88 (×2), TemplatesScreen.kt:
-  66 — all delete/dismiss/log/edit IconButtons in dense list rows. This
-  matches a design-system finding already queued much earlier in this
-  project's history (QUEUE.md) as a deliberate density choice pending
-  visual verification, not yet fixed.
-Why it matters: This is a real, measurable WCAG/Android-guideline gap
-  (48×48dp minimum), not a subjective density preference — but it was
-  already correctly identified once and deliberately deferred pending a
-  visual check, since a blanket resize touches many list layouts at once
-  and risks breaking row-height rhythm across the app.
-Recommendation: No change here — the earlier deferral decision (visual
-  verification needed before a blanket fix) still holds, and this audit
-  doesn't have the tooling to render and visually check the resize's
-  effect on row density. Restating this to confirm it's not been silently
-  fixed or silently forgotten — it's still open, still correctly
-  understood, and still correctly gated on a visual check.
-Effort: MEDIUM (touches ~12 call sites, but each is a one-line size change
-  — the effort is in the visual verification, not the edit)
+Finding: Re-verified via fresh grep: `Modifier.size(32.dp)` at
+  ActivityScreen.kt:108, CustomFoodScreen.kt:186, DiaryScreen.kt:280,
+  ScanHistoryScreen.kt:119, MealPlanScreen.kt:109/112/135/140 (×4),
+  ScanScreen.kt:237/249 (×2); `Modifier.size(36.dp)` at
+  RecipesScreen.kt:87/88 (×2), TemplatesScreen.kt:66 — all delete/dismiss/
+  log/edit IconButtons in dense list rows. Matches a finding already queued
+  much earlier in this project's history (deliberate density choice
+  pending visual verification, not yet fixed).
+Why it matters: A real, measurable guideline gap — but correctly deferred
+  once already, since a blanket resize touches many list layouts and risks
+  breaking row-height rhythm. See Part F Chain 3 for why this does NOT
+  escalate to a real risk (the delete confirmation dialog already breaks
+  the chain).
+Recommendation: No change — the earlier deferral (visual verification
+  needed first) still holds.
+Effort: MEDIUM (touches ~12 sites, one-line size changes; effort is in the
+  visual verification, not the edit)
 
-[UNVERIFIED] — Touch target spacing (≥8dp between adjacent targets), thumb-
-  zone ergonomics, and orientation handling not independently re-verified
-  this pass
-Finding: These require either a running layout inspector or a visual
-  render to assess accurately — not confidently assertable from source
-  reads alone at the precision this section calls for.
-Recommendation: Defer to a session with device/emulator access rather
-  than guess.
+[UNVERIFIED] — Touch target spacing, thumb-zone ergonomics, orientation
+  handling require a running layout inspector, not source reads alone.
 ```
 
-## CATEGORY L — OPTIMIZATION, STANDARDIZATION & POLISH (§L3-L5 only, per scope)
+## Category L3-L5 — Design System / Copy / Interaction Polish
+
+Fully covered by Parts A6/B9/B10/D above — the token consolidation plan,
+component variant audit, and interaction-polish checklist are the same
+findings already made there. One new synthesis:
 
 ```
-[CROSS-REFERENCE — no new finding] §L3 Token consolidation, component
-  variant audit, pattern library gap, theme variable completeness →
-  fully covered by Phase 1 §DTA1-2 (token layer architecture, find-and-
-  replace test) and §DCO1/§DCO3 (button/card drift, ScanEatPrimaryButton/
-  ScanEatCard recommendation IS the §L3 pattern-library fix)
+[MEDIUM] — Accessibility-as-tokens synthesis (restated from Part B10)
+See Part B10 — the missing focus-ring/touch-target/contrast tokens are one
+  root cause showing up three times, not three separate gaps.
 
-[MEDIUM] — Accessibility properties (focus ring style, minimum touch
-  target, contrast-safe pairings) aren't encoded as tokens anywhere —
-  they're either absent or ad hoc per component
-Dimension: §L3 (Accessibility baked into the system)
-Finding: Synthesizing three findings already made separately in this audit
-  — no focus-ring-style token exists (buttons rely on Material default
-  focus indication, per Phase 1 §DBI3), no minimum-touch-target dimension
-  token exists (the 32/36dp IconButton sites above have no shared
-  `@dimen/min_touch_target` to violate — there's nothing to check against),
-  and no contrast-safe color-pairing documentation exists (the §E3 WCAG
-  verification gap above).
-Why it matters: This is the connective root cause behind three separate
-  Phase 1/Phase 2 findings — they're not three unrelated gaps, they're one
-  missing layer (accessibility-as-tokens) showing up three times.
-Recommendation: When building the Layer 3 component tokens already
-  recommended (ScanEatPrimaryButton/ScanEatCard), bake in a
-  `MIN_TOUCH_TARGET = 48.dp` constant and a documented focus-ring color
-  (Gold at full opacity, 2dp, matching the confirmed warm character) at
-  the same time — this turns three separate follow-up tasks into one.
-Effort: LOW (documentation + constants, enforced at the same time as the
-  already-planned component extraction)
-
-[LOW] — No design-system documentation exists anywhere in the codebase
-Dimension: §L3 (Design system documentation)
-Finding: Colors.kt/Theme.kt/Type.kt have good inline comments explaining
-  individual decisions (confirmed throughout this audit — e.g. the
-  `Background`/`OnBackground` proxy-getter comment, the "hero number" note
-  in Type.kt), but there's no single document describing the design
-  system as a whole.
-Why it matters: This audit's own design_audit.md — the Character Brief,
-  Design DNA spec, and token findings — now functions as a first draft of
-  exactly this documentation, produced as a side effect of the audit
-  itself.
-Recommendation: None needed as a separate task — this file already serves
-  the purpose; keep it updated as the recommended fixes land, rather than
-  starting a second design-system doc from scratch.
-Effort: N/A
-
-[CROSS-REFERENCE — no new finding] §L4 Copy & Content Standardization →
-  fully covered by Phase 1 §DCVW1-2 (voice-character alignment) and the
-  §F6 streak-mechanic copy guardrail (Phase 2, above)
-
-[CROSS-REFERENCE — no new finding] §L5 Interaction & Experience Polish →
-  fully covered by Phase 1 §DP3 (Character Deepening Protocol — transition
-  coherence, delight opportunities, motion budget, stagger sequencing,
-  the "one unavoidable moment" score-reveal recommendation)
-
-[LOW] — The "craft implementation checklist" baseline items (§L5,
-  universal) are only partially present
-Dimension: §L5
-Finding: Checking the specific universal baseline against confirmed
-  evidence: styled focus rings — NOT customized (Material default,
-  already noted); `font-variant-numeric`/tabular-nums on number columns —
-  NOT present (already flagged, Phase 1 §DT3, HIGH severity); press-state
-  scale/depth feedback on buttons — NOT confirmed (no custom press
-  animation found, only default ripple); skeleton loaders mirroring actual
-  content — NOT present (Phase 1 §DST2, generic spinners only). Of the
-  "at least one detail that clearly took extra effort" baseline, the CVD-
-  safe grade-color system and glassSheen() both qualify — so the baseline
-  is met, but narrowly, by two items already identified rather than by
-  the broader checklist.
-Recommendation: No new recommendation — every specific item here already
-  has its own finding and recommendation earlier in this audit (§DT3,
-  §DST2, §DBI3). Listed here only to confirm the checklist was actually
-  run against the evidence, not skipped.
-Effort: N/A
+[LOW] — Craft-implementation-checklist baseline is only partially met
+Finding: Checked the specific universal baseline items: styled focus rings
+  (not customized), tabular-nums (absent, Part B2 HIGH), press-state
+  scale/depth feedback (not confirmed beyond default ripple), skeleton
+  loaders (absent, Part B8). The CVD-safe grade system and glassSheen()
+  both qualify as "at least one detail that took extra effort," so the
+  baseline is met, but narrowly.
+Recommendation: No new recommendation — every item here already has its
+  own finding and fix elsewhere; listed to confirm the checklist was
+  actually run, not skipped.
 ```
 
-Section L3-L5 complete.
-
-## CATEGORY D — PERFORMANCE & RESOURCES (§D5 only, per scope)
+## Category D5 — Mobile-Specific Performance
 
 ```
 [PROTECT — verified this session] — Several mobile-performance disciplines
-  are already correctly in place
-Dimension: §D5
-Finding, checked against confirmed evidence:
+  are already correctly in place:
   - Coroutine lifecycle: ViewModels consistently use `viewModelScope.launch`
-    (confirmed pattern across ResultViewModel, ScanViewModel,
-    SettingsViewModel, and others touched throughout this project) — no
-    orphaned-coroutine pattern found.
-  - LazyColumn list stability: `items(scans.value, key = { it.dbId })`
-    (ScanHistoryScreen.kt:92) and `items(slotEntries, key = { it.id })`
-    (DiaryScreen.kt:205) both use stable keys — the Compose equivalent of
-    DiffUtil stable IDs, confirmed via fresh grep this session.
-  - Database queries: Room DAOs return `Flow<>` for observed data
-    (ScanHistoryDao.observeRecent, etc.) and `suspend fun` for one-shot
-    reads/writes — Room dispatches both off the main thread automatically;
-    no `runBlocking` on main thread found anywhere in the repository layer.
-  - Image loading: Coil is confirmed fully absent (zero references in
-    gradle files or composables) — correct, since the app doesn't display
-    remote product images; nothing to optimize because there's nothing to
-    load.
-  - APK size: R8/minification verified enabled via the `assembleRelease`
-    CI step added earlier in this project's history.
-  - Process death recovery: `SavedStateHandle` is used in ResultViewModel
-    (confirmed: `scanId` recovery) — critical state survives process death.
-  - Background work: ReminderWorker uses WorkManager (confirmed), the
-    correct battery-efficient API — not a raw Service/AlarmManager pattern.
-Why it matters: Restating a genuine strength found across multiple prior
-  sessions' work, not a gap — worth stating explicitly so future work
-  doesn't regress these disciplines by accident.
+    — no orphaned-coroutine pattern found.
+  - LazyColumn list stability: `items(scans.value, key = { it.dbId })` and
+    `items(slotEntries, key = { it.id })` both use stable keys (Compose's
+    equivalent of DiffUtil stable IDs).
+  - Database queries: Room DAOs return Flow<> for observed data and
+    suspend fun for one-shot reads/writes — both dispatched off the main
+    thread automatically; no runBlocking on main thread found.
+  - Image loading: Coil is confirmed fully absent — correct, since the app
+    doesn't display remote product images.
+  - APK size: R8/minification verified enabled via CI.
+  - Process death recovery: SavedStateHandle used in ResultViewModel.
+  - Background work: ReminderWorker uses WorkManager, the correct battery-
+    efficient API.
 Recommendation: None — maintain these patterns.
 
-[UNVERIFIED] — ANR risk (>5s main-thread operations) and battery impact
-  (wake locks, location update frequency) not independently re-profiled
-  this session
-Finding: No evidence of long-running main-thread work was found in the
-  files read this session, but this category properly requires either a
-  systrace/profiler run or a full read of every network/file-I/O call site
-  — neither was done exhaustively enough to assert a clean pass with full
-  confidence.
-Recommendation: Defer to a profiling-tooled session rather than assert a
-  pass without having actually measured it.
-Effort: N/A
+[UNVERIFIED] — ANR risk and battery impact (wake locks, location update
+  frequency) not independently re-profiled this session; would need a
+  profiler/systrace run, not source reads alone.
 ```
 
-Section D5 complete.
-
 ---
 
-# PHASE 2 COMPLETE
+# PART F — CROSS-CUTTING CONCERN MAP (Compound Finding Chains)
 
-All Phase 2 sections (§E1-10, §F1-6, §G1-4, §H3, §L3-5, §D5) are covered
-above, cross-referencing Phase 1 findings where they overlap and adding
-new findings where Phase 2's structural/code lens found something Phase
-1's aesthetic lens didn't (WCAG contrast verification gap, error-recovery
-retry action, streak-mechanic copy guardrail, touch-target re-confirmation,
-accessibility-as-tokens synthesis, and the confirmed mobile-performance
-strengths above).
-
-Phase 3 (Cross-Cutting Concern Map, §VIII of app-audit-SKILL.md — checking
-for compound chains between aesthetic findings and UX/accessibility/
-performance findings) — user has now authorized starting this phase.
-
----
-
-# PHASE 3 — CROSS-CUTTING CONCERN MAP
-
-Per app-audit-SKILL.md §II (Compound Finding Chains): individually minor
-findings from different categories can combine into escalating harm chains.
-This pass reviews every Phase 1 + Phase 2 finding already recorded above
-for such chains — documenting each one, escalating the combined severity
-where the chain is real, and explicitly noting where a chain does NOT
-escalate (because a downstream safeguard already exists) rather than
-inventing risk that isn't there.
+Individually minor findings from different categories can combine into
+escalating harm chains. This section documents each real chain found across
+Parts A-E, escalates the combined severity where it's genuine, and
+explicitly notes where a chain does NOT escalate (because a downstream
+safeguard already exists) rather than inventing risk that isn't there.
 
 ```
 CHAIN 1 — Unverified contrast on a safety-critical, deliberately-restrained
   warning banner
-Links: §E3/§G1 [HIGH, unverified WCAG contrast] → §DST3 [Phase 1, the diet-
-  veto/allergen banners use FlagRed/AmberWarning at only 15% alpha fill,
-  a deliberately quiet treatment matching the confirmed "Quiet, not
-  Playful" character] → A2=High-stakes/Emotional axis (allergen/diet-
-  safety data, not decorative content)
+Links: WCAG contrast unverified (Part B1, HIGH) → diet-veto/allergen
+  banners at 15% alpha fill, a deliberately quiet treatment matching the
+  confirmed "Quiet, not Playful" character (Part B8) → A2=High-stakes/
+  Emotional axis (allergen/diet-safety data, not decorative content)
 Combined severity: CRITICAL (escalated from HIGH)
-Why the chain escalates: A contrast gap on a decorative element is a
-  polish issue. The exact same unverified contrast gap, on the exact
-  element that tells a user "this product may violate your allergen or
-  diet restriction," is a safety issue if it turns out to fail — and
-  nothing else in the current design (no motion, no stronger emphasis)
-  would compensate if the color contrast itself is too low. The banner
-  does correctly pair icon + text + color (confirmed: Icons.Default.Block/
-  Warning alongside text), which is good — but icon+text+color still
-  needs the color+text contrast itself to actually pass.
-Recommendation: This is now the single highest-priority verification in
-  the entire audit — compute the actual contrast ratio for FlagRed/
-  AmberWarning text and icon tint against their own 15%-alpha-fill
-  backgrounds specifically (not just against the base OLED background)
-  before any other Phase 1/2 recommendation touching these colors ships.
-Effort: LOW (a calculation, not a redesign) — but sequenced first
+Why it escalates: A contrast gap on a decorative element is a polish issue.
+  The same gap on the exact element that tells a user "this product may
+  violate your allergen or diet restriction" is a safety issue if it fails
+  — nothing else in the current design (no motion, no stronger emphasis)
+  would compensate. The banner does correctly pair icon + text + color, but
+  that pairing still needs the color+text contrast itself to pass.
+Recommendation: This is now the single highest-priority verification in the
+  entire audit — compute the actual contrast ratio for FlagRed/AmberWarning
+  text and icon tint against their own 15%-alpha-fill backgrounds
+  specifically, before any other recommendation touching these colors ships.
+Effort: LOW (a calculation) — but sequenced first
 
 CHAIN 2 — Building the score-reveal signature moment before fixing
   reduced-motion would make an existing accessibility gap worse, not better
-Links: §DM5/§DP3 [Phase 1, HIGH — recommend adding a new score-reveal glow
-  animation, the audit's single highest-leverage recommendation] →
-  §DM3/§G4 [Phase 1/2, MEDIUM — zero reduced-motion accommodation exists
-  anywhere in the app]
-Combined severity: escalates the §DM3 finding from MEDIUM to effectively
-  HIGH *if the two are implemented out of order* — adding one more
-  prominent, un-gated animation on top of an app that already has zero
-  motion-reduction respect increases the accessibility gap's real-world
-  impact (more motion for a user who has explicitly asked their system for
-  less), even though each finding individually looked moderate.
-Why this matters as a chain and not two separate items: Neither finding
-  changes in isolation — what changes is the correct BUILD ORDER. This is
-  exactly the kind of thing a per-category audit misses and a cross-
-  cutting pass catches.
-Recommendation: Implement the `ANIMATOR_DURATION_SCALE` gating (§DM3) in
-  the same commit as the score-reveal animation (§DM5) — never ship the
-  new animation without the reduced-motion check already wired to it.
-Effort: LOW-MEDIUM (sequencing constraint on already-planned work, not new
-  scope)
+Links: Score-reveal glow animation recommendation (Part B5/D, HIGH) →
+  zero reduced-motion accommodation exists anywhere (Part B5/E, MEDIUM)
+Combined severity: escalates the reduced-motion finding from MEDIUM to
+  effectively HIGH *if the two are implemented out of order* — adding one
+  more prominent, un-gated animation on top of an app with zero motion-
+  reduction respect increases real-world impact even though each finding
+  individually looked moderate.
+Why this is a chain, not two items: neither finding changes in isolation —
+  what changes is the correct BUILD ORDER.
+Recommendation: Implement the ANIMATOR_DURATION_SCALE gating in the same
+  commit as the score-reveal animation — never ship the new animation
+  without the reduced-motion check already wired to it.
+Effort: LOW-MEDIUM (a sequencing constraint on already-planned work)
 
 CHAIN 3 — Missing touch-target size stacks with a destructive action, but
-  does NOT escalate to a real risk, because a downstream safeguard already
-  exists
-Links: §H3/§G1 [MEDIUM, 32-36dp delete/dismiss IconButtons below 48dp] →
-  triggers → DeleteConfirmDialog [already fixed earlier in this project's
-  history with itemName-aware confirmation text, a genuine safeguard]
+  does NOT escalate to a real risk, because a downstream safeguard exists
+Links: 32-36dp delete/dismiss IconButtons below 48dp (Part E, MEDIUM) →
+  triggers → DeleteConfirmDialog (already fixed earlier in this project's
+  history with itemName-aware confirmation text)
 Combined severity: does NOT escalate — stays MEDIUM/LOW (nuisance-level),
   explicitly NOT a data-loss risk
-Why the chain does not escalate: An accidental tap on a small delete icon
-  is real friction, but it lands on a confirmation dialog that names the
-  specific item and requires a second deliberate action before anything
-  is actually deleted. The safeguard already breaks the chain before it
-  reaches real harm.
-Recommendation: No change beyond what's already queued (§H3's own
-  recommendation, pending visual verification). Documented here specifically
-  to show the reasoning for NOT escalating it, rather than skipping the
-  chain-check silently.
-Effort: N/A
+Why it doesn't escalate: An accidental tap on a small delete icon is real
+  friction, but it lands on a confirmation dialog that names the specific
+  item and requires a second deliberate action. The safeguard breaks the
+  chain before it reaches real harm.
+Recommendation: No change beyond what's already queued (Part E's own
+  recommendation, pending visual verification).
 
-CHAIN 4 — Missing Layer 3 token architecture is the single root cause
+CHAIN 4 — Missing Layer-3 token architecture is the single root cause
   behind three independently-rated LOW/MEDIUM findings
-Links: §DC2/§DBI3 [LOW, "AccentGreen" token misnamed] + §DBI3 [LOW, 3
-  unreconciled "gold" values across theme schemes] + §DCO1/§DCO3 [HIGH/
-  MEDIUM, button and card recipes hand-copied per file] → all trace back
-  to → §DTA1-2 [MEDIUM, no Layer 3 component-scoped tokens exist]
-Combined severity: the underlying architectural gap (§DTA1-2) is more
-  accurately rated HIGH once its downstream cost is counted, not MEDIUM in
-  isolation — it's the reason four separate findings each cost more to fix
-  than they should (the "find and replace" test failing at ~28 files for
-  a single color, not 1-2).
-Why this matters as a chain: Fixing any ONE of the four symptom findings
-  without building the Layer 3 components first would be wasted, non-
-  compounding effort — e.g., renaming AccentGreen today still touches ~28
-  files; building ScanEatPrimaryButton/ScanEatCard first, then renaming,
+Links: "AccentGreen" misnamed (LOW) + 3 unreconciled gold values (LOW) +
+  button/card recipes hand-copied per file (HIGH/MEDIUM) → all trace back
+  to → no Layer 3 component-scoped tokens exist (Part B10, MEDIUM)
+Combined severity: the underlying architectural gap is more accurately
+  rated HIGH once its downstream cost is counted — it's the reason four
+  separate findings each cost more to fix than they should (the "find and
+  replace" test failing at ~28 files for a single color, not 1-2).
+Why this is a chain: fixing any ONE symptom without building the Layer 3
+  components first would be wasted effort — renaming AccentGreen today
+  still touches ~28 files; building the components first, then renaming,
   touches 2.
-Recommendation: Sequence the fixes — build the two Layer 3 components
-  (§DCO1/§DCO3's own recommendation) FIRST, then the naming/consolidation
-  fixes become 1-2-file changes instead of ~28-file changes. This
-  resequencing is itself the actionable output of this chain.
-Effort: N/A (a sequencing recommendation on already-scoped work)
+Recommendation: Sequence the fixes — build ScanEatPrimaryButton/
+  ScanEatCard FIRST, then the naming/consolidation fixes become 1-2-file
+  changes instead of ~28-file changes.
 
 CHAIN 5 — A finding first flagged as purely an aesthetic weakness gains
   real accessibility weight when cross-referenced
-Links: §DST3/§DP3 [Phase 1, flagged SettingsScreen's backup-import error
-  as the single weakest CHARACTER moment in the app — bare colored
-  Text(color=FlagRed), no icon, no container] → §G1 [Phase 2, "verify
-  status, error, success are conveyed by icon + text + color — not color
-  alone"]
+Links: SettingsScreen's backup-import error flagged as the weakest
+  CHARACTER moment in the app (Part D, bare Text, no icon, no container) →
+  "verify status/error/success are conveyed by icon + text + color, not
+  color alone" (Part E, Category G)
 Combined severity: escalates from POLISH/aesthetic-only (as originally
-  framed in Phase 1) to a genuine §G1 accessibility-compliance concern —
-  this specific error has no icon and conveys its status via colored text
-  only, which is closer to a color-independence violation than a taste
-  question.
-Why this matters as a chain: Phase 1 (aesthetic lens) and Phase 2
-  (structural/accessibility lens) each looked at the exact same code and
-  produced two different severities for what turns out to be one finding
-  — this is precisely the value of running both lenses and then
+  framed) to a genuine accessibility-compliance concern — this error has
+  no icon and conveys status via colored text only, closer to a color-
+  independence violation than a taste question.
+Why this matters: the aesthetic lens and the accessibility lens looked at
+  the exact same code and produced two different severities for what turns
+  out to be one finding — the value of running both lenses and then
   cross-referencing, rather than either alone.
-Recommendation: The already-recommended fix (build one shared ErrorBanner
-  component, §DST3) resolves both the character gap and the accessibility
-  gap simultaneously — restating here to correct its priority upward,
-  since "weakest character moment" alone undersold it.
-Effort: MEDIUM (already scoped in §DST3 above; priority corrected here)
+Recommendation: The already-recommended fix (Part B8's shared ErrorBanner
+  component) resolves both the character gap and the accessibility gap
+  simultaneously — priority corrected upward here.
+Effort: MEDIUM (already scoped; priority corrected)
 ```
 
-## PHASE 3 COMPLETE — Summary Dashboard
+**Chain summary**: Chain 1 (verify before anything else ships), Chain 2
+(sequencing constraint on the score-reveal build), Chain 3 (verified NOT
+escalating — confirmation dialog already breaks it), Chain 4 (root-cause
+reprioritization — token architecture is HIGH, not MEDIUM), Chain 5
+(severity correction — SettingsScreen's error is a §G1 finding, not just
+polish).
 
-```
-Chain 1 (CRITICAL if contrast fails): allergen/diet-safety banner contrast
-  — verify before anything else ships
-Chain 2 (sequencing constraint): reduced-motion gating must land with, not
-  after, the score-reveal animation
-Chain 3 (verified NOT escalating): touch-target gap on delete actions —
-  confirmation dialog already breaks the chain
-Chain 4 (root-cause reprioritization): Layer 3 token architecture is HIGH,
-  not MEDIUM, once its downstream cost across 4 other findings is counted
-Chain 5 (severity correction): SettingsScreen's bare-text error is a §G1
-  accessibility finding, not just a §DST3 polish finding — same fix,
-  higher priority than originally stated
-```
+---
 
-This closes out the full three-phase "full deep" design/aesthetic audit:
-Phase 1 (core aesthetic, 21 sections), Phase 2 (expanded UI audit, 6
-categories), Phase 3 (cross-cutting compound-chain analysis, 5 chains).
-All findings, cross-references, and this final synthesis are recorded in
-this file and pushed to the branch.
+# APPENDIX — Original Section Code Reference
+
+For cross-referencing findings against design-aesthetic-audit-SKILL.md /
+app-audit-SKILL.md directly. This document's Parts map to the skills'
+sections as follows:
+
+| This document | Original §-codes |
+|---|---|
+| Part A0-A4 | §0, §DS1-2, §DP0-2 |
+| Part A5-A7 | §DBI1, §DBI3, §DBI2 |
+| Part B1 | §DC1-5 |
+| Part B2 | §DT1-4 |
+| Part B3 | §DI1-4 |
+| Part B4 | §DCO1-6 |
+| Part B5 | §DM1-5 |
+| Part B6 | §DSA1-5 |
+| Part B7 | §DH1-4 |
+| Part B8 | §DST1-4 |
+| Part B9 | §DCVW1-3 |
+| Part B10 | §DTA1-2 |
+| Part B11 | §DDT1-2 |
+| Part B12 | §DIL1-3, §DDV1-3, §DRC1-3 |
+| Part C | §DCP1-3 |
+| Part D | §DP3 |
+| Part E — Category E | app-audit §E1-11 |
+| Part E — Category F | app-audit §F1-6 |
+| Part E — Category G | app-audit §G1-5 |
+| Part E — Category H3 | app-audit §H3 |
+| Part E — Category L3-5 | app-audit §L3-5 |
+| Part E — Category D5 | app-audit §D5 |
+| Part F | app-audit §II / §VIII (Compound Finding Chains / Cross-Cutting Concern Map) |
+
+**Audit status**: Phase 1 (21 sections), Phase 2 (6 categories), and Phase 3
+(5 compound chains) are all complete. The Executive Summary's priority
+order is the recommended sequence for acting on this document.
