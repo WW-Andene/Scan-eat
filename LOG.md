@@ -603,3 +603,28 @@ for data.repository Moshi classes), N(WeightScreen sparkline caption still
 French), O(Room schema-export never committed - queued). Combined with layer
 1's 15, that's the full 30-finding two-layer pass. CI check due now per user
 instruction ("only checking ci after all categories and two layer mode done").
+
+## Layers 1-2 CI-verified green (all 30 commits, b684ab9..5ca162d)
+User: "do another 15 categories x 2 layers... you can do deep fix or
+significant change like restructuration needed or new implementation/tool/
+solution." Proceeding to layers 3-4 with license for bigger, riskier fixes
+where the finding genuinely warrants it.
+
+### App-audit §A1/L3 — Dairy-free/Paleo diet checks false-flag coconut/peanut butter
+context:   VEGAN's dairy pattern correctly guards beurre/crème with negative
+           lookahead (beurre(?! de cacahu[eè]te| d'arachide| de coco),
+           cr[eè]me(?! v[eé]g[eé]tale)) so peanut butter and coconut butter
+           don't get misread as dairy. DAIRY_FREE and PALEO's dairy patterns
+           used bare "beurre"/"crème" with no such guard - a product listing
+           "beurre de cacahuète" (peanut butter) or "crème de coco" (coconut
+           cream) as an ingredient would be falsely flagged as violating a
+           dairy-free or paleo diet, exactly the false-positive class VEGAN
+           was already fixed against in the same file.
+decision:  Applied the same negative-lookahead exclusions
+           (lait/beurre/crème guards) to DAIRY_FREE and PALEO's forbidden
+           patterns, matching VEGAN's existing convention.
+why:       Real, user-visible false positive - a coconut-cream dessert or
+           a jar of peanut butter is core "safe" content for exactly these
+           two diets, and getting flagged wrong on core foods undermines
+           trust in the whole diet-checking feature.
+reversal:  trivial (regex lookahead additions only, no schema/logic change)

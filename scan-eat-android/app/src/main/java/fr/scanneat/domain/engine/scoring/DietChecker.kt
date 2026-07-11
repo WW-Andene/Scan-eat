@@ -157,7 +157,7 @@ private val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.DAIRY_FREE to DietDef(
         forbidden = listOf(
-            b("lait|lactos[eé]rum|petit[- ]lait|cr[eè]me|beurre|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|lactose|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mascarpone|ricotta|mozzarella|parmesan|emmental"),
+            b("lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|petit[- ]lait|cr[eè]me(?! de coco| v[eé]g[eé]tale)|beurre(?! de cacahu[eè]te| d'arachide| de coco)|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|lactose|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait|ghee|mascarpone|ricotta|mozzarella|parmesan|emmental"),
         ),
         noteFr = "Exclut tous produits laitiers.",
         noteEn = "Excludes all dairy.",
@@ -166,7 +166,7 @@ private val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
     DietKey.PALEO to DietDef(
         forbidden = listOf(
             b("bl[eé]|froment|seigle|orge|avoine|[eé]peautre|kamut|triticale|ma[iï]s|riz|farine de bl[eé]|farine de seigle|malt"),
-            b("lait|lactos[eé]rum|cr[eè]me|beurre|fromage|yaourt|cas[eé]ine|lactose|whey"),
+            b("lait(?! de (coco|soja|amande|avoine|riz))|lactos[eé]rum|cr[eè]me(?! de coco| v[eé]g[eé]tale)|beurre(?! de cacahu[eè]te| d'arachide| de coco)|fromage|yaourt|cas[eé]ine|lactose|whey"),
             b("haricot|lentille|pois chiche|soja|arachide|cacahu[eè]te|f[eè]ve"),
             b("sucre raffin[eé]|sirop de glucose|sirop de ma[iï]s|maltodextrin"),
         ),
