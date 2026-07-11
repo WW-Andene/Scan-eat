@@ -30,8 +30,33 @@ private val httpClient = HttpClient(CIO) {
         requestTimeoutMillis = 8_000
         connectTimeoutMillis = 8_000
     }
-    followRedirects = true
+    // Redirects are followed manually below so every hop gets the same
+    // private-address check — automatic following would let a public URL
+    // 302 the server into localhost or the cloud metadata endpoint.
+    followRedirects = false
 }
+
+/**
+ * True when [url] may be fetched: http(s) only, and the host must not resolve
+ * to a loopback, private, link-local (incl. 169.254.169.254 metadata), or
+ * IPv6 unique-local address. This route proxies arbitrary user-supplied URLs,
+ * so without this check it is a straight SSRF hole into whatever network the
+ * server runs on.
+ */
+private fun isFetchableUrl(url: String): Boolean {
+    val parsed = runCatching { java.net.URI(url) }.getOrNull() ?: return false
+    if (parsed.scheme != "http" && parsed.scheme != "https") return false
+    val host = parsed.host ?: return false
+    val addresses = runCatching { java.net.InetAddress.getAllByName(host) }.getOrNull() ?: return false
+    return addresses.all { addr ->
+        !addr.isLoopbackAddress && !addr.isSiteLocalAddress && !addr.isLinkLocalAddress &&
+        !addr.isAnyLocalAddress && !addr.isMulticastAddress &&
+        // IPv6 unique-local fc00::/7 — not covered by isSiteLocalAddress
+        (addr.address.size != 16 || (addr.address[0].toInt() and 0xFE) != 0xFC)
+    }
+}
+
+private const val MAX_REDIRECTS = 3
 
 fun Route.fetchRecipeRoute() {
     get("/fetch-recipe") {
@@ -40,16 +65,33 @@ fun Route.fetchRecipeRoute() {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing url parameter"))
             return@get
         }
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            call.respond(HttpStatusCode.BadRequest, ErrorResponse("URL must be http(s)"))
+        if (!isFetchableUrl(url)) {
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("URL must be a public http(s) address"))
             return@get
         }
 
         try {
-            val html = httpClient.get(url) {
+            var currentUrl = url
+            var response = httpClient.get(currentUrl) {
                 header("User-Agent", "ScanEat/0.1 (+https://github.com/scanneat)")
                 header("Accept", "text/html,application/xhtml+xml")
-            }.bodyAsText()
+            }
+            var hops = 0
+            while (response.status.value in 301..308 && hops < MAX_REDIRECTS) {
+                val location = response.headers[HttpHeaders.Location] ?: break
+                val next = java.net.URI(currentUrl).resolve(location).toString()
+                if (!isFetchableUrl(next)) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("URL must be a public http(s) address"))
+                    return@get
+                }
+                currentUrl = next
+                hops++
+                response = httpClient.get(currentUrl) {
+                    header("User-Agent", "ScanEat/0.1 (+https://github.com/scanneat)")
+                    header("Accept", "text/html,application/xhtml+xml")
+                }
+            }
+            val html = response.bodyAsText()
 
             val recipe = parseSchemaOrgRecipe(html, url)
             if (recipe == null) {
