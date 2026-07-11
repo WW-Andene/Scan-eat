@@ -28,6 +28,11 @@ data class DayBucket(
     val sugarsG: Double,
     val saltG: Double,
     val count: Int,
+    val fiberG: Double = 0.0,
+    val ironMg: Double = 0.0,
+    val calciumMg: Double = 0.0,
+    val vitDUg: Double = 0.0,
+    val b12Ug: Double = 0.0,
 )
 
 data class NutrientTotals(
@@ -84,15 +89,20 @@ private fun rollup(entries: List<DiaryEntry>, end: LocalDate, windowDays: Int): 
             DayBucket(date, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0)
         } else {
             DayBucket(
-                date     = date,
-                kcal     = dayEntries.sumOf { it.consumed.energyKcal },
-                proteinG = dayEntries.sumOf { it.consumed.proteinG },
-                carbsG   = dayEntries.sumOf { it.consumed.carbsG },
-                fatG     = dayEntries.sumOf { it.consumed.fatG },
-                satFatG  = dayEntries.sumOf { it.consumed.saturatedFatG },
-                sugarsG  = dayEntries.sumOf { it.consumed.sugarsG },
-                saltG    = dayEntries.sumOf { it.consumed.saltG },
-                count    = dayEntries.size,
+                date      = date,
+                kcal      = dayEntries.sumOf { it.consumed.energyKcal },
+                proteinG  = dayEntries.sumOf { it.consumed.proteinG },
+                carbsG    = dayEntries.sumOf { it.consumed.carbsG },
+                fatG      = dayEntries.sumOf { it.consumed.fatG },
+                satFatG   = dayEntries.sumOf { it.consumed.saturatedFatG },
+                sugarsG   = dayEntries.sumOf { it.consumed.sugarsG },
+                saltG     = dayEntries.sumOf { it.consumed.saltG },
+                count     = dayEntries.size,
+                fiberG    = dayEntries.sumOf { it.consumed.fiberG },
+                ironMg    = dayEntries.sumOf { it.consumed.ironMg },
+                calciumMg = dayEntries.sumOf { it.consumed.calciumMg },
+                vitDUg    = dayEntries.sumOf { it.consumed.vitDUg },
+                b12Ug     = dayEntries.sumOf { it.consumed.b12Ug },
             )
         }
     }
@@ -103,24 +113,34 @@ private fun rollup(entries: List<DiaryEntry>, end: LocalDate, windowDays: Int): 
     fun r1(v: Double) = (v * 10).roundToInt() / 10.0
 
     val total = NutrientTotals(
-        kcal     = buckets.sumOf { it.kcal },
-        proteinG = buckets.sumOf { it.proteinG },
-        carbsG   = buckets.sumOf { it.carbsG },
-        fatG     = buckets.sumOf { it.fatG },
-        satFatG  = buckets.sumOf { it.satFatG },
-        sugarsG  = buckets.sumOf { it.sugarsG },
-        saltG    = buckets.sumOf { it.saltG },
-        count    = buckets.sumOf { it.count },
+        kcal      = buckets.sumOf { it.kcal },
+        proteinG  = buckets.sumOf { it.proteinG },
+        carbsG    = buckets.sumOf { it.carbsG },
+        fatG      = buckets.sumOf { it.fatG },
+        satFatG   = buckets.sumOf { it.satFatG },
+        sugarsG   = buckets.sumOf { it.sugarsG },
+        saltG     = buckets.sumOf { it.saltG },
+        count     = buckets.sumOf { it.count },
+        fiberG    = buckets.sumOf { it.fiberG },
+        ironMg    = buckets.sumOf { it.ironMg },
+        calciumMg = buckets.sumOf { it.calciumMg },
+        vitDUg    = buckets.sumOf { it.vitDUg },
+        b12Ug     = buckets.sumOf { it.b12Ug },
     )
 
     val avg = NutrientTotals(
-        kcal     = r1(total.kcal / denom),
-        proteinG = r1(total.proteinG / denom),
-        carbsG   = r1(total.carbsG / denom),
-        fatG     = r1(total.fatG / denom),
-        satFatG  = r1(total.satFatG / denom),
-        sugarsG  = r1(total.sugarsG / denom),
-        saltG    = r1(total.saltG / denom),
+        kcal      = r1(total.kcal / denom),
+        proteinG  = r1(total.proteinG / denom),
+        carbsG    = r1(total.carbsG / denom),
+        fatG      = r1(total.fatG / denom),
+        satFatG   = r1(total.satFatG / denom),
+        sugarsG   = r1(total.sugarsG / denom),
+        saltG     = r1(total.saltG / denom),
+        fiberG    = r1(total.fiberG / denom),
+        ironMg    = r1(total.ironMg / denom),
+        calciumMg = r1(total.calciumMg / denom),
+        vitDUg    = r1(total.vitDUg / denom),
+        b12Ug     = r1(total.b12Ug / denom),
     )
 
     return RollupResult(buckets, total, avg, daysLogged)
@@ -224,10 +244,10 @@ fun closeTheGap(
     val nutrientMap = mapOf(
         "proteinG"  to NutrientValues(totals.proteinG,  targets.proteinGTarget) { it.proteinG },
         "fiberG"    to NutrientValues(totals.fiberG,    targets.fiberGTarget)   { it.fiberG },
-        "ironMg"    to NutrientValues(totals.ironMg,    targets.ironMgTarget)   { 0.0 },
-        "calciumMg" to NutrientValues(totals.calciumMg, targets.calciumMgTarget){ 0.0 },
-        "vitDUg"    to NutrientValues(totals.vitDUg,    targets.vitDUgTarget)   { 0.0 },
-        "b12Ug"     to NutrientValues(totals.b12Ug,     targets.b12UgTarget)    { 0.0 },
+        "ironMg"    to NutrientValues(totals.ironMg,    targets.ironMgTarget)   { it.ironMg },
+        "calciumMg" to NutrientValues(totals.calciumMg, targets.calciumMgTarget){ it.calciumMg },
+        "vitDUg"    to NutrientValues(totals.vitDUg,    targets.vitDUgTarget)   { it.vitDUg },
+        "b12Ug"     to NutrientValues(totals.b12Ug,     targets.b12UgTarget)    { it.b12Ug },
     )
 
     for (def in GAP_NUTRIENTS) {

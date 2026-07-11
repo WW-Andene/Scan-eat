@@ -27,6 +27,15 @@ data class FoodEntry(
     val fatG: Double,
     val fiberG: Double = 0.0,
     val saltG: Double = 0.0,
+    // Per-100g, approximate CIQUAL-style values like the macros above — only
+    // set for foods that are a genuine, well-known source of that nutrient
+    // (the "Close the gap" suggestion engine needs real density values to
+    // suggest anything for iron/calcium/vitD/B12; 0.0 elsewhere means "not
+    // a notable source", same convention as fiberG/saltG defaulting to 0.0).
+    val ironMg: Double = 0.0,
+    val calciumMg: Double = 0.0,
+    val vitDUg: Double = 0.0,
+    val b12Ug: Double = 0.0,
     val aliases: List<String> = emptyList(),
 )
 
@@ -44,8 +53,8 @@ val FOOD_DB: List<FoodEntry> = listOf(
     // Légumes
     FoodEntry("tomate",       18.0,  0.9,   3.0,  0.2,  1.2,  aliases = listOf("tomate cerise", "tomato")),
     FoodEntry("carotte",      36.0,  0.6,   7.0,  0.2,  2.8,  aliases = listOf("carrot")),
-    FoodEntry("brocoli",      30.0,  2.8,   2.0,  0.4,  2.6,  aliases = listOf("broccoli")),
-    FoodEntry("épinard",      23.0,  2.9,   1.0,  0.4,  2.2,  aliases = listOf("épinards", "spinach")),
+    FoodEntry("brocoli",      30.0,  2.8,   2.0,  0.4,  2.6,  calciumMg = 47.0, aliases = listOf("broccoli")),
+    FoodEntry("épinard",      23.0,  2.9,   1.0,  0.4,  2.2,  ironMg = 2.7, calciumMg = 99.0, aliases = listOf("épinards", "spinach")),
     FoodEntry("concombre",    12.0,  0.6,   2.0,  0.1,  0.5,  aliases = listOf("cucumber")),
     FoodEntry("courgette",    15.0,  1.3,   2.0,  0.1,  1.1,  aliases = listOf("zucchini")),
     FoodEntry("poivron",      27.0,  0.9,   5.0,  0.2,  1.9,  aliases = listOf("pepper")),
@@ -57,41 +66,41 @@ val FOOD_DB: List<FoodEntry> = listOf(
     FoodEntry("riz blanc cuit",  130.0, 2.7, 28.0, 0.3, 0.4, aliases = listOf("riz cuit", "white rice")),
     FoodEntry("pâtes cuites",    140.0, 5.0, 28.0, 1.0, 1.8, aliases = listOf("pates", "pasta")),
     FoodEntry("pain blanc",      260.0, 8.0, 50.0, 2.5, 2.7, aliases = listOf("pain", "bread")),
-    FoodEntry("pain complet",    240.0, 9.0, 45.0, 3.0, 6.5, aliases = listOf("whole wheat bread")),
+    FoodEntry("pain complet",    240.0, 9.0, 45.0, 3.0, 6.5, ironMg = 2.5, aliases = listOf("whole wheat bread")),
     FoodEntry("baguette",        265.0, 8.0, 55.0, 1.0, 2.3),
     FoodEntry("croissant",       406.0, 8.0, 45.0, 21.0, 1.6),
-    FoodEntry("avoine",          389.0, 17.0, 66.0, 7.0, 10.6, aliases = listOf("flocons d'avoine", "oats")),
-    FoodEntry("quinoa cuit",     120.0, 4.4, 22.0, 1.9, 2.8),
+    FoodEntry("avoine",          389.0, 17.0, 66.0, 7.0, 10.6, ironMg = 4.7, aliases = listOf("flocons d'avoine", "oats")),
+    FoodEntry("quinoa cuit",     120.0, 4.4, 22.0, 1.9, 2.8, ironMg = 1.5),
 
     // Protéines animales
-    FoodEntry("poulet rôti",    215.0, 30.0,  0.0, 10.0, 0.0, saltG = 0.2),
-    FoodEntry("boeuf haché 5%", 130.0, 22.0,  0.0,  5.0, 0.0, saltG = 0.1, aliases = listOf("steak haché 5%")),
-    FoodEntry("boeuf haché 15%",215.0, 20.0,  0.0, 15.0, 0.0, saltG = 0.1),
-    FoodEntry("saumon",         208.0, 20.0,  0.0, 13.0, 0.0, aliases = listOf("salmon")),
-    FoodEntry("thon",           130.0, 29.0,  0.0,  1.0, 0.0, aliases = listOf("tuna")),
-    FoodEntry("oeuf",           155.0, 13.0,  1.1, 11.0, 0.0, aliases = listOf("œuf", "egg")),
-    FoodEntry("jambon blanc",   115.0, 20.0,  1.0,  4.0, 0.0, saltG = 1.6, aliases = listOf("ham")),
+    FoodEntry("poulet rôti",    215.0, 30.0,  0.0, 10.0, 0.0, saltG = 0.2, b12Ug = 0.3),
+    FoodEntry("boeuf haché 5%", 130.0, 22.0,  0.0,  5.0, 0.0, saltG = 0.1, ironMg = 2.6, b12Ug = 2.0, aliases = listOf("steak haché 5%")),
+    FoodEntry("boeuf haché 15%",215.0, 20.0,  0.0, 15.0, 0.0, saltG = 0.1, ironMg = 2.7, b12Ug = 2.0),
+    FoodEntry("saumon",         208.0, 20.0,  0.0, 13.0, 0.0, vitDUg = 8.0, b12Ug = 3.2, aliases = listOf("salmon")),
+    FoodEntry("thon",           130.0, 29.0,  0.0,  1.0, 0.0, vitDUg = 2.3, b12Ug = 2.9, aliases = listOf("tuna")),
+    FoodEntry("oeuf",           155.0, 13.0,  1.1, 11.0, 0.0, ironMg = 1.8, calciumMg = 50.0, vitDUg = 1.8, b12Ug = 1.1, aliases = listOf("œuf", "egg")),
+    FoodEntry("jambon blanc",   115.0, 20.0,  1.0,  4.0, 0.0, saltG = 1.6, b12Ug = 0.6, aliases = listOf("ham")),
 
     // Produits laitiers
-    FoodEntry("lait demi-écrémé",  46.0,  3.2,  4.7,  1.6, 0.0, aliases = listOf("lait", "milk")),
-    FoodEntry("yaourt nature",      60.0,  3.5,  4.7,  3.0, 0.0, aliases = listOf("yaourt", "yogurt")),
-    FoodEntry("skyr",               60.0, 10.0,  4.0,  0.2, 0.0),
-    FoodEntry("fromage blanc 0%",   45.0,  7.5,  4.0,  0.1, 0.0, aliases = listOf("fromage blanc")),
-    FoodEntry("emmental",          380.0, 29.0,  0.0, 30.0, 0.0, saltG = 0.8, aliases = listOf("gruyère")),
-    FoodEntry("camembert",         300.0, 20.0,  0.5, 24.0, 0.0, saltG = 1.4),
+    FoodEntry("lait demi-écrémé",  46.0,  3.2,  4.7,  1.6, 0.0, calciumMg = 120.0, b12Ug = 0.4, aliases = listOf("lait", "milk")),
+    FoodEntry("yaourt nature",      60.0,  3.5,  4.7,  3.0, 0.0, calciumMg = 140.0, b12Ug = 0.4, aliases = listOf("yaourt", "yogurt")),
+    FoodEntry("skyr",               60.0, 10.0,  4.0,  0.2, 0.0, calciumMg = 110.0, b12Ug = 0.5),
+    FoodEntry("fromage blanc 0%",   45.0,  7.5,  4.0,  0.1, 0.0, calciumMg = 95.0, b12Ug = 0.3, aliases = listOf("fromage blanc")),
+    FoodEntry("emmental",          380.0, 29.0,  0.0, 30.0, 0.0, saltG = 0.8, calciumMg = 880.0, vitDUg = 0.4, b12Ug = 1.9, aliases = listOf("gruyère")),
+    FoodEntry("camembert",         300.0, 20.0,  0.5, 24.0, 0.0, saltG = 1.4, calciumMg = 400.0, vitDUg = 0.35, b12Ug = 1.3),
 
     // Légumineuses / oléagineux
-    FoodEntry("lentille cuite",   115.0,  9.0, 20.0,  0.4, 3.8, aliases = listOf("lentilles", "lentils")),
-    FoodEntry("pois chiche cuit", 165.0,  9.0, 27.0,  2.6, 4.5, aliases = listOf("pois chiches", "chickpea")),
-    FoodEntry("amandes",          620.0, 21.0, 20.0, 51.0, 12.5, aliases = listOf("amande", "almonds")),
-    FoodEntry("noix",             655.0, 15.0, 14.0, 65.0,  6.7),
+    FoodEntry("lentille cuite",   115.0,  9.0, 20.0,  0.4, 3.8, ironMg = 3.3, aliases = listOf("lentilles", "lentils")),
+    FoodEntry("pois chiche cuit", 165.0,  9.0, 27.0,  2.6, 4.5, ironMg = 2.9, aliases = listOf("pois chiches", "chickpea")),
+    FoodEntry("amandes",          620.0, 21.0, 20.0, 51.0, 12.5, ironMg = 3.7, calciumMg = 260.0, aliases = listOf("amande", "almonds")),
+    FoodEntry("noix",             655.0, 15.0, 14.0, 65.0,  6.7, ironMg = 2.9),
 
     // Matières grasses
     FoodEntry("huile d'olive",  900.0, 0.0, 0.0, 100.0, 0.0, aliases = listOf("olive oil")),
-    FoodEntry("beurre",         745.0, 0.7, 0.7,  82.0, 0.0, aliases = listOf("butter")),
+    FoodEntry("beurre",         745.0, 0.7, 0.7,  82.0, 0.0, vitDUg = 0.76, aliases = listOf("butter")),
 
     // Sucreries / snacks
-    FoodEntry("chocolat noir 70%", 580.0, 8.0, 46.0, 40.0, 10.9, aliases = listOf("chocolat", "dark chocolate")),
+    FoodEntry("chocolat noir 70%", 580.0, 8.0, 46.0, 40.0, 10.9, ironMg = 11.0, aliases = listOf("chocolat", "dark chocolate")),
     FoodEntry("chocolat au lait",  540.0, 7.0, 58.0, 30.0,  1.5),
     FoodEntry("biscuit",           480.0, 6.0, 65.0, 21.0,  2.0),
     FoodEntry("miel",              304.0, 0.3, 82.0,  0.0,  0.2, aliases = listOf("honey")),
@@ -223,6 +232,10 @@ fun FoodEntry.toProduct(portionG: Double = 100.0): Product = Product(
         fiberG        = fiberG,
         proteinG      = proteinG,
         saltG         = saltG,
+        ironMg        = ironMg,
+        calciumMg     = calciumMg,
+        vitDUg        = vitDUg,
+        b12Ug         = b12Ug,
     ),
     weightG = portionG,
 )
