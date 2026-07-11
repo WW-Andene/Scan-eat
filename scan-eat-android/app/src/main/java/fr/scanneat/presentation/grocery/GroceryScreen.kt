@@ -34,6 +34,7 @@ fun GroceryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copiedMessage = stringResource(R.string.grocery_copied)
+    var copyMenuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -43,10 +44,32 @@ fun GroceryScreen(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
                     if (items.value.isNotEmpty()) {
-                        IconButton(onClick = {
-                            clipboard.setText(AnnotatedString(formatGroceryList(items.value)))
-                            scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
-                        }) { Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentGreen) }
+                        Box {
+                            IconButton(onClick = { copyMenuExpanded = true }) {
+                                Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentGreen)
+                            }
+                            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { copyMenuExpanded = false }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.grocery_copy_plain)) },
+                                    onClick = {
+                                        copyMenuExpanded = false
+                                        clipboard.setText(AnnotatedString(formatGroceryList(items.value)))
+                                        scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
+                                    },
+                                )
+                                // formatGroceryList's markdown param existed since the original JS
+                                // port but had no UI entry point at all - a real feature dropped
+                                // in translation, not a deliberate scope cut.
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.grocery_copy_checklist)) },
+                                    onClick = {
+                                        copyMenuExpanded = false
+                                        clipboard.setText(AnnotatedString(formatGroceryList(items.value, markdown = true)))
+                                        scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
+                                    },
+                                )
+                            }
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),

@@ -1121,3 +1121,23 @@ why:       Same information conveyed with zero unchecked casts - the
            of trusting a manually-indexed array + suppressed warning.
 reversal:  trivial (mechanical rewrite of one combine() call + 2 import
            removals, identical runtime behavior)
+
+### App-audit §J1/L4 — grocery list's markdown-checklist export was unreachable
+context:   formatGroceryList(items, markdown: Boolean = false) - ported
+           from the original grocery-list.js - branches on `markdown` to
+           produce "- [ ] item" checkbox-style lines instead of plain
+           "- item" lines (useful for pasting into Notion/Obsidian/any
+           markdown note app), but no UI call site ever passed
+           markdown = true. A real feature dropped in translation, not a
+           deliberate cut.
+decision:  Turned the single copy IconButton into a small DropdownMenu
+           with 2 text-only entries ("Copy (plain text)" / "Copy
+           (Markdown checklist)") - avoided guessing at a new, unverified
+           icon name (no local build to compile-check against) by using
+           only Text-based DropdownMenuItems and the icon already proven
+           to compile.
+why:       Restores a real, working, previously-inaccessible data-export
+           format at essentially zero risk - the underlying function was
+           already correct and tested by nothing changing except which
+           UI action reaches it.
+reversal:  trivial (UI-only change; formatGroceryList itself untouched)

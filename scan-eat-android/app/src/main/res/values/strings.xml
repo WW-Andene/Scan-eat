@@ -454,6 +454,8 @@
     <string name="grocery_item_count">%1$d articles · agrégé depuis vos recettes</string>
     <string name="grocery_grams">%1$d g</string>
     <string name="grocery_copied">Liste copiée dans le presse-papiers</string>
+    <string name="grocery_copy_plain">Copier (texte)</string>
+    <string name="grocery_copy_checklist">Copier (liste à cocher Markdown)</string>
 
     <!-- ── Profile screen ─────────────────────────────────────────────────── -->
     <string name="profile_title">Mon profil</string>
