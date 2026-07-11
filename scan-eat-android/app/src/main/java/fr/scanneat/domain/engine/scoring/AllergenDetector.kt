@@ -23,9 +23,12 @@ data class AllergenHit(
     val triggers: List<String>,      // ingredient names that matched
 )
 
-// Same b() helper as DietChecker — Unicode-aware word boundary for FR text
+// Same b() helper as DietChecker — Unicode-aware word boundary for FR text.
+// Digits are excluded from the boundary too, not just letters — otherwise a
+// numeric token like "E22" range entries can match as a substring inside a
+// longer, unrelated E-number.
 private fun a(inner: String): Regex =
-    Regex("(?<![a-zà-ÿ])(?:$inner)(?![a-zà-ÿ])", RegexOption.IGNORE_CASE)
+    Regex("(?<![a-zà-ÿ0-9])(?:$inner)(?![a-zà-ÿ0-9])", RegexOption.IGNORE_CASE)
 
 private data class AllergenRule(
     val key: String,

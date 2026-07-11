@@ -84,3 +84,18 @@ note:      getById() in ResultViewModel is a one-shot suspend read, not a
            optimistic override (favoriteOverride) so the star flips
            instantly. Scan History's list *is* Flow-backed (Room
            invalidates on table writes) so no override needed there.
+
+### 2026-07-11 Round 6 — Code
+context:   DietChecker.kt's b() and AllergenDetector.kt's a() word-boundary
+           regex helpers exclude letters from the boundary but not digits.
+           Reused for numeric E-number patterns (e.g. vegan-forbidden
+           "E120" for carmine), so E120 matches as a substring inside a
+           longer, real, unrelated E-number like E1200 (polydextrose) or
+           E1201/E1202 (PVP) — a false vegan-violation flag.
+options:   Fix only DietChecker's E120 pattern vs. fix the shared boundary
+           helper in both files (same structural flaw, same fix).
+decision:  Fixed the helper itself in both files: boundary now excludes
+           digits too, not just letters.
+why:       Root-cause fix, not a patch for one pattern; same flaw exists
+           in AllergenDetector's E22[0-8] (sulfites) pattern too.
+reversal:  trivial (character class in one regex per file)

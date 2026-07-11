@@ -50,8 +50,11 @@ data class DietResult(
 // lookahead for Latin-1 accented letters so patterns work on accented FR text.
 // ============================================================================
 
+// Digits are excluded from the boundary too, not just letters — otherwise a
+// numeric token like "E120" (carmine) matches as a substring inside a longer,
+// unrelated E-number such as E1200 (polydextrose) or E1201 (PVP).
 private fun b(inner: String): Regex =
-    Regex("(?<![a-zà-ÿ])(?:$inner)(?![a-zà-ÿ])", RegexOption.IGNORE_CASE)
+    Regex("(?<![a-zà-ÿ0-9])(?:$inner)(?![a-zà-ÿ0-9])", RegexOption.IGNORE_CASE)
 
 // ============================================================================
 // Diet definitions
