@@ -1085,3 +1085,16 @@ why:       A data visualization with literally zero text alternative is
            a hard accessibility gap, not a nice-to-have - the caption
            alone doesn't convey the actual trend data.
 reversal:  trivial (semantics modifier + 2 new strings, no visual change)
+
+### App-audit §H1/L4 — ScanScreen imported LocalLifecycleOwner from its deprecated location
+context:   The CI build log flagged 'val LocalLifecycleOwner:
+           ProvidableCompositionLocal<LifecycleOwner>' (from
+           androidx.compose.ui.platform) as deprecated, moved to
+           lifecycle-runtime-compose's androidx.lifecycle.compose package
+           - the same artifact this file already depends on for
+           collectAsStateWithLifecycle. A future AndroidX release could
+           remove the old symbol entirely, breaking the build on a routine
+           dependency bump for no functional reason.
+decision:  Repointed the import to androidx.lifecycle.compose.LocalLifecycleOwner -
+           same API, no behavior change, just the current location.
+reversal:  trivial (one import line)
