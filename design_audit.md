@@ -577,9 +577,176 @@ Effort: N/A
 
 ---
 
+## VII. ICONOGRAPHY SYSTEM
+
+```
+[MEDIUM] — Icon expressiveness sits at "Utilitarian," below what the
+  confirmed character (Craftsman/warm-glow) calls for
+Dimension: §DI3 (Expressiveness Spectrum)
+Finding: 100% default Material Icons, zero weight/style customization —
+  squarely "Utilitarian" tier. Given A5=Amplifies value and the confirmed
+  Craftsman-leaning character, "Calibrated" is the appropriate target
+  (library base + weight/tint matched to character) — not a full custom
+  icon system, which would be disproportionate effort for a non-revenue,
+  domain-conventional app.
+Recommendation: See Icon Character Brief below.
+Effort: LOW-MEDIUM
+```
+
+```
+ICON CHARACTER BRIEF
+  Product character: Warm light glowing in a dark room — quiet, confident,
+    health-serious, restrained (from confirmed §DP2)
+  Target expressiveness: Calibrated (not Signature/Illustrative — the
+    domain-conventional, non-revenue context doesn't justify a full custom
+    icon system; matching the existing Material Icons base with deliberate
+    tinting/sizing does)
+
+  Visual specification:
+    Grid:             Keep Material's native 24×24dp grid — no change needed
+    Stroke/fill:       Keep filled style (already 100% consistent, a real
+                       strength) — do not introduce Outlined/Rounded mixing
+    Corner treatment:  No change — inherits from Material's filled glyphs
+    Tint strategy:     Default/inactive icons stay OnBackground.copy(0.5-0.7)
+                       (current pattern, keep); active/selected icons (nav,
+                       toggled states) switch to Gold (0xFFC9A84C) instead of
+                       whatever each screen currently defaults to — this is
+                       the one calibration that actually connects icons to
+                       the brand palette
+    Size token:        Standardize the currently-ad-hoc 12-64dp range into
+                       3 named sizes: 20dp (inline/label-adjacent), 24dp
+                       (nav bar, matches Material's native grid), 40dp
+                       (empty states, matches EmptyListState.kt's existing
+                       value — don't change that one)
+    Unique motif:      None needed at Calibrated tier
+
+  What icons must express: Restraint and warmth through color, not through
+    novel shapes — the "glow" character comes from tint, not form
+  What icons must avoid: Any move toward a second icon library, outlined/
+    filled mixing, or expressive multi-color icon treatments (would violate
+    the confirmed "Quiet, not Playful" register)
+```
+
+---
+
+## XIII. STATE DESIGN SYSTEM
+
+```
+[HIGH] — Error states use three unreconciled color/component systems across
+  the app, none matching the confirmed "warm glow" character
+Dimension: §DST3
+Finding: (1) ScanScreen's real-error case uses Material's colorScheme.error/
+  errorContainer tokens (the only place in the app using them at all); (2)
+  ResultBanners' diet-veto and allergen cards use custom FlagRed/
+  AmberWarning at 15% alpha; (3) SettingsScreen's backup error is a bare
+  colored Text with no container, icon, or structure at all — the most
+  minimal treatment found anywhere in the app.
+Why it matters: Per §DST3's character-specific guidance, "the error must
+  feel like this product's error" — right now it feels like three different
+  products' errors depending on which screen you're on. Given A2=High-
+  stakes/Emotional, allergen/diet-safety errors specifically deserve the
+  most consistent, trustworthy treatment in the whole app, not the most
+  fragmented one.
+Recommendation: Standardize on the custom FlagRed/AmberWarning system
+  (option 2) as the house error language — it's already palette-integrated
+  and nearly matches the "warm, restrained" character (unlike Material's
+  generic colorScheme.error). Build one shared ErrorBanner composable with
+  icon+text+optional-dismiss, and migrate ScanScreen's real-error case and
+  SettingsScreen's bare-text error onto it.
+Effort: MEDIUM (one new shared composable + 2-3 call-site migrations)
+
+[MEDIUM] — Empty states are correctly shared (EmptyListState.kt) but
+  minimal — icon + text only, no CTA, and not yet stress-tested against the
+  confirmed character
+Dimension: §DST1
+Finding: EmptyListState.kt (40dp icon at 50% opacity + message text) is used
+  consistently across Recipes/Templates/CustomFood — a genuine, deliberate
+  shared component (its own doc comment confirms this was extracted from
+  3 duplicated inline versions).
+Why it matters: Per §DST1, an empty state should contain a character-
+  positive visual element + explanation + primary action — this one has
+  only the first two. It's consistent (good), but at the floor of what the
+  skill considers complete.
+Recommendation: Add a primary action slot (optional param, only used where
+  a clear next step exists — e.g. "Add a recipe" CTA button on
+  RecipesScreen's empty state) rather than redesigning the whole component;
+  keep the icon/text pattern, which is already appropriately restrained for
+  a "Quiet" character (no illustration library needed).
+Effort: LOW (additive param, no visual regression risk)
+
+[MEDIUM] — Loading states have no shared skeleton pattern; scores/data-viz
+  bars reuse plain CircularProgressIndicator/LinearProgressIndicator with no
+  character-specific styling
+Dimension: §DST2
+Finding: The same two Material progress primitives serve both true
+  async-loading (ScanScreen's in-FAB spinner, ResultScreen's whole-screen
+  spinner) and static data-viz rings/bars (ScoreDisplay's grade ring,
+  CalorieBalanceCard's macro bar) — styled ad hoc per file (different
+  strokeWidth/color each time), with zero skeleton-style "shape of what's
+  coming" treatment anywhere.
+Why it matters: Lower priority than the error-state fragmentation (this one
+  is more about polish than trust), but the confirmed character calls for
+  a specific loading feel, and right now it's just "whatever
+  CircularProgressIndicator defaults to, tinted per-screen."
+Recommendation: For the specific case of ResultScreen's whole-screen
+  loading spinner (the wait immediately before the score reveal) —
+  standardize its color/stroke to match the new score-reveal motion
+  signature from §DM5, so the loading state visually sets up the reveal
+  rather than being generic.
+Effort: LOW (one call site, follows from the §DM5 fix already recommended)
+
+[POLISH] — No milestone/success-state intensification exists anywhere
+Dimension: §DST4
+Finding: Confirmed no distinct "milestone success" visual treatment (per
+  §DC5) — grade colors and layout are identical whether it's a routine scan
+  or a genuine first-A+/streak-milestone moment.
+Why it matters: Per §DST4, this is the single highest-emotional-receptivity
+  moment available and it's currently unexploited — lowest-urgency finding
+  in this batch since the app functions correctly without it.
+Recommendation: Defer to §DP3 (Deepening) — this is the same "one
+  unavoidable moment" finding as §DM5, viewed from the states lens rather
+  than the motion lens. Don't build two separate fixes for one moment.
+Effort: N/A (folds into §DM5's recommendation)
+```
+
+---
+
+## XVI. COPY × VISUAL ALIGNMENT
+
+```
+[LOW] — Copy voice is competent but "invisible," slightly under the warmth
+  the confirmed character calls for
+Dimension: §DCVW1
+Finding: Sampled copy this session (e.g. "Non végan : ...", "URL du serveur
+  non configurée — configurez-la dans Réglages", "Server URL not
+  configured — set it up in Settings") sits at Formal-to-neutral, Terse,
+  and Impersonal-to-neutral on the voice dimensions — functionally correct
+  and clear, but doesn't lean toward "Voiced"/"Personal" the way the
+  confirmed "warm, quiet-confident" character would suggest (2-position gap
+  on Dimension 3, Personality presence).
+Why it matters: A genuinely low-cost, low-risk finding — copy tone is one
+  of the cheapest character levers available, and the app's current copy
+  isn't wrong, just under-warm relative to everything else in the
+  Character Brief.
+Recommendation: Not a wholesale rewrite — targeted warmth at the highest-
+  visibility moments only (per §DP3's "primary character carriers" idea):
+  the score-reveal verdict text and milestone messages are worth a warmer
+  pass; routine error/validation copy can stay terse-and-clear as-is (that's
+  appropriate for a health-safety context — over-warming an allergen warning
+  would be a mistake, not an improvement).
+Effort: LOW (copy-only changes at ~2-3 highest-visibility strings)
+
+[UNVERIFIED] — Full microcopy audit (§DCVW2) — button labels, field labels,
+  tooltip text — not systematically sampled in this pass
+Recommendation: Defer to a follow-up read of button/label strings.xml
+  entries specifically, rather than assert findings from the small sample
+  gathered incidentally this session.
+```
+
+---
+
 ## Not yet covered (continuing)
 
-§DI1-4 (Icons, deeper spec), §DST1-4 (States), §DCVW1-3 (Copy × Visual),
 §DTA1-2 (Tokens), §DRC1-3 (Responsive), §DDT1-2 (Trends), §DP3 (Deepening
 protocol), §DBI2 (Design DNA spec), §DCP1-3 (Competitive positioning —
 needs web research).
