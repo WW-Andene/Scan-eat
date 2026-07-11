@@ -133,7 +133,14 @@ fun ScanHistoryScreen(
                 if (scans.value.isEmpty()) {
                     item {
                         Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text(if (query.value.isBlank()) stringResource(R.string.history_empty) else stringResource(R.string.history_empty_query, query.value), color = OnBackground.copy(0.4f))
+                            Text(
+                                when {
+                                    query.value.isNotBlank()  -> stringResource(R.string.history_empty_query, query.value)
+                                    favoritesOnly.value       -> stringResource(R.string.history_empty_favorites)
+                                    else                      -> stringResource(R.string.history_empty)
+                                },
+                                color = OnBackground.copy(0.4f),
+                            )
                         }
                     }
                 }

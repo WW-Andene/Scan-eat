@@ -113,3 +113,17 @@ decision:  maxLines = 1 + TextOverflow.Ellipsis — consistent with the
 why:       Guarantees the fixed-height bar never clips/overlaps regardless
            of label length in any future rename/locale.
 reversal:  trivial (two Text params)
+
+### 2026-07-11 Round 8 — UX
+context:   Round 5 added a "Favorites only" filter to Scan History but the
+           empty-state message only branched on the search query, not on
+           the favorites filter — toggling it with zero favorites (the
+           default first-use state) shows "No scans recorded", which
+           reads as "you haven't scanned anything," not "you haven't
+           favorited anything yet."
+options:   Generic empty state vs. a dedicated favorites-empty message.
+decision:  Added history_empty_favorites, checked before the generic
+           history_empty fallback.
+why:       Tells the user what to actually do (tap the star) instead of
+           implying a broken/empty history.
+reversal:  trivial (one string + one branch)

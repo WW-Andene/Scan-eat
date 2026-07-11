@@ -444,6 +444,7 @@
     <string name="history_score_category">%1$d/100 · %2$s</string>
     <string name="history_empty">No scans recorded.</string>
     <string name="history_empty_query">No results for \"%1$s\".</string>
+    <string name="history_empty_favorites">No favorites yet — tap the star on a scan to add it.</string>
 
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Grocery List</string>
