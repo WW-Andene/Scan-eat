@@ -10,32 +10,39 @@ import kotlinx.serialization.json.*
 // ============================================================================
 
 private fun numOf(v: JsonElement?): Double = when (v) {
-    is JsonPrimitive -> v.doubleOrNull ?: 0.0
+    is JsonPrimitive -> v.doubleOrNull
+        ?: v.contentOrNull?.replace(",", ".")?.toDoubleOrNull()
+        ?: 0.0
     else -> 0.0
 }
 
 private fun numOrNull(v: JsonElement?): Double? = when (v) {
     is JsonPrimitive -> v.doubleOrNull
+        ?: v.contentOrNull?.replace(",", ".")?.toDoubleOrNull()
     else -> null
 }
 
 private fun mapCategory(tags: List<String>?): ProductCategory {
-    val tag = tags?.firstOrNull() ?: return ProductCategory.OTHER
+    if (tags.isNullOrEmpty()) return ProductCategory.OTHER
+    // Scan the whole tag hierarchy, not just tags[0] — OFF often puts a generic
+    // parent tag (e.g. "en:beverages") first, which was mis-bucketing plenty of
+    // products before ever reaching their more specific tag further down the list.
+    val tag = tags.joinToString(" ")
     return when {
         "yogurt" in tag || "yaourt" in tag || "skyr" in tag -> ProductCategory.YOGURT
         "cheese" in tag || "fromage" in tag -> ProductCategory.CHEESE
         "sandwich" in tag || "burger" in tag -> ProductCategory.SANDWICH
-        "cereal" in tag || "granola" in tag -> ProductCategory.BREAKFAST_CEREAL
+        "cereal" in tag || "cereale" in tag || "granola" in tag -> ProductCategory.BREAKFAST_CEREAL
         "bread" in tag || "pain" in tag -> ProductCategory.BREAD
-        "processed-meat" in tag || "charcuterie" in tag -> ProductCategory.PROCESSED_MEAT
+        "processed-meat" in tag || "charcuterie" in tag || "saucisson" in tag -> ProductCategory.PROCESSED_MEAT
         "meat" in tag || "viande" in tag -> ProductCategory.FRESH_MEAT
-        "fish" in tag || "poisson" in tag -> ProductCategory.FISH
-        "biscuit" in tag || "chocolate" in tag || ("snack" in tag && "sweet" in tag) -> ProductCategory.SNACK_SWEET
-        "chips" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
+        "fish" in tag || "seafood" in tag || "poisson" in tag -> ProductCategory.FISH
+        "biscuit" in tag || "cookie" in tag || "chocolate" in tag || "snack" in tag && ("sweet" in tag || "sucre" in tag) -> ProductCategory.SNACK_SWEET
+        "chips" in tag || "crisp" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
         "beverage" in tag && "juice" in tag -> ProductCategory.BEVERAGE_JUICE
-        "beverage" in tag && "water" in tag -> ProductCategory.BEVERAGE_WATER
+        "beverage" in tag && ("water" in tag || "eau" in tag) -> ProductCategory.BEVERAGE_WATER
         "beverage" in tag || "soda" in tag || "boisson" in tag -> ProductCategory.BEVERAGE_SOFT
-        "sauce" in tag || "condiment" in tag -> ProductCategory.CONDIMENT
+        "sauce" in tag || "condiment" in tag || "dressing" in tag -> ProductCategory.CONDIMENT
         "oil" in tag || "fat" in tag || "huile" in tag -> ProductCategory.OIL_FAT
         "ready-meal" in tag || "plat-prepare" in tag -> ProductCategory.READY_MEAL
         else -> ProductCategory.OTHER
@@ -44,6 +51,7 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
 
 private fun parseIngredients(text: String?): List<Ingredient> {
     if (text.isNullOrBlank()) return emptyList()
+    // Split on commas and semicolons that are not inside parentheses
     return text.split(Regex("""[,;]\s*(?![^(]*\))"""))
         .mapNotNull { raw ->
             val name = raw.trim().trim('*', ' ')
@@ -62,7 +70,12 @@ private fun parseWeightG(quantity: String?): Double? {
 }
 
 fun mapOffProduct(raw: OffProductRaw): Product? {
-    val nm = raw.nutriments ?: return null
+    // A missing/empty nutriments table doesn't mean the product wasn't found —
+    // plenty of real, well-known OFF entries (this is what broke plain sodas
+    // like Coca-Cola) only have name/brand filled in. Treat it as zero rather
+    // than aborting the whole lookup; isOffSparse() below will flag it for the
+    // photo/LLM fallback instead of forcing a false "product not found".
+    val nm = raw.nutriments ?: JsonObject(emptyMap())
     val name = (raw.productNameFr ?: raw.productName ?: raw.genericNameFr ?: "").trim()
         .takeIf { it.isNotEmpty() } ?: return null
 
@@ -78,7 +91,8 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
         novaClass   = NovaClass.fromInt(raw.novaGroup ?: 4),
         ingredients = ingredients,
         nutrition   = NutritionPer100g(
-            energyKcal    = numOf(nm["energy-kcal_100g"] ?: nm["energy_100g"]),
+            // OFF's energy_100g fallback is in kJ, not kcal — convert
+            energyKcal    = numOrNull(nm["energy-kcal_100g"]) ?: (numOf(nm["energy_100g"]) / 4.184),
             fatG          = numOf(nm["fat_100g"]),
             saturatedFatG = numOf(nm["saturated-fat_100g"]),
             carbsG        = numOf(nm["carbohydrates_100g"]),
@@ -88,67 +102,104 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
             proteinG      = numOf(nm["proteins_100g"]),
             saltG         = numOf(nm["salt_100g"]),
             transFatG     = numOrNull(nm["trans-fat_100g"]),
-            ironMg        = numOrNull(nm["iron_100g"])?.times(1000),
+            ironMg        = numOrNull(nm["iron_100g"])?.times(1000),     // OFF in g → mg
             calciumMg     = numOrNull(nm["calcium_100g"])?.times(1000),
             magnesiumMg   = numOrNull(nm["magnesium_100g"])?.times(1000),
             potassiumMg   = numOrNull(nm["potassium_100g"])?.times(1000),
             zincMg        = numOrNull(nm["zinc_100g"])?.times(1000),
-            vitDUg        = numOrNull(nm["vitamin-d_100g"])?.times(1_000_000),
+            sodiumMg      = numOrNull(nm["sodium_100g"])?.times(1000),
+            vitAUg        = numOrNull(nm["vitamin-a_100g"])?.times(1_000_000),
             vitCMg        = numOrNull(nm["vitamin-c_100g"])?.times(1000),
+            vitDUg        = numOrNull(nm["vitamin-d_100g"])?.times(1_000_000),
+            vitEMg        = numOrNull(nm["vitamin-e_100g"])?.times(1000),
+            vitKUg        = numOrNull(nm["vitamin-k_100g"])?.times(1_000_000),
             b12Ug         = numOrNull(nm["vitamin-b12_100g"])?.times(1_000_000),
+            b6Mg          = numOrNull(nm["vitamin-b6_100g"])?.times(1000),
+            omega3G       = numOrNull(nm["omega-3-fat_100g"]),
         ),
         weightG         = parseWeightG(raw.quantity),
         origin          = raw.origins?.takeIf { it.isNotBlank() },
         organic         = organic,
         ecoscoreGrade   = raw.ecoscoreGrade?.lowercase()?.takeIf { it.matches(Regex("[a-e]")) },
         ecoscoreValue   = raw.ecoscoreScore?.toDouble(),
-        nutriscoreGrade = raw.nutritionGrades?.lowercase()?.firstOrNull()?.toString(),
+        nutriscoreGrade = raw.nutritionGrades?.lowercase()?.firstOrNull()?.toString()?.takeIf { it.matches(Regex("[a-e]")) },
     )
 }
 
+/**
+ * True when an OFF-sourced product is missing enough data that LLM
+ * augmentation is worth attempting.
+ */
 fun isOffSparse(p: Product): Boolean {
     val n = p.nutrition
     val hasNutrition   = n.energyKcal > 0 || n.proteinG > 0 || n.carbsG > 0
-    val hasIngredients = p.ingredients.size >= 3
+    // A genuinely single/dual-ingredient product (water, salt, single-origin oil)
+    // isn't sparse data — only a fully empty ingredients list is a real gap.
+    val hasIngredients = p.ingredients.isNotEmpty()
     val hasCategory    = p.category != ProductCategory.OTHER
-    val hasMicros      = listOfNotNull(n.ironMg, n.calciumMg, n.vitDUg, n.b12Ug).any { it > 0 }
-    return !hasNutrition || !hasIngredients || !hasCategory || !hasMicros
+    // Micronutrients are legitimately absent from most nutrition-facts panels
+    // (a can of soda reporting zero vitamins isn't "sparse data", it's correct)
+    // so their absence no longer counts against a product — this was flagging
+    // almost every packaged product as sparse and forcing needless LLM merges.
+    return !hasNutrition || !hasIngredients || !hasCategory
 }
 
+/**
+ * Merge OFF record with LLM extraction.
+ * OFF is the trusted baseline; LLM fills empty / zero fields.
+ */
 fun mergeOffWithLlm(off: Product, llm: Product): Product {
-    fun <T> prefer(o: T, l: T, empty: (T) -> Boolean): T = if (empty(o)) l else o
-    val emptyNum: (Double) -> Boolean = { it == 0.0 }
+    fun <T> prefer(offVal: T, llmVal: T, isEmpty: (T) -> Boolean): T =
+        if (isEmpty(offVal)) llmVal else offVal
+
     val emptyStr: (String) -> Boolean = { it.isBlank() }
-    val o = off.nutrition; val l = llm.nutrition
+    val emptyNum: (Double) -> Boolean = { it == 0.0 }
+
+    fun mergeNutrition(o: NutritionPer100g, l: NutritionPer100g) = NutritionPer100g(
+        energyKcal    = prefer(o.energyKcal,    l.energyKcal,    emptyNum),
+        fatG          = prefer(o.fatG,          l.fatG,          emptyNum),
+        saturatedFatG = prefer(o.saturatedFatG, l.saturatedFatG, emptyNum),
+        carbsG        = prefer(o.carbsG,        l.carbsG,        emptyNum),
+        sugarsG       = prefer(o.sugarsG,       l.sugarsG,       emptyNum),
+        addedSugarsG  = o.addedSugarsG  ?: l.addedSugarsG,
+        fiberG        = prefer(o.fiberG,        l.fiberG,        emptyNum),
+        proteinG      = prefer(o.proteinG,      l.proteinG,      emptyNum),
+        saltG         = prefer(o.saltG,         l.saltG,         emptyNum),
+        transFatG     = o.transFatG     ?: l.transFatG,
+        ironMg        = o.ironMg        ?: l.ironMg,
+        calciumMg     = o.calciumMg     ?: l.calciumMg,
+        magnesiumMg   = o.magnesiumMg   ?: l.magnesiumMg,
+        potassiumMg   = o.potassiumMg   ?: l.potassiumMg,
+        zincMg        = o.zincMg        ?: l.zincMg,
+        sodiumMg      = o.sodiumMg      ?: l.sodiumMg,
+        vitAUg        = o.vitAUg        ?: l.vitAUg,
+        vitCMg        = o.vitCMg        ?: l.vitCMg,
+        vitDUg        = o.vitDUg        ?: l.vitDUg,
+        vitEMg        = o.vitEMg        ?: l.vitEMg,
+        vitKUg        = o.vitKUg        ?: l.vitKUg,
+        b12Ug         = o.b12Ug         ?: l.b12Ug,
+        b6Mg          = o.b6Mg          ?: l.b6Mg,
+        b9Ug          = o.b9Ug          ?: l.b9Ug,
+        omega3G       = o.omega3G       ?: l.omega3G,
+        omega6G       = o.omega6G       ?: l.omega6G,
+        cholesterolMg = o.cholesterolMg ?: l.cholesterolMg,
+        polyunsaturatedFatG = o.polyunsaturatedFatG ?: l.polyunsaturatedFatG,
+        monounsaturatedFatG = o.monounsaturatedFatG ?: l.monounsaturatedFatG,
+    )
+
     return Product(
         name        = prefer(off.name, llm.name, emptyStr),
         category    = if (off.category != ProductCategory.OTHER) off.category else llm.category,
         novaClass   = if (off.novaClass.value > 0) off.novaClass else llm.novaClass,
-        ingredients = if (off.ingredients.size >= 3) off.ingredients else llm.ingredients,
-        nutrition   = NutritionPer100g(
-            energyKcal    = prefer(o.energyKcal, l.energyKcal, emptyNum),
-            fatG          = prefer(o.fatG, l.fatG, emptyNum),
-            saturatedFatG = prefer(o.saturatedFatG, l.saturatedFatG, emptyNum),
-            carbsG        = prefer(o.carbsG, l.carbsG, emptyNum),
-            sugarsG       = prefer(o.sugarsG, l.sugarsG, emptyNum),
-            addedSugarsG  = o.addedSugarsG ?: l.addedSugarsG,
-            fiberG        = prefer(o.fiberG, l.fiberG, emptyNum),
-            proteinG      = prefer(o.proteinG, l.proteinG, emptyNum),
-            saltG         = prefer(o.saltG, l.saltG, emptyNum),
-            transFatG     = o.transFatG ?: l.transFatG,
-            ironMg        = o.ironMg ?: l.ironMg,
-            calciumMg     = o.calciumMg ?: l.calciumMg,
-            magnesiumMg   = o.magnesiumMg ?: l.magnesiumMg,
-            potassiumMg   = o.potassiumMg ?: l.potassiumMg,
-            zincMg        = o.zincMg ?: l.zincMg,
-            vitDUg        = o.vitDUg ?: l.vitDUg,
-            vitCMg        = o.vitCMg ?: l.vitCMg,
-            b12Ug         = o.b12Ug ?: l.b12Ug,
-            omega3G       = o.omega3G ?: l.omega3G,
-        ),
-        weightG     = off.weightG ?: llm.weightG,
-        origin      = off.origin ?: llm.origin,
-        organic     = off.organic || llm.organic,
+        ingredients = prefer(off.ingredients, llm.ingredients) { it.isEmpty() || it.size < 3 },
+        nutrition   = mergeNutrition(off.nutrition, llm.nutrition),
+        weightG             = off.weightG     ?: llm.weightG,
+        origin              = off.origin      ?: llm.origin,
+        organic             = off.organic     || llm.organic,
+        hasHealthClaims     = off.hasHealthClaims || llm.hasHealthClaims,
+        hasMisleadingMarketing = off.hasMisleadingMarketing || llm.hasMisleadingMarketing,
+        namedOils           = off.namedOils   ?: llm.namedOils,
+        originTransparent   = off.originTransparent || llm.originTransparent,
         declaredMicronutrients = (off.declaredMicronutrients + llm.declaredMicronutrients).distinct(),
         ecoscoreGrade   = off.ecoscoreGrade,
         ecoscoreValue   = off.ecoscoreValue,
@@ -167,5 +218,6 @@ fun detectSourceConflicts(off: Product, llm: Product): List<SourceConflict> {
     check("protein_g", off.nutrition.proteinG, llm.nutrition.proteinG)
     check("fat_g",     off.nutrition.fatG,     llm.nutrition.fatG)
     check("carbs_g",   off.nutrition.carbsG,   llm.nutrition.carbsG)
+    check("sugars_g",  off.nutrition.sugarsG,  llm.nutrition.sugarsG)
     return conflicts
 }
