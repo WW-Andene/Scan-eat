@@ -1290,4 +1290,70 @@ Recommendation: None at this time — noting the gap rather than asserting
   either a pass or a regression without re-testing.
 ```
 
-Section E complete — appending to design_audit.md.
+## CATEGORY F — UX, INFORMATION ARCHITECTURE & COPY
+
+```
+[PROTECT — no fix needed] — Information architecture has already been
+  through deliberate rework this project's history
+Dimension: §F1
+Finding: This project's own history (tasks #69-70, #75) shows active IA
+  discipline already applied: logging features consolidated into Journal,
+  Reminders relocated out of Settings into Journal, Profile placement
+  reversed to Settings-top per a considered decision — these aren't
+  default/accidental groupings, they're the result of prior IA passes.
+Why it matters: Stated as a protect, not a gap — the app already shows the
+  kind of "does this grouping match the user's mental model" thinking this
+  section is meant to surface.
+Recommendation: None.
+
+[LOW] — Scan error recovery is dismiss-only, no explicit distinct "retry"
+  action
+Dimension: §F2 (Error recovery flows)
+Finding: Confirmed in ScanViewModel.kt: `dismissError()` (line 134) sets
+  state directly to `ScanUiState.Idle` — there is no separate retry action;
+  dismissing an error just clears it, and the user must manually re-aim/
+  re-tap to scan again.
+Why it matters: Kept at LOW severity deliberately — a barcode scan is
+  inherently a single-step action (point camera, get result), unlike a
+  multi-step form where losing progress is costly. There's little state to
+  actually "retry from" here, so this is a minor friction point, not a
+  data-loss risk.
+Recommendation: If addressed, the highest-value version is contextual:
+  the real-error banner (Material errorContainer case, ScanScreen.kt
+  ~243-254) could offer a "Réessayer" action alongside dismiss when the
+  error is retryable (e.g. network timeout) vs. dismiss-only when it isn't
+  (e.g. "product not found" — retrying without a different photo/barcode
+  wouldn't help).
+Effort: LOW (one conditional action button)
+
+[CROSS-REFERENCE — no new finding] §F4 Copy Quality → see Phase 1 §DCVW1-2
+  (voice-character alignment: competent, slightly under-warm; targeted
+  fix recommended at high-visibility moments only)
+
+[CROSS-REFERENCE — no new finding] §F5 Micro-Interaction Quality → see
+  Phase 1 §DM1-5, §DCO1 (motion vocabulary, ripple/press feedback, focus
+  states)
+
+[LOW, MOSTLY PROTECT] — One retention mechanic (the Dashboard streak
+  badge) exists; tonally appropriate for this context, but worth naming
+  explicitly so it's not allowed to drift toward pressure patterns later
+Dimension: §F6 (Integrity over manipulation)
+Finding: CalorieBalanceCard's floating streak badge (confirmed in Phase 1
+  §DCO3: `Surface(shape=RoundedCornerShape(50), color=AccentGreen,
+  shadowElevation=6.dp)`) is the one engagement/streak mechanic found in
+  the app. Reminders (audited earlier this project's history) are opt-in
+  and use gentle, non-urgent copy — no FOMO/guilt language was found
+  anywhere in prior sessions' work on ReminderWorker.kt.
+Why it matters: Given A2=High-stakes/Emotional (health tracking), streak
+  mechanics have real potential to become manipulative (guilt over a
+  broken streak) if the product ever adds aggressive streak-loss
+  notifications or "don't lose your streak!" copy. Right now it doesn't —
+  worth stating as a standing rule rather than assuming it'll stay that way
+  by default as the app grows.
+Recommendation: No code change — add to the §DP3 Character Future-Proofing
+  rules (Phase 1): "streak mechanics never pair with loss-framed or urgent
+  copy; a broken streak resets quietly, without punitive messaging."
+Effort: N/A (a documented rule, not a code change)
+```
+
+Section F complete.
