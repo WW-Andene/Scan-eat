@@ -47,3 +47,11 @@ jobs:
           name: scan-eat-debug-apk
           path: scan-eat-android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      # No signingConfigs is defined for the release build type, so this
+      # produces a valid unsigned APK without needing any CI secrets — its
+      # only purpose here is exercising R8/minifyEnabled + shrinkResources,
+      # which the debug build above never touches. Debug-only CI previously
+      # let a real ProGuard keep-rule gap (app-audit M/L2) ship unnoticed.
+      - name: Build release APK (R8 minification check)
+        run: ./gradlew assembleRelease --stacktrace

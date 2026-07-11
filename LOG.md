@@ -858,3 +858,21 @@ decision:  Extracted EmptyListState(icon, message) into a new shared file
            (DeleteConfirmDialog.kt). All 3 wildcard-import that package
            already, so no new imports needed at any call site.
 reversal:  trivial (pure extraction, identical rendered output)
+
+### App-audit §M1/L3 — CI never exercised the release/R8 build path
+context:   android-build.yml only ever ran testDebugUnitTest and
+           assembleDebug - the release build type (minifyEnabled=true,
+           shrinkResources=true) has never once been built in CI. This is
+           the exact gap that let the real R8 keep-rule hole (app-audit
+           §M1/L2 - data.repository Moshi classes unprotected) go
+           unnoticed; any future R8/shrinker issue would ship silently the
+           same way.
+decision:  Added an assembleRelease step. No signingConfigs block exists
+           for the release build type, so this produces a valid unsigned
+           APK - no keystore/secrets needed in CI, purely a build-time
+           R8/shrinker correctness check.
+why:       Closes the gap directly rather than just documenting it -
+           unlike the Health Connect/JSON-mode cases, this needed no
+           external API verification, just recognizing the existing
+           workflow file's own scope gap.
+reversal:  trivial (one workflow step; doesn't touch app source)
