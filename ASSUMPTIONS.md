@@ -9,3 +9,5 @@
   if I hit a [STUCK] (3-retry failure) or run out of clearly scoped findings.
 - CI (android-build.yml on GitHub Actions) is the verification gate for
   code/logic changes, per this session's established fix-forward discipline.
+- User override (this loop only): batch rounds 4-10 without a CI check
+  between each; verify once after round 10, then fix-forward if red.

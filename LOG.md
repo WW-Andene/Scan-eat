@@ -52,3 +52,15 @@ decision:  Drop it — just "Rappels" / "Reminders". A notification channel
            reminders' identity either (they're just app-wide reminders).
 why:       Fixes the mislabel without inventing a new wrong association.
 reversal:  trivial (string value only, channel ID unchanged)
+
+### 2026-07-11 Round 4 — Data
+context:   scoreBarcode() serves a cached scan_history hit straight back
+           with no check against ScoreAudit.engineVersion — every scoring-
+           engine fix (this session shipped several: additive DB, Server
+           DTO, UPC-E) never reaches anything already in a user's history.
+options:   Force full rescan on version mismatch vs. recompute locally.
+decision:  Recompute: scoreProduct(cached.product) is a pure function, no
+           network needed — rescore in place when engineVersion differs.
+why:       Zero-cost fix, works offline, keeps existing history current
+           with every future scoring change automatically.
+reversal:  trivial (one branch in scoreBarcode's cache-hit path)

@@ -96,8 +96,15 @@ class ScanRepository @Inject constructor(
         // A barcode already scanned before is served straight from the local
         // cache — only a genuinely new lookup needs a connection, so this check
         // happens after the cache read instead of gating every scan up front.
+        // If the scoring engine shipped since this was cached, rescore the
+        // already-stored product locally (pure function, no network) instead
+        // of serving a permanently stale score — without this, engine fixes
+        // never reach anything already in a user's history.
         getCachedByBarcode(barcode)?.let { cached ->
-            return@runCatching Pair(cached, persist(cached))
+            val fresh = if (cached.audit.engineVersion != ENGINE_VERSION) {
+                cached.copy(audit = scoreProduct(cached.product))
+            } else cached
+            return@runCatching Pair(fresh, persist(fresh))
         }
         if (!online) error("Pas de connexion internet")
 
