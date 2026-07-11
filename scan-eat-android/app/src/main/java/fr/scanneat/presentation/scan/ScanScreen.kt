@@ -238,17 +238,11 @@ fun ScanScreen(
                         }
                     }
                 } else {
-                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
-                        color = MaterialTheme.colorScheme.errorContainer, shape = RoundedCornerShape(12.dp)) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error)
-                            Spacer(Modifier.width(8.dp))
-                            Text(error.message, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
-                            IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = MaterialTheme.colorScheme.onErrorContainer)
-                            }
-                        }
-                    }
+                    ErrorBanner(
+                        message   = error.message,
+                        modifier  = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
+                        onDismiss = { viewModel.dismissError() },
+                    )
                 }
             }
         }

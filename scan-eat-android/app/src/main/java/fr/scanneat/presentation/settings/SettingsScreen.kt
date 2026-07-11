@@ -340,15 +340,15 @@ fun SettingsScreen(
                 when (val s = backupState.value) {
                     is BackupUiState.Working -> Text(stringResource(R.string.settings_backup_working), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                     is BackupUiState.ImportSuccess -> Text(stringResource(R.string.settings_backup_import_success, s.summary.total), style = MaterialTheme.typography.bodySmall, color = AccentGreen)
-                    is BackupUiState.Error -> Text(
-                        stringResource(
+                    is BackupUiState.Error -> ErrorBanner(
+                        message   = stringResource(
                             when (s.messageKey) {
                                 BackupErrorKey.UNSUPPORTED_VERSION -> R.string.settings_backup_error_unsupported_version
                                 BackupErrorKey.MALFORMED           -> R.string.settings_backup_error_malformed
                                 BackupErrorKey.IO                  -> R.string.settings_backup_error_io
                             },
                         ),
-                        style = MaterialTheme.typography.bodySmall, color = FlagRed,
+                        onDismiss = { viewModel.clearBackupState() },
                     )
                     else -> {}
                 }

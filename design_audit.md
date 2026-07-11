@@ -70,7 +70,7 @@ in its Part with an explicit PROTECT note.
 | 3 | ~~HIGH~~ FIXED | Motion/States | Score reveal has no signature moment | B5, B8, D |
 | 4 | HIGH | Typography | Zero tabular figures on any numeric display | B2 |
 | 5 | ~~HIGH~~ FIXED | Components | No shared Button component — recipe hand-copied, drifting | B4 |
-| 6 | HIGH | States | Three unreconciled error-banner systems in one app | B8, F5 |
+| 6 | ~~HIGH~~ FIXED | States | Three unreconciled error-banner systems in one app | B8, F5 |
 | 7 | ~~MEDIUM~~ FIXED | Tokens | No Layer-3 component tokens — find/replace test fails | B10, F4 |
 | 8 | ~~MEDIUM~~ FIXED | Color | OLED theme's surface/surfaceVariant identical (no elevation tier) | B1 |
 | 9 | MEDIUM | Color | No pressed/hover accent state token | B1 |
@@ -804,6 +804,18 @@ Recommendation: Standardize on the custom FlagRed/AmberWarning system
   icon+text+optional-dismiss, and migrate ScanScreen's real-error case and
   SettingsScreen's bare-text error onto it.
 Effort: MEDIUM (one new shared composable + 2-3 call-site migrations)
+STATUS: FIXED — added `ErrorBanner` (ErrorBanner.kt): FlagRed 15%-alpha fill
+  + ErrorOutline icon + text + optional dismiss IconButton, matching
+  DietVetoBanner's existing pattern (already the correct target per this
+  recommendation). Migrated both non-conforming systems onto it:
+  ScanScreen's real-error case (previously Material colorScheme.error/
+  errorContainer) and SettingsScreen's backup error (previously a bare
+  Text with no icon or container — also gained a dismiss action via the
+  existing but previously-unused `clearBackupState()`). DietVetoBanner/
+  AllergenWarningsCard are left as their own composables since their
+  content shape (a title + list of allergen hits) differs from a single
+  message string — they were already the reference pattern this finding
+  wanted everything else to converge on.
 
 [MEDIUM] — Empty states are correctly shared (EmptyListState.kt) but
   minimal — icon + text only, no CTA
@@ -1444,6 +1456,9 @@ Recommendation: The already-recommended fix (Part B8's shared ErrorBanner
   component) resolves both the character gap and the accessibility gap
   simultaneously — priority corrected upward here.
 Effort: MEDIUM (already scoped; priority corrected)
+STATUS: RESOLVED — SettingsScreen's backup error now renders through
+  ErrorBanner (icon + text + dismiss), closing both the character gap and
+  the color-alone accessibility gap this chain identified.
 ```
 
 **Chain summary**: Chain 1 (verify before anything else ships), Chain 2
