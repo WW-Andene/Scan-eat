@@ -19,7 +19,10 @@ import javax.inject.Singleton
 // Per-day free-text notes: mood, training, cycle phase, medication, etc.
 // Cap: 500 chars per note (same as original).
 // Storage: DataStore (replaces localStorage on Android).
-// Notes stay on-device; included in backup export.
+// Notes stay on-device. NOT currently included in backup export/import
+// (BackupBundle only covers the 7 Room-backed entities — see BackupModels.kt's
+// scope comment) — a real gap if this repository's data matters to a user
+// restoring from backup, tracked there rather than silently claimed here.
 // ============================================================================
 
 const val DAY_NOTE_MAX_CHARS = 500

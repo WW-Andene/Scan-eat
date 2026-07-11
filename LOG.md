@@ -370,3 +370,17 @@ context:   scoreIngredientIntegrity's "first 3 whole foods" sub-score
            backwards for a metric meant to reward whole-food simplicity.
 decision:  Divide by first3.size (guarded against empty) instead of a
            fixed 3.
+
+### App-audit §B4/L2 — DayNotesRepository's doc comment contradicted the real backup scope
+context:   DayNotesRepository.kt claimed "Notes stay on-device; included
+           in backup export" - false. BackupModels.kt's own scope
+           comment correctly and honestly lists day notes as
+           deliberately out of scope ("fold in later"), so the actual
+           backup behavior is fine and intentional; DayNotesRepository's
+           comment was just stale/wrong, contradicting the real source
+           of truth.
+decision:  Fixed the wrong comment rather than expanding the backup
+           bundle's scope - BackupModels.kt already made a deliberate,
+           documented scoping call here; unilaterally adding day notes
+           to the bundle (new field + format-version bump) is a bigger
+           change than "fix a wrong comment."
