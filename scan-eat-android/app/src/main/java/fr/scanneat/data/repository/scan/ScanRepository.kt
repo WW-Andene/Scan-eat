@@ -404,8 +404,11 @@ class ScanRepository @Inject constructor(
             ecoscoreGrade = p.ecoscoreGrade, ecoscoreValue = p.ecoscoreValue,
             nutriscoreGrade = p.nutriscoreGrade,
         )
-        val fullAudit = scoreProduct(product).copy(
-            redFlags = audit.redFlags, greenFlags = audit.greenFlags)
+        // Trust the locally recomputed audit wholesale — flags are derived from
+        // the same pillars the UI renders, so overlaying the server's flags here
+        // risked showing red/green flags that don't match the deductions next to
+        // them if the two engines ever disagree (see doc/AUDIT_FINDINGS.md F1).
+        val fullAudit = scoreProduct(product)
         return ScanResult(product = product, audit = fullAudit, warnings = warnings,
             source = when (source) {
                 "openfoodfacts" -> ScanSource.OPEN_FOOD_FACTS
