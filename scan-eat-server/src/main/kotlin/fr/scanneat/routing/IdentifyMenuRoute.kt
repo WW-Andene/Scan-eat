@@ -19,6 +19,7 @@ private val log = LoggerFactory.getLogger("IdentifyMenuRoute")
 
 fun Route.identifyMenuRoute(groqService: GroqService) {
     post("/identify-menu") {
+        if (call.rejectIfTooLarge()) return@post
         val key = call.requireGroqKey() ?: return@post
         val req = runCatching { call.receive<ImagesRequest>() }.getOrElse {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
@@ -58,6 +59,7 @@ fun Route.identifyMenuRoute(groqService: GroqService) {
 
 fun Route.identifyRecipeRoute(groqService: GroqService) {
     post("/identify-recipe") {
+        if (call.rejectIfTooLarge()) return@post
         val key = call.requireGroqKey() ?: return@post
         val req = runCatching { call.receive<ImagesRequest>() }.getOrElse {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))

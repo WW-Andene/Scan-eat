@@ -25,6 +25,7 @@ private val log = LoggerFactory.getLogger("ScoreRoute")
 
 fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
     post("/score") {
+        if (call.rejectIfTooLarge()) return@post
         val req = runCatching { call.receive<ScoreRequest>() }.getOrElse {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post

@@ -30,6 +30,23 @@ suspend fun ApplicationCall.requireGroqKey(): String? {
     return key
 }
 
+/**
+ * Reject (with 413) and return true if the declared Content-Length exceeds
+ * [MAX_BODY_BYTES]. Callers must check this before `call.receive<T>()`,
+ * which otherwise buffers a body of any size — MAX_BODY_BYTES was declared
+ * and documented but never actually enforced. A chunked request with no
+ * Content-Length header still bypasses this; a full fix needs Ktor 3.x's
+ * RequestBodyLimit plugin.
+ */
+suspend fun ApplicationCall.rejectIfTooLarge(): Boolean {
+    val len = request.headers[HttpHeaders.ContentLength]?.toLongOrNull()
+    if (len != null && len > MAX_BODY_BYTES) {
+        respond(HttpStatusCode.PayloadTooLarge, ErrorResponse("Request body too large"))
+        return true
+    }
+    return false
+}
+
 /** Normalize a legacy `imageBase64` field alongside the `images` array. */
 fun normalizeImages(images: List<ImageDto>?, imageBase64: String?, mime: String?): List<ImageDto> {
     if (!images.isNullOrEmpty()) {

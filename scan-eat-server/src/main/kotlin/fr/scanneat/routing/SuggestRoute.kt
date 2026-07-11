@@ -19,6 +19,7 @@ private val log = LoggerFactory.getLogger("SuggestRoute")
 
 fun Route.suggestRecipesRoute(groqService: GroqService) {
     post("/suggest-recipes") {
+        if (call.rejectIfTooLarge()) return@post
         val key = call.requireGroqKey() ?: return@post
         val req = runCatching { call.receive<SuggestRecipesRequest>() }.getOrElse {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
@@ -51,6 +52,7 @@ fun Route.suggestRecipesRoute(groqService: GroqService) {
 
 fun Route.suggestFromPantryRoute(groqService: GroqService) {
     post("/suggest-from-pantry") {
+        if (call.rejectIfTooLarge()) return@post
         val key = call.requireGroqKey() ?: return@post
         val req = runCatching { call.receive<SuggestFromPantryRequest>() }.getOrElse {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
