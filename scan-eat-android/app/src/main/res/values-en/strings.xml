@@ -797,7 +797,7 @@
     <string name="history_item_summary">%1$s, grade %2$s, %3$d out of 100</string>
 
     <!-- ── Reminders ──────────────────────────────────────────────────────── -->
-    <string name="reminders_channel_name">Metabolism Reminders</string>
+    <string name="reminders_channel_name">Reminders</string>
     <string name="reminders_title">Reminders</string>
     <string name="reminders_enable_notifications">Enable notifications</string>
     <string name="reminders_breakfast">Breakfast</string>

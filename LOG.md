@@ -38,3 +38,17 @@ decision:  Fixed all three — added overflow = TextOverflow.Ellipsis + the
 why:       Same bug, same fix, all three files display the same kind of data.
 reversal:  trivial (one param + one import per file)
 
+
+### 2026-07-11 Round 3 — Old feature
+context:   reminders_channel_name (Android notification-channel display
+           name, shown in system Settings) was "Rappels Métabolisme" /
+           "Metabolism Reminders" even though it covers meal/water/weight
+           reminders that live in Journal, not the Métabolisme module.
+           Pre-existing mislabel (was "Rappels Biolism"), preserved by the
+           earlier blanket Biolism->Métabolisme rename instead of fixed.
+options:   Rename to "Rappels Journal" vs. drop the module prefix entirely.
+decision:  Drop it — just "Rappels" / "Reminders". A notification channel
+           doesn't need a module scope, and Journal itself isn't the
+           reminders' identity either (they're just app-wide reminders).
+why:       Fixes the mislabel without inventing a new wrong association.
+reversal:  trivial (string value only, channel ID unchanged)
