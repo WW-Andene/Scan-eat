@@ -31,7 +31,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MealTemplateEntity::class,
         RecipeEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -110,5 +110,17 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         // dual-profile data exists.
         db.execSQL("DROP INDEX IF EXISTS `index_weight_log_date`")
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_weight_log_date_profileId` ON `weight_log` (`date`, `profileId`)")
+    }
+}
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v6 → v7: activity_log was the one remaining table indexed on
+        // `date` alone instead of `(date, profileId)` like
+        // consumption_log/scan_history already are - a non-unique lookup
+        // index, so no data-loss risk like weight_log's v5→v6 fix, just a
+        // consistency/query-shape gap that will matter once multi-profile
+        // queries are actually reachable.
+        db.execSQL("DROP INDEX IF EXISTS `index_activity_log_date`")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_activity_log_date_profileId` ON `activity_log` (`date`, `profileId`)")
     }
 }

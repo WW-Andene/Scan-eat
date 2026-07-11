@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "activity_log", indices = [Index("date")])
+@Entity(tableName = "activity_log", indices = [Index("date", "profileId")])
 data class ActivityEntity(
     @PrimaryKey val id: String,
     val date: String,

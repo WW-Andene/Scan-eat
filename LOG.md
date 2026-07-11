@@ -1015,3 +1015,20 @@ fix:       Added the standard tools:node="remove" provider-merge block
            the default initializer, plus the xmlns:tools declaration it
            needs on the manifest root.
 verify:    CI check pending on this commit.
+
+### App-audit §D1/L4 — activity_log was the one table not indexed with profileId
+context:   consumption_log and scan_history both index on (profileId, ...)
+           for their date/timestamp queries; weight_log was fixed to the
+           same shape at app-audit §D/L1 (a real unique-index data-loss
+           bug there). activity_log was the one remaining table still
+           indexed on `date` alone - not a uniqueness/data-loss issue
+           (no unique constraint here, multiple activities per day are
+           expected), just a query-shape inconsistency that would matter
+           once multi-profile queries are actually reachable.
+decision:  Migration 6->7: replaced the date-only index with
+           (date, profileId), matching the other 3 tables' convention.
+why:       Consistency with an established, deliberate schema pattern
+           already applied everywhere else - low-value today (single
+           profile in practice) but free to align now.
+reversal:  additive migration (index swap only), safe regardless of
+           future multi-profile plans - same reasoning as §D/L1's weight_log fix.
