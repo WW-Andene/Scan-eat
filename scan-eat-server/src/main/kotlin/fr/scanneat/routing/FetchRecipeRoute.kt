@@ -113,7 +113,9 @@ fun Route.fetchRecipeRoute() {
 
 private val jsonParser = Json { ignoreUnknownKeys = true; isLenient = true }
 
-private fun parseSchemaOrgRecipe(html: String, sourceUrl: String): FetchedRecipeResponse? {
+// internal (not private) so tests can exercise the real extraction logic
+// instead of asserting on a fixture string the test itself wrote.
+internal fun parseSchemaOrgRecipe(html: String, sourceUrl: String): FetchedRecipeResponse? {
     // Extract all <script type="application/ld+json"> blocks
     val ldJsonBlocks = Regex(
         """<script[^>]*type=["']application/ld\+json["'][^>]*>([\s\S]*?)</script>""",

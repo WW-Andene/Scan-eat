@@ -75,20 +75,4 @@ class ScoringEngineTest {
         assertEquals(AdditiveTier.ONE, info!!.tier)
     }
 
-    @Test
-    fun `fetch recipe schema org parser finds recipe name`() {
-        // smoke test — full HTML tested in integration
-        val fakeHtml = """
-            <html><head>
-            <script type="application/ld+json">
-            {"@type":"Recipe","name":"Tarte aux pommes","recipeYield":"6 personnes",
-             "recipeIngredient":["300g farine","2 pommes"],
-             "recipeInstructions":[{"@type":"HowToStep","text":"Mélanger la farine."}]}
-            </script>
-            </head></html>
-        """.trimIndent()
-        // The parser lives in FetchRecipeRoute — test the JSON-LD extraction logic inline
-        // via a minimal check that the LD+JSON block contains "Tarte aux pommes"
-        assertTrue(fakeHtml.contains("Tarte aux pommes"))
-    }
 }
