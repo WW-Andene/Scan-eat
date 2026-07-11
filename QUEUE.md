@@ -16,6 +16,16 @@ Data, Old feature, New feature — never the same category twice in a row.
   is still hardcoded English-only, unlike the offline/missing-API-key
   messages fixed in app-audit §F — needs `lang` threaded into
   scoreViaServer's signature to fix properly (rarer Server-mode-only path).
+- findAdditive(eNumber, name, category) in AdditivesDb.kt is called
+  independently 3x per ingredient during a single scoreProduct() run —
+  ProcessingPillar.kt (2 call sites), AdditiveRiskPillar.kt (2 call sites,
+  incl. countTier1Additives), IngredientIntegrityPillar.kt (1 call site) —
+  each doing its own O(n) linear + synonym-substring scan over the ~95-entry
+  ADDITIVES_DB for the same ingredient. Real wasted computation (§I4 code
+  duplication), but the correct fix (memoize once per product in
+  ScoringEngine.kt and thread the result through all 3 pillar functions)
+  touches 4 files at once with no CI feedback loop active mid-audit-batch —
+  too risky to land blind. Queued for a dedicated pass with CI available.
 
 ## Stuck
 (3-strike failures land here, per skill's FAILURE & RETRY rule)

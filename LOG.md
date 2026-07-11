@@ -449,6 +449,23 @@ decision:  4 sites: converted the containing Row to
            already provides click handling, so just removed the
            redundant nested onClick.
 
+### App-audit §I4/L2 — findAdditive() recomputed 3x per ingredient per scoreProduct()
+context:   findAdditive(eNumber, name, category) (AdditivesDb.kt) is called
+           independently by ProcessingPillar.kt (2 sites), AdditiveRiskPillar.kt
+           (2 sites, incl. countTier1Additives), and IngredientIntegrityPillar.kt
+           (1 site) - each pillar re-runs its own O(n) linear + synonym-
+           substring scan over the ~95-entry ADDITIVES_DB for the same
+           ingredient during a single scoreProduct() call. Real duplicated
+           work (§I4), grows with the additive DB this session already
+           expanded twice.
+decision:  Queued rather than fixed here - the correct fix (memoize once per
+           product in ScoringEngine.kt, thread through all 3 pillar
+           functions) touches 4 files at once, and there's no CI feedback
+           loop active mid-batch to catch a threading mistake blind. Logged
+           to QUEUE.md for a dedicated pass with CI available (same
+           reasoning as §H3 and §O4 this session).
+reversal:  n/a (no code changed, doc/queue only)
+
 ### App-audit §H3/L2 — ScanScreen's "edge to edge" comment overstated reality
 context:   MainShell's own Scaffold (contentWindowInsets =
            WindowInsets.systemBars) already consumes status/nav-bar
