@@ -64,6 +64,15 @@ tasks.shadowJar {
     manifest { attributes["Main-Class"] = "fr.scanneat.ApplicationKt" }
 }
 
+// Expands project.version into a resource read once at startup — /health
+// previously hardcoded "0.1.0" as a literal, independent of this file's own
+// `version =` above, so the two would silently diverge on the first bump.
+tasks.processResources {
+    filesMatching("version.properties") {
+        expand("version" to project.version)
+    }
+}
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = "17"
 }

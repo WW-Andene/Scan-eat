@@ -18,6 +18,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
+import java.util.Properties
 
 // ============================================================================
 // SCAN'EAT KTOR SERVER
@@ -37,6 +38,14 @@ import org.slf4j.event.Level
 fun main() {
     embeddedServer(Netty, port = System.getenv("PORT")?.toIntOrNull() ?: 8080, module = Application::module)
         .start(wait = true)
+}
+
+// Generated from build.gradle.kts' `version =` via processResources — read once
+// at startup instead of hardcoding a literal that silently drifts from it.
+private val SERVER_VERSION: String by lazy {
+    val props = Properties()
+    object {}.javaClass.getResourceAsStream("/version.properties")?.use { props.load(it) }
+    props.getProperty("version") ?: "unknown"
 }
 
 fun Application.module() {
@@ -83,7 +92,7 @@ fun Application.module() {
 
     // ---- Routing ----
     routing {
-        get("/health") { call.respond(mapOf("status" to "ok", "version" to "0.1.0")) }
+        get("/health") { call.respond(mapOf("status" to "ok", "version" to SERVER_VERSION)) }
 
         route("/api") {
             scoreRoute(groqService, offService)
