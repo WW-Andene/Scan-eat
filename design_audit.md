@@ -1003,9 +1003,171 @@ DESIGN DNA SPECIFICATION
 
 ---
 
-## Not yet covered (continuing)
+## XVII. ILLUSTRATION & GRAPHIC LANGUAGE
 
-§DCP1-3 (Competitive positioning — needs web research, next).
+```
+[SKIPPED — per skill's own skip rule]
+Finding: No custom illustrations, spot graphics, or illustrated empty-state
+  compositions exist anywhere in the app (confirmed — EmptyListState.kt
+  uses a Material icon, not an illustration; no illustration-related assets
+  found in res/drawable/ beyond launcher/notification icons).
+Why skipped: §DIL's own execution rule: "Skip when the app has no
+  illustrations, custom graphics, or spot illustrations." That's the case
+  here — this section has nothing to audit.
+```
 
-Phase 2 (expanded UI audit from app-audit-SKILL.md): §E1-10, §F1-6, §G1-4,
-§H3, §L3-5, §D5 — still to come after Phase 1 completes.
+## XVIII. DATA VISUALIZATION CHARACTER
+
+```
+[PARTIALLY COVERED ELSEWHERE, not a standalone gap]
+Finding: The app does use progress-ring/progress-bar data visualization
+  (ScoreDisplay's grade rings, dashboard macro rings/bars, Biolism's
+  LinearProgressIndicator usages) — these aren't absent, but they're built
+  from Material's CircularProgressIndicator/LinearProgressIndicator
+  primitives rather than a dedicated charting library, and their character
+  treatment was already audited under §DST2 (Loading State Design, since
+  the same primitives serve both loading and data-viz roles) and §DH1
+  (the score ring's correct focal-weight treatment).
+Why not a new section: There's no additional data-viz-specific finding here
+  beyond what's already been raised — treating this as its own section
+  would duplicate §DST2/§DH1 rather than add new evidence.
+```
+
+---
+
+## X. COMPETITIVE VISUAL POSITIONING
+
+Web search returned confirmed detail for Yuka (its light-background, color-
+coded 0-100 score identity is well-documented); Cronometer and Open Food
+Facts didn't return fetchable visual specifics this pass, so those two are
+marked `[UNVERIFIED beyond general knowledge]` rather than asserted as
+confirmed — per the skill's own accuracy rule, that's the honest way to
+handle incomplete research rather than filling gaps from memory.
+
+```
+Product A: Yuka
+  Visual character:    Light, white/pale-background app built around a
+                        single 0-100 numeric score that resolves to a
+                        green/yellow/red color band — mass-market clarity
+                        over atmosphere. [WEB-confirmed: white/light
+                        background, green-for-good/red-for-bad Nutri-Score-
+                        derived color coding, 76M+ users as of Oct 2025.]
+  Accent / palette:    Green (good) / yellow (moderate) / red (poor) — the
+                        same traffic-light convention Scan'eat's grade
+                        system also uses, but on a light background instead
+                        of dark.
+  Typography:          [UNVERIFIED beyond general knowledge — likely a
+                        standard mobile-default sans, not independently
+                        confirmed this pass]
+  Spatial density:     Simple, low-density, single-score-forward — optimized
+                        for instant legibility at a glance in-store, not for
+                        sustained data review.
+  Signature element:   The 0-100 score number itself, at large scale, is
+                        the whole identity — there's little else to
+                        remember visually.
+  Genericness score:   2/5 — the traffic-light convention itself is now a
+                        category standard (many apps use it), but Yuka
+                        owns the "big number + light background" execution
+                        of it at mass-market scale.
+  Relation to this app: Yuka does NOT occupy the dark/atmospheric/premium
+                        territory Scan'eat is reaching for — this is real,
+                        confirmed whitespace (see below), not a guess.
+
+Product B: Cronometer [UNVERIFIED beyond general knowledge — not
+  independently re-confirmed via screenshot this pass]
+  Visual character:    Widely known as a light-mode-default, data-table-
+                        dense tracker prioritizing full nutrient panels over
+                        a single score — utility-first, not atmosphere-first.
+  Accent / palette:    Green-accented, generally light background.
+  Relation to this app: If accurate, occupies a "quantitative depth, low
+                        visual investment" position distinct from both Yuka
+                        and Scan'eat.
+
+Product C: Open Food Facts (official app) [UNVERIFIED beyond general
+  knowledge]
+  Visual character:    Open-source, basic Material Design conventions,
+                        green branding, minimal custom visual investment —
+                        functional over designed.
+  Relation to this app: Likely the least visually invested of the three
+                        benchmarks; low competitive threat on aesthetics
+                        specifically, strong threat on data breadth (which
+                        is outside this audit's scope).
+
+WHITESPACE OPPORTUNITY
+  Available position: "Dark, warm, atmospheric premium" in a category where
+    every major visible competitor (at minimum, the confirmed case of
+    Yuka) defaults to light-background, primary-color-forward, mass-market
+    clarity.
+  Why it's available: Nutrition-scoring apps optimize for instant in-store
+    legibility (bright light, quick glance) — light backgrounds serve that
+    use case well, so competitors have little reason to invest in a dark/
+    atmospheric identity. Scan'eat's broader scope (Diary, Biolism/
+    metabolism modeling, weight tracking, meal planning) means it's used
+    in more contexts than "standing in a store aisle," which is exactly
+    where a considered dark identity has room to differentiate without
+    fighting the category's core use case.
+  Fit for this app: Strong — this is precisely the confirmed Character
+    Brief's territory, and it's currently unclaimed by the one competitor
+    with confirmed visual evidence.
+  Risk: Dark UI can read as harder to use in bright daylight (the exact
+    context barcode-scanning happens in) — worth verifying the scan
+    camera screen itself remains legible in direct sunlight regardless of
+    the app's dark theme choice (a real UX risk, not just an aesthetic one).
+  Claim strategy: (1) Ship the score-reveal glow moment (§DM5/§DP3) as the
+    single most memorable differentiator — nothing in the confirmed
+    evidence suggests any benchmark has an equivalent; (2) lean into the
+    metabolic/Biolism depth as a visual extension of "considered" (data
+    density done with craft, not just density); (3) keep the OLED-gold
+    identity consistent across every touchpoint, since it's currently the
+    strongest asset the app already owns.
+
+§DCP2 Positioning Matrix (axes: Clinical/data-dense ←→ Warm/atmospheric, ×
+  Mass-market simplicity ←→ Considered depth):
+    Yuka:              Mass-market simple, closer to Clinical-neutral
+                        (light, score-forward, not warm)
+    Cronometer:         Considered depth, Clinical (data-table-dense)
+    Open Food Facts:    Mass-market simple, Clinical (utilitarian)
+    Scan'eat (current): Considered depth (Biolism, personal scoring), but
+                        pulled toward Clinical by the generic-icon/flat-
+                        surface execution gaps already identified
+    Scan'eat (target):  Considered depth AND Warm/atmospheric — the one
+                        quadrant none of the three benchmarks credibly
+                        occupy
+
+§DCP3 Visual Differentiation Opportunities
+
+Differentiator: Dark, warm, "glowing" visual identity vs. the category's
+  light/score-forward convention
+Current state: Palette exists and is genuinely distinctive; execution
+  (icons, motion, elevation) doesn't yet deliver on it
+Target state: The confirmed Character Brief, fully realized per §DP3
+Effort: Medium (mostly already-scoped fixes from earlier sections)
+Competitive value: Differentiates from Yuka specifically (confirmed light-
+  background identity) and, if the general-knowledge read on Cronometer/OFF
+  holds, from the entire category's light-mode default
+
+Differentiator: A genuine "moment of delivery" (the score reveal) with its
+  own motion signature
+Current state: Absent — renders like every other state change in the app
+Target state: §DM5's glow-reveal recommendation
+Effort: Medium
+Competitive value: [UNVERIFIED — no confirmed evidence either way for any
+  benchmark's reveal-moment treatment] but a signature reveal moment is, by
+  the skill's own logic, inherently hard to copy regardless of what
+  competitors do, since it only works if it's unique to one product
+```
+
+---
+
+## PHASE 1 COMPLETE
+
+All 21 steps of the design-aesthetic-audit-SKILL.md "full deep" Phase 1 path
+are covered above: §0 → §DS1-2 → §DP0-2 (confirmed by user) → §DBI1+3 →
+§DC1-5 → §DT1-4 → §DCO1-6 → §DH1-4 → §DSA1-5 → §DM1-5 → §DI1-4 → §DST1-4 →
+§DCVW1-3 → §DIL1-3 (skipped, no illustrations) → §DDV1-3 (folded into
+§DST2/§DH1, no separate finding) → §DTA1-2 → §DRC1-3 (skipped, phone-only
+fixed layout) → §DDT1-2 → §DP3 → §DBI2 → §DCP1-3.
+
+Phase 2 (expanded UI audit from app-audit-SKILL.md: §E1-10, §F1-6, §G1-4,
+§H3, §L3-5, §D5) has NOT been started, per explicit user instruction to
+stop after Phase 1.
