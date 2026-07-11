@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import fr.scanneat.domain.model.Grade
@@ -126,6 +128,13 @@ private val TritanopiaSafeGradeColors = mapOf(
     Grade.C      to Color(0xFFE8998D),
     Grade.D      to Color(0xFFD45D5D),
     Grade.F      to Color(0xFFA62B2B),
+)
+
+/** The AccentGreen outlined-field color scheme repeated verbatim across ~7 screens. */
+@Composable
+fun scanEatTextFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f),
+    focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,
 )
 
 @Composable

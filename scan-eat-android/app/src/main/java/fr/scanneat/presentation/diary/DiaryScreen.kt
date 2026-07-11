@@ -173,7 +173,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                     }
                 },
                 shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                colors = scanEatTextFieldColors(),
             )
 
             Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.titleSmall, color = OnBackground,

@@ -99,7 +99,7 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
             OutlinedTextField(
                 value = text, onValueChange = { text = it },
                 modifier = Modifier.weight(1f), singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                colors = scanEatTextFieldColors(),
             )
             IconButton(onClick = { onEdit(text); editing = false }, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Check, stringResource(R.string.common_ok), tint = AccentGreen, modifier = Modifier.size(18.dp))

@@ -116,7 +116,7 @@ fun OnboardingScreen(
                             value = apiKey, onValueChange = { apiKey = it },
                             label = { Text(stringResource(R.string.onboarding_api_key_label)) },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                            colors = scanEatTextFieldColors(),
                             shape = RoundedCornerShape(12.dp),
                         )
                         Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
@@ -125,7 +125,7 @@ fun OnboardingScreen(
                             value = serverUrl, onValueChange = { serverUrl = it },
                             label = { Text(stringResource(R.string.settings_server_url)) },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                            colors = scanEatTextFieldColors(),
                             shape = RoundedCornerShape(12.dp),
                         )
                     }

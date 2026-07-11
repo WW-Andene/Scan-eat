@@ -118,7 +118,7 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
+                    colors = scanEatTextFieldColors())
                 HorizontalDivider(color = OnBackground.copy(0.1f))
                 Text(stringResource(R.string.recipes_ingredients_label), style = MaterialTheme.typography.labelMedium, color = AccentGreen)
                 components.forEach { c ->
@@ -126,13 +126,13 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(value = newIngName, onValueChange = { newIngName = it }, label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
+                        colors = scanEatTextFieldColors())
                     OutlinedTextField(value = newIngGrams, onValueChange = { newIngGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
+                        colors = scanEatTextFieldColors())
                     OutlinedTextField(value = newIngKcal, onValueChange = { newIngKcal = it }, label = { Text("kcal") }, modifier = Modifier.weight(1f), singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
+                        colors = scanEatTextFieldColors())
                 }
                 TextButton(onClick = {
                     val g = newIngGrams.toDoubleOrNull() ?: return@TextButton
@@ -172,7 +172,7 @@ private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealS
                 }
                 OutlinedTextField(value = fractionText, onValueChange = { fractionText = it }, label = { Text(stringResource(R.string.recipes_portion_label)) }, singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground))
+                    colors = scanEatTextFieldColors())
             }
         },
         confirmButton = { TextButton(onClick = { fractionText.toDoubleOrNull()?.let { onLog(slot, it) } }) { Text(stringResource(R.string.common_log), color = AccentGreen) } },

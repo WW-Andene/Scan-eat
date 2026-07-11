@@ -170,7 +170,7 @@ fun ActivityScreen(
                         value = minutesText, onValueChange = { minutesText = it },
                         label = { Text(stringResource(R.string.activity_duration_label)) }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                        colors = scanEatTextFieldColors(),
                     )
                 }
             },

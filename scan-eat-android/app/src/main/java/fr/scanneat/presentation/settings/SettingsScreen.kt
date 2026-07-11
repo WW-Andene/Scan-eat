@@ -170,7 +170,7 @@ fun SettingsScreen(
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true, shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                        colors = scanEatTextFieldColors(),
                     )
                     Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                     SaveButtonRow(saved = savedField.value == "apiKey") { viewModel.saveApiKey(localKey) }
@@ -198,7 +198,7 @@ fun SettingsScreen(
                         value = localModel, onValueChange = { localModel = it },
                         modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_groq_model_id_placeholder)) },
                         singleLine = true, shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                        colors = scanEatTextFieldColors(),
                     )
                     SaveButtonRow(saved = savedField.value == "groqModel") { viewModel.saveGroqModel(localModel) }
                 }
@@ -212,7 +212,7 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_server_url_placeholder)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                         singleLine = true, shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                        colors = scanEatTextFieldColors(),
                     )
                     SaveButtonRow(saved = savedField.value == "serverUrl") { viewModel.saveServerUrl(localUrl) }
                 }

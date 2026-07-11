@@ -281,3 +281,13 @@ queued:    The broader observation - all 15 spots (32-36dp) sit below
            as an intentional density tradeoff, not an oversight. Logged
            to QUEUE.md as a design-system-level recommendation, not an
            immediate fix.
+
+### App-audit §I4 — duplicated OutlinedTextField color scheme (17 spots, 7 files)
+context:   The exact AccentGreen outlined-field color block was repeated
+           verbatim 17 times across 7 screen files. Pure duplication -
+           any future color tweak would need 17 synchronized edits.
+decision:  Extracted scanEatTextFieldColors() into Colors.kt (the
+           existing theme-token file); replaced all 17 call sites via
+           exact-string sed (safe: single unambiguous literal). All 7
+           files already wildcard-import the theme package, no new
+           imports needed.

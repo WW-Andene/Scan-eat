@@ -198,12 +198,12 @@ fun WeightScreen(
                         value = kgText, onValueChange = { kgText = it },
                         label = { Text(if (useImperial) "Poids (lb)" else stringResource(R.string.weight_field_kg)) }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                        colors = scanEatTextFieldColors(),
                     )
                     OutlinedTextField(
                         value = notesText, onValueChange = { notesText = it },
                         label = { Text("Notes (optionnel)") }, singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                        colors = scanEatTextFieldColors(),
                     )
                 }
             },
