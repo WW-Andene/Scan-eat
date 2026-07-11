@@ -30,11 +30,66 @@ each in its own commit, server side verified with `gradle test` locally:
 | `b6e3ffe` | `ENGINE_VERSION` 2.2.0 → 2.3.0 on both sides, so `ScanRepository`'s rescore-cached-history-on-version-change mechanism actually fires after the behavior changes above |
 | `4938265` | Server CI workflow (`server-build.yml`: gradle test + shadowJar) + Gradle wrapper — the server previously had **zero** CI, which is how all of the above drifted in unnoticed |
 
+## Part 1B — F2-F30 fixed on request ("apply the fixes")
+
+Every finding below except F1, F15, F18, and F22 (see "Still open" below for
+why) was subsequently fixed, one concern per commit. Server-side commits
+verified with `gradle test` locally; app-side commits were read carefully but
+**not compiled** — no Android SDK is available in this sandbox, so CI is the
+real verification gate for these (see the coverage note at the end of this
+file).
+
+| Commit | Finding | Fix |
+|---|---|---|
+| `a99abb3` | F24 | Weight-delta operator-precedence bug — `(latest−first)×10`, not `latest−first×10` |
+| `dec6ecf` | F29, F30 | Gluten regex missing the literal word "gluten"; `pâté` accent bug; `noix` over-matching coconut/nutmeg — plus new `AllergenDetectorTest.kt` |
+| `f7884dc` | F2 | `rejectIfTooLarge()` 413 guard on every server POST route |
+| `b221e0a` | F3 | `lang`/`model` threaded through `ScoreRequest`/`ServerScoreRequest` and `ScanRepository.scoreViaServer()` |
+| `18ee360` | F4 | `ServerScoreResponse.toDomain()` no longer overlays server flags onto the locally recomputed audit |
+| `6a069aa` | F5 | `yieldToServings()` returns `Int?` instead of fabricating `1` |
+| `72fa1a1` | F6 | `numFrom()` extracts the leading numeric token from values like `"350 calories"` |
+| `1d0c944` | F7 | `parseSchemaOrgRecipe` made `internal`; real `FetchRecipeRouteTest.kt` replacing the no-op test |
+| `9da54a2` | F8 | CORS driven by `ALLOWED_ORIGINS` env var; `anyHost()` only in dev mode |
+| `d6d3d3c` | F11 | `/health`'s version generated from the Gradle project version at build time |
+| `e456626` | F16 | Prompt-injection hardening, `hasImages` fallback-model guard, and retry backoff ported to the server's LLM parser |
+| `d07f767` | F9 | Backup import for `scan_history`/`consumption_log` deduped by natural key |
+| `e94c843` | F14 | Result screen's "Log" button now uses the same tab-switch nav options as `MainShell` |
+| `cde3a24` | F17 | `OcrParser` takes the shared Moshi singleton instead of building its own |
+| `030dfed` | F13 | Meal reminders bounded to a 3h staleness window; enabling a past-due reminder marks it fired-today |
+| `16890ad` | F26 | Fasting streak given the same 1-day grace as the journal streak |
+| `6380975` | F28 | Meal-plan notes sanitize embedded newlines; dead `component5` extension removed |
+| `91591ff` | F27 | Hydration DataStore keys older than 90 days pruned on write |
+| `c0e23a7` | F21 | Weight forecast treats near-zero slope (< 20g/week) and >104-week horizons as `Flat` |
+| `ab2709a` | F23 | Notification channel renamed off `biolism_reminders`; legacy channel deleted |
+| `25f1a20` | F19, F20 | `FoodEntry` gained real iron/calcium/vitD/B12 values; `closeTheGap()`'s density lambdas wired to them; rollup fiber/micro fields populated |
+| `12fcf69` | F10 | Stale `scanneat-complete.zip` removed; `*.zip` gitignored |
+| `10b8491` | F12 | Groq API key encrypted at rest (`ApiKeyCipher`, AES-256/GCM via AndroidKeyStore), with transparent legacy-plaintext migration |
+| `0017b13` | F25 | Profile, settings (minus the API key), reminder settings, fasting, hydration, day notes, and meal plan added to backup export/import (format v2) |
+
+### Still open
+
+- **F1** (drift guard) — a structural/process fix (CI diff check, parity
+  tests, or a shared Gradle module), not a single code change; left as
+  documented options above.
+- **F15** (dead multi-profile plumbing) — requires a product decision
+  (implement real profiles vs. delete the plumbing), not something to guess.
+- **F18** (Health Connect `clientRecordId` dedup) — the pinned
+  `androidx.health.connect:connect-client:1.1.0-alpha07`'s `Metadata`
+  constructor shape has "already broken once across this pinned alpha's
+  versions" per `WeightRepository.kt`'s own comment, and no cached artifact
+  or Android SDK was available in this sandbox to verify the current shape.
+  Guessing it blind risked shipping a broken build for a LOW-severity fix —
+  left open rather than guessed.
+- **F22** (committed Room migration schemas) — needs a real Android SDK
+  build to generate `app/schemas/`, unavailable in this sandbox.
+
 ---
 
-## Part 2 — Open findings (documented, not fixed)
+## Part 2 — Full findings detail (fix status per finding, see Part 1B)
 
 ### F1 · HIGH · Structure — the shared-code copy has no drift guard
+
+**Status: OPEN** — see "Still open" in Part 1B for why.
 
 **Where:** `scan-eat-server/src/main/kotlin/fr/scanneat/shared/*` vs
 `scan-eat-android/.../domain/engine/scoring/*`, `.../domain/model/*`,
@@ -64,6 +119,8 @@ missing the server again.
 ---
 
 ### F2 · MEDIUM · Bug — the 12 MB request-body limit is claimed but never enforced
+
+**Status: FIXED — commit `f7884dc`.**
 
 **Where:** `scan-eat-server/.../routing/RouteHelpers.kt:15`
 (`MAX_BODY_BYTES`), referenced in `ScoreRoute.kt`'s doc comment
@@ -95,6 +152,8 @@ Ktor 3.x and `install(RequestBodyLimit) { bodyLimit { MAX_BODY_BYTES } }`.)
 
 ### F3 · MEDIUM · Incoherence — Server mode ignores the user's language and model settings
 
+**Status: FIXED — commit `b221e0a`.**
+
 **Where:** `scan-eat-server/.../model/ApiModels.kt` (`ScoreRequest`),
 `ScoreRoute.kt:47` (`groqService.parseLabel(images, key)`),
 app side `ServerScanApi.kt` (`ServerScoreRequest`),
@@ -117,6 +176,8 @@ compatible in both directions since both fields default to null.
 
 ### F4 · LOW · Incoherence — server-mode results mix locally recomputed scores with server flags
 
+**Status: FIXED — commit `18ee360`.**
+
 **Where:** `scan-eat-android/.../data/repository/scan/ScanRepository.kt:404`
 
 **Finding:** `ServerScoreResponse.toDomain()` recomputes the audit locally
@@ -134,6 +195,8 @@ rescoring is ever removed.
 
 ### F5 · LOW · Bug — fetch-recipe fabricates "1 serving" when the page declares none
 
+**Status: FIXED — commit `6a069aa`.**
+
 **Where:** `scan-eat-server/.../routing/FetchRecipeRoute.kt`
 (`yieldToServings`, used as `yieldToServings(...).toString()`)
 
@@ -148,6 +211,8 @@ element is missing/unparsable) and pass
 ---
 
 ### F6 · LOW · Bug — fetch-recipe drops nutrition when calories carry units
+
+**Status: FIXED — commit `72fa1a1`.**
 
 **Where:** `scan-eat-server/.../routing/FetchRecipeRoute.kt` (`numFrom`)
 
@@ -167,6 +232,8 @@ Regex("""(\d+(?:[.,]\d+)?)""").find(content)?.groupValues?.get(1)
 
 ### F7 · LOW · Test gap — the server's fetch-recipe test asserts nothing
 
+**Status: FIXED — commit `1d0c944`.**
+
 **Where:** `scan-eat-server/src/test/kotlin/fr/scanneat/ScoringEngineTest.kt`
 (`fetch recipe schema org parser finds recipe name`)
 
@@ -183,6 +250,8 @@ above once fixed.
 ---
 
 ### F8 · LOW · Security hardening — CORS is `anyHost()`
+
+**Status: FIXED — commit `9da54a2`.**
 
 **Where:** `scan-eat-server/.../Application.kt:59`
 (`anyHost() // tighten in production`)
@@ -201,6 +270,8 @@ and only `anyHost()` when `io.ktor.development` is true.
 
 ### F9 · LOW · Data — restoring the same backup twice duplicates history rows
 
+**Status: FIXED — commit `d07f767`.**
+
 **Where:** `scan-eat-android/.../data/backup/BackupRepository.kt:77-78`
 
 **Finding:** `scan_history` and `consumption_log` ids are deliberately
@@ -218,6 +289,8 @@ transaction, then `filterNot` on the bundle, keeps it O(n) and atomic.
 
 ### F10 · LOW · Structure — a 290 KB snapshot zip is committed at the repo root
 
+**Status: FIXED — commit `12fcf69`.**
+
 **Where:** `scanneat-complete.zip` (git-tracked)
 
 **Finding:** A stale full-project archive lives in version control. It
@@ -231,6 +304,8 @@ because deleting user files warrants an explicit OK.)
 ---
 
 ### F11 · INFO · Incoherence — `/health` hardcodes its own version string
+
+**Status: FIXED — commit `d6d3d3c`.**
 
 **Where:** `scan-eat-server/.../Application.kt:75` vs
 `build.gradle.kts` (`version = "0.1.0"`)
@@ -246,6 +321,8 @@ version bump.
 ---
 
 ### F12 · MEDIUM · Security — the Groq API key is stored in plaintext
+
+**Status: FIXED — commit `10b8491`.**
 
 **Where:** `scan-eat-android/.../data/local/prefs/UserPreferences.kt:32,58,70`
 (`KEY_API_KEY` in the plain `scanneat_prefs` DataStore)
@@ -269,6 +346,8 @@ deprecated-but-functional; the manual Keystore route is future-proof).
 
 ### F13 · LOW · Bug — meal reminders can fire hours stale
 
+**Status: FIXED — commit `030dfed`.**
+
 **Where:** `scan-eat-android/.../notifications/ReminderWorker.kt:72-87`
 (`checkMeal`)
 
@@ -289,6 +368,8 @@ call `markFiredToday` for it so the first eligible fire is tomorrow.
 ---
 
 ### F14 · LOW · Incoherence — "Log" on the Result screen builds a different back stack than the tab bar
+
+**Status: FIXED — commit `e94c843`.**
 
 **Where:** `scan-eat-android/.../presentation/shell/AppNavGraph.kt:98`
 (`onLog = { navController.navigate(TopTab.Diary.route) { launchSingleTop = true } }`)
@@ -316,6 +397,8 @@ navController.navigate(TopTab.Diary.route) {
 
 ### F15 · INFO · Structure — multi-profile plumbing exists but only one profile can ever exist
 
+**Status: OPEN** — see "Still open" in Part 1B for why.
+
 **Where:** `UserPreferences.kt` (flat `KEY_PROFILE_*` keys +
 `KEY_ACTIVE_PROFILE`), `ConsumptionRepository`/`ConsumptionDao`
 (`profileId` parameter, always `"default"`), `DiaryEntry.profileId`
@@ -337,6 +420,8 @@ profiles ever become a feature. (a) is the direction the plumbing implies;
 ---
 
 ### F16 · MEDIUM · Inconsistency — the server's LLM parser missed the app's OcrParser fixes
+
+**Status: FIXED — commit `e456626`.**
 
 **Where:** `scan-eat-server/.../service/LlmLabelParser.kt` (prompts),
 `scan-eat-server/.../service/GroqService.kt:117-131` (`complete` retry loop)
@@ -373,6 +458,8 @@ between attempts. Fold this into whatever drift guard F1 lands on.
 
 ### F17 · LOW · Inconsistency — OcrParser builds its own private Moshi
 
+**Status: FIXED — commit `cde3a24`.**
+
 **Where:** `scan-eat-android/.../data/repository/scan/OcrParser.kt:233`
 
 **Finding:** An earlier pass (Q-3) routed all repositories through the
@@ -389,6 +476,8 @@ its provider in `DomainModule`/`NetworkModule` to pass the singleton.
 
 ### F18 · LOW · Data — re-logging weight writes duplicate Health Connect records
 
+**Status: OPEN** — see "Still open" in Part 1B for why.
+
 **Where:** `scan-eat-android/.../data/repository/health/HealthConnectRepository.kt:59-68`
 
 **Finding:** `writeWeight()` inserts a new `WeightRecord` on every call.
@@ -404,6 +493,8 @@ place on re-log.
 ---
 
 ### F19 · MEDIUM · Bug — "Close the gap" silently works for only 2 of its 6 nutrients
+
+**Status: FIXED — commit `25f1a20`.**
 
 **Where:** `scan-eat-android/.../domain/engine/dashboard/DashboardAggregator.kt:224-231`
 (`nutrientMap` density lambdas) and `.../domain/engine/nutrition/FoodDb.kt:22-31`
@@ -428,6 +519,8 @@ naturally.
 
 ### F20 · INFO · Incoherence — rollup totals carry micro-nutrient fields that are never populated
 
+**Status: FIXED — commit `25f1a20`.**
+
 **Where:** `DashboardAggregator.kt:33-47` (`NutrientTotals.ironMg/
 calciumMg/vitDUg/b12Ug/fiberG`) vs `rollup()` (:105-124), which never sets
 them
@@ -447,6 +540,8 @@ Pick one, don't leave the trap.
 
 ### F21 · LOW · Bug — weight forecast treats a 1-gram-per-week trend as a real trajectory
 
+**Status: FIXED — commit `c0e23a7`.**
+
 **Where:** `DashboardAggregator.kt:279-293` (`weightForecast`)
 
 **Finding:** `Flat` is returned only when `weeklySlopeKg == 0.0` exactly.
@@ -462,6 +557,8 @@ computed horizon exceeds a sanity cap (e.g. `weeks > 104`).
 ---
 
 ### F22 · LOW · Structure — Room migrations have never been verified against real schemas
+
+**Status: OPEN** — see "Still open" in Part 1B for why.
 
 **Where:** `scan-eat-android/.../data/local/db/AppDatabase.kt:52-61`
 (comment), `app/build.gradle.kts` (`room.schemaLocation`), missing
@@ -483,6 +580,8 @@ comment to point at this findings doc instead of QUEUE.md.
 
 ### F23 · INFO · Incoherence — the notification channel is still named after Biolism
 
+**Status: FIXED — commit `ab2709a`.**
+
 **Where:** `scan-eat-android/.../notifications/NotificationHelper.kt:15`
 (`CHANNEL_ID = "biolism_reminders"`)
 
@@ -502,6 +601,8 @@ acceptable for a rename this early.
 ---
 
 ### F24 · HIGH · Bug — the weight delta shown to the user is computed with a precedence error
+
+**Status: FIXED — commit `a99abb3`.**
 
 **Where:** `scan-eat-android/.../data/repository/health/WeightRepository.kt:92`
 
@@ -531,6 +632,8 @@ and add a unit test pinning `summarize()`'s delta for a two-entry fixture
 
 ### F25 · MEDIUM · Data — backup exports none of the DataStore-backed data
 
+**Status: FIXED — commit `0017b13`.**
+
 **Where:** `scan-eat-android/.../data/backup/BackupRepository.kt:43-56`
 (`exportToJson`), vs the DataStore repositories (UserPreferences,
 HydrationRepository, FastingRepository, MealPlanRepository,
@@ -559,6 +662,8 @@ F12).
 
 ### F26 · LOW · Inconsistency — the fasting streak has no grace day but the journal streak does
 
+**Status: FIXED — commit `16890ad`.**
+
 **Where:** `scan-eat-android/.../data/repository/health/FastingRepository.kt:122-134`
 vs `DashboardAggregator.logStreakDays` (:159-173)
 
@@ -576,6 +681,8 @@ instead of returning 0 through the loop mismatch.
 ---
 
 ### F27 · LOW · Data — hydration DataStore grows by one key per day forever
+
+**Status: FIXED — commit `91591ff`.**
 
 **Where:** `scan-eat-android/.../data/repository/health/HydrationRepository.kt:47`
 (`key(date)` = `hyd_<date>`, no pruning anywhere)
@@ -596,6 +703,8 @@ weight/activity instead.
 
 ### F28 · LOW · Bug — a meal-plan note containing a newline corrupts the stored plan
 
+**Status: FIXED — commit `6380975`.**
+
 **Where:** `scan-eat-android/.../data/repository/planning/MealPlanRepository.kt:118-154`
 (newline-per-entry, pipe-delimited serialization)
 
@@ -614,6 +723,8 @@ unused `component5` extension while there.
 ---
 
 ### F29 · HIGH · Bug — the gluten allergen rule doesn't match the word "gluten"
+
+**Status: FIXED — commit `dec6ecf`.**
 
 **Where:** `scan-eat-android/.../domain/engine/scoring/AllergenDetector.kt:59-60`
 
@@ -640,6 +751,8 @@ at `DietChecker.kt:153-155` has the identical gap — fix both.)
 ---
 
 ### F30 · MEDIUM · Bug — "pâté" is spelled unaccented in the vegetarian/vegan bans, and "noix" over-matches
+
+**Status: FIXED — commit `dec6ecf`.**
 
 **Where:** `scan-eat-android/.../domain/engine/scoring/DietChecker.kt:77,86`
 (`pat[eé]` in VEGETARIAN and VEGAN forbidden lists),
