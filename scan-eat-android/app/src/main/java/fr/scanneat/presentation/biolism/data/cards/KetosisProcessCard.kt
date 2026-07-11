@@ -19,7 +19,7 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult) {
     val phase = BiolismEngine.ketoPhaseInfo(s.ketoHours, s.ketoAdapted)
     val phaseColor = colorFromToken(phase.colorToken)
     BioCard(stringResource(R.string.biolism_ketoproc_title), badge = { Badge(phase.label.uppercase(), phaseColor) }) {
-        Text(formatDuration(s.ketoElapsedMs), style = MaterialTheme.typography.displaySmall.copy(fontSize = 24.sp, fontWeight = FontWeight.Medium), color = phaseColor)
+        Text(formatDuration(s.ketoElapsedMs), style = HeroNumberStyle.copy(fontSize = 24.sp), color = phaseColor)
         Text(stringResource(R.string.biolism_ketoproc_elapsed_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
         Spacer(Modifier.height(6.dp))
         Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))

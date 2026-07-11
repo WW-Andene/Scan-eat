@@ -56,7 +56,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
 
                 Text(
                     (if (balance.net >= 0) "+" else "") + "${balance.net.roundToInt()} kcal",
-                    style = MaterialTheme.typography.displaySmall.copy(fontSize = 32.sp), color = balColor, fontWeight = FontWeight.Black,
+                    style = HeroNumberStyle.copy(fontSize = 32.sp), color = balColor,
                 )
                 Text(stringResource(statusRes), style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.SemiBold)
 

@@ -68,13 +68,13 @@ in its Part with an explicit PROTECT note.
 | 1 | ~~CRITICAL*~~ FIXED | Contrast/Safety | WCAG contrast verified PASS on allergen/diet-veto banners | B1, F1 |
 | 2 | ~~CRITICAL~~ FIXED | Surface/Atmosphere | Glow/Haze tokens exist but aren't rendered as light | B6 |
 | 3 | ~~HIGH~~ FIXED | Motion/States | Score reveal has no signature moment | B5, B8, D |
-| 4 | HIGH | Typography | Zero tabular figures on any numeric display | B2 |
+| 4 | ~~HIGH~~ PARTIALLY FIXED | Typography | Zero tabular figures on any numeric display | B2 |
 | 5 | ~~HIGH~~ FIXED | Components | No shared Button component — recipe hand-copied, drifting | B4 |
 | 6 | ~~HIGH~~ FIXED | States | Three unreconciled error-banner systems in one app | B8, F5 |
 | 7 | ~~MEDIUM~~ FIXED | Tokens | No Layer-3 component tokens — find/replace test fails | B10, F4 |
 | 8 | ~~MEDIUM~~ FIXED | Color | OLED theme's surface/surfaceVariant identical (no elevation tier) | B1 |
 | 9 | MEDIUM | Color | No pressed/hover accent state token | B1 |
-| 10 | MEDIUM | Typography | "Hero number" role untokenized (4 weight spellings, 5+ sizes) | B2 |
+| 10 | ~~MEDIUM~~ PARTIALLY FIXED | Typography | "Hero number" role untokenized (4 weight spellings, 5+ sizes) | B2 |
 | 11 | ~~MEDIUM~~ PARTIALLY FIXED | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
 | 12 | MEDIUM | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
 | 13 | ~~MEDIUM~~ PARTIALLY FIXED | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
@@ -87,12 +87,12 @@ in its Part with an explicit PROTECT note.
 | 20 | LOW | Brand | Light theme re-derives colors independently of shared tokens | A6 |
 | 21 | LOW | Tokens | No separator-weight taxonomy | A6, B10 |
 | 22 | LOW | Components | Nav tab-fade and bottom-nav tinting unconfirmed | B4 |
-| 23 | LOW | Typography | 3/15 type slots never hand-tuned | B2 |
+| 23 | ~~LOW~~ FIXED | Typography | 3/15 type slots never hand-tuned (actually 4 — see B2) | B2 |
 | 24 | LOW | UX | Scan error recovery is dismiss-only, no retry action | F2 |
 | 25 | LOW | Copy | Voice is competent but under-warm vs. confirmed character | B9, F2 |
 | 26 | POLISH | Color | No color/glow intensification at success moments | B1, B8 |
 | 27 | POLISH | Surface | No grain/noise texture | B6 |
-| 28 | POLISH | Typography | No letter-spacing/tracking on any type slot | B2 |
+| 28 | ~~POLISH~~ FIXED | Typography | No letter-spacing/tracking on any type slot | B2 |
 | 29 | POLISH | Trends | Colors authored as hex, not OKLCH (documentation-only gap) | B11 |
 
 \* *Severity 1 is CRITICAL conditionally — HIGH until the contrast check is
@@ -496,6 +496,11 @@ Recommendation: Apply `TextStyle(fontFeatureSettings = "tnum")` to every
   numeric display — NutritionTable.kt, weight-history rows, dashboard macro
   cards, ScoreDisplay.
 Effort: LOW (one modifier, ~6-8 call sites)
+STATUS: PARTIALLY FIXED — applied to ScoreDisplay.kt's score digits (both
+  ScoreRing and DualScoreRing), NutritionTable.kt's NRow value column, and
+  baked into the new HeroNumberStyle token (so every hero-number call site
+  gets it automatically — see below). Weight-history rows and other
+  dashboard macro cards not yet swept; tracked as follow-up.
 
 [MEDIUM] — "Hero number" role has no shared token — 4 weight spellings, 5+
   concrete sizes
@@ -506,6 +511,17 @@ Recommendation: Add one ScanEatTypography.heroNumber style (canonical
   FontWeight.Black) and let screens vary only fontSize from a defined
   32/42/56sp scale.
 Effort: LOW (one shared style + ~6 call-site swaps)
+STATUS: PARTIALLY FIXED — added `HeroNumberStyle` (Type.kt): canonical
+  FontWeight.Black + tabular figures baked in. Migrated all 4 identified
+  call sites (KetosisProcessCard, DailyEnergyCard, HeroCard,
+  CalorieBalanceCard) plus ScoreDisplay's grade-label text onto it, closing
+  the "4 different weight spellings" half of this finding. Deliberately did
+  NOT force fontSize onto the exact 32/42/56sp scale this pass — the
+  existing sizes (24/32/34/42/56sp) encode a real information-hierarchy
+  distinction (e.g. KetosisProcessCard's 24sp sub-metric vs. HeroCard's
+  42sp primary number) that a blind snap-to-scale could flatten without a
+  visual check this sandbox can't perform. Size consolidation remains a
+  tracked, visually-gated follow-up.
 
 [LOW] — 3 of 15 M3 type slots (displayLarge, displayMedium, headlineSmall)
   were never hand-tuned
@@ -514,6 +530,16 @@ Finding: Type.kt only overrides 11/15 slots; the untouched 3 silently use
 Recommendation: Hand-tune the remaining 3 to match the rest, or confirm
   they're unused and drop them from the "available slots" mental model.
 Effort: LOW
+STATUS: FIXED, with a correction — re-counting found 4 untuned slots, not
+  3 (the original count missed `headlineLarge`). Grepped actual usage
+  before deciding: `headlineLarge` (OnboardingScreen's app-name title,
+  HydrationScreen's intake number) and `headlineSmall` (3 onboarding
+  section headlines) are both actively rendered — now hand-tuned
+  (32sp/40sp Bold and 24sp/30sp Bold respectively, extending the existing
+  scale's step pattern). `displayLarge`/`displayMedium` are confirmed
+  unused anywhere in the codebase — tuned anyway for schema completeness
+  (extrapolated from the existing scale) rather than left as a latent trap
+  for the next screen that reaches for them.
 
 [POLISH] — No letter-spacing/tracking adjustment on any of the 15 type slots
 Finding: Every TextStyle override leaves letterSpacing at default (0.sp),
@@ -521,6 +547,10 @@ Finding: Every TextStyle override leaves letterSpacing at default (0.sp),
 Recommendation: +0.02em on titleLarge/headlineMedium; +0.04em on
   labelSmall/labelMedium.
 Effort: LOW
+STATUS: FIXED — added letterSpacing exactly as specified: 0.4sp on
+  titleLarge (0.02em @ 20sp), 0.56sp on headlineMedium (0.02em @ 28sp),
+  0.44sp on labelSmall (0.04em @ 11sp), 0.48sp on labelMedium (0.04em @
+  12sp).
 ```
 
 **Protect:** the hero-number scale-contrast instinct (56sp vs 12sp body) is

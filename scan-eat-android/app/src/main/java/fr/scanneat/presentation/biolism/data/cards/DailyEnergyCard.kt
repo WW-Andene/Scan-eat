@@ -6,7 +6,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.scanneat.R
@@ -22,7 +21,7 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
             Text(stringResource(R.string.biolism_energy_tdee_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), letterSpacing = 1.sp)
-            Text("%.1f".format(met.tdeeDay), style = MaterialTheme.typography.displaySmall.copy(fontSize = 34.sp, fontWeight = FontWeight.W500), color = Gold)
+            Text("%.1f".format(met.tdeeDay), style = HeroNumberStyle.copy(fontSize = 34.sp), color = Gold)
             Text(stringResource(R.string.biolism_energy_tdee_sub, met.tdeeDay / met.bmrDay.coerceAtLeast(1.0)), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         }
         InfoRow(stringResource(R.string.biolism_energy_activity_level), profile.activityMeta.label, profile.activityMeta.note, Gold)

@@ -48,7 +48,7 @@ internal fun HeroCard(
 
             Text(
                 if (precision) String.format("%.4f", kcalTotal) else String.format("%.1f", kcalTotal),
-                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.W500, fontSize = 42.sp),
+                style = HeroNumberStyle.copy(fontSize = 42.sp),
                 color = heroColor,
             )
             Text("kcal", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))

@@ -63,8 +63,9 @@ internal fun ScoreRing(score: Int, grade: Grade) {
             trackColor  = SurfaceVariant,
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(grade.label, fontSize = 56.sp, fontWeight = FontWeight.Black, color = color)
-            Text(stringResource(R.string.result_score_out_of_100, score), style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.6f))
+            Text(grade.label, style = HeroNumberStyle.copy(fontSize = 56.sp), color = color)
+            Text(stringResource(R.string.result_score_out_of_100, score),
+                style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
         }
     }
 }
@@ -104,7 +105,7 @@ internal fun DualScoreRing(
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(classicGrade.label, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = classicColor)
-                    Text("$classicScore", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                    Text("$classicScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
                 }
             }
         }
@@ -138,7 +139,7 @@ internal fun DualScoreRing(
                     Text(if (veto) "✗" else personalGrade.label, fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         color = personalColor)
-                    Text("$personalScore", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                    Text("$personalScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
                 }
             }
         }
