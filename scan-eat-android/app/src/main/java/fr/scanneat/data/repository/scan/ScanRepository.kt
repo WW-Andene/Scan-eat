@@ -12,6 +12,8 @@ import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -190,17 +192,27 @@ class ScanRepository @Inject constructor(
      * the product is in the database. This was the root cause behind cans
      * scanning as "not found" (see the Coke-can investigation).
      */
-    private suspend fun fetchOffProduct(barcode: String): OffResponse? {
+    private suspend fun fetchOffProduct(barcode: String): OffResponse? = coroutineScope {
         suspend fun lookup(code: String): OffResponse? = try {
             offApi.getProduct(code)
         } catch (e: HttpException) {
             if (e.code() == 404) null else throw e
         }
 
-        for (candidate in barcodeCandidates(barcode)) {
-            lookup(candidate)?.product?.let { return OffResponse(status = 1, product = it) }
+        // Candidates are independent reads, so they're fired off concurrently
+        // instead of one-round-trip-at-a-time — a UPC-E can (the exact case
+        // from the earlier Coke-can investigation) can need 3-4 candidate
+        // expansions before hitting the real match, and doing that serially
+        // stacks their full network latency end to end. Still awaited in
+        // priority order (not first-to-complete) so a lower-priority
+        // candidate that happens to respond faster never wins over an
+        // earlier, more-likely one.
+        val candidates = barcodeCandidates(barcode)
+        val pending = candidates.map { async { lookup(it) } }
+        for (deferred in pending) {
+            deferred.await()?.product?.let { return@coroutineScope OffResponse(status = 1, product = it) }
         }
-        return null
+        null
     }
 
     /** Every plausible GTIN encoding for [barcode], most-likely-first, deduplicated. */

@@ -674,3 +674,30 @@ decision:  Mirrored SettingsScreen's exact pattern: masked by default,
            VisibilityOff icons (already used elsewhere in the app, no new
            resources needed).
 reversal:  trivial (visualTransformation + toggle state + icon button)
+
+### App-audit §D1/L3 — barcode-candidate OFF lookups ran one network round-trip at a time
+context:   fetchOffProduct() loops over barcodeCandidates() (every plausible
+           GTIN encoding of a scanned barcode - UPC-E expansion, GTIN-14
+           case-code stripping, EAN-13/UPC-A padding variants) and calls
+           offApi.getProduct() sequentially, only trying the next candidate
+           after the previous one 404s. A UPC-E can (the exact case behind
+           this session's earlier Coke-can investigation) can need 3-4
+           candidate expansions before the real match - each one a full
+           network round-trip stacked serially, adding real latency to
+           exactly the scans this session already worked to make succeed
+           at all.
+decision:  Fire all candidate lookups concurrently via async, but still
+           await and return them in original priority order (not
+           first-to-complete) - preserves the existing "most-likely-first"
+           correctness guarantee (a lower-priority candidate that happens
+           to respond faster must never win over an earlier, more-likely
+           one) while collapsing N sequential round-trips into 1 round-trip
+           worth of wall-clock latency.
+why:       These are independent, side-effect-free reads against a public
+           API with no per-call cost to the user - concurrency has no
+           downside here (unlike the earlier LLM retry loop, which is
+           deliberately sequential since it burns real Groq API quota per
+           attempt).
+reversal:  moderate (structural change to fetchOffProduct's control flow,
+           but the priority-order-preserving await loop keeps the exact
+           same observable behavior/return value as before - just faster)
