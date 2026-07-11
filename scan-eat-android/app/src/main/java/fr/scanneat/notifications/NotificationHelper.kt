@@ -12,16 +12,27 @@ import androidx.core.app.NotificationManagerCompat
 import fr.scanneat.R
 
 object NotificationHelper {
-    const val CHANNEL_ID = "biolism_reminders"
+    const val CHANNEL_ID = "reminders"
+
+    // The channel used to be named after Biolism (the feature's pre-rename
+    // name, before it became "Métabolisme"), which survived user-visibly in
+    // the system notification settings even after every other trace of the
+    // old name was renamed. Android doesn't migrate an existing channel's id,
+    // so the old one is deleted once new subscribers exist under CHANNEL_ID —
+    // this only loses a user's importance/sound override on the old channel,
+    // acceptable for a rename this early.
+    private const val LEGACY_CHANNEL_ID = "biolism_reminders"
 
     private fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = context.getSystemService(NotificationManager::class.java) ?: return
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 context.getString(R.string.reminders_channel_name),
                 NotificationManager.IMPORTANCE_DEFAULT,
             )
-            context.getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
+            manager.createNotificationChannel(channel)
+            manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
         }
     }
 
