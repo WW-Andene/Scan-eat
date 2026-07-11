@@ -997,3 +997,21 @@ why:       Untrusted-input handling: the SAF picker hands this app a URI
            exports, so the read path needs to defend against that itself.
 reversal:  trivial (one size check before the existing read; legitimate
            backups are far under the cap and see no behavior change)
+
+### CI fix — M/L3's assembleRelease step found a real pre-existing lint error
+context:   The M/L3 release-build CI step (commit ef875e8) failed on
+           lintVitalRelease: "Remove androidx.work.WorkManagerInitializer
+           from your AndroidManifest.xml when using on-demand
+           initialization." R8/minifyReleaseWithR8 itself succeeded - this
+           is a pre-existing manifest gap unrelated to any change this
+           session, exactly the kind of thing debug-only CI could never
+           have caught (confirming M/L3's whole premise). ScanEatApp
+           implements Configuration.Provider (Hilt WorkManagerFactory,
+           enqueueUniquePeriodicWork in onCreate()) but the manifest never
+           disabled the default androidx.startup WorkManagerInitializer,
+           which races the app's own on-demand init.
+fix:       Added the standard tools:node="remove" provider-merge block
+           (the exact fix Android's own lint message names) to disable
+           the default initializer, plus the xmlns:tools declaration it
+           needs on the manifest root.
+verify:    CI check pending on this commit.
