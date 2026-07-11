@@ -1,18 +1,22 @@
 package fr.scanneat.notifications
 
 import android.content.Context
+import android.content.res.Configuration
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ListenableWorker.Result
 import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import fr.scanneat.R
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 @HiltWorker
 class ReminderWorker @AssistedInject constructor(
@@ -20,22 +24,35 @@ class ReminderWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val remindersRepo: RemindersRepository,
     private val weightRepo: WeightRepository,
+    private val prefs: UserPreferences,
 ) : CoroutineWorker(context, params) {
+
+    // Workers have no Compose stringResource() and applicationContext.getString()
+    // would follow the device locale, not this app's own in-app language setting
+    // (independent of device locale everywhere else this session) - a locale-
+    // overridden resources instance is the only way to respect it here too.
+    private fun localizedString(lang: String, resId: Int): String {
+        val config = Configuration(applicationContext.resources.configuration)
+        config.setLocale(Locale(lang))
+        return applicationContext.createConfigurationContext(config).resources.getString(resId)
+    }
 
     override suspend fun doWork(): Result {
         val s = remindersRepo.settings.first()
+        val lang = prefs.language.first()
         val now = LocalTime.now()
 
         checkMeal(s.breakfastOn, s.breakfastTime, RemindersRepository.K_LAST_BREAKFAST_DATE, now, 101,
-            "Petit-déjeuner", "N'oublie pas de journaliser ton petit-déjeuner.")
+            localizedString(lang, R.string.reminders_notif_breakfast_title), localizedString(lang, R.string.reminders_notif_breakfast_body))
         checkMeal(s.lunchOn, s.lunchTime, RemindersRepository.K_LAST_LUNCH_DATE, now, 102,
-            "Déjeuner", "N'oublie pas de journaliser ton déjeuner.")
+            localizedString(lang, R.string.reminders_notif_lunch_title), localizedString(lang, R.string.reminders_notif_lunch_body))
         checkMeal(s.dinnerOn, s.dinnerTime, RemindersRepository.K_LAST_DINNER_DATE, now, 103,
-            "Dîner", "N'oublie pas de journaliser ton dîner.")
+            localizedString(lang, R.string.reminders_notif_dinner_title), localizedString(lang, R.string.reminders_notif_dinner_body))
 
         if (s.hydrationOn && now.hour in 8..21) {
             if (remindersRepo.hydrationDueAndMark(s.hydrationIntervalHours)) {
-                NotificationHelper.show(applicationContext, 104, "Hydratation", "Pense à boire un verre d'eau.")
+                NotificationHelper.show(applicationContext, 104,
+                    localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body))
             }
         }
 
@@ -43,7 +60,8 @@ class ReminderWorker @AssistedInject constructor(
             val lastDate = weightRepo.observeAll().first().maxByOrNull { it.date }?.date
             val daysSince = lastDate?.let { ChronoUnit.DAYS.between(it, LocalDate.now()) } ?: Long.MAX_VALUE
             if (daysSince >= s.weightThresholdDays && !remindersRepo.wasFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)) {
-                NotificationHelper.show(applicationContext, 105, "Pesée", "Ça fait un moment — enregistre ton poids.")
+                NotificationHelper.show(applicationContext, 105,
+                    localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body))
                 remindersRepo.markFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)
             }
         }

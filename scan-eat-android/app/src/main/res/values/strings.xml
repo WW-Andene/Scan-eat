@@ -817,6 +817,16 @@
     <string name="reminders_channel_name">Rappels</string>
     <string name="reminders_title">Rappels</string>
     <string name="reminders_enable_notifications">Activer les notifications</string>
+    <string name="reminders_notif_breakfast_title">Petit-déjeuner</string>
+    <string name="reminders_notif_breakfast_body">N\'oublie pas de journaliser ton petit-déjeuner.</string>
+    <string name="reminders_notif_lunch_title">Déjeuner</string>
+    <string name="reminders_notif_lunch_body">N\'oublie pas de journaliser ton déjeuner.</string>
+    <string name="reminders_notif_dinner_title">Dîner</string>
+    <string name="reminders_notif_dinner_body">N\'oublie pas de journaliser ton dîner.</string>
+    <string name="reminders_notif_hydration_title">Hydratation</string>
+    <string name="reminders_notif_hydration_body">Pense à boire un verre d\'eau.</string>
+    <string name="reminders_notif_weight_title">Pesée</string>
+    <string name="reminders_notif_weight_body">Ça fait un moment — enregistre ton poids.</string>
     <string name="reminders_breakfast">Petit-déjeuner</string>
     <string name="reminders_lunch">Déjeuner</string>
     <string name="reminders_dinner">Dîner</string>

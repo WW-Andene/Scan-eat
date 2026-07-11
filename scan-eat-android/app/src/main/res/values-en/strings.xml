@@ -816,6 +816,16 @@
     <string name="reminders_channel_name">Reminders</string>
     <string name="reminders_title">Reminders</string>
     <string name="reminders_enable_notifications">Enable notifications</string>
+    <string name="reminders_notif_breakfast_title">Breakfast</string>
+    <string name="reminders_notif_breakfast_body">Don\'t forget to log your breakfast.</string>
+    <string name="reminders_notif_lunch_title">Lunch</string>
+    <string name="reminders_notif_lunch_body">Don\'t forget to log your lunch.</string>
+    <string name="reminders_notif_dinner_title">Dinner</string>
+    <string name="reminders_notif_dinner_body">Don\'t forget to log your dinner.</string>
+    <string name="reminders_notif_hydration_title">Hydration</string>
+    <string name="reminders_notif_hydration_body">Remember to drink a glass of water.</string>
+    <string name="reminders_notif_weight_title">Weigh-in</string>
+    <string name="reminders_notif_weight_body">It\'s been a while — log your weight.</string>
     <string name="reminders_breakfast">Breakfast</string>
     <string name="reminders_lunch">Lunch</string>
     <string name="reminders_dinner">Dinner</string>

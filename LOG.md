@@ -1199,3 +1199,31 @@ why:       Unlike the earlier Health Connect alpha-dependency case (a
            on every commit - a bad bump fails fast and visibly instead of
            shipping broken.
 verify:    CI check pending on this commit before continuing further.
+
+### App-audit §N1/L4 — reminder notifications were 100% hardcoded French, bypassing i18n entirely
+context:   ReminderWorker's meal/hydration/weight notification titles and
+           bodies ("Petit-déjeuner", "N'oublie pas de journaliser ton
+           petit-déjeuner.", etc.) were raw Kotlin string literals, not
+           even routed through strings.xml - unlike every other user-
+           facing string in the app. Every reminder notification always
+           showed in French regardless of device locale or the in-app
+           language setting, for any English-locale/English-preference
+           user.
+decision:  Moved all 10 strings (5 notifications x title+body) into both
+           strings.xml files, injected UserPreferences into
+           ReminderWorker, and added a localizedString(lang, resId)
+           helper that builds a locale-overridden Configuration/Context
+           (Workers have no Compose stringResource(), and
+           context.getString() alone would follow the device locale, not
+           this app's own in-app language setting - the same class of gap
+           fixed for date formatters at §J1/L3, but here even the strings
+           themselves weren't resources yet). Reads prefs.language once
+           per doWork() run so the correct language is picked per fire.
+why:       The most concrete, complete i18n gap found this session -
+           unlike the systemic-but-too-large scoring-engine flags (queued
+           at §N1/L3), this was a small, fully fixable, self-contained
+           surface (one file, 10 strings) with a real, safe path to a
+           complete fix.
+reversal:  moderate (new constructor param + locale-context helper, but
+           purely additive - existing notification-scheduling logic,
+           timing, and dedup keys are all untouched)
