@@ -242,3 +242,96 @@ version bump.
 **How to fix:** Generate it at build time — e.g. the Gradle
 `processResources` task expands a `version.properties` placeholder from
 `project.version`, and `Application.kt` reads it once at startup.
+
+---
+
+### F12 · MEDIUM · Security — the Groq API key is stored in plaintext
+
+**Where:** `scan-eat-android/.../data/local/prefs/UserPreferences.kt:32,58,70`
+(`KEY_API_KEY` in the plain `scanneat_prefs` DataStore)
+
+**Finding:** The user's Groq API key sits unencrypted in the app's
+preferences file. App-private storage protects it from other apps on a
+healthy device, but it is exposed verbatim in any device backup, on rooted
+devices, and via `adb backup`/debugging on debuggable builds. No
+`security-crypto`/Keystore usage exists anywhere in the app.
+
+**How to fix:** Wrap the key (only this one value — the rest of the prefs
+are not sensitive) with a Keystore-backed AES cipher: generate a key in
+`AndroidKeyStore`, store `Base64(iv + ciphertext)` under `KEY_API_KEY`,
+and decrypt in the `groqApiKey` flow. On first read after the update,
+detect a legacy plaintext value (decryption fails), encrypt it in place.
+Alternative with less code: `androidx.security:security-crypto`'s
+`EncryptedSharedPreferences` for just this value (note the library is
+deprecated-but-functional; the manual Keystore route is future-proof).
+
+---
+
+### F13 · LOW · Bug — meal reminders can fire hours stale
+
+**Where:** `scan-eat-android/.../notifications/ReminderWorker.kt:72-87`
+(`checkMeal`)
+
+**Finding:** `checkMeal` deliberately fires on the first worker run
+*at-or-after* the target time (correct for Doze-delayed workers), but has
+no upper bound. Two consequences: (1) enabling a breakfast reminder at
+22:00 fires the breakfast notification within the next worker period,
+14 hours after breakfast time; (2) a device left idle all evening fires
+the 19:00 dinner reminder at 23:50 when the user picks it up. The
+hydration branch already has an hour-band guard (`now.hour in 8..21`);
+the meal branches have nothing.
+
+**How to fix:** Add a staleness window: fire only when
+`now in target..target.plusHours(3)` (still generous for Doze delays),
+and when the user *enables* a reminder whose time already passed today,
+call `markFiredToday` for it so the first eligible fire is tomorrow.
+
+---
+
+### F14 · LOW · Incoherence — "Log" on the Result screen builds a different back stack than the tab bar
+
+**Where:** `scan-eat-android/.../presentation/shell/AppNavGraph.kt:98`
+(`onLog = { navController.navigate(TopTab.Diary.route) { launchSingleTop = true } }`)
+vs `MainShell.kt:43-46`
+
+**Finding:** The bottom bar switches tabs with
+`popUpTo(startDestination) { saveState = true }; restoreState = true`,
+but the Result screen's log action pushes the Diary tab with a bare
+`navigate { launchSingleTop }`. The result: Diary lands *on top of*
+Scan→Result, system back from Diary returns to the Result screen (not tab
+behavior), and this Diary instance doesn't share saved state with the one
+the tab bar restores.
+
+**How to fix:** Use the exact same options as `MainShell`'s tab click:
+
+```kotlin
+navController.navigate(TopTab.Diary.route) {
+    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+    launchSingleTop = true
+    restoreState = true
+}
+```
+
+---
+
+### F15 · INFO · Structure — multi-profile plumbing exists but only one profile can ever exist
+
+**Where:** `UserPreferences.kt` (flat `KEY_PROFILE_*` keys +
+`KEY_ACTIVE_PROFILE`), `ConsumptionRepository`/`ConsumptionDao`
+(`profileId` parameter, always `"default"`), `DiaryEntry.profileId`
+
+**Finding:** `profileId` is threaded through the consumption schema, DAO
+queries and domain model as if multiple profiles were supported, but the
+profile itself lives in flat single-value preference keys — there is no
+way to create a second profile, so every row is `"default"` forever. Dead
+generality that each new feature has to keep threading through.
+
+**How to fix:** Decide the product direction: either (a) implement real
+profiles — move `Profile` into a Room table keyed by id, keep
+`KEY_ACTIVE_PROFILE` as the switcher, and the existing `profileId`
+plumbing starts paying for itself; or (b) drop the `profileId`
+parameters/columns in the next schema migration and reintroduce them if
+profiles ever become a feature. (a) is the direction the plumbing implies;
+(b) is one small migration.
+
+---
