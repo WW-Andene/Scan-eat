@@ -1,6 +1,6 @@
 package fr.scanneat.shared
 
-import fr.scanneat.shared.*
+import kotlin.math.roundToInt
 
 // ============================================================================
 // FOOD SCORING ENGINE v2.2.0 — Kotlin port of scoring-engine.ts
@@ -567,10 +567,10 @@ private fun computeGlobalBonuses(product: Product): List<Deduction> {
     if (product.organic) bonuses += Deduction("global_bonus", "Organic certification", 2.0, Severity.INFO)
     if (product.wholeGrainPrimary) bonuses += Deduction("global_bonus", "Whole grain as primary grain", 3.0, Severity.INFO)
     if (product.fermented) bonuses += Deduction("global_bonus", "Contains fermented / probiotic content", 2.0, Severity.INFO)
-    val omega3Ing = product.ingredients.find { ing ->
-        Regex("""(graine de )?lin\b|\bchia\b|\bnoix\b|saumon|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
-    }
-    if (omega3Ing != null) bonuses += Deduction("global_bonus", "Omega-3 source: ${omega3Ing.name}", 2.0, Severity.INFO)
+    // Omega-3 bonus lives solely in scoreNutritionalDensity() (+3, using the
+    // same ingredient regex plus a nutrition-value check) - it was duplicated
+    // here too, double-counting the same signal for +5 total on any product
+    // containing e.g. flaxseed or salmon.
     return bonuses
 }
 
@@ -603,12 +603,15 @@ private fun checkVeto(product: Product): VetoCondition {
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
         return VetoCondition(true, "Processed meat with nitrites + high salt + refined starch", 40)
 
+    // Beverage-specific rule checked first and it's the stricter cap (30 vs 40) —
+    // otherwise a very sugary soda hit the generic >30g rule first and got the
+    // looser cap, while a merely moderately sugary one got the stricter one.
     val sugars = n.addedSugarsG ?: n.sugarsG
-    if (product.category != ProductCategory.SNACK_SWEET && sugars > 30)
-        return VetoCondition(true, "Added sugar >30g/100g in non-confectionery", 40)
-
     if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
         return VetoCondition(true, "Sugar-sweetened beverage with no nutritional contribution", 30)
+
+    if (product.category != ProductCategory.SNACK_SWEET && sugars > 30)
+        return VetoCondition(true, "Added sugar >30g/100g in non-confectionery", 40)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
@@ -689,7 +692,7 @@ fun scoreProduct(input: Product): ScoreAudit {
     var score = (baseScore + bonusTotal + penaltyTotal).coerceIn(0.0, 100.0)
     val veto = checkVeto(product)
     if (veto.triggered && score > veto.cap) score = veto.cap.toDouble()
-    val finalScore = score.toInt()
+    val finalScore = score.roundToInt()
     val grade = scoreToGrade(finalScore)
 
     val pillars = ScoreAudit.Pillars(processing, nutritionalDensity, negativeNutrients, additiveRisk, ingredientIntegrity)
