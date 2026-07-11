@@ -25,6 +25,17 @@ import javax.inject.Singleton
 /** Thrown when a barcode has no Open Food Facts entry and no photos were supplied to fall back on. */
 class ProductNotFoundException(message: String) : Exception(message)
 
+// These reach the user verbatim (ScanViewModel shows e.message directly in the
+// error banner) — "Groq API key not configured" was leaking straight to a
+// French-first UI in English, and neither message respected the [lang]
+// parameter these functions already thread through for exactly this purpose.
+private fun offlineMessage(lang: String) =
+    if (lang == "en") "No internet connection" else "Pas de connexion internet"
+
+private fun missingApiKeyMessage(lang: String) =
+    if (lang == "en") "Missing Groq API key — set it up in Settings"
+    else "Clé API Groq manquante — configurez-la dans Réglages"
+
 @Singleton
 class ScanRepository @Inject constructor(
     private val offApi: OpenFoodFactsApi,
@@ -111,7 +122,7 @@ class ScanRepository @Inject constructor(
             } else cached
             return@runCatching Pair(fresh, persist(fresh))
         }
-        if (!online) error("Pas de connexion internet")
+        if (!online) error(offlineMessage(lang))
 
         val result = when (apiMode) {
             ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode)
@@ -125,7 +136,7 @@ class ScanRepository @Inject constructor(
         lang: String = "fr",
         online: Boolean = true,
     ): Result<Pair<ScanResult, Long>> = runCatching {
-        if (!online) error("Pas de connexion internet")
+        if (!online) error(offlineMessage(lang))
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
         val serverUrl = prefs.serverUrl.first()
@@ -134,7 +145,7 @@ class ScanRepository @Inject constructor(
         val result = when (apiMode) {
             ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode = null)
             ApiMode.DIRECT -> {
-                if (apiKey.isBlank()) error("Groq API key not configured")
+                if (apiKey.isBlank()) error(missingApiKeyMessage(lang))
                 val parsed = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
                 ScanResult(
                     product  = parsed.product,

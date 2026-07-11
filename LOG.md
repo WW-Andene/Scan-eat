@@ -235,3 +235,19 @@ decision:  Replaced with the matching typography token in each case;
            16sp/26sp/56sp cases (onboarding buttons, score/grade hero
            text) alone - no exact token match / deliberate custom sizing.
            Removed the now-unused `sp` import in 7 files.
+
+### App-audit §F4 — raw English error string leaking into French-first UI
+context:   ScanRepository's "Groq API key not configured" (a very common
+           first-use error: user hasn't set up their key yet) was
+           hardcoded English-only and shown verbatim in the scan error
+           banner, even though scoreBarcode/scoreFromImages already
+           thread a `lang` param through for exactly this purpose. The
+           sibling "Pas de connexion internet" message was hardcoded
+           French-only - neither respected `lang`, just in opposite
+           languages, confirming this wasn't an intentional choice.
+decision:  Added lang-aware offlineMessage()/missingApiKeyMessage()
+           helpers, used at all 3 error() call sites in scoreBarcode/
+           scoreFromImages. Left "Server URL not configured" (line ~159,
+           scoreViaServer) for a follow-up - it doesn't have `lang` in
+           scope without a broader signature change, and is a rarer
+           Server-mode misconfiguration path.
