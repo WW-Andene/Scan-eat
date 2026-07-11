@@ -1227,3 +1227,41 @@ why:       The most concrete, complete i18n gap found this session -
 reversal:  moderate (new constructor param + locale-context helper, but
            purely additive - existing notification-scheduling logic,
            timing, and dedup keys are all untouched)
+
+### App-audit §O1/L4 — DietChecker had zero test coverage protecting the §A1/L3 fix
+context:   4 existing test files cover BiolismEngine, ScoringEngine,
+           PersonalScoreEngine, and BackupBundle - DietChecker.kt (and
+           AllergenDetector.kt) had none at all. This session found and
+           fixed a real false-positive bug there (§A1/L3: dairy-free/
+           paleo flagging coconut/peanut butter) with nothing to prevent
+           it from silently regressing the next time someone touches this
+           file - projecting forward, that's exactly the kind of thing
+           that quietly comes back.
+decision:  Added DietCheckerTest.kt: regression-locks the §A1/L3 fix
+           (coconut/peanut butter correctly NOT flagged for dairy-free/
+           paleo, real dairy/grains still correctly flagged) plus general
+           sanity coverage this file never had (vegan meat/dairy/egg
+           detection, plant-milk exception, halal pork/alcohol detection,
+           halal certification override, keto macro thresholds) - 12
+           tests total, following the existing test file's established
+           fixture style (Product/Ingredient/NutritionPer100g builders).
+why:       A safety net for a real bug this session already proved can
+           happen silently - the most concrete, actionable "development
+           scenario projection" available: what happens the next time
+           this file changes? Now there's something to catch a regression.
+reversal:  n/a (new test file only, no production code touched)
+
+## Layer 4 complete — all 15 categories (A-O), 4 layers done, 60 findings total
+Layer 4 highlights: omega-3 double-counted bonus (A), silent diary-parse-
+failure logging (B), backup-import size cap (C), activity_log index
+alignment (D), 6 more deprecated non-mirrored icons found via the
+compiler (E), named delete confirmations (F), weight-sparkline semantics
+(G), LocalLifecycleOwner import fix (H), typed 5-flow combine (I),
+grocery markdown-checklist export (J), vision-LLM prompt-injection
+hardening (K), deprecated outlinedButtonBorder (L), AGP 8.6.0 bump (M),
+localized reminder notifications (N), DietChecker regression tests (O).
+Also fixed a real pre-existing WorkManagerInitializer lint error the new
+release-build CI check (added at M/L3) surfaced. All 4 layers' commits
+verified green via CI throughout layer 4 (checked incrementally, unlike
+layers 1-2's single end-of-batch check). Proceeding next to §X (R&D &
+Improvement) and §XI (Polish & Restructuration) per user instruction.
