@@ -37,7 +37,10 @@ android {
     // app silently keep running stale code with no error they'd notice,
     // however many commits have actually landed since.
     signingConfigs {
-        create("debug") {
+        // AGP already auto-creates a "debug" entry — configure it in place
+        // rather than create("debug"), which collides with that built-in one
+        // ("Cannot add a SigningConfig with name 'debug'... already exists").
+        getByName("debug") {
             storeFile     = file("keystore/debug.keystore")
             storePassword = "android"
             keyAlias      = "androiddebugkey"
