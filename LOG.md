@@ -793,3 +793,29 @@ why:       Smaller and safer than the originally-queued plan (Rule 7)
            when this was queued.
 reversal:  trivial (cache is purely additive; deleting it reverts to the
            original uncached behavior with no other code changes needed)
+
+### App-audit §J1/L3 — day/month names followed device locale, not the in-app language
+context:   WeightScreen, MealPlanScreen, and DiaryScreen each declared a
+           top-level DateTimeFormatter.ofPattern("...") (day/month
+           abbreviations) with no explicit Locale - per the JDK,
+           ofPattern(pattern) alone resolves Locale.getDefault(), i.e. the
+           DEVICE's locale, not this app's own in-app language setting
+           (Settings has an explicit language toggle independent of
+           device locale, used pervasively via `lang`/prefs.language
+           throughout scoring and error messages this whole session). A
+           user on an English-locale device who picked French in Settings
+           would see French everywhere except these 3 screens' date
+           labels, which would render in English.
+decision:  Threaded prefs.language into WeightViewModel, MealPlanViewModel
+           (newly injected UserPreferences), and DiaryViewModel as a
+           `language: StateFlow<String>`; each screen now builds its
+           formatter via `remember(language.value) { ofPattern(pattern,
+           Locale(language.value)) }` instead of a static top-level val.
+why:       Same class of "app-language vs device-locale" bug this session
+           already fixed for the scoring/error-message layer - date labels
+           were the one presentation surface still silently following the
+           wrong source of truth.
+reversal:  moderate (adds a constructor param + DI wiring to 2 ViewModels
+           that didn't have UserPreferences before; WeightViewModel
+           already had it). Fully additive - no existing behavior changes
+           for a device whose locale already matches the chosen language.

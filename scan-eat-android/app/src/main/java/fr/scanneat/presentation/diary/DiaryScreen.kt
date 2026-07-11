@@ -33,8 +33,7 @@ import fr.scanneat.presentation.reminders.RemindersCard
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.weight.WeightScreen
 import java.time.format.DateTimeFormatter
-
-private val DATE_FMT = DateTimeFormatter.ofPattern("EEE d MMM")
+import java.util.Locale
 
 private enum class DiaryTab(val labelRes: Int) {
     MEALS(R.string.diary_tab_meals),
@@ -118,6 +117,10 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     val selectedDate = viewModel.selectedDate.collectAsStateWithLifecycle()
     val isToday      = viewModel.isToday.collectAsStateWithLifecycle(initialValue = true)
     val dayNote      = viewModel.dayNote.collectAsStateWithLifecycle(initialValue = "")
+    val language     = viewModel.language.collectAsStateWithLifecycle()
+    // In-app language can differ from device locale - ofPattern() alone would
+    // default to Locale.getDefault() and could show the day name in the wrong language.
+    val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     // Fix 9: initialise to empty on date change; LaunchedEffect collects the stored
     // note once per date and sets it — won't fire again while the user is typing because
@@ -145,7 +148,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { viewModel.goToPreviousDay() }) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
-                    Text(selectedDate.value.format(DATE_FMT), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                    Text(selectedDate.value.format(dateFmt), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
                     IconButton(onClick = { viewModel.goToNextDay() }, enabled = !isToday.value) {
                         Icon(Icons.Default.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday.value) OnBackground else OnBackground.copy(0.3f))
                     }

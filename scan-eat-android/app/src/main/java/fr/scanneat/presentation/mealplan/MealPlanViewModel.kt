@@ -3,6 +3,7 @@ package fr.scanneat.presentation.mealplan
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.planning.DayPlan
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.planning.MealPlanSlot
@@ -12,11 +13,17 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
-class MealPlanViewModel @Inject constructor(private val repo: MealPlanRepository) : ViewModel() {
+class MealPlanViewModel @Inject constructor(
+    private val repo: MealPlanRepository,
+    private val prefs: UserPreferences,
+) : ViewModel() {
     val weekDates: List<LocalDate> = repo.weekDates()
 
     val weekPlan: StateFlow<Map<LocalDate, DayPlan>> = repo.weekPlan
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
     fun setNote(date: LocalDate, meal: String, text: String) {
         // Entries are newline-delimited in storage (see MealPlanRepository.serialize) —

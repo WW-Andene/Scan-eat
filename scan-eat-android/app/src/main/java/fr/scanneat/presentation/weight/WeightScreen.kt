@@ -25,9 +25,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.presentation.ui.theme.*
 import java.time.format.DateTimeFormatter
-
-
-private val fmt = DateTimeFormatter.ofPattern("dd MMM")
+import java.util.Locale
 
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar — used when
@@ -45,6 +43,11 @@ fun WeightScreen(
     val summary  = viewModel.summary.collectAsStateWithLifecycle()
     val forecast = viewModel.forecast.collectAsStateWithLifecycle()
     val goalWeightKg = viewModel.goalWeightKg.collectAsStateWithLifecycle()
+    val language = viewModel.language.collectAsStateWithLifecycle()
+    // In-app language (Settings) can differ from the device locale, so day/month
+    // abbreviations must follow it explicitly - ofPattern() alone defaults to
+    // Locale.getDefault(), which would silently mix languages in the date labels.
+    val fmt = remember(language.value) { DateTimeFormatter.ofPattern("dd MMM", Locale(language.value)) }
 
     var kgText by remember { mutableStateOf("") }
     var notesText by remember { mutableStateOf("") }

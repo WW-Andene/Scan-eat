@@ -34,6 +34,9 @@ class WeightViewModel @Inject constructor(
     val goalWeightKg: StateFlow<Double?> = prefs.profile.map { it.goalWeightKg }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     fun log(kg: Double, notes: String = "") {
         viewModelScope.launch { repo.log(LocalDate.now(), kg, notes) }
     }

@@ -24,10 +24,9 @@ import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
-
-private val DAY_FMT = DateTimeFormatter.ofPattern("EEE d")
-private val MEALS   = listOf("breakfast", "lunch", "dinner", "snack")
+private val MEALS = listOf("breakfast", "lunch", "dinner", "snack")
 
 @Composable
 fun MealPlanScreen(
@@ -35,6 +34,10 @@ fun MealPlanScreen(
     onBack: () -> Unit,
 ) {
     val plan = viewModel.weekPlan.collectAsStateWithLifecycle()
+    val language = viewModel.language.collectAsStateWithLifecycle()
+    // In-app language can differ from device locale - ofPattern() alone would
+    // default to Locale.getDefault() and could show day names in the wrong language.
+    val dayFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d", Locale(language.value)) }
 
     Scaffold(
         topBar = {
@@ -57,7 +60,7 @@ fun MealPlanScreen(
                 Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            if (isToday) stringResource(R.string.mealplan_day_today, date.format(DAY_FMT)) else date.format(DAY_FMT),
+                            if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
                             style = MaterialTheme.typography.titleSmall,
                             color = if (isToday) AccentGreen else OnSurface,
                             fontWeight = FontWeight.SemiBold,

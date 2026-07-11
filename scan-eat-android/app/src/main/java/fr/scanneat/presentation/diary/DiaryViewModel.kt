@@ -3,6 +3,7 @@ package fr.scanneat.presentation.diary
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import fr.scanneat.domain.model.ConsumedNutrition
@@ -19,11 +20,15 @@ import javax.inject.Inject
 class DiaryViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
     private val notesRepo: DayNotesRepository,
+    private val prefs: UserPreferences,
 ) : ViewModel() {
 
     // Fix 13: selectedDate as a StateFlow — avoids stale data across midnight
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
+
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
     // Flat-map so the observation restarts whenever the date changes
     val summary: StateFlow<DailySummary> = _selectedDate
