@@ -1,5 +1,8 @@
 package fr.scanneat.shared
 
+import java.text.Normalizer
+import java.util.concurrent.ConcurrentHashMap
+
 // ============================================================================
 // ADDITIVES DATABASE — port of scoring-engine.ts SECTION 2
 // Source citations preserved verbatim from the original TS engine.
@@ -248,6 +251,37 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
         "Glazing agent; not vegan.", "EFSA re-evaluated; no ADI specified."),
     AdditiveInfo("E920", listOf("l-cystéine", "l cysteine", "cystéine", "cysteine"), AdditiveTier.THREE, AdditiveCategory.FLOUR_TREATMENT,
         "Dough conditioner; often animal-derived (relevant for vegetarians/vegans).", "EU Regulation 1333/2008."),
+
+    // ===== TIER 3 (cont.): previously referenced by findAdditive()'s natural-colorant
+    // lookup but missing their own entries — the lookup silently returned null for
+    // every beetroot-red or carmine ingredient. Also adds other very common E-numbers
+    // not previously represented (alginates, gum arabic, sorbitol, chlorophyll, etc.).
+    AdditiveInfo("E120", listOf("carmin", "cochenille", "carmine", "cochineal", "acide carminique"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Insect-derived red colorant (Dactylopius coccus); not vegan/vegetarian, rare allergen reports.",
+        "EFSA 2015;13(11):4288."),
+    AdditiveInfo("E162", listOf("rouge de betterave", "betterave rouge", "betanine", "beetroot red", "betanin"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Natural betalain colorant from beetroot; no concern.", "EU authorisation without ADI."),
+    AdditiveInfo("E140", listOf("chlorophylles", "chlorophylle", "chlorophyll", "chlorophylls"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Natural green plant pigment; no concern.", "EU authorisation without ADI."),
+    AdditiveInfo("E153", listOf("charbon végétal", "vegetable carbon", "carbon black (vegetal)"), AdditiveTier.THREE, AdditiveCategory.COLORANT,
+        "Vegetable-carbon black colorant; EFSA re-evaluation found no safety concern at authorised levels.",
+        "EFSA 2012;10(4):2592."),
+    AdditiveInfo("E200", listOf("acide sorbique", "sorbic acid"), AdditiveTier.THREE, AdditiveCategory.PRESERVATIVE,
+        "Widely used mould/yeast inhibitor; EFSA reaffirmed safety.", "EFSA 2015;13(6):4144."),
+    AdditiveInfo("E262", listOf("acétate de sodium", "sodium acetate", "diacétate de sodium", "sodium diacetate"), AdditiveTier.THREE, AdditiveCategory.PRESERVATIVE,
+        "Acetate preservative/acidity regulator; no concern.", "EU authorisation without ADI."),
+    AdditiveInfo("E290", listOf("dioxyde de carbone", "carbon dioxide", "gaz carbonique"), AdditiveTier.THREE, AdditiveCategory.ACIDITY_REGULATOR,
+        "Carbonation gas / packaging gas; no concern.", "EU authorisation (quantum satis)."),
+    AdditiveInfo("E401", listOf("alginate de sodium", "sodium alginate"), AdditiveTier.THREE, AdditiveCategory.THICKENER,
+        "Seaweed-derived thickener; EFSA confirmed no concern.", "EFSA 2017;15(11):5049 (alginate group)."),
+    AdditiveInfo("E406", listOf("agar", "agar-agar"), AdditiveTier.THREE, AdditiveCategory.THICKENER,
+        "Seaweed-derived gelling agent; no concern.", "EFSA 2016;14(5):4488."),
+    AdditiveInfo("E410", listOf("gomme de caroube", "locust bean gum", "farine de graines de caroube"), AdditiveTier.THREE, AdditiveCategory.THICKENER,
+        "Legume-derived thickener; no concern.", "EFSA 2017;15(11):5049."),
+    AdditiveInfo("E414", listOf("gomme arabique", "gum arabic", "gomme d'acacia"), AdditiveTier.THREE, AdditiveCategory.THICKENER,
+        "Acacia-tree exudate thickener/stabiliser; no concern.", "EFSA 2017;15(4):4741."),
+    AdditiveInfo("E420", listOf("sorbitol", "sirop de sorbitol"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,
+        "Sugar alcohol; laxative effect above tolerance, moderate glycemic impact.", "EFSA 2011 polyol opinion."),
 )
 
 // ============================================================================
@@ -256,15 +290,36 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
 
 /** Normalize for matching: lowercase, strip accents, collapse spaces. */
 fun normalizeForMatching(s: String): String =
-    s.lowercase()
-        .map { if (it.code in 0x0300..0x036F) ' ' else it }
-        .joinToString("")
+    Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD)
+        .replace(Regex("[\\u0300-\\u036f]"), "")
         .replace(Regex("[^a-z0-9\\s-]"), " ")
         .replace(Regex("\\s+"), " ")
         .trim()
 
-/** Find additive info from an ingredient E-number or name. Null if unknown. */
+/**
+ * Find additive info from an ingredient E-number or name. Null if unknown.
+ *
+ * Memoized: ProcessingPillar, AdditiveRiskPillar, and IngredientIntegrityPillar
+ * each independently call this for the same ingredient during a single
+ * scoreProduct() run, so without a cache the same O(n) linear + synonym-
+ * substring scan over ADDITIVES_DB runs up to 3x per ingredient. The cache is
+ * local to this function (no call-site or signature changes needed in any
+ * pillar) and keyed on the exact 3 inputs, which fully determine the result -
+ * a Ingredient-shaped sentinel (NOT_FOUND) distinguishes a cached miss from
+ * "not yet looked up" since ConcurrentHashMap can't store null values.
+ */
+private val NOT_FOUND = AdditiveInfo("", emptyList(), AdditiveTier.THREE, AdditiveCategory.ANTICAKING, "", "")
+private val additiveLookupCache = ConcurrentHashMap<Triple<String?, String, IngredientCategory?>, AdditiveInfo>()
+
 fun findAdditive(eNumber: String?, name: String, category: IngredientCategory?): AdditiveInfo? {
+    val key = Triple(eNumber, name, category)
+    additiveLookupCache[key]?.let { return if (it === NOT_FOUND) null else it }
+    val result = computeFindAdditive(eNumber, name, category)
+    additiveLookupCache[key] = result ?: NOT_FOUND
+    return result
+}
+
+private fun computeFindAdditive(eNumber: String?, name: String, category: IngredientCategory?): AdditiveInfo? {
     // Direct E-number match
     if (eNumber != null) {
         val norm = eNumber.uppercase().replace("\\s".toRegex(), "")
