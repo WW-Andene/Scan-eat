@@ -269,10 +269,11 @@ Identify the food in this image. Return a JSON object with the same schema as a 
   "category": "<category key>",
   "nova_class": <1-4>,
   "ingredients": [],
-  "nutrition": { "energy_kcal": <estimate>, "fat_g": 0, "saturated_fat_g": 0, "carbs_g": 0, "sugars_g": 0, "fiber_g": 0, "protein_g": 0, "salt_g": 0 },
+  "nutrition": { "energy_kcal": <estimate>, "fat_g": <estimate>, "saturated_fat_g": <estimate>, "carbs_g": <estimate>, "sugars_g": <estimate>, "fiber_g": <estimate>, "protein_g": <estimate>, "salt_g": <estimate> },
   "organic": false, "whole_grain_primary": false, "fermented": false,
   "has_health_claims": false, "has_misleading_marketing": false
 }
+Estimate every nutrition value from your knowledge of this food's typical composition per 100g — never output a literal 0 unless the food genuinely contains none of that nutrient.
 Output ONLY the JSON. No explanation.
         """.trimIndent()
         val content = buildContentParts(images, prompt)

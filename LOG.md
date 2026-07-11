@@ -466,6 +466,28 @@ decision:  Queued rather than fixed here - the correct fix (memoize once per
            reasoning as §H3 and §O4 this session).
 reversal:  n/a (no code changed, doc/queue only)
 
+### App-audit §K5/L2 — identifyFood() prompt biased the LLM toward zeroed nutrition
+context:   OcrParser.kt's identifyFood() prompt (used for fresh foods/plated
+           dishes with no label to OCR) showed the model a JSON schema
+           example where energy_kcal was "<estimate>" but every other
+           nutrient (fat_g, saturated_fat_g, carbs_g, sugars_g, fiber_g,
+           protein_g, salt_g) was a literal 0 - a known LLM failure mode is
+           echoing back literal schema-example values instead of treating
+           them as format placeholders, especially when the instruction
+           ("Return a JSON object with the same schema") doesn't clarify
+           they're placeholders. This is exactly the identifyFood() path
+           whose whole value proposition is nutrition estimation from
+           general knowledge (buildWarnings even labels the result
+           "Nutrition estimated by AI") - a model that just echoes the 0s
+           silently defeats that purpose for a fresh apple, a plated meal,
+           anything without a printed label.
+decision:  Made all nutrient fields <estimate> placeholders (consistent
+           with buildLabelPrompt's own convention) and added an explicit
+           instruction line telling the model to estimate every value from
+           typical composition and never emit a literal 0 unless the food
+           genuinely lacks that nutrient.
+reversal:  trivial (prompt string only, no schema/DTO change)
+
 ### App-audit §J1/L2 — French-decimal-keyboard bug still open in 6 more screens
 context:   §J1 (layer 1) fixed BiolismProfileScreen's comma/period parsing,
            but the same toDoubleOrNull()-only bug was still live in
