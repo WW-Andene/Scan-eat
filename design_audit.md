@@ -1169,5 +1169,125 @@ are covered above: §0 → §DS1-2 → §DP0-2 (confirmed by user) → §DBI1+3 
 fixed layout) → §DDT1-2 → §DP3 → §DBI2 → §DCP1-3.
 
 Phase 2 (expanded UI audit from app-audit-SKILL.md: §E1-10, §F1-6, §G1-4,
-§H3, §L3-5, §D5) has NOT been started, per explicit user instruction to
-stop after Phase 1.
+§H3, §L3-5, §D5) — user has now authorized starting this phase.
+
+---
+
+# PHASE 2 — EXPANDED UI AUDIT (from app-audit-SKILL.md)
+
+Per the design-aesthetic-audit-SKILL.md "full deep" scope convention, Phase 2
+pulls in every UI-adjacent section from app-audit-SKILL.md. Where a Phase-2
+item substantially overlaps a Phase-1 finding, this cross-references rather
+than duplicates it (matching the two skills' own §COMPANION section-mapping
+table). New evidence and genuinely new findings are called out explicitly.
+
+## CATEGORY E — VISUAL DESIGN QUALITY & POLISH
+
+```
+[CROSS-REFERENCE — no new finding needed]
+§E1 Design Token System        → see Phase 1 §DTA1-2, §DC2 (token layers,
+                                  find-and-replace test)
+§E2 Visual Rhythm & Spatial     → see Phase 1 §DH1-4 (focal point, chroma
+                                  contrast); spacing-scale specifics remain
+                                  an acknowledged scope gap in both passes
+§E3 Color Craft & Contrast      → see Phase 1 §DC1-5, §DBI3 (perceptual
+                                  architecture, dark-mode quality, WCAG
+                                  contrast not independently re-verified
+                                  numerically in either pass — flagged below
+                                  as the one genuinely open item)
+§E4 Typography Craft            → see Phase 1 §DT1-4 (type personality,
+                                  scale, tabular figures, tracking)
+§E6 Interaction Design Quality  → see Phase 1 §DM1-5, §DP3 (motion
+                                  vocabulary, signature moment)
+§E7 Overall Professionalism     → see Phase 1 §DP0-2, §DBI1-3 (character
+                                  extraction, anti-genericness)
+§E9 Visual Identity             → see Phase 1 §DBI2-3, §DCP1-3 (design DNA,
+                                  competitive whitespace)
+§E10 Data Storytelling          → see Phase 1 §DH1 (score ring focal
+                                  weight) — no dedicated chart library in
+                                  use, so most §E10 chart-specific items
+                                  (axis labeling, chart-type fit) don't apply
+```
+
+```
+[HIGH] — WCAG numeric contrast ratios have not been independently verified
+  for any color pair in the app
+Dimension: §E3 (WCAG contrast compliance), §G1 (text contrast)
+Finding: Phase 1's color evidence gives exact hex values for every text/
+  background pairing (e.g. cream 0xFFEFEAE6 on OLED 0xFF0F0D12; TextSecondary
+  0xFF7E859E on the same background; FlagRed/AmberWarning banner text at 15%
+  alpha fills), but no pass in this audit has computed actual contrast
+  ratios against the WCAG 4.5:1 (normal text) / 3:1 (large text, UI
+  components) thresholds.
+Why it matters: This is the single most consequential unverified claim in
+  the entire audit so far — a beautiful, well-considered palette can still
+  fail basic legibility if a specific pairing (most likely candidate:
+  TextMuted 0xFF454A60 on OLED background, or banner text over 15%-alpha
+  colored fills) falls under 4.5:1. Given A2=High-stakes/Emotional (health/
+  allergen data), a real contrast failure here would be a correctness bug,
+  not a taste question.
+Recommendation: Compute actual contrast ratios for the ~6 most-used text/
+  background pairs (primary text/OLED bg, secondary text/OLED bg, muted
+  text/OLED bg, banner text/each 15%-alpha fill) before shipping any of the
+  Phase 1 recommendations that touch these colors. This is a verification
+  task, not a design task — flagging it rather than asserting pass/fail
+  without having actually computed it.
+Effort: LOW (a contrast-ratio calculator pass, no design change unless a
+  failure is found)
+
+[MEDIUM] — Per-component state completeness (§E5) not fully audited beyond
+  buttons/cards (already covered in Phase 1 §DCO1-6)
+Dimension: §E5
+Finding: Phase 1 covered buttons, cards, inputs, navigation, modals in
+  detail. Not directly evidenced this session: checkbox/radio/switch/slider/
+  dropdown component usage and state-completeness (the app may not use all
+  of these — e.g. no evidence of a slider anywhere; toggle switches exist
+  in Settings and Reminders but weren't independently re-verified for their
+  5-state completeness beyond the §DP3 "character-neutral" flag on switches).
+Recommendation: Not a new finding — restating the §DP3 unverified item
+  (settings toggle Switch coloring) as the one open component-state question,
+  rather than asserting new problems without evidence.
+Effort: N/A (already scoped)
+
+[MEDIUM] — Material You / Dynamic Color not used; static palette confirmed
+  high-quality, so this is a deliberate, defensible choice — not a gap
+Dimension: §E11 (Material You / Dynamic Color)
+Finding: Confirmed in Phase 1 (§DC/§DS): no DynamicColors API usage
+  anywhere; all three theme schemes (OLED/Dark/Light) are hand-authored
+  static palettes.
+Why it matters: Per §E11's own guidance — "if not supported, verify the
+  static palette is high quality" — Phase 1 already established the static
+  palette IS high quality (deliberate, non-default, CVD-safe). Given the
+  confirmed Character Brief explicitly wants a specific warm-gold identity
+  (not a user-wallpaper-derived one), opting out of Dynamic Color is
+  correct, not a gap — Dynamic Color would directly undermine the "owned"
+  identity Phase 1 spent most of its effort trying to strengthen.
+Recommendation: None — protect this decision, don't add Dynamic Color.
+Effort: N/A
+
+[LOW] — Splash screen theme hardcoded black regardless of in-app theme
+  choice (same root cause as the §DS2 system-chrome finding)
+Dimension: §E11 (Splash screen quality)
+Finding: `Theme.ScanEat.Starting` (themes.xml) is hardcoded black, same as
+  the main `Theme.ScanEat`'s native Android theme layer — consistent with
+  the already-identified §DS2 finding that system chrome doesn't track the
+  in-app light/dark/OLED picker (it's Compose-only theming).
+Why it matters: Minor, same root cause already documented — not a new
+  problem, just its most visible symptom (a user who selects Light theme
+  still sees a black splash screen on every cold start).
+Recommendation: Fold into the same future fix as the §DS2 finding (make
+  system-level theme, including splash, follow the in-app picker) rather
+  than fixing splash alone.
+Effort: LOW-MEDIUM (requires reading the in-app theme preference before
+  Activity Compose content is set, which has real Android lifecycle
+  constraints — worth scoping carefully, not a one-line fix)
+
+[UNVERIFIED] — RTL layout quality (§E11) not re-audited this session
+Finding: RTL support was added earlier in this project's history (task
+  #23, P-3). Not independently re-verified as part of this design audit
+  pass — no regression assumed, but also not re-confirmed.
+Recommendation: None at this time — noting the gap rather than asserting
+  either a pass or a regression without re-testing.
+```
+
+Section E complete — appending to design_audit.md.
