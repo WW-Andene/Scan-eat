@@ -9,6 +9,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import fr.scanneat.BuildConfig
 import fr.scanneat.data.remote.api.*
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -43,9 +44,18 @@ object NetworkModule {
                     .build()
             )
         }
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
-        })
+        .apply {
+            // Debug-only: every request/response line (URLs, status, timing) was
+            // logging to Logcat unconditionally, including release builds.
+            // Level.BASIC doesn't include headers/body, so the API key itself
+            // was never exposed — but production has no reason to log network
+            // activity at all.
+            if (BuildConfig.DEBUG) {
+                addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BASIC
+                })
+            }
+        }
         .build()
 
     // Named "groq" — base URL is the Groq API; also used by ScanRepository

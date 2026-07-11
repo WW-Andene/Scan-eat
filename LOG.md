@@ -308,3 +308,15 @@ decision:  Normalize comma->period before parsing (input.replace(',',
            calls elsewhere (BMI, TDEE, burn rate, dispWeight/dispCirc/
            dispHeight overview recap) untouched - those are pure display
            text, a French comma there is correct localization, not a bug.
+
+### App-audit §K5/C4 — network logging interceptor active in release builds
+context:   NetworkModule's shared OkHttpClient unconditionally added
+           HttpLoggingInterceptor(Level.BASIC), logging every request/
+           response line (URLs, status, timing) to Logcat in production
+           builds too. Level.BASIC doesn't include headers/body, so the
+           Groq API key itself was never exposed by this - but shipping
+           network logging unconditionally in release is an unnecessary,
+           standard anti-pattern to close.
+decision:  Gated the interceptor behind BuildConfig.DEBUG. Debug builds
+           keep identical logging; release builds attach no logging
+           interceptor at all.
