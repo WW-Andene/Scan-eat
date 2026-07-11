@@ -73,16 +73,36 @@ class BackupRepository @Inject constructor(
      */
     suspend fun importFromJson(json: String): Result<BackupSummary> = runCatching {
         val bundle = parseBundle(json)
+        var importedScans = 0
+        var importedConsumption = 0
         db.withTransaction {
-            scanHistoryDao.insertAll(bundle.scanHistory.map { it.copy(id = 0) })
-            consumptionDao.insertAll(bundle.consumption.map { it.copy(id = 0) })
+            // scan_history/consumption_log reset id=0 above (see class doc), so the
+            // same file imported twice would otherwise insert every row a second
+            // time — dedup against what's already in the DB by a natural key
+            // before inserting, inside the same transaction as the rest of the import.
+            val existingScanKeys = scanHistoryDao.getAllForBackup()
+                .map { (it.barcode ?: it.productName) to it.scannedAt }.toSet()
+            val newScans = bundle.scanHistory.filter { (it.barcode ?: it.productName) to it.scannedAt !in existingScanKeys }
+            scanHistoryDao.insertAll(newScans.map { it.copy(id = 0) })
+            importedScans = newScans.size
+
+            val existingConsumptionKeys = consumptionDao.getAllForBackup()
+                .map { listOf(it.date, it.mealSlot, it.productName, it.portionG, it.loggedAt) }.toSet()
+            val newConsumption = bundle.consumption.filter {
+                listOf(it.date, it.mealSlot, it.productName, it.portionG, it.loggedAt) !in existingConsumptionKeys
+            }
+            consumptionDao.insertAll(newConsumption.map { it.copy(id = 0) })
+            importedConsumption = newConsumption.size
+
             customFoodDao.insertAll(bundle.customFoods)
             weightDao.insertAll(bundle.weights)
             activityDao.insertAll(bundle.activities)
             mealTemplateDao.insertAll(bundle.mealTemplates)
             recipeDao.insertAll(bundle.recipes)
         }
-        BackupSummary.from(bundle)
+        // scan/consumption counts reflect rows actually inserted (post-dedup);
+        // the other tables key off a stable id/slug and fully apply every time.
+        BackupSummary.from(bundle).copy(scanHistory = importedScans, consumption = importedConsumption)
     }
 
     private fun parseBundle(json: String): BackupBundle {
