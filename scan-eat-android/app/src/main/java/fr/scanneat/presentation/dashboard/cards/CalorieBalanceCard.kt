@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
@@ -10,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -32,8 +34,18 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
     val sourceRes = if (balance.tdeeFromBiolism) R.string.dashboard_calorie_source_biolism else R.string.dashboard_calorie_source_profile
 
     Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(20.dp))) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = SurfaceVariant) {
-            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // This is the Dashboard's one focal metric — the Part B6 atmosphere
+        // fix: a soft radial light-pool in the balance color, at Haze-level
+        // intensity (~10% alpha), rendered on top of the flat surface fill
+        // rather than left flat. Reserved for this card alone, not every card.
+        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = Color.Transparent) {
+            Column(
+                modifier = Modifier
+                    .background(SurfaceVariant)
+                    .background(Brush.radialGradient(listOf(balColor.copy(alpha = 0.14f), Color.Transparent)))
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(end = if (streak > 0) 40.dp else 0.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,

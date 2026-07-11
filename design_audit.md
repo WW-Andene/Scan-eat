@@ -66,7 +66,7 @@ in its Part with an explicit PROTECT note.
 | # | Severity | Area | Finding | Detail |
 |---|----------|------|---------|--------|
 | 1 | ~~CRITICAL*~~ FIXED | Contrast/Safety | WCAG contrast verified PASS on allergen/diet-veto banners | B1, F1 |
-| 2 | CRITICAL | Surface/Atmosphere | Glow/Haze tokens exist but aren't rendered as light | B6 |
+| 2 | ~~CRITICAL~~ FIXED | Surface/Atmosphere | Glow/Haze tokens exist but aren't rendered as light | B6 |
 | 3 | ~~HIGH~~ FIXED | Motion/States | Score reveal has no signature moment | B5, B8, D |
 | 4 | HIGH | Typography | Zero tabular figures on any numeric display | B2 |
 | 5 | HIGH | Components | No shared Button component — recipe hand-copied, drifting | B4 |
@@ -695,6 +695,21 @@ Recommendation: Verify usage first, then apply a soft
   explicitly not uniform across every card (the most common atmosphere-
   hierarchy violation).
 Effort: MEDIUM (verify-then-implement; values already exist)
+STATUS: VERIFIED, then FIXED — the grep this finding called for turned up a
+  more nuanced picture than "unused": GoldHaze/GoldBorder/VioletHaze/
+  VioletGlow/TealHaze/TealGlow/TealBorder etc. ARE used, extensively, across
+  ~10 Biolism files (RemindersCard, BiolismScreen, KetosisSection,
+  FastingSection, HeroCard, MacroTargetsCard, SessionHistoryCard) — but only
+  as flat alpha-fill Surface/chip backgrounds, never as an actual "light
+  pool" gradient. Real `Brush.radialGradient()` atmosphere existed in
+  exactly 2 places pre-fix: ScoreDisplay.kt's ScoreRing and
+  HydrationScreen.kt — confirming the audit's core claim (atmosphere is
+  real in isolated spots, absent from the app's other primary surfaces).
+  Added a third: CalorieBalanceCard.kt (Dashboard's one focal metric, per
+  Part D's Character Hierarchy) now renders a radial gradient in the
+  balance-status color at Haze-level (~14%) alpha over its surface fill,
+  reserved for this one card as the recommendation specified — not applied
+  uniformly elsewhere.
 
 [MEDIUM] — No established light source direction; the app's one shadow
   (badge, 6dp) and glassSheen()'s "top-light" sheen aren't confirmed
