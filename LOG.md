@@ -1380,3 +1380,27 @@ why:       Same reasoning, same pattern, same file as the two sibling
            surfacing English to a French-locale user.
 reversal:  n/a (message text + one new parameter, no behavior change
            beyond the string shown)
+
+## §XI Polish & Restructuration complete — stopped per user instruction
+Three findings landed, each CI-verified green individually: (1) the
+silent-drop parse-failure logging pattern from ConsumptionRepository
+(§B1/L4) applied consistently to the other 5 repositories sharing it —
+MealTemplateRepository, RecipeRepository, FastingRepository,
+ScanRepository, CustomFoodRepository; (2) ScanRepository's dead unused
+GroqApi constructor parameter removed, and task #72 (multi-provider API
+key support) investigated and scoped (a configurable OpenAI-compatible
+base URL is the safe path — documented in QUEUE.md rather than
+implemented blind, since it touches NetworkModule/DomainModule/
+OcrParser/Settings UI with no local compile check available); (3) the
+last hardcoded-English error string in ScanRepository (scoreViaServer's
+"Server URL not configured") localized to match its two sibling messages.
+
+This closes out the full A-O × 4-layer app-audit (60 findings) + §X
+(R&D roadmap doc, healthier-alternative-suggestion feature, diet-note
+UI surfacing + vegan B12 caveat) + §XI (3 coherence-fracture fixes) —
+every commit across all three phases individually CI-verified green.
+
+Per explicit user instruction: stopping here. Scope from this point
+forward is UI/UX and design work only, and when that work begins it
+runs at the "full deep" scope per design-aesthetic-audit-SKILL.md and
+art-direction-engine-SKILL.md (both uploaded this session).
