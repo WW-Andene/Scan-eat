@@ -1364,3 +1364,19 @@ why:       Golden question (Rule 8): worst case if this breaks blind is
            concrete, safe implementation path is more valuable than a
            guessed multi-file refactor with no way to verify it compiles.
 reversal:  n/a (investigation + documentation only, no code changed)
+
+### App-audit §XI/3 — localized scoreViaServer's "Server URL not configured" error
+context:   This error string was still hardcoded English-only, unlike the
+           offline/missing-API-key messages already localized for the
+           Direct-mode path — a small but real remnant of the same
+           i18n-coherence gap fixed elsewhere, left queued because it's
+           the rarer Server-mode-only path.
+decision:  Added `serverUrlMissingMessage(lang)` alongside the existing
+           `offlineMessage`/`missingApiKeyMessage` helpers, threaded
+           `lang` through `scoreViaServer()`'s signature and both call
+           sites (scoreBarcode, scoreFromImages).
+why:       Same reasoning, same pattern, same file as the two sibling
+           messages already fixed - no reason for this one string to keep
+           surfacing English to a French-locale user.
+reversal:  n/a (message text + one new parameter, no behavior change
+           beyond the string shown)

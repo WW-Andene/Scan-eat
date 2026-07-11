@@ -12,10 +12,6 @@ Data, Old feature, New feature — never the same category twice in a row.
   accessibility guideline. Consistent, deliberate density choice, not
   fixed here — needs visual verification before a blanket resize since
   it touches many list layouts at once. See app-audit §H3.
-- scoreViaServer's "Server URL not configured" error (ScanRepository.kt)
-  is still hardcoded English-only, unlike the offline/missing-API-key
-  messages fixed in app-audit §F — needs `lang` threaded into
-  scoreViaServer's signature to fix properly (rarer Server-mode-only path).
 - Room schema export (exportSchema = true, room.schemaLocation ->
   app/schemas/) has never actually been generated/committed - no
   app/schemas/ directory exists in the repo. Needed for
@@ -102,3 +98,5 @@ Data, Old feature, New feature — never the same category twice in a row.
 - ScanRepository's unused `groqApi: GroqApi` constructor parameter
   removed (dead dependency — all Groq calls actually go through the
   injected OcrParser) — app-audit §XI/2.
+- scoreViaServer's "Server URL not configured" error now localized (lang
+  threaded through both call sites) — app-audit §XI/3.
