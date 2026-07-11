@@ -213,3 +213,12 @@ context:   allowBackup="true" + groqApiKey stored in plaintext DataStore
            app already has its own in-app JSON export/import (task #67),
            so OS-level backup isn't needed for data portability.
 decision:  allowBackup="false".
+
+### App-audit §D4/D5 — full-res capture bitmaps held as thumbnails
+context:   ScanViewModel.Bitmap.toPayload() stored the full 1600x1200
+           capture as `thumbnail`, rendered in a 64.dp box. ~7.7MB per
+           queued photo (ARGB_8888); multi-photo sessions risk real
+           memory pressure on lower-end devices.
+decision:  Scale down aspect-preserving to max 160px for the thumbnail;
+           base64 (OCR upload) still uses the full-res bytes, compressed
+           before scaling. Recycle the original once both are derived.

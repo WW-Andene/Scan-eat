@@ -113,12 +113,28 @@ class ScanViewModel @Inject constructor(
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
+    /**
+     * Photo-queue thumbnails render in a 64.dp box, but the capture itself is
+     * 1600×1200 — holding that full bitmap per queued photo (~7.7MB each,
+     * ARGB_8888) risks real memory pressure with more than one or two photos
+     * queued. Scale down (aspect-preserving) for display; the full-res bytes
+     * still go into [base64] for the OCR upload, which needs the resolution.
+     */
     private fun Bitmap.toPayload(): ImagePayload {
         val out = ByteArrayOutputStream()
         compress(Bitmap.CompressFormat.JPEG, 85, out)
+        val scale = THUMBNAIL_MAX_PX.toFloat() / maxOf(width, height)
+        val thumb = if (scale < 1f) {
+            Bitmap.createScaledBitmap(this, (width * scale).toInt(), (height * scale).toInt(), true)
+        } else this
+        if (thumb !== this) recycle()
         return ImagePayload(
             base64    = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP),
-            thumbnail = this,
+            thumbnail = thumb,
         )
+    }
+
+    private companion object {
+        const val THUMBNAIL_MAX_PX = 160
     }
 }
