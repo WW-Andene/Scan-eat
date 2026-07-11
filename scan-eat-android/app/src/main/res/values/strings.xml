@@ -20,7 +20,7 @@
     <string name="hydration_goal_reached">Objectif atteint !</string>
     <string name="hydration_glass_ml">%1$d mL</string>
     <string name="hydration_per_glass_label">par verre</string>
-    <string name="hydration_goal_footer">Objectif : %1$d mL/j (30 mL × poids corporel)</string>
+    <string name="hydration_goal_footer">Objectif : %1$d mL/j (2,5 L homme / 2 L femme + 0,5 L si actif — EFSA)</string>
     <string name="settings_groq_key">Clé Groq API</string>
     <string name="settings_server_url">URL du serveur</string>
     <string name="result_log_it">Journaliser</string>

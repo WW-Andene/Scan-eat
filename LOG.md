@@ -179,3 +179,13 @@ context:   values-en/strings.xml:biolism_fasting_status_disabled had an
            (10 inherited 9's break, no new issue of its own).
 fix:       Escaped the apostrophe (Journal\'s), matching every other
            apostrophe in both strings.xml files.
+
+### 2026-07-11 App-audit §A1 — hydration goal footer described the wrong formula
+context:   HydrationScreen.kt:145 shows the water goal computed by
+           HydrationRepository.goalMl() (EFSA flat-rate: 2.5L male/2.0L
+           female + 0.5L activity bonus, via BiolismEngine — weight-
+           independent), but the footer text next to it said "30 mL ×
+           poids corporel" (body-weight formula) — stale copy left over
+           from before task #30 switched the actual calculation.
+decision:  Updated fr+en footer strings to describe the real formula.
+reversal:  trivial (strings only)

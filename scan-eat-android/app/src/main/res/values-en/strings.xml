@@ -20,7 +20,7 @@
     <string name="hydration_goal_reached">Goal reached!</string>
     <string name="hydration_glass_ml">%1$d mL</string>
     <string name="hydration_per_glass_label">per glass</string>
-    <string name="hydration_goal_footer">Goal: %1$d mL/day (30 mL × body weight)</string>
+    <string name="hydration_goal_footer">Goal: %1$d mL/day (2.5 L male / 2 L female + 0.5 L if active — EFSA)</string>
     <string name="settings_groq_key">Groq API Key</string>
     <string name="settings_server_url">Server URL</string>
     <string name="result_log_it">Log it</string>
