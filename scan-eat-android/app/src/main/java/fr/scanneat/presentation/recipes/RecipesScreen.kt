@@ -53,7 +53,12 @@ fun RecipesScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (recipes.value.isEmpty()) {
-                item { EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.recipes_empty_body)) }
+                item {
+                    EmptyListState(
+                        Icons.Default.RestaurantMenu, stringResource(R.string.recipes_empty_body),
+                        ctaLabel = stringResource(R.string.recipes_cd_new), onCta = { showAdd = true },
+                    )
+                }
             }
             items(recipes.value, key = { it.id }) { recipe ->
                 RecipeCard(recipe, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id })

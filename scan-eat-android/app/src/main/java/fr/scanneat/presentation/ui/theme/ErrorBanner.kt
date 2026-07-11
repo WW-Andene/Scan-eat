@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +36,8 @@ import fr.scanneat.R
 fun ErrorBanner(
     message: String,
     modifier: Modifier = Modifier,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
 ) {
     Surface(modifier = modifier.fillMaxWidth(), color = FlagRed.copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp)) {
@@ -42,6 +45,9 @@ fun ErrorBanner(
             Icon(Icons.Default.ErrorOutline, null, tint = FlagRed)
             Spacer(Modifier.width(8.dp))
             Text(message, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnBackground)
+            if (actionLabel != null && onAction != null) {
+                TextButton(onClick = onAction) { Text(actionLabel, color = FlagRed) }
+            }
             if (onDismiss != null) {
                 IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnBackground.copy(0.7f))

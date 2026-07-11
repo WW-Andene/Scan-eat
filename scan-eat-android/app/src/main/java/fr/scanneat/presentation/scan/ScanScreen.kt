@@ -239,9 +239,11 @@ fun ScanScreen(
                     }
                 } else {
                     ErrorBanner(
-                        message   = error.message,
-                        modifier  = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
-                        onDismiss = { viewModel.dismissError() },
+                        message     = error.message,
+                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
+                        actionLabel = stringResource(R.string.common_retry),
+                        onAction    = { viewModel.score() },
+                        onDismiss   = { viewModel.dismissError() },
                     )
                 }
             }

@@ -79,7 +79,7 @@ in its Part with an explicit PROTECT note.
 | 12 | MEDIUM | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
 | 13 | ~~MEDIUM~~ PARTIALLY FIXED | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
 | 14 | MEDIUM | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
-| 15 | MEDIUM | States | Empty states have no CTA slot | B8 |
+| 15 | ~~MEDIUM~~ FIXED | States | Empty states have no CTA slot | B8 |
 | 16 | MEDIUM | States | Loading states have no character treatment | B8 |
 | 17 | ~~MEDIUM~~ FIXED | Contrast | WCAG verification gap (Phase 2 restated) — now verified PASS | F1 |
 | 18 | MEDIUM | Touch | 12+ IconButtons at 32-36dp, below 48dp guideline | F3 |
@@ -88,7 +88,7 @@ in its Part with an explicit PROTECT note.
 | 21 | ~~LOW~~ FIXED | Tokens | No separator-weight taxonomy | A6, B10 |
 | 22 | ~~LOW~~ VERIFIED | Components | Nav tab-fade and bottom-nav tinting unconfirmed | B4 |
 | 23 | ~~LOW~~ FIXED | Typography | 3/15 type slots never hand-tuned (actually 4 — see B2) | B2 |
-| 24 | LOW | UX | Scan error recovery is dismiss-only, no retry action | F2 |
+| 24 | ~~LOW~~ FIXED | UX | Scan error recovery is dismiss-only, no retry action | F2 |
 | 25 | LOW | Copy | Voice is competent but under-warm vs. confirmed character | B9, F2 |
 | 26 | POLISH | Color | No color/glow intensification at success moments | B1, B8 |
 | 27 | POLISH | Surface | No grain/noise texture | B6 |
@@ -880,6 +880,14 @@ Recommendation: Add a primary action slot (optional param, only used where
   empty state) rather than redesigning the whole component; keep the
   icon/text pattern, appropriately restrained for a "Quiet" character.
 Effort: LOW (additive param, no visual regression risk)
+STATUS: FIXED — EmptyListState.kt gained optional `ctaLabel`/`onCta` params
+  (both null by default, so TemplatesScreen/CustomFoodScreen are
+  byte-for-byte unchanged). Wired on RecipesScreen only, using its existing
+  `showAdd` dialog trigger — exactly the "Add a recipe" case named in the
+  recommendation. TemplatesScreen has no equivalent standalone add-action
+  in this screen (templates are created via a different flow), so its
+  empty state correctly stays icon+text only, per the recommendation's own
+  restraint.
 
 [MEDIUM] — Loading states have no shared skeleton pattern; scores/data-viz
   bars reuse plain progress indicators with no character-specific styling
@@ -1283,6 +1291,14 @@ Recommendation: If addressed, offer a "Réessayer" action alongside dismiss
   when the error is retryable (network timeout) vs. dismiss-only when it
   isn't (product not found).
 Effort: LOW
+STATUS: FIXED — ErrorBanner gained an optional `actionLabel`/`onAction`
+  slot, wired on ScanScreen's error case to `viewModel.score()` (a plain
+  re-attempt using the barcode/photos already queued — `score()` doesn't
+  clear them on failure, so this is a genuine retry, not a re-scan
+  request). Only wired for the non-`needsPhoto` branch, matching the
+  recommendation's own retryable/not-retryable split — `needsPhoto`
+  already has its own distinct "take a photo" prompt, which is the correct
+  action there, not a retry.
 
 [LOW, MOSTLY PROTECT] — One retention mechanic (the Dashboard streak
   badge) exists; tonally appropriate, but worth a standing rule so it

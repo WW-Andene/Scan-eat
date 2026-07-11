@@ -36,6 +36,7 @@
     <string name="common_cancel">Annuler</string>
     <string name="common_save">Sauvegarder</string>
     <string name="common_close">Fermer</string>
+    <string name="common_retry">Réessayer</string>
     <string name="common_edit">Modifier</string>
     <string name="common_clear">Effacer</string>
     <string name="common_ok">OK</string>
