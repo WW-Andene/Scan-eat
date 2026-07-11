@@ -96,10 +96,13 @@ fun ScanScreen(
     }
 
     // No Scaffold here — MainShell provides the outer Scaffold + NavigationBar.
-    // Full-bleed: the camera preview is the base layer for the whole tab, edge to
-    // edge; header, photo queue, error banner, and both action buttons float on
-    // top of it instead of sharing the screen as stacked siblings (the previous
-    // layout left the camera only the leftover space between a header row and a
+    // Full-bleed *within the safe content area*: MainShell's own Scaffold already
+    // consumes systemBars insets (contentWindowInsets) before AppNavGraph renders,
+    // so this doesn't actually extend behind the status/nav bars — but within the
+    // space it does get, the camera preview is the base layer for the whole tab;
+    // header, photo queue, error banner, and both action buttons float on top of
+    // it instead of sharing the screen as stacked siblings (the previous layout
+    // left the camera only the leftover space between a header row and a
     // separate button row below it).
     Box(modifier = Modifier.fillMaxSize().background(Background)) {
         if (hasCamera) {

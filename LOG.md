@@ -448,3 +448,17 @@ decision:  4 sites: converted the containing Row to
            1 site (OnboardingScreen's Surface-based ModeCard): Surface
            already provides click handling, so just removed the
            redundant nested onClick.
+
+### App-audit §H3/L2 — ScanScreen's "edge to edge" comment overstated reality
+context:   MainShell's own Scaffold (contentWindowInsets =
+           WindowInsets.systemBars) already consumes status/nav-bar
+           insets before AppNavGraph renders, so ScanScreen's
+           Box.fillMaxSize() only fills the already-inset-adjusted area
+           - it never actually extends behind the system bars. The
+           comment claimed "edge to edge," which isn't literally true.
+decision:  Corrected the comment to describe reality (full-bleed within
+           the safe content area, not behind system bars). Did NOT
+           restructure the actual inset handling to make it truly
+           edge-to-edge - that's a real layout change across MainShell
+           + ScanScreen I can't visually verify without a device/
+           emulator (Rule 8: reduce scope when blind-apply risk is real).
