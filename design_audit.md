@@ -73,7 +73,7 @@ in its Part with an explicit PROTECT note.
 | 6 | ~~HIGH~~ FIXED | States | Three unreconciled error-banner systems in one app | B8, F5 |
 | 7 | ~~MEDIUM~~ FIXED | Tokens | No Layer-3 component tokens — find/replace test fails | B10, F4 |
 | 8 | ~~MEDIUM~~ FIXED | Color | OLED theme's surface/surfaceVariant identical (no elevation tier) | B1 |
-| 9 | MEDIUM | Color | No pressed/hover accent state token | B1 |
+| 9 | ~~MEDIUM~~ PARTIALLY FIXED | Color | No pressed/hover accent state token | B1 |
 | 10 | ~~MEDIUM~~ PARTIALLY FIXED | Typography | "Hero number" role untokenized (4 weight spellings, 5+ sizes) | B2 |
 | 11 | ~~MEDIUM~~ PARTIALLY FIXED | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
 | 12 | MEDIUM | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
@@ -85,8 +85,8 @@ in its Part with an explicit PROTECT note.
 | 18 | MEDIUM | Touch | 12+ IconButtons at 32-36dp, below 48dp guideline | F3 |
 | 19 | LOW | Color | "AccentGreen" misnamed (it's coral); 3 unreconciled gold values | B1 |
 | 20 | LOW | Brand | Light theme re-derives colors independently of shared tokens | A6 |
-| 21 | LOW | Tokens | No separator-weight taxonomy | A6, B10 |
-| 22 | LOW | Components | Nav tab-fade and bottom-nav tinting unconfirmed | B4 |
+| 21 | ~~LOW~~ FIXED | Tokens | No separator-weight taxonomy | A6, B10 |
+| 22 | ~~LOW~~ VERIFIED | Components | Nav tab-fade and bottom-nav tinting unconfirmed | B4 |
 | 23 | ~~LOW~~ FIXED | Typography | 3/15 type slots never hand-tuned (actually 4 — see B2) | B2 |
 | 24 | LOW | UX | Scan error recovery is dismiss-only, no retry action | F2 |
 | 25 | LOW | Copy | Voice is competent but under-warm vs. confirmed character | B9, F2 |
@@ -356,6 +356,11 @@ Finding: glassSheen()'s hairline edge is the only border-like treatment,
 Recommendation: Define 2-3 explicit separator opacities (20%/8%/accent-30%)
   as named tokens next to the existing Colors.kt system.
 Effort: LOW
+STATUS: FIXED — added `SeparatorHeavy`/`SeparatorLight`/`SeparatorAccent`
+  (20%/8%/accent-30%, exactly as specified) to Colors.kt. Applied
+  `SeparatorLight` to NutritionTable.kt's row divider (previously an inline
+  `OnBackground.copy(0.08f)` literal) as the first adopter; the other ad
+  hoc divider-alpha call sites across the app remain a tracked follow-up.
 ```
 
 ## A7. Design DNA Specification
@@ -406,6 +411,14 @@ Finding: Gold/AccentGreen/Teal are flat values with no "-pressed" sibling;
 Recommendation: Add one AccentGreenPressed/GoldPressed token (~8% darker,
   same hue) and apply via custom ripple color on the primary-button sites.
 Effort: LOW
+STATUS: PARTIALLY FIXED — added `GoldPressed`/`AccentGreenPressed` tokens
+  (Colors.kt). Did NOT wire them into a custom ripple this pass: Material3's
+  ripple-color customization goes through `LocalRippleConfiguration`
+  (experimental API), and with no working Gradle/build in this sandbox
+  there's no way to compile-check an experimental-API change before it
+  ships — the cost of an unverifiable break outweighs a barely-visible
+  pressed-state tint. Now that `ScanEatPrimaryButton` is the single button
+  component (Chain 4), wiring the ripple later is a one-file change.
 
 [MEDIUM] — OLED theme's surface and surfaceVariant are identical (no
   elevation tier), while the Dark theme correctly differentiates them
@@ -655,6 +668,12 @@ Finding: MainShell.kt's NavigationBar show/hide uses bare fadeIn()/
 Recommendation: Verify selectedIconColor/selectedTextColor args; set to
   Gold if defaulted.
 Effort: LOW (verify first)
+STATUS: VERIFIED — CORRECT, no fix needed. MainShell.kt's NavigationBarItem
+  already sets selectedIconColor/selectedTextColor/indicatorColor to
+  AccentGreen (the app's brand accent, not a Material default) with
+  IconInactive for the unselected state — already on-character. The
+  tab-switch fade itself remains generic (Part A6's custom-easing
+  recommendation covers that, not a separate fix here).
 
 [LOOKS FINE] — Input fields and modals/sheets
 Finding: scanEatTextFieldColors() confirmed shared across ~7 screens with

@@ -86,6 +86,20 @@ val MetaGreenHaze   = Color(0x1AA0C878)
 // Icon inactive
 val IconInactive    = Color(0xFF4E5468)
 
+// ── Pressed/hover accent states ───────────────────────────────────────────────
+// ~8% darker than the base hue, same hue — for ripple/pressed-state customization
+// (Material3 buttons otherwise fall back to a generic default ripple).
+val GoldPressed        = Color(0xFFB89843)
+val AccentGreenPressed = Color(0xFFC5714E)
+
+// ── Separator weight taxonomy ─────────────────────────────────────────────────
+// Three explicit weights instead of ad hoc alpha literals scattered per call
+// site — glassSheen()'s hairline was the only named separator treatment before
+// this. Theme-reactive like Background/OnBackground above.
+val SeparatorHeavy:  Color @Composable get() = OnBackground.copy(alpha = 0.20f)
+val SeparatorLight:  Color @Composable get() = OnBackground.copy(alpha = 0.08f)
+val SeparatorAccent: Color @Composable get() = AccentGreen.copy(alpha = 0.30f)
+
 // ── Label & secondary text ────────────────────────────────────────────────────
 val TextSecondary   = Color(0xFF7E859E)
 val TextMuted       = Color(0xFF454A60)

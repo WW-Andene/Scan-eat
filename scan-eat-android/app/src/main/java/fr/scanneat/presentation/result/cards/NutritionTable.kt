@@ -18,6 +18,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.presentation.ui.theme.AccentGreen
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.SeparatorLight
 
 @Composable
 internal fun NutritionTable(nutrition: NutritionPer100g) {
@@ -55,5 +56,5 @@ private fun NRow(label: String, value: String) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
         Text(value, style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"), color = OnBackground, fontWeight = FontWeight.Medium)
     }
-    HorizontalDivider(thickness = 0.5.dp, color = OnBackground.copy(0.08f))
+    HorizontalDivider(thickness = 0.5.dp, color = SeparatorLight)
 }
