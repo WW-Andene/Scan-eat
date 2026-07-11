@@ -79,7 +79,11 @@ class ReminderWorker @AssistedInject constructor(
         // a ±15min band: WorkManager's periodic jobs routinely run late under Doze/App
         // Standby/manufacturer battery optimization, and a symmetric window silently drops
         // the reminder for the rest of the day the moment the worker is delayed past it.
-        val dueNow = !now.isBefore(target) && !remindersRepo.wasFiredToday(lastFiredKey)
+        // Capped at +3h so a reminder freshly enabled hours after its time (or a device
+        // left idle all evening) doesn't fire wildly stale hours later — RemindersRepository
+        // separately marks a reminder's own enable/time-change as fired-today when it's
+        // already past, so this cap is purely for a worker run that's unusually delayed.
+        val dueNow = !now.isBefore(target) && now.isBefore(target.plusHours(3)) && !remindersRepo.wasFiredToday(lastFiredKey)
         if (dueNow) {
             NotificationHelper.show(applicationContext, notifId, title, text)
             remindersRepo.markFiredToday(lastFiredKey)

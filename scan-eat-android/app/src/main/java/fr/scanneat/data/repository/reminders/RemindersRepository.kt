@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.time.LocalTime
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -75,9 +76,27 @@ class RemindersRepository @Inject constructor(
         )
     }
 
-    suspend fun setBreakfast(on: Boolean, time: String) = store.edit { it[K_BREAKFAST_ON] = on; it[K_BREAKFAST_TIME] = time }
-    suspend fun setLunch(on: Boolean, time: String)     = store.edit { it[K_LUNCH_ON] = on; it[K_LUNCH_TIME] = time }
-    suspend fun setDinner(on: Boolean, time: String)    = store.edit { it[K_DINNER_ON] = on; it[K_DINNER_TIME] = time }
+    // Enabling a reminder (or changing its time) to a time already past today
+    // otherwise fires it on the very next worker run, however soon that is —
+    // mark today as already-fired so the first real reminder is tomorrow at
+    // the configured time, same as if it had already fired normally today.
+    private fun markStaleIfPast(prefs: MutablePreferences, time: String, lastFiredKey: Preferences.Key<String>) {
+        val target = runCatching { LocalTime.parse(time) }.getOrNull() ?: return
+        if (!LocalTime.now().isBefore(target)) prefs[lastFiredKey] = LocalDate.now().toString()
+    }
+
+    suspend fun setBreakfast(on: Boolean, time: String) = store.edit {
+        it[K_BREAKFAST_ON] = on; it[K_BREAKFAST_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_BREAKFAST_DATE)
+    }
+    suspend fun setLunch(on: Boolean, time: String) = store.edit {
+        it[K_LUNCH_ON] = on; it[K_LUNCH_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_LUNCH_DATE)
+    }
+    suspend fun setDinner(on: Boolean, time: String) = store.edit {
+        it[K_DINNER_ON] = on; it[K_DINNER_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_DINNER_DATE)
+    }
     suspend fun setHydration(on: Boolean, intervalHours: Int) = store.edit { it[K_HYDRATION_ON] = on; it[K_HYDRATION_INTERVAL] = intervalHours }
     suspend fun setWeight(on: Boolean, thresholdDays: Int)    = store.edit { it[K_WEIGHT_ON] = on; it[K_WEIGHT_THRESHOLD] = thresholdDays }
 
