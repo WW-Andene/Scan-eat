@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun GroceryScreen(
@@ -30,9 +31,12 @@ fun GroceryScreen(
 ) {
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
-    var snack by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val copiedMessage = stringResource(R.string.grocery_copied)
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
@@ -41,7 +45,7 @@ fun GroceryScreen(
                     if (items.value.isNotEmpty()) {
                         IconButton(onClick = {
                             clipboard.setText(AnnotatedString(formatGroceryList(items.value)))
-                            snack = true
+                            scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
                         }) { Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentGreen) }
                     }
                 },
@@ -90,13 +94,4 @@ fun GroceryScreen(
             }
         }
     }
-
-    // Key on snack value so the effect restarts correctly on each copy action
-    LaunchedEffect(snack) {
-        if (snack) {
-            kotlinx.coroutines.delay(2000)
-            snack = false
-        }
-    }
-
 }

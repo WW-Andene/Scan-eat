@@ -716,3 +716,20 @@ decision:  Swapped all 15 to Icons.AutoMirrored.Filled.ArrowBack (auto-
            the automirrored package).
 reversal:  trivial (icon symbol + import swap only, no behavior change
            in LTR locales)
+
+### App-audit §F1/L3 — GroceryScreen's "copy" feedback was dead state, never rendered
+context:   Tapping the copy-to-clipboard action set a `snack` boolean with
+           a LaunchedEffect that waited 2s and reset it - the naming and
+           timing make clear a confirmation Snackbar was intended, but no
+           SnackbarHost/Snackbar ever existed in the composable to read
+           that flag. The clipboard copy itself worked; the user got zero
+           visual confirmation it happened.
+decision:  Replaced the dead flag/effect with a real
+           SnackbarHostState + Scaffold's snackbarHost, showing a new
+           grocery_copied string on tap via scope.launch { showSnackbar() }.
+why:       This is exactly the class of bug this session already noted
+           app-wide (no Snackbar/Toast feedback exists anywhere) - fixing
+           the one place code already half-attempted it, rather than
+           adding a new app-wide feedback system from scratch.
+reversal:  trivial (localized to GroceryScreen; removes unused state,
+           adds standard Compose Scaffold snackbar wiring)
