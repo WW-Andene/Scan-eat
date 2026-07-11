@@ -36,6 +36,9 @@ import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalDate
 
+/** Generous cap for a legitimate backup (thousands of scan/diary rows is still a few MB) — rejects an arbitrarily large/mis-picked file before it's fully loaded into memory. */
+private const val MAX_BACKUP_IMPORT_BYTES = 50L * 1024 * 1024
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
@@ -83,10 +86,19 @@ fun SettingsScreen(
     }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            val json = runCatching {
-                context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-            }.getOrNull()
-            if (json != null) viewModel.importFromJson(json) else viewModel.reportExportWriteFailed()
+            // OpenDocument() lets the user pick ANY file, not just one this app
+            // exported - readText() with no cap would load an arbitrarily large
+            // file fully into memory before Moshi even gets a chance to reject it
+            // as malformed, risking an OOM on a huge or mis-picked file.
+            val size = runCatching { context.contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize } }.getOrNull()
+            if (size != null && size > MAX_BACKUP_IMPORT_BYTES) {
+                viewModel.reportExportWriteFailed()
+            } else {
+                val json = runCatching {
+                    context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                }.getOrNull()
+                if (json != null) viewModel.importFromJson(json) else viewModel.reportExportWriteFailed()
+            }
         }
     }
     // The JSON is generated in the ViewModel (testable, no Android dependency); once it's

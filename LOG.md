@@ -977,3 +977,23 @@ why:       Smallest safe step that turns a completely invisible failure
            change blind.
 reversal:  trivial (one .onFailure{} log call, no behavior change on the
            success path)
+
+### App-audit §C1/L4 — backup import read an unbounded file fully into memory
+context:   The import file picker uses ActivityResultContracts.OpenDocument(),
+           which lets the user pick ANY file on the device, not just one
+           this app exported. openInputStream(uri).readText() loads the
+           entire file into a String with no size cap before Moshi even
+           gets a chance to reject it as malformed - an arbitrarily large
+           or mis-picked file (a video, a large unrelated JSON, etc.)
+           risks an OOM crash purely from the read, independent of
+           whether the content is even valid.
+decision:  Query the file's size via
+           contentResolver.openFileDescriptor(uri, "r")?.statSize before
+           reading; reject (reusing the existing generic IO error path)
+           if it exceeds a generous 50MB cap - real backups (thousands of
+           scan/diary rows) are a few MB at most.
+why:       Untrusted-input handling: the SAF picker hands this app a URI
+           to arbitrary user-selected content, not just its own prior
+           exports, so the read path needs to defend against that itself.
+reversal:  trivial (one size check before the existing read; legitimate
+           backups are far under the cap and see no behavior change)
