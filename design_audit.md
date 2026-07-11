@@ -67,7 +67,7 @@ in its Part with an explicit PROTECT note.
 |---|----------|------|---------|--------|
 | 1 | ~~CRITICAL*~~ FIXED | Contrast/Safety | WCAG contrast verified PASS on allergen/diet-veto banners | B1, F1 |
 | 2 | CRITICAL | Surface/Atmosphere | Glow/Haze tokens exist but aren't rendered as light | B6 |
-| 3 | HIGH | Motion/States | Score reveal has no signature moment | B5, B8, D |
+| 3 | ~~HIGH~~ FIXED | Motion/States | Score reveal has no signature moment | B5, B8, D |
 | 4 | HIGH | Typography | Zero tabular figures on any numeric display | B2 |
 | 5 | HIGH | Components | No shared Button component — recipe hand-copied, drifting | B4 |
 | 6 | HIGH | States | Three unreconciled error-banner systems in one app | B8, F5 |
@@ -77,7 +77,7 @@ in its Part with an explicit PROTECT note.
 | 10 | MEDIUM | Typography | "Hero number" role untokenized (4 weight spellings, 5+ sizes) | B2 |
 | 11 | MEDIUM | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
 | 12 | MEDIUM | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
-| 13 | MEDIUM | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
+| 13 | ~~MEDIUM~~ PARTIALLY FIXED | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
 | 14 | MEDIUM | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
 | 15 | MEDIUM | States | Empty states have no CTA slot | B8 |
 | 16 | MEDIUM | States | Loading states have no character treatment | B8 |
@@ -631,6 +631,13 @@ Recommendation: Add a signature reveal — the score ring's progress arc
   over ~600-800ms, paired with the grade-color glow (from Part B6)
   intensifying as the arc completes. Full synthesis in Part D.
 Effort: MEDIUM (isolated to one composable)
+STATUS: FIXED — ScoreDisplay.kt's ScoreRing and DualScoreRing (both classic
+  and personal rings) now animate their progress arc in via
+  animateFloatAsState over 700ms using a new ScoreRevealEasing curve
+  (Motion.kt), with the existing/added radial-glow background scaling its
+  alpha by the arc's completion fraction so the glow visibly intensifies as
+  the reveal finishes. Shipped in the same commit as the reduced-motion gate
+  below (Chain 2's sequencing requirement).
 
 [MEDIUM] — Zero reduced-motion accessibility handling anywhere
 Finding: Confirmed zero matches for ANIMATOR_DURATION_SCALE or any
@@ -642,6 +649,14 @@ Why it matters: A real accessibility gap, not just a character question.
 Recommendation: Read Settings.Global.ANIMATOR_DURATION_SCALE once and gate
   the new score-reveal animation (and existing nav transitions) behind it.
 Effort: LOW-MEDIUM
+STATUS: FIXED (for the score reveal) — Motion.kt adds
+  `rememberReducedMotion()`, reading Settings.Global.ANIMATOR_DURATION_SCALE;
+  the score-reveal animation (`rememberScoreReveal()` in ScoreDisplay.kt)
+  gates on it via `snap()` vs `tween()`, per Chain 2's build-order
+  requirement — shipped together, not sequenced after. Existing nav
+  transitions (AppNavGraph.kt/MainShell.kt) are not yet gated — tracked
+  separately, lower priority since they're brief/subtle vs. this prominent
+  new animation.
 
 [LOW, MOSTLY PROTECT] — Screen-transition timing is serviceable but generic
   easing; the tab-switch/peer-navigation duration split itself is fine
@@ -1335,6 +1350,9 @@ Recommendation: Implement the ANIMATOR_DURATION_SCALE gating in the same
   commit as the score-reveal animation — never ship the new animation
   without the reduced-motion check already wired to it.
 Effort: LOW-MEDIUM (a sequencing constraint on already-planned work)
+STATUS: RESOLVED — both landed together (Motion.kt's rememberReducedMotion()
+  + ScoreDisplay.kt's rememberScoreReveal()), honoring the build-order
+  constraint this chain called for.
 
 CHAIN 3 — Missing touch-target size stacks with a destructive action, but
   does NOT escalate to a real risk, because a downstream safeguard exists
