@@ -421,3 +421,12 @@ context:   ScanEatTypography (Type.kt) explicitly tunes every style slot
 decision:  Defined displaySmall (36sp/42sp, ~1.167x ratio consistent with
            the app's other slots) so these 4 hero elements inherit a
            tuned baseline before their per-usage size/weight overrides.
+
+### App-audit §F4/L2 — rejected API key (401/403) surfaced as a raw HTTP status
+context:   ScanViewModel's onFailure handler only special-cased
+           ProductNotFoundException; a Groq-rejected key (invalid/
+           revoked - distinct from the "missing key" case already
+           handled in app-audit §F) fell through to e.message, showing
+           the user a bare "HTTP 401 " with no indication of what to do.
+decision:  Added an HttpException 401/403 branch with a friendly,
+           lang-aware message pointing to Settings.

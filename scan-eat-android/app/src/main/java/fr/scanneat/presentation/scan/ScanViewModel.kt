@@ -19,8 +19,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import retrofit2.HttpException
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
+
+/** Reaches the user verbatim in the scan error banner — needs to actually say what to do. */
+private fun invalidApiKeyMessage(lang: String) =
+    if (lang == "en") "Groq rejected this API key — check it in Settings"
+    else "Clé API Groq refusée — vérifiez-la dans Réglages"
 
 sealed class ScanUiState {
     data object Idle     : ScanUiState()
@@ -92,10 +98,16 @@ class ScanViewModel @Inject constructor(
                 result.fold(
                     onSuccess = { (scanResult, id) -> _state.value = ScanUiState.Success(scanResult, id) },
                     onFailure = { e ->
-                        _state.value = if (e is ProductNotFoundException) {
-                            ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
-                        } else {
-                            ScanUiState.Error(e.message ?: "Erreur inconnue")
+                        _state.value = when {
+                            e is ProductNotFoundException ->
+                                ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
+                            // A rejected API key (invalid/revoked, not just missing — that
+                            // case is already caught earlier as a friendly message) would
+                            // otherwise surface as a bare "HTTP 401 " to the user with no
+                            // indication of what to actually do about it.
+                            e is HttpException && (e.code() == 401 || e.code() == 403) ->
+                                ScanUiState.Error(invalidApiKeyMessage(lang))
+                            else -> ScanUiState.Error(e.message ?: "Erreur inconnue")
                         }
                     },
                 )
