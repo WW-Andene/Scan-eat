@@ -858,10 +858,154 @@ Note (not a §DRC finding, flagged for completeness): tablet/foldable support
 
 ---
 
+## XI. DESIGN CHARACTER SYSTEM (continued)
+
+### §DP3. Character Deepening Protocol
+
+```
+1. CHARACTER TOKEN EXTRACTION
+   EXPRESSES the "warm glow" character correctly (protect these):
+     - Background 0xFF0F0D12 (cool-violet near-black, not neutral gray)
+     - Gold 0xFFC9A84C at its current moderate (not maxed) chroma
+     - The Glow/Haze/Trace alpha-family token structure itself (even if
+       under-rendered today — the naming convention is correct)
+     - glassSheen()'s top-light sheen mechanism
+   UNDERMINES the character (replace/fix):
+     - System Roboto with zero fontFamily customization (cold-neutral,
+       fights the "warm" signal)
+     - Default FastOutSlowInEasing everywhere (mechanical, fights
+       "considered/organic")
+     - 100% unmodified Material Icons (generic, fights "owned identity")
+     - Flat Surface fills with no radial-glow atmosphere (literally the
+       opposite of what "glow" tokens promise)
+
+2. CHARACTER STRESS TESTING
+   Already covered by dedicated sections above — restating as a scorecard:
+     Error states:   FAILS — 3 unreconciled systems (§DST3)
+     Empty states:   PASSES (minimally) — consistent, restrained, correct
+                      tier for the character (§DST1)
+     Loading states: FAILS — generic Material spinners, no character
+                      treatment (§DST2)
+     Edge-case/admin: SettingsScreen's bare-text error is the single
+                      weakest character moment found in the entire audit
+     Mobile breakpoint: N/A — phone-only app, no breakpoint to stress-test
+
+3. SENSORY VOCABULARY
+   Sensory reference: "An ember glowing quietly in a dark hearth."
+   Design implications not yet expressed:
+     - Light should look genuinely emanating (radial glow), not a flat fill
+       — ties directly to the §DSA1/§DSA5 finding
+     - The glow stays modest and warm — never blazing/neon (matches the
+       confirmed REJECT rule against "loud/Playful" treatments)
+     - Elements away from the "ember" (secondary chrome, dividers,
+       disabled states) should recede toward near-darkness, not compete —
+       ties to the §DH4 chroma-contrast finding on Dashboard cards
+     - Material should read as warm despite being dark — avoid cold-clinical
+       cues (harsh drop-shadows, neutral-gray dividers, pure-white light
+       theme surface) — ties to the §DSA2/§DC3/§DBI3 findings on OLED
+       elevation and light-mode's pure-white surface
+
+4. CHARACTER HIERARCHY
+   PRIMARY CARRIERS (max investment):
+     - The score/grade reveal (Result screen) — the app's "one unavoidable
+       moment," currently under-invested (§DM5/§DST4)
+     - Dashboard's primary metric card
+   SECONDARY CARRIERS (present, not dominant):
+     - Navigation bar, buttons, cards generally, diary/history rows
+   BACKGROUND ELEMENTS (consistent but quiet):
+     - Dividers, timestamps, disabled states, settings toggles — currently
+       mostly Material-default (character-neutral, see below)
+
+5. THE ONE UNAVOIDABLE MOMENT
+   Identified: the score/grade reveal on the Result screen — the moment a
+   user gets what they opened the app for.
+   Current state: renders instantly, same generic default motion as
+   everything else, no color/glow intensification beyond the standard
+   grade palette (already flagged individually at §DM5 and §DST4 — this is
+   the single point where those two findings converge).
+   This is the highest-leverage fix in the entire audit precisely because
+   it's one moment, already identified, already has the necessary color
+   tokens sitting unused (§DSA1's Glow/Haze finding) — implementing it
+   closes four separate findings at once (§DM5, §DST4, §DC5, part of §DSA1).
+
+6. CHARACTER-NEUTRAL AUDIT
+   Character-neutral elements found (don't violate, don't express):
+     - Dividers/separators — currently just glassSheen()'s hairline, no
+       heavy/light/accent distinction (already flagged, §DBI3 signal #11)
+     - Disabled button states — 100% Material default dimming, no warm-
+       toned disabled treatment
+     - [UNVERIFIED] Settings toggle switches — not confirmed whether
+       Switch colors are customized to Gold or left at M3 default; worth a
+       quick check before assuming either way
+   For each: the minimal fix is the same pattern already established
+   elsewhere in the app (tint toward Gold/coral at low intensity) rather
+   than a new visual language.
+
+7. CHARACTER FUTURE-PROOFING
+
+   Character Rules (apply to all new features):
+     1. Every new accent-colored element emits light onto the dark surface
+        around it via the existing Haze/Trace tokens — never a flat
+        saturated fill.
+     2. Every new numeric display uses tabular figures
+        (fontFeatureSettings="tnum") from day one.
+     3. Every new card/surface goes through the shared card component (once
+        built per §DCO3) — never a fresh hand-rolled Surface().
+     4. New motion stays within the established 200ms(tab)/300ms(peer-nav)
+        split, EXCEPT the one signature moment (score reveal), which alone
+        may use a slower, custom-eased animation.
+
+   Character Risks (watch as the product scales):
+     - Settings/admin-style screens are the classic place character
+       reverts to defaults — SettingsScreen's bare-text error (§DST3) is
+       already the weakest character moment found in this entire audit;
+       it will get worse, not better, as more settings ship, unless it's
+       explicitly held to the same standard as user-facing screens.
+     - Any future external surface (Play Store listing, marketing site)
+       needs to inherit this exact palette — right now the identity lives
+       only inside the app itself.
+```
+
+### §DBI2. Design DNA Specification
+
+```
+DESIGN DNA SPECIFICATION
+  Color DNA:     Cool-violet-tinted OLED near-black (0xFF0F0D12) lit by warm
+                 gold (0xFFC9A84C) primary + coral (0xFFD97C56) secondary +
+                 sparing teal (0xFF38C8C8) tertiary — deliberate warm-on-cool
+                 temperature contrast, moderate (not maxed) chroma throughout
+  Type DNA:      Currently: system Roboto, 400-900 weight range, hero
+                 numbers in Black weight (untokenized). Target: a warm-
+                 humanist swap (§DT1) at body/heading, hero-number role
+                 tokenized at 32/42/56sp
+  Shape DNA:     Currently undisciplined (9 radii in circulation). Target
+                 house scale: 12dp banners/chips, 16dp cards, 20dp sheets/
+                 modals — 3 values, each with a clear rule
+  Space DNA:     Not yet verified (deferred — flagged as a scope gap, not
+                 asserted)
+  Motion DNA:    200ms tab-fade / 300ms peer-nav-slide, default easing today;
+                 target: one custom easing reserved exclusively for the
+                 score-reveal signature moment
+  Material DNA:  Flat Surface fill + glassSheen() sheen/hairline overlay —
+                 "glass-lite," no blur, no shadow-elevation; target: add
+                 radial Haze/Glow atmosphere behind 1-2 focal surfaces per
+                 screen, using tokens that already exist in code
+
+  SIGNATURE ELEMENT (as shipped today): The OLED-violet background paired
+    with the gold-led CVD-safe grading ring — this is the one visual a
+    screenshot of Scan'eat could be identified by right now.
+  SIGNATURE ELEMENT (target, once §DM5 lands): The score-reveal glow
+    animation — the ring's arc completing while its grade-color glow
+    intensifies via the Haze/Trace tokens. This would be a genuinely
+    unmistakable, hard-to-copy moment, built entirely from values and
+    concepts that already exist in the codebase.
+```
+
+---
+
 ## Not yet covered (continuing)
 
-§DP3 (Deepening protocol), §DBI2 (Design DNA spec), §DCP1-3 (Competitive
-positioning — needs web research).
+§DCP1-3 (Competitive positioning — needs web research, next).
 
 Phase 2 (expanded UI audit from app-audit-SKILL.md): §E1-10, §F1-6, §G1-4,
 §H3, §L3-5, §D5 — still to come after Phase 1 completes.
