@@ -806,6 +806,7 @@
     <string name="reminders_hydration">Hydration</string>
     <string name="reminders_weight">Weigh-in</string>
     <string name="reminders_test_body">This is a test reminder.</string>
+    <string name="reminders_cd_test">Test reminder: %1$s</string>
     <string name="reminders_every_n_hours">%1$dh</string>
     <string name="reminders_every_n_days">%1$dd</string>
 </resources>
