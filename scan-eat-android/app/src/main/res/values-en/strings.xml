@@ -576,6 +576,7 @@
     <string name="weight_field_notes">Notes (optional)</string>
     <string name="weight_goal_label">Goal</string>
     <string name="weight_goal_delta">%1$s toward %2$s</string>
+    <string name="weight_trend_caption">Trend — last %1$d weigh-ins</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Diary</string>

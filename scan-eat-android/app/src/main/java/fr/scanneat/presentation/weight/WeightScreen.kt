@@ -125,7 +125,7 @@ fun WeightScreen(
                     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
                     Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(12.dp)) {
-                            Text("Tendance — ${last8.size} dernières pesées", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Text(stringResource(R.string.weight_trend_caption, last8.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             Spacer(Modifier.height(8.dp))
                             Row(Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
                                 last8.forEachIndexed { i, e ->

@@ -466,6 +466,18 @@ decision:  Queued rather than fixed here - the correct fix (memoize once per
            reasoning as §H3 and §O4 this session).
 reversal:  n/a (no code changed, doc/queue only)
 
+### App-audit §N1/L2 — WeightScreen's sparkline caption still hardcoded French
+context:   §N1 (layer 1) fixed 4 hardcoded French strings in WeightScreen
+           but missed a 5th in the same file: the sparkline caption
+           "Tendance — ${last8.size} dernières pesées" (line 128) - shows
+           French on an English-locale device exactly like the 4 already
+           fixed, just not caught in that pass since it wasn't in the
+           dialog/field area that round focused on.
+decision:  Added weight_trend_caption (%1$d placeholder for the count) to
+           both strings.xml files, wired via stringResource(...,
+           last8.size).
+reversal:  trivial (one string + one call-site swap)
+
 ### App-audit §M1/L2 — R8 keep rules missed 3 Moshi-reflection classes under data.repository
 context:   proguard-rules.pro keeps fr.scanneat.domain.model.**,
            data.remote.api.**, and data.local.db.** for Moshi's kotlin-
