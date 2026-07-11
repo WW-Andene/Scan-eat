@@ -612,3 +612,73 @@ repository, which removes the hand-rolled format entirely. Delete the
 unused `component5` extension while there.
 
 ---
+
+### F29 · HIGH · Bug — the gluten allergen rule doesn't match the word "gluten"
+
+**Where:** `scan-eat-android/.../domain/engine/scoring/AllergenDetector.kt:59-60`
+
+**Finding:** The gluten rule matches cereal names (blé, seigle, orge,
+avoine, épeautre, kamut, triticale, farines, malt) but not the word
+**"gluten"** itself — which appears verbatim on many French ingredient
+lists ("gluten", "gluten de blé" is caught only via "blé", plain "gluten"
+is not caught at all). Common gluten-carrying ingredients "couscous",
+"boulgour" and "chapelure" are also absent. For a coeliac user who
+declared the gluten allergen, the warning banner simply doesn't appear on
+such products. This is the safety-critical direction of error (false
+negative).
+
+**How to fix:** Extend the pattern:
+
+```kotlin
+a("gluten|bl[eé]|froment|seigle|orge|avoine|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge")
+```
+
+and add unit tests asserting `detectAllergens` fires for ingredient names
+"gluten", "gluten de blé", "couscous". (The DietChecker GLUTEN_FREE rule
+at `DietChecker.kt:153-155` has the identical gap — fix both.)
+
+---
+
+### F30 · MEDIUM · Bug — "pâté" is spelled unaccented in the vegetarian/vegan bans, and "noix" over-matches
+
+**Where:** `scan-eat-android/.../domain/engine/scoring/DietChecker.kt:77,86`
+(`pat[eé]` in VEGETARIAN and VEGAN forbidden lists),
+`AllergenDetector.kt:68-69` (nuts rule)
+
+**Finding:** Two pattern-quality issues in the same rule family:
+
+1. The meat ban lists `pat[eé]`, which matches "pate"/"paté" but **not
+   "pâté"** — the spelling actually printed on French labels (the `â` is
+   not matched by `a`). A vegetarian/vegan user scanning a product
+   containing "pâté de foie" gets no diet violation from this term (only
+   from other matched words, when present). False negative in the
+   direction users rely on.
+2. The tree-nut allergen rule matches bare `noix`, which false-positives
+   on "noix de coco" (coconut — explicitly *excluded* from EU Annex II
+   tree nuts) and "noix de muscade" (nutmeg, a seed). Over-warning is the
+   safe direction but erodes trust in the allergen banner.
+
+**How to fix:** For 1, use `p[aâ]t[eé](?![a-zà-ÿ0-9])` — the accented
+`é` is already required by the character class, so plain "pâte" (dough)
+and "pâtes" (pasta) stay unmatched; add a test for "pâté de campagne".
+For 2, add a negative lookahead: `noix(?!\s+de\s+(coco|muscade))`, with
+tests for "noix de coco" (no hit) and "noix de cajou" (hit).
+
+---
+
+## Coverage note
+
+Areas read end-to-end this audit: all of `scan-eat-server/` (routes,
+services, shared engine copies, build/deploy files, tests); on the app
+side, the scan pipeline (ScanRepository, OcrParser, ScanViewModel,
+ResultViewModel), scoring engines (pillars, AdditivesDb, AllergenDetector,
+DietChecker), dashboard math (DashboardAggregator, WeightRepository),
+DataStore repositories (UserPreferences, Hydration, Fasting, Comparison,
+MealPlan, Reminders), backup, Health Connect, notifications
+(ReminderWorker, NotificationHelper), navigation shell (AppNavGraph,
+MainShell), and the Room database/migrations. Not re-audited here (covered
+by the prior A-O × 4-level audit passes and the design audit this
+session): the Biolism engine family (has dedicated unit tests), individual
+Compose screens/cards, and `design_audit.md`'s visual/UX scope.
+
+---
