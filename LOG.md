@@ -628,3 +628,32 @@ why:       Real, user-visible false positive - a coconut-cream dessert or
            two diets, and getting flagged wrong on core foods undermines
            trust in the whole diet-checking feature.
 reversal:  trivial (regex lookahead additions only, no schema/logic change)
+
+### App-audit §B1/L3 — Health Connect weight sync spammed a new record on every log()
+context:   WeightRepository.log() upserts locally (one row per day, REPLACE
+           by (date, profileId)) but unconditionally called
+           healthConnect.writeWeight() on every single call - Health
+           Connect's insertRecords() has no update-in-place without a
+           clientRecordId, so re-saving/correcting the same day's weight
+           left the local store correct while Health Connect accumulated
+           a fresh duplicate WeightRecord for that date on every save,
+           corrupting the shared platform store's "one weight reading"
+           expectation for any other app reading from it.
+decision:  Gated the Health Connect mirror to only fire when the rounded
+           value actually differs from the existing local entry -
+           correctly stops the common no-op-resave case. Did NOT
+           implement the full clientRecordId-based upsert (the real,
+           complete fix) - researched it (Metadata.manualEntry(clientRecordId,
+           clientRecordVersion, device)) but this exact pinned alpha07
+           health-connect-client already broke once this session on
+           Metadata's factory-method shape (see O/L1), and I have neither
+           an active CI loop nor local Android SDK to verify the
+           alpha07-specific constructor before committing it blind.
+           Queued the full fix for when either becomes available.
+why:       Meaningfully reduces real duplicate-record accumulation today
+           at zero risk (pure Kotlin comparison, no Health Connect API
+           surface touched) while being honest that a genuine correction-
+           after-correction case still isn't fully solved without the
+           riskier change (Rule 8: reduce scope when blind-apply risk is
+           real, same call as O/L1's Health Connect version-bump decline).
+reversal:  trivial (one added condition, no API surface change)

@@ -25,6 +25,19 @@ Data, Old feature, New feature — never the same category twice in a row.
   distribution access nor ANDROID_HOME - confirmed by a failed offline
   gradlew fetch) - generate once via CI or a real dev machine and commit
   app/schemas/.
+- HealthConnectRepository.writeWeight() still creates a brand-new
+  WeightRecord on every call that reaches it (now gated to only fire when
+  the value actually changed - see App-audit §B1/L3 - but a genuine
+  correction to an already-corrected day still leaves the prior record
+  behind). The correct full fix is Health Connect's clientRecordId/
+  clientRecordVersion upsert mechanism (Metadata.manualEntry(...) in
+  current docs), but this exact pinned alpha07 dependency already broke
+  once this session on Metadata's factory-method shape (see O/L1 queue
+  entry + libs.versions.toml comment) - guessing the alpha07-specific
+  constructor blind, with no CI feedback loop active mid-batch and no
+  local Android SDK to compile-check, risks repeating that break. Revisit
+  once either (a) a verified newer health-connect-client version is
+  adopted, or (b) a CI-backed session can iterate on the exact API shape.
 - findAdditive(eNumber, name, category) in AdditivesDb.kt is called
   independently 3x per ingredient during a single scoreProduct() run —
   ProcessingPillar.kt (2 call sites), AdditiveRiskPillar.kt (2 call sites,

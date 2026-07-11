@@ -47,6 +47,15 @@ class WeightRepository @Inject constructor(
      * Also mirrors to Health Connect when the user has granted sync permission
      * (writeWeight() no-ops silently otherwise — sync is opt-in, never a hard
      * dependency for the local log to succeed).
+     *
+     * Health Connect's insertRecords() always creates a new record — unlike
+     * the local upsert above, it has no update-in-place here (a true fix
+     * needs Metadata's clientRecordId, whose factory-method shape has
+     * already broken once across this pinned alpha's versions — see
+     * gradle/libs.versions.toml's health-connect comment — so it isn't
+     * safe to guess blind). Skipping the mirror when the value hasn't
+     * actually changed at least stops the common case (re-opening/resaving
+     * the same day) from spamming a fresh duplicate record every time.
      */
     suspend fun log(date: LocalDate, weightKg: Double, notes: String = "", profileId: String = "default") {
         require(weightKg > 0 && weightKg <= 400) { "Invalid weight: $weightKg" }
@@ -60,7 +69,7 @@ class WeightRepository @Inject constructor(
             loggedAt  = System.currentTimeMillis(),
             profileId = profileId,
         ))
-        healthConnect.writeWeight(date, rounded)
+        if (existing?.weightKg != rounded) healthConnect.writeWeight(date, rounded)
     }
 
     suspend fun delete(id: String) = dao.delete(id)
