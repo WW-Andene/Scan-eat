@@ -25,6 +25,10 @@ androidx-test-junit  = "1.2.1"
 espresso             = "3.6.1"
 mockk                = "1.13.12"
 kotlinx-serialization = "1.7.3"
+# ALPHA — no API stability guarantee; this integration already hit one
+# breaking-surface gap in this exact version (Metadata.manualEntry() doesn't
+# exist here). Re-verify HealthConnectRepository/WeightRepository call sites
+# against release notes before bumping.
 health-connect        = "1.1.0-alpha07"
 guava                 = "33.3.1-android"
 

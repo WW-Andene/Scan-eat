@@ -348,3 +348,15 @@ context:   "Objectif", "vers" (inline in a template string), "Poids (lb)"
            screen's goal/notes/lb-unit UI.
 decision:  Added weight_goal_label, weight_goal_delta, weight_field_lb,
            weight_field_notes to both strings.xml files; wired them in.
+
+### App-audit §O4 — Health Connect client pinned to an alpha release
+context:   health-connect-client sits on 1.1.0-alpha07 - no API
+           stability guarantee, and this session already hit a real
+           breaking-change symptom of that exact version
+           (Metadata.manualEntry() didn't exist, found via CI failure
+           during the original integration).
+decision:  Did NOT bump the version blindly - no live CI feedback loop
+           this session to verify a newer alpha/beta doesn't reintroduce
+           a different break, and Rule 8's "2am apply" test says this
+           needs care, not a blind version bump. Added a clear comment
+           flagging the risk and what to re-verify before ever bumping.
