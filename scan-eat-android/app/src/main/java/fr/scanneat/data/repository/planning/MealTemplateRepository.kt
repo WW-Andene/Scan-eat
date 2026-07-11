@@ -132,6 +132,11 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
             items     = itemsAdapter.fromJson(itemsJson) ?: emptyList(),
             createdAt = createdAt,
         )
+    }.onFailure {
+        // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -
+        // a parse failure here previously vanished the template from its list with
+        // zero trace, applied consistently across all 6 repos with this pattern.
+        android.util.Log.w("MealTemplateRepository", "Failed to parse meal template id=$id", it)
     }.getOrNull()
 }
 

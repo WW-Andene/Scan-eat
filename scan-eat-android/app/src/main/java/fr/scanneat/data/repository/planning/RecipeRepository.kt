@@ -133,5 +133,8 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             components = componentsAdapter.fromJson(componentsJson) ?: emptyList(),
             createdAt  = createdAt,
         )
+    }.onFailure {
+        // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository.
+        android.util.Log.w("RecipeRepository", "Failed to parse recipe id=$id", it)
     }.getOrNull()
 }

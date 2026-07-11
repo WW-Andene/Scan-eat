@@ -419,5 +419,10 @@ class ScanRepository @Inject constructor(
             dbId     = id,
             favorite = favorite,
         )
+    }.onFailure {
+        // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -
+        // a parse failure here previously vanished the scan from history/favorites
+        // with zero trace.
+        android.util.Log.w("ScanRepository", "Failed to parse scan history row id=$id barcode=$barcode", it)
     }.getOrNull()
 }

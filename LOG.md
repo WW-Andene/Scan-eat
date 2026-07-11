@@ -1265,3 +1265,62 @@ release-build CI check (added at M/L3) surfaced. All 4 layers' commits
 verified green via CI throughout layer 4 (checked incrementally, unlike
 layers 1-2's single end-of-batch check). Proceeding next to §X (R&D &
 Improvement) and §XI (Polish & Restructuration) per user instruction.
+
+## §X R&D & Improvement complete
+Wrote RND_ROADMAP.md: existing-feature health evaluation, competitive
+research (Yuka, Open Food Facts, Fooducate, Cronometer, Nutrola/Nutika/
+Olive, via web search), a prioritized gap analysis, and a roadmap.
+Implemented the two "Now" items directly rather than leaving them as
+proposals only:
+1. Healthier-alternative suggestion (Yuka's most-cited feature, confirmed
+   entirely absent by code search) — added `ScanHistoryDao.
+   findBetterInCategory()` + `ScanRepository.findBetterAlternative()` +
+   a new `AlternativeCard` on the result screen, sourced honestly from
+   the user's own scan history (no live nearby-product database exists
+   to search, so the suggestion is always something the user has
+   themselves already found, never a fabricated claim).
+2. Diet-adequacy notes (`DietDef.noteFr/noteEn`) existed in DietChecker.kt
+   but never reached the UI at all — fixed by adding a public `dietNote()`
+   accessor and wiring it into ProfileScreen's `DietSelector` as a caption,
+   plus adding a B12-supplementation caveat to vegan's note (correcting an
+   assumption from an earlier draft of this doc that wrongly claimed the
+   B-complex fields didn't exist in NutritionPer100g — they did, verified
+   against Product.kt before implementing).
+
+### App-audit §X — CI fix: unescaped apostrophe in new EN string
+context:   result_alternative_title's English string "You've already
+           found better" used a literal, unescaped apostrophe - Android's
+           aapt resource compiler requires escaping (\' ) or double-
+           quoting apostrophes inside string resources, otherwise the XML
+           parse fails outright.
+decision:  Escaped it to "You\'ve already found better".
+why:       CI (run 29146913626) failed immediately with an
+           aapt ResourceCompilationException on values-en/values-en.xml -
+           a real, mechanical bug in the just-added string, not a false
+           positive. Fixed forward same-session, re-verified green.
+reversal:  n/a (one-character fix)
+
+## §XI Polish & Restructuration — coherence-fracture pass
+### App-audit §XI/1 — silent-drop parse pattern applied inconsistently across repos
+context:   App-audit §B1/L4 added a Log.w() before getOrNull() in
+           ConsumptionRepository's toDomain(), because a parse failure
+           there silently vanishes a diary entry with zero trace. QUEUE.md
+           already flagged that the exact same runCatching{}.getOrNull()
+           pattern exists unlogged in 5 more repositories - a genuine
+           coherence fracture: the same defensive pattern, applied
+           inconsistently, so some data silently disappears traceably and
+           some silently disappears completely invisibly, depending on
+           which file it lives in for no principled reason.
+decision:  Added the same one-line Log.w() (matching each file's own
+           entity/context fields) to MealTemplateRepository.toDomain(),
+           RecipeRepository.toDomain(), FastingRepository.parseEntry(),
+           ScanRepository.toDomain(), and CustomFoodRepository.
+           toFoodEntry() (this last one was actually a step worse than the
+           others - a parse failure there doesn't drop the row, it falls
+           back to a silent all-zero-nutrition FoodEntry instead, so
+           logging it matters even more).
+why:       Same fix, same reasoning, applied everywhere the same failure
+           mode already existed - the definition of closing a coherence
+           fracture rather than leaving five near-duplicate future patches
+           to land one at a time.
+reversal:  n/a (Log.w() additions only, no behavior change)

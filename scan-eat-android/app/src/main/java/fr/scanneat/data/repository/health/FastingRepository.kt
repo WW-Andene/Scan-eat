@@ -150,5 +150,10 @@ class FastingRepository @Inject constructor(
     private fun parseEntry(s: String): FastCompletion? = runCatching {
         val p = s.split(",")
         FastCompletion(p[0], p[1].toLong(), p[2].toLong(), p[3].toInt(), p[4].toDouble(), p[5].toBoolean())
+    }.onFailure {
+        // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -
+        // a corrupted delimited entry here previously vanished from the fasting
+        // history/streak calculation with zero trace.
+        android.util.Log.w("FastingRepository", "Failed to parse fast completion entry: $s", it)
     }.getOrNull()
 }

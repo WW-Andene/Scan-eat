@@ -120,7 +120,12 @@ class CustomFoodRepository @Inject constructor(
     private val jsonAdapter = moshi.adapter(CustomFoodJson::class.java)
 
     private fun CustomFoodEntity.toFoodEntry(): FoodEntry {
-        val j = runCatching { jsonAdapter.fromJson(nutritionJson) }.getOrNull()
+        // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -
+        // here a parse failure doesn't drop the row, it silently falls back to all-zero
+        // nutrition instead, which is arguably worse (wrong data shown, not just missing).
+        val j = runCatching { jsonAdapter.fromJson(nutritionJson) }
+            .onFailure { android.util.Log.w("CustomFoodRepository", "Failed to parse nutrition JSON for '$name'", it) }
+            .getOrNull()
             ?: CustomFoodJson()
         return FoodEntry(
             name     = name,

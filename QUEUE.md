@@ -70,18 +70,6 @@ Data, Old feature, New feature — never the same category twice in a row.
   sandbox doesn't have. Needs a dedicated pass with CI/test feedback
   available at each step, not a single blind commit.
 
-- 5 more repository files (MealTemplateRepository, RecipeRepository,
-  FastingRepository, ScanRepository, CustomFoodRepository) use the same
-  `runCatching { ... }.getOrNull()` silent-drop pattern for entity->domain
-  mapping as ConsumptionRepository (now logged at app-audit §B1/L4). A
-  parse failure in any of them silently vanishes that row from whatever
-  list observes it, with zero indication anything is wrong. Only
-  ConsumptionRepository was fixed (highest-impact: diary/calorie totals);
-  the other 5 should get the same one-line Log.w() addition in a follow-up
-  pass - deliberately not swept mechanically here to keep this a single,
-  fully-verified change rather than 5 files' worth of near-identical but
-  not-quite-identical edits done fast.
-
 ## Stuck
 (3-strike failures land here, per skill's FAILURE & RETRY rule)
 
@@ -91,3 +79,7 @@ Data, Old feature, New feature — never the same category twice in a row.
 - findAdditive() triple-computation fixed via a local memoization cache in
   AdditivesDb.kt (app-audit §I1/L3) — no call-site changes needed in any
   pillar after all; smaller and safer than the originally-queued plan.
+- The other 5 repositories sharing ConsumptionRepository's silent-drop
+  parse pattern (MealTemplateRepository, RecipeRepository,
+  FastingRepository, ScanRepository, CustomFoodRepository) all got the
+  same Log.w() addition — app-audit §XI coherence-fracture pass.
