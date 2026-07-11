@@ -25,8 +25,13 @@ data class ResultUiState(
     val personalScore: PersonalScoreResult? = null,
     val comparisonResult: ComparisonResult? = null,
     val pairings: List<String> = emptyList(),
+    val betterAlternative: ScanResult? = null,
     val logState: LogState = LogState.Idle,
 )
+
+// Only worth suggesting an alternative below this grade — A/B/A+ are already a
+// good choice, and surfacing one for every single scan would just be noise.
+private val ALTERNATIVE_ELIGIBLE_GRADES = setOf(Grade.C, Grade.D, Grade.F)
 
 sealed class LogState {
     data object Idle    : LogState()
@@ -43,6 +48,7 @@ private sealed class ScanLoad {
         val personal: PersonalScoreResult?,
         val comparison: ComparisonResult?,
         val pairings: List<String>,
+        val alternative: ScanResult?,
     ) : ScanLoad()
 }
 
@@ -88,8 +94,10 @@ class ResultViewModel @Inject constructor(
                                    else { comparisonRepo.arm(scan); null }
             }
             val pairs      = findPairings(scan.product.name, limit = 5)
+            val alternative = if (scan.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES)
+                scanRepo.findBetterAlternative(scan) else null
 
-            emit(ScanLoad.Loaded(scan, personal, cachedComparison, pairs))
+            emit(ScanLoad.Loaded(scan, personal, cachedComparison, pairs, alternative))
         }
     }
 
@@ -101,6 +109,7 @@ class ResultViewModel @Inject constructor(
                 personalScore    = load.personal,
                 comparisonResult = load.comparison,
                 pairings         = load.pairings,
+                betterAlternative = load.alternative,
                 logState         = logState,
             )
         }

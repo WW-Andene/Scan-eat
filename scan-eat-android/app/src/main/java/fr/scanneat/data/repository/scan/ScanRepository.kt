@@ -85,6 +85,14 @@ class ScanRepository @Inject constructor(
 
     suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
 
+    /** A better-scoring product from the user's own history, same category — or null if none beats [scan]. */
+    suspend fun findBetterAlternative(scan: ScanResult): ScanResult? =
+        dao.findBetterInCategory(
+            category       = scan.product.category.key,
+            minScore       = scan.audit.score,
+            excludeBarcode = scan.barcode,
+        )?.toDomain()
+
     suspend fun persist(result: ScanResult): Long =
         dao.insert(ScanHistoryEntity(
             barcode     = result.barcode,

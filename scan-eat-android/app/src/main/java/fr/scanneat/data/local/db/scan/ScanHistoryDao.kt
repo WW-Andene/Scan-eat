@@ -20,6 +20,25 @@ interface ScanHistoryDao {
     @Query("SELECT * FROM scan_history WHERE profileId = :profileId AND favorite = 1 ORDER BY scannedAt DESC")
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanHistoryEntity>>
 
+    /**
+     * Best-scoring product previously scanned in the same category, if any beats
+     * the current score. Only Scan'eat's own history is queried — not a live
+     * product-database search — so the suggestion is always something the user
+     * has actually already found, never a fabricated "somewhere near you" claim.
+     */
+    @Query("""
+        SELECT * FROM scan_history
+        WHERE profileId = :profileId AND category = :category AND score > :minScore
+          AND (:excludeBarcode IS NULL OR barcode IS NULL OR barcode != :excludeBarcode)
+        ORDER BY score DESC LIMIT 1
+    """)
+    suspend fun findBetterInCategory(
+        category: String,
+        minScore: Int,
+        excludeBarcode: String?,
+        profileId: String = "default",
+    ): ScanHistoryEntity?
+
     @Query("UPDATE scan_history SET favorite = :favorite WHERE id = :id")
     suspend fun setFavorite(id: Long, favorite: Boolean)
 

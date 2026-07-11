@@ -94,6 +94,7 @@ fun ResultScreen(
                 personalScore    = s.personalScore,
                 comparisonResult = s.comparisonResult,
                 pairings         = s.pairings,
+                betterAlternative = s.betterAlternative,
                 modifier         = Modifier.padding(padding),
             )
         }

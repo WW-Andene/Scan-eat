@@ -70,15 +70,19 @@ other apps treat as core are entirely absent here.
 Scored on user impact × how directly it plays to Scan'eat's existing
 architecture (i.e. cheap to build well vs. requiring a new subsystem).
 
-1. **No "healthier alternative" suggestion** (High impact, moderate cost).
-   Yuka's single most-cited feature is "same category, better score,
-   nearby" — Scan'eat computes a score but never surfaces what a better
-   choice would have been. Confirmed absent by code search (no
-   alternative/substitut/suggestion logic anywhere in scoring or result
-   presentation). This is the single highest-leverage gap: the scoring
-   engine and OFF category data already exist, only the "find top-N in
-   same ProductCategory with higher personal score" query and a result-
-   screen card are missing.
+1. **No "healthier alternative" suggestion** (High impact, moderate cost —
+   implemented this pass). Yuka's single most-cited feature is "same
+   category, better score, nearby" — Scan'eat computed a score but never
+   surfaced what a better choice would have been. Confirmed absent by
+   code search (no alternative/substitut/suggestion logic anywhere in
+   scoring or result presentation). Scan'eat has no live nearby-product
+   database to search, so this was scoped honestly to what the app
+   actually has: `ScanHistoryDao.findBetterInCategory()` now finds the
+   best-scoring product the user has *themselves already scanned* in the
+   same category, surfaced as a new `AlternativeCard` on the result
+   screen whenever the current product grades C or worse. It's a real,
+   verifiable suggestion sourced from the user's own history — not a
+   fabricated "near you" claim this sandbox has no way to back.
 
 2. **Diet definitions carry a real adequacy note (`DietDef.noteFr/noteEn`)
    that never reached the UI, and vegan's note said nothing about B12**

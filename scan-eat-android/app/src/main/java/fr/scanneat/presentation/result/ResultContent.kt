@@ -26,6 +26,7 @@ internal fun ResultContent(
     personalScore: PersonalScoreResult?,
     comparisonResult: fr.scanneat.data.repository.scan.ComparisonResult? = null,
     pairings: List<String> = emptyList(),
+    betterAlternative: ScanResult? = null,
     modifier: Modifier = Modifier,
 ) {
     val audit = scan.audit
@@ -64,6 +65,8 @@ internal fun ResultContent(
             textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
 
         comparisonResult?.let { ComparisonCard(it) }
+
+        betterAlternative?.let { AlternativeCard(it) }
 
         if (pairings.isNotEmpty()) {
             PairingsCard(pairings)

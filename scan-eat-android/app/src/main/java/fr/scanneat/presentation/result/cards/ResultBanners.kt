@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.domain.engine.scoring.AllergenHit
+import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.*
 
 // Conditional alert/context banners shown above the pillar breakdown —
@@ -62,6 +63,24 @@ internal fun PairingsCard(pairings: List<String>) {
                 pairings.forEach { pair ->
                     Text(stringResource(R.string.result_pairing_item, pair), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
                 }
+            }
+        }
+    }
+}
+
+// The scanner's own history is the only "database" honest to query here — this
+// is not a live nearby-product search, just "you already found something
+// better yourself." §X R&D pass: Yuka's most-cited feature was a same-category
+// better-score suggestion, which Scan'eat had no equivalent of at all.
+@Composable
+internal fun AlternativeCard(alternative: ScanResult) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
+        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.1f)) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
+                    color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.result_alternative_item, alternative.product.name, alternative.audit.score, alternative.audit.grade.label),
+                    style = MaterialTheme.typography.bodyMedium, color = OnBackground)
             }
         }
     }
