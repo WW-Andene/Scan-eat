@@ -1610,4 +1610,150 @@ strengths above).
 
 Phase 3 (Cross-Cutting Concern Map, §VIII of app-audit-SKILL.md — checking
 for compound chains between aesthetic findings and UX/accessibility/
-performance findings) has not been started.
+performance findings) — user has now authorized starting this phase.
+
+---
+
+# PHASE 3 — CROSS-CUTTING CONCERN MAP
+
+Per app-audit-SKILL.md §II (Compound Finding Chains): individually minor
+findings from different categories can combine into escalating harm chains.
+This pass reviews every Phase 1 + Phase 2 finding already recorded above
+for such chains — documenting each one, escalating the combined severity
+where the chain is real, and explicitly noting where a chain does NOT
+escalate (because a downstream safeguard already exists) rather than
+inventing risk that isn't there.
+
+```
+CHAIN 1 — Unverified contrast on a safety-critical, deliberately-restrained
+  warning banner
+Links: §E3/§G1 [HIGH, unverified WCAG contrast] → §DST3 [Phase 1, the diet-
+  veto/allergen banners use FlagRed/AmberWarning at only 15% alpha fill,
+  a deliberately quiet treatment matching the confirmed "Quiet, not
+  Playful" character] → A2=High-stakes/Emotional axis (allergen/diet-
+  safety data, not decorative content)
+Combined severity: CRITICAL (escalated from HIGH)
+Why the chain escalates: A contrast gap on a decorative element is a
+  polish issue. The exact same unverified contrast gap, on the exact
+  element that tells a user "this product may violate your allergen or
+  diet restriction," is a safety issue if it turns out to fail — and
+  nothing else in the current design (no motion, no stronger emphasis)
+  would compensate if the color contrast itself is too low. The banner
+  does correctly pair icon + text + color (confirmed: Icons.Default.Block/
+  Warning alongside text), which is good — but icon+text+color still
+  needs the color+text contrast itself to actually pass.
+Recommendation: This is now the single highest-priority verification in
+  the entire audit — compute the actual contrast ratio for FlagRed/
+  AmberWarning text and icon tint against their own 15%-alpha-fill
+  backgrounds specifically (not just against the base OLED background)
+  before any other Phase 1/2 recommendation touching these colors ships.
+Effort: LOW (a calculation, not a redesign) — but sequenced first
+
+CHAIN 2 — Building the score-reveal signature moment before fixing
+  reduced-motion would make an existing accessibility gap worse, not better
+Links: §DM5/§DP3 [Phase 1, HIGH — recommend adding a new score-reveal glow
+  animation, the audit's single highest-leverage recommendation] →
+  §DM3/§G4 [Phase 1/2, MEDIUM — zero reduced-motion accommodation exists
+  anywhere in the app]
+Combined severity: escalates the §DM3 finding from MEDIUM to effectively
+  HIGH *if the two are implemented out of order* — adding one more
+  prominent, un-gated animation on top of an app that already has zero
+  motion-reduction respect increases the accessibility gap's real-world
+  impact (more motion for a user who has explicitly asked their system for
+  less), even though each finding individually looked moderate.
+Why this matters as a chain and not two separate items: Neither finding
+  changes in isolation — what changes is the correct BUILD ORDER. This is
+  exactly the kind of thing a per-category audit misses and a cross-
+  cutting pass catches.
+Recommendation: Implement the `ANIMATOR_DURATION_SCALE` gating (§DM3) in
+  the same commit as the score-reveal animation (§DM5) — never ship the
+  new animation without the reduced-motion check already wired to it.
+Effort: LOW-MEDIUM (sequencing constraint on already-planned work, not new
+  scope)
+
+CHAIN 3 — Missing touch-target size stacks with a destructive action, but
+  does NOT escalate to a real risk, because a downstream safeguard already
+  exists
+Links: §H3/§G1 [MEDIUM, 32-36dp delete/dismiss IconButtons below 48dp] →
+  triggers → DeleteConfirmDialog [already fixed earlier in this project's
+  history with itemName-aware confirmation text, a genuine safeguard]
+Combined severity: does NOT escalate — stays MEDIUM/LOW (nuisance-level),
+  explicitly NOT a data-loss risk
+Why the chain does not escalate: An accidental tap on a small delete icon
+  is real friction, but it lands on a confirmation dialog that names the
+  specific item and requires a second deliberate action before anything
+  is actually deleted. The safeguard already breaks the chain before it
+  reaches real harm.
+Recommendation: No change beyond what's already queued (§H3's own
+  recommendation, pending visual verification). Documented here specifically
+  to show the reasoning for NOT escalating it, rather than skipping the
+  chain-check silently.
+Effort: N/A
+
+CHAIN 4 — Missing Layer 3 token architecture is the single root cause
+  behind three independently-rated LOW/MEDIUM findings
+Links: §DC2/§DBI3 [LOW, "AccentGreen" token misnamed] + §DBI3 [LOW, 3
+  unreconciled "gold" values across theme schemes] + §DCO1/§DCO3 [HIGH/
+  MEDIUM, button and card recipes hand-copied per file] → all trace back
+  to → §DTA1-2 [MEDIUM, no Layer 3 component-scoped tokens exist]
+Combined severity: the underlying architectural gap (§DTA1-2) is more
+  accurately rated HIGH once its downstream cost is counted, not MEDIUM in
+  isolation — it's the reason four separate findings each cost more to fix
+  than they should (the "find and replace" test failing at ~28 files for
+  a single color, not 1-2).
+Why this matters as a chain: Fixing any ONE of the four symptom findings
+  without building the Layer 3 components first would be wasted, non-
+  compounding effort — e.g., renaming AccentGreen today still touches ~28
+  files; building ScanEatPrimaryButton/ScanEatCard first, then renaming,
+  touches 2.
+Recommendation: Sequence the fixes — build the two Layer 3 components
+  (§DCO1/§DCO3's own recommendation) FIRST, then the naming/consolidation
+  fixes become 1-2-file changes instead of ~28-file changes. This
+  resequencing is itself the actionable output of this chain.
+Effort: N/A (a sequencing recommendation on already-scoped work)
+
+CHAIN 5 — A finding first flagged as purely an aesthetic weakness gains
+  real accessibility weight when cross-referenced
+Links: §DST3/§DP3 [Phase 1, flagged SettingsScreen's backup-import error
+  as the single weakest CHARACTER moment in the app — bare colored
+  Text(color=FlagRed), no icon, no container] → §G1 [Phase 2, "verify
+  status, error, success are conveyed by icon + text + color — not color
+  alone"]
+Combined severity: escalates from POLISH/aesthetic-only (as originally
+  framed in Phase 1) to a genuine §G1 accessibility-compliance concern —
+  this specific error has no icon and conveys its status via colored text
+  only, which is closer to a color-independence violation than a taste
+  question.
+Why this matters as a chain: Phase 1 (aesthetic lens) and Phase 2
+  (structural/accessibility lens) each looked at the exact same code and
+  produced two different severities for what turns out to be one finding
+  — this is precisely the value of running both lenses and then
+  cross-referencing, rather than either alone.
+Recommendation: The already-recommended fix (build one shared ErrorBanner
+  component, §DST3) resolves both the character gap and the accessibility
+  gap simultaneously — restating here to correct its priority upward,
+  since "weakest character moment" alone undersold it.
+Effort: MEDIUM (already scoped in §DST3 above; priority corrected here)
+```
+
+## PHASE 3 COMPLETE — Summary Dashboard
+
+```
+Chain 1 (CRITICAL if contrast fails): allergen/diet-safety banner contrast
+  — verify before anything else ships
+Chain 2 (sequencing constraint): reduced-motion gating must land with, not
+  after, the score-reveal animation
+Chain 3 (verified NOT escalating): touch-target gap on delete actions —
+  confirmation dialog already breaks the chain
+Chain 4 (root-cause reprioritization): Layer 3 token architecture is HIGH,
+  not MEDIUM, once its downstream cost across 4 other findings is counted
+Chain 5 (severity correction): SettingsScreen's bare-text error is a §G1
+  accessibility finding, not just a §DST3 polish finding — same fix,
+  higher priority than originally stated
+```
+
+This closes out the full three-phase "full deep" design/aesthetic audit:
+Phase 1 (core aesthetic, 21 sections), Phase 2 (expanded UI audit, 6
+categories), Phase 3 (cross-cutting compound-chain analysis, 5 chains).
+All findings, cross-references, and this final synthesis are recorded in
+this file and pushed to the branch.
