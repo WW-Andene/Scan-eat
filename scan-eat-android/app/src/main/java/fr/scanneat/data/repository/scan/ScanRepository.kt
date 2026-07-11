@@ -190,12 +190,36 @@ class ScanRepository @Inject constructor(
             candidates += "0$upcA" // EAN-13 form of the expanded UPC-A
         }
 
+        gtin14ToEan13(barcode)?.let { ean13 ->
+            candidates += ean13
+            if (ean13.startsWith("0")) candidates += ean13.substring(1) // UPC-A form
+        }
+
         when {
             barcode.length == 12 -> candidates += "0$barcode"
             barcode.length == 13 && barcode.startsWith("0") -> candidates += barcode.substring(1)
         }
 
         return candidates.toList()
+    }
+
+    /**
+     * Strips a GTIN-14 case/pallet code's leading packaging-indicator digit
+     * (0–8) down to the consumer-unit EAN-13, recomputing the check digit
+     * over the remaining payload — case codes on bulk/wholesale packaging
+     * aren't indexed in OFF under their 14-digit form, only under the
+     * underlying retail GTIN.
+     */
+    private fun gtin14ToEan13(code: String): String? {
+        if (code.length != 14 || !code.all { it.isDigit() }) return null
+        val payload12 = code.substring(1, 13)
+        return "0$payload12" + ean13CheckDigit(payload12)
+    }
+
+    /** Standard mod-10 EAN-13 check digit for a 12-digit payload. */
+    private fun ean13CheckDigit(payload12: String): Int {
+        val sum = payload12.mapIndexed { i, c -> (c - '0') * if (i % 2 == 0) 1 else 3 }.sum()
+        return (10 - (sum % 10)) % 10
     }
 
     /**
@@ -305,7 +329,10 @@ class ScanRepository @Inject constructor(
             zincMg        = p.nutrition.zincMg,
             vitCMg        = p.nutrition.vitCMg,
             vitDUg        = p.nutrition.vitDUg,
+            vitAUg        = p.nutrition.vitAUg,
+            vitEMg        = p.nutrition.vitEMg,
             b12Ug         = p.nutrition.b12Ug,
+            omega3G       = p.nutrition.omega3G,
         )
         val product = Product(
             name          = p.name,
