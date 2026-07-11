@@ -320,3 +320,11 @@ context:   NetworkModule's shared OkHttpClient unconditionally added
 decision:  Gated the interceptor behind BuildConfig.DEBUG. Debug builds
            keep identical logging; release builds attach no logging
            interceptor at all.
+
+### App-audit §L2 — one LazyColumn items() call missing a key (standardization)
+context:   MealPlanScreen's week-day list was the sole items() call in
+           the entire app without a `key` param - every other LazyColumn/
+           LazyRow list already follows this pattern consistently.
+decision:  Added key = { it.toEpochDay() } (LocalDate has a natural,
+           stable, unique key). Low individual impact (7 items/week) but
+           closes the one inconsistency.

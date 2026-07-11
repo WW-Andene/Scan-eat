@@ -50,7 +50,7 @@ fun MealPlanScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Spacer(Modifier.height(4.dp)) }
-            items(viewModel.weekDates) { date ->
+            items(viewModel.weekDates, key = { it.toEpochDay() }) { date ->
                 val dayPlan = plan.value[date] ?: DayPlan(date)
                 val isToday = date == LocalDate.now()
                 Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
