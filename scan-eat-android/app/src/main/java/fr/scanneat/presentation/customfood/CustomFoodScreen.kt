@@ -86,23 +86,11 @@ fun CustomFoodScreen(
             ) {
                 if (displayList.isEmpty()) {
                     item {
-                        Box(
-                            Modifier.fillMaxWidth().padding(40.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Icon(Icons.Default.RestaurantMenu, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(40.dp))
-                                Text(
-                                    if (query.value.isBlank())
-                                        stringResource(R.string.customfood_empty_body)
-                                    else stringResource(R.string.customfood_empty_query, query.value),
-                                    color = OnBackground.copy(0.5f),
-                                )
-                            }
-                        }
+                        EmptyListState(
+                            Icons.Default.RestaurantMenu,
+                            if (query.value.isBlank()) stringResource(R.string.customfood_empty_body)
+                            else stringResource(R.string.customfood_empty_query, query.value),
+                        )
                     }
                 }
 

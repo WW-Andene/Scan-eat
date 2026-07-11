@@ -845,3 +845,16 @@ note:      Also considered adding response_format: json_object (Groq JSON
            the pinned vision model supports it, and getting it wrong risks
            a hard 400 on every single scan. Queued in QUEUE.md pending a
            live-API check.
+
+### App-audit §L1/L3 — 3 screens duplicated the same empty-state layout
+context:   CustomFoodScreen, TemplatesScreen, and RecipesScreen each
+           independently wrote the identical centered icon+message empty-
+           state block (40dp Box padding, 40dp icon, 8dp Column spacing,
+           OnBackground 0.5f) inside their LazyColumn, varying only the
+           icon and message.
+decision:  Extracted EmptyListState(icon, message) into a new shared file
+           (presentation/ui/theme/EmptyListState.kt), matching the
+           existing pattern of small shared composables living there
+           (DeleteConfirmDialog.kt). All 3 wildcard-import that package
+           already, so no new imports needed at any call site.
+reversal:  trivial (pure extraction, identical rendered output)

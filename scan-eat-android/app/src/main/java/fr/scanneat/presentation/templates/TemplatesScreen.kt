@@ -49,14 +49,7 @@ fun TemplatesScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (templates.value.isEmpty()) {
-                item {
-                    Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(Icons.Default.ListAlt, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(40.dp))
-                            Text(stringResource(R.string.templates_empty_body), color = OnBackground.copy(0.5f))
-                        }
-                    }
-                }
+                item { EmptyListState(Icons.Default.ListAlt, stringResource(R.string.templates_empty_body)) }
             }
             items(templates.value, key = { it.id }) { template ->
                 Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(14.dp))) {

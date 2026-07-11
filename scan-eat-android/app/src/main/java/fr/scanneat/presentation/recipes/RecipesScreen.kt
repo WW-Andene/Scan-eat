@@ -53,14 +53,7 @@ fun RecipesScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (recipes.value.isEmpty()) {
-                item {
-                    Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(Icons.Default.RestaurantMenu, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(40.dp))
-                            Text(stringResource(R.string.recipes_empty_body), color = OnBackground.copy(0.5f))
-                        }
-                    }
-                }
+                item { EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.recipes_empty_body)) }
             }
             items(recipes.value, key = { it.id }) { recipe ->
                 RecipeCard(recipe, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id })
