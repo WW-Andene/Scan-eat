@@ -402,3 +402,101 @@ on the record — Health Connect upserts by `clientRecordId` (higher
 place on re-log.
 
 ---
+
+### F19 · MEDIUM · Bug — "Close the gap" silently works for only 2 of its 6 nutrients
+
+**Where:** `scan-eat-android/.../domain/engine/dashboard/DashboardAggregator.kt:224-231`
+(`nutrientMap` density lambdas) and `.../domain/engine/nutrition/FoodDb.kt:22-31`
+(`FoodEntry`)
+
+**Finding:** `GAP_NUTRIENTS` advertises protein, fiber, iron, calcium,
+vitamin D and B12, but the food-density lambdas for iron/calcium/vitD/B12
+are hardcoded `{ 0.0 }` because `FoodEntry` has no micronutrient fields.
+`density <= 0` skips every food, so those four `GapEntry`s are never
+emitted — the feature silently degrades to protein + fiber suggestions
+only, while the deficit for the other four (which `DailyTargets` computes)
+is never surfaced.
+
+**How to fix:** Extend `FoodEntry` with `ironMg`, `calciumMg`, `vitDUg`,
+`b12Ug` (per 100 g, defaulting 0.0), fill them for the curated `FOOD_DB`
+entries that are genuinely good sources (lentils/spinach → iron, dairy →
+calcium+B12, oily fish → vitD+B12 …), and replace the `{ 0.0 }` lambdas
+with the real field reads. Foods without data keep 0.0 and are skipped
+naturally.
+
+---
+
+### F20 · INFO · Incoherence — rollup totals carry micro-nutrient fields that are never populated
+
+**Where:** `DashboardAggregator.kt:33-47` (`NutrientTotals.ironMg/
+calciumMg/vitDUg/b12Ug/fiberG`) vs `rollup()` (:105-124), which never sets
+them
+
+**Finding:** `NutrientTotals` declares fiber + four micronutrients, but
+`DayBucket` doesn't track them and `rollup()` never sums them, so
+`total`/`avg` always report 0.0 for those fields. No current caller reads
+them — but the first one that does will trust a silent zero.
+
+**How to fix:** Either populate them (add the fields to `DayBucket` and the
+`sumOf` chains — `DiaryEntry.consumed` already has them), or delete the
+five dead fields until a real consumer exists. Populating is ~10 lines and
+makes F19's deficits displayable per week; deleting is honest minimalism.
+Pick one, don't leave the trap.
+
+---
+
+### F21 · LOW · Bug — weight forecast treats a 1-gram-per-week trend as a real trajectory
+
+**Where:** `DashboardAggregator.kt:279-293` (`weightForecast`)
+
+**Finding:** `Flat` is returned only when `weeklySlopeKg == 0.0` exactly.
+A regression slope over noisy scale data is never exactly zero, so a
+near-flat trend of e.g. 0.005 kg/week yields `Ok(weeks = 1400,
+targetDate = 2053)` instead of "no meaningful trend". The absurd date
+reaches the dashboard card.
+
+**How to fix:** Treat `abs(weeklySlopeKg) < 0.02` (20 g/week — below any
+scale's noise floor) as `Flat`, and additionally return `Flat` when the
+computed horizon exceeds a sanity cap (e.g. `weeks > 104`).
+
+---
+
+### F22 · LOW · Structure — Room migrations have never been verified against real schemas
+
+**Where:** `scan-eat-android/.../data/local/db/AppDatabase.kt:52-61`
+(comment), `app/build.gradle.kts` (`room.schemaLocation`), missing
+`app/schemas/` directory
+
+**Finding:** `exportSchema = true` is configured but no `app/schemas/`
+snapshots have ever been committed, so `MIGRATION_1_2` … `MIGRATION_6_7`
+have only ever been validated by eyeball — `room-testing`'s
+`MigrationTestHelper` can't run without the historical schema JSONs. The
+explanatory comment also still says "see QUEUE.md", a file that no longer
+exists.
+
+**How to fix:** CI already builds the app: add a step that uploads (or a
+one-time PR that commits) the generated `app/schemas/` directory, then add
+an instrumented `MigrationTestHelper` test walking 1→7. Update the stale
+comment to point at this findings doc instead of QUEUE.md.
+
+---
+
+### F23 · INFO · Incoherence — the notification channel is still named after Biolism
+
+**Where:** `scan-eat-android/.../notifications/NotificationHelper.kt:15`
+(`CHANNEL_ID = "biolism_reminders"`)
+
+**Finding:** The channel carries *all* app reminders (meals, hydration,
+weight) and the Biolism feature itself was renamed "Métabolisme" — but the
+system-settings channel users see is still the Biolism one. Channel ids
+are persistent per install, so this is also the only place the old name
+survives user-visibly.
+
+**How to fix:** Create a new channel `"reminders"` (localized display
+name), post to it, and call
+`notificationManager.deleteNotificationChannel("biolism_reminders")` once
+at startup. Android migrates nothing automatically, but the user's
+importance/sound overrides on the old channel are the only thing lost —
+acceptable for a rename this early.
+
+---
