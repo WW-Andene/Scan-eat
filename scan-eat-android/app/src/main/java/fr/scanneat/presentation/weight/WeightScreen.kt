@@ -102,9 +102,9 @@ fun WeightScreen(
                                 HorizontalDivider(color = OnSurface.copy(0.08f))
                                 val toGoal = s.latestKg - goal
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("Objectif", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                    Text(stringResource(R.string.weight_goal_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                     Text(
-                                        "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))} vers ${dispWeight(goal)}",
+                                        stringResource(R.string.weight_goal_delta, "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))}", dispWeight(goal)),
                                         style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
                                         color = if (kotlin.math.abs(toGoal) < 0.5) FlagGreen else AccentGreen,
                                     )
@@ -196,13 +196,13 @@ fun WeightScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
                         value = kgText, onValueChange = { kgText = it },
-                        label = { Text(if (useImperial) "Poids (lb)" else stringResource(R.string.weight_field_kg)) }, singleLine = true,
+                        label = { Text(if (useImperial) stringResource(R.string.weight_field_lb) else stringResource(R.string.weight_field_kg)) }, singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         colors = scanEatTextFieldColors(),
                     )
                     OutlinedTextField(
                         value = notesText, onValueChange = { notesText = it },
-                        label = { Text("Notes (optionnel)") }, singleLine = true,
+                        label = { Text(stringResource(R.string.weight_field_notes)) }, singleLine = true,
                         colors = scanEatTextFieldColors(),
                     )
                 }

@@ -572,6 +572,10 @@
     <string name="weight_goal_forecast">Objectif dans %1$dj</string>
     <string name="weight_dialog_title">Enregistrer le poids</string>
     <string name="weight_field_kg">Poids (kg)</string>
+    <string name="weight_field_lb">Poids (lb)</string>
+    <string name="weight_field_notes">Notes (optionnel)</string>
+    <string name="weight_goal_label">Objectif</string>
+    <string name="weight_goal_delta">%1$s vers %2$s</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Journal</string>

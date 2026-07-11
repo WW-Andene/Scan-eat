@@ -338,3 +338,13 @@ context:   settings_about_version hardcoded "v0.1.0" and "v2.2.0" as
            versionName bump silently goes stale here.
 decision:  Parameterized the string (%1$s/%2$s), passed BuildConfig.
            VERSION_NAME and ENGINE_VERSION from SettingsScreen.
+
+### App-audit §N1 — 4 hardcoded French strings in WeightScreen bypassing i18n
+context:   "Objectif", "vers" (inline in a template string), "Poids (lb)"
+           (right next to a properly-localized "Poids (kg)" sibling),
+           and "Notes (optionnel)" were all hardcoded French literals in
+           WeightScreen.kt - would show French even on an English-locale
+           device, breaking the app's own EN localization for this one
+           screen's goal/notes/lb-unit UI.
+decision:  Added weight_goal_label, weight_goal_delta, weight_field_lb,
+           weight_field_notes to both strings.xml files; wired them in.
