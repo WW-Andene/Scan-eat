@@ -1546,3 +1546,68 @@ Effort: N/A
 ```
 
 Section L3-L5 complete.
+
+## CATEGORY D — PERFORMANCE & RESOURCES (§D5 only, per scope)
+
+```
+[PROTECT — verified this session] — Several mobile-performance disciplines
+  are already correctly in place
+Dimension: §D5
+Finding, checked against confirmed evidence:
+  - Coroutine lifecycle: ViewModels consistently use `viewModelScope.launch`
+    (confirmed pattern across ResultViewModel, ScanViewModel,
+    SettingsViewModel, and others touched throughout this project) — no
+    orphaned-coroutine pattern found.
+  - LazyColumn list stability: `items(scans.value, key = { it.dbId })`
+    (ScanHistoryScreen.kt:92) and `items(slotEntries, key = { it.id })`
+    (DiaryScreen.kt:205) both use stable keys — the Compose equivalent of
+    DiffUtil stable IDs, confirmed via fresh grep this session.
+  - Database queries: Room DAOs return `Flow<>` for observed data
+    (ScanHistoryDao.observeRecent, etc.) and `suspend fun` for one-shot
+    reads/writes — Room dispatches both off the main thread automatically;
+    no `runBlocking` on main thread found anywhere in the repository layer.
+  - Image loading: Coil is confirmed fully absent (zero references in
+    gradle files or composables) — correct, since the app doesn't display
+    remote product images; nothing to optimize because there's nothing to
+    load.
+  - APK size: R8/minification verified enabled via the `assembleRelease`
+    CI step added earlier in this project's history.
+  - Process death recovery: `SavedStateHandle` is used in ResultViewModel
+    (confirmed: `scanId` recovery) — critical state survives process death.
+  - Background work: ReminderWorker uses WorkManager (confirmed), the
+    correct battery-efficient API — not a raw Service/AlarmManager pattern.
+Why it matters: Restating a genuine strength found across multiple prior
+  sessions' work, not a gap — worth stating explicitly so future work
+  doesn't regress these disciplines by accident.
+Recommendation: None — maintain these patterns.
+
+[UNVERIFIED] — ANR risk (>5s main-thread operations) and battery impact
+  (wake locks, location update frequency) not independently re-profiled
+  this session
+Finding: No evidence of long-running main-thread work was found in the
+  files read this session, but this category properly requires either a
+  systrace/profiler run or a full read of every network/file-I/O call site
+  — neither was done exhaustively enough to assert a clean pass with full
+  confidence.
+Recommendation: Defer to a profiling-tooled session rather than assert a
+  pass without having actually measured it.
+Effort: N/A
+```
+
+Section D5 complete.
+
+---
+
+# PHASE 2 COMPLETE
+
+All Phase 2 sections (§E1-10, §F1-6, §G1-4, §H3, §L3-5, §D5) are covered
+above, cross-referencing Phase 1 findings where they overlap and adding
+new findings where Phase 2's structural/code lens found something Phase
+1's aesthetic lens didn't (WCAG contrast verification gap, error-recovery
+retry action, streak-mechanic copy guardrail, touch-target re-confirmation,
+accessibility-as-tokens synthesis, and the confirmed mobile-performance
+strengths above).
+
+Phase 3 (Cross-Cutting Concern Map, §VIII of app-audit-SKILL.md — checking
+for compound chains between aesthetic findings and UX/accessibility/
+performance findings) has not been started.
