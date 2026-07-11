@@ -1596,10 +1596,19 @@ Still open, deliberately not touched this pass:
 - **AccentGreen → AccentCoral rename** (B1) — purely mechanical now that
   Chain 4 is resolved, but still a ~20-file diff with no way to compile-
   check it here; low value (naming only, zero visual effect).
-- **Copy warmth pass** (B9) — the score-reveal verdict text
-  (`gradeVerdict()` in ScoringEngine.kt) turned out to be hardcoded English
-  in a French-first app, a pre-existing i18n gap outside this audit's
-  scope — flagging rather than fixing blind alongside a tone change.
+- **Copy warmth pass** (B9) — investigated further: the score-reveal
+  verdict text (`gradeVerdict()` in ScoringEngine.kt) is hardcoded English,
+  and it's not an isolated case — a grep across `domain/engine/` turned up
+  ~100 hardcoded English string literals across 11 files (ScoringEngine,
+  every scoring Pillar, AdditivesDb, AllergenDetector, DietChecker,
+  PersonalScoreEngine, plus Biolism's KetoPhaseCalculator/
+  BiolismConstants). `scoreProduct()` and friends are pure domain functions
+  with no language parameter at all — localizing this properly means
+  threading language through the whole scoring call chain and adding ~100
+  string resources, not a copy-tone edit. This is a real, large,
+  pre-existing i18n gap in the domain layer, well outside a UI/UX design
+  audit's scope — recorded here as a finding for its own dedicated pass,
+  not attempted alongside this one.
 - **Grain/noise texture, milestone glow intensification** (POLISH) — both
   already flagged LOW priority by the audit itself; skipped in favor of
   higher-value fixes.
