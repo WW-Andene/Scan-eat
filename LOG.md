@@ -466,6 +466,25 @@ decision:  Queued rather than fixed here - the correct fix (memoize once per
            reasoning as §H3 and §O4 this session).
 reversal:  n/a (no code changed, doc/queue only)
 
+### App-audit §O1/L2 — Room schema-export gap projects forward to unvalidated migrations
+context:   AppDatabase.kt has exportSchema = true and room.schemaLocation
+           configured (build.gradle.kts) since the project's start, but no
+           app/schemas/ directory has ever been generated/committed - this
+           session's own MIGRATION_4_5 and MIGRATION_5_6 (added earlier
+           this session) were never validated against a real prior schema
+           via androidx.room:room-testing's MigrationTestHelper, only by
+           manual reading. Projecting forward: the next migration added
+           without this fixed has the exact same blind-spot, compounding
+           each time (Rule 9).
+decision:  Documented the gap with a comment at the migrations' actual
+           usage site (AppDatabase.kt) plus a QUEUE.md entry. Did NOT
+           attempt to generate app/schemas/ myself - confirmed this
+           sandbox has neither a reachable Gradle distribution nor
+           ANDROID_HOME (gradlew --offline failed on both counts), so
+           there's no way to produce a real, correct schema export here
+           to commit blind.
+reversal:  n/a (comment + queue note only, no code/schema change)
+
 ### App-audit §N1/L2 — WeightScreen's sparkline caption still hardcoded French
 context:   §N1 (layer 1) fixed 4 hardcoded French strings in WeightScreen
            but missed a 5th in the same file: the sparkline caption
@@ -571,3 +590,16 @@ decision:  Corrected the comment to describe reality (full-bleed within
            edge-to-edge - that's a real layout change across MainShell
            + ScanScreen I can't visually verify without a device/
            emulator (Rule 8: reduce scope when blind-apply risk is real).
+
+## Layer 2 complete — 15 categories (A-O), 1 fresh finding each, batch CI due now
+Commits b684ab9..<O/L2 pending>: A(ingredient-integrity div-by-actual-count),
+B(DayNotesRepository comment fix), C(permanently-denied camera permission),
+D(Dashboard scan-history decoupling), E(displaySmall type-scale slot),
+F(401/403 API-key error message), G(RadioButton rows unlabeled/double-
+actionable), H(ScanScreen edge-to-edge comment), I(findAdditive() triple-
+computation - queued), J(French-decimal bug in 6 more screens), K(identifyFood
+prompt zero-bias), L(3 more scanEatTextFieldColors dupes), M(R8 keep-rule gap
+for data.repository Moshi classes), N(WeightScreen sparkline caption still
+French), O(Room schema-export never committed - queued). Combined with layer
+1's 15, that's the full 30-finding two-layer pass. CI check due now per user
+instruction ("only checking ci after all categories and two layer mode done").

@@ -16,6 +16,15 @@ Data, Old feature, New feature — never the same category twice in a row.
   is still hardcoded English-only, unlike the offline/missing-API-key
   messages fixed in app-audit §F — needs `lang` threaded into
   scoreViaServer's signature to fix properly (rarer Server-mode-only path).
+- Room schema export (exportSchema = true, room.schemaLocation ->
+  app/schemas/) has never actually been generated/committed - no
+  app/schemas/ directory exists in the repo. Needed for
+  androidx.room:room-testing's MigrationTestHelper to validate
+  MIGRATION_4_5/MIGRATION_5_6 against real prior schemas. Requires a
+  build with Android SDK access (this sandbox has neither local Gradle
+  distribution access nor ANDROID_HOME - confirmed by a failed offline
+  gradlew fetch) - generate once via CI or a real dev machine and commit
+  app/schemas/.
 - findAdditive(eNumber, name, category) in AdditivesDb.kt is called
   independently 3x per ingredient during a single scoreProduct() run —
   ProcessingPillar.kt (2 call sites), AdditiveRiskPillar.kt (2 call sites,
