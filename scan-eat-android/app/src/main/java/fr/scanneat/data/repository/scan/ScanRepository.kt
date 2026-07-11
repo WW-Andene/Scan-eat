@@ -67,6 +67,11 @@ class ScanRepository @Inject constructor(
     suspend fun getCachedByBarcode(barcode: String): ScanResult? =
         dao.findByBarcode(barcode)?.toDomain()
 
+    fun observeFavorites(): Flow<List<ScanResult>> =
+        dao.observeFavorites().map { entities -> entities.mapNotNull { it.toDomain() } }
+
+    suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
+
     suspend fun persist(result: ScanResult): Long =
         dao.insert(ScanHistoryEntity(
             barcode     = result.barcode,
@@ -381,6 +386,7 @@ class ScanRepository @Inject constructor(
             source   = ScanSource.valueOf(sourceJson),
             barcode  = barcode,
             dbId     = id,
+            favorite = favorite,
         )
     }.getOrNull()
 }

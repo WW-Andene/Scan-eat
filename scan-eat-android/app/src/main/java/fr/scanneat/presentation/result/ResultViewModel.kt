@@ -60,6 +60,12 @@ class ResultViewModel @Inject constructor(
 
     private val _logState = MutableStateFlow<LogState>(LogState.Idle)
 
+    // getById() is a one-shot suspend read, not a Flow, so toggling the DB row
+    // via setFavorite() wouldn't otherwise be reflected until the screen fully
+    // reloads. This local override lets the star flip instantly; null means
+    // "no override yet, use whatever was loaded".
+    private val favoriteOverride = MutableStateFlow<Boolean?>(null)
+
     // arm()/compare() disarm shared comparison state as a side effect, so they must run
     // at most once per scan — WhileSubscribed(5000) can cancel and restart this flow
     // (e.g. backgrounding the screen briefly) which would otherwise re-run the side
@@ -87,11 +93,11 @@ class ResultViewModel @Inject constructor(
         }
     }
 
-    val state: StateFlow<ResultUiState> = combine(scanLoad, _logState) { load, logState ->
+    val state: StateFlow<ResultUiState> = combine(scanLoad, _logState, favoriteOverride) { load, logState, favOverride ->
         when (load) {
             is ScanLoad.Empty  -> ResultUiState(logState = logState)
             is ScanLoad.Loaded -> ResultUiState(
-                scanResult       = load.scan,
+                scanResult       = favOverride?.let { load.scan.copy(favorite = it) } ?: load.scan,
                 personalScore    = load.personal,
                 comparisonResult = load.comparison,
                 pairings         = load.pairings,
@@ -125,4 +131,12 @@ class ResultViewModel @Inject constructor(
     }
 
     fun clearLogState() { _logState.value = LogState.Idle }
+
+    fun toggleFavorite() {
+        val scan = state.value.scanResult ?: return
+        if (scan.dbId <= 0) return
+        val newValue = !scan.favorite
+        favoriteOverride.value = newValue
+        viewModelScope.launch { scanRepo.setFavorite(scan.dbId, newValue) }
+    }
 }

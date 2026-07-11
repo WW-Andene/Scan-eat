@@ -64,3 +64,23 @@ decision:  Recompute: scoreProduct(cached.product) is a pure function, no
 why:       Zero-cost fix, works offline, keeps existing history current
            with every future scoring change automatically.
 reversal:  trivial (one branch in scoreBarcode's cache-hit path)
+
+### 2026-07-11 Round 5 — New feature (Favorites)
+context:   Task #71 (long pending). "Favorite" a scanned product from
+           ResultScreen, find it again via a filter in Scan History.
+options:   Dedupe favorites by barcode (product-level) vs. per scan-history
+           row (event-level) — existing data model is per-scan-event
+           (delete/findById already keyed by row id, not barcode).
+decision:  Per-row favorite: `favorite` column on scan_history (migration
+           4→5), toggle star in ResultScreen's TopAppBar and per-row in
+           Scan History, "Favorites only" FilterChip there as the
+           dedicated place to find them.
+why:       Matches the existing per-event history model instead of
+           introducing a second, product-level dedup concept.
+reversal:  schema migration is additive (ALTER TABLE ADD COLUMN), safe to
+           leave even if the feature were later reworked.
+note:      getById() in ResultViewModel is a one-shot suspend read, not a
+           Flow, so toggling doesn't auto-refresh there — added a local
+           optimistic override (favoriteOverride) so the star flips
+           instantly. Scan History's list *is* Flow-backed (Room
+           invalidates on table writes) so no override needed there.

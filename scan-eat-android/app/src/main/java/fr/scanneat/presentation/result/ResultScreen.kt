@@ -3,6 +3,8 @@ package fr.scanneat.presentation.result
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentGreen
 import fr.scanneat.presentation.ui.theme.Background
+import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 
 // Orchestrator only — content composition lives in ResultContent.kt, each
@@ -62,6 +65,15 @@ fun ResultScreen(
                     }
                 },
                 actions = {
+                    state.value.scanResult?.let { scan ->
+                        IconButton(onClick = { viewModel.toggleFavorite() }) {
+                            Icon(
+                                if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                                stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                                tint = if (scan.favorite) Gold else OnBackground,
+                            )
+                        }
+                    }
                     TextButton(onClick = { showSheet = true }) {
                         Text(stringResource(R.string.result_log_it), color = AccentGreen, fontWeight = FontWeight.SemiBold)
                     }

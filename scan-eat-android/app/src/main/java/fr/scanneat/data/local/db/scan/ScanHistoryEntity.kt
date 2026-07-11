@@ -20,4 +20,5 @@ data class ScanHistoryEntity(
     val auditJson: String,           // serialised ScoreAudit
     val scannedAt: Long,             // epoch millis
     val profileId: String = "default",
+    val favorite: Boolean = false,
 )

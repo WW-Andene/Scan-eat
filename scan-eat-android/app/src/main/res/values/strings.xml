@@ -441,6 +441,7 @@
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
     <string name="history_search_placeholder">Rechercher…</string>
+    <string name="history_favorites_only">Favoris uniquement</string>
     <string name="history_score_category">%1$d/100 · %2$s</string>
     <string name="history_empty">Aucun scan enregistré.</string>
     <string name="history_empty_query">Aucun résultat pour \"%1$s\".</string>
@@ -758,6 +759,8 @@
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>
+    <string name="result_cd_favorite">Ajouter aux favoris</string>
+    <string name="result_cd_unfavorite">Retirer des favoris</string>
     <string name="result_score_out_of_100">%1$d / 100</string>
     <string name="result_comparison_title">Comparaison A→B</string>
     <string name="result_comparison_score">Score : %1$s pts</string>

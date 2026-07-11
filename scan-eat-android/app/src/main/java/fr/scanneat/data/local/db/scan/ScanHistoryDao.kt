@@ -17,6 +17,12 @@ interface ScanHistoryDao {
     @Query("SELECT * FROM scan_history WHERE barcode = :barcode AND profileId = :profileId ORDER BY scannedAt DESC LIMIT 1")
     suspend fun findByBarcode(barcode: String, profileId: String = "default"): ScanHistoryEntity?
 
+    @Query("SELECT * FROM scan_history WHERE profileId = :profileId AND favorite = 1 ORDER BY scannedAt DESC")
+    fun observeFavorites(profileId: String = "default"): Flow<List<ScanHistoryEntity>>
+
+    @Query("UPDATE scan_history SET favorite = :favorite WHERE id = :id")
+    suspend fun setFavorite(id: Long, favorite: Boolean)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ScanHistoryEntity): Long
 

@@ -14,13 +14,23 @@ class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository)
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
+    private val _favoritesOnly = MutableStateFlow(false)
+    val favoritesOnly: StateFlow<Boolean> = _favoritesOnly.asStateFlow()
+
     private val allScans = repo.observeHistory(limit = 200)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val filtered: StateFlow<List<ScanResult>> = combine(allScans, _query) { scans, q ->
-        if (q.isBlank()) scans
-        else scans.filter { it.product.name.contains(q, ignoreCase = true) || it.barcode?.contains(q) == true }
+    val filtered: StateFlow<List<ScanResult>> = combine(allScans, _query, _favoritesOnly) { scans, q, favOnly ->
+        scans
+            .filter { !favOnly || it.favorite }
+            .filter { q.isBlank() || it.product.name.contains(q, ignoreCase = true) || it.barcode?.contains(q) == true }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setQuery(q: String) { _query.value = q }
+    fun setFavoritesOnly(value: Boolean) { _favoritesOnly.value = value }
+
+    fun toggleFavorite(scan: ScanResult) {
+        if (scan.dbId <= 0) return
+        viewModelScope.launch { repo.setFavorite(scan.dbId, !scan.favorite) }
+    }
 }

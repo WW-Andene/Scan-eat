@@ -44,6 +44,7 @@ fun ScanHistoryScreen(
 ) {
     val scans = viewModel.filtered.collectAsStateWithLifecycle()
     val query = viewModel.query.collectAsStateWithLifecycle()
+    val favoritesOnly = viewModel.favoritesOnly.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -76,6 +77,16 @@ fun ScanHistoryScreen(
                 ),
             )
 
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                FilterChip(
+                    selected = favoritesOnly.value,
+                    onClick  = { viewModel.setFavoritesOnly(!favoritesOnly.value) },
+                    label    = { Text(stringResource(R.string.history_favorites_only)) },
+                    leadingIcon = { Icon(Icons.Default.Star, null, tint = if (favoritesOnly.value) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
+                    colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
+                )
+            }
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -106,6 +117,14 @@ fun ScanHistoryScreen(
                             Column(Modifier.weight(1f)) {
                                 Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                            }
+                            IconButton(onClick = { viewModel.toggleFavorite(scan) }, modifier = Modifier.size(28.dp)) {
+                                Icon(
+                                    if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                                    stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                                    tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
+                                    modifier = Modifier.size(18.dp),
+                                )
                             }
                             Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(20.dp))
                         }

@@ -31,7 +31,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MealTemplateEntity::class,
         RecipeEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -80,5 +80,12 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_history_profileId_scannedAt` ON `scan_history` (`profileId`, `scannedAt`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_history_barcode_profileId` ON `scan_history` (`barcode`, `profileId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_consumption_log_profileId_date` ON `consumption_log` (`profileId`, `date`)")
+    }
+}
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v4 → v5: favorite flag on scan_history, so a specific scan can be
+        // pinned and found again from a dedicated Favorites filter.
+        db.execSQL("ALTER TABLE `scan_history` ADD COLUMN `favorite` INTEGER NOT NULL DEFAULT 0")
     }
 }
