@@ -50,9 +50,9 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
 
     fun buildProfile() = BiolismProfile(
         sex = sex, ageYears = age.toIntOrNull() ?: 0,
-        heightCm = height.toDoubleOrNull() ?: 0.0, weightKg = weight.toDoubleOrNull() ?: 0.0,
+        heightCm = height.replace(',', '.').toDoubleOrNull() ?: 0.0, weightKg = weight.replace(',', '.').toDoubleOrNull() ?: 0.0,
         activityId = activityId,
-        waistCm = waist.toDoubleOrNull() ?: 0.0, hipCm = hip.toDoubleOrNull() ?: 0.0, neckCm = neck.toDoubleOrNull() ?: 0.0,
+        waistCm = waist.replace(',', '.').toDoubleOrNull() ?: 0.0, hipCm = hip.replace(',', '.').toDoubleOrNull() ?: 0.0, neckCm = neck.replace(',', '.').toDoubleOrNull() ?: 0.0,
     )
 
     val canAdvance = when (step) {

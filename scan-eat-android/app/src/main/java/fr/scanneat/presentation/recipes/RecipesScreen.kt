@@ -135,8 +135,8 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
                         colors = scanEatTextFieldColors())
                 }
                 TextButton(onClick = {
-                    val g = newIngGrams.toDoubleOrNull() ?: return@TextButton
-                    val k = newIngKcal.toDoubleOrNull() ?: 0.0
+                    val g = newIngGrams.replace(',', '.').toDoubleOrNull() ?: return@TextButton
+                    val k = newIngKcal.replace(',', '.').toDoubleOrNull() ?: 0.0
                     if (newIngName.isNotBlank()) {
                         components = components + RecipeComponent(newIngName, g, k)
                         newIngName = ""; newIngGrams = ""; newIngKcal = ""
@@ -175,7 +175,7 @@ private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealS
                     colors = scanEatTextFieldColors())
             }
         },
-        confirmButton = { TextButton(onClick = { fractionText.toDoubleOrNull()?.let { onLog(slot, it) } }) { Text(stringResource(R.string.common_log), color = AccentGreen) } },
+        confirmButton = { TextButton(onClick = { fractionText.replace(',', '.').toDoubleOrNull()?.let { onLog(slot, it) } }) { Text(stringResource(R.string.common_log), color = AccentGreen) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )
 }

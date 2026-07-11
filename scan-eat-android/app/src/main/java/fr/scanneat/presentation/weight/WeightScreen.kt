@@ -209,7 +209,7 @@ fun WeightScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    kgText.toDoubleOrNull()?.let { v ->
+                    kgText.replace(',', '.').toDoubleOrNull()?.let { v ->
                         val kg = if (useImperial) v / 2.20462 else v
                         viewModel.log(kg, notesText)
                         kgText = ""; notesText = ""; showAdd = false

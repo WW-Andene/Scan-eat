@@ -223,7 +223,7 @@ private fun AddFoodDialog(
     var fib  by remember { mutableStateOf("") }
     var salt by remember { mutableStateOf("") }
 
-    val valid = name.isNotBlank() && kcal.toDoubleOrNull() != null
+    val valid = name.isNotBlank() && kcal.replace(',', '.').toDoubleOrNull() != null
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -251,12 +251,12 @@ private fun AddFoodDialog(
                 onClick = {
                     onSave(
                         name.trim(),
-                        kcal.toDoubleOrNull() ?: 0.0,
-                        prot.toDoubleOrNull() ?: 0.0,
-                        carb.toDoubleOrNull() ?: 0.0,
-                        fat.toDoubleOrNull()  ?: 0.0,
-                        fib.toDoubleOrNull()  ?: 0.0,
-                        salt.toDoubleOrNull() ?: 0.0,
+                        kcal.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                        prot.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                        carb.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                        fat.replace(',', '.').toDoubleOrNull()  ?: 0.0,
+                        fib.replace(',', '.').toDoubleOrNull()  ?: 0.0,
+                        salt.replace(',', '.').toDoubleOrNull() ?: 0.0,
                     )
                 },
                 enabled = valid,

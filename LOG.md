@@ -466,6 +466,27 @@ decision:  Queued rather than fixed here - the correct fix (memoize once per
            reasoning as §H3 and §O4 this session).
 reversal:  n/a (no code changed, doc/queue only)
 
+### App-audit §J1/L2 — French-decimal-keyboard bug still open in 6 more screens
+context:   §J1 (layer 1) fixed BiolismProfileScreen's comma/period parsing,
+           but the same toDoubleOrNull()-only bug was still live in
+           WeightScreen (kgText), ProfileScreen (heightCm/weightKg/
+           goalWeightKg), RecipesScreen (newIngGrams/newIngKcal/
+           fractionText), LogSheet (portionG), CustomFoodScreen (kcal/
+           prot/carb/fat/fib/salt), and BiolismOnboardingScreen (height/
+           weight/waist/hip/neck) - every decimal numeric-entry field in
+           the app except the one already fixed. On a French-locale
+           device the decimal keyboard types a comma, so all of these
+           silently reject any non-integer input.
+decision:  Same mechanical fix everywhere: input.replace(',', '.') before
+           .toDoubleOrNull(). Purely additive/mechanical - no logic
+           restructuring, same proven pattern as §J1, safe to apply
+           across all 6 files in one pass.
+why:       High real-world impact (core data entry: weight logging,
+           profile setup, custom foods, recipes, portion logging) for a
+           French-first app; low risk since it's the identical, already-
+           verified transformation repeated at each call site.
+reversal:  trivial (one .replace() per call site, 14 sites total)
+
 ### App-audit §H3/L2 — ScanScreen's "edge to edge" comment overstated reality
 context:   MainShell's own Scaffold (contentWindowInsets =
            WindowInsets.systemBars) already consumes status/nav-bar
