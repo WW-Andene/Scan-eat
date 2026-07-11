@@ -28,6 +28,18 @@ private fun invalidApiKeyMessage(lang: String) =
     if (lang == "en") "Groq rejected this API key — check it in Settings"
     else "Clé API Groq refusée — vérifiez-la dans Réglages"
 
+/**
+ * Groq model names get deprecated/retired periodically (the pinned
+ * DEFAULT_MODEL/FALLBACK_MODEL are compile-time literals) - when that
+ * happens Groq returns a 400/404 for the model, not the more common
+ * 401/403/429/5xx this app already has friendly messages for, and it'd
+ * otherwise surface as a bare HTTP error with no indication that the fix
+ * is just picking a current model in Settings.
+ */
+private fun invalidModelMessage(lang: String) =
+    if (lang == "en") "This AI model is no longer available — pick a current one in Settings"
+    else "Ce modèle IA n'est plus disponible — choisissez-en un à jour dans Réglages"
+
 sealed class ScanUiState {
     data object Idle     : ScanUiState()
     data object Scanning : ScanUiState()
@@ -107,6 +119,8 @@ class ScanViewModel @Inject constructor(
                             // indication of what to actually do about it.
                             e is HttpException && (e.code() == 401 || e.code() == 403) ->
                                 ScanUiState.Error(invalidApiKeyMessage(lang))
+                            e is HttpException && (e.code() == 400 || e.code() == 404) ->
+                                ScanUiState.Error(invalidModelMessage(lang))
                             else -> ScanUiState.Error(e.message ?: "Erreur inconnue")
                         }
                     },

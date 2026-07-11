@@ -902,3 +902,25 @@ why:       Rule 7/Rule 8 - a change this large and this central, done
            core value proposition) for the sake of a localization fix;
            the smaller, already-fixed UI-string gaps didn't carry that
            risk profile.
+
+### App-audit §O1/L3 — no user-facing story for a deprecated Groq model
+context:   DEFAULT_MODEL/FALLBACK_MODEL are compile-time string literals;
+           Groq periodically deprecates/retires model names on its
+           free/preview tier (a realistic near-future event, not
+           hypothetical - this exact class of model churn is why
+           task #26 added a Settings model override in the first place).
+           When a pinned model gets retired, Groq returns 400/404, not the
+           401/403/429/5xx this app already has friendly messages for -
+           it would surface as a raw HTTP error with zero indication that
+           the fix is simply picking a current model in Settings (a
+           feature that already exists and would already solve it).
+decision:  Added an HttpException 400/404 branch (mirroring the existing
+           401/403 pattern from app-audit §F/L2) with a lang-aware message
+           pointing at Settings' model field.
+why:       Projects forward to a realistic, foreseeable failure mode of
+           this app's core AI dependency and closes it with the cheapest
+           possible fix - the actual remedy (Settings override) already
+           exists, this just makes sure users are told about it instead
+           of seeing a dead-end raw error.
+reversal:  trivial (one string helper + one branch, same shape as an
+           already-shipped, already-tested pattern)
