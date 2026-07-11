@@ -761,6 +761,19 @@ STATUS: FIXED — ScoreDisplay.kt's ScoreRing and DualScoreRing (both classic
   alpha by the arc's completion fraction so the glow visibly intensifies as
   the reveal finishes. Shipped in the same commit as the reduced-motion gate
   below (Chain 2's sequencing requirement).
+BUGFIX (found after a user report of "no visible change" post-install): the
+  original implementation never actually animated. `target` (score/100f) is
+  already known on first composition, and `animateFloatAsState` seeds its
+  internal `Animatable` AT the initial target value rather than at 0 — it
+  only animates on later *changes* to the target, which never happened
+  here. The ring rendered its final state immediately, full glow included,
+  with zero visible transition — the single most-touted fix in this whole
+  audit was silently a no-op in practice. Fixed by gating the target behind
+  a `started` flag that begins false and flips true one frame later via
+  `LaunchedEffect(Unit)`, giving animateFloatAsState an actual 0 → target
+  change to animate. Verified no other animateFloatAsState/animateColorAsState/
+  animateDpAsState call exists anywhere else in the codebase with the same
+  pattern.
 
 [MEDIUM] — Zero reduced-motion accessibility handling anywhere
 Finding: Confirmed zero matches for ANIMATOR_DURATION_SCALE or any

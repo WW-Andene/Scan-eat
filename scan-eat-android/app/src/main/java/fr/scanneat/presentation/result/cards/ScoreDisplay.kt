@@ -13,7 +13,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -30,12 +34,21 @@ import fr.scanneat.presentation.ui.theme.*
 
 /** The score reveal's signature moment: arc animates in, glow intensifies as it
  *  completes. Gated behind reduced-motion (snaps instantly, full glow, no
- *  animation) per the audit's Chain 2 — never ships the motion without the gate. */
+ *  animation) per the audit's Chain 2 — never ships the motion without the gate.
+ *
+ *  [target] is already known on first composition (the score arrives with the
+ *  rest of the result), so animateFloatAsState alone never animates — it seeds
+ *  its Animatable AT the target value on first composition and only animates
+ *  on later *changes* to the target. `started` starts false and flips true one
+ *  frame later via LaunchedEffect, giving animateFloatAsState an actual 0 → target
+ *  transition to play instead of rendering the final state immediately. */
 @Composable
 private fun rememberScoreReveal(target: Float): Pair<Float, Float> {
     val reducedMotion = rememberReducedMotion()
+    var started by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { started = true }
     val animatedProgress by animateFloatAsState(
-        targetValue   = target,
+        targetValue   = if (started) target else 0f,
         animationSpec = if (reducedMotion) snap() else tween(durationMillis = 700, easing = ScoreRevealEasing),
         label         = "scoreRingProgress",
     )
