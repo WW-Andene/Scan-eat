@@ -1068,3 +1068,20 @@ why:       Same-shape mechanical improvement across 4 already-identical
            risk to existing behavior when a name isn't available.
 reversal:  trivial (one new optional param + a lookup at each call site;
            omitting itemName reproduces the exact old behavior)
+
+### App-audit §G1/L4 — weight sparkline had zero semantic content
+context:   WeightScreen's 8-bar sparkline (each Box's height/color encoding
+           one weigh-in) carried no semantics at all - the caption above
+           it only says "Trend - last 8 weigh-ins" with no values, and
+           the 8 unlabeled Boxes give TalkBack nothing to announce. A
+           screen-reader user gets zero information about the actual
+           trend (values, direction) from a chart that's entirely visual.
+decision:  Added Modifier.clearAndSetSemantics { contentDescription = ... }
+           on the bars' Row, describing the first-to-last value range
+           (e.g. "Trend chart: from 74.1 kg to 72.3 kg over the last 8
+           weigh-ins") via dispWeight() (already unit/locale-aware) - one
+           coherent announcement instead of 8 silent boxes.
+why:       A data visualization with literally zero text alternative is
+           a hard accessibility gap, not a nice-to-have - the caption
+           alone doesn't convey the actual trend data.
+reversal:  trivial (semantics modifier + 2 new strings, no visual change)

@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -131,7 +133,16 @@ fun WeightScreen(
                         Column(Modifier.padding(12.dp)) {
                             Text(stringResource(R.string.weight_trend_caption, last8.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             Spacer(Modifier.height(8.dp))
-                            Row(Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
+                            val trendDescription = stringResource(
+                                R.string.weight_trend_cd,
+                                dispWeight(last8.first().weightKg),
+                                dispWeight(last8.last().weightKg),
+                                last8.size,
+                            )
+                            Row(
+                                Modifier.fillMaxWidth().height(48.dp).clearAndSetSemantics { contentDescription = trendDescription },
+                                horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom,
+                            ) {
                                 last8.forEachIndexed { i, e ->
                                     val isLast = i == last8.size - 1
                                     val h = (((e.weightKg - minW) / (maxW - minW)) * 40.0 + 6.0).toInt()

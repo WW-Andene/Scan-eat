@@ -579,6 +579,7 @@
     <string name="weight_goal_label">Objectif</string>
     <string name="weight_goal_delta">%1$s vers %2$s</string>
     <string name="weight_trend_caption">Tendance — %1$d dernières pesées</string>
+    <string name="weight_trend_cd">Graphique de tendance : de %1$s à %2$s sur les %3$d dernières pesées</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Journal</string>
