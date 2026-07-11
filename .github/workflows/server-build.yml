@@ -1,0 +1,39 @@
+name: Server Build
+
+on:
+  push:
+    paths:
+      - "scan-eat-server/**"
+      - ".github/workflows/server-build.yml"
+  pull_request:
+    paths:
+      - "scan-eat-server/**"
+      - ".github/workflows/server-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scan-eat-server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew test --stacktrace
+
+      - name: Build fat jar
+        run: ./gradlew shadowJar --stacktrace
