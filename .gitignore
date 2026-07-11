@@ -25,3 +25,6 @@ captures/
 
 ### Env ###
 .env
+
+### Snapshot archives — not build output, but never belong in git history ###
+*.zip
