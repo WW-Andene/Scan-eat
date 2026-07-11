@@ -657,3 +657,20 @@ why:       Meaningfully reduces real duplicate-record accumulation today
            riskier change (Rule 8: reduce scope when blind-apply risk is
            real, same call as O/L1's Health Connect version-bump decline).
 reversal:  trivial (one added condition, no API surface change)
+
+### App-audit §C1/L3 — OnboardingScreen showed the Groq API key in cleartext
+context:   SettingsScreen's API key field correctly masks input
+           (PasswordVisualTransformation + a visibility-toggle IconButton,
+           KeyboardType.Password), but OnboardingScreen's own API key
+           field - the very first place a user ever types this secret,
+           often in a semi-public first-run setting - used a plain
+           OutlinedTextField with no masking, no toggle, default keyboard
+           type. Real shoulder-surfing/screen-recording exposure risk,
+           and inconsistent with the app's own already-correct pattern
+           for the identical field elsewhere.
+decision:  Mirrored SettingsScreen's exact pattern: masked by default,
+           visibility toggle IconButton reusing the existing
+           settings_toggle_key_visibility string and Visibility/
+           VisibilityOff icons (already used elsewhere in the app, no new
+           resources needed).
+reversal:  trivial (visualTransformation + toggle state + icon button)

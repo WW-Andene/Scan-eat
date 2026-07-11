@@ -11,9 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -32,6 +36,7 @@ fun OnboardingScreen(
     var page by remember { mutableIntStateOf(0) }
     var selectedMode by remember { mutableStateOf(ApiMode.DIRECT) }
     var apiKey by remember { mutableStateOf("") }
+    var apiKeyVisible by remember { mutableStateOf(false) }
     var serverUrl by remember { mutableStateOf("") }
 
     Scaffold(containerColor = Background) { padding ->
@@ -116,6 +121,13 @@ fun OnboardingScreen(
                             value = apiKey, onValueChange = { apiKey = it },
                             label = { Text(stringResource(R.string.onboarding_api_key_label)) },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
+                            visualTransformation = if (apiKeyVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { apiKeyVisible = !apiKeyVisible }) {
+                                    Icon(if (apiKeyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, stringResource(R.string.settings_toggle_key_visibility), tint = OnBackground.copy(0.6f))
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             colors = scanEatTextFieldColors(),
                             shape = RoundedCornerShape(12.dp),
                         )
