@@ -127,3 +127,21 @@ decision:  Added history_empty_favorites, checked before the generic
 why:       Tells the user what to actually do (tap the star) instead of
            implying a broken/empty history.
 reversal:  trivial (one string + one branch)
+
+### 2026-07-11 Round 9 — Old feature (task #73)
+context:   Journal's Fasting tab (FastingRepository, DataStore "fasting")
+           and Biolism's Tracker "Jeûne" checkbox (TrackerViewModel,
+           DataStore "biolism_prefs") are two fully independent systems
+           sharing the exact same generic label — the user's original
+           complaint verbatim ("why is jeune in Tableau but also an
+           option in Biolism tab?").
+options:   Full merge into one shared fasting-state system vs. relabel to
+           make the distinction intentional.
+decision:  Relabel only. "Mode jeûne (estimations)" + a disabled-state
+           hint explicitly says it feeds hormone/ketosis estimates and is
+           separate from Journal's timer.
+why:       A real merge means picking one canonical timer/history model
+           and migrating the other's DataStore — a bigger, riskier change
+           than fits one KILLER round. Relabeling honestly resolves the
+           *confusion* (the user's stated complaint) without the merge risk.
+reversal:  trivial (strings only)
