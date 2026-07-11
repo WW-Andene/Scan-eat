@@ -189,3 +189,19 @@ context:   HydrationScreen.kt:145 shows the water goal computed by
            from before task #30 switched the actual calculation.
 decision:  Updated fr+en footer strings to describe the real formula.
 reversal:  trivial (strings only)
+
+### App-audit §B4 — backup restore could clobber unrelated local data
+context:   scan_history/consumption_log use autoGenerate Long ids;
+           importFromJson() inserted backup rows with their original ids
+           via REPLACE. Restoring on a different device (explicitly
+           promised in settings_backup_hint) or after new local rows
+           exist would silently overwrite whatever local row shares that
+           numeric id - real data loss, not the safe merge the old
+           comment claimed.
+decision:  Reset id=0 on scanHistory/consumption entities before insert
+           so Room always assigns fresh ids for these two tables. Every
+           other table already uses a stable UUID/slug, unaffected.
+tradeoff:  re-importing the same backup twice on the same device now
+           duplicates those two tables' rows instead of deduping -
+           acceptable; that guarantee was never stated in the UI, unlike
+           cross-device restore.

@@ -60,15 +60,22 @@ class BackupRepository @Inject constructor(
      * the whole import lands or none of it does, so a malformed file or a
      * crash mid-import can never leave the DB half-restored.
      *
-     * Rows are upserted by primary key (REPLACE), so importing the same
-     * backup twice is safe, and importing onto a non-empty DB merges by id
-     * rather than duplicating.
+     * Every table except scan_history/consumption_log keys off a stable
+     * UUID/slug, so REPLACE-by-id is a safe merge for those. scan_history
+     * and consumption_log use autoGenerate Long ids instead — restoring a
+     * backup taken on a different device (or after this device already
+     * logged new rows since the backup) with the file's original ids would
+     * silently REPLACE whatever local row happens to share that same
+     * autoincrement number, destroying unrelated local data. This is a real
+     * path: the backup hint text explicitly promises restoring "on this
+     * device or another." Resetting id=0 makes Room assign fresh,
+     * non-colliding ids for these two tables on every import.
      */
     suspend fun importFromJson(json: String): Result<BackupSummary> = runCatching {
         val bundle = parseBundle(json)
         db.withTransaction {
-            scanHistoryDao.insertAll(bundle.scanHistory)
-            consumptionDao.insertAll(bundle.consumption)
+            scanHistoryDao.insertAll(bundle.scanHistory.map { it.copy(id = 0) })
+            consumptionDao.insertAll(bundle.consumption.map { it.copy(id = 0) })
             customFoodDao.insertAll(bundle.customFoods)
             weightDao.insertAll(bundle.weights)
             activityDao.insertAll(bundle.activities)
