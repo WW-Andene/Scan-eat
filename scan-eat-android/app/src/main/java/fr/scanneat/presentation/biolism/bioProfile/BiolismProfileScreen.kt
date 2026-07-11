@@ -2,6 +2,7 @@ package fr.scanneat.presentation.biolism.bioProfile
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -11,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -139,12 +141,15 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         // ── Activity ──────────────────────────────────────────────────────────
         ProfileSection(stringResource(R.string.bioprofile_section_activity)) {
             ACTIVITY_LEVELS.forEach { lvl ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    Modifier.fillMaxWidth().selectable(selected = activityId == lvl.id, onClick = { activityId = lvl.id }, role = Role.RadioButton),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     Column(Modifier.weight(1f)) {
                         Text(lvl.label, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = if (activityId == lvl.id) FontWeight.SemiBold else FontWeight.Normal)
                         Text(lvl.note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                     }
-                    RadioButton(selected = activityId == lvl.id, onClick = { activityId = lvl.id },
+                    RadioButton(selected = activityId == lvl.id, onClick = null,
                         colors = RadioButtonDefaults.colors(selectedColor = Gold))
                 }
                 if (lvl != ACTIVITY_LEVELS.last()) HorizontalDivider(color = OnBackground.copy(0.06f))
@@ -156,12 +161,15 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             Text(stringResource(R.string.bioprofile_ethnicity_hint),
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
             ETHNICITY_OPTIONS.forEach { opt ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Row(
+                    Modifier.fillMaxWidth().selectable(selected = ethnicityId == opt.id, onClick = { ethnicityId = opt.id }, role = Role.RadioButton),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
                     Column(Modifier.weight(1f)) {
                         Text(opt.label, style = MaterialTheme.typography.bodySmall, color = OnBackground, fontWeight = FontWeight.Medium)
                         Text(opt.note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.35f))
                     }
-                    RadioButton(selected = ethnicityId == opt.id, onClick = { ethnicityId = opt.id },
+                    RadioButton(selected = ethnicityId == opt.id, onClick = null,
                         colors = RadioButtonDefaults.colors(selectedColor = Gold))
                 }
                 HorizontalDivider(color = OnBackground.copy(0.05f))

@@ -200,7 +200,10 @@ private fun ModeCard(selected: Boolean, title: String, subtitle: String, onClick
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            RadioButton(selected = selected, onClick = onClick, colors = RadioButtonDefaults.colors(selectedColor = AccentGreen))
+            // onClick = null: the whole Surface above is already clickable (onClick = onClick) —
+            // a second independent actionable control nested inside it is a real screen-reader/
+            // interaction conflict (two actionable elements claiming the same tap), not just redundant.
+            RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = AccentGreen))
             Column {
                 Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))

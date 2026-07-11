@@ -1,7 +1,7 @@
 package fr.scanneat.presentation.biolism.bioProfile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -111,14 +112,15 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                             Row(
                                 Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
                                     .background(if (activityId == lvl.id) GoldHaze else OnBackground.copy(0.03f))
-                                    .clickable { activityId = lvl.id }.padding(12.dp),
+                                    .selectable(selected = activityId == lvl.id, onClick = { activityId = lvl.id }, role = Role.RadioButton)
+                                    .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Column(Modifier.weight(1f)) {
                                     Text(lvl.label, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Medium)
                                     Text(lvl.note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                                 }
-                                RadioButton(selected = activityId == lvl.id, onClick = { activityId = lvl.id },
+                                RadioButton(selected = activityId == lvl.id, onClick = null,
                                     colors = RadioButtonDefaults.colors(selectedColor = Gold))
                             }
                         }

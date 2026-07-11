@@ -430,3 +430,21 @@ context:   ScanViewModel's onFailure handler only special-cased
            the user a bare "HTTP 401 " with no indication of what to do.
 decision:  Added an HttpException 401/403 branch with a friendly,
            lang-aware message pointing to Settings.
+
+### App-audit §G1/L2 — RadioButton rows unlabeled + nested double-actionable controls
+context:   5 RadioButton sites across 4 files (ProfileScreen's
+           ActivitySelector, BiolismProfileScreen's activity+ethnicity
+           rows, BiolismOnboardingScreen's activity row, OnboardingScreen's
+           ModeCard) had the same gap as the earlier Switch fix - no
+           accessible label - but here (unlike the Switch+IconButton
+           case) there was no independent sibling control, so the
+           correct fix is different: 3 sites also had a REDUNDANT nested
+           clickable (row/Surface already handled the tap AND the
+           RadioButton had its own separate onClick) - two actionable
+           elements claiming the same tap.
+decision:  4 sites: converted the containing Row to
+           Modifier.selectable(role=Role.RadioButton) (merges semantics,
+           makes the whole row tappable) + RadioButton onClick=null.
+           1 site (OnboardingScreen's Surface-based ModeCard): Surface
+           already provides click handling, so just removed the
+           redundant nested onClick.
