@@ -24,11 +24,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.BuildConfig
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.scan.DEFAULT_MODEL
 import fr.scanneat.data.repository.scan.FALLBACK_MODEL
+import fr.scanneat.domain.engine.scoring.ENGINE_VERSION
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalDate
@@ -369,7 +371,7 @@ fun SettingsScreen(
 
             // About
             SettingsSection(stringResource(R.string.settings_section_about)) {
-                Text(stringResource(R.string.settings_about_version), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
             }
 

@@ -688,7 +688,7 @@
     <string name="settings_profile_hint">Sexe, âge, taille, poids, régime, allergènes — requis pour le score personnalisé.</string>
     <string name="settings_profile_button">Modifier mon profil</string>
     <string name="settings_section_about">À propos</string>
-    <string name="settings_about_version">Scan\'eat v0.1.0 · Moteur de scoring v2.2.0</string>
+    <string name="settings_about_version">Scan\'eat v%1$s · Moteur de scoring v%2$s</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
     <string name="settings_section_backup">Sauvegarde</string>
     <string name="settings_backup_hint">Exportez vos données (scans, journal, poids, aliments personnalisés, recettes…) dans un fichier que vous pouvez restaurer plus tard, sur cet appareil ou un autre.</string>

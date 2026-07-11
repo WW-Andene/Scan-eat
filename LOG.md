@@ -328,3 +328,13 @@ context:   MealPlanScreen's week-day list was the sole items() call in
 decision:  Added key = { it.toEpochDay() } (LocalDate has a natural,
            stable, unique key). Low individual impact (7 items/week) but
            closes the one inconsistency.
+
+### App-audit §M1 — About screen version strings hardcoded, drift from real constants
+context:   settings_about_version hardcoded "v0.1.0" and "v2.2.0" as
+           literal text, duplicating BuildConfig.VERSION_NAME (build.
+           gradle.kts) and ENGINE_VERSION (ScoringEngine.kt) - both
+           already single-source-of-truth constants used elsewhere in
+           this codebase. Currently they match by coincidence; the next
+           versionName bump silently goes stale here.
+decision:  Parameterized the string (%1$s/%2$s), passed BuildConfig.
+           VERSION_NAME and ENGINE_VERSION from SettingsScreen.
