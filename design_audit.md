@@ -80,7 +80,7 @@ in its Part with an explicit PROTECT note.
 | 13 | ~~MEDIUM~~ PARTIALLY FIXED | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
 | 14 | MEDIUM | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
 | 15 | ~~MEDIUM~~ FIXED | States | Empty states have no CTA slot | B8 |
-| 16 | MEDIUM | States | Loading states have no character treatment | B8 |
+| 16 | ~~MEDIUM~~ FIXED | States | Loading states have no character treatment | B8 |
 | 17 | ~~MEDIUM~~ FIXED | Contrast | WCAG verification gap (Phase 2 restated) — now verified PASS | F1 |
 | 18 | MEDIUM | Touch | 12+ IconButtons at 32-36dp, below 48dp guideline | F3 |
 | 19 | LOW | Color | "AccentGreen" misnamed (it's coral); 3 unreconciled gold values | B1 |
@@ -901,6 +901,10 @@ Recommendation: For ResultScreen's whole-screen loading spinner (the wait
   match the new score-reveal motion signature (Part B5/D), so loading
   visually sets up the reveal rather than being generic.
 Effort: LOW (one call site, follows from the Part B5 fix)
+STATUS: FIXED — ResultScreen.kt's loading spinner now matches ScoreRing's
+  exact size (178dp), stroke width (14dp), and track color (SurfaceVariant)
+  — the spinner now occupies the same space the score ring will animate
+  into, rather than being a generic centered default-size indicator.
 
 [POLISH] — No milestone/success-state intensification exists anywhere
 Finding: Grade colors and layout are identical whether it's a routine scan
@@ -1032,6 +1036,11 @@ Why it matters: Lowest priority in this section — Android has no native
 Recommendation: When executing the light-mode gold consolidation, do the
   derivation math in OKLCH and only convert to hex at the end.
 Effort: LOW (process change, not a standalone fix)
+STATUS: NOTED, not yet actionable — this is a process rule for the light-
+  mode gold consolidation (Part A6), which itself remains open (deferred —
+  needs a visual re-check of light-mode contrast this sandbox can't do).
+  Recorded here so whoever does that consolidation does the math in OKLCH
+  rather than eyeballing hex.
 ```
 
 ## B12. Sections Skipped or Folded (Illustration, Data Viz, Responsive)

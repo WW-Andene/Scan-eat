@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -32,6 +33,7 @@ import fr.scanneat.presentation.ui.theme.AccentGreen
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
 
 // Orchestrator only — content composition lives in ResultContent.kt, each
 // section/banner in cards/*.kt. Was previously a single 467-line file with
@@ -85,8 +87,11 @@ fun ResultScreen(
     ) { padding ->
         val s = state.value
         if (s.scanResult == null) {
+            // Matches ScoreRing's own size/stroke/track exactly, so the loading
+            // state visually sets up the score reveal instead of being a generic
+            // spinner unrelated to what's about to appear.
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentGreen)
+                CircularProgressIndicator(color = AccentGreen, strokeWidth = 14.dp, trackColor = SurfaceVariant, modifier = Modifier.size(178.dp))
             }
         } else {
             ResultContent(
