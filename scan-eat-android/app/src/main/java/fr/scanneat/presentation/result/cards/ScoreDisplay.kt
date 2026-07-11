@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +56,7 @@ internal fun DualScoreRing(
     personalScore: Int, personalGrade: Grade,
     veto: Boolean,
 ) {
+    val vetoDescription = stringResource(R.string.result_veto_description)
     Row(
         modifier              = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -89,7 +92,10 @@ internal fun DualScoreRing(
                     strokeWidth = 8.dp,
                     trackColor  = SurfaceVariant,
                 )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = if (veto) Modifier.clearAndSetSemantics { contentDescription = vetoDescription } else Modifier,
+                ) {
                     Text(if (veto) "✗" else personalGrade.label, fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (veto) FlagRed else gradeColor(personalGrade))

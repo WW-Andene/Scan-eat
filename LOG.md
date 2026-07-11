@@ -733,3 +733,22 @@ why:       This is exactly the class of bug this session already noted
            adding a new app-wide feedback system from scratch.
 reversal:  trivial (localized to GroceryScreen; removes unused state,
            adds standard Compose Scaffold snackbar wiring)
+
+### App-audit §G1/L3 — veto badge conveyed a critical warning via an unlabeled glyph only
+context:   DualScoreRing's personal-score slot shows a bare "✗" Text (no
+           semantic label) when a product is vetoed - the single most
+           important "this is unsafe for you" signal in the whole result
+           screen, conveyed only via an unlabeled Unicode glyph + color
+           (FlagRed). TalkBack would read "✗" as some generic symbol name
+           at best, giving zero indication of what it means; a
+           colorblind user without the red cue gets nothing at all beyond
+           an ambiguous cross mark.
+decision:  Added Modifier.clearAndSetSemantics { contentDescription = ... }
+           on the veto column so TalkBack announces the actual meaning
+           ("Veto: incompatible with your profile regardless of score")
+           instead of the raw glyph or nothing. Visual "✗" for sighted
+           users unchanged.
+why:       This is the highest-stakes information on the entire result
+           screen (a real safety veto, e.g. trans fats/allergen-adjacent
+           risk) - it must not depend on color or glyph-recognition alone.
+reversal:  trivial (semantics modifier + 2 new strings, no visual change)

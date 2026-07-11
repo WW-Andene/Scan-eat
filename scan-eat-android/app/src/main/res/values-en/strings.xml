@@ -780,6 +780,7 @@
     <string name="result_adjustments_title">Personal Adjustments</string>
     <string name="result_classic_score_label">Classic Score</string>
     <string name="result_personal_score_label">Personal Score</string>
+    <string name="result_veto_description">Veto: incompatible with your profile regardless of score</string>
     <string name="result_pillars_title">Pillar Breakdown</string>
     <string name="result_pillar_score">%1$d/%2$d</string>
     <string name="result_nutrition_title">Nutrition / 100 g</string>
