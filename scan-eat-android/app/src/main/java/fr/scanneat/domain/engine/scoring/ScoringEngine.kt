@@ -48,10 +48,10 @@ private fun computeGlobalBonuses(product: Product): List<Deduction> {
     if (product.organic) bonuses += Deduction("global_bonus", "Organic certification", 2.0, Severity.INFO)
     if (product.wholeGrainPrimary) bonuses += Deduction("global_bonus", "Whole grain as primary grain", 3.0, Severity.INFO)
     if (product.fermented) bonuses += Deduction("global_bonus", "Contains fermented / probiotic content", 2.0, Severity.INFO)
-    val omega3Ing = product.ingredients.find { ing ->
-        Regex("""(graine de )?lin\b|\bchia\b|\bnoix\b|saumon|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
-    }
-    if (omega3Ing != null) bonuses += Deduction("global_bonus", "Omega-3 source: ${omega3Ing.name}", 2.0, Severity.INFO)
+    // Omega-3 bonus lives solely in NutritionalDensityPillar.scoreNutritionalDensity()
+    // (+3, using the same ingredient regex plus a nutrition-value check) - it was
+    // duplicated here too, double-counting the same signal for +5 total on any
+    // product containing e.g. flaxseed or salmon.
     return bonuses
 }
 

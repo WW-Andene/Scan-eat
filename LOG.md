@@ -924,3 +924,33 @@ why:       Projects forward to a realistic, foreseeable failure mode of
            of seeing a dead-end raw error.
 reversal:  trivial (one string helper + one branch, same shape as an
            already-shipped, already-tested pattern)
+
+## Layer 3 complete (A-O) — deep-fix license used for: DietChecker false
+positives (A), Health Connect duplicate-record mitigation (B), Onboarding
+API key masking (C), parallel OFF barcode lookups (D), AutoMirrored back
+arrows (E), Grocery Snackbar (F), veto-badge semantics (G), GTIN-14
+scanner reachability (H), findAdditive() memoization (I), date-formatter
+locale threading (J), OcrParser fallback-model fix (K), EmptyListState
+extraction (L), CI release-build check (M), scoring-engine i18n gap
+documented/queued (N), deprecated-model error message (O).
+
+### App-audit §A1/L4 — omega-3 bonus double-counted across two scoring locations
+context:   NutritionalDensityPillar.scoreNutritionalDensity() awards +3
+           for omega-3 content (nutrition value OR the same ingredient-
+           name regex). ScoringEngine.computeGlobalBonuses() independently
+           awarded +2 for the exact same ingredient regex match
+           ("Omega-3 source: X") as a "global_bonus". Any product listing
+           flaxseed/chia/walnut/salmon/sardine/mackerel/herring/anchovy as
+           an ingredient got both bonuses simultaneously - +5 total for
+           one signal, unfairly inflating the score relative to products
+           whose omega-3 content is only reflected once.
+decision:  Removed the duplicate global_bonus branch - the pillar-level
+           bonus already covers both detection paths (nutrition value and
+           ingredient name), so nothing is lost, only the double-count.
+why:       Real, mechanically verified duplication (identical regex
+           literal in two files) rather than a judgment call - a
+           straightforward correctness bug in the scoring engine itself.
+reversal:  trivial (deletion of 4 lines + a comment, no other logic
+           touched; bonusTotal's minOf(10.0, ...) cap was never reached by
+           the old max of 9 either, so no behavior change beyond removing
+           the double-count)
