@@ -466,6 +466,20 @@ decision:  Queued rather than fixed here - the correct fix (memoize once per
            reasoning as §H3 and §O4 this session).
 reversal:  n/a (no code changed, doc/queue only)
 
+### App-audit §L2/L2 — 3 more scanEatTextFieldColors() duplicates missed by the L1 sed pass
+context:   §I4 (layer 1) extracted scanEatTextFieldColors() and replaced 17
+           exact-string-match occurrences of the AccentGreen outlined-field
+           color block via sed. 3 more occurrences existed in
+           CustomFoodScreen.kt (search field), ScanHistoryScreen.kt (search
+           field), and ProfileScreen.kt (text field row) with identical
+           values but different line-wrapping/spacing, so they didn't match
+           the single-line literal used by that sed pass and were missed.
+decision:  Replaced all 3 with scanEatTextFieldColors(). Left
+           CustomFoodScreen.kt's other OutlinedTextFieldDefaults.colors()
+           call (0.18f unfocused alpha, not 0.2f) alone - genuinely
+           different value, not a duplicate.
+reversal:  trivial (one call-site swap per file)
+
 ### App-audit §K5/L2 — identifyFood() prompt biased the LLM toward zeroed nutrition
 context:   OcrParser.kt's identifyFood() prompt (used for fresh foods/plated
            dishes with no label to OCR) showed the model a JSON schema

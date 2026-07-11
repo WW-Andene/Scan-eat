@@ -185,12 +185,7 @@ private fun OutlinedInput(
         singleLine    = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape  = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor   = AccentGreen,
-            unfocusedBorderColor = OnBackground.copy(0.2f),
-            focusedTextColor     = OnBackground,
-            unfocusedTextColor   = OnBackground,
-        ),
+        colors = scanEatTextFieldColors(),
     )
 }
 

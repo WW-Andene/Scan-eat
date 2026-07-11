@@ -71,10 +71,7 @@ fun ScanHistoryScreen(
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f),
-                    focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,
-                ),
+                colors = scanEatTextFieldColors(),
             )
 
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
