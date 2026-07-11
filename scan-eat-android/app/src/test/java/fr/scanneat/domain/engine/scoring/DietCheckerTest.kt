@@ -114,6 +114,20 @@ class DietCheckerTest {
         assertTrue(result.compliant)
     }
 
+    // ---- Regression lock: accented "pâté" (meat spread) vs "pâte" (dough) ----
+
+    @Test
+    fun `vegetarian flags pate with the circumflex accent as printed on real labels`() {
+        val result = checkDiet(productWithIngredients("pâté de campagne"), DietKey.VEGETARIAN)
+        assertFalse(result.compliant)
+    }
+
+    @Test
+    fun `vegetarian does not flag pate the dough or pastry`() {
+        assertTrue(checkDiet(productWithIngredients("pâte à tartiner", "sucre"), DietKey.VEGETARIAN).compliant)
+        assertTrue(checkDiet(productWithIngredients("pâte feuilletée"), DietKey.VEGETARIAN).compliant)
+    }
+
     @Test
     fun `keto flags high net-carb products`() {
         val highCarb = Product(

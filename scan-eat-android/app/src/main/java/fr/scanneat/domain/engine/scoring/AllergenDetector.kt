@@ -57,7 +57,7 @@ val ANNEX_II_KEYS: List<String> = listOf(
 
 private val RULES: List<AllergenRule> = listOf(
     AllergenRule("gluten", "Gluten", "Gluten",
-        a("bl[eé]|froment|seigle|orge|avoine|[eé]peautre|kamut|triticale|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge")),
+        a("gluten|bl[eé]|froment|seigle|orge|avoine|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge")),
 
     AllergenRule("lactose", "Lactose / Lait", "Lactose / Milk",
         a("lait|lactose|lactos[eé]rum|petit[- ]lait|cr[eè]me|beurre|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|caseine|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait")),
@@ -66,7 +66,7 @@ private val RULES: List<AllergenRule> = listOf(
         a("oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|lysozyme")),
 
     AllergenRule("nuts", "Fruits à coque", "Tree nuts",
-        a("noix|amandes?|noisettes?|pistaches?|cajou|p[eé]can|pecan|noix du br[eé]sil|macadamia")),
+        a("noix(?! de coco| de muscade)|amandes?|noisettes?|pistaches?|cajou|p[eé]can|pecan|noix du br[eé]sil|macadamia")),
 
     AllergenRule("peanuts", "Arachides", "Peanuts",
         a("arachide|cacahu[eè]te|peanut|beurre de cacahu[eè]te")),
