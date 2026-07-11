@@ -19,7 +19,7 @@ import kotlin.math.roundToInt
 // previously a single 724-line file with all of the above inline.
 // ============================================================================
 
-const val ENGINE_VERSION = "2.2.0"
+const val ENGINE_VERSION = "2.3.0"
 
 // ============================================================================
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR
