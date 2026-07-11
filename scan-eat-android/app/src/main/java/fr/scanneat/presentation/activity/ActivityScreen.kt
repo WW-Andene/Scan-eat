@@ -187,7 +187,8 @@ fun ActivityScreen(
     }
 
     deleteTarget?.let { id ->
-        DeleteConfirmDialog(onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        val name = entries.value.find { it.id == id }?.let { typeLabels[it.type] ?: it.type.name }
+        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 
 }

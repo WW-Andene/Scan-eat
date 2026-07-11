@@ -598,6 +598,7 @@
     <string name="diary_delete_confirm_body">Cette action est irréversible.</string>
     <string name="common_delete_confirm_title">Supprimer ?</string>
     <string name="common_delete_confirm_body">Cette action est irréversible.</string>
+    <string name="common_delete_confirm_body_named">« %1$s » sera définitivement supprimé. Cette action est irréversible.</string>
     <string name="diary_totals_title">Totaux du jour</string>
     <string name="diary_macro_calories">Calories</string>
     <string name="diary_macro_protein">Protéines</string>

@@ -66,7 +66,8 @@ fun RecipesScreen(
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
 
     deleteTarget?.let { id ->
-        DeleteConfirmDialog(onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        val name = recipes.value.find { it.id == id }?.name
+        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 
 }

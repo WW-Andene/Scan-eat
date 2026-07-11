@@ -1049,3 +1049,22 @@ decision:  Swapped all 6 sites to their Icons.AutoMirrored.Filled
            CI check already paying for itself twice in one pass.
 reversal:  trivial (icon symbol + import swap only, identical LTR
            rendering)
+
+### App-audit §F1/L4 — delete confirmation never named the item being deleted
+context:   DeleteConfirmDialog (shared by Weight/Templates/Recipes/
+           Activity) always showed a fully generic "Delete? This action
+           cannot be undone." with zero indication of which item - a real
+           risk in dense lists where a misclick could confirm deleting the
+           wrong row with no specific confirmation to catch it.
+decision:  Added an optional itemName param; when the caller has one in
+           scope (recipe/template name, weight entry's date, activity
+           type label - all already available from the same in-memory
+           list the row came from, no new state needed) the dialog shows
+           "'X' will be permanently deleted..." instead of the generic
+           text. Falls back to the original generic body when null, so
+           any future caller not passing a name still works.
+why:       Same-shape mechanical improvement across 4 already-identical
+           call sites, using data already in scope - no new state, no
+           risk to existing behavior when a name isn't available.
+reversal:  trivial (one new optional param + a lookup at each call site;
+           omitting itemName reproduces the exact old behavior)

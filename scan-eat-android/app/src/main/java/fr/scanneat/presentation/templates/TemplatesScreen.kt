@@ -110,7 +110,8 @@ fun TemplatesScreen(
     }
 
     deleteTarget?.let { id ->
-        DeleteConfirmDialog(onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        val name = templates.value.find { it.id == id }?.name
+        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 
 }

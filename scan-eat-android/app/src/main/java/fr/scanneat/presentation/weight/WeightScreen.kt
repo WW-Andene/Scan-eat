@@ -226,7 +226,8 @@ fun WeightScreen(
     }
 
     deleteTarget?.let { id ->
-        DeleteConfirmDialog(onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        val name = entries.value.find { it.id == id }?.date?.format(fmt)
+        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 
 }
