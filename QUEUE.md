@@ -70,6 +70,22 @@ Data, Old feature, New feature — never the same category twice in a row.
   sandbox doesn't have. Needs a dedicated pass with CI/test feedback
   available at each step, not a single blind commit.
 
+- Task #72 (multi-provider API key support) remains open. Investigated
+  during the §XI pass: GroqApi's chatCompletions() already targets a
+  plain OpenAI-compatible `/v1/chat/completions` endpoint, so the safe,
+  low-risk version of "multi-provider" is letting the user point Direct
+  mode at any OpenAI-compatible base URL (OpenRouter, Together, a
+  self-hosted vLLM endpoint, etc.) instead of the hardcoded
+  "https://api.groq.com/" in NetworkModule - no new request/response
+  shape to guess at, unlike a real multi-vendor integration (Anthropic/
+  OpenAI-native APIs use different schemas entirely, which WOULD require
+  guessing blind here). Not implemented this pass: it still means
+  reworking GroqApi from a Hilt-singleton-bound Retrofit instance to a
+  dynamically-built one (same pattern ScanRepository.serverApi() already
+  uses for Server mode), touching NetworkModule, DomainModule, OcrParser,
+  and Settings UI - correct in scope for a real session with CI feedback
+  at each step, risky to land in one blind multi-file pass.
+
 ## Stuck
 (3-strike failures land here, per skill's FAILURE & RETRY rule)
 
@@ -83,3 +99,6 @@ Data, Old feature, New feature — never the same category twice in a row.
   parse pattern (MealTemplateRepository, RecipeRepository,
   FastingRepository, ScanRepository, CustomFoodRepository) all got the
   same Log.w() addition — app-audit §XI coherence-fracture pass.
+- ScanRepository's unused `groqApi: GroqApi` constructor parameter
+  removed (dead dependency — all Groq calls actually go through the
+  injected OcrParser) — app-audit §XI/2.

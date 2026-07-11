@@ -41,7 +41,6 @@ private fun missingApiKeyMessage(lang: String) =
 @Singleton
 class ScanRepository @Inject constructor(
     private val offApi: OpenFoodFactsApi,
-    private val groqApi: GroqApi,
     private val dao: ScanHistoryDao,
     private val prefs: UserPreferences,
     private val ocrParser: OcrParser,

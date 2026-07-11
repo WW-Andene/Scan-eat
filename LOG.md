@@ -1324,3 +1324,43 @@ why:       Same fix, same reasoning, applied everywhere the same failure
            fracture rather than leaving five near-duplicate future patches
            to land one at a time.
 reversal:  n/a (Log.w() additions only, no behavior change)
+
+### App-audit §XI/2 — ScanRepository's unused GroqApi constructor parameter
+context:   ScanRepository @Inject-constructs a `groqApi: GroqApi` field
+           that is never referenced anywhere in the class body - every
+           actual Groq call goes through the separately-injected
+           `ocrParser: OcrParser`, which holds its own GroqApi instance.
+           Found while investigating task #72 (multi-provider API key
+           support) and reading every GroqApi usage site to scope that
+           work honestly.
+decision:  Removed the dead constructor parameter.
+why:       An unused injected dependency is a small but real coherence
+           issue - it implies ScanRepository talks to Groq directly, which
+           it doesn't (OcrParser is the sole owner of that responsibility,
+           correctly, per the earlier domain/data layering fix). Removing
+           it makes the actual dependency graph match what the code does.
+reversal:  n/a (unused parameter deletion, no behavior change)
+
+### App-audit §XI — task #72 (multi-provider API key support) scoped, not implemented
+context:   Investigated the user's long-pending backlog item while
+           looking at GroqApi's usage. GroqApi.chatCompletions() already
+           targets a plain OpenAI-compatible /v1/chat/completions schema
+           - the safe version of "multi-provider" is a configurable base
+           URL (OpenRouter/Together/self-hosted-vLLM/etc. all speak the
+           same schema), not guessing at vendor-specific request/response
+           shapes for something like Anthropic's native API.
+decision:  Documented the scoped approach in QUEUE.md rather than
+           implementing it blind this pass - it still requires reworking
+           GroqApi from a Hilt-singleton Retrofit binding to a
+           dynamically-built one (NetworkModule, DomainModule, OcrParser,
+           Settings UI all touched), which is exactly the kind of
+           multi-file, no-local-compile-check change this session has
+           consistently deferred to a CI-backed pass rather than land
+           blind (same reasoning as the response_format and
+           HealthConnect clientRecordId QUEUE.md entries).
+why:       Golden question (Rule 8): worst case if this breaks blind is
+           the entire Direct-mode scan pipeline - the app's core feature -
+           for every user. Scoping it correctly and queuing it with a
+           concrete, safe implementation path is more valuable than a
+           guessed multi-file refactor with no way to verify it compiles.
+reversal:  n/a (investigation + documentation only, no code changed)
