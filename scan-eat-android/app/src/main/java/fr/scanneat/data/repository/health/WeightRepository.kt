@@ -89,7 +89,7 @@ class WeightRepository @Inject constructor(
         val recent  = all.filter { !it.date.isBefore(cutoff) }
         val window  = recent.ifEmpty { listOf(all.first()) }
         val first   = window.first()
-        val delta   = (latest.weightKg - first.weightKg * 10.0).roundToInt() / 10.0
+        val delta   = ((latest.weightKg - first.weightKg) * 10.0).roundToInt() / 10.0
 
         return WeightSummary(
             latestKg       = latest.weightKg,
