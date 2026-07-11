@@ -10,6 +10,7 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.delay
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -119,9 +120,15 @@ class GroqService {
             ContentPart(type = "image_url", imageUrl = ImageUrlPart("data:${img.mime};base64,${img.base64}"))
         } + ContentPart(type = "text", text = prompt)
 
+        // FALLBACK_GROQ_MODEL is text-only — switching to it on the last
+        // attempt is only a genuine extra chance for a text-only request.
+        // Every caller here always includes image content when images is
+        // non-empty, so falling back would guarantee-fail the vision
+        // request's last retry instead of giving it a real one.
+        val hasImages = images.isNotEmpty()
         var lastErr: Throwable? = null
         repeat(maxRetries) { attempt ->
-            val useModel = if (attempt == maxRetries - 1) FALLBACK_GROQ_MODEL else model
+            val useModel = if (attempt == maxRetries - 1 && !hasImages) FALLBACK_GROQ_MODEL else model
             runCatching {
                 val resp: ChatResponse = client.post(GROQ_ENDPOINT) {
                     header("Authorization", "Bearer $key")
@@ -138,6 +145,7 @@ class GroqService {
                 lastErr = e
                 log.warn("Groq attempt $attempt failed (model=$useModel): ${e.message}")
             }
+            if (attempt < maxRetries - 1) delay(500L * (attempt + 1))
         }
         throw lastErr ?: RuntimeException("All Groq retries exhausted")
     }
