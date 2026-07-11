@@ -26,9 +26,29 @@ android {
         }
     }
 
+    // A stable, checked-in debug key — not sensitive, debug builds are never
+    // distributed for production. Without this, AGP falls back to whatever
+    // default debug keystore exists on the machine building it; on ephemeral
+    // CI runners (no persisted ~/.android) that's freshly auto-generated on
+    // every run, so every CI-built debug APK ends up signed with a different
+    // random certificate. Android then refuses to install a new one over an
+    // existing install of the same app ("signatures don't match") without an
+    // explicit uninstall first — so testers who just re-install over the old
+    // app silently keep running stale code with no error they'd notice,
+    // however many commits have actually landed since.
+    signingConfigs {
+        create("debug") {
+            storeFile     = file("keystore/debug.keystore")
+            storePassword = "android"
+            keyAlias      = "androiddebugkey"
+            keyPassword   = "android"
+        }
+    }
+
     buildTypes {
         debug {
             isDebuggable    = true
+            signingConfig   = signingConfigs.getByName("debug")
             applicationIdSuffix = ".debug"
             versionNameSuffix   = "-debug"
             buildConfigField("String", "DEFAULT_GROQ_ENDPOINT", "\"https://api.groq.com/openai/v1/chat/completions\"")
