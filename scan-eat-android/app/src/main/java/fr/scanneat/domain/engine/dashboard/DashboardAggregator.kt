@@ -276,13 +276,21 @@ sealed class WeightForecast {
     ) : WeightForecast()
 }
 
+// Below any home scale's noise floor — a regression slope over real
+// (noisy) weigh-ins is essentially never exactly 0.0, so checking only
+// for that exact value let a near-flat trend (e.g. 5g/week) produce a
+// multi-decade "forecast" instead of being recognized as no real trend.
+private const val FLAT_SLOPE_THRESHOLD_KG_PER_WEEK = 0.02
+private const val MAX_FORECAST_WEEKS = 104.0
+
 fun weightForecast(currentKg: Double, goalKg: Double, weeklySlopeKg: Double): WeightForecast {
     if (currentKg <= 0 || goalKg <= 0) return WeightForecast.InsufficientData
     val delta = goalKg - currentKg
     if (abs(delta) < 0.05) return WeightForecast.AlreadyReached
-    if (weeklySlopeKg == 0.0) return WeightForecast.Flat
+    if (abs(weeklySlopeKg) < FLAT_SLOPE_THRESHOLD_KG_PER_WEEK) return WeightForecast.Flat
     if (delta.compareTo(0.0) != weeklySlopeKg.compareTo(0.0)) return WeightForecast.WrongDirection
     val weeks = abs(delta / weeklySlopeKg)
+    if (weeks > MAX_FORECAST_WEEKS) return WeightForecast.Flat
     val days  = (weeks * 7).roundToInt()
     return WeightForecast.Ok(
         weeks       = (weeks * 10).roundToInt() / 10.0,
