@@ -13,7 +13,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 // Shared helpers used by 2+ cards/*.kt files. Section-specific composables
 // (SubstrateLegendItem etc.) stay colocated in their own card file.
@@ -27,11 +26,11 @@ internal fun StepperChip(label: String, color: Color, onMinus: () -> Unit, onPlu
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text("−", modifier = Modifier.clickable { onMinus() }.padding(horizontal = 6.dp, vertical = 3.dp),
-            color = color, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
         Text(label, modifier = Modifier.padding(horizontal = 4.dp),
-            color = color, fontWeight = FontWeight.SemiBold, fontSize = 11.sp)
+            style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
         Text("+", modifier = Modifier.clickable { onPlus() }.padding(horizontal = 6.dp, vertical = 3.dp),
-            color = color, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
     }
 }
 

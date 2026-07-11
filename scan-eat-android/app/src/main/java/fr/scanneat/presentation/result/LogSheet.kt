@@ -12,7 +12,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.Product
@@ -131,7 +130,7 @@ fun LogSheet(
                     FilterChip(
                         selected  = portionG == g,
                         onClick   = { portionText = g.toInt().toString() },
-                        label     = { Text(label, fontSize = 11.sp) },
+                        label     = { Text(label, style = MaterialTheme.typography.labelSmall) },
                         colors    = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = AccentGreen.copy(0.2f),
                             selectedLabelColor     = AccentGreen,
@@ -148,7 +147,7 @@ fun LogSheet(
                     FilterChip(
                         selected  = selectedSlot == slot,
                         onClick   = { selectedSlot = slot },
-                        label     = { Text(slot.label(), fontSize = 11.sp) },
+                        label     = { Text(slot.label(), style = MaterialTheme.typography.labelSmall) },
                         colors    = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = AccentGreen.copy(0.2f),
                             selectedLabelColor     = AccentGreen,

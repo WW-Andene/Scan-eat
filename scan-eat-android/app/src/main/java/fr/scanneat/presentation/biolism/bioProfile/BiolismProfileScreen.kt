@@ -14,7 +14,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -75,7 +74,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                     FilterChip(
                         selected = useImperial == imperial,
                         onClick = { useImperial = imperial },
-                        label = { Text(label, fontSize = 11.sp) },
+                        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
                     )
                 }
@@ -121,7 +120,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                         BiolismSex.FEMALE -> stringResource(R.string.bioprofile_sex_female)
                         else -> stringResource(R.string.sex_not_specified)
                     }
-                    FilterChip(selected = sex == s, onClick = { sex = s }, label = { Text(label, fontSize = 12.sp) },
+                    FilterChip(selected = sex == s, onClick = { sex = s }, label = { Text(label, style = MaterialTheme.typography.labelMedium) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold, labelColor = OnBackground.copy(0.6f)))
                 }
             }
@@ -269,7 +268,7 @@ private fun BioInputUnit(
                 else -> input
             })
         },
-        label = { Text(if (useImperial) imperialLabel else metricLabel, fontSize = 12.sp) },
+        label = { Text(if (useImperial) imperialLabel else metricLabel, style = MaterialTheme.typography.labelMedium) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         shape = RoundedCornerShape(12.dp),
@@ -283,7 +282,7 @@ private fun BioInputUnit(
 @Composable
 private fun BioInput(label: String, value: String, keyboardType: KeyboardType = KeyboardType.Text, onValue: (String) -> Unit) {
     OutlinedTextField(
-        value = value, onValueChange = onValue, label = { Text(label, fontSize = 12.sp) },
+        value = value, onValueChange = onValue, label = { Text(label, style = MaterialTheme.typography.labelMedium) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(12.dp),

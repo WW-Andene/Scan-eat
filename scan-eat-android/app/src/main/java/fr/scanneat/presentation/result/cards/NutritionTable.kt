@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.presentation.ui.theme.AccentGreen
@@ -44,7 +43,7 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
             nutrition.vitCMg?.let { NRow(stringResource(R.string.result_nutri_vitc), "${it} mg") }
         }
         TextButton(onClick = { expanded = !expanded }) {
-            Text(if (expanded) stringResource(R.string.result_show_less) else stringResource(R.string.result_show_more), color = AccentGreen, fontSize = 12.sp)
+            Text(if (expanded) stringResource(R.string.result_show_less) else stringResource(R.string.result_show_more), style = MaterialTheme.typography.labelMedium, color = AccentGreen)
         }
     }
 }

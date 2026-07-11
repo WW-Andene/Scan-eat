@@ -222,3 +222,16 @@ context:   ScanViewModel.Bitmap.toPayload() stored the full 1600x1200
 decision:  Scale down aspect-preserving to max 160px for the thumbnail;
            base64 (OCR upload) still uses the full-res bytes, compressed
            before scaling. Recycle the original once both are derived.
+
+### App-audit §E1/E4 — hardcoded fontSize literals bypassing the type scale
+context:   ~15 FilterChip/TextField labels across 8 files hardcoded
+           fontSize = 11.sp/12.sp instead of MaterialTheme.typography
+           .labelSmall(11sp)/labelMedium(12sp) - exact-value matches to
+           existing tokens, clearly meant to be those tokens. Any future
+           type-scale change (accessibility, rebrand) silently misses
+           these ~15 spots.
+decision:  Replaced with the matching typography token in each case;
+           left the one 13.sp (ProfileScreen field label) and the
+           16sp/26sp/56sp cases (onboarding buttons, score/grade hero
+           text) alone - no exact token match / deliberate custom sizing.
+           Removed the now-unused `sp` import in 7 files.

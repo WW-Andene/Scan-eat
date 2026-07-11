@@ -18,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -159,7 +158,7 @@ fun ActivityScreen(
                         typeLabels.forEach { (type, label) ->
                             FilterChip(
                                 selected = selectedType == type, onClick = { selectedType = type },
-                                label = { Text(label, fontSize = 11.sp, maxLines = 1) },
+                                label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                                     labelColor = OnBackground.copy(0.7f),

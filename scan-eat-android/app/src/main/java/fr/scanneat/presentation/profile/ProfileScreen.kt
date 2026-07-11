@@ -203,7 +203,7 @@ private fun SexSelector(current: Sex, onSelect: (Sex) -> Unit) {
                 Sex.NOT_SPECIFIED -> stringResource(R.string.sex_not_specified)
             }
             FilterChip(
-                selected = current == s, onClick = { onSelect(s) }, label = { Text(label, fontSize = 12.sp) },
+                selected = current == s, onClick = { onSelect(s) }, label = { Text(label, style = MaterialTheme.typography.labelMedium) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                     labelColor = OnBackground.copy(0.7f),
@@ -250,7 +250,7 @@ private fun GoalSelector(current: Goal, onSelect: (Goal) -> Unit) {
         Goal.values().forEach { g ->
             FilterChip(
                 selected = current == g, onClick = { onSelect(g) },
-                label = { Text(labels[g] ?: g.name, fontSize = 12.sp, maxLines = 1) },
+                label = { Text(labels[g] ?: g.name, style = MaterialTheme.typography.labelMedium, maxLines = 1) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                     labelColor = OnBackground.copy(0.7f),
@@ -267,7 +267,7 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         FilterChip(
             selected = current == DietKey.NONE, onClick = { onSelect(DietKey.NONE) },
-            label = { Text(stringResource(R.string.diet_none), fontSize = 12.sp) },
+            label = { Text(stringResource(R.string.diet_none), style = MaterialTheme.typography.labelMedium) },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                 labelColor = OnBackground.copy(0.7f),
@@ -278,7 +278,7 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
             diets.forEach { d ->
                 FilterChip(
                     selected = current == d, onClick = { onSelect(d) },
-                    label = { Text(if (isEnglish) d.labelEn else d.labelFr, fontSize = 11.sp, maxLines = 1) },
+                    label = { Text(if (isEnglish) d.labelEn else d.labelFr, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                         labelColor = OnBackground.copy(0.7f),
@@ -312,7 +312,7 @@ private fun AllergenSelector(current: Set<String>, onSelect: (Set<String>) -> Un
                     onClick  = {
                         onSelect(if (key in current) current - key else current + key)
                     },
-                    label = { Text(label, fontSize = 11.sp, maxLines = 1) },
+                    label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = AmberWarning.copy(0.2f), selectedLabelColor = AmberWarning,
                         labelColor = OnBackground.copy(0.7f),

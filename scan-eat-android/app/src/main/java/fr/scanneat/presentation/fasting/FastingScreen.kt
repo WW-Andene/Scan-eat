@@ -17,7 +17,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -96,7 +95,7 @@ fun FastingScreen(
                                 listOf(12, 16, 18, 20, 24).forEach { h ->
                                     FilterChip(
                                         selected = targetHours == h, onClick = { targetHours = h },
-                                        label = { Text(stringResource(R.string.fasting_hours_chip, h), fontSize = 12.sp) },
+                                        label = { Text(stringResource(R.string.fasting_hours_chip, h), style = MaterialTheme.typography.labelMedium) },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                                             labelColor = OnBackground.copy(0.7f),
