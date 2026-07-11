@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -49,7 +50,8 @@ fun MainShell(startOnboarding: Boolean = false) {
                                 tint = if (isSelected) AccentGreen else IconInactive,
                                 modifier = Modifier.size(22.dp)) },
                             label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
-                                color = if (isSelected) AccentGreen else IconInactive) },
+                                color = if (isSelected) AccentGreen else IconInactive,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor   = AccentGreen,
                                 selectedTextColor   = AccentGreen,

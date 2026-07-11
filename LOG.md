@@ -99,3 +99,17 @@ decision:  Fixed the helper itself in both files: boundary now excludes
 why:       Root-cause fix, not a patch for one pattern; same flaw exists
            in AllergenDetector's E22[0-8] (sulfites) pattern too.
 reversal:  trivial (character class in one regex per file)
+
+### 2026-07-11 Round 7 — UI
+context:   NavigationBarItem's label Text (MainShell.kt bottom nav) has no
+           maxLines/overflow inside a hard-fixed 64.dp NavigationBar — an
+           earlier round (task #74) renamed "Biolism" (7 chars) to
+           "Métabolisme" (11 chars, no space to wrap favorably), making
+           2-line wrap/clip far more likely on typical phone widths where
+           5 tabs share the screen.
+options:   Shrink font size vs. cap to one line with ellipsis.
+decision:  maxLines = 1 + TextOverflow.Ellipsis — consistent with the
+           round-2 fix for the same underlying class of bug.
+why:       Guarantees the fixed-height bar never clips/overlaps regardless
+           of label length in any future rename/locale.
+reversal:  trivial (two Text params)
