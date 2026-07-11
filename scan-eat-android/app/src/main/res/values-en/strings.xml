@@ -6,6 +6,7 @@
     <string name="camera_permission_rationale">Scan\'eat uses the camera to read barcodes and photograph food labels.</string>
     <string name="scan_camera_permission_title">Camera access required</string>
     <string name="common_allow">Allow</string>
+    <string name="scan_open_settings_button">Open Settings</string>
     <string name="scan_cd_scan">Scan</string>
     <string name="scan_photo_count">%1$d photo(s)</string>
     <string name="scan_photo_index">Photo %1$d</string>

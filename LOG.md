@@ -384,3 +384,16 @@ decision:  Fixed the wrong comment rather than expanding the backup
            documented scoping call here; unilaterally adding day notes
            to the bundle (new field + format-version bump) is a bigger
            change than "fix a wrong comment."
+
+### App-audit §C7/L2 — permanently-denied camera permission was a dead end
+context:   The "Autoriser" button in ScanScreen's permission-denied UI
+           always called permLauncher.launch(...) unconditionally. Once
+           Android permanently denies (2nd straight denial on API 30+,
+           or "don't ask again"), RequestPermission() silently returns
+           false without showing the system dialog again - the button
+           would look broken forever with no path to the app's core
+           scanning feature.
+decision:  Track whether a request has already happened once; if a
+           denial comes back with shouldShowRequestPermissionRationale
+           == false after that, treat it as permanent and swap the
+           button to "Open Settings" (ACTION_APPLICATION_DETAILS_SETTINGS).

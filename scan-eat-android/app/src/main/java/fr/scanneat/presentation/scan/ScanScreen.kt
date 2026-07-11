@@ -1,8 +1,12 @@
 package fr.scanneat.presentation.scan
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.Settings
 import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -34,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,7 +69,25 @@ fun ScanScreen(
     var hasCamera by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
     }
-    val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { hasCamera = it }
+    // Once the user permanently denies (checked "don't ask again", or a 2nd
+    // straight denial on API 30+), RequestPermission() silently returns false
+    // without even showing the system dialog again — "Autoriser" would look
+    // broken forever with no way to reach the scanner, the app's core
+    // feature. Track a request having already happened once, so a denial
+    // with no rationale available next time is recognized as permanent.
+    var requestedOnce by remember { mutableStateOf(false) }
+    var permanentlyDenied by remember { mutableStateOf(false) }
+    val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        hasCamera = granted
+        if (!granted) {
+            val activity = context as? Activity
+            val canShowRationale = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.CAMERA)
+            } ?: true
+            if (requestedOnce && !canShowRationale) permanentlyDenied = true
+        }
+        requestedOnce = true
+    }
 
     LaunchedEffect(state.value) {
         if (state.value is ScanUiState.Success) {
@@ -99,9 +122,22 @@ fun ScanScreen(
                 Text(stringResource(R.string.camera_permission_rationale),
                     style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
                 Spacer(Modifier.height(24.dp))
-                Button(onClick = { permLauncher.launch(Manifest.permission.CAMERA) },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {
-                    Text(stringResource(R.string.common_allow), color = Color.Black)
+                if (permanentlyDenied) {
+                    Button(
+                        onClick = {
+                            context.startActivity(
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+                    ) {
+                        Text(stringResource(R.string.scan_open_settings_button), color = Color.Black)
+                    }
+                } else {
+                    Button(onClick = { permLauncher.launch(Manifest.permission.CAMERA) },
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {
+                        Text(stringResource(R.string.common_allow), color = Color.Black)
+                    }
                 }
             }
         }

@@ -6,6 +6,7 @@
     <string name="camera_permission_rationale">Scan\'eat utilise la caméra pour lire les codes-barres et photographier les étiquettes.</string>
     <string name="scan_camera_permission_title">Accès à la caméra requis</string>
     <string name="common_allow">Autoriser</string>
+    <string name="scan_open_settings_button">Ouvrir les réglages</string>
     <string name="scan_cd_scan">Scanner</string>
     <string name="scan_photo_count">%1$d photo(s)</string>
     <string name="scan_photo_index">Photo %1$d</string>
