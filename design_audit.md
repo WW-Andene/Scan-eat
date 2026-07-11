@@ -1579,3 +1579,27 @@ sections as follows:
 **Audit status**: Phase 1 (21 sections), Phase 2 (6 categories), and Phase 3
 (5 compound chains) are all complete. The Executive Summary's priority
 order is the recommended sequence for acting on this document.
+
+**Remediation status** (this section added as fixes landed): all 6
+Executive Summary priority items are FIXED, plus most of the remaining
+MEDIUM/LOW/POLISH findings — see each finding's `STATUS:` line and the
+Master Findings Table's strikethrough markers for what changed and why.
+
+Still open, deliberately not touched this pass:
+- **Icon expressiveness** (B3) — standardizing 85 call sites across 28
+  files onto a 3-size/active-tint system needs a visual pass this sandbox
+  can't do (no way to screenshot-verify layout at each site).
+- **Chroma-contrast rebalancing** (B7) — desaturating Dashboard cards'
+  secondary accents needs the same visual verification.
+- **Light-theme gold consolidation** (A6) — needs a visual re-check of
+  light-mode contrast before changing 3 independently-authored hex values.
+- **AccentGreen → AccentCoral rename** (B1) — purely mechanical now that
+  Chain 4 is resolved, but still a ~20-file diff with no way to compile-
+  check it here; low value (naming only, zero visual effect).
+- **Copy warmth pass** (B9) — the score-reveal verdict text
+  (`gradeVerdict()` in ScoringEngine.kt) turned out to be hardcoded English
+  in a French-first app, a pre-existing i18n gap outside this audit's
+  scope — flagging rather than fixing blind alongside a tone change.
+- **Grain/noise texture, milestone glow intensification** (POLISH) — both
+  already flagged LOW priority by the audit itself; skipped in favor of
+  higher-value fixes.
