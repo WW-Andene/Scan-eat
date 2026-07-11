@@ -81,5 +81,12 @@ class ConsumptionRepository @Inject constructor(
             source      = ScanSource.valueOf(source),
             profileId   = profileId,
         )
+    }.onFailure {
+        // A parse failure here silently drops this row from every diary/dashboard
+        // total (mapNotNull filters it out) with zero user-visible indication -
+        // the row itself isn't deleted, but the user's calorie tracking would be
+        // silently wrong. Logging at least makes it discoverable during QA
+        // instead of a completely invisible failure.
+        android.util.Log.w("ConsumptionRepository", "Failed to parse consumption row id=$id date=$date", it)
     }.getOrNull()
 }

@@ -954,3 +954,26 @@ reversal:  trivial (deletion of 4 lines + a comment, no other logic
            touched; bonusTotal's minOf(10.0, ...) cap was never reached by
            the old max of 9 either, so no behavior change beyond removing
            the double-count)
+
+### App-audit §B1/L4 — diary-entry parse failures silently vanish from calorie totals
+context:   ConsumptionEntity.toDomain() wraps its mapping in
+           runCatching {}.getOrNull() - any failure (e.g. a future
+           MealSlot enum rename/removal leaving old stored rows with a
+           name string that no longer resolves, or a NutritionPer100g
+           JSON schema change) makes mapNotNull silently drop that row
+           from every diary/dashboard view. The row isn't deleted, but
+           the user's calorie/macro totals would be silently wrong with
+           no error, no warning, nothing - for a nutrition-tracking app,
+           that's a real correctness risk that's currently completely
+           invisible. The same runCatching{}.getOrNull() pattern exists
+           in 5 more repository files (queued).
+decision:  Added Log.w() on the failure path so a parse failure is at
+           least discoverable in Logcat during development/QA, instead of
+           a fully silent no-op. Did not build a user-facing warning UI -
+           that's a real feature (needs a "some entries couldn't load"
+           banner + design) beyond a single audit finding's scope.
+why:       Smallest safe step that turns a completely invisible failure
+           mode into a discoverable one, without guessing at a bigger UI
+           change blind.
+reversal:  trivial (one .onFailure{} log call, no behavior change on the
+           success path)
