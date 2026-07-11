@@ -28,6 +28,7 @@ fun NutritionPer100g.toDto() = NutritionDto(
     vitDUg        = vitDUg,
     vitEMg        = vitEMg,
     b12Ug         = b12Ug,
+    omega3G       = omega3G,
 )
 
 fun Ingredient.toDto() = IngredientDto(
