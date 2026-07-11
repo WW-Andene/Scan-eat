@@ -1098,3 +1098,26 @@ context:   The CI build log flagged 'val LocalLifecycleOwner:
 decision:  Repointed the import to androidx.lifecycle.compose.LocalLifecycleOwner -
            same API, no behavior change, just the current location.
 reversal:  trivial (one import line)
+
+### App-audit §I1/L4 — DashboardViewModel's 5-flow combine used unchecked Array casts
+context:   The CI build log flagged "Unchecked cast of 'kotlin.Any' to
+           'kotlin.collections.List<DiaryEntry>'" - heavyState's combine()
+           of exactly 5 flows used the untyped Array<*>-indexed lambda
+           form (args[0] as DailySummary, etc., under
+           @Suppress("UNCHECKED_CAST")) even though kotlinx.coroutines
+           provides a type-safe 5-flow combine() overload with typed
+           lambda parameters for exactly this arity - the array form is
+           only needed at 6+ flows.
+decision:  Switched to the typed 5-parameter lambda (today, allEntries,
+           profile, _, bioProfile) - removes every unchecked cast and the
+           suppression annotation; the 4th param (weightRepo.observeAll(),
+           a trigger-only input never threaded into Quad) is now an
+           explicit `_` instead of a silently-dropped array index.
+           Removed 2 now-unused imports (DiaryEntry - already covered by
+           the existing domain.model.* wildcard; BiolismProfile - no
+           longer referenced by name anywhere in the file).
+why:       Same information conveyed with zero unchecked casts - the
+           compiler itself now verifies every flow's value type instead
+           of trusting a manually-indexed array + suppressed warning.
+reversal:  trivial (mechanical rewrite of one combine() call + 2 import
+           removals, identical runtime behavior)

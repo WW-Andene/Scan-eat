@@ -9,14 +9,12 @@ import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
-import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
-import fr.scanneat.domain.model.DiaryEntry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
@@ -74,12 +72,12 @@ class DashboardViewModel @Inject constructor(
         prefs.profile,
         weightRepo.observeAll(),
         biolismRepo.profile,
-    ) { args ->
-        @Suppress("UNCHECKED_CAST")
-        val today      = args[0] as DailySummary
-        val allEntries = args[1] as List<DiaryEntry>
-        val profile    = args[2] as Profile
-        val bioProfile = args[4] as BiolismProfile
+    ) { today, allEntries, profile, _, bioProfile ->
+        // weightRepo.observeAll() (4th param, ignored) is a trigger-only input -
+        // it makes this combine re-run when weight changes, but wSummary below
+        // is fetched fresh via weightRepo.summarize() rather than threaded
+        // through here. Kotlin's typed 5-flow combine() overload removes the
+        // Array<*>-indexed unchecked casts the previous form needed.
         Quad(today, allEntries, profile, bioProfile)
     }
         .flatMapLatest { (today, allEntries, profile, bioProfile) ->
