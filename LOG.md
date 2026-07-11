@@ -1165,3 +1165,15 @@ why:       Standard, minimal first-line mitigation for this exact risk
            fix - documented as a defense-in-depth measure, not a complete
            guarantee).
 reversal:  trivial (prompt text only, no schema/logic change)
+
+### App-audit §L1/L4 — deprecated no-arg outlinedButtonBorder still in use
+context:   The CI build log flagged ButtonDefaults.outlinedButtonBorder
+           (the parameterless property) as deprecated - Please use the
+           version that takes an `enabled` param, so the border correctly
+           reflects disabled-state opacity - in FastingScreen (Cancel
+           button) and OnboardingScreen (ModeCard's selected-state border).
+decision:  Switched both to ButtonDefaults.outlinedButtonBorder(enabled = true) -
+           both call sites are always-enabled controls (no enabled param
+           threaded through either), so this is behavior-identical, just
+           using the current, non-deprecated API shape.
+reversal:  trivial (2 call-site updates, identical rendered result)

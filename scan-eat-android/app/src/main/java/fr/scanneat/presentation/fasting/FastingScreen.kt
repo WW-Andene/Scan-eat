@@ -81,7 +81,7 @@ fun FastingScreen(
                             Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentGreen, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedButton(onClick = { viewModel.cancel() }, border = ButtonDefaults.outlinedButtonBorder) {
+                                OutlinedButton(onClick = { viewModel.cancel() }, border = ButtonDefaults.outlinedButtonBorder(enabled = true)) {
                                     Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.7f))
                                 }
                                 Button(onClick = { viewModel.stop() }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {

@@ -208,7 +208,7 @@ private fun ModeCard(selected: Boolean, title: String, subtitle: String, onClick
         onClick = onClick,
         shape   = RoundedCornerShape(14.dp),
         color   = if (selected) AccentGreen.copy(0.15f) else SurfaceVariant,
-        border  = if (selected) ButtonDefaults.outlinedButtonBorder.copy(width = 1.5.dp) else null,
+        border  = if (selected) ButtonDefaults.outlinedButtonBorder(enabled = true).copy(width = 1.5.dp) else null,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
