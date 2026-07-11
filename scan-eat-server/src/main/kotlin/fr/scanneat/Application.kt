@@ -55,8 +55,19 @@ fun Application.module() {
     install(CallLogging) { level = Level.INFO }
     install(DefaultHeaders)
     install(Compression) { gzip { priority = 1.0 } }
+    val isDevelopment = developmentMode
     install(CORS) {
-        anyHost()                        // tighten in production
+        // The only client is the Android app, which doesn't go through CORS at
+        // all (that's a browser-only mechanism) — anyHost() only matters once a
+        // browser-based client exists, and until then it's needless exposure.
+        // ALLOWED_ORIGINS is a comma-separated allowlist for that day; absent
+        // any config, only development mode falls back to anyHost().
+        val allowedOrigins = System.getenv("ALLOWED_ORIGINS")?.split(',')?.map { it.trim() }?.filter { it.isNotBlank() }
+        if (!allowedOrigins.isNullOrEmpty()) {
+            allowedOrigins.forEach { allowHost(it, schemes = listOf("http", "https")) }
+        } else if (isDevelopment) {
+            anyHost()
+        }
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowMethod(HttpMethod.Post)
