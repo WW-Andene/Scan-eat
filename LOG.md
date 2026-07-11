@@ -466,6 +466,29 @@ decision:  Queued rather than fixed here - the correct fix (memoize once per
            reasoning as §H3 and §O4 this session).
 reversal:  n/a (no code changed, doc/queue only)
 
+### App-audit §M1/L2 — R8 keep rules missed 3 Moshi-reflection classes under data.repository
+context:   proguard-rules.pro keeps fr.scanneat.domain.model.**,
+           data.remote.api.**, and data.local.db.** for Moshi's kotlin-
+           reflect adapter (KotlinJsonAdapterFactory, used app-wide per
+           di/NetworkModule.kt's shared Moshi instance - not codegen).
+           3 real Moshi-(de)serialized data classes live outside all of
+           those keeps: RecipeComponent (RecipeRepository.kt, package
+           data.repository.planning), TemplateItem
+           (MealTemplateRepository.kt, same package), and OcrParser.kt's
+           LlmProductDto/LlmIngredientDto/LlmNutritionDto (package
+           data.repository.scan). Debug builds (unminified) never exhibit
+           the gap; a release build's R8 pass can rename/strip their
+           fields, breaking Recipes persistence, Meal Templates
+           persistence, and Groq OCR label-parsing simultaneously - and
+           CI here only ever builds/tests the debug variant, so this
+           would ship silently broken.
+decision:  Added -keep class fr.scanneat.data.repository.** { *; },
+           mirroring the existing whole-package keep pattern used for the
+           3 other Moshi-adjacent packages - same shape, same risk
+           profile as what's already there.
+reversal:  trivial (proguard rule addition only, strictly widens keeps -
+           cannot break anything that worked before)
+
 ### App-audit §L2/L2 — 3 more scanEatTextFieldColors() duplicates missed by the L1 sed pass
 context:   §I4 (layer 1) extracted scanEatTextFieldColors() and replaced 17
            exact-string-match occurrences of the AccentGreen outlined-field

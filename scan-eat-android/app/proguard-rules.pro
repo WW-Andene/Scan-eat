@@ -2,6 +2,11 @@
 -keep class fr.scanneat.domain.model.** { *; }
 -keep class fr.scanneat.data.remote.api.** { *; }
 -keep class fr.scanneat.data.local.db.** { *; }
+# RecipeComponent, TemplateItem, and OcrParser's Llm*Dto classes are Moshi-
+# reflection-serialized data classes living under data.repository, not
+# data.remote.api - without this they're only protected in unminified debug
+# builds and R8 can rename/strip their fields in release.
+-keep class fr.scanneat.data.repository.** { *; }
 -keepclassmembers class * {
     @com.squareup.moshi.FromJson *;
     @com.squareup.moshi.ToJson *;
