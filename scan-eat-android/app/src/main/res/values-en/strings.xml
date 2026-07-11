@@ -779,7 +779,7 @@
     <string name="result_comparison_resolved_issues">Resolved issues: %1$s</string>
     <string name="result_pairings_title">Pairs well with</string>
     <string name="result_pairing_item">· %1$s</string>
-    <string name="result_alternative_title">You've already found better</string>
+    <string name="result_alternative_title">You\'ve already found better</string>
     <string name="result_alternative_item">%1$s — score %2$d (%3$s)</string>
     <string name="result_allergens_title">Allergens Detected</string>
     <string name="result_allergen_hit">• %1$s (%2$s)</string>
