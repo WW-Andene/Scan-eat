@@ -23,6 +23,8 @@ interface ServerScanApi {
 data class ServerScoreRequest(
     val images: List<ServerImageDto> = emptyList(),
     val barcode: String? = null,
+    val lang: String? = null,
+    val model: String? = null,
 )
 
 @JsonClass(generateAdapter = true)

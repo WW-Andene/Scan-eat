@@ -24,6 +24,8 @@ data class ScoreRequest(
     @SerialName("imageBase64") val imageBase64: String? = null,  // legacy single-image
     val mime: String? = null,
     val barcode: String? = null,
+    val lang: String? = null,
+    val model: String? = null,
 )
 
 @Serializable

@@ -193,8 +193,9 @@ suspend fun GroqService.parseLabel(
     images: List<ImageDto>,
     apiKey: String?,
     lang: String = "fr",
+    model: String = DEFAULT_GROQ_MODEL,
 ): ParseResult {
-    val raw = complete(labelPrompt(lang), images, apiKey)
+    val raw = complete(labelPrompt(lang), images, apiKey, model)
     val (product, barcode) = parseSingle(raw)
     val warnings = buildList {
         if (product.nutrition.energyKcal == 0.0 && product.nutrition.proteinG == 0.0) add("Nutrition values could not be read")

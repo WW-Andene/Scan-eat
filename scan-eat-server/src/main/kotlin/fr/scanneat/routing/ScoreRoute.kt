@@ -45,7 +45,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
                         val key = call.resolveGroqKey()
                         if (key != null) {
                             runCatching {
-                                val parsed   = groqService.parseLabel(images, key)
+                                val parsed   = groqService.parseLabel(images, key, req.lang ?: "fr", req.model ?: DEFAULT_GROQ_MODEL)
                                 val merged   = mergeOffWithLlm(offProduct, parsed.product)
                                 val conflicts = detectSourceConflicts(offProduct, parsed.product)
                                 val audit    = scoreProduct(merged)
@@ -83,7 +83,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
             }
             val key = call.requireGroqKey() ?: return@post
 
-            val parsed = groqService.parseLabel(images, key)
+            val parsed = groqService.parseLabel(images, key, req.lang ?: "fr", req.model ?: DEFAULT_GROQ_MODEL)
             val audit  = scoreProduct(parsed.product)
             call.respond(ScoreResponse(
                 product  = parsed.product.toDto(),

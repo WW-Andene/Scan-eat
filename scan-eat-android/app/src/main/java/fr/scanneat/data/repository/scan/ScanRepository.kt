@@ -138,7 +138,7 @@ class ScanRepository @Inject constructor(
         if (!online) error(offlineMessage(lang))
 
         val result = when (apiMode) {
-            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode, lang)
+            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode, lang, model)
             ApiMode.DIRECT -> scoreDirectBarcode(barcode, images, apiKey, lang, model)
         }
         Pair(result, persist(result))
@@ -156,7 +156,7 @@ class ScanRepository @Inject constructor(
         val model     = prefs.groqModel.first().ifBlank { DEFAULT_MODEL }
 
         val result = when (apiMode) {
-            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode = null, lang = lang)
+            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode = null, lang = lang, model = model)
             ApiMode.DIRECT -> {
                 if (apiKey.isBlank()) error(missingApiKeyMessage(lang))
                 val parsed = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
@@ -180,6 +180,7 @@ class ScanRepository @Inject constructor(
         images: List<ImagePayload>,
         barcode: String?,
         lang: String,
+        model: String,
     ): ScanResult {
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
         val resp = serverApi(serverUrl).score(
@@ -187,6 +188,8 @@ class ScanRepository @Inject constructor(
             request = ServerScoreRequest(
                 images  = images.map { ServerImageDto(it.base64, it.mime) },
                 barcode = barcode,
+                lang    = lang,
+                model   = model,
             ),
         )
         return resp.toDomain()
