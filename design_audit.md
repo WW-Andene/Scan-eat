@@ -745,11 +745,123 @@ Recommendation: Defer to a follow-up read of button/label strings.xml
 
 ---
 
+## VIII. TREND CALIBRATION
+
+```
+[PROTECT — no fix needed] — The app's trend posture is Timeless-leaning,
+  which is correct for its axis profile
+Dimension: §DDT1, §DDT2
+Finding: Checked against the full trend inventory — no bento-grid layout, no
+  AI gradient mesh, no dot-grid background, no 3D elements, no variable-font
+  weight animation, no brutalist typography anywhere in the codebase. Dark-
+  mode-as-default is present, but that's baseline-expected in 2024+, not a
+  trend chase. The "glass" attempt (glassSheen()) is notably NOT the
+  mainstream backdrop-blur trend — it's a custom sheen-only approach,
+  meaning the app isn't even copying the current glass trend, it built its
+  own adjacent thing.
+Why it matters: Per §DDT2, "Timeless" posture is correct for institutional/
+  long-lifecycle/trust-dependent products — a health-scoring app chasing
+  "AI startup" visual signals (gradient mesh especially) would actively
+  undermine the credibility A2=High-stakes/Emotional demands. This is a
+  strength worth stating explicitly, not a gap to fix.
+Recommendation: None. Don't introduce trend-chasing elements to "modernize"
+  — the current restraint is on-character.
+Effort: N/A
+
+[POLISH] — Colors are authored as raw hex rather than a perceptually-uniform
+  space, which is a documentation/precision gap more than a visible one
+Dimension: §DDT1 (OKLCH adoption signal)
+Finding: All color tokens are `Color(0xFF...)` hex literals; no OKLCH
+  authoring or even OKLCH-equivalent documentation exists for how the
+  palette's lightness/chroma steps were chosen.
+Why it matters: Lowest-priority item in this batch — Android has no native
+  OKLCH color type, so this doesn't block anything functionally. It matters
+  only for future palette work (e.g. deriving the light-mode golds
+  correctly per the §DBI3/§DC2 finding above) — doing that derivation in
+  OKLCH terms (even if the final value ships as hex) would prevent the next
+  "three unreconciled golds" problem.
+Recommendation: When executing the light-mode gold consolidation fix
+  already recommended, do the derivation math in OKLCH and only convert to
+  hex at the end — document the OKLCH source values in a code comment next
+  to the resulting hex.
+Effort: LOW (process change for the next color-derivation task, not a
+  standalone fix)
+```
+
+---
+
+## XIX. DESIGN TOKEN ARCHITECTURE
+
+```
+[MEDIUM] — Token architecture reaches Layer 2 (semantic) solidly but almost
+  never Layer 3 (component); the "find-and-replace" test fails concretely
+  for the accent color
+Dimension: §DTA1, §DTA2
+Finding: Layer 1 (primitives — Gold/AccentGreen/Teal/etc. in Colors.kt) and
+  Layer 2 (semantic — MaterialTheme.colorScheme mapping in Theme.kt) are
+  both genuinely present and reasonably disciplined. Layer 3 (component
+  tokens) barely exists: `scanEatTextFieldColors()` is the one real example;
+  buttons and cards have no equivalent, so they consume Layer 1 primitives
+  directly (`AccentGreen` imported and referenced at ~28 files) rather than
+  through a component-scoped token.
+Why it matters: This is the architectural root cause behind three separate
+  findings already raised (§DCO1 button drift, §DCO3 card drift, §DC2's
+  "AccentGreen" naming risk) — they're all symptoms of the same missing
+  Layer 3. The find-and-replace test concretely fails: changing the primary
+  accent today means touching ~28 files correctly, not editing 1 token
+  definition.
+Recommendation: This confirms (doesn't duplicate) the priority already
+  established: building `ScanEatPrimaryButton`/`ScanEatCard` (§DCO1/§DCO3
+  recommendations) IS the Layer 3 fix — once those exist, the accent color
+  only needs to change in 2 places (the two new components) instead of ~28.
+  No separate action needed beyond executing those two recommendations.
+Effort: N/A (already scoped under §DCO1/§DCO3 above)
+
+CHARACTER TOKEN AUDIT
+  ☑ Background surface lightness step — tokenized in Dark scheme; NOT
+    tokenized/absent in OLED scheme (§DC3 finding)
+  ☒ Primary accent hex — tokenized (Layer 1/2), but not OKLCH-verified for
+    perceptual consistency across the palette (§DDT1 note above)
+  ☒ Component border-radius — hardcoded per call site, no shared scale
+    (§DBI3/§DS2 finding — 9 distinct values in circulation)
+  ☑ Typography scale — tokenized via Type.kt (11/15 slots hand-tuned)
+  ☒ Transition durations — hardcoded per animation call, no named constants
+    (200/300ms repeated as literals, not DesignTokens.durationFast, etc.)
+  ☒ Shadow definitions — barely exist (one hardcoded 6dp value), not
+    tokenized
+  ☑ Focus ring style — tokenized for text fields via
+    scanEatTextFieldColors(); NOT tokenized for buttons (no distinct focus
+    state customization found)
+  ☐ Spacing base unit — unverified, deferred to §DH2 follow-up
+```
+
+---
+
+## XIV. RESPONSIVE DESIGN CHARACTER
+
+```
+[SKIPPED — per skill's own skip rule]
+Finding: Scan'eat is a phone-primary Compose app. No WindowSizeClass usage,
+  no layout-sw600dp/layout-w840dp resource qualifiers, and no foldable-
+  aware layout logic were found or evidenced this session — the app appears
+  to be a single fixed-form-factor (phone portrait) layout with no
+  responsive/tablet/foldable adaptation built yet.
+Why skipped: §DRC's own execution rule: "Skip this section entirely if the
+  app is not responsive or is a single fixed-width layout." That's the
+  case here.
+Note (not a §DRC finding, flagged for completeness): tablet/foldable support
+  is a real absence, but it belongs to app-audit's §O (Development Scenario
+  Projection) or a future-feature backlog item, not this design-character
+  audit — building responsive layouts is a scope decision, not a character
+  fix.
+```
+
+---
+
 ## Not yet covered (continuing)
 
-§DTA1-2 (Tokens), §DRC1-3 (Responsive), §DDT1-2 (Trends), §DP3 (Deepening
-protocol), §DBI2 (Design DNA spec), §DCP1-3 (Competitive positioning —
-needs web research).
+§DP3 (Deepening protocol), §DBI2 (Design DNA spec), §DCP1-3 (Competitive
+positioning — needs web research).
 
 Phase 2 (expanded UI audit from app-audit-SKILL.md): §E1-10, §F1-6, §G1-4,
 §H3, §L3-5, §D5 — still to come after Phase 1 completes.
