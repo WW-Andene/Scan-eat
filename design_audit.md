@@ -1429,4 +1429,43 @@ Recommendation: Flagging as a genuine scope gap rather than guessing at a
 Effort: N/A (needs different tooling than this session has)
 ```
 
-Section G complete.
+## CATEGORY H — PLATFORM COMPATIBILITY & RESILIENCE (§H3 only, per scope)
+
+```
+[MEDIUM, RE-CONFIRMED] — 12+ IconButtons across dense list rows sit at
+  32-36dp, below the 48×48dp Android touch-target guideline
+Dimension: §H3 (Touch target sizing)
+Finding: Re-verified via fresh grep this session (not just carried over
+  from memory): `Modifier.size(32.dp)` at ActivityScreen.kt:108,
+  CustomFoodScreen.kt:186, DiaryScreen.kt:280, ScanHistoryScreen.kt:119,
+  MealPlanScreen.kt:109/112/135/140 (×4), ScanScreen.kt:237/249 (×2); and
+  `Modifier.size(36.dp)` at RecipesScreen.kt:87/88 (×2), TemplatesScreen.kt:
+  66 — all delete/dismiss/log/edit IconButtons in dense list rows. This
+  matches a design-system finding already queued much earlier in this
+  project's history (QUEUE.md) as a deliberate density choice pending
+  visual verification, not yet fixed.
+Why it matters: This is a real, measurable WCAG/Android-guideline gap
+  (48×48dp minimum), not a subjective density preference — but it was
+  already correctly identified once and deliberately deferred pending a
+  visual check, since a blanket resize touches many list layouts at once
+  and risks breaking row-height rhythm across the app.
+Recommendation: No change here — the earlier deferral decision (visual
+  verification needed before a blanket fix) still holds, and this audit
+  doesn't have the tooling to render and visually check the resize's
+  effect on row density. Restating this to confirm it's not been silently
+  fixed or silently forgotten — it's still open, still correctly
+  understood, and still correctly gated on a visual check.
+Effort: MEDIUM (touches ~12 call sites, but each is a one-line size change
+  — the effort is in the visual verification, not the edit)
+
+[UNVERIFIED] — Touch target spacing (≥8dp between adjacent targets), thumb-
+  zone ergonomics, and orientation handling not independently re-verified
+  this pass
+Finding: These require either a running layout inspector or a visual
+  render to assess accurately — not confidently assertable from source
+  reads alone at the precision this section calls for.
+Recommendation: Defer to a session with device/emulator access rather
+  than guess.
+```
+
+Section H3 complete.
