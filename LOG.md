@@ -819,3 +819,29 @@ reversal:  moderate (adds a constructor param + DI wiring to 2 ViewModels
            that didn't have UserPreferences before; WeightViewModel
            already had it). Fully additive - no existing behavior changes
            for a device whose locale already matches the chosen language.
+
+### App-audit §K1/L3 — OcrParser's last-chance retry used a vision-incompatible fallback model
+context:   callWithRetry() unconditionally switched to FALLBACK_MODEL
+           (llama-3.3-70b-versatile, text-only) on the final retry
+           attempt - but both current callers (parseLabel, identifyFood)
+           always send image content parts. A vision request sent to a
+           text-only model isn't a genuine extra chance, it's a
+           near-guaranteed failure - wasting what should be the last real
+           retry opportunity.
+decision:  Only substitute FALLBACK_MODEL on the last attempt when the
+           request has no image content (hasImages check) - preserves the
+           fallback for any future text-only caller while fixing it for
+           both current image-bearing callers, which now get 3 genuine
+           attempts on the vision model instead of 2 real + 1 doomed one.
+why:       A real, verifiable logic bug (not a guess about an unverifiable
+           external API) - the fallback model's incompatibility with image
+           content is a static fact of the two model names/current
+           callers, not something needing a live API call to confirm.
+reversal:  trivial (one boolean condition added)
+
+note:      Also considered adding response_format: json_object (Groq JSON
+           mode) to eliminate the "unparseable JSON" failure class
+           entirely, but declined - can't verify from this sandbox whether
+           the pinned vision model supports it, and getting it wrong risks
+           a hard 400 on every single scan. Queued in QUEUE.md pending a
+           live-API check.

@@ -307,9 +307,15 @@ Output ONLY the JSON. No explanation.
         content: List<ContentPart>,
         maxRetries: Int = 3,
     ): String {
+        // FALLBACK_MODEL is text-only — switching to it on the last attempt is
+        // only a genuine extra chance for a text-only request. Both current
+        // callers (parseLabel, identifyFood) always include image content, so
+        // falling back there would guarantee-fail the vision request instead
+        // of giving it a real last retry.
+        val hasImages = content.any { it.type == "image_url" }
         var lastErr: Throwable? = null
         repeat(maxRetries) { attempt ->
-            val model = if (attempt == maxRetries - 1) FALLBACK_MODEL else primaryModel
+            val model = if (attempt == maxRetries - 1 && !hasImages) FALLBACK_MODEL else primaryModel
             val result = runCatching {
                 val resp = groqApi.chatCompletions(
                     auth    = "Bearer $apiKey",

@@ -38,6 +38,18 @@ Data, Old feature, New feature — never the same category twice in a row.
   local Android SDK to compile-check, risks repeating that break. Revisit
   once either (a) a verified newer health-connect-client version is
   adopted, or (b) a CI-backed session can iterate on the exact API shape.
+- OcrParser's ChatRequest never sets response_format: {"type":"json_object"}
+  (Groq/OpenAI-compatible JSON mode) despite relying entirely on prompt
+  instructions + a manual extractJson() markdown-stripping regex fallback
+  to get valid JSON back - JSON mode would eliminate the
+  "LLM returned unparseable JSON" failure class at the API level instead
+  of hoping the model complies. Not applied: JSON-mode support varies by
+  model on Groq, and DEFAULT_MODEL is a vision model (llama-4-scout) -
+  adding this param blind risks a hard 400 on every scan if that specific
+  model doesn't support it, with no way to verify against the real API
+  from this sandbox (no network access to Groq, no test key). Needs a
+  live-API check before adding.
+
 ## Stuck
 (3-strike failures land here, per skill's FAILURE & RETRY rule)
 
