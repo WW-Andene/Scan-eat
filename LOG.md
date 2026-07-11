@@ -145,3 +145,28 @@ why:       A real merge means picking one canonical timer/history model
            than fits one KILLER round. Relabeling honestly resolves the
            *confusion* (the user's stated complaint) without the merge risk.
 reversal:  trivial (strings only)
+
+### 2026-07-11 Round 10 — Data
+context:   WeightEntity's unique index is on `date` alone, not
+           `(date, profileId)`, even though every DAO/repository in this
+           codebase already threads profileId through. Not reachable
+           today (no UI passes a non-"default" profileId yet), but the
+           day a second profile logs weight on a date the first already
+           has, OnConflictStrategy.REPLACE's unique-column conflict would
+           silently delete the other profile's row.
+options:   Fix now (free, no real dual-profile data to migrate) vs. wait
+           until multi-profile actually ships.
+decision:  Fix now — composite unique index (date, profileId), migration
+           5→6 (drop old index, create new one).
+why:       Cost of fixing before real data exists is ~0; cost of fixing
+           after is a data-recovery problem.
+reversal:  additive migration, safe to leave regardless of future
+           multi-profile plans
+
+## Batch of 10 rounds complete (per user: batch CI, don't check every round)
+Rounds 1-10: UX(a11y) / UI(ellipsis) / Old-feature(channel name) /
+Data(engine-version rescoring) / New-feature(Favorites) / Code(E-number
+boundary) / UI(nav label overflow) / UX(favorites empty state) /
+Old-feature(fasting disambiguation) / Data(weight_log profile index).
+Commits: 668624b 3480840 0d04cb3 7722015 3a94402 8420cb4 be581b6 b06a610
+175d5fb <round-10-pending>. CI check due now.

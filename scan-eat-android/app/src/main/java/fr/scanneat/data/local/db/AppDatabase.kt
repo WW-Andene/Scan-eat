@@ -31,7 +31,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MealTemplateEntity::class,
         RecipeEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -87,5 +87,17 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
         // v4 → v5: favorite flag on scan_history, so a specific scan can be
         // pinned and found again from a dedicated Favorites filter.
         db.execSQL("ALTER TABLE `scan_history` ADD COLUMN `favorite` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v5 → v6: weight_log's unique index was on `date` alone, not
+        // `(date, profileId)` — a second profile logging on a date the
+        // first already has would silently REPLACE-delete the first
+        // profile's row. Not reachable today (no UI ever passes a
+        // non-"default" profileId yet) but free to fix before any real
+        // dual-profile data exists.
+        db.execSQL("DROP INDEX IF EXISTS `index_weight_log_date`")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_weight_log_date_profileId` ON `weight_log` (`date`, `profileId`)")
     }
 }
