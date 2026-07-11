@@ -770,3 +770,26 @@ why:       Closes the gap between "logic exists and is tested" and
            "logic can ever run" - the exact kind of platform-compatibility
            issue this category is meant to catch.
 reversal:  trivial (2 list-literal additions, no new logic)
+
+### App-audit §I1/L3 — findAdditive() triple-computation, resolved (was queued at I/L2)
+context:   Queued at I/L2 as too risky to fix blind (the plan then was
+           memoizing once in ScoringEngine.kt and threading the result
+           through all 3 pillar functions - a 4-file signature change).
+           With deep fixes now explicitly in scope, reconsidered the
+           actual smallest safe fix: a memoization cache local to
+           findAdditive() itself in AdditivesDb.kt needs zero call-site or
+           signature changes in any of the 3 pillar files - the function
+           is already a pure function of its 3 params, so caching by
+           those exact params is transparent to every caller.
+decision:  Added a ConcurrentHashMap<Triple<eNumber,name,category>,
+           AdditiveInfo> cache (thread-safe, since scoreProduct() can run
+           on any coroutine dispatcher) with a NOT_FOUND sentinel to
+           represent cached misses (ConcurrentHashMap rejects null
+           values). Renamed the original body to computeFindAdditive(),
+           kept as the cache-miss path.
+why:       Smaller and safer than the originally-queued plan (Rule 7)
+           while fully solving the redundant-computation problem (Rule 9)
+           - the exact "cleaner alternative" flagged as worth reconsidering
+           when this was queued.
+reversal:  trivial (cache is purely additive; deleting it reverts to the
+           original uncached behavior with no other code changes needed)

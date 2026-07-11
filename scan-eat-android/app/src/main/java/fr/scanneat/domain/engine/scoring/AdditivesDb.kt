@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import java.text.Normalizer
+import java.util.concurrent.ConcurrentHashMap
 
 // ============================================================================
 // ADDITIVES DATABASE — port of scoring-engine.ts SECTION 2
@@ -295,8 +296,30 @@ fun normalizeForMatching(s: String): String =
         .replace(Regex("\\s+"), " ")
         .trim()
 
-/** Find additive info from an ingredient E-number or name. Null if unknown. */
+/**
+ * Find additive info from an ingredient E-number or name. Null if unknown.
+ *
+ * Memoized: ProcessingPillar, AdditiveRiskPillar, and IngredientIntegrityPillar
+ * each independently call this for the same ingredient during a single
+ * scoreProduct() run, so without a cache the same O(n) linear + synonym-
+ * substring scan over ADDITIVES_DB runs up to 3x per ingredient. The cache is
+ * local to this function (no call-site or signature changes needed in any
+ * pillar) and keyed on the exact 3 inputs, which fully determine the result -
+ * a Ingredient-shaped sentinel (NOT_FOUND) distinguishes a cached miss from
+ * "not yet looked up" since ConcurrentHashMap can't store null values.
+ */
+private val NOT_FOUND = AdditiveInfo("", emptyList(), AdditiveTier.THREE, AdditiveCategory.ANTICAKING, "", "")
+private val additiveLookupCache = ConcurrentHashMap<Triple<String?, String, fr.scanneat.domain.model.IngredientCategory?>, AdditiveInfo>()
+
 fun findAdditive(eNumber: String?, name: String, category: fr.scanneat.domain.model.IngredientCategory?): AdditiveInfo? {
+    val key = Triple(eNumber, name, category)
+    additiveLookupCache[key]?.let { return if (it === NOT_FOUND) null else it }
+    val result = computeFindAdditive(eNumber, name, category)
+    additiveLookupCache[key] = result ?: NOT_FOUND
+    return result
+}
+
+private fun computeFindAdditive(eNumber: String?, name: String, category: fr.scanneat.domain.model.IngredientCategory?): AdditiveInfo? {
     // Direct E-number match
     if (eNumber != null) {
         val norm = eNumber.uppercase().replace("\\s".toRegex(), "")
