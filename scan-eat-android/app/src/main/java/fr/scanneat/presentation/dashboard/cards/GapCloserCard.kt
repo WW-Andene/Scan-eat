@@ -18,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.GapEntry
-import fr.scanneat.presentation.ui.theme.AccentGreen
+import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.AmberWarning
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -41,13 +41,13 @@ internal fun GapCloserCard(gaps: List<GapEntry>) {
                         gap.suggestions.take(3).forEach { s ->
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
-                                color = AccentGreen.copy(0.15f),
+                                color = AccentCoral.copy(0.15f),
                             ) {
                                 Text(
                                     stringResource(R.string.dashboard_gap_suggestion, s.name, s.grams),
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     style    = MaterialTheme.typography.labelSmall,
-                                    color    = AccentGreen,
+                                    color    = AccentCoral,
                                 )
                             }
                         }

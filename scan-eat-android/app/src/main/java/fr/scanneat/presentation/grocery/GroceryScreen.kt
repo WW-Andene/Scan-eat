@@ -46,7 +46,7 @@ fun GroceryScreen(
                     if (items.value.isNotEmpty()) {
                         Box {
                             IconButton(onClick = { copyMenuExpanded = true }) {
-                                Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentGreen)
+                                Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
                             }
                             DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { copyMenuExpanded = false }) {
                                 DropdownMenuItem(
@@ -107,7 +107,7 @@ fun GroceryScreen(
                                     }
                                 }
                                 if (item.grams > 0) {
-                                    Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge, color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                                    Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge, color = AccentCoral, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }

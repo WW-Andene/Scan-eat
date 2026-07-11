@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * The app's one primary-button recipe — AccentGreen fill, 12dp corners,
+ * The app's one primary-button recipe — AccentCoral fill, 12dp corners,
  * black semibold label — previously hand-copied across ~8 files with
  * visible drift (two call sites silently reverted to Material's default
  * pill shape). The Part B4/B10 Layer-3 fix: the accent color and shape now
@@ -31,7 +31,7 @@ fun ScanEatPrimaryButton(
         modifier = modifier,
         enabled = enabled,
         shape   = RoundedCornerShape(12.dp),
-        colors  = ButtonDefaults.buttonColors(containerColor = AccentGreen),
+        colors  = ButtonDefaults.buttonColors(containerColor = AccentCoral),
     ) {
         ProvideTextStyle(LocalTextStyle.current.copy(color = Color.Black, fontWeight = FontWeight.SemiBold)) {
             content()

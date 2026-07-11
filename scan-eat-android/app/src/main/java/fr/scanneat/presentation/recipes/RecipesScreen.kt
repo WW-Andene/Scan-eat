@@ -42,7 +42,7 @@ fun RecipesScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.recipes_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentGreen) } },
+                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -89,7 +89,7 @@ private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit) 
                             style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                     }
                     Row {
-                        IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentGreen) }
+                        IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
                         IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
                     }
                 }
@@ -120,7 +120,7 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                     colors = scanEatTextFieldColors())
                 HorizontalDivider(color = OnBackground.copy(0.1f))
-                Text(stringResource(R.string.recipes_ingredients_label), style = MaterialTheme.typography.labelMedium, color = AccentGreen)
+                Text(stringResource(R.string.recipes_ingredients_label), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
                 components.forEach { c ->
                     Text(stringResource(R.string.recipes_ingredient_summary_compact, c.productName, c.grams.toInt(), c.kcal.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface)
                 }
@@ -141,12 +141,12 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
                         components = components + RecipeComponent(newIngName, g, k)
                         newIngName = ""; newIngGrams = ""; newIngKcal = ""
                     }
-                }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentGreen) }
+                }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentCoral) }
             }
         },
         confirmButton = {
             TextButton(onClick = { if (name.isNotBlank() && components.isNotEmpty()) onSave(name, components) }, enabled = name.isNotBlank() && components.isNotEmpty()) {
-                Text(stringResource(R.string.common_create), color = AccentGreen)
+                Text(stringResource(R.string.common_create), color = AccentCoral)
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
@@ -167,7 +167,7 @@ private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealS
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     MealSlot.values().forEach { s ->
                         FilterChip(selected = slot == s, onClick = { slot = s }, label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen, labelColor = OnBackground.copy(0.7f)))
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
                     }
                 }
                 OutlinedTextField(value = fractionText, onValueChange = { fractionText = it }, label = { Text(stringResource(R.string.recipes_portion_label)) }, singleLine = true,
@@ -175,7 +175,7 @@ private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealS
                     colors = scanEatTextFieldColors())
             }
         },
-        confirmButton = { TextButton(onClick = { fractionText.replace(',', '.').toDoubleOrNull()?.let { onLog(slot, it) } }) { Text(stringResource(R.string.common_log), color = AccentGreen) } },
+        confirmButton = { TextButton(onClick = { fractionText.replace(',', '.').toDoubleOrNull()?.let { onLog(slot, it) } }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )
 }

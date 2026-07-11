@@ -27,17 +27,17 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
                 Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                 val kcalPct = targets?.let { (totals.energyKcal / it.kcal).toFloat() }
                 val kcalColor = when {
-                    kcalPct == null  -> AccentGreen
+                    kcalPct == null  -> AccentCoral
                     kcalPct > 1.1f   -> FlagRed
                     kcalPct > 0.9f   -> FlagGreen
-                    else             -> AccentGreen
+                    else             -> AccentCoral
                 }
                 val protPct = targets?.proteinGTarget?.takeIf { it > 0 }?.let { (totals.proteinG / it).toFloat() }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                     MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor)
-                    MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentGreen)
-                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", null, AccentGreen)
-                    MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", null, AccentGreen)
+                    MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral)
+                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", null, AccentCoral)
+                    MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", null, AccentCoral)
                 }
             }
         }

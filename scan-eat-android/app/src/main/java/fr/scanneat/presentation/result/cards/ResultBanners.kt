@@ -27,11 +27,11 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun ComparisonCard(cmp: ComparisonResult) {
     ScanEatCard(
-        shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(12.dp), color = AccentCoral.copy(alpha = 0.1f),
         contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
-            color = AccentGreen, fontWeight = FontWeight.SemiBold)
+            color = AccentCoral, fontWeight = FontWeight.SemiBold)
         val delta = cmp.scoreDelta
         val dColor = if (delta >= 0) FlagGreen else FlagRed
         val dSign  = if (delta >= 0) "+" else ""
@@ -51,11 +51,11 @@ internal fun ComparisonCard(cmp: ComparisonResult) {
 @Composable
 internal fun PairingsCard(pairings: List<String>) {
     ScanEatCard(
-        shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.08f),
+        shape = RoundedCornerShape(12.dp), color = AccentCoral.copy(alpha = 0.08f),
         contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
-            color = AccentGreen, fontWeight = FontWeight.SemiBold)
+            color = AccentCoral, fontWeight = FontWeight.SemiBold)
         pairings.forEach { pair ->
             Text(stringResource(R.string.result_pairing_item, pair), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
         }
@@ -69,11 +69,11 @@ internal fun PairingsCard(pairings: List<String>) {
 @Composable
 internal fun AlternativeCard(alternative: ScanResult) {
     ScanEatCard(
-        shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(12.dp), color = AccentCoral.copy(alpha = 0.1f),
         contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
-            color = AccentGreen, fontWeight = FontWeight.SemiBold)
+            color = AccentCoral, fontWeight = FontWeight.SemiBold)
         Text(stringResource(R.string.result_alternative_item, alternative.product.name, alternative.audit.score, alternative.audit.grade.label),
             style = MaterialTheme.typography.bodyMedium, color = OnBackground)
     }

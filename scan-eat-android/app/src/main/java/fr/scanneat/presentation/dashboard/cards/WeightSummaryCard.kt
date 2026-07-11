@@ -23,7 +23,7 @@ internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummar
             Text(stringResource(R.string.weight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text(stringResource(R.string.weight_kg, summary.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.weight_kg, summary.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
                     val deltaColor = when {
                         summary.deltaKg < 0 -> FlagGreen
                         summary.deltaKg > 0 -> FlagRed
@@ -37,7 +37,7 @@ internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummar
                     val trendSign = if (trend >= 0) "+" else ""
                     Text(stringResource(R.string.weight_trend_kg_week, "$trendSign$trend"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                     if (forecast is WeightForecast.Ok) {
-                        Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentGreen)
+                        Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                     }
                 }
             }

@@ -43,7 +43,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
                     val color   = when {
                         day.count == 0 -> OnSurface.copy(0.1f)
                         isOver         -> FlagRed.copy(0.7f)
-                        else           -> AccentGreen.copy(if (isToday) 1f else 0.6f)
+                        else           -> AccentCoral.copy(if (isToday) 1f else 0.6f)
                     }
                     Box(
                         modifier = Modifier
@@ -61,7 +61,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
                         day.date.dayOfWeek.name.take(2),
                         modifier  = Modifier.weight(1f),
                         style     = MaterialTheme.typography.labelSmall,
-                        color     = if (day.date == java.time.LocalDate.now()) AccentGreen else OnSurface.copy(0.4f),
+                        color     = if (day.date == java.time.LocalDate.now()) AccentCoral else OnSurface.copy(0.4f),
                         textAlign = TextAlign.Center,
                         fontSize  = 9.sp,
                     )

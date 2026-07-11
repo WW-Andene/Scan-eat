@@ -164,7 +164,7 @@ fun ScanScreen(
                     color = SurfaceVariant.copy(0.9f),
                 ) {
                     Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.QrCodeScanner, null, tint = AccentGreen, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(bc, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
                     }
@@ -211,7 +211,7 @@ fun ScanScreen(
             FloatingActionButton(
                 onClick = { viewModel.score() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp),
-                containerColor = AccentGreen,
+                containerColor = AccentCoral,
                 shape = CircleShape,
             ) {
                 when (state.value) {
@@ -228,7 +228,7 @@ fun ScanScreen(
                     Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
                         color = SurfaceVariant, shape = RoundedCornerShape(12.dp)) {
                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CameraAlt, null, tint = AccentGreen)
+                            Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.scan_needs_photo),
                                 Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
@@ -335,7 +335,7 @@ fun CameraPreview(
                     camera?.cameraControl?.enableTorch(torchOn)
                 },
                 modifier       = Modifier.align(Alignment.TopEnd).padding(16.dp).size(40.dp),
-                containerColor = if (torchOn) AccentGreen else SurfaceVariant,
+                containerColor = if (torchOn) AccentCoral else SurfaceVariant,
             ) {
                 Icon(
                     if (torchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,

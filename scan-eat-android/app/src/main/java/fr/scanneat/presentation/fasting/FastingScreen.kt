@@ -72,12 +72,12 @@ fun FastingScreen(
                             val pct = fs.progressFraction.coerceIn(0f, 1f)
                             CircularProgressIndicator(
                                 progress = { pct }, modifier = Modifier.size(140.dp),
-                                color = if (pct >= 1f) AccentGreen else AccentGreen.copy(0.6f),
+                                color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
                                 trackColor = SurfaceVariant, strokeWidth = 10.dp,
                             )
                             val h = (fs.elapsedMs / 3_600_000L).toInt()
                             val m = ((fs.elapsedMs % 3_600_000L) / 60_000L).toInt()
-                            Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentGreen, fontWeight = FontWeight.Bold)
+                            Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 OutlinedButton(onClick = { viewModel.cancel() }, border = ButtonDefaults.outlinedButtonBorder(enabled = true)) {
@@ -97,7 +97,7 @@ fun FastingScreen(
                                         selected = targetHours == h, onClick = { targetHours = h },
                                         label = { Text(stringResource(R.string.fasting_hours_chip, h), style = MaterialTheme.typography.labelMedium) },
                                         colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                            selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                                             labelColor = OnBackground.copy(0.7f),
                                         ),
                                     )

@@ -11,7 +11,7 @@ import fr.scanneat.domain.model.Grade
 // SCAN'EAT + BIOLISM — Unified Design Token System
 //
 // Two accent systems coexist:
-//   Scan'eat: AccentGreen — scan scoring, diary, nutrition feedback
+//   Scan'eat: AccentCoral — scan scoring, diary, nutrition feedback
 //   Biolism:  Gold/Teal/Violet — metabolic science, timers, analytics
 //
 // Spacing follows φ = 1.618 (matches Biolism CSS variables exactly):
@@ -41,7 +41,7 @@ val SurfaceVariant: Color @Composable get() = MaterialTheme.colorScheme.surfaceV
 val OnSurface:      Color @Composable get() = MaterialTheme.colorScheme.onSurface
 
 // ── Scan'eat accent ───────────────────────────────────────────────────────────
-val AccentGreen     = Color(0xFFD97C56)  // sober warm coral — the app's one brand accent
+val AccentCoral     = Color(0xFFD97C56)  // sober warm coral — the app's one brand accent
 val FlagRed         = Color(0xFFEF5350)
 val FlagGreen       = Color(0xFF66BB6A)
 val AmberWarning    = Color(0xFFFFA726)
@@ -90,7 +90,7 @@ val IconInactive    = Color(0xFF4E5468)
 // ~8% darker than the base hue, same hue — for ripple/pressed-state customization
 // (Material3 buttons otherwise fall back to a generic default ripple).
 val GoldPressed        = Color(0xFFB89843)
-val AccentGreenPressed = Color(0xFFC5714E)
+val AccentCoralPressed = Color(0xFFC5714E)
 
 // ── Separator weight taxonomy ─────────────────────────────────────────────────
 // Three explicit weights instead of ad hoc alpha literals scattered per call
@@ -98,7 +98,7 @@ val AccentGreenPressed = Color(0xFFC5714E)
 // this. Theme-reactive like Background/OnBackground above.
 val SeparatorHeavy:  Color @Composable get() = OnBackground.copy(alpha = 0.20f)
 val SeparatorLight:  Color @Composable get() = OnBackground.copy(alpha = 0.08f)
-val SeparatorAccent: Color @Composable get() = AccentGreen.copy(alpha = 0.30f)
+val SeparatorAccent: Color @Composable get() = AccentCoral.copy(alpha = 0.30f)
 
 // ── Label & secondary text ────────────────────────────────────────────────────
 val TextSecondary   = Color(0xFF7E859E)
@@ -145,10 +145,10 @@ private val TritanopiaSafeGradeColors = mapOf(
     Grade.F      to Color(0xFFA62B2B),
 )
 
-/** The AccentGreen outlined-field color scheme repeated verbatim across ~7 screens. */
+/** The AccentCoral outlined-field color scheme repeated verbatim across ~7 screens. */
 @Composable
 fun scanEatTextFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = AccentGreen, unfocusedBorderColor = OnBackground.copy(0.2f),
+    focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.2f),
     focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,
 )
 

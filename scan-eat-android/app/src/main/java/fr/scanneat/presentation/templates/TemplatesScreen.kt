@@ -64,7 +64,7 @@ fun TemplatesScreen(
                                 }
                                 Row {
                                     IconButton(onClick = { logTarget = template }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentGreen)
+                                        Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral)
                                     }
                                     IconButton(onClick = { deleteTarget = template.id }, modifier = Modifier.size(36.dp)) {
                                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
@@ -99,12 +99,12 @@ fun TemplatesScreen(
                         MealSlot.values().forEach { s ->
                             FilterChip(selected = slot == s, onClick = { slot = s },
                                 label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
-                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen, labelColor = OnBackground.copy(0.7f)))
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
                         }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { viewModel.logTemplate(t, mealOverride = slot); logTarget = null }) { Text(stringResource(R.string.common_log), color = AccentGreen) } },
+            confirmButton = { TextButton(onClick = { viewModel.logTemplate(t, mealOverride = slot); logTarget = null }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
             dismissButton = { TextButton(onClick = { logTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )
     }

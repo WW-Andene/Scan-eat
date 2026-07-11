@@ -21,7 +21,7 @@ import fr.scanneat.R
 private val OledColors = darkColorScheme(
     primary          = Gold,
     onPrimary        = Color.Black,
-    secondary        = AccentGreen,
+    secondary        = AccentCoral,
     onSecondary      = Color.Black,
     tertiary         = Teal,
     background       = OledBackgroundRaw,
@@ -40,7 +40,7 @@ private val OledColors = darkColorScheme(
 private val DarkColors = darkColorScheme(
     primary          = Gold,
     onPrimary        = Color.Black,
-    secondary        = AccentGreen,
+    secondary        = AccentCoral,
     onSecondary      = Color.Black,
     tertiary         = Teal,
     background       = Color(0xFF17141B),

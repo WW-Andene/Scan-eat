@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
-import fr.scanneat.presentation.ui.theme.AccentGreen
+import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -77,7 +77,7 @@ fun ResultScreen(
                         }
                     }
                     TextButton(onClick = { showSheet = true }) {
-                        Text(stringResource(R.string.result_log_it), color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.result_log_it), color = AccentCoral, fontWeight = FontWeight.SemiBold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -91,7 +91,7 @@ fun ResultScreen(
             // state visually sets up the score reveal instead of being a generic
             // spinner unrelated to what's about to appear.
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentGreen, strokeWidth = 14.dp, trackColor = SurfaceVariant, modifier = Modifier.size(178.dp))
+                CircularProgressIndicator(color = AccentCoral, strokeWidth = 14.dp, trackColor = SurfaceVariant, modifier = Modifier.size(178.dp))
             }
         } else {
             ResultContent(

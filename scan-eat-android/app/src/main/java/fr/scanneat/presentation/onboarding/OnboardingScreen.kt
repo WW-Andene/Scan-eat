@@ -49,7 +49,7 @@ fun OnboardingScreen(
             when (page) {
                 // ---- Page 0: Welcome ----
                 0 -> {
-                    Icon(Icons.Default.QrCodeScanner, null, tint = AccentGreen, modifier = Modifier.size(64.dp))
+                    Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(64.dp))
                     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                     Text(
                         stringResource(R.string.onboarding_welcome_body),
@@ -184,7 +184,7 @@ fun OnboardingScreen(
 private fun ValueCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, body: String) {
     Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Icon(icon, null, tint = AccentGreen, modifier = Modifier.size(28.dp))
+            Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(28.dp))
             Column {
                 Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                 Text(body, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
@@ -198,7 +198,7 @@ private fun ModeCard(selected: Boolean, title: String, subtitle: String, onClick
     Surface(
         onClick = onClick,
         shape   = RoundedCornerShape(14.dp),
-        color   = if (selected) AccentGreen.copy(0.15f) else SurfaceVariant,
+        color   = if (selected) AccentCoral.copy(0.15f) else SurfaceVariant,
         border  = if (selected) ButtonDefaults.outlinedButtonBorder(enabled = true).copy(width = 1.5.dp) else null,
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -206,7 +206,7 @@ private fun ModeCard(selected: Boolean, title: String, subtitle: String, onClick
             // onClick = null: the whole Surface above is already clickable (onClick = onClick) —
             // a second independent actionable control nested inside it is a real screen-reader/
             // interaction conflict (two actionable elements claiming the same tap), not just redundant.
-            RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = AccentGreen))
+            RadioButton(selected = selected, onClick = null, colors = RadioButtonDefaults.colors(selectedColor = AccentCoral))
             Column {
                 Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))

@@ -91,7 +91,7 @@ fun LogSheet(
                     modifier      = Modifier.weight(1f),
                     shape         = RoundedCornerShape(12.dp),
                     colors        = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor   = AccentGreen,
+                        focusedBorderColor   = AccentCoral,
                         unfocusedBorderColor = OnSurface.copy(0.2f),
                         focusedTextColor     = OnSurface,
                         unfocusedTextColor   = OnSurface,
@@ -99,7 +99,7 @@ fun LogSheet(
                 )
                 kcalPreview?.let {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("$it", style = MaterialTheme.typography.titleMedium, color = AccentGreen, fontWeight = FontWeight.Bold)
+                        Text("$it", style = MaterialTheme.typography.titleMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
                         Text("kcal", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                     }
                 }
@@ -131,8 +131,8 @@ fun LogSheet(
                         onClick   = { portionText = g.toInt().toString() },
                         label     = { Text(label, style = MaterialTheme.typography.labelSmall) },
                         colors    = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentGreen.copy(0.2f),
-                            selectedLabelColor     = AccentGreen,
+                            selectedContainerColor = AccentCoral.copy(0.2f),
+                            selectedLabelColor     = AccentCoral,
                             labelColor             = OnSurface.copy(0.7f),
                         ),
                     )
@@ -148,8 +148,8 @@ fun LogSheet(
                         onClick   = { selectedSlot = slot },
                         label     = { Text(slot.label(), style = MaterialTheme.typography.labelSmall) },
                         colors    = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentGreen.copy(0.2f),
-                            selectedLabelColor     = AccentGreen,
+                            selectedContainerColor = AccentCoral.copy(0.2f),
+                            selectedLabelColor     = AccentCoral,
                             labelColor             = OnSurface.copy(0.7f),
                         ),
                     )

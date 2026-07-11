@@ -47,17 +47,17 @@ fun MainShell(startOnboarding: Boolean = false) {
                                 }
                             },
                             icon  = { Icon(tab.icon, stringResource(tab.labelRes),
-                                tint = if (isSelected) AccentGreen else IconInactive,
+                                tint = if (isSelected) AccentCoral else IconInactive,
                                 modifier = Modifier.size(22.dp)) },
                             label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
-                                color = if (isSelected) AccentGreen else IconInactive,
+                                color = if (isSelected) AccentCoral else IconInactive,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor   = AccentGreen,
-                                selectedTextColor   = AccentGreen,
+                                selectedIconColor   = AccentCoral,
+                                selectedTextColor   = AccentCoral,
                                 unselectedIconColor = IconInactive,
                                 unselectedTextColor = IconInactive,
-                                indicatorColor      = AccentGreen.copy(alpha = 0.12f),
+                                indicatorColor      = AccentCoral.copy(alpha = 0.12f),
                             ),
                         )
                     }

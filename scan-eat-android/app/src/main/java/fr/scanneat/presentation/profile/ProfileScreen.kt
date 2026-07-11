@@ -78,7 +78,7 @@ fun ProfileScreen(
                             isMenstruating = isMenstruating,
                         ))
                     }) {
-                        Text(stringResource(R.string.common_save), color = AccentGreen, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.common_save), color = AccentCoral, fontWeight = FontWeight.SemiBold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -125,7 +125,7 @@ fun ProfileScreen(
                         Checkbox(
                             checked = isMenstruating,
                             onCheckedChange = { isMenstruating = it },
-                            colors = CheckboxDefaults.colors(checkedColor = AccentGreen),
+                            colors = CheckboxDefaults.colors(checkedColor = AccentCoral),
                         )
                         Text(stringResource(R.string.profile_menstruating_checkbox), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
                     }
@@ -159,7 +159,7 @@ fun ProfileScreen(
 @Composable
 private fun MetricChip(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.titleMedium, color = AccentGreen, fontWeight = FontWeight.Bold)
+        Text(value, style = MaterialTheme.typography.titleMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
     }
 }
@@ -204,7 +204,7 @@ private fun SexSelector(current: Sex, onSelect: (Sex) -> Unit) {
             FilterChip(
                 selected = current == s, onClick = { onSelect(s) }, label = { Text(label, style = MaterialTheme.typography.labelMedium) },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                     labelColor = OnBackground.copy(0.7f),
                 ),
             )
@@ -230,7 +230,7 @@ private fun ActivitySelector(current: ActivityLevel, onSelect: (ActivityLevel) -
                 Text(labels[lvl] ?: lvl.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground)
                 RadioButton(
                     selected = current == lvl, onClick = null,
-                    colors = RadioButtonDefaults.colors(selectedColor = AccentGreen),
+                    colors = RadioButtonDefaults.colors(selectedColor = AccentCoral),
                 )
             }
             if (lvl != ActivityLevel.EXTRA_ACTIVE) HorizontalDivider(thickness = 0.5.dp, color = OnBackground.copy(0.08f))
@@ -252,7 +252,7 @@ private fun GoalSelector(current: Goal, onSelect: (Goal) -> Unit) {
                 selected = current == g, onClick = { onSelect(g) },
                 label = { Text(labels[g] ?: g.name, style = MaterialTheme.typography.labelMedium, maxLines = 1) },
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                     labelColor = OnBackground.copy(0.7f),
                 ),
             )
@@ -269,7 +269,7 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
             selected = current == DietKey.NONE, onClick = { onSelect(DietKey.NONE) },
             label = { Text(stringResource(R.string.diet_none), style = MaterialTheme.typography.labelMedium) },
             colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                 labelColor = OnBackground.copy(0.7f),
             ),
         )
@@ -280,7 +280,7 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
                     selected = current == d, onClick = { onSelect(d) },
                     label = { Text(if (isEnglish) d.labelEn else d.labelFr, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                         labelColor = OnBackground.copy(0.7f),
                     ),
                 )

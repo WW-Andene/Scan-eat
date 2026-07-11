@@ -87,7 +87,7 @@ fun ActivityScreen(
                                 Text(stringResource(R.string.activity_kcal_burned_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("$totalMin", style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
+                                Text("$totalMin", style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
                                 Text(stringResource(R.string.activity_minutes_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                             }
                         }
@@ -129,7 +129,7 @@ fun ActivityScreen(
             FloatingActionButton(
                 onClick = { showAdd = true },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                containerColor = AccentGreen,
+                containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
         }
     } else {
@@ -138,7 +138,7 @@ fun ActivityScreen(
                 TopAppBar(
                     title = { Text(stringResource(R.string.activity_title), color = OnBackground) },
                     navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen) } },
+                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
@@ -161,7 +161,7 @@ fun ActivityScreen(
                                 selected = selectedType == type, onClick = { selectedType = type },
                                 label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                                     labelColor = OnBackground.copy(0.7f),
                                 ),
                             )
@@ -180,7 +180,7 @@ fun ActivityScreen(
                     minutesText.toIntOrNull()?.let { min ->
                         viewModel.log(selectedType, min); showAdd = false
                     }
-                }) { Text(stringResource(R.string.common_add), color = AccentGreen) }
+                }) { Text(stringResource(R.string.common_add), color = AccentCoral) }
             },
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )

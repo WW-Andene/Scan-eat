@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import fr.scanneat.presentation.ui.theme.AccentGreen
+import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 
@@ -32,7 +32,7 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(icon, null, tint = AccentGreen, modifier = Modifier.size(26.dp))
+            Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(26.dp))
             Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))
         }
     }

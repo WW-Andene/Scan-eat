@@ -83,7 +83,7 @@ in its Part with an explicit PROTECT note.
 | 16 | ~~MEDIUM~~ FIXED | States | Loading states have no character treatment | B8 |
 | 17 | ~~MEDIUM~~ FIXED | Contrast | WCAG verification gap (Phase 2 restated) — now verified PASS | F1 |
 | 18 | MEDIUM | Touch | 12+ IconButtons at 32-36dp, below 48dp guideline | F3 |
-| 19 | LOW | Color | "AccentGreen" misnamed (it's coral); 3 unreconciled gold values | B1 |
+| 19 | ~~LOW~~ PARTIALLY FIXED | Color | "AccentGreen" misnamed (it's coral); 3 unreconciled gold values | B1 |
 | 20 | LOW | Brand | Light theme re-derives colors independently of shared tokens | A6 |
 | 21 | ~~LOW~~ FIXED | Tokens | No separator-weight taxonomy | A6, B10 |
 | 22 | ~~LOW~~ VERIFIED | Components | Nav tab-fade and bottom-nav tinting unconfirmed | B4 |
@@ -441,6 +441,12 @@ Finding: AccentGreen = 0xFFD97C56 (coral/terracotta). Gold exists as Gold
 Recommendation: Rename AccentGreen → AccentCoral (~28 files, mechanical);
   consolidate the three golds per Part A6's fix.
 Effort: LOW (rename) / MEDIUM (gold consolidation)
+STATUS: RENAME FIXED — `sed`-renamed AccentGreen → AccentCoral (and its
+  derived AccentGreenPressed → AccentCoralPressed) across all 28 files;
+  verified zero remaining references anywhere in the tree. Zero visual
+  change (same hex value, `0xFFD97C56`), pure identifier correction. Gold
+  consolidation (3 unreconciled values) is a separate, still-open piece —
+  see Part A6.
 
 [POLISH] — Score/success moments don't intensify color beyond the standard
   grade palette
@@ -1593,9 +1599,6 @@ Still open, deliberately not touched this pass:
   secondary accents needs the same visual verification.
 - **Light-theme gold consolidation** (A6) — needs a visual re-check of
   light-mode contrast before changing 3 independently-authored hex values.
-- **AccentGreen → AccentCoral rename** (B1) — purely mechanical now that
-  Chain 4 is resolved, but still a ~20-file diff with no way to compile-
-  check it here; low value (naming only, zero visual effect).
 - **Copy warmth pass** (B9) — investigated further: the score-reveal
   verdict text (`gradeVerdict()` in ScoringEngine.kt) is hardcoded English,
   and it's not an isolated case — a grep across `domain/engine/` turned up

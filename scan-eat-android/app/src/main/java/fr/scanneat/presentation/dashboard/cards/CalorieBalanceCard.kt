@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
 internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
     val isSurplus = balance.net > 200
     val isDeficit = balance.net < -50
-    val balColor = if (isSurplus) FlagRed else if (isDeficit) AccentGreen else AmberWarning
+    val balColor = if (isSurplus) FlagRed else if (isDeficit) AccentCoral else AmberWarning
     val statusRes = if (isSurplus) R.string.dashboard_calorie_surplus
         else if (isDeficit) R.string.dashboard_calorie_deficit
         else R.string.dashboard_calorie_balanced
@@ -64,7 +64,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
                 LinearProgressIndicator(
                     progress   = { pct.coerceIn(0f, 1f) },
                     modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                    color      = if (isSurplus) FlagRed else AccentGreen,
+                    color      = if (isSurplus) FlagRed else AccentCoral,
                     trackColor = SurfaceVariant.copy(alpha = 0.3f),
                 )
                 Text(
@@ -81,7 +81,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
                     .offset(x = 8.dp, y = (-10).dp)
                     .size(46.dp),
                 shape = RoundedCornerShape(50),
-                color = AccentGreen,
+                color = AccentCoral,
                 shadowElevation = 6.dp,
             ) {
                 Box(contentAlignment = Alignment.Center) {

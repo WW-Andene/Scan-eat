@@ -159,7 +159,7 @@ fun SettingsScreen(
                             onClick  = { viewModel.setMode(m) },
                             label    = { Text(if (m == ApiMode.DIRECT) stringResource(R.string.settings_mode_direct) else stringResource(R.string.settings_mode_server)) },
                             colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                             ),
                         )
                     }
@@ -204,7 +204,7 @@ fun SettingsScreen(
                                 onClick  = { localModel = m },
                                 label    = { Text(m.substringAfterLast('/'), maxLines = 1) },
                                 colors   = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                                 ),
                             )
                         }
@@ -242,7 +242,7 @@ fun SettingsScreen(
                             onClick  = { viewModel.setLanguage(code) },
                             label    = { Text(label) },
                             colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                             ),
                         )
                     }
@@ -258,7 +258,7 @@ fun SettingsScreen(
                             onClick  = { viewModel.setTheme(key) },
                             label    = { Text(label) },
                             colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                             ),
                         )
                     }
@@ -275,7 +275,7 @@ fun SettingsScreen(
                     Switch(
                         checked = dyslexicFont.value,
                         onCheckedChange = { viewModel.setDyslexicFont(it) },
-                        colors = SwitchDefaults.colors(checkedTrackColor = AccentGreen),
+                        colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
                     )
                 }
                 Spacer(Modifier.height(4.dp))
@@ -292,7 +292,7 @@ fun SettingsScreen(
                             onClick  = { viewModel.setColorblindMode(key) },
                             label    = { Text(label, maxLines = 1) },
                             colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
+                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                             ),
                         )
                     }
@@ -339,7 +339,7 @@ fun SettingsScreen(
                 }
                 when (val s = backupState.value) {
                     is BackupUiState.Working -> Text(stringResource(R.string.settings_backup_working), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                    is BackupUiState.ImportSuccess -> Text(stringResource(R.string.settings_backup_import_success, s.summary.total), style = MaterialTheme.typography.bodySmall, color = AccentGreen)
+                    is BackupUiState.ImportSuccess -> Text(stringResource(R.string.settings_backup_import_success, s.summary.total), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
                     is BackupUiState.Error -> ErrorBanner(
                         message   = stringResource(
                             when (s.messageKey) {
@@ -361,8 +361,8 @@ fun SettingsScreen(
                     HealthConnectAvailability.AVAILABLE -> {
                         if (healthConnectConnected.value) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Icon(Icons.Default.Check, null, tint = AccentGreen, modifier = Modifier.size(18.dp))
-                                Text(stringResource(R.string.settings_healthconnect_connected), style = MaterialTheme.typography.bodySmall, color = AccentGreen)
+                                Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                                Text(stringResource(R.string.settings_healthconnect_connected), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
                             }
                         } else {
                             OutlinedButton(
@@ -408,8 +408,8 @@ private fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
         }
         androidx.compose.animation.AnimatedVisibility(visible = saved) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Icon(Icons.Default.Check, null, tint = AccentGreen, modifier = Modifier.size(18.dp))
-                Text(stringResource(R.string.settings_saved_confirmation), style = MaterialTheme.typography.bodySmall, color = AccentGreen)
+                Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.settings_saved_confirmation), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
             }
         }
     }

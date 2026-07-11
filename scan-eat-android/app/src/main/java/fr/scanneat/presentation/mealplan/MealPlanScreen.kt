@@ -63,7 +63,7 @@ fun MealPlanScreen(
                         Text(
                             if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
                             style = MaterialTheme.typography.titleSmall,
-                            color = if (isToday) AccentGreen else OnSurface,
+                            color = if (isToday) AccentCoral else OnSurface,
                             fontWeight = FontWeight.SemiBold,
                         )
                         MEALS.forEach { meal ->
@@ -107,7 +107,7 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
                 colors = scanEatTextFieldColors(),
             )
             IconButton(onClick = { onEdit(text); editing = false }, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Check, stringResource(R.string.common_ok), tint = AccentGreen, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
             }
             IconButton(onClick = { editing = false }, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Close, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))

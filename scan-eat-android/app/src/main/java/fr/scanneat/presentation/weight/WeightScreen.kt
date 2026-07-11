@@ -75,7 +75,7 @@ fun WeightScreen(
                                 selected = useImperial == imperial,
                                 onClick = { useImperial = imperial },
                                 label = { Text(label) },
-                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen),
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
                             )
                         }
                     }
@@ -90,7 +90,7 @@ fun WeightScreen(
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Column {
-                                    Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentGreen, fontWeight = FontWeight.Bold)
+                                    Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
                                     val sign = if (s.deltaKg >= 0) "+" else ""
                                     val dColor = if (s.deltaKg <= 0) FlagGreen else FlagRed
                                     Text(stringResource(R.string.weight_delta_kg, "$sign${s.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = dColor)
@@ -100,7 +100,7 @@ fun WeightScreen(
                                     Text(stringResource(R.string.weight_trend_kg_week, "$tSign${s.trendKgPerWeek}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                                     if (forecast.value is WeightForecast.Ok) {
                                         val f = forecast.value as WeightForecast.Ok
-                                        Text(stringResource(R.string.weight_goal_forecast, f.days), style = MaterialTheme.typography.labelSmall, color = AccentGreen)
+                                        Text(stringResource(R.string.weight_goal_forecast, f.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                                     }
                                 }
                             }
@@ -112,7 +112,7 @@ fun WeightScreen(
                                     Text(
                                         stringResource(R.string.weight_goal_delta, "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))}", dispWeight(goal)),
                                         style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
-                                        color = if (kotlin.math.abs(toGoal) < 0.5) FlagGreen else AccentGreen,
+                                        color = if (kotlin.math.abs(toGoal) < 0.5) FlagGreen else AccentCoral,
                                     )
                                 }
                             }
@@ -146,7 +146,7 @@ fun WeightScreen(
                                 last8.forEachIndexed { i, e ->
                                     val isLast = i == last8.size - 1
                                     val h = (((e.weightKg - minW) / (maxW - minW)) * 40.0 + 6.0).toInt()
-                                    Box(Modifier.weight(1f).height(h.dp).background(if (isLast) AccentGreen else AccentGreen.copy(alpha = 0.4f), RoundedCornerShape(2.dp)))
+                                    Box(Modifier.weight(1f).height(h.dp).background(if (isLast) AccentCoral else AccentCoral.copy(alpha = 0.4f), RoundedCornerShape(2.dp)))
                                 }
                             }
                         }
@@ -186,7 +186,7 @@ fun WeightScreen(
             FloatingActionButton(
                 onClick = { showAdd = true },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-                containerColor = AccentGreen,
+                containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
         }
     } else {
@@ -195,7 +195,7 @@ fun WeightScreen(
                 TopAppBar(
                     title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
                     navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen) } },
+                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
@@ -229,7 +229,7 @@ fun WeightScreen(
                         viewModel.log(kg, notesText)
                         kgText = ""; notesText = ""; showAdd = false
                     }
-                }) { Text(stringResource(R.string.common_save), color = AccentGreen) }
+                }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
             },
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
             containerColor = SurfaceVariant,

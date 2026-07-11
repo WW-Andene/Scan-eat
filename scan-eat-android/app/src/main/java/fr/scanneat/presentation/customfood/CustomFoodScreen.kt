@@ -49,7 +49,7 @@ fun CustomFoodScreen(
                 },
                 actions = {
                     IconButton(onClick = { showAdd = true }) {
-                        Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentGreen)
+                        Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
@@ -164,13 +164,13 @@ private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Un
                 if (isCustom) {
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = AccentGreen.copy(0.15f),
+                        color = AccentCoral.copy(0.15f),
                     ) {
                         Text(
                             stringResource(R.string.customfood_custom_badge),
                             modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = AccentGreen,
+                            color = AccentCoral,
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
@@ -245,7 +245,7 @@ private fun AddFoodDialog(
                 },
                 enabled = valid,
             ) {
-                Text(stringResource(R.string.common_create), color = if (valid) AccentGreen else OnBackground.copy(0.3f))
+                Text(stringResource(R.string.common_create), color = if (valid) AccentCoral else OnBackground.copy(0.3f))
             }
         },
         dismissButton = {
@@ -273,7 +273,7 @@ private fun FoodField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(8.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor   = AccentGreen,
+            focusedBorderColor   = AccentCoral,
             unfocusedBorderColor = OnBackground.copy(0.18f),
             focusedTextColor     = OnBackground,
             unfocusedTextColor   = OnBackground,

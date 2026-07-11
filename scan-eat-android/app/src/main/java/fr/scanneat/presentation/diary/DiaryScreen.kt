@@ -83,14 +83,14 @@ fun DiaryScreen(
                         onClick = { activeTab = tab },
                         modifier = Modifier.weight(1f).semantics { role = Role.Tab; selected = isActive },
                         shape = RoundedCornerShape(8.dp),
-                        color = if (isActive) AccentGreen.copy(0.15f) else OnBackground.copy(0.03f),
-                        border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentGreen.copy(0.4f)) else null,
+                        color = if (isActive) AccentCoral.copy(0.15f) else OnBackground.copy(0.03f),
+                        border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
                     ) {
                         Text(
                             stringResource(tab.labelRes),
                             modifier = Modifier.padding(vertical = 8.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            color = if (isActive) AccentGreen else OnBackground.copy(0.5f),
+                            color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
                             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
@@ -154,7 +154,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                     }
                 }
                 if (!isToday.value) {
-                    TextButton(onClick = { viewModel.goToToday() }) { Text(stringResource(R.string.diary_today_button), color = AccentGreen, style = MaterialTheme.typography.labelMedium) }
+                    TextButton(onClick = { viewModel.goToToday() }) { Text(stringResource(R.string.diary_today_button), color = AccentCoral, style = MaterialTheme.typography.labelMedium) }
                 }
             }
         }
@@ -172,7 +172,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                 trailingIcon = {
                     if (noteText != dayNote.value) {
                         IconButton(onClick = { viewModel.saveNote(noteText) }) {
-                            Icon(Icons.Default.Check, stringResource(R.string.diary_cd_save_note), tint = AccentGreen)
+                            Icon(Icons.Default.Check, stringResource(R.string.diary_cd_save_note), tint = AccentCoral)
                         }
                     }
                 },
@@ -198,7 +198,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                         Text(
                             slot.diaryLabel(),
                             style = MaterialTheme.typography.labelMedium,
-                            color = AccentGreen.copy(0.8f),
+                            color = AccentCoral.copy(0.8f),
                             modifier = Modifier.padding(top = 4.dp),
                         )
                     }
@@ -258,7 +258,7 @@ private fun MacroSummaryCard(totals: ConsumedNutrition) {
 @Composable
 private fun MacroItem(label: String, value: String, unit: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.titleMedium, color = AccentGreen, fontWeight = FontWeight.Bold)
+        Text(value, style = MaterialTheme.typography.titleMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
         Text(unit, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f))
     }
