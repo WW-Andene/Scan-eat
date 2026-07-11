@@ -6,6 +6,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.time.LocalDate
@@ -141,6 +142,29 @@ class FastingRepository @Inject constructor(
 
     suspend fun clearHistory() {
         store.edit { prefs -> prefs.remove(KEY_HISTORY_JSON) }
+    }
+
+    // ---- Backup export/import ----
+
+    /** Current active session (if any) plus history, for BackupRepository. */
+    suspend fun exportForBackup(): Triple<Long?, Int?, List<FastCompletion>> {
+        val prefs = storeData.first()
+        val activeStart  = prefs[KEY_START_MS]
+        val activeTarget = prefs[KEY_TARGET_HOURS]
+        return Triple(activeStart, activeTarget, loadHistory(prefs))
+    }
+
+    /** Restores an active session and/or history from a backup. */
+    suspend fun importForBackup(activeStartMs: Long?, activeTargetHours: Int?, history: List<FastCompletion>) {
+        store.edit { prefs ->
+            if (activeStartMs != null && activeTargetHours != null) {
+                prefs[KEY_START_MS] = activeStartMs
+                prefs[KEY_TARGET_HOURS] = activeTargetHours
+            }
+            if (history.isNotEmpty()) {
+                prefs[KEY_HISTORY_JSON] = serializeHistory(history.take(90))
+            }
+        }
     }
 
     // ---- Serialization (lightweight, no Moshi dep in DataStore layer) ----

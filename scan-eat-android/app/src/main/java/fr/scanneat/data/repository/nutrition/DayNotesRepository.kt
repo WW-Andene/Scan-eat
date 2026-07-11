@@ -19,10 +19,8 @@ import javax.inject.Singleton
 // Per-day free-text notes: mood, training, cycle phase, medication, etc.
 // Cap: 500 chars per note (same as original).
 // Storage: DataStore (replaces localStorage on Android).
-// Notes stay on-device. NOT currently included in backup export/import
-// (BackupBundle only covers the 7 Room-backed entities — see BackupModels.kt's
-// scope comment) — a real gap if this repository's data matters to a user
-// restoring from backup, tracked there rather than silently claimed here.
+// Notes stay on-device; included in backup export/import since format v2
+// (see BackupModels.kt / BackupRepository.kt).
 // ============================================================================
 
 const val DAY_NOTE_MAX_CHARS = 500
@@ -63,5 +61,24 @@ class DayNotesRepository @Inject constructor(
             .filter { it.name.startsWith("note_") }
             .mapNotNull { runCatching { LocalDate.parse(it.name.removePrefix("note_")) }.getOrNull() }
             .sorted()
+    }
+
+    // ---- Backup export/import ----
+
+    /** All (date, text) notes currently stored, for BackupRepository. */
+    suspend fun exportAll(): List<Pair<LocalDate, String>> {
+        val prefs = storeData.first()
+        return prefs.asMap().entries.mapNotNull { (pref, value) ->
+            if (!pref.name.startsWith("note_")) return@mapNotNull null
+            val date = runCatching { LocalDate.parse(pref.name.removePrefix("note_")) }.getOrNull() ?: return@mapNotNull null
+            val text = value as? String ?: return@mapNotNull null
+            date to text
+        }
+    }
+
+    /** Restores notes from a backup — overwrites any existing note for the same date. */
+    suspend fun importAll(entries: List<Pair<LocalDate, String>>) {
+        if (entries.isEmpty()) return
+        store.edit { prefs -> entries.forEach { (date, text) -> prefs[key(date)] = text.take(DAY_NOTE_MAX_CHARS) } }
     }
 }

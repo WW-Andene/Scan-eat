@@ -6,6 +6,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.io.IOException
@@ -102,6 +103,22 @@ class MealPlanRepository @Inject constructor(
     /** Clear the entire plan. */
     suspend fun clearAll() {
         store.edit { prefs -> prefs.remove(KEY_PLAN) }
+    }
+
+    // ---- Backup export/import ----
+
+    /** Raw serialized plan blob, for BackupRepository — kept opaque since the
+     *  format isn't Moshi-serializable on its own (see BackupModels.kt). */
+    suspend fun exportRaw(): String = storeData.first()[KEY_PLAN] ?: ""
+
+    /** Merges a backup's plan into whatever's currently stored — incoming slots win on conflict. */
+    suspend fun importRaw(raw: String) {
+        if (raw.isBlank()) return
+        store.edit { prefs ->
+            val existing = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            existing.putAll(deserialize(raw))
+            prefs[KEY_PLAN] = serialize(prune(existing))
+        }
     }
 
     /** Dates with at least one slot set, for the next 7 days from today. */

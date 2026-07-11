@@ -11,11 +11,25 @@ import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.weight.WeightDao
+import fr.scanneat.data.local.prefs.ApiMode
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.FastingRepository
+import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.data.repository.nutrition.DayNotesRepository
+import fr.scanneat.data.repository.planning.MealPlanRepository
+import fr.scanneat.data.repository.reminders.RemindersRepository
+import fr.scanneat.domain.engine.scoring.DietKey
+import fr.scanneat.domain.model.ActivityLevel
+import fr.scanneat.domain.model.Goal
+import fr.scanneat.domain.model.Profile
+import fr.scanneat.domain.model.Sex
+import kotlinx.coroutines.flow.first
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// BACKUP REPOSITORY — local JSON export/import of the Room-backed data.
+// BACKUP REPOSITORY — local JSON export/import of the user's data.
 //
 // No cloud/account infra exists (or is planned for this pass) — this is the
 // on-device equivalent: a single JSON file the user saves via the system
@@ -35,12 +49,21 @@ class BackupRepository @Inject constructor(
     private val activityDao: ActivityDao,
     private val mealTemplateDao: MealTemplateDao,
     private val recipeDao: RecipeDao,
+    private val prefs: UserPreferences,
+    private val hydrationRepo: HydrationRepository,
+    private val fastingRepo: FastingRepository,
+    private val dayNotesRepo: DayNotesRepository,
+    private val mealPlanRepo: MealPlanRepository,
+    private val remindersRepo: RemindersRepository,
     private val moshi: Moshi,
 ) {
     private val bundleAdapter = moshi.adapter(BackupBundle::class.java)
 
-    /** Reads every table and serializes to a pretty-printed JSON string. */
+    /** Reads every table plus DataStore-backed data and serializes to a pretty-printed JSON string. */
     suspend fun exportToJson(): String {
+        val profile = prefs.profile.first()
+        val (fastingStartMs, fastingTargetHours, fastingHistory) = fastingRepo.exportForBackup()
+
         val bundle = BackupBundle(
             exportedAtMs  = System.currentTimeMillis(),
             appVersionName = BuildConfig.VERSION_NAME,
@@ -51,14 +74,46 @@ class BackupRepository @Inject constructor(
             activities    = activityDao.getAllForBackup(),
             mealTemplates = mealTemplateDao.getAllForBackup(),
             recipes       = recipeDao.getAllForBackup(),
+            profile = ProfileBackup(
+                name = profile.name,
+                sex = profile.sex.name,
+                ageYears = profile.ageYears,
+                heightCm = profile.heightCm,
+                weightKg = profile.weightKg,
+                goalWeightKg = profile.goalWeightKg,
+                activityLevel = profile.activityLevel.name,
+                goal = profile.goal.name,
+                diet = profile.diet.key,
+                allergens = profile.allergens.toList(),
+                isMenstruating = profile.isMenstruating,
+            ),
+            // Deliberately excludes the Groq API key — see BackupModels.kt.
+            settings = SettingsBackup(
+                apiMode = prefs.apiMode.first().key,
+                serverUrl = prefs.serverUrl.first(),
+                language = prefs.language.first(),
+                theme = prefs.theme.first(),
+                dyslexicFont = prefs.dyslexicFont.first(),
+                colorblindMode = prefs.colorblindMode.first(),
+            ),
+            reminderSettings = remindersRepo.settings.first(),
+            fastingActiveStartMs = fastingStartMs,
+            fastingActiveTargetHours = fastingTargetHours,
+            fastingHistory = fastingHistory,
+            hydration = hydrationRepo.exportAll().map { (date, ml) -> HydrationEntryBackup(date.toString(), ml) },
+            dayNotes = dayNotesRepo.exportAll().map { (date, text) -> DayNoteBackup(date.toString(), text) },
+            mealPlanRaw = mealPlanRepo.exportRaw(),
         )
         return bundleAdapter.indent("  ").toJson(bundle)
     }
 
     /**
-     * Restores every table from [json] inside a single transaction — either
-     * the whole import lands or none of it does, so a malformed file or a
-     * crash mid-import can never leave the DB half-restored.
+     * Restores every table plus DataStore-backed data from [json]. The Room
+     * tables land inside a single transaction — either the whole DB side
+     * lands or none of it does, so a malformed file or a crash mid-import
+     * can never leave the DB half-restored. The DataStore-backed data
+     * (profile/settings/reminders/fasting/hydration/notes/meal plan) is
+     * separate storage and applies right after, best-effort per field.
      *
      * Every table except scan_history/consumption_log keys off a stable
      * UUID/slug, so REPLACE-by-id is a safe merge for those. scan_history
@@ -100,9 +155,53 @@ class BackupRepository @Inject constructor(
             mealTemplateDao.insertAll(bundle.mealTemplates)
             recipeDao.insertAll(bundle.recipes)
         }
+
+        restoreDataStoreData(bundle)
+
         // scan/consumption counts reflect rows actually inserted (post-dedup);
         // the other tables key off a stable id/slug and fully apply every time.
         BackupSummary.from(bundle).copy(scanHistory = importedScans, consumption = importedConsumption)
+    }
+
+    private suspend fun restoreDataStoreData(bundle: BackupBundle) {
+        bundle.profile?.let { p ->
+            prefs.saveProfile(Profile(
+                name = p.name,
+                sex = runCatching { Sex.valueOf(p.sex) }.getOrDefault(Sex.NOT_SPECIFIED),
+                ageYears = p.ageYears,
+                heightCm = p.heightCm,
+                weightKg = p.weightKg,
+                goalWeightKg = p.goalWeightKg,
+                activityLevel = runCatching { ActivityLevel.valueOf(p.activityLevel) }.getOrDefault(ActivityLevel.MODERATELY_ACTIVE),
+                goal = runCatching { Goal.valueOf(p.goal) }.getOrDefault(Goal.MAINTAIN),
+                diet = DietKey.fromKey(p.diet),
+                allergens = p.allergens.toSet(),
+                isMenstruating = p.isMenstruating,
+            ))
+        }
+        bundle.settings?.let { s ->
+            prefs.setApiMode(ApiMode.fromKey(s.apiMode))
+            prefs.setServerUrl(s.serverUrl)
+            prefs.setLanguage(s.language)
+            prefs.setTheme(s.theme)
+            prefs.setDyslexicFont(s.dyslexicFont)
+            prefs.setColorblindMode(s.colorblindMode)
+        }
+        bundle.reminderSettings?.let { r ->
+            remindersRepo.setBreakfast(r.breakfastOn, r.breakfastTime)
+            remindersRepo.setLunch(r.lunchOn, r.lunchTime)
+            remindersRepo.setDinner(r.dinnerOn, r.dinnerTime)
+            remindersRepo.setHydration(r.hydrationOn, r.hydrationIntervalHours)
+            remindersRepo.setWeight(r.weightOn, r.weightThresholdDays)
+        }
+        fastingRepo.importForBackup(bundle.fastingActiveStartMs, bundle.fastingActiveTargetHours, bundle.fastingHistory)
+        hydrationRepo.importAll(bundle.hydration.mapNotNull { entry ->
+            runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry.ml }
+        })
+        dayNotesRepo.importAll(bundle.dayNotes.mapNotNull { entry ->
+            runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry.text }
+        })
+        bundle.mealPlanRaw?.let { mealPlanRepo.importRaw(it) }
     }
 
     private fun parseBundle(json: String): BackupBundle {

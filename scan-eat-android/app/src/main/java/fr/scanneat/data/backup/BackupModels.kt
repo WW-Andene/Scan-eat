@@ -7,23 +7,55 @@ import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.template.MealTemplateEntity
 import fr.scanneat.data.local.db.weight.WeightEntity
+import fr.scanneat.data.repository.health.FastCompletion
+import fr.scanneat.data.repository.reminders.ReminderSettings
 
 // ============================================================================
-// BACKUP BUNDLE — full local export/import of the Room-backed user data.
+// BACKUP BUNDLE — full local export/import of the user data.
 //
 // Covers the 7 @Database entities (scan history, diary, custom foods, weight,
-// activity, meal templates, recipes). Does NOT cover DataStore-backed data
-// (Biolism profile/sessions, hydration, fasting, reminders, meal plan, day
-// notes, app settings) — that's a separate, smaller surface that can be
-// folded in later; this bundle targets the highest-volume, hardest-to-lose
-// user-generated content first.
+// activity, meal templates, recipes) plus, since format v2, the
+// DataStore-backed data a restore-on-a-new-device previously silently lost:
+// profile, app settings, reminder settings, fasting (active session +
+// history), hydration log, day notes, and the meal plan.
+//
+// Deliberately excludes the Groq API key from SettingsBackup — a backup file
+// shared for debugging or support must not leak a credential.
 //
 // version bumps whenever a field is added/removed/retyped, so importFromJson
 // can refuse (rather than silently corrupt) a bundle from an incompatible
-// future or ancient export.
+// future or ancient export. All v2 fields default to null/empty so a v1 file
+// (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 1
+const val BACKUP_FORMAT_VERSION = 2
+
+data class ProfileBackup(
+    val name: String,
+    val sex: String,
+    val ageYears: Int?,
+    val heightCm: Double?,
+    val weightKg: Double?,
+    val goalWeightKg: Double?,
+    val activityLevel: String,
+    val goal: String,
+    val diet: String,
+    val allergens: List<String>,
+    val isMenstruating: Boolean,
+)
+
+data class SettingsBackup(
+    val apiMode: String,
+    val serverUrl: String,
+    val language: String,
+    val theme: String,
+    val dyslexicFont: Boolean,
+    val colorblindMode: String,
+)
+
+data class HydrationEntryBackup(val date: String, val ml: Int)
+
+data class DayNoteBackup(val date: String, val text: String)
 
 data class BackupBundle(
     val formatVersion: Int = BACKUP_FORMAT_VERSION,
@@ -36,6 +68,19 @@ data class BackupBundle(
     val activities: List<ActivityEntity>,
     val mealTemplates: List<MealTemplateEntity>,
     val recipes: List<RecipeEntity>,
+    val profile: ProfileBackup? = null,
+    val settings: SettingsBackup? = null,
+    val reminderSettings: ReminderSettings? = null,
+    val fastingActiveStartMs: Long? = null,
+    val fastingActiveTargetHours: Int? = null,
+    val fastingHistory: List<FastCompletion> = emptyList(),
+    val hydration: List<HydrationEntryBackup> = emptyList(),
+    val dayNotes: List<DayNoteBackup> = emptyList(),
+    // Meal plan is stored as its own private pipe-delimited format
+    // (MealPlanRepository.serialize/deserialize) — kept as a raw string here
+    // rather than a structured field, since Moshi has no built-in polymorphic
+    // adapter for MealPlanSlot's sealed subclasses.
+    val mealPlanRaw: String? = null,
 )
 
 data class BackupSummary(

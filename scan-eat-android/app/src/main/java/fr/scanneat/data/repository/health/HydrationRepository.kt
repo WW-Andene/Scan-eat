@@ -12,6 +12,7 @@ import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Sex
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.io.IOException
@@ -115,5 +116,24 @@ class HydrationRepository @Inject constructor(
         val mult = ACTIVITY_LEVELS.find { it.id == activityId }?.mult ?: 1.55
         val waterNeedL = BiolismEngine.computeWaterNeedL(biolismSex, mult)
         return (waterNeedL * 1000).toInt()
+    }
+
+    // ---- Backup export/import ----
+
+    /** All (date, mL) entries currently stored, for BackupRepository. */
+    suspend fun exportAll(): List<Pair<LocalDate, Int>> {
+        val prefs = storeData.first()
+        return prefs.asMap().entries.mapNotNull { (pref, value) ->
+            if (!pref.name.startsWith(KEY_PREFIX)) return@mapNotNull null
+            val date = runCatching { LocalDate.parse(pref.name.removePrefix(KEY_PREFIX)) }.getOrNull() ?: return@mapNotNull null
+            val ml = value as? Int ?: return@mapNotNull null
+            date to ml
+        }
+    }
+
+    /** Restores entries from a backup — overwrites any existing value for the same date. */
+    suspend fun importAll(entries: List<Pair<LocalDate, Int>>) {
+        if (entries.isEmpty()) return
+        store.edit { prefs -> entries.forEach { (date, ml) -> prefs[key(date)] = ml } }
     }
 }
