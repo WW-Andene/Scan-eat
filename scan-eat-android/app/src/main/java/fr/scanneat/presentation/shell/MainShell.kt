@@ -48,7 +48,7 @@ fun MainShell(startOnboarding: Boolean = false) {
                             },
                             icon  = { Icon(tab.icon, stringResource(tab.labelRes),
                                 tint = if (isSelected) AccentCoral else IconInactive,
-                                modifier = Modifier.size(22.dp)) },
+                                modifier = Modifier.size(IconSize.Nav)) },
                             label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
                                 color = if (isSelected) AccentCoral else IconInactive,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis) },

@@ -76,7 +76,7 @@ in its Part with an explicit PROTECT note.
 | 9 | ~~MEDIUM~~ PARTIALLY FIXED | Color | No pressed/hover accent state token | B1 |
 | 10 | ~~MEDIUM~~ PARTIALLY FIXED | Typography | "Hero number" role untokenized (4 weight spellings, 5+ sizes) | B2 |
 | 11 | ~~MEDIUM~~ PARTIALLY FIXED | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
-| 12 | MEDIUM | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
+| 12 | ~~MEDIUM~~ PARTIALLY FIXED | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
 | 13 | ~~MEDIUM~~ PARTIALLY FIXED | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
 | 14 | MEDIUM | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
 | 15 | ~~MEDIUM~~ FIXED | States | Empty states have no CTA slot | B8 |
@@ -611,6 +611,22 @@ ICON CHARACTER BRIEF
     filled mixing, or expressive multi-color icon treatments (would violate
     the confirmed "Quiet, not Playful" register)
 ```
+STATUS: PARTIALLY FIXED — added `IconSize` (Inline=20dp/Nav=24dp/
+  EmptyState=40dp) as the named 3-size token the brief calls for. Migrated
+  2 concrete sites onto it: MainShell's bottom-nav icons (22dp→24dp, a
+  1dp-per-side nudge onto the Nav bucket) and EmptyListState.kt's icon
+  (already 40dp, now references the token instead of a literal). Active/
+  selected tinting was already correct where checked — MainShell's nav
+  (AccentCoral-tinted selected tab) and ScanScreen's torch toggle
+  (containerColor flips to AccentCoral when active, icon tint flips to
+  black for contrast against it) both already connect to the brand accent;
+  no gap found there. Did NOT do a blanket resize of the other ~11 ad hoc
+  size values (12/14/16/18/26/28/32/36/48/64dp) across ~80 remaining call
+  sites — each one sits in a specific layout (dense list rows, badges, a
+  64dp illustrative permission icon) where snapping to one of 3 buckets
+  without seeing the rendered result risks visible clipping/crowding this
+  sandbox can't check. The token now exists for new call sites and
+  incremental migration; full sweep remains open.
 
 ## B4. Components (Buttons, Cards, Navigation, Inputs, Modals)
 
@@ -1592,9 +1608,10 @@ MEDIUM/LOW/POLISH findings — see each finding's `STATUS:` line and the
 Master Findings Table's strikethrough markers for what changed and why.
 
 Still open, deliberately not touched this pass:
-- **Icon expressiveness** (B3) — standardizing 85 call sites across 28
-  files onto a 3-size/active-tint system needs a visual pass this sandbox
-  can't do (no way to screenshot-verify layout at each site).
+- **Icon expressiveness** (B3) — the 3-size token and active-tint check are
+  done (see B3's STATUS); the remaining ~80 call sites' individual size
+  values are left alone since a blanket resize needs a visual pass this
+  sandbox can't do (no way to screenshot-verify layout at each site).
 - **Chroma-contrast rebalancing** (B7) — desaturating Dashboard cards'
   secondary accents needs the same visual verification.
 - **Light-theme gold consolidation** (A6) — needs a visual re-check of
