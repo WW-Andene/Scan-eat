@@ -134,7 +134,7 @@ private fun parseSchemaOrgRecipe(html: String, sourceUrl: String): FetchedRecipe
 
     return FetchedRecipeResponse(
         name        = stringOr(recipe["name"]),
-        servings    = yieldToServings(recipe["recipeYield"]).toString(),
+        servings    = yieldToServings(recipe["recipeYield"])?.toString(),
         ingredients = stringArray(recipe["recipeIngredient"]),
         steps       = extractSteps(recipe["recipeInstructions"]),
         cookTimeMin = parseISODuration(recipe["totalTime"]) ?: parseISODuration(recipe["cookTime"]),
@@ -194,17 +194,17 @@ private fun extractSteps(element: JsonElement?): List<String> {
     return list
 }
 
-private fun yieldToServings(element: JsonElement?): Int {
-    if (element == null) return 1
+/** Null when recipeYield is absent or unparsable — the caller must not
+ *  fabricate a "1 serving" the source page never actually declared. */
+private fun yieldToServings(element: JsonElement?): Int? {
+    if (element == null) return null
     return when (element) {
         is JsonPrimitive -> {
-            element.intOrNull ?: run {
-                val m = Regex("(\\d+)").find(element.contentOrNull ?: "")
-                m?.groupValues?.get(1)?.toIntOrNull() ?: 1
-            }
+            element.intOrNull ?: Regex("(\\d+)").find(element.contentOrNull ?: "")
+                ?.groupValues?.get(1)?.toIntOrNull()
         }
         is JsonArray -> yieldToServings(element.firstOrNull())
-        else -> 1
+        else -> null
     }
 }
 
