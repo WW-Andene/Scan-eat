@@ -205,3 +205,11 @@ tradeoff:  re-importing the same backup twice on the same device now
            duplicates those two tables' rows instead of deduping -
            acceptable; that guarantee was never stated in the UI, unlike
            cross-device restore.
+
+### App-audit §C7 — plaintext Groq API key exposed via Android auto-backup
+context:   allowBackup="true" + groqApiKey stored in plaintext DataStore
+           means Auto Backup (Google Drive) or adb backup on a debuggable
+           device includes the credential with no extra protection. The
+           app already has its own in-app JSON export/import (task #67),
+           so OS-level backup isn't needed for data portability.
+decision:  allowBackup="false".
