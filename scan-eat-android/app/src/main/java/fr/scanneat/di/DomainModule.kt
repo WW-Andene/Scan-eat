@@ -1,5 +1,6 @@
 package fr.scanneat.di
 
+import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,5 +13,5 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object DomainModule {
     @Provides @Singleton
-    fun provideOcrParser(groqApi: GroqApi): OcrParser = OcrParser(groqApi)
+    fun provideOcrParser(groqApi: GroqApi, moshi: Moshi): OcrParser = OcrParser(groqApi, moshi)
 }

@@ -1,7 +1,6 @@
 package fr.scanneat.data.repository.scan
 
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.data.remote.api.*
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.delay
@@ -228,9 +227,8 @@ private fun extractJson(raw: String): String {
 // OcrParser class — injected into use-cases
 // ============================================================================
 
-class OcrParser(private val groqApi: GroqApi) {
+class OcrParser(private val groqApi: GroqApi, moshi: Moshi) {
 
-    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     private val dtoAdapter = moshi.adapter(LlmProductDto::class.java)
 
     /**
