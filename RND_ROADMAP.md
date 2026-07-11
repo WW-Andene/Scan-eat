@@ -80,17 +80,22 @@ architecture (i.e. cheap to build well vs. requiring a new subsystem).
    same ProductCategory with higher personal score" query and a result-
    screen card are missing.
 
-2. **No B-vitamin tracking, yet the vegan diet checker never flags B12
-   risk** (High impact for the exact users DietChecker already targets,
-   low cost). `NutritionPer100g` tracks vitamins A/C/D/E/K and 6 minerals
-   plus omega-3/6, but no B-complex (B1/B2/B6/B9/B12) fields exist. B12
-   deficiency is *the* headline nutritional risk of a vegan diet — the
-   diet checker currently can flag "flagged as non-vegan" but can never
-   flag "this diet needs a B12 source," which is arguably more valuable
-   than any single ingredient regex. Requires: new optional fields on
-   NutritionPer100g (already Double? throughout, non-breaking), OFF/OCR
-   population where available, and a DietChecker-adjacent advisory (not a
-   compliance violation — a nutritional-adequacy note).
+2. **Diet definitions carry a real adequacy note (`DietDef.noteFr/noteEn`)
+   that never reached the UI, and vegan's note said nothing about B12**
+   (High impact for the exact users DietChecker already targets, low
+   cost). Correcting an assumption from an earlier pass of this doc:
+   `NutritionPer100g` already tracks the full B-complex (B1/B2/B3/B6/B9/
+   B12), not just A/C/D/E/K — so this was never a data-model gap. The
+   actual gap, confirmed by reading `ProfileScreen.kt`'s `DietSelector`:
+   every diet's descriptive note already existed in `DietDef` but was
+   only ever consumed internally (as part of `checkDiet()`'s violation
+   `reason` string for halal/kosher), never shown next to the diet-picker
+   chips themselves — so picking "Vegan" or "Keto" showed a label and
+   nothing else. Fixed directly (not just queued): added a public
+   `dietNote()` accessor, wired it into `DietSelector` as a caption under
+   the selected chip, and added a B12-supplementation line to vegan's
+   note text, since B12 deficiency is the headline nutritional risk of
+   that diet and the diet checker had no way to say so.
 
 3. **Multi-provider API key support** (task #72, still pending). Currently
    single-provider (Groq) for the vision LLM. Diversifying reduces a
@@ -113,11 +118,11 @@ verification tooling.
 
 ## 4. Roadmap
 
-- **Now**: item 1 (healthier-alternative suggestion) and item 2 (B12/
-  B-complex tracking + vegan advisory) — both fit the existing
-  scoring/diet-checker architecture with no new subsystem, and both were
-  confirmed as real, currently-missing capabilities via code search, not
-  guessed.
+- **Now**: item 1 (healthier-alternative suggestion) and item 2 (diet-note
+  surfacing + vegan B12 caveat, already implemented this pass) — both fit
+  the existing scoring/diet-checker architecture with no new subsystem,
+  and both were confirmed as real, currently-missing capabilities via
+  code search, not guessed.
 - **Next**: item 3 (multi-provider API key support, task #72) — unblocks
   provider resilience for the OCR fallback path.
 - **Later / explicitly parked**: item 4 (crowdsourced corrections — scope

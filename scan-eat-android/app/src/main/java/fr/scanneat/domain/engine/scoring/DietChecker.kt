@@ -97,8 +97,11 @@ private val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
         preferred = listOf(
             b("v[eé]gan|v-label|vegan|plant-based|100% v[eé]g[eé]tal"),
         ),
-        noteFr = "Exclut tout produit animal : viande, poisson, œufs, lait, miel, gélatine, cire d'abeille E901, shellac E904, carmin E120, phosphate osseux E542.",
-        noteEn = "Excludes any animal product: meat, fish, eggs, dairy, honey, gelatin, beeswax E901, shellac E904, carmine E120, bone phosphate E542.",
+        // B12 exists naturally only in animal foods (or fortified plant products the
+        // scanner already treats as compliant) - a vegan diet has no other source in
+        // scope, so this is a lifestyle-level adequacy note, not a per-product finding.
+        noteFr = "Exclut tout produit animal : viande, poisson, œufs, lait, miel, gélatine, cire d'abeille E901, shellac E904, carmin E120, phosphate osseux E542. Pensez à une supplémentation en vitamine B12, absente du régime végan.",
+        noteEn = "Excludes any animal product: meat, fish, eggs, dairy, honey, gelatin, beeswax E901, shellac E904, carmine E120, bone phosphate E542. Consider B12 supplementation — a vegan diet has no other reliable source.",
     ),
 
     DietKey.PESCATARIAN to DietDef(
@@ -207,6 +210,10 @@ private val UNVERIFIABLE_DIETS = setOf(DietKey.HALAL, DietKey.KOSHER)
  * Check a product against a diet definition.
  * Port of checkDiet() from diets.js.
  */
+/** The diet's own description/adequacy note, e.g. for display next to a diet picker. */
+fun dietNote(dietKey: DietKey, lang: String = "fr"): String? =
+    DIET_DEFS[dietKey]?.let { if (lang == "en") it.noteEn else it.noteFr }
+
 fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResult {
     if (dietKey == DietKey.NONE) {
         return DietResult(true, emptyList(), emptyList(), false, null)

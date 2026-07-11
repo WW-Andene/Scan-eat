@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DietKey
+import fr.scanneat.domain.engine.scoring.dietNote
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
@@ -282,6 +283,18 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
                         selectedContainerColor = AccentGreen.copy(0.2f), selectedLabelColor = AccentGreen,
                         labelColor = OnBackground.copy(0.7f),
                     ),
+                )
+            }
+        }
+        // Diet chips previously carried zero explanation of what each diet actually
+        // excludes (or, for vegan, what supplementation it implies) - every other
+        // definitional detail in DietChecker.kt's DietDef was already there and
+        // simply never reached the UI.
+        if (current != DietKey.NONE) {
+            dietNote(current, if (isEnglish) "en" else "fr")?.let { note ->
+                Text(
+                    note, style = MaterialTheme.typography.bodySmall,
+                    color = OnBackground.copy(0.6f),
                 )
             }
         }
