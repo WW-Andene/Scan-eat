@@ -56,11 +56,20 @@ class DietCheckerTest {
     }
 
     @Test
-    fun `paleo does not flag peanut butter or coconut butter`() {
-        val peanut  = checkDiet(productWithIngredients("beurre de cacahuète"), DietKey.PALEO)
+    fun `paleo does not flag coconut butter via the dairy pattern`() {
+        // Coconut butter isn't dairy and isn't a legume either, so it's clean for paleo.
         val coconut = checkDiet(productWithIngredients("beurre de coco"), DietKey.PALEO)
-        assertTrue(peanut.compliant)
         assertTrue(coconut.compliant)
+    }
+
+    @Test
+    fun `paleo still flags peanut butter, correctly, as a legume`() {
+        // Peanuts are legumes, and paleo genuinely excludes legumes via a separate
+        // forbidden pattern from the dairy one §A1/L3 fixed - "beurre de cacahuète"
+        // being non-compliant here is correct paleo behavior, not a regression of
+        // that fix (which only ever concerned the dairy-pattern false positive).
+        val result = checkDiet(productWithIngredients("beurre de cacahuète"), DietKey.PALEO)
+        assertFalse(result.compliant)
     }
 
     @Test
