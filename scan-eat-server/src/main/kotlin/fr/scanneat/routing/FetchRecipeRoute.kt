@@ -217,9 +217,16 @@ private fun parseISODuration(element: JsonElement?): Int? {
     return h * 60 + min + (sec / 60)
 }
 
+// schema.org nutrition values commonly carry units in the same string
+// (e.g. "350 calories", "12g") — extract the leading numeric token instead
+// of requiring the whole string to parse as a number, which previously
+// discarded the entire nutrition block the moment any field had a unit.
 private fun numFrom(element: JsonElement?): Double = when (element) {
     is JsonPrimitive -> element.doubleOrNull ?: run {
-        element.contentOrNull?.replace(",", ".")?.toDoubleOrNull() ?: 0.0
+        val content = element.contentOrNull?.replace(",", ".") ?: ""
+        content.toDoubleOrNull()
+            ?: Regex("""(\d+(?:\.\d+)?)""").find(content)?.groupValues?.get(1)?.toDoubleOrNull()
+            ?: 0.0
     }
     else -> 0.0
 }
