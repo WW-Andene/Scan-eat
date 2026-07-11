@@ -1468,4 +1468,81 @@ Recommendation: Defer to a session with device/emulator access rather
   than guess.
 ```
 
-Section H3 complete.
+## CATEGORY L — OPTIMIZATION, STANDARDIZATION & POLISH (§L3-L5 only, per scope)
+
+```
+[CROSS-REFERENCE — no new finding] §L3 Token consolidation, component
+  variant audit, pattern library gap, theme variable completeness →
+  fully covered by Phase 1 §DTA1-2 (token layer architecture, find-and-
+  replace test) and §DCO1/§DCO3 (button/card drift, ScanEatPrimaryButton/
+  ScanEatCard recommendation IS the §L3 pattern-library fix)
+
+[MEDIUM] — Accessibility properties (focus ring style, minimum touch
+  target, contrast-safe pairings) aren't encoded as tokens anywhere —
+  they're either absent or ad hoc per component
+Dimension: §L3 (Accessibility baked into the system)
+Finding: Synthesizing three findings already made separately in this audit
+  — no focus-ring-style token exists (buttons rely on Material default
+  focus indication, per Phase 1 §DBI3), no minimum-touch-target dimension
+  token exists (the 32/36dp IconButton sites above have no shared
+  `@dimen/min_touch_target` to violate — there's nothing to check against),
+  and no contrast-safe color-pairing documentation exists (the §E3 WCAG
+  verification gap above).
+Why it matters: This is the connective root cause behind three separate
+  Phase 1/Phase 2 findings — they're not three unrelated gaps, they're one
+  missing layer (accessibility-as-tokens) showing up three times.
+Recommendation: When building the Layer 3 component tokens already
+  recommended (ScanEatPrimaryButton/ScanEatCard), bake in a
+  `MIN_TOUCH_TARGET = 48.dp` constant and a documented focus-ring color
+  (Gold at full opacity, 2dp, matching the confirmed warm character) at
+  the same time — this turns three separate follow-up tasks into one.
+Effort: LOW (documentation + constants, enforced at the same time as the
+  already-planned component extraction)
+
+[LOW] — No design-system documentation exists anywhere in the codebase
+Dimension: §L3 (Design system documentation)
+Finding: Colors.kt/Theme.kt/Type.kt have good inline comments explaining
+  individual decisions (confirmed throughout this audit — e.g. the
+  `Background`/`OnBackground` proxy-getter comment, the "hero number" note
+  in Type.kt), but there's no single document describing the design
+  system as a whole.
+Why it matters: This audit's own design_audit.md — the Character Brief,
+  Design DNA spec, and token findings — now functions as a first draft of
+  exactly this documentation, produced as a side effect of the audit
+  itself.
+Recommendation: None needed as a separate task — this file already serves
+  the purpose; keep it updated as the recommended fixes land, rather than
+  starting a second design-system doc from scratch.
+Effort: N/A
+
+[CROSS-REFERENCE — no new finding] §L4 Copy & Content Standardization →
+  fully covered by Phase 1 §DCVW1-2 (voice-character alignment) and the
+  §F6 streak-mechanic copy guardrail (Phase 2, above)
+
+[CROSS-REFERENCE — no new finding] §L5 Interaction & Experience Polish →
+  fully covered by Phase 1 §DP3 (Character Deepening Protocol — transition
+  coherence, delight opportunities, motion budget, stagger sequencing,
+  the "one unavoidable moment" score-reveal recommendation)
+
+[LOW] — The "craft implementation checklist" baseline items (§L5,
+  universal) are only partially present
+Dimension: §L5
+Finding: Checking the specific universal baseline against confirmed
+  evidence: styled focus rings — NOT customized (Material default,
+  already noted); `font-variant-numeric`/tabular-nums on number columns —
+  NOT present (already flagged, Phase 1 §DT3, HIGH severity); press-state
+  scale/depth feedback on buttons — NOT confirmed (no custom press
+  animation found, only default ripple); skeleton loaders mirroring actual
+  content — NOT present (Phase 1 §DST2, generic spinners only). Of the
+  "at least one detail that clearly took extra effort" baseline, the CVD-
+  safe grade-color system and glassSheen() both qualify — so the baseline
+  is met, but narrowly, by two items already identified rather than by
+  the broader checklist.
+Recommendation: No new recommendation — every specific item here already
+  has its own finding and recommendation earlier in this audit (§DT3,
+  §DST2, §DBI3). Listed here only to confirm the checklist was actually
+  run against the evidence, not skipped.
+Effort: N/A
+```
+
+Section L3-L5 complete.
