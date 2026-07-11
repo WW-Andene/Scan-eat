@@ -55,7 +55,17 @@ class UserPreferences @Inject constructor(
 
     // ---- API / app settings ----
 
-    val groqApiKey: Flow<String>  = storeData.map { it[KEY_API_KEY]    ?: "" }
+    // The stored value is Keystore-encrypted (see ApiKeyCipher) going forward.
+    // A value stored before this existed is still plaintext — decryptOrNull
+    // returns null for it (not valid Base64(iv+ciphertext), or the GCM tag
+    // fails to verify), so it's re-encrypted in place on first read after the
+    // app updates, transparent to every caller of this flow.
+    val groqApiKey: Flow<String> = storeData.map { prefs ->
+        val stored = prefs[KEY_API_KEY] ?: return@map ""
+        ApiKeyCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
+            store.edit { it[KEY_API_KEY] = ApiKeyCipher.encrypt(plaintext) }
+        }
+    }
     /** Empty string means "use the built-in default" (see OcrParser.DEFAULT_MODEL). */
     val groqModel: Flow<String>   = storeData.map { it[KEY_GROQ_MODEL] ?: "" }
     val apiMode: Flow<ApiMode>    = storeData.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }
@@ -67,7 +77,7 @@ class UserPreferences @Inject constructor(
     /** "none" | "deuteranopia" | "protanopia" | "tritanopia" */
     val colorblindMode: Flow<String>      = storeData.map { it[KEY_COLORBLIND_MODE] ?: "none" }
 
-    suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = key }
+    suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = ApiKeyCipher.encrypt(key) }
     suspend fun setGroqModel(model: String) = store.edit { it[KEY_GROQ_MODEL] = model }
     suspend fun setApiMode(mode: ApiMode)   = store.edit { it[KEY_API_MODE]   = mode.key }
     suspend fun setServerUrl(url: String)   = store.edit { it[KEY_SERVER_URL] = url }
