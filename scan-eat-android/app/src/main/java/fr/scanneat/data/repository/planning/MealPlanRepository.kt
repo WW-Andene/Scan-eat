@@ -119,6 +119,12 @@ class MealPlanRepository @Inject constructor(
     // Format per entry: date|meal|kind|id_or_text|name
     // Entries separated by newline.
 
+    // A newline in a note (or a recipe/template name) would otherwise split
+    // into extra lines on deserialize — the first parses as a truncated
+    // fragment and the rest fail the parts.size < 5 check and are silently
+    // dropped, corrupting the stored plan with no visible error.
+    private fun oneLine(s: String) = s.replace('\n', ' ').replace('\r', ' ')
+
     private fun serialize(plan: Map<LocalDate, DayPlan>): String =
         plan.flatMap { (date, day) ->
             listOf("breakfast" to day.breakfast, "lunch" to day.lunch,
@@ -126,9 +132,9 @@ class MealPlanRepository @Inject constructor(
                 .mapNotNull { (meal, slot) ->
                     slot ?: return@mapNotNull null
                     when (slot) {
-                        is MealPlanSlot.RecipeSlot   -> "$date|$meal|recipe|${slot.id}|${slot.name}"
-                        is MealPlanSlot.TemplateSlot -> "$date|$meal|template|${slot.id}|${slot.name}"
-                        is MealPlanSlot.NoteSlot     -> "$date|$meal|note||${slot.text}"
+                        is MealPlanSlot.RecipeSlot   -> "$date|$meal|recipe|${slot.id}|${oneLine(slot.name)}"
+                        is MealPlanSlot.TemplateSlot -> "$date|$meal|template|${slot.id}|${oneLine(slot.name)}"
+                        is MealPlanSlot.NoteSlot     -> "$date|$meal|note||${oneLine(slot.text)}"
                     }
                 }
         }.joinToString("\n")
@@ -152,9 +158,4 @@ class MealPlanRepository @Inject constructor(
         }
         return plan
     }
-}
-
-private operator fun <A, B, C, D, E> List<*>.component5(): E {
-    @Suppress("UNCHECKED_CAST")
-    return get(4) as E
 }
