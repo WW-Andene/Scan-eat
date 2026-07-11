@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
@@ -256,15 +257,20 @@ private fun BioInputUnit(
     toMetric: (Double) -> Double,
     onMetricChange: (String) -> Unit,
 ) {
-    val display = if (useImperial) metricValue.toDoubleOrNull()?.let { "%.1f".format(toImperial(it)) } ?: "" else metricValue
+    // On a French-locale device (this app's default), the decimal keyboard types a
+    // comma, but String.toDoubleOrNull() only ever accepts a period — every keystroke
+    // with a decimal silently reset the field. Normalize comma->period before parsing,
+    // and force Locale.US when formatting back so the displayed/stored value is always
+    // period-based and re-parses correctly on the next edit.
+    val display = if (useImperial) metricValue.toDoubleOrNull()?.let { "%.1f".format(Locale.US, toImperial(it)) } ?: "" else metricValue
     OutlinedTextField(
         value = display,
         onValueChange = { input ->
-            val d = input.toDoubleOrNull()
+            val d = input.replace(',', '.').toDoubleOrNull()
             onMetricChange(when {
                 input.isBlank() -> ""
                 d == null -> metricValue
-                useImperial -> "%.2f".format(toMetric(d))
+                useImperial -> "%.2f".format(Locale.US, toMetric(d))
                 else -> input
             })
         },

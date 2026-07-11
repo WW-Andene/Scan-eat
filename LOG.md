@@ -291,3 +291,20 @@ decision:  Extracted scanEatTextFieldColors() into Colors.kt (the
            exact-string sed (safe: single unambiguous literal). All 7
            files already wildcard-import the theme package, no new
            imports needed.
+
+### App-audit §J1 — French-locale users blocked from entering imperial decimals
+context:   BiolismProfileScreen's BioInputUnit (metric<->imperial toggle
+           for height/weight/waist/etc.) parsed raw keyboard input via
+           input.toDoubleOrNull(), which only accepts a period. On a
+           French-locale device (this app's default), the decimal
+           keyboard produces a comma - every keystroke with a decimal
+           silently reset the field to the previous value. The format
+           side ("%.1f".format(...), default-locale) compounded it by
+           displaying a comma the parser couldn't read back.
+decision:  Normalize comma->period before parsing (input.replace(',',
+           '.')); force Locale.US when formatting back so the stored/
+           displayed value is always period-based and re-parses on the
+           next edit. Left the many read-only display-only "%.Nf".format
+           calls elsewhere (BMI, TDEE, burn rate, dispWeight/dispCirc/
+           dispHeight overview recap) untouched - those are pure display
+           text, a French comma there is correct localization, not a bug.
