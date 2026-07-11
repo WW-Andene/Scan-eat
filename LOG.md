@@ -752,3 +752,21 @@ why:       This is the highest-stakes information on the entire result
            screen (a real safety veto, e.g. trans fats/allergen-adjacent
            risk) - it must not depend on color or glyph-recognition alone.
 reversal:  trivial (semantics modifier + 2 new strings, no visual change)
+
+### App-audit §H1/L3 — GTIN-14 case-code handling was unreachable dead code
+context:   ScanRepository.gtin14ToEan13() (added earlier this session to
+           widen barcode matching to wholesale/case-pack codes) can only
+           ever run on a 14-digit input, but ScanScreen's own ML Kit
+           analyzer callback filtered out both Barcode.FORMAT_ITF (the
+           format ITF-14/GTIN-14 codes actually decode as) and any 14-
+           digit result (digits.length in listOf(8, 12, 13) excluded 14) -
+           so a real camera scan of a GTIN-14 case code could never reach
+           that logic at all, regardless of how correct it is.
+decision:  Added Barcode.FORMAT_ITF to the accepted format list and 14 to
+           the accepted digit-length list, so the already-built
+           GTIN-14-to-EAN-13 conversion path is actually reachable from a
+           live scan.
+why:       Closes the gap between "logic exists and is tested" and
+           "logic can ever run" - the exact kind of platform-compatibility
+           issue this category is meant to catch.
+reversal:  trivial (2 list-literal additions, no new logic)
