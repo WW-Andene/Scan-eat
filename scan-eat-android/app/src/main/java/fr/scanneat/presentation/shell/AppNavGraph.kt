@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -95,7 +96,19 @@ fun AppNavGraph(
         ) {
             ResultScreen(
                 onBack = { navController.popBackStack() },
-                onLog  = { navController.navigate(TopTab.Diary.route) { launchSingleTop = true } },
+                onLog  = {
+                    // Match MainShell's tab-switch options exactly — a bare
+                    // navigate{launchSingleTop} pushed Diary on top of Scan→Result
+                    // instead of switching tabs, so system back from Diary
+                    // returned to Result (not tab behavior) and this Diary
+                    // instance didn't share saved state with the one the bottom
+                    // bar restores.
+                    navController.navigate(TopTab.Diary.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
             )
         }
 
