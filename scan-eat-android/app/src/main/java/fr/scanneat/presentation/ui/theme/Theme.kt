@@ -56,6 +56,14 @@ private val DarkColors = darkColorScheme(
     outline          = Color(0xFF4E4A56),
 )
 
+// primary/secondary/tertiary are each a darkened variant of Gold/AccentCoral/
+// Teal, tuned for two different WCAG contrast roles rather than one shared
+// value: as a white-text button fill (onPrimary/onSecondary=White) they clear
+// 4.0-4.8:1; as text directly on the F6F1EC background they sit at 3.4-4.3:1
+// (large/bold-text tier). Darkening further to clear 4.5:1 as body text would
+// make the button fills unnecessarily dark — the two roles pull in opposite
+// directions, which is why these are hand-picked per role instead of one
+// formula. See design_audit.md Part A6 for the full measured breakdown.
 private val LightColors = lightColorScheme(
     primary          = Color(0xFFA07828),
     onPrimary        = Color.White,

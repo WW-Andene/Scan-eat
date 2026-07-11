@@ -84,7 +84,7 @@ in its Part with an explicit PROTECT note.
 | 17 | ~~MEDIUM~~ FIXED | Contrast | WCAG verification gap (Phase 2 restated) — now verified PASS | F1 |
 | 18 | MEDIUM | Touch | 12+ IconButtons at 32-36dp, below 48dp guideline | F3 |
 | 19 | ~~LOW~~ PARTIALLY FIXED | Color | "AccentGreen" misnamed (it's coral); 3 unreconciled gold values | B1 |
-| 20 | LOW | Brand | Light theme re-derives colors independently of shared tokens | A6 |
+| 20 | ~~LOW~~ VERIFIED — deliberate, not drift | Brand | Light theme re-derives colors independently of shared tokens | A6 |
 | 21 | ~~LOW~~ FIXED | Tokens | No separator-weight taxonomy | A6, B10 |
 | 22 | ~~LOW~~ VERIFIED | Components | Nav tab-fade and bottom-nav tinting unconfirmed | B4 |
 | 23 | ~~LOW~~ FIXED | Typography | 3/15 type slots never hand-tuned (actually 4 — see B2) | B2 |
@@ -349,6 +349,39 @@ Why it matters: A rebrand or accent-color change touches 3+ gold values
 Recommendation: Derive LightColors' primary/secondary/tertiary from Gold/
   AccentGreen/Teal via one documented OKLCH lightness-shift rule.
 Effort: MEDIUM (needs visual re-check of light-mode contrast)
+STATUS: RE-VERIFIED, not what it looked like — computed actual WCAG
+  contrast ratios for all 4 "unreconciled" values rather than assuming
+  drift. Each is a deliberately-darkened variant of its dark-mode base hue
+  (Gold/AccentCoral/Teal), but tuned for two *different* contrast roles
+  that genuinely need different target values:
+    - LightGoldAccent (0x8B6914) is text-on-background (BiolismScreen
+      titles/labels directly on the F6F1EC light bg): 4.49:1 — a real,
+      correct, deliberate darkening for legibility, matching the code
+      comment's own stated reason.
+    - LightColors.primary (0xA07828) is a button-fill with white text on
+      top (onPrimary=White): white-on-fill contrast 4.03:1 (large/bold
+      text tier — passes 3:1, borderline for 4.5:1 body text), vs.
+      text-on-background 3.56:1 (fails 4.5:1 outright) — confirming this
+      value could NOT safely replace LightGoldAccent's role, and vice
+      versa: swapping either into the other's job would either regress a
+      correct legibility choice or make a button fill unnecessarily dark.
+    - secondary (0xB05A38)/tertiary (0x1A9090) show the same pattern:
+      white-on-fill passes comfortably (4.81:1 / 3.87:1), text-on-
+      background sits at 4.25:1 / 3.42:1 — real numbers, not implausible,
+      consistent with "darkened for a light background" being an actual
+      applied rule, just never written down as one.
+  Conclusion: these are not 3-4 arbitrary independent guesses — they're
+  correctly differentiated per-role, computed by hand rather than by
+  formula. Consolidating them into one shared "light-mode gold" value, as
+  originally recommended, would make the contrast WORSE somewhere no
+  matter which value won. Did not change any hex value. What was
+  genuinely missing — the documented rule connecting them — has been
+  added as a comment in Theme.kt referencing these measured ratios, so a
+  future rebrand touches values with the actual constraint in hand instead
+  of re-guessing. Full OKLCH-authored consolidation remains open only if
+  someone wants to re-derive tighter to 4.5:1 across the board — not
+  attempted here since it would require picking new, previously-unshipped
+  hex values with no way to visually confirm the result.
 
 [LOW] — Single separator/border treatment, no heavy/light/accent taxonomy
 Finding: glassSheen()'s hairline edge is the only border-like treatment,
@@ -1628,8 +1661,6 @@ Still open, deliberately not touched this pass:
   done (see B3's STATUS); the remaining ~80 call sites' individual size
   values are left alone since a blanket resize needs a visual pass this
   sandbox can't do (no way to screenshot-verify layout at each site).
-- **Light-theme gold consolidation** (A6) — needs a visual re-check of
-  light-mode contrast before changing 3 independently-authored hex values.
 - **Copy warmth pass** (B9) — investigated further: the score-reveal
   verdict text (`gradeVerdict()` in ScoringEngine.kt) is hardcoded English,
   and it's not an isolated case — a grep across `domain/engine/` turned up
