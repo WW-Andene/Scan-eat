@@ -26,44 +26,38 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun ComparisonCard(cmp: ComparisonResult) {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(12.dp),
-            color    = AccentGreen.copy(alpha = 0.1f),
-        ) {
-            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
-                    color = AccentGreen, fontWeight = FontWeight.SemiBold)
-                val delta = cmp.scoreDelta
-                val dColor = if (delta >= 0) FlagGreen else FlagRed
-                val dSign  = if (delta >= 0) "+" else ""
-                Text("${cmp.prev.name} → ${cmp.next.name}",
-                    style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
-                Text(stringResource(R.string.result_comparison_score, "$dSign$delta"),
-                    style = MaterialTheme.typography.bodyMedium, color = dColor, fontWeight = FontWeight.Bold)
-                if (cmp.addedRedFlags.isNotEmpty())
-                    Text(stringResource(R.string.result_comparison_new_issues, cmp.addedRedFlags.joinToString()),
-                        style = MaterialTheme.typography.bodySmall, color = FlagRed)
-                if (cmp.removedRedFlags.isNotEmpty())
-                    Text(stringResource(R.string.result_comparison_resolved_issues, cmp.removedRedFlags.joinToString()),
-                        style = MaterialTheme.typography.bodySmall, color = FlagGreen)
-            }
-        }
+    ScanEatCard(
+        shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.1f),
+        contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
+            color = AccentGreen, fontWeight = FontWeight.SemiBold)
+        val delta = cmp.scoreDelta
+        val dColor = if (delta >= 0) FlagGreen else FlagRed
+        val dSign  = if (delta >= 0) "+" else ""
+        Text("${cmp.prev.name} → ${cmp.next.name}",
+            style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+        Text(stringResource(R.string.result_comparison_score, "$dSign$delta"),
+            style = MaterialTheme.typography.bodyMedium, color = dColor, fontWeight = FontWeight.Bold)
+        if (cmp.addedRedFlags.isNotEmpty())
+            Text(stringResource(R.string.result_comparison_new_issues, cmp.addedRedFlags.joinToString()),
+                style = MaterialTheme.typography.bodySmall, color = FlagRed)
+        if (cmp.removedRedFlags.isNotEmpty())
+            Text(stringResource(R.string.result_comparison_resolved_issues, cmp.removedRedFlags.joinToString()),
+                style = MaterialTheme.typography.bodySmall, color = FlagGreen)
     }
 }
 
 @Composable
 internal fun PairingsCard(pairings: List<String>) {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.08f)) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
-                    color = AccentGreen, fontWeight = FontWeight.SemiBold)
-                pairings.forEach { pair ->
-                    Text(stringResource(R.string.result_pairing_item, pair), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
-                }
-            }
+    ScanEatCard(
+        shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.08f),
+        contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
+            color = AccentGreen, fontWeight = FontWeight.SemiBold)
+        pairings.forEach { pair ->
+            Text(stringResource(R.string.result_pairing_item, pair), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
         }
     }
 }
@@ -74,15 +68,14 @@ internal fun PairingsCard(pairings: List<String>) {
 // better-score suggestion, which Scan'eat had no equivalent of at all.
 @Composable
 internal fun AlternativeCard(alternative: ScanResult) {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.1f)) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
-                    color = AccentGreen, fontWeight = FontWeight.SemiBold)
-                Text(stringResource(R.string.result_alternative_item, alternative.product.name, alternative.audit.score, alternative.audit.grade.label),
-                    style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-            }
-        }
+    ScanEatCard(
+        shape = RoundedCornerShape(12.dp), color = AccentGreen.copy(alpha = 0.1f),
+        contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
+            color = AccentGreen, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.result_alternative_item, alternative.product.name, alternative.audit.score, alternative.audit.grade.label),
+            style = MaterialTheme.typography.bodyMedium, color = OnBackground)
     }
 }
 

@@ -126,20 +126,18 @@ fun ScanScreen(
                     style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
                 Spacer(Modifier.height(24.dp))
                 if (permanentlyDenied) {
-                    Button(
+                    ScanEatPrimaryButton(
                         onClick = {
                             context.startActivity(
                                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
                             )
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
                     ) {
-                        Text(stringResource(R.string.scan_open_settings_button), color = Color.Black)
+                        Text(stringResource(R.string.scan_open_settings_button))
                     }
                 } else {
-                    Button(onClick = { permLauncher.launch(Manifest.permission.CAMERA) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {
-                        Text(stringResource(R.string.common_allow), color = Color.Black)
+                    ScanEatPrimaryButton(onClick = { permLauncher.launch(Manifest.permission.CAMERA) }) {
+                        Text(stringResource(R.string.common_allow))
                     }
                 }
             }

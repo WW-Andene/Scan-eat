@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,12 +58,10 @@ fun OnboardingScreen(
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.weight(1f))
-                    Button(
+                    ScanEatPrimaryButton(
                         onClick = { page = 1 },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                        shape = RoundedCornerShape(12.dp),
-                    ) { Text(stringResource(R.string.onboarding_start_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.onboarding_start_button), fontSize = 16.sp) }
                 }
 
                 // ---- Page 1: Value proposition — what sets this apart ----
@@ -85,12 +82,10 @@ fun OnboardingScreen(
                     }
 
                     Spacer(Modifier.weight(1f))
-                    Button(
+                    ScanEatPrimaryButton(
                         onClick = { page = 2 },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                        shape = RoundedCornerShape(12.dp),
-                    ) { Text(stringResource(R.string.onboarding_continue_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.onboarding_continue_button), fontSize = 16.sp) }
                 }
 
                 // ---- Page 2: API mode ----
@@ -143,7 +138,7 @@ fun OnboardingScreen(
                     }
 
                     Spacer(Modifier.weight(1f))
-                    Button(
+                    ScanEatPrimaryButton(
                         onClick = {
                             viewModel.setMode(selectedMode)
                             if (apiKey.isNotBlank()) viewModel.setApiKey(apiKey)
@@ -153,9 +148,7 @@ fun OnboardingScreen(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = (selectedMode == ApiMode.DIRECT && apiKey.isNotBlank()) ||
                                   (selectedMode == ApiMode.SERVER && serverUrl.isNotBlank()),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                        shape = RoundedCornerShape(12.dp),
-                    ) { Text(stringResource(R.string.onboarding_continue_button), color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.onboarding_continue_button), fontSize = 16.sp) }
                     TextButton(
                         onClick = { viewModel.skipApiSetup(); page = 3 },
                         modifier = Modifier.fillMaxWidth(),
@@ -171,12 +164,10 @@ fun OnboardingScreen(
                     )
                     Spacer(Modifier.weight(1f))
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-                        Button(
+                        ScanEatPrimaryButton(
                             onClick = { viewModel.finish(); onGoToProfile() },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                            shape = RoundedCornerShape(12.dp),
-                        ) { Text(stringResource(R.string.onboarding_profile_cta), color = Color.Black, fontWeight = FontWeight.SemiBold) }
+                        ) { Text(stringResource(R.string.onboarding_profile_cta)) }
                         TextButton(
                             onClick = { viewModel.finish() },
                             modifier = Modifier.fillMaxWidth(),

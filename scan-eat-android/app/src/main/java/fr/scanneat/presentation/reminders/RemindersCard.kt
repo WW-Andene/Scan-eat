@@ -48,11 +48,9 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
             Text(stringResource(R.string.reminders_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
 
             if (!permissionGranted) {
-                Button(
+                ScanEatPrimaryButton(
                     onClick = { permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                    shape = RoundedCornerShape(10.dp),
-                ) { Text(stringResource(R.string.reminders_enable_notifications), color = androidx.compose.ui.graphics.Color.Black) }
+                ) { Text(stringResource(R.string.reminders_enable_notifications)) }
             }
 
             ReminderRow(

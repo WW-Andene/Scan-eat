@@ -319,15 +319,13 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_backup_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 val working = backupState.value is BackupUiState.Working
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(
+                    ScanEatPrimaryButton(
                         onClick = { viewModel.prepareExport() },
                         enabled = !working,
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                        shape = RoundedCornerShape(12.dp),
                     ) {
                         Icon(Icons.Default.Upload, null, tint = Color.Black, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.settings_backup_export_button), color = Color.Black, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.settings_backup_export_button))
                     }
                     OutlinedButton(
                         onClick = { importLauncher.launch(arrayOf("application/json")) },
@@ -405,8 +403,8 @@ private fun SettingsSection(title: String, content: @Composable ColumnScope.() -
 @Composable
 private fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Button(onClick = onSave, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), shape = RoundedCornerShape(12.dp)) {
-            Text(stringResource(R.string.common_save), color = Color.Black, fontWeight = FontWeight.SemiBold)
+        ScanEatPrimaryButton(onClick = onSave) {
+            Text(stringResource(R.string.common_save))
         }
         androidx.compose.animation.AnimatedVisibility(visible = saved) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

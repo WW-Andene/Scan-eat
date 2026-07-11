@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -84,8 +83,8 @@ fun FastingScreen(
                                 OutlinedButton(onClick = { viewModel.cancel() }, border = ButtonDefaults.outlinedButtonBorder(enabled = true)) {
                                     Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.7f))
                                 }
-                                Button(onClick = { viewModel.stop() }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)) {
-                                    Text(stringResource(R.string.fasting_finish_button), color = Color.Black, fontWeight = FontWeight.SemiBold)
+                                ScanEatPrimaryButton(onClick = { viewModel.stop() }) {
+                                    Text(stringResource(R.string.fasting_finish_button))
                                 }
                             }
                         } else {
@@ -104,8 +103,8 @@ fun FastingScreen(
                                     )
                                 }
                             }
-                            Button(onClick = { viewModel.start(targetHours) }, colors = ButtonDefaults.buttonColors(containerColor = AccentGreen), modifier = Modifier.fillMaxWidth()) {
-                                Text(stringResource(R.string.fasting_start_button, targetHours), color = Color.Black, fontWeight = FontWeight.SemiBold)
+                            ScanEatPrimaryButton(onClick = { viewModel.start(targetHours) }, modifier = Modifier.fillMaxWidth()) {
+                                Text(stringResource(R.string.fasting_start_button, targetHours))
                             }
                         }
                     }

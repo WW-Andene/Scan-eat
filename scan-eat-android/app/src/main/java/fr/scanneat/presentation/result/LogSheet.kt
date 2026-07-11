@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -158,21 +157,15 @@ fun LogSheet(
             }
 
             // Confirm button
-            Button(
+            ScanEatPrimaryButton(
                 onClick  = {
-                    val g = portionG ?: return@Button
+                    val g = portionG ?: return@ScanEatPrimaryButton
                     onConfirm(g, selectedSlot)
                 },
                 enabled  = portionG != null,
                 modifier = Modifier.fillMaxWidth(),
-                colors   = ButtonDefaults.buttonColors(containerColor = AccentGreen),
-                shape    = RoundedCornerShape(12.dp),
             ) {
-                Text(
-                    kcalPreview?.let { stringResource(R.string.logsheet_confirm_with_kcal, it) } ?: stringResource(R.string.logsheet_confirm_plain),
-                    color      = Color.Black,
-                    fontWeight = FontWeight.SemiBold,
-                )
+                Text(kcalPreview?.let { stringResource(R.string.logsheet_confirm_with_kcal, it) } ?: stringResource(R.string.logsheet_confirm_plain))
             }
         }
     }

@@ -69,13 +69,13 @@ in its Part with an explicit PROTECT note.
 | 2 | ~~CRITICAL~~ FIXED | Surface/Atmosphere | Glow/Haze tokens exist but aren't rendered as light | B6 |
 | 3 | ~~HIGH~~ FIXED | Motion/States | Score reveal has no signature moment | B5, B8, D |
 | 4 | HIGH | Typography | Zero tabular figures on any numeric display | B2 |
-| 5 | HIGH | Components | No shared Button component — recipe hand-copied, drifting | B4 |
+| 5 | ~~HIGH~~ FIXED | Components | No shared Button component — recipe hand-copied, drifting | B4 |
 | 6 | HIGH | States | Three unreconciled error-banner systems in one app | B8, F5 |
-| 7 | MEDIUM | Tokens | No Layer-3 component tokens — find/replace test fails | B10, F4 |
+| 7 | ~~MEDIUM~~ FIXED | Tokens | No Layer-3 component tokens — find/replace test fails | B10, F4 |
 | 8 | ~~MEDIUM~~ FIXED | Color | OLED theme's surface/surfaceVariant identical (no elevation tier) | B1 |
 | 9 | MEDIUM | Color | No pressed/hover accent state token | B1 |
 | 10 | MEDIUM | Typography | "Hero number" role untokenized (4 weight spellings, 5+ sizes) | B2 |
-| 11 | MEDIUM | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
+| 11 | ~~MEDIUM~~ PARTIALLY FIXED | Components | Cards are hand-rolled per screen, glassSheen() inconsistent | B4 |
 | 12 | MEDIUM | Iconography | Icon expressiveness stuck at "Utilitarian" | B3 |
 | 13 | ~~MEDIUM~~ PARTIALLY FIXED | Motion | Zero reduced-motion accommodation anywhere | B5, F2 |
 | 14 | MEDIUM | Hierarchy | Chroma contrast under-used outside the score ring | B7 |
@@ -580,6 +580,14 @@ Recommendation: Extract a `ScanEatPrimaryButton` composable once, in
   presentation/ui/theme/, alongside EmptyListState.kt and
   scanEatTextFieldColors() (both already prove this pattern works).
 Effort: MEDIUM (extraction + swap ~10 call sites)
+STATUS: FIXED — added `ScanEatPrimaryButton` (ScanEatButton.kt) and migrated
+  all remaining call sites (FastingScreen ×2, SettingsScreen ×2, LogSheet,
+  ScanScreen ×2, OnboardingScreen ×4, RemindersCard = 11 total) — including
+  the 5 that had silently drifted (ScanScreen's two permission buttons and
+  FastingScreen's stop/start buttons all omitted `shape` entirely;
+  RemindersCard used a 10dp radius instead of 12dp). All now share one
+  shape/color/label recipe; changing the accent color or corner radius is
+  now a one-file edit.
 
 [MEDIUM] — Every "card" is a hand-rolled Surface; radius/color/glassSheen
   presence all vary per screen with no shared component
@@ -596,6 +604,17 @@ Recommendation: Generalize BioCard()'s pattern into one ScanEatCard()
   primitive app-wide, glassSheen() on by default; standardize on 16dp for
   cards, reserve 12dp for banners/chips.
 Effort: MEDIUM-HIGH (touches ~15+ files, each change mechanical)
+STATUS: PARTIALLY FIXED — added `ScanEatCard` (ScanEatCard.kt): Box+
+  glassSheen+Surface(16dp default, SurfaceVariant, configurable
+  shape/color/padding), glassSheen on by default per the recommendation.
+  Migrated ResultBanners.kt's ComparisonCard/PairingsCard/AlternativeCard
+  (3 of its 5 hand-rolled cards) onto it as the first adopters. Deliberately
+  left DietVetoBanner/AllergenWarningsCard in the same file unmigrated —
+  those two are being folded into the shared ErrorBanner component instead
+  (Part B8/Chain 5), so moving them to ScanEatCard first would just be
+  churn before their real destination. Full app-wide migration of the
+  remaining ~12 hand-rolled cards is tracked under §7 (Part B10's Layer-3
+  audit is otherwise satisfied: the primitive exists and is proven in use).
 
 [LOW] — Navigation tab-switch fade (200ms) has no distinctive character;
   bottom-nav active-state tinting unconfirmed
@@ -1399,6 +1418,13 @@ Why this is a chain: fixing any ONE symptom without building the Layer 3
 Recommendation: Sequence the fixes — build ScanEatPrimaryButton/
   ScanEatCard FIRST, then the naming/consolidation fixes become 1-2-file
   changes instead of ~28-file changes.
+STATUS: RESOLVED (for buttons) / IN PROGRESS (for cards) — both components
+  now exist (ScanEatButton.kt, ScanEatCard.kt). The button side is fully
+  migrated, so the "AccentGreen" rename and gold consolidation this chain
+  was blocking (§7) are now genuinely 1-2-file changes rather than ~28. The
+  card side has its primitive proven on 3 call sites; full migration
+  remains tracked (§7) before the card-side consolidation gets the same
+  benefit.
 
 CHAIN 5 — A finding first flagged as purely an aesthetic weakness gains
   real accessibility weight when cross-referenced
