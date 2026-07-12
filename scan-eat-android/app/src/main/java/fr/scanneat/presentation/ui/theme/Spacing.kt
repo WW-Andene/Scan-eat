@@ -15,4 +15,8 @@ object Spacing {
     val M: Dp = 12.dp
     val L: Dp = 16.dp
     val XL: Dp = 24.dp
+    // Covers the bottom-of-list spacer value shared identically across
+    // GroceryScreen/ScanHistoryScreen/WeightScreen - without this tier the
+    // scale topped out below the one value every list screen already agrees on.
+    val XXL: Dp = 32.dp
 }

@@ -85,39 +85,35 @@ fun WeightScreen(
             // Summary card
             summary.value?.let { s ->
                 item {
-                    Box(Modifier.fillMaxWidth().glassSheen()) {
-                    Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Column {
-                                    Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
-                                    val sign = if (s.deltaKg >= 0) "+" else ""
-                                    val dColor = if (s.deltaKg <= 0) FlagGreen else FlagRed
-                                    Text(stringResource(R.string.weight_delta_kg, "$sign${s.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = dColor)
-                                }
-                                Column(horizontalAlignment = Alignment.End) {
-                                    val tSign = if (s.trendKgPerWeek >= 0) "+" else ""
-                                    Text(stringResource(R.string.weight_trend_kg_week, "$tSign${s.trendKgPerWeek}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
-                                    if (forecast.value is WeightForecast.Ok) {
-                                        val f = forecast.value as WeightForecast.Ok
-                                        Text(stringResource(R.string.weight_goal_forecast, f.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
-                                    }
-                                }
+                    ScanEatCard(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column {
+                                Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
+                                val sign = if (s.deltaKg >= 0) "+" else ""
+                                val dColor = if (s.deltaKg <= 0) FlagGreen else FlagRed
+                                Text(stringResource(R.string.weight_delta_kg, "$sign${s.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = dColor)
                             }
-                            goalWeightKg.value?.let { goal ->
-                                HorizontalDivider(color = OnSurface.copy(0.08f))
-                                val toGoal = s.latestKg - goal
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(stringResource(R.string.weight_goal_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                                    Text(
-                                        stringResource(R.string.weight_goal_delta, "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))}", dispWeight(goal)),
-                                        style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
-                                        color = if (kotlin.math.abs(toGoal) < 0.5) FlagGreen else AccentCoral,
-                                    )
+                            Column(horizontalAlignment = Alignment.End) {
+                                val tSign = if (s.trendKgPerWeek >= 0) "+" else ""
+                                Text(stringResource(R.string.weight_trend_kg_week, "$tSign${s.trendKgPerWeek}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                                if (forecast.value is WeightForecast.Ok) {
+                                    val f = forecast.value as WeightForecast.Ok
+                                    Text(stringResource(R.string.weight_goal_forecast, f.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                                 }
                             }
                         }
-                    }
+                        goalWeightKg.value?.let { goal ->
+                            HorizontalDivider(color = OnSurface.copy(0.08f))
+                            val toGoal = s.latestKg - goal
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(stringResource(R.string.weight_goal_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Text(
+                                    stringResource(R.string.weight_goal_delta, "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))}", dispWeight(goal)),
+                                    style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
+                                    color = if (kotlin.math.abs(toGoal) < 0.5) FlagGreen else AccentCoral,
+                                )
+                            }
+                        }
                     }
                 }
             }
