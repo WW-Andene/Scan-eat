@@ -459,6 +459,7 @@
     <string name="grocery_clear_checked">Uncheck all</string>
     <string name="grocery_clear_confirm_title">Uncheck all items?</string>
     <string name="grocery_clear_confirm_body">Every checked item will be reset. This action can\'t be undone.</string>
+    <string name="grocery_cleared_confirmation">Items unchecked</string>
 
     <!-- ── Profile screen ─────────────────────────────────────────────────── -->
     <string name="profile_title">My Profile</string>

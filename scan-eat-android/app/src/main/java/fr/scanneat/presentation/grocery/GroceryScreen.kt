@@ -40,6 +40,7 @@ fun GroceryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copiedMessage = stringResource(R.string.grocery_copied)
+    val clearedMessage = stringResource(R.string.grocery_cleared_confirmation)
     var copyMenuExpanded by remember { mutableStateOf(false) }
     var showClearConfirm by remember { mutableStateOf(false) }
 
@@ -148,7 +149,11 @@ fun GroceryScreen(
             title = { Text(stringResource(R.string.grocery_clear_confirm_title), color = OnBackground) },
             text  = { Text(stringResource(R.string.grocery_clear_confirm_body), color = OnBackground.copy(0.7f)) },
             confirmButton = {
-                TextButton(onClick = { viewModel.clearAllChecked(); showClearConfirm = false }) {
+                TextButton(onClick = {
+                    viewModel.clearAllChecked()
+                    showClearConfirm = false
+                    scope.launch { snackbarHostState.showSnackbar(clearedMessage) }
+                }) {
                     Text(stringResource(R.string.grocery_clear_checked), color = FlagRed)
                 }
             },

@@ -460,6 +460,7 @@
     <string name="grocery_clear_checked">Décocher tout</string>
     <string name="grocery_clear_confirm_title">Décocher tous les articles ?</string>
     <string name="grocery_clear_confirm_body">Toutes les cases cochées seront réinitialisées. Cette action est irréversible.</string>
+    <string name="grocery_cleared_confirmation">Articles décochés</string>
 
     <!-- ── Profile screen ─────────────────────────────────────────────────── -->
     <string name="profile_title">Mon profil</string>

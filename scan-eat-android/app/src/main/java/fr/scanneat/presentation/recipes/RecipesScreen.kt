@@ -89,8 +89,8 @@ private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit) 
                             style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                     }
                     Row {
-                        IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
-                        IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
+                        IconButton(onClick = onLog) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                        IconButton(onClick = onDelete) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
                     }
                 }
                 recipe.components.take(3).forEach { c ->

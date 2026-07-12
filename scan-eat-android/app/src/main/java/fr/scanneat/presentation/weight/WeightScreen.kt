@@ -170,7 +170,7 @@ fun WeightScreen(
                         }
                     }
                     Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
-                    IconButton(onClick = { deleteTarget = e.id }, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = { deleteTarget = e.id }) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }
