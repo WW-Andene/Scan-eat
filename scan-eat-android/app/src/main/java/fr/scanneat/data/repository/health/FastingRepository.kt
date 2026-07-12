@@ -127,7 +127,9 @@ class FastingRepository @Inject constructor(
      */
     val streak: Flow<Int> = history.map { list ->
         if (list.isEmpty()) return@map 0
-        val doneDates = list.filter { it.reached }.map { it.date }.toSortedSet().reversed()
+        // toSortedSet(reverseOrder()) instead of toSortedSet().reversed() - SortedSet#reversed()
+        // is only available from API 35, but minSdk here is 26.
+        val doneDates = list.filter { it.reached }.map { it.date }.toSortedSet(reverseOrder())
         var expected = LocalDate.now().toString()
         if (expected !in doneDates) expected = LocalDate.now().minusDays(1).toString()
         var streak = 0
