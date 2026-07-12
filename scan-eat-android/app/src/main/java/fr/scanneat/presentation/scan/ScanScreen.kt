@@ -251,6 +251,12 @@ fun ScanScreen(
     }
 }
 
+// ImageProxy.image (used inside the analyzer below) is CameraX's
+// @ExperimentalGetImage API - @OptIn here (rather than the marker
+// annotation itself) contains the opt-in to this function's body instead
+// of leaking an experimental-API requirement onto every caller of a
+// composable that's otherwise a stable, ordinary screen.
+@OptIn(androidx.camera.core.ExperimentalGetImage::class)
 @Composable
 fun CameraPreview(
     onBarcodeDetected: (String) -> Unit,
