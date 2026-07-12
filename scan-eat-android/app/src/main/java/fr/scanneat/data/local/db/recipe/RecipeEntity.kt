@@ -1,9 +1,10 @@
 package fr.scanneat.data.local.db.recipe
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "recipes")
+@Entity(tableName = "recipes", indices = [Index("profileId")])
 data class RecipeEntity(
     @PrimaryKey val id: String,
     val name: String,

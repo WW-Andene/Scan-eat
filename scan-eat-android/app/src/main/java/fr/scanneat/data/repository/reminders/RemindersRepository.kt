@@ -6,6 +6,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -74,7 +75,7 @@ class RemindersRepository @Inject constructor(
             weightOn        = p[K_WEIGHT_ON] ?: false,
             weightThresholdDays = p[K_WEIGHT_THRESHOLD] ?: 3,
         )
-    }
+    }.distinctUntilChanged()
 
     // Enabling a reminder (or changing its time) to a time already past today
     // otherwise fires it on the very next worker run, however soon that is —

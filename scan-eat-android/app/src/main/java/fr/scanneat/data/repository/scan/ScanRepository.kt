@@ -73,32 +73,33 @@ class ScanRepository @Inject constructor(
 
     // ---- History ----
 
-    fun observeHistory(limit: Int = 50): Flow<List<ScanResult>> =
-        dao.observeRecent(limit = limit).map { entities ->
+    fun observeHistory(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
+        dao.observeRecent(profileId = profileId, limit = limit).map { entities ->
             entities.mapNotNull { it.toDomain() }
         }
 
     suspend fun getById(id: Long): ScanResult? = dao.findById(id)?.toDomain()
 
-    suspend fun getCachedByBarcode(barcode: String): ScanResult? =
-        dao.findByBarcode(barcode)?.toDomain()
+    suspend fun getCachedByBarcode(barcode: String, profileId: String = "default"): ScanResult? =
+        dao.findByBarcode(barcode, profileId)?.toDomain()
 
-    fun observeFavorites(): Flow<List<ScanResult>> =
-        dao.observeFavorites().map { entities -> entities.mapNotNull { it.toDomain() } }
+    fun observeFavorites(profileId: String = "default"): Flow<List<ScanResult>> =
+        dao.observeFavorites(profileId).map { entities -> entities.mapNotNull { it.toDomain() } }
 
     suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
 
     suspend fun delete(id: Long) = dao.delete(id)
 
     /** A better-scoring product from the user's own history, same category — or null if none beats [scan]. */
-    suspend fun findBetterAlternative(scan: ScanResult): ScanResult? =
+    suspend fun findBetterAlternative(scan: ScanResult, profileId: String = "default"): ScanResult? =
         dao.findBetterInCategory(
             category       = scan.product.category.key,
             minScore       = scan.audit.score,
             excludeBarcode = scan.barcode,
+            profileId      = profileId,
         )?.toDomain()
 
-    suspend fun persist(result: ScanResult): Long =
+    suspend fun persist(result: ScanResult, profileId: String = "default"): Long =
         dao.insert(ScanHistoryEntity(
             barcode     = result.barcode,
             productName = result.product.name,
@@ -109,6 +110,7 @@ class ScanRepository @Inject constructor(
             productJson = productAdapter.toJson(result.product),
             auditJson   = auditAdapter.toJson(result.audit),
             scannedAt   = System.currentTimeMillis(),
+            profileId   = profileId,
         ))
 
     // ---- Score from barcode ----

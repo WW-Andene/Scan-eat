@@ -90,12 +90,20 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
         date: LocalDate,
         mealOverride: MealSlot? = null,
     ): List<DiaryEntry> {
-        val now = System.currentTimeMillis()
+        // Local wall-clock `now`, like every other DiaryEntry construction site
+        // (the DiaryEntry default, RecipeRepository.collapse) - ConsumptionRepository
+        // labels loggedAt as UTC when encoding to millis, so building this one
+        // from a true-UTC epoch instead would offset it from every sibling entry
+        // by the device's UTC offset, scrambling same-day chronological order.
+        // +idx nanos (not seconds) so items don't collapse to one instant yet
+        // still doesn't survive a millis round-trip past 1ms - fine, only their
+        // relative order among each other matters.
+        val now = java.time.LocalDateTime.now()
         return template.items.mapIndexed { idx, item ->
             DiaryEntry(
                 date        = date,
                 mealSlot    = mealOverride ?: MealSlot.valueOf(item.meal.uppercase()),
-                loggedAt    = java.time.LocalDateTime.ofEpochSecond((now + idx) / 1000, 0, java.time.ZoneOffset.UTC),
+                loggedAt    = now.plusNanos(idx * 1_000_000L),
                 productName = item.productName,
                 portionG    = item.grams,
                 nutrition   = NutritionPer100g(

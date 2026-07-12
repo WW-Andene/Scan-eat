@@ -6,6 +6,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.Instant
@@ -38,7 +39,10 @@ data class FastingState(
     // idle screen — the fast is still running, so it should never be hidden, just show 0.
     val elapsedMs: Long get() = (System.currentTimeMillis() - startMs).coerceAtLeast(0L)
     val elapsedHours: Double get() = elapsedMs / 3_600_000.0
-    val isActive: Boolean get() = elapsedHours in 0.0..targetHours.toDouble()
+    // Matches progressFraction's 1.2x grace window - a fast running past its
+    // target hour count should still read as "in progress, overshooting" until
+    // the user actually taps stop, not silently hide the running-fast UI.
+    val isActive: Boolean get() = elapsedHours in 0.0..(targetHours * 1.2)
     val progressFraction: Float get() = (elapsedHours / targetHours).toFloat().coerceIn(0f, 1.2f)
     val targetMs: Long get() = startMs + targetHours * 3_600_000L
 }
@@ -70,7 +74,7 @@ class FastingRepository @Inject constructor(
         val start  = prefs[KEY_START_MS] ?: return@map null
         val target = prefs[KEY_TARGET_HOURS] ?: 16
         FastingState(start, target)
-    }
+    }.distinctUntilChanged()
 
     val isActive: Flow<Boolean> = state.map { it?.isActive == true }
 
@@ -117,7 +121,7 @@ class FastingRepository @Inject constructor(
 
     val history: Flow<List<FastCompletion>> = storeData.map { prefs ->
         loadHistory(prefs)
-    }
+    }.distinctUntilChanged()
 
     /**
      * Current streak: consecutive days with at least one completed fast reaching

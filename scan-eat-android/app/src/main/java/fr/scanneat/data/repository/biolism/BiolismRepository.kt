@@ -10,6 +10,7 @@ import fr.scanneat.domain.engine.biolism.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -86,7 +87,7 @@ class BiolismRepository @Inject constructor(
         val K_ONBOARDED         = booleanPreferencesKey("bio_onboarded")
     }
 
-    val onboarded: Flow<Boolean> = storeData.map { it[K_ONBOARDED] ?: false }
+    val onboarded: Flow<Boolean> = storeData.map { it[K_ONBOARDED] ?: false }.distinctUntilChanged()
     suspend fun setOnboarded(v: Boolean) = store.edit { it[K_ONBOARDED] = v }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -124,7 +125,7 @@ class BiolismRepository @Inject constructor(
                 waistCm     = waistCm, hipCm = hipCm, neckCm = neckCm, cycleDay = cycleDay,
             )
         }
-    }
+    }.distinctUntilChanged()
 
     suspend fun saveProfile(profile: BiolismProfile) = store.edit { p ->
         p[K_SEX]       = profile.sex.name
@@ -182,7 +183,7 @@ class BiolismRepository @Inject constructor(
             fastingActive    = p[K_FASTING_ACTIVE]  ?: false,
             lastMealTs       = p[K_LAST_MEAL_TS]    ?: 0L,
         )
-    }
+    }.distinctUntilChanged()
 
     suspend fun saveTimerState(state: TimerState) = store.edit { p ->
         p[K_SESS_RUNNING]    = state.running
@@ -205,7 +206,7 @@ class BiolismRepository @Inject constructor(
     suspend fun setKetosisOn(on: Boolean) = store.edit { p -> p[K_KETOSIS_ON] = on }
     suspend fun setKetoAdapted(on: Boolean) = store.edit { p -> p[K_KETO_ADAPTED] = on }
 
-    val manualHR: Flow<Int?> = storeData.map { p -> p[K_MANUAL_HR] }
+    val manualHR: Flow<Int?> = storeData.map { p -> p[K_MANUAL_HR] }.distinctUntilChanged()
     suspend fun saveManualHR(bpm: Int?) = store.edit { p ->
         if (bpm != null) p[K_MANUAL_HR] = bpm else p.remove(K_MANUAL_HR)
     }
@@ -218,7 +219,7 @@ class BiolismRepository @Inject constructor(
         runCatching { Json.decodeFromString<List<SerializableSession>>(json) }
             .getOrElse { emptyList() }
             .map { it.toDomain() }
-    }
+    }.distinctUntilChanged()
 
     suspend fun saveSession(session: BiolismSession) = store.edit { p ->
         val current = runCatching {

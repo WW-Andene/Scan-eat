@@ -12,6 +12,7 @@ import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Sex
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -69,7 +70,7 @@ class HydrationRepository @Inject constructor(
 
     /** Observe intake for a given date in mL. Emits 0 when none. */
     fun observe(date: LocalDate): Flow<Int> =
-        storeData.map { prefs -> prefs[key(date)] ?: 0 }
+        storeData.map { prefs -> prefs[key(date)] ?: 0 }.distinctUntilChanged()
 
     /** Add (or subtract) mL for a date. Clamps to ≥ 0. */
     suspend fun add(date: LocalDate, ml: Int) {

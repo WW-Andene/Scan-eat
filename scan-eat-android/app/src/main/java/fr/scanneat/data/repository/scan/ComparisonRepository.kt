@@ -11,6 +11,7 @@ import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.ScanSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
@@ -76,7 +77,7 @@ class ComparisonRepository @Inject constructor(
         val armed   = prefs[KEY_ARMED] ?: false
         val armedAt = prefs[KEY_ARMED_AT] ?: 0L
         armed && (System.currentTimeMillis() - armedAt) < COMPARE_ARM_TTL_MS
-    }
+    }.distinctUntilChanged()
 
     /** Arm: snapshot the current scan result as Product A. */
     suspend fun arm(result: ScanResult) {

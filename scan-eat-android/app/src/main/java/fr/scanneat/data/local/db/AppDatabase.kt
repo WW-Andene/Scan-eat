@@ -31,7 +31,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MealTemplateEntity::class,
         RecipeEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -131,5 +131,16 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
         // leads with scannedAt, the other with barcode) - full table scan on every
         // emission of a Flow that's held live for the whole history screen.
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_history_profileId_favorite_scannedAt` ON `scan_history` (`profileId`, `favorite`, `scannedAt`)")
+    }
+}
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v8 → v9: custom_foods/recipes/meal_templates all filter WHERE
+        // profileId = ? but, unlike every other user-content table, had no
+        // index backing it - the same full-table-scan gap v3→v4 fixed for
+        // scan_history/consumption_log.
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_foods_profileId` ON `custom_foods` (`profileId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_recipes_profileId` ON `recipes` (`profileId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_meal_templates_profileId` ON `meal_templates` (`profileId`)")
     }
 }

@@ -9,6 +9,7 @@ import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
@@ -60,22 +61,27 @@ class UserPreferences @Inject constructor(
     // returns null for it (not valid Base64(iv+ciphertext), or the GCM tag
     // fails to verify), so it's re-encrypted in place on first read after the
     // app updates, transparent to every caller of this flow.
+    // distinctUntilChanged on every flow below - this whole file lives in one
+    // Preferences blob, so store.edit{} for ANY key (e.g. saving weight) makes
+    // DataStore re-emit ALL of these flows, not just the one that changed.
+    // Without dedup, every unrelated write re-fires every collector here with
+    // an unchanged value.
     val groqApiKey: Flow<String> = storeData.map { prefs ->
         val stored = prefs[KEY_API_KEY] ?: return@map ""
         ApiKeyCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
             store.edit { it[KEY_API_KEY] = ApiKeyCipher.encrypt(plaintext) }
         }
-    }
+    }.distinctUntilChanged()
     /** Empty string means "use the built-in default" (see OcrParser.DEFAULT_MODEL). */
-    val groqModel: Flow<String>   = storeData.map { it[KEY_GROQ_MODEL] ?: "" }
-    val apiMode: Flow<ApiMode>    = storeData.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }
-    val serverUrl: Flow<String>   = storeData.map { it[KEY_SERVER_URL] ?: "" }
-    val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE]   ?: "fr" }
-    val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "oled" }
-    val onboardingComplete: Flow<Boolean> = storeData.map { it[KEY_ONBOARDING_COMPLETE] ?: false }
-    val dyslexicFont: Flow<Boolean>       = storeData.map { it[KEY_DYSLEXIC_FONT] ?: false }
+    val groqModel: Flow<String>   = storeData.map { it[KEY_GROQ_MODEL] ?: "" }.distinctUntilChanged()
+    val apiMode: Flow<ApiMode>    = storeData.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }.distinctUntilChanged()
+    val serverUrl: Flow<String>   = storeData.map { it[KEY_SERVER_URL] ?: "" }.distinctUntilChanged()
+    val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE]   ?: "fr" }.distinctUntilChanged()
+    val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "oled" }.distinctUntilChanged()
+    val onboardingComplete: Flow<Boolean> = storeData.map { it[KEY_ONBOARDING_COMPLETE] ?: false }.distinctUntilChanged()
+    val dyslexicFont: Flow<Boolean>       = storeData.map { it[KEY_DYSLEXIC_FONT] ?: false }.distinctUntilChanged()
     /** "none" | "deuteranopia" | "protanopia" | "tritanopia" */
-    val colorblindMode: Flow<String>      = storeData.map { it[KEY_COLORBLIND_MODE] ?: "none" }
+    val colorblindMode: Flow<String>      = storeData.map { it[KEY_COLORBLIND_MODE] ?: "none" }.distinctUntilChanged()
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = ApiKeyCipher.encrypt(key) }
     suspend fun setGroqModel(model: String) = store.edit { it[KEY_GROQ_MODEL] = model }
@@ -109,7 +115,7 @@ class UserPreferences @Inject constructor(
                 ?.toSet()
                 ?: emptySet(),
         )
-    }
+    }.distinctUntilChanged()
 
     suspend fun saveProfile(profile: Profile) = store.edit { p ->
         p[KEY_ACTIVE_PROFILE]       = profile.id

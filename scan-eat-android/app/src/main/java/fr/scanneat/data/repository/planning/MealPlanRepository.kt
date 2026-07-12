@@ -6,6 +6,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -73,7 +74,7 @@ class MealPlanRepository @Inject constructor(
 
     val weekPlan: Flow<Map<LocalDate, DayPlan>> = storeData.map { prefs ->
         deserialize(prefs[KEY_PLAN] ?: "")
-    }
+    }.distinctUntilChanged()
 
     fun dayPlan(date: LocalDate): Flow<DayPlan> = weekPlan.map { plan ->
         plan[date] ?: DayPlan(date)

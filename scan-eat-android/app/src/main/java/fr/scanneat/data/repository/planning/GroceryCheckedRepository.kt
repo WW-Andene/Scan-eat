@@ -6,6 +6,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
@@ -38,7 +39,7 @@ class GroceryCheckedRepository @Inject constructor(
         if (e is IOException) emit(emptyPreferences()) else throw e
     }
 
-    val checkedKeys: Flow<Set<String>> = storeData.map { it[KEY_CHECKED] ?: emptySet() }
+    val checkedKeys: Flow<Set<String>> = storeData.map { it[KEY_CHECKED] ?: emptySet() }.distinctUntilChanged()
 
     suspend fun setChecked(key: String, checked: Boolean) {
         store.edit { prefs ->
