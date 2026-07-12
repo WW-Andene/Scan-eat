@@ -4,7 +4,7 @@ import fr.scanneat.domain.model.*
 import kotlin.math.roundToInt
 
 // ============================================================================
-// FOOD SCORING ENGINE v2.2.0 — Kotlin port of scoring-engine.ts
+// FOOD SCORING ENGINE v2.3.0 — Kotlin port of scoring-engine.ts
 //
 // Authoritative vs Editorial boundary preserved from original.
 // See scoring-engine.ts header for full provenance notes.

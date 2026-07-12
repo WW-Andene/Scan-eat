@@ -3,7 +3,7 @@ package fr.scanneat.shared
 import kotlin.math.roundToInt
 
 // ============================================================================
-// FOOD SCORING ENGINE v2.2.0 — Kotlin port of scoring-engine.ts
+// FOOD SCORING ENGINE v2.3.0 — Kotlin port of scoring-engine.ts
 //
 // Authoritative vs Editorial boundary preserved from original.
 // See scoring-engine.ts header for full provenance notes.
@@ -26,8 +26,6 @@ data class CategoryThresholds(
     val satFatThresholds: Triple<Double, Double, Double> = Triple(5.0, 10.0, 15.0),
     val sugarThresholds: Quadruple<Double, Double, Double, Double> = Quadruple(5.0, 10.0, 15.0, 22.5),
 )
-
-data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 
 private val DEFAULT_THRESHOLDS = CategoryThresholds(
     proteinG = Triple(3.0, 6.0, 12.0),
