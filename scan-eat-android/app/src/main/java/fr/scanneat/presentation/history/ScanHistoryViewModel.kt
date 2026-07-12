@@ -28,8 +28,19 @@ class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository)
     private val _sort = MutableStateFlow(HistorySort.RECENT)
     val sort: StateFlow<HistorySort> = _sort.asStateFlow()
 
-    private val allScans = repo.observeHistory(limit = 200)
+    // Reactive limit instead of a fixed 200 - a user with more scans than the
+    // cap would otherwise have every older non-favorite scan permanently
+    // unreachable from History with no way to see further back. loadMore()
+    // raises the cap and flatMapLatest re-subscribes with the wider window.
+    private val _limit = MutableStateFlow(200)
+    private val allScans = _limit.flatMapLatest { repo.observeHistory(limit = it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** True while there may be more, older rows beyond the current window. */
+    val canLoadMore: StateFlow<Boolean> = combine(allScans, _limit) { scans, limit -> scans.size >= limit }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun loadMore() { _limit.value += 200 }
 
     // observeHistory is capped at 200 rows - a favorite older than the 200
     // most-recent scans would otherwise silently vanish from its own

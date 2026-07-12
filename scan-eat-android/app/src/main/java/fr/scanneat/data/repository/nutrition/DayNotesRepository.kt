@@ -42,6 +42,25 @@ class DayNotesRepository @Inject constructor(
 
     private fun key(date: LocalDate) = stringPreferencesKey("note_${date}")
 
+    private val KEY_PREFIX = "note_"
+    private val PRUNE_KEEP_DAYS = 400L
+
+    /**
+     * Drop notes older than [PRUNE_KEEP_DAYS] — same pattern as
+     * HydrationRepository.prune. Every day with a note otherwise adds a
+     * permanent "note_<date>" key that's never removed, and DataStore loads
+     * the whole preferences file into memory on first access, so years of use
+     * means thousands of stale keys parsed on every app start.
+     */
+    private fun prune(prefs: MutablePreferences) {
+        val cutoff = LocalDate.now().minusDays(PRUNE_KEEP_DAYS)
+        val staleKeys = prefs.asMap().keys.filter { pref ->
+            pref.name.startsWith(KEY_PREFIX) &&
+                runCatching { LocalDate.parse(pref.name.removePrefix(KEY_PREFIX)) }.getOrNull()?.isBefore(cutoff) == true
+        }
+        for (pref in staleKeys) prefs.remove(pref)
+    }
+
     /** Observe note for a given date. Emits "" when none set.
      * distinctUntilChanged - Preferences DataStore re-emits its whole blob on
      * every edit() call for ANY date, not just this one; without dedup every
@@ -56,6 +75,7 @@ class DayNotesRepository @Inject constructor(
         store.edit { prefs ->
             if (trimmed.isEmpty()) prefs.remove(key(date))
             else prefs[key(date)] = trimmed
+            prune(prefs)
         }
     }
 

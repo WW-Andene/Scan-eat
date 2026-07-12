@@ -449,6 +449,7 @@
     <string name="history_empty">Aucun scan enregistré.</string>
     <string name="history_empty_query">Aucun résultat pour \"%1$s\".</string>
     <string name="history_empty_favorites">Aucun favori pour l\'instant — touchez l\'étoile sur un scan pour l\'ajouter.</string>
+    <string name="history_load_more">Voir plus d\'anciens scans</string>
     <string name="history_sort">Trier</string>
     <string name="history_sort_recent">Plus récent</string>
     <string name="history_sort_oldest">Plus ancien</string>

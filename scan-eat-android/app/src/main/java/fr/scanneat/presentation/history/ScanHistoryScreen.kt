@@ -51,6 +51,7 @@ fun ScanHistoryScreen(
     val query = viewModel.query.collectAsStateWithLifecycle()
     val favoritesOnly = viewModel.favoritesOnly.collectAsStateWithLifecycle()
     val sort = viewModel.sort.collectAsStateWithLifecycle()
+    val canLoadMore = viewModel.canLoadMore.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
 
@@ -175,6 +176,13 @@ fun ScanHistoryScreen(
                                 },
                                 color = OnBackground.copy(0.4f),
                             )
+                        }
+                    }
+                }
+                if (canLoadMore.value && !favoritesOnly.value) {
+                    item {
+                        TextButton(onClick = { viewModel.loadMore() }, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.history_load_more), color = AccentCoral)
                         }
                     }
                 }
