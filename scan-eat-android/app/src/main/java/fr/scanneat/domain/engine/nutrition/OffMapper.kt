@@ -87,11 +87,17 @@ private fun parseIngredients(text: String?): List<Ingredient> {
 
 private fun parseWeightG(quantity: String?): Double? {
     if (quantity.isNullOrBlank()) return null
-    val m = Regex("""(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l)\b""", RegexOption.IGNORE_CASE).find(quantity)
+    // cl/dl added - French OFF `quantity` strings overwhelmingly label beverages in
+    // centiliters ("33 cl" cans, "75cl" wine) rather than ml/l; without them this
+    // silently returned null for most beverages, falling back to a generic 100g
+    // portion-size default instead of the real pack size.
+    val m = Regex("""(\d+(?:[.,]\d+)?)\s*(kg|cl|dl|ml|g|l)\b""", RegexOption.IGNORE_CASE).find(quantity)
     val v = m?.groupValues?.get(1)?.replace(",", ".")?.toDoubleOrNull() ?: return null
     return when (m.groupValues[2].lowercase()) {
         "kg", "l" -> v * 1000
-        else -> v
+        "cl"      -> v * 10
+        "dl"      -> v * 100
+        else      -> v
     }
 }
 

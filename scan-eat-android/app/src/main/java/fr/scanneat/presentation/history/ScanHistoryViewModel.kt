@@ -57,12 +57,18 @@ class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository)
     fun toggleFavorite(scan: ScanResult) {
         if (scan.dbId <= 0) return
         viewModelScope.launch {
-            // Reads the ViewModel's own live cache instead of trusting the
+            // Reads the ViewModel's own live caches instead of trusting the
             // `scan` snapshot the composable captured at click time — a rapid
             // double-tap (faster than the DB write's Flow re-emission) could
             // otherwise read the same stale `favorite` value twice and call
             // setFavorite(true) both times instead of toggling back off.
-            val current = allScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite ?: scan.favorite
+            // Checks favoriteScans too - a favorite older than the 200-row
+            // allScans cap only exists in that unbounded list, so relying on
+            // allScans alone reintroduces the exact race this comment
+            // describes for every scan visible solely via favoritesOnly.
+            val current = allScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite
+                ?: favoriteScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite
+                ?: scan.favorite
             repo.setFavorite(scan.dbId, !current)
         }
     }
