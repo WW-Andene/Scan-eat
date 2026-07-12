@@ -1,7 +1,14 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.ActivityLevel
+import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Grade
+import fr.scanneat.domain.model.Ingredient
+import fr.scanneat.domain.model.IngredientCategory
+import fr.scanneat.domain.model.NovaClass
+import fr.scanneat.domain.model.NutritionPer100g
+import fr.scanneat.domain.model.Product
+import fr.scanneat.domain.model.ProductCategory
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.domain.model.Sex
 import org.junit.Assert.*
@@ -131,11 +138,22 @@ class PersonalScoreEngineTest {
     }
 
     @Test
-    fun `dailyTargets gives menstruating-age women a higher iron and lower zinc target`() {
-        val targets = dailyTargets(femaleProfile())!!
+    fun `dailyTargets gives a menstruating woman a higher iron target`() {
+        // Iron target is keyed on the profile's own isMenstruating answer,
+        // not an age-range guess — see PersonalScoreEngine.kt's dailyTargets().
+        val targets = dailyTargets(femaleProfile().copy(isMenstruating = true))!!
         assertEquals(16.0, targets.ironMgTarget, 0.01)    // EFSA 2015: menstruating women
         assertEquals(7.5, targets.zincMgTarget, 0.01)
         assertEquals(300.0, targets.magnesiumMgTarget, 0.01)
+    }
+
+    @Test
+    fun `dailyTargets regression - a non-menstruating woman in the fertile age range gets the standard iron target`() {
+        // Before the fix, any female profile aged 13-50 got 16 mg regardless of
+        // what she answered on the isMenstruating checkbox (menopause, pregnancy,
+        // hormonal contraception, amenorrhea all left unaccounted for).
+        val targets = dailyTargets(femaleProfile().copy(isMenstruating = false))!!
+        assertEquals(11.0, targets.ironMgTarget, 0.01)
     }
 
     @Test
@@ -143,6 +161,73 @@ class PersonalScoreEngineTest {
         val elderly = femaleProfile().copy(ageYears = 80)
         val targets = dailyTargets(elderly)!!
         assertEquals(20.0, targets.vitDUgTarget, 0.01)
+    }
+
+    // ---- computePersonalScore: SEX iron bonus gated on isMenstruating ----
+
+    private fun productDeclaringIron(kcal: Double = 200.0, proteinG: Double = 5.0) = Product(
+        name = "Test product",
+        category = ProductCategory.OTHER,
+        novaClass = NovaClass.UNPROCESSED,
+        ingredients = listOf(Ingredient(name = "farine de blé", category = IngredientCategory.FOOD)),
+        nutrition = NutritionPer100g(
+            energyKcal = kcal, fatG = 5.0, saturatedFatG = 1.0, carbsG = 20.0,
+            sugarsG = 5.0, fiberG = 2.0, proteinG = proteinG, saltG = 0.3,
+        ),
+        declaredMicronutrients = listOf("iron"),
+    )
+
+    @Test
+    fun `computePersonalScore applies the iron bonus only when isMenstruating is true`() {
+        val product = productDeclaringIron()
+        val audit = scoreProduct(product)
+
+        val menstruating = femaleProfile().copy(isMenstruating = true)
+        val result = computePersonalScore(audit, product, menstruating)
+        assertTrue(result.adjustments.any { it.category == AdjustmentCategory.SEX })
+
+        val notMenstruating = femaleProfile().copy(isMenstruating = false)
+        val result2 = computePersonalScore(audit, product, notMenstruating)
+        assertFalse(result2.adjustments.any { it.category == AdjustmentCategory.SEX })
+    }
+
+    // ---- computePersonalScore: GOAL adjustments ----
+
+    @Test
+    fun `computePersonalScore penalizes energy-dense high-satfat products for a weight-loss goal`() {
+        val denseProduct = Product(
+            name = "Dense product",
+            category = ProductCategory.OTHER,
+            novaClass = NovaClass.UNPROCESSED,
+            ingredients = emptyList(),
+            nutrition = NutritionPer100g(
+                energyKcal = 500.0, fatG = 30.0, saturatedFatG = 15.0, carbsG = 40.0,
+                sugarsG = 10.0, fiberG = 1.0, proteinG = 5.0, saltG = 0.3,
+            ),
+        )
+        val audit = scoreProduct(denseProduct)
+        val result = computePersonalScore(audit, denseProduct, maleProfile().copy(goal = Goal.LOSE))
+        val goalAdjustment = result.adjustments.firstOrNull { it.category == AdjustmentCategory.GOAL }
+        assertNotNull(goalAdjustment)
+        assertTrue(goalAdjustment!!.points < 0)
+    }
+
+    @Test
+    fun `computePersonalScore rewards calorie- and protein-dense products for a weight-gain goal`() {
+        val product = productDeclaringIron(kcal = 350.0, proteinG = 20.0)
+        val audit = scoreProduct(product)
+        val result = computePersonalScore(audit, product, maleProfile().copy(goal = Goal.GAIN))
+        val goalAdjustment = result.adjustments.firstOrNull { it.category == AdjustmentCategory.GOAL }
+        assertNotNull(goalAdjustment)
+        assertTrue(goalAdjustment!!.points > 0)
+    }
+
+    @Test
+    fun `computePersonalScore applies no GOAL adjustment for maintain`() {
+        val product = productDeclaringIron(kcal = 500.0, proteinG = 20.0)
+        val audit = scoreProduct(product)
+        val result = computePersonalScore(audit, product, maleProfile().copy(goal = Goal.MAINTAIN))
+        assertFalse(result.adjustments.any { it.category == AdjustmentCategory.GOAL })
     }
 
     // ---- personalGrade ----

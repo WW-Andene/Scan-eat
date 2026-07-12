@@ -105,8 +105,14 @@ data class DailyTargets(
 fun dailyTargets(p: Profile): DailyTargets? {
     val tdee = tdeeKcal(p) ?: return null
     val pri  = proteinPriG(p) ?: 0.0
-    // Sex-specific iron: menstruating women 16 mg/day (EFSA 2015)
-    val ironTarget = if (p.sex == Sex.FEMALE && (p.ageYears ?: 0) in 13..50) 16.0 else 11.0
+    // Sex-specific iron: menstruating women 16 mg/day (EFSA 2015). Uses the
+    // profile's own isMenstruating answer rather than inferring from age —
+    // the app already asks this explicitly (ProfileScreen shows the checkbox
+    // for any female profile), so a woman in the 13-50 range who says she
+    // isn't currently menstruating (menopause, pregnancy, hormonal
+    // contraception, amenorrhea) got the wrong 16 mg target from the age
+    // heuristic alone, and the checkbox answer had no effect anywhere.
+    val ironTarget = if (p.sex == Sex.FEMALE && p.isMenstruating) 16.0 else 11.0
     // Sex-specific zinc: women 7.5 mg/day (EFSA 2014)
     val zincTarget = if (p.sex == Sex.FEMALE) 7.5 else 9.4
     // Older adults: higher vitD target 20 µg/day (EFSA 2016 ≥75y)
@@ -142,7 +148,7 @@ data class PersonalAdjustment(
     val veto: Boolean = false,
 )
 
-enum class AdjustmentCategory { DIET, AGE, SEX, ACTIVITY, BMI, MODIFIER }
+enum class AdjustmentCategory { DIET, AGE, SEX, ACTIVITY, BMI, GOAL, MODIFIER }
 
 data class PersonalScoreResult(
     val personalScore: Int,
@@ -271,7 +277,9 @@ fun computePersonalScore(
     }
 
     // ===== SEX =====
-    if (profile.sex == Sex.FEMALE && age != null && age in 13..50) {
+    // Gated on the profile's own isMenstruating answer, not an age-range
+    // guess — see dailyTargets()'s ironTarget for why the guess was wrong.
+    if (profile.sex == Sex.FEMALE && profile.isMenstruating) {
         val declaresIron = product.declaredMicronutrients.any { it.contains("iron", ignoreCase = true) || it.contains("fer", ignoreCase = true) }
         if (declaresIron) {
             adjustments += PersonalAdjustment(
@@ -327,6 +335,36 @@ fun computePersonalScore(
                 category = AdjustmentCategory.ACTIVITY,
             )
         }
+    }
+
+    // ===== GOAL =====
+    // profile.goal (lose/maintain/gain) was captured at onboarding and stored,
+    // but never read anywhere in scoring — a user who set a weight goal saw
+    // zero effect from it on the products they scan.
+    when (profile.goal) {
+        Goal.LOSE -> {
+            if (product.nutrition.energyKcal >= 400 && product.nutrition.saturatedFatG > 10) {
+                adjustments += PersonalAdjustment(
+                    points   = -2.0,
+                    reason   = if (lang == "en")
+                        "Energy-dense (${product.nutrition.energyKcal.roundToInt()} kcal/100 g) — your goal is weight loss"
+                    else "Dense en énergie (${product.nutrition.energyKcal.roundToInt()} kcal/100 g) — ton objectif est la perte de poids",
+                    category = AdjustmentCategory.GOAL,
+                )
+            }
+        }
+        Goal.GAIN -> {
+            if (product.nutrition.energyKcal >= 300 && product.nutrition.proteinG >= 15) {
+                adjustments += PersonalAdjustment(
+                    points   = 2.0,
+                    reason   = if (lang == "en")
+                        "Calorie- and protein-dense — supports your weight-gain goal"
+                    else "Dense en calories et en protéines — soutient ton objectif de prise de poids",
+                    category = AdjustmentCategory.GOAL,
+                )
+            }
+        }
+        Goal.MAINTAIN -> {}
     }
 
     // ===== PROTEIN PRI =====
