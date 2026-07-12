@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.formatElapsed
 import fr.scanneat.presentation.ui.theme.*
@@ -47,7 +48,7 @@ internal fun HeroCard(
                 letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
 
             Text(
-                if (precision) String.format("%.4f", kcalTotal) else String.format("%.1f", kcalTotal),
+                if (precision) String.format(Locale.US, "%.4f", kcalTotal) else String.format(Locale.US, "%.1f", kcalTotal),
                 style = HeroNumberStyle.copy(fontSize = 42.sp),
                 color = heroColor,
             )

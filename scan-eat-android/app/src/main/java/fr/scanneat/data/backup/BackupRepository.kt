@@ -208,6 +208,16 @@ class BackupRepository @Inject constructor(
         groceryCheckedRepo.restoreAll(bundle.groceryCheckedKeys.toSet())
     }
 
+    /**
+     * Reads just the header/summary info from a backup file — same validation
+     * (version check, malformed JSON) as [importFromJson] but without touching
+     * the DB or DataStore, so the UI can preview a file ("taken on 2026-07-01,
+     * 42 items") before the user commits to overwriting local data with it.
+     */
+    fun peekMetadata(json: String): Result<BackupMetadata> = runCatching {
+        BackupMetadata.from(parseBundle(json))
+    }
+
     private fun parseBundle(json: String): BackupBundle {
         val bundle = try {
             bundleAdapter.fromJson(json)

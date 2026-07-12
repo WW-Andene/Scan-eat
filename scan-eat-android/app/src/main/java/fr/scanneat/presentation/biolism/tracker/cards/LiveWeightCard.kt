@@ -17,6 +17,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Teal
+import java.util.Locale
 
 @Composable
 internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: Double, glycoLostKg: Double, ketosisOn: Boolean) {
@@ -34,18 +35,18 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
                     style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
             }
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(String.format("%.4f", liveWeight), style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.W500), color = color)
+                Text(String.format(Locale.US, "%.4f", liveWeight), style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.W500), color = color)
                 Text("kg", style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
                 val deltaG = (liveWeight - baseWeight) * 1000.0
-                Text(stringResource(R.string.biolism_liveweight_delta, String.format("%.4f", deltaG)), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
+                Text(stringResource(R.string.biolism_liveweight_delta, String.format(Locale.US, "%.4f", deltaG)), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.biolism_liveweight_base, String.format("%.3f", baseWeight)), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                Text(stringResource(R.string.biolism_liveweight_base, String.format(Locale.US, "%.3f", baseWeight)), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                 Text("−", color = OnBackground.copy(0.3f))
-                Text(stringResource(R.string.biolism_liveweight_fat_lost, String.format("%.4f", fatLostKg * 1000)), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
+                Text(stringResource(R.string.biolism_liveweight_fat_lost, String.format(Locale.US, "%.4f", fatLostKg * 1000)), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
                 if (ketosisOn && glycoLostKg > 0) {
                     Text("−", color = OnBackground.copy(0.3f))
-                    Text(stringResource(R.string.biolism_liveweight_glyco_lost, String.format("%.2f", glycoLostKg * 1000)), style = MaterialTheme.typography.labelSmall, color = Gold.copy(0.8f))
+                    Text(stringResource(R.string.biolism_liveweight_glyco_lost, String.format(Locale.US, "%.2f", glycoLostKg * 1000)), style = MaterialTheme.typography.labelSmall, color = Gold.copy(0.8f))
                 }
             }
         }

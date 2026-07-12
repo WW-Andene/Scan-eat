@@ -110,6 +110,27 @@ data class BackupSummary(
     }
 }
 
+/**
+ * Lightweight metadata read from a backup file without applying it — lets the
+ * import UI show "this backup was taken on <date> by app version <x>,
+ * containing <n> items" before the user commits to overwriting local data.
+ */
+data class BackupMetadata(
+    val formatVersion: Int,
+    val exportedAtMs: Long,
+    val appVersionName: String,
+    val summary: BackupSummary,
+) {
+    companion object {
+        fun from(bundle: BackupBundle) = BackupMetadata(
+            formatVersion = bundle.formatVersion,
+            exportedAtMs = bundle.exportedAtMs,
+            appVersionName = bundle.appVersionName,
+            summary = BackupSummary.from(bundle),
+        )
+    }
+}
+
 sealed class BackupImportError : Exception() {
     /** The file's formatVersion is newer than this app build knows how to read. */
     data class UnsupportedVersion(val found: Int, val supported: Int) : BackupImportError()

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.domain.engine.biolism.KetoPhaseInfo
 import fr.scanneat.presentation.ui.theme.OnBackground
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -46,7 +47,7 @@ internal fun PhaseStrip(phase: KetoPhaseInfo, ketoHours: Double, color: Color) {
                     overflow = TextOverflow.Ellipsis)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(String.format("%.1f h", ketoHours), style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+                Text(String.format(Locale.US, "%.1f h", ketoHours), style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
                 Text("${phase.progressPct.roundToInt()}%", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
             }
         }
