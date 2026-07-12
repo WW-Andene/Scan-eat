@@ -5,10 +5,12 @@ FROM gradle:8.9-jdk17 AS builder
 
 WORKDIR /app
 COPY settings.gradle.kts build.gradle.kts ./
-COPY src ./src
 
-# Download deps first (cacheable layer)
+# Download deps first (cacheable layer) - src isn't copied in yet, so this
+# layer only invalidates on dependency changes, not on every source edit.
 RUN gradle dependencies --no-daemon --quiet 2>/dev/null || true
+
+COPY src ./src
 
 # Build fat jar
 RUN gradle shadowJar --no-daemon --info

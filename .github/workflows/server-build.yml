@@ -37,3 +37,6 @@ jobs:
 
       - name: Build fat jar
         run: ./gradlew shadowJar --stacktrace
+
+      - name: Build Docker image
+        run: docker build -t scan-eat-server:ci .

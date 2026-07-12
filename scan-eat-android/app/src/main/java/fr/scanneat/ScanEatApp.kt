@@ -22,6 +22,7 @@ class ScanEatApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        CrashLogger.install(this)
         // This job fires every 15 minutes for the lifetime of the install - skip
         // it when the battery is critically low rather than draining it further
         // for a non-critical reminder check.
