@@ -143,23 +143,16 @@ fun GroceryScreen(
     }
 
     if (showClearConfirm) {
-        AlertDialog(
-            onDismissRequest = { showClearConfirm = false },
-            containerColor   = SurfaceVariant,
-            title = { Text(stringResource(R.string.grocery_clear_confirm_title), color = OnBackground) },
-            text  = { Text(stringResource(R.string.grocery_clear_confirm_body), color = OnBackground.copy(0.7f)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.clearAllChecked()
-                    showClearConfirm = false
-                    scope.launch { snackbarHostState.showSnackbar(clearedMessage) }
-                }) {
-                    Text(stringResource(R.string.grocery_clear_checked), color = FlagRed)
-                }
+        ConfirmDialog(
+            title = stringResource(R.string.grocery_clear_confirm_title),
+            body  = stringResource(R.string.grocery_clear_confirm_body),
+            confirmLabel = stringResource(R.string.grocery_clear_checked),
+            onConfirm = {
+                viewModel.clearAllChecked()
+                showClearConfirm = false
+                scope.launch { snackbarHostState.showSnackbar(clearedMessage) }
             },
-            dismissButton = {
-                TextButton(onClick = { showClearConfirm = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
-            },
+            onDismiss = { showClearConfirm = false },
         )
     }
 }
