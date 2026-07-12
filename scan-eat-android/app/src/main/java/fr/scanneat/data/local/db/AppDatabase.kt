@@ -31,7 +31,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MealTemplateEntity::class,
         RecipeEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -122,5 +122,14 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         // queries are actually reachable.
         db.execSQL("DROP INDEX IF EXISTS `index_activity_log_date`")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_activity_log_date_profileId` ON `activity_log` (`date`, `profileId`)")
+    }
+}
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v7 → v8: observeFavorites' WHERE profileId = ? AND favorite = 1 ORDER BY
+        // scannedAt DESC wasn't covered by either existing scan_history index (one
+        // leads with scannedAt, the other with barcode) - full table scan on every
+        // emission of a Flow that's held live for the whole history screen.
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_history_profileId_favorite_scannedAt` ON `scan_history` (`profileId`, `favorite`, `scannedAt`)")
     }
 }

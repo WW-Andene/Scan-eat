@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.planning.GroceryCheckedRepository
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.planning.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,6 +30,11 @@ class GroceryViewModel @Inject constructor(
                 )
             })
         }
+        // Room's Flow reuses whatever dispatcher is already active in the collecting
+        // coroutine rather than always using its background query executor - without
+        // this, both the query and aggregateGroceryList()'s normalize/sort work ran on
+        // Main, since viewModelScope defaults to Dispatchers.Main.immediate.
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val groceryItems: StateFlow<List<GroceryItem>> = rawItems
