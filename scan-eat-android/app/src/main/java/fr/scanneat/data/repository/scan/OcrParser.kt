@@ -21,6 +21,15 @@ import java.io.IOException
 const val DEFAULT_MODEL   = "meta-llama/llama-4-scout-17b-16e-instruct"
 const val FALLBACK_MODEL  = "llama-3.3-70b-versatile"
 
+// Named thresholds shared by every call site in this file, so the per-100g
+// energy cap and the barcode-plausibility check are each defined once instead
+// of repeated as bare literals. Keep these numerically in sync with the
+// equivalent constants in the server's LlmLabelParser.kt (NutritionLimits).
+private object NutritionLimits {
+    const val MAX_ENERGY_KCAL_PER_100G = 900.0
+    val BARCODE_DIGITS_REGEX = Regex("\\d{8,14}")
+}
+
 data class ParseLabelResult(
     val product: Product,
     val warnings: List<String>,
@@ -184,7 +193,7 @@ private fun mapLlmToProduct(dto: LlmProductDto): Product {
             )
         } ?: emptyList(),
         nutrition = NutritionPer100g(
-            energyKcal    = coerceDouble(n?.energy_kcal, max = 900.0),
+            energyKcal    = coerceDouble(n?.energy_kcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
             fatG          = coerceDouble(n?.fat_g),
             saturatedFatG = coerceDouble(n?.saturated_fat_g),
             carbsG        = coerceDouble(n?.carbs_g),
@@ -370,13 +379,13 @@ Output ONLY the JSON. No explanation.
             w += "Nutrition values could not be read from image"
         if (product.ingredients.isEmpty())
             w += "Ingredients list could not be parsed"
-        if (dto.barcode != null && !dto.barcode.matches(Regex("\\d{8,14}")))
+        if (dto.barcode != null && !dto.barcode.matches(NutritionLimits.BARCODE_DIGITS_REGEX))
             w += "Barcode '${dto.barcode}' found on label may be incorrect"
         // coerceDouble clamps physically-implausible values (a hallucinated or
         // misread per-100g figure) rather than silently trusting them - flag it
         // so the clamp is visible to the user instead of masquerading as a
         // clean read.
-        if (dto.nutrition?.energy_kcal != null && dto.nutrition.energy_kcal > 900.0)
+        if (dto.nutrition?.energy_kcal != null && dto.nutrition.energy_kcal > NutritionLimits.MAX_ENERGY_KCAL_PER_100G)
             w += "Energy value on label seems implausibly high and was capped"
         return w
     }
