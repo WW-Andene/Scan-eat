@@ -41,4 +41,8 @@ class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository)
             repo.setFavorite(scan.dbId, !current)
         }
     }
+
+    fun delete(id: Long) {
+        viewModelScope.launch { repo.delete(id) }
+    }
 }

@@ -41,6 +41,7 @@ fun GroceryScreen(
     val scope = rememberCoroutineScope()
     val copiedMessage = stringResource(R.string.grocery_copied)
     var copyMenuExpanded by remember { mutableStateOf(false) }
+    var showClearConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -50,7 +51,7 @@ fun GroceryScreen(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
                     if (checkable.value.any { it.checked }) {
-                        IconButton(onClick = { viewModel.clearAllChecked() }) {
+                        IconButton(onClick = { showClearConfirm = true }) {
                             Icon(Icons.Default.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))
                         }
                     }
@@ -138,5 +139,22 @@ fun GroceryScreen(
                 item { Spacer(Modifier.height(32.dp)) }
             }
         }
+    }
+
+    if (showClearConfirm) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirm = false },
+            containerColor   = SurfaceVariant,
+            title = { Text(stringResource(R.string.grocery_clear_confirm_title), color = OnBackground) },
+            text  = { Text(stringResource(R.string.grocery_clear_confirm_body), color = OnBackground.copy(0.7f)) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearAllChecked(); showClearConfirm = false }) {
+                    Text(stringResource(R.string.grocery_clear_checked), color = FlagRed)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearConfirm = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
+            },
+        )
     }
 }

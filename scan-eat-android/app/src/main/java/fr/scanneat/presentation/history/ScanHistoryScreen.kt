@@ -46,6 +46,7 @@ fun ScanHistoryScreen(
     val scans = viewModel.filtered.collectAsStateWithLifecycle()
     val query = viewModel.query.collectAsStateWithLifecycle()
     val favoritesOnly = viewModel.favoritesOnly.collectAsStateWithLifecycle()
+    var deleteTarget by remember { mutableStateOf<Long?>(null) }
 
     Scaffold(
         topBar = {
@@ -124,6 +125,9 @@ fun ScanHistoryScreen(
                                     modifier = Modifier.size(18.dp),
                                 )
                             }
+                            IconButton(onClick = { deleteTarget = scan.dbId }, modifier = Modifier.size(32.dp)) {
+                                Icon(Icons.Default.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
+                            }
                             Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(20.dp))
                         }
                     }
@@ -147,5 +151,13 @@ fun ScanHistoryScreen(
         }
     }
 
+    deleteTarget?.let { id ->
+        val name = scans.value.firstOrNull { it.dbId == id }?.product?.name
+        DeleteConfirmDialog(
+            itemName  = name,
+            onConfirm = { viewModel.delete(id); deleteTarget = null },
+            onDismiss = { deleteTarget = null },
+        )
+    }
 }
 
