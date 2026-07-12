@@ -730,10 +730,6 @@
     <string name="settings_healthconnect_unsupported">Health Connect isn\'t available on this device.</string>
 
     <!-- ── Dashboard screen ───────────────────────────────────────────────── -->
-    <plurals name="dashboard_streak">
-        <item quantity="one">%1$d day streak</item>
-        <item quantity="other">%1$d days streak</item>
-    </plurals>
     <plurals name="dashboard_streak_unit">
         <item quantity="one">day</item>
         <item quantity="other">days</item>

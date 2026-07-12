@@ -666,7 +666,7 @@
     <!-- ── Fasting screen ─────────────────────────────────────────────────── -->
     <string name="fasting_title">Jeûne intermittent</string>
     <plurals name="fasting_streak">
-        <item quantity="one">%1$d jour consécutifs</item>
+        <item quantity="one">%1$d jour consécutif</item>
         <item quantity="other">%1$d jours consécutifs</item>
     </plurals>
     <string name="fasting_target_progress">/ %1$dh objectif</string>
@@ -731,10 +731,6 @@
     <string name="settings_healthconnect_unsupported">Health Connect n\'est pas disponible sur cet appareil.</string>
 
     <!-- ── Dashboard screen ───────────────────────────────────────────────── -->
-    <plurals name="dashboard_streak">
-        <item quantity="one">%1$d jour de suite</item>
-        <item quantity="other">%1$d jours de suite</item>
-    </plurals>
     <plurals name="dashboard_streak_unit">
         <item quantity="one">jour</item>
         <item quantity="other">jours</item>

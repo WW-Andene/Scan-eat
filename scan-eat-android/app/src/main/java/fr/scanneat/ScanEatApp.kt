@@ -30,6 +30,11 @@ class ScanEatApp : Application(), Configuration.Provider {
         val request = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
+        // Unique work name is an internal WorkManager id, unrelated to the
+        // "reminders" notification channel id - kept as "biolism_reminders" on
+        // purpose. Renaming it would make enqueueUniquePeriodicWork's KEEP
+        // policy treat existing installs as having no prior job, enqueueing a
+        // duplicate that runs alongside the old one forever.
         WorkManager.getInstance(this)
             .enqueueUniquePeriodicWork("biolism_reminders", ExistingPeriodicWorkPolicy.KEEP, request)
     }
