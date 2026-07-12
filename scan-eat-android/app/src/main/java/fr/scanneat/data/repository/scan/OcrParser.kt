@@ -149,10 +149,18 @@ data class LlmNutritionDto(
 // Mapping LLM DTO → domain Product
 // ============================================================================
 
-private fun coerceDouble(v: Any?): Double = when (v) {
-    is Number -> v.toDouble().coerceAtLeast(0.0)
-    is String -> v.replace(",", ".").toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
-    else -> 0.0
+// Floors at 0 but had no ceiling - a hallucinated/misread per-100g value
+// (e.g. energy_kcal: 5000, a plausible OCR misread of "500") was accepted as
+// ground truth with no upper bound at all, silently corrupting downstream
+// diary/scoring math. 900 kcal/100g covers pure fat/oil, the densest real
+// food; other macros/salt can't physically exceed 100g per 100g of food.
+private fun coerceDouble(v: Any?, max: Double = 100.0): Double {
+    val raw = when (v) {
+        is Number -> v.toDouble()
+        is String -> v.replace(",", ".").toDoubleOrNull() ?: 0.0
+        else -> 0.0
+    }
+    return raw.coerceIn(0.0, max)
 }
 
 private fun mapLlmToProduct(dto: LlmProductDto): Product {
@@ -176,7 +184,7 @@ private fun mapLlmToProduct(dto: LlmProductDto): Product {
             )
         } ?: emptyList(),
         nutrition = NutritionPer100g(
-            energyKcal    = coerceDouble(n?.energy_kcal),
+            energyKcal    = coerceDouble(n?.energy_kcal, max = 900.0),
             fatG          = coerceDouble(n?.fat_g),
             saturatedFatG = coerceDouble(n?.saturated_fat_g),
             carbsG        = coerceDouble(n?.carbs_g),
@@ -364,6 +372,12 @@ Output ONLY the JSON. No explanation.
             w += "Ingredients list could not be parsed"
         if (dto.barcode != null && !dto.barcode.matches(Regex("\\d{8,14}")))
             w += "Barcode '${dto.barcode}' found on label may be incorrect"
+        // coerceDouble clamps physically-implausible values (a hallucinated or
+        // misread per-100g figure) rather than silently trusting them - flag it
+        // so the clamp is visible to the user instead of masquerading as a
+        // clean read.
+        if (dto.nutrition?.energy_kcal != null && dto.nutrition.energy_kcal > 900.0)
+            w += "Energy value on label seems implausibly high and was capped"
         return w
     }
 }

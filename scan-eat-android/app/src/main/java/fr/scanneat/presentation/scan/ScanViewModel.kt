@@ -40,6 +40,17 @@ private fun invalidModelMessage(lang: String) =
     if (lang == "en") "This AI model is no longer available — pick a current one in Settings"
     else "Ce modèle IA n'est plus disponible — choisissez-en un à jour dans Réglages"
 
+/**
+ * OcrParser already retries a 429 internally (see isRetryable), so reaching
+ * this branch means every retry was also rate-limited — a transient-but-
+ * persistent state distinct from the other HTTP error branches, which this
+ * file previously had no message for despite invalidModelMessage's own
+ * comment claiming 429 already had a friendly message.
+ */
+private fun rateLimitedMessage(lang: String) =
+    if (lang == "en") "Groq is rate-limiting requests right now — wait a moment and try again"
+    else "Groq limite les requêtes en ce moment — patientez un instant puis réessayez"
+
 sealed class ScanUiState {
     data object Idle     : ScanUiState()
     data object Scanning : ScanUiState()
@@ -121,6 +132,8 @@ class ScanViewModel @Inject constructor(
                                 ScanUiState.Error(invalidApiKeyMessage(lang))
                             e is HttpException && (e.code() == 400 || e.code() == 404) ->
                                 ScanUiState.Error(invalidModelMessage(lang))
+                            e is HttpException && e.code() == 429 ->
+                                ScanUiState.Error(rateLimitedMessage(lang))
                             else -> ScanUiState.Error(e.message ?: "Erreur inconnue")
                         }
                     },
