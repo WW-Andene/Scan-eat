@@ -656,6 +656,7 @@
     <string name="activity_add_dialog_title">Log an activity</string>
     <string name="activity_type_label">Type</string>
     <string name="activity_duration_label">Duration (minutes)</string>
+    <string name="activity_duration_invalid">Enter a valid duration</string>
 
     <!-- ── Fasting screen ─────────────────────────────────────────────────── -->
     <string name="fasting_title">Intermittent Fasting</string>

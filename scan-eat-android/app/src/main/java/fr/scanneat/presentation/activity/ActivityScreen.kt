@@ -167,20 +167,32 @@ fun ActivityScreen(
                             )
                         }
                     }
+                    val minutes = minutesText.toIntOrNull()
+                    val minutesValid = minutes != null && minutes > 0
                     OutlinedTextField(
                         value = minutesText, onValueChange = { minutesText = it },
                         label = { Text(stringResource(R.string.activity_duration_label)) }, singleLine = true,
+                        isError = minutesText.isNotBlank() && !minutesValid,
+                        supportingText = {
+                            if (minutesText.isNotBlank() && !minutesValid) {
+                                Text(stringResource(R.string.activity_duration_invalid), color = FlagRed)
+                            }
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = scanEatTextFieldColors(),
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    minutesText.toIntOrNull()?.let { min ->
-                        viewModel.log(selectedType, min); showAdd = false
-                    }
-                }) { Text(stringResource(R.string.common_add), color = AccentCoral) }
+                val minutesValid = (minutesText.toIntOrNull() ?: 0) > 0
+                TextButton(
+                    onClick = {
+                        minutesText.toIntOrNull()?.let { min ->
+                            viewModel.log(selectedType, min); showAdd = false
+                        }
+                    },
+                    enabled = minutesValid,
+                ) { Text(stringResource(R.string.common_add), color = if (minutesValid) AccentCoral else OnBackground.copy(0.3f)) }
             },
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )

@@ -18,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -68,8 +70,13 @@ fun ScanHistoryScreen(
                                 HistorySort.SCORE_DESC to stringResource(R.string.history_sort_score),
                             )
                             options.forEach { (value, label) ->
+                                val isSelected = sort.value == value
                                 DropdownMenuItem(
-                                    text = { Text(label, fontWeight = if (sort.value == value) FontWeight.Bold else FontWeight.Normal) },
+                                    text = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
+                                    leadingIcon = {
+                                        if (isSelected) Icon(Icons.Default.Check, contentDescription = null, tint = AccentCoral)
+                                    },
+                                    modifier = Modifier.semantics { selected = isSelected },
                                     onClick = { viewModel.setSort(value); sortMenuExpanded = false },
                                 )
                             }
