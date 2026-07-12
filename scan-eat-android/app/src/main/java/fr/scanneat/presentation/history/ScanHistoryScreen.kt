@@ -16,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -76,7 +78,7 @@ fun ScanHistoryScreen(
                                     leadingIcon = {
                                         if (isSelected) Icon(Icons.Default.Check, contentDescription = null, tint = AccentCoral)
                                     },
-                                    modifier = Modifier.semantics { selected = isSelected },
+                                    modifier = Modifier.semantics { selected = isSelected; role = Role.RadioButton },
                                     onClick = { viewModel.setSort(value); sortMenuExpanded = false },
                                 )
                             }

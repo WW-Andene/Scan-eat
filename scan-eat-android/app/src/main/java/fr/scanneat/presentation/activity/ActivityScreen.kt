@@ -105,7 +105,7 @@ fun ActivityScreen(
                         Text(typeLabels[e.type] ?: e.type.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
                         Text(stringResource(R.string.activity_entry_summary, e.minutes, e.kcalBurned), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                     }
-                    IconButton(onClick = { deleteTarget = e.id }, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = { deleteTarget = e.id }) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }
