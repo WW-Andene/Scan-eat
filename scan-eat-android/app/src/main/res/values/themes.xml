@@ -3,13 +3,20 @@
     <!-- Base theme delegates to Compose; window background = OLED black.
          Must descend from Theme.AppCompat (not a plain platform theme) —
          MainActivity is an AppCompatActivity, required for per-app language
-         switching (AppCompatDelegate) to actually apply on API 26-32. -->
-    <style name="Theme.ScanEat" parent="Theme.AppCompat.NoActionBar">
+         switching (AppCompatDelegate) to actually apply on API 26-32.
+         Shared items live in .Base so the values-v27/ variant can inherit
+         and only add its API-27+ item, instead of fully redefining the
+         style (a values-v27 style with the same name replaces the base
+         style wholesale rather than merging with it, so duplicating items
+         there would silently drift out of sync with edits made here). -->
+    <style name="Theme.ScanEat.Base" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:statusBarColor">@android:color/black</item>
         <item name="android:navigationBarColor">@android:color/black</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
+
+    <style name="Theme.ScanEat" parent="Theme.ScanEat.Base" />
 
     <!-- Cold-start splash theme. Swapped to Theme.ScanEat by installSplashScreen()
          once SplashViewModel finishes its DataStore reads. -->

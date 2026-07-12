@@ -1,8 +1,12 @@
 package fr.scanneat.presentation.reminders
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -21,6 +25,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,8 +44,23 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED,
         )
     }
+    // Once the user permanently denies (checked "don't ask again", or a 2nd
+    // straight denial on API 30+), RequestPermission() silently returns false
+    // without even showing the system dialog again - same gap ScanScreen's
+    // camera-permission flow already handles by tracking this and swapping to
+    // an "Open Settings" action once the OS won't show the dialog anymore.
+    var requestedOnce by remember { mutableStateOf(false) }
+    var permanentlyDenied by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         permissionGranted = granted
+        if (!granted) {
+            val activity = context as? Activity
+            val canShowRationale = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.POST_NOTIFICATIONS)
+            } ?: true
+            if (requestedOnce && !canShowRationale) permanentlyDenied = true
+        }
+        requestedOnce = true
     }
 
     Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
@@ -48,9 +68,19 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
             Text(stringResource(R.string.reminders_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
 
             if (!permissionGranted) {
-                ScanEatPrimaryButton(
-                    onClick = { permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
-                ) { Text(stringResource(R.string.reminders_enable_notifications)) }
+                if (permanentlyDenied) {
+                    ScanEatPrimaryButton(
+                        onClick = {
+                            context.startActivity(
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+                            )
+                        },
+                    ) { Text(stringResource(R.string.scan_open_settings_button)) }
+                } else {
+                    ScanEatPrimaryButton(
+                        onClick = { permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
+                    ) { Text(stringResource(R.string.reminders_enable_notifications)) }
+                }
             }
 
             ReminderRow(
