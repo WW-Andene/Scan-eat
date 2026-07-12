@@ -1,6 +1,7 @@
 package fr.scanneat.presentation
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -26,6 +27,11 @@ class MainActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // This is the app's only Activity, and every screen behind it can show
+        // health/nutrition history or a raw API key (Settings) — none of that
+        // belongs in a screenshot, screen recording, or the Recents thumbnail.
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
 
         splashScreen.setKeepOnScreenCondition { !splashViewModel.ready.value }
 

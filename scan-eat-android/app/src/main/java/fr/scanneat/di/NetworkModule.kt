@@ -11,6 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import fr.scanneat.BuildConfig
 import fr.scanneat.data.remote.api.*
+import okhttp3.ConnectionSpec
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -37,6 +38,11 @@ object NetworkModule {
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)   // Groq vision can be slow
         .writeTimeout(30, TimeUnit.SECONDS)
+        // OkHttp defaults to [MODERN_TLS, COMPATIBLE_TLS], silently allowing a
+        // fallback to legacy TLS/cipher suites (e.g. against a MITM proxy that
+        // only supports them). The API key and scanned health data never need
+        // to travel over anything but modern TLS.
+        .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS))
         .addInterceptor { chain ->
             chain.proceed(
                 chain.request().newBuilder()
