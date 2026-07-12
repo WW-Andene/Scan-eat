@@ -34,8 +34,26 @@ private class RateWindow(@Volatile var count: Int, @Volatile var windowStartMs: 
 
 private val rateLimitState = ConcurrentHashMap<String, RateWindow>()
 
+// Every distinct clientKey that ever calls this anonymous route earns a
+// permanent entry in rateLimitState above unless something removes stale
+// ones. Since this map is attacker-reachable key space (anyone who finds
+// the URL can vary their apparent client key), it would otherwise grow
+// without bound as traffic scales. Sweeping opportunistically - every
+// RATE_LIMIT_SWEEP_INTERVAL calls - keeps it bounded to roughly the number
+// of distinct clients active within one window, without needing a
+// dedicated background thread.
+private const val RATE_LIMIT_SWEEP_INTERVAL = 200
+private val rateLimitCallCount = java.util.concurrent.atomic.AtomicLong(0)
+
+private fun sweepExpiredRateLimitEntries(nowMs: Long) {
+    rateLimitState.entries.removeIf { (_, window) -> nowMs - window.windowStartMs >= RATE_LIMIT_WINDOW_MS }
+}
+
 /** True when [clientKey] has exceeded [RATE_LIMIT_MAX_REQUESTS] in the current window. */
 internal fun isFetchRecipeRateLimited(clientKey: String, nowMs: Long = System.currentTimeMillis()): Boolean {
+    if (rateLimitCallCount.incrementAndGet() % RATE_LIMIT_SWEEP_INTERVAL == 0L) {
+        sweepExpiredRateLimitEntries(nowMs)
+    }
     var limited = false
     rateLimitState.compute(clientKey) { _, existing ->
         if (existing == null || nowMs - existing.windowStartMs >= RATE_LIMIT_WINDOW_MS) {

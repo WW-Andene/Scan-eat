@@ -311,6 +311,16 @@ fun normalizeForMatching(s: String): String =
 private val NOT_FOUND = AdditiveInfo("", emptyList(), AdditiveTier.THREE, AdditiveCategory.ANTICAKING, "", "")
 private val additiveLookupCache = ConcurrentHashMap<Triple<String?, String, IngredientCategory?>, AdditiveInfo>()
 
+// Keyed on the raw ingredient `name` string from scanned products, which is
+// free-text and not drawn from a fixed, small vocabulary - distinct
+// spellings/languages/OCR variants accumulate over the process lifetime as
+// scan volume grows, so left unchecked this cache would grow without bound
+// the same way OffService's used to before it got a TTL+size cap. There's no
+// per-entry expiry need here (the mapping is pure/deterministic), just a
+// safety valve: once the cache would grow past a bound, drop it and start
+// fresh rather than let it grow forever.
+private const val MAX_ADDITIVE_CACHE_ENTRIES = 20_000
+
 /**
  * ADDITIVES_DB's synonyms, pre-normalized once at class-init time instead of on
  * every computeFindAdditive() call. normalizeForMatching() runs a lowercase +
@@ -328,6 +338,7 @@ fun findAdditive(eNumber: String?, name: String, category: IngredientCategory?):
     val key = Triple(eNumber, name, category)
     additiveLookupCache[key]?.let { return if (it === NOT_FOUND) null else it }
     val result = computeFindAdditive(eNumber, name, category)
+    if (additiveLookupCache.size >= MAX_ADDITIVE_CACHE_ENTRIES) additiveLookupCache.clear()
     additiveLookupCache[key] = result ?: NOT_FOUND
     return result
 }
