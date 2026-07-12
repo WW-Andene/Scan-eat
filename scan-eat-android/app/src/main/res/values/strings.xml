@@ -34,6 +34,8 @@
     <!-- ── Common actions, shared across screens ─────────────────────────── -->
     <string name="common_back">Retour</string>
     <string name="common_delete">Supprimer</string>
+    <string name="common_stepper_decrease">Diminuer %1$s</string>
+    <string name="common_stepper_increase">Augmenter %1$s</string>
     <string name="common_add">Ajouter</string>
     <string name="common_remove">Retirer</string>
     <string name="common_cancel">Annuler</string>

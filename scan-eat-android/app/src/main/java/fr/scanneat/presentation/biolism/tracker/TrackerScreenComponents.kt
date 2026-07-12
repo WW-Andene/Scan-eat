@@ -11,26 +11,51 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.presentation.ui.theme.minTouchTarget
 
 // Shared helpers used by 2+ cards/*.kt files. Section-specific composables
 // (SubstrateLegendItem etc.) stay colocated in their own card file.
 
 @Composable
 internal fun StepperChip(label: String, color: Color, onMinus: () -> Unit, onPlus: () -> Unit) {
+    val decreaseDescription = stringResource(R.string.common_stepper_decrease, label)
+    val increaseDescription = stringResource(R.string.common_stepper_increase, label)
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(4.dp))
             .background(color.copy(0.08f)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("−", modifier = Modifier.clickable { onMinus() }.padding(horizontal = 6.dp, vertical = 3.dp),
-            style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+        Text(
+            "−",
+            modifier = Modifier
+                .minTouchTarget()
+                .clickable(onClickLabel = decreaseDescription) { onMinus() }
+                .semantics { role = Role.Button; contentDescription = decreaseDescription }
+                .wrapContentSize()
+                .padding(horizontal = 6.dp, vertical = 3.dp),
+            style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold,
+        )
         Text(label, modifier = Modifier.padding(horizontal = 4.dp),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
-        Text("+", modifier = Modifier.clickable { onPlus() }.padding(horizontal = 6.dp, vertical = 3.dp),
-            style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+        Text(
+            "+",
+            modifier = Modifier
+                .minTouchTarget()
+                .clickable(onClickLabel = increaseDescription) { onPlus() }
+                .semantics { role = Role.Button; contentDescription = increaseDescription }
+                .wrapContentSize()
+                .padding(horizontal = 6.dp, vertical = 3.dp),
+            style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold,
+        )
     }
 }
 
