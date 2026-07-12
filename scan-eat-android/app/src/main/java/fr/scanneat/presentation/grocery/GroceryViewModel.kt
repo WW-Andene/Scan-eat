@@ -18,7 +18,9 @@ class GroceryViewModel @Inject constructor(
     private val checkedRepo: GroceryCheckedRepository,
 ) : ViewModel() {
 
-    private val rawItems: Flow<List<GroceryItem>> = repo.observeAll()
+    // A shared StateFlow so groceryItems and checkableItems don't each trigger their
+    // own Room query + aggregateGroceryList() run for the same recipe change.
+    private val rawItems: StateFlow<List<GroceryItem>> = repo.observeAll()
         .map { recipes ->
             aggregateGroceryList(recipes.map { r ->
                 GroceryRecipeInput(
@@ -27,9 +29,9 @@ class GroceryViewModel @Inject constructor(
                 )
             })
         }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val groceryItems: StateFlow<List<GroceryItem>> = rawItems
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Same list, annotated with persisted check-off state so the UI can tick items while shopping. */
     val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(rawItems, checkedRepo.checkedKeys) { items, checked ->

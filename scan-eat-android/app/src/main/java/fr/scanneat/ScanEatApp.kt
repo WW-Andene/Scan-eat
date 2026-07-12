@@ -3,6 +3,7 @@ package fr.scanneat
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -21,7 +22,13 @@ class ScanEatApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        val request = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES).build()
+        // This job fires every 15 minutes for the lifetime of the install - skip
+        // it when the battery is critically low rather than draining it further
+        // for a non-critical reminder check.
+        val constraints = Constraints.Builder().setRequiresBatteryNotLow(true).build()
+        val request = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(constraints)
+            .build()
         WorkManager.getInstance(this)
             .enqueueUniquePeriodicWork("biolism_reminders", ExistingPeriodicWorkPolicy.KEEP, request)
     }
