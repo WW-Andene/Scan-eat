@@ -360,10 +360,8 @@
     <string name="biolism_sesshist_bmr_tdee_value">%1$.0f / %2$.0f kcal/day</string>
     <string name="biolism_sesshist_weight_start_end">Weight start → end</string>
     <string name="biolism_sesshist_fat_fraction">Fat fraction</string>
-    <string name="biolism_sesshist_delete">Delete</string>
     <string name="biolism_sesshist_confirm_delete">Confirm deletion?</string>
     <string name="biolism_sesshist_yes">Yes</string>
-    <string name="biolism_sesshist_cancel">Cancel</string>
 
     <!-- ── Biolism: Tracker — Ketosis section ─────────────────────────────── -->
     <string name="biolism_ketosis_label">Ketosis</string>

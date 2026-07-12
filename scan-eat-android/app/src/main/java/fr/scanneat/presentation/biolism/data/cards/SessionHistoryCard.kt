@@ -80,7 +80,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
                         InfoRow(stringResource(R.string.biolism_sesshist_fat_fraction), "%.0f%%".format(sess.fatFrac * 100), "", Warm)
                         if (!isConfirm) {
                             TextButton(onClick = { confirmDeleteId = sess.id }) {
-                                Text(stringResource(R.string.biolism_sesshist_delete), color = Danger, style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.common_delete), color = Danger, style = MaterialTheme.typography.labelSmall)
                             }
                         } else {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -91,7 +91,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
                                     if (expandedId == sess.id) expandedId = null
                                 }) { Text(stringResource(R.string.biolism_sesshist_yes), color = Danger, fontWeight = FontWeight.Bold) }
                                 TextButton(onClick = { confirmDeleteId = null }) {
-                                    Text(stringResource(R.string.biolism_sesshist_cancel), color = OnBackground.copy(0.5f))
+                                    Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.5f))
                                 }
                             }
                         }

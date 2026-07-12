@@ -361,10 +361,8 @@
     <string name="biolism_sesshist_bmr_tdee_value">%1$.0f / %2$.0f kcal/j</string>
     <string name="biolism_sesshist_weight_start_end">Poids début → fin</string>
     <string name="biolism_sesshist_fat_fraction">Fraction graisse</string>
-    <string name="biolism_sesshist_delete">Supprimer</string>
     <string name="biolism_sesshist_confirm_delete">Confirmer la suppression ?</string>
     <string name="biolism_sesshist_yes">Oui</string>
-    <string name="biolism_sesshist_cancel">Annuler</string>
 
     <!-- ── Biolism: Tracker — Ketosis section ─────────────────────────────── -->
     <string name="biolism_ketosis_label">Cétose</string>
