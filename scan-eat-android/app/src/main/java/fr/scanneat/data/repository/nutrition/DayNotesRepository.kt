@@ -6,6 +6,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -41,9 +42,13 @@ class DayNotesRepository @Inject constructor(
 
     private fun key(date: LocalDate) = stringPreferencesKey("note_${date}")
 
-    /** Observe note for a given date. Emits "" when none set. */
+    /** Observe note for a given date. Emits "" when none set.
+     * distinctUntilChanged - Preferences DataStore re-emits its whole blob on
+     * every edit() call for ANY date, not just this one; without dedup every
+     * unrelated note write (a different day, a backup import) would re-fire
+     * this flow with an unchanged value. */
     fun observe(date: LocalDate): Flow<String> =
-        storeData.map { prefs -> prefs[key(date)] ?: "" }
+        storeData.map { prefs -> prefs[key(date)] ?: "" }.distinctUntilChanged()
 
     /** Set or clear a note. Truncates to DAY_NOTE_MAX_CHARS. */
     suspend fun set(date: LocalDate, text: String) {

@@ -32,6 +32,7 @@ import fr.scanneat.presentation.hydration.HydrationScreen
 import fr.scanneat.presentation.reminders.RemindersCard
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.weight.WeightScreen
+import kotlinx.coroutines.flow.first
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -122,13 +123,16 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     // default to Locale.getDefault() and could show the day name in the wrong language.
     val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
-    // Fix 9: initialise to empty on date change; LaunchedEffect collects the stored
+    // Fix 9: initialise to empty on date change; LaunchedEffect seeds the stored
     // note once per date and sets it — won't fire again while the user is typing because
     // selectedDate.value doesn't change until they navigate to a different day.
+    // Seeds via a one-shot .first() (not an ongoing .collect) - an ongoing collector
+    // here duplicated dayNote's own DataStore-observing pipeline, and could still
+    // clobber in-progress unsaved typing if the note changed from elsewhere (e.g. a
+    // backup import) while this screen was open.
     var noteText by remember(selectedDate.value) { mutableStateOf("") }
     LaunchedEffect(selectedDate.value) {
-        // Collect the first stored note for this date then stop — avoids overwriting typing
-        viewModel.dayNote.collect { stored -> noteText = stored }
+        noteText = viewModel.dayNote.first()
     }
 
     val s = summary.value

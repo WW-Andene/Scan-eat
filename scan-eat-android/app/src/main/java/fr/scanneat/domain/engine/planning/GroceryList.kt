@@ -13,6 +13,11 @@ data class GroceryItem(
     val name: String,
     val grams: Int,
     val sources: List<String>,   // recipe names that need this ingredient
+    // Stable identity independent of which recipe's spelling of this
+    // ingredient happened to be the first one aggregated - checked-off state
+    // (GroceryCheckedRepository) persists against this, not `name`, so a
+    // renamed recipe or a different row-fetch order can't silently orphan it.
+    val key: String,
 )
 
 data class GroceryRecipeInput(
@@ -48,9 +53,9 @@ fun aggregateGroceryList(recipes: List<GroceryRecipeInput>): List<GroceryItem> {
             if (recipeName !in entry.sources) entry.sources += recipeName
         }
     }
-    return acc.values
-        .map { GroceryItem(it.name, it.grams.toInt(), it.sources.toList()) }
-        .sortedBy { normalizeKey(it.name) }
+    return acc.entries
+        .map { (key, entry) -> GroceryItem(entry.name, entry.grams.toInt(), entry.sources.toList(), key = key) }
+        .sortedBy { it.key }
 }
 
 /**

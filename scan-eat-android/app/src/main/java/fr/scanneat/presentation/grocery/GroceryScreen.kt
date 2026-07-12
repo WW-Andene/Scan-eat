@@ -104,7 +104,7 @@ fun GroceryScreen(
                     Text(stringResource(R.string.grocery_item_count, items.value.size),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 }
-                items(checkable.value, key = { it.item.name }) { checkableItem ->
+                items(checkable.value, key = { it.item.key }) { checkableItem ->
                     val item = checkableItem.item
                     val checked = checkableItem.checked
                     val contentAlpha by animateFloatAsState(if (checked) 0.5f else 1f, label = "groceryItemAlpha")

@@ -35,11 +35,16 @@ class GroceryViewModel @Inject constructor(
 
     /** Same list, annotated with persisted check-off state so the UI can tick items while shopping. */
     val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(rawItems, checkedRepo.checkedKeys) { items, checked ->
-        items.map { CheckableGroceryItem(it, checked = it.name in checked) }
+        items.map { CheckableGroceryItem(it, checked = it.key in checked) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun toggleChecked(item: GroceryItem, checked: Boolean) {
-        viewModelScope.launch { checkedRepo.setChecked(item.name, checked) }
+        // Keyed by GroceryItem.key (the aggregation's stable normalized identity),
+        // not the display name - two differently-spelled recipe ingredients that
+        // aggregate to the same item, or a renamed recipe changing which spelling
+        // gets picked as `name`, would otherwise silently orphan the persisted
+        // checked-state key and un-check a previously-checked item.
+        viewModelScope.launch { checkedRepo.setChecked(item.key, checked) }
     }
 
     fun clearAllChecked() {
