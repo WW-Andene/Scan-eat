@@ -28,26 +28,31 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
             color = OnBackground, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(8.dp))
         NRow(stringResource(R.string.result_nutri_energy), "${nutrition.energyKcal.toInt()} kcal")
-        NRow(stringResource(R.string.result_nutri_fat), "${nutrition.fatG} g")
-        NRow(stringResource(R.string.result_nutri_saturated), "${nutrition.saturatedFatG} g")
-        NRow(stringResource(R.string.result_nutri_carbs), "${nutrition.carbsG} g")
-        NRow(stringResource(R.string.result_nutri_sugars), "${nutrition.sugarsG} g")
-        NRow(stringResource(R.string.result_nutri_fiber), "${nutrition.fiberG} g")
-        NRow(stringResource(R.string.result_nutri_protein), "${nutrition.proteinG} g")
-        NRow(stringResource(R.string.result_nutri_salt), "${nutrition.saltG} g")
+        NRow(stringResource(R.string.result_nutri_fat), "${fmt1(nutrition.fatG)} g")
+        NRow(stringResource(R.string.result_nutri_saturated), "${fmt1(nutrition.saturatedFatG)} g")
+        NRow(stringResource(R.string.result_nutri_carbs), "${fmt1(nutrition.carbsG)} g")
+        NRow(stringResource(R.string.result_nutri_sugars), "${fmt1(nutrition.sugarsG)} g")
+        NRow(stringResource(R.string.result_nutri_fiber), "${fmt1(nutrition.fiberG)} g")
+        NRow(stringResource(R.string.result_nutri_protein), "${fmt1(nutrition.proteinG)} g")
+        NRow(stringResource(R.string.result_nutri_salt), "${fmt1(nutrition.saltG)} g")
         if (expanded) {
-            nutrition.transFatG?.let { NRow(stringResource(R.string.result_nutri_transfat), "${it} g") }
-            nutrition.ironMg?.let { NRow(stringResource(R.string.result_nutri_iron), "${it} mg") }
-            nutrition.calciumMg?.let { NRow(stringResource(R.string.result_nutri_calcium), "${it} mg") }
-            nutrition.vitDUg?.let { NRow(stringResource(R.string.result_nutri_vitd), "${it} µg") }
-            nutrition.b12Ug?.let { NRow(stringResource(R.string.result_nutri_vitb12), "${it} µg") }
-            nutrition.vitCMg?.let { NRow(stringResource(R.string.result_nutri_vitc), "${it} mg") }
+            nutrition.transFatG?.let { NRow(stringResource(R.string.result_nutri_transfat), "${fmt1(it)} g") }
+            nutrition.ironMg?.let { NRow(stringResource(R.string.result_nutri_iron), "${fmt1(it)} mg") }
+            nutrition.calciumMg?.let { NRow(stringResource(R.string.result_nutri_calcium), "${fmt1(it)} mg") }
+            nutrition.vitDUg?.let { NRow(stringResource(R.string.result_nutri_vitd), "${fmt1(it)} µg") }
+            nutrition.b12Ug?.let { NRow(stringResource(R.string.result_nutri_vitb12), "${fmt1(it)} µg") }
+            nutrition.vitCMg?.let { NRow(stringResource(R.string.result_nutri_vitc), "${fmt1(it)} mg") }
         }
         TextButton(onClick = { expanded = !expanded }) {
             Text(if (expanded) stringResource(R.string.result_show_less) else stringResource(R.string.result_show_more), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
         }
     }
 }
+
+// OFF-sourced doubles (e.g. sodium x1000 -> mg, cl/dl conversions) can carry
+// float-imprecision tails (12.339999999999999); round to 1 decimal so every
+// row displays with consistent precision, matching how energyKcal is rounded.
+private fun fmt1(value: Double): String = "%.1f".format(value)
 
 @Composable
 private fun NRow(label: String, value: String) {

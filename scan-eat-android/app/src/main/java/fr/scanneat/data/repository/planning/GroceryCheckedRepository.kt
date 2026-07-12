@@ -53,13 +53,15 @@ class GroceryCheckedRepository @Inject constructor(
     }
 
     /**
-     * Overwrites the checked set wholesale — used by backup restore. A backup
-     * predating this field (or one from an empty grocery list) has nothing to
-     * restore, so this is a no-op rather than wiping today's checked items -
-     * same convention HydrationRepository.importAll uses.
+     * Merges the backed-up checked set into the current one — used by backup
+     * restore. A backup predating this field (or one from an empty grocery
+     * list) has nothing to restore, so this is a no-op rather than wiping
+     * today's checked items - same convention HydrationRepository.importAll
+     * uses (union, not replace, so restoring an older/other-device backup
+     * can't silently un-check items only checked locally).
      */
     suspend fun restoreAll(keys: Set<String>) {
         if (keys.isEmpty()) return
-        store.edit { prefs -> prefs[KEY_CHECKED] = keys }
+        store.edit { prefs -> prefs[KEY_CHECKED] = (prefs[KEY_CHECKED] ?: emptySet()) + keys }
     }
 }
