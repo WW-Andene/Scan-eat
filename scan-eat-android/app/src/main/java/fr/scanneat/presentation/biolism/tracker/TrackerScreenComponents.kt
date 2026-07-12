@@ -19,6 +19,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
+import fr.scanneat.presentation.biolism.hmsFromSeconds
 import fr.scanneat.presentation.ui.theme.minTouchTarget
 
 // Shared helpers used by 2+ cards/*.kt files. Section-specific composables
@@ -60,8 +61,7 @@ internal fun StepperChip(label: String, color: Color, onMinus: () -> Unit, onPlu
 }
 
 internal fun formatElapsed(sec: Double): String {
-    val total = sec.toLong()
-    val h = total / 3600; val m = (total % 3600) / 60; val s = total % 60
+    val (h, m, s) = hmsFromSeconds(sec.toLong())
     return if (h > 0) "${h}h ${m.toString().padStart(2,'0')}m ${s.toString().padStart(2,'0')}s"
     else if (m > 0) "${m}m ${s.toString().padStart(2,'0')}s"
     else "${s}s"

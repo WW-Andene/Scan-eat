@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.HormoneReading
+import fr.scanneat.presentation.biolism.hmsFromSeconds
 import fr.scanneat.presentation.ui.theme.*
 
 // ── Shared card / helper composables for the Biolism Data screen ──────────────
@@ -199,10 +200,7 @@ internal fun colorFromToken(token: String): Color = when (token) {
 }
 
 internal fun formatDuration(ms: Long): String {
-    val totalSec = ms / 1000
-    val h = totalSec / 3600
-    val m = (totalSec % 3600) / 60
-    val sec = totalSec % 60
+    val (h, m, sec) = hmsFromSeconds(ms / 1000)
     return if (h > 0) "%dh %02dm".format(h, m) else "%dm %02ds".format(m, sec)
 }
 
