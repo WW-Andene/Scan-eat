@@ -54,12 +54,18 @@ object CrashLogger {
      */
     private fun formatWithoutMessages(throwable: Throwable): String {
         val sb = StringBuilder()
+        // A visited set (not just "differs from the immediate parent") guards
+        // against a longer cause cycle (A -> B -> A), which Throwable itself
+        // allows callers to construct and which `it !== current` would loop on
+        // forever - mirroring how java.lang.Throwable's own trace printing
+        // tracks a Set<Throwable> of already-printed causes.
+        val visited = java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Throwable, Boolean>())
         var current: Throwable? = throwable
         var isCause = false
-        while (current != null) {
+        while (current != null && visited.add(current)) {
             sb.append(if (isCause) "Caused by: " else "").append(current.javaClass.name).append('\n')
             current.stackTrace.forEach { sb.append("\tat ").append(it).append('\n') }
-            current = current.cause?.takeIf { it !== current }
+            current = current.cause
             isCause = true
         }
         return sb.toString()

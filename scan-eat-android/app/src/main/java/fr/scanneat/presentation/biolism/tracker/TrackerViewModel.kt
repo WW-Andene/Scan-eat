@@ -12,7 +12,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlin.math.min
 
 @HiltViewModel
 class TrackerViewModel @Inject constructor(
@@ -49,25 +48,29 @@ class TrackerViewModel @Inject constructor(
     val liveMetabolic: StateFlow<LiveMetabolicState> = combine(
         profile, _timerState, _elapsedMs, _ketoElapsedMs,
     ) { p, s, elapsedMs, ketoMs ->
-        if (!p.isValid) return@combine LiveMetabolicState()
+        computeMetabolicSnapshot(p, s, elapsedMs, ketoMs)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LiveMetabolicState())
+
+    private fun computeMetabolicSnapshot(p: BiolismProfile, s: TimerState, elapsedMs: Long, ketoMs: Long): LiveMetabolicState {
+        if (!p.isValid) return LiveMetabolicState()
         val elapsedSec  = elapsedMs / 1000.0
         val ketoHours   = ketoMs / 3_600_000.0
         val fastingHours = s.fastingHours
         val ctxHours    = if (s.ketosisOn) ketoHours else fastingHours.coerceAtLeast(0.0)
         val npRq        = if (s.ketosisOn) BiolismEngine.computeKetoRQ(ketoHours, s.ketoAdapted) else 0.858
         val sub         = BiolismEngine.computeSubstrates(npRq, ctxHours)
-        val m           = BiolismEngine.computeMetabolics(p, npRq, ctxHours, s.ketoAdapted) ?: return@combine LiveMetabolicState()
+        val m           = BiolismEngine.computeMetabolics(p, npRq, ctxHours, s.ketoAdapted) ?: return LiveMetabolicState()
 
         val kcalTotal   = m.kcalSec * elapsedSec
         val fatKcal     = kcalTotal * sub.fatFrac
         val glycoKcal   = if (s.ketosisOn) kotlin.math.min(kcalTotal * sub.carbFrac, GLYCOGEN_KCAL) else 0.0
         val glycoFrac   = if (s.ketosisOn) kotlin.math.min(1.0, glycoKcal / GLYCOGEN_KCAL) else 0.0
-        val kcalPerKgFat = if (s.ketosisOn) 7700.0 + 1600.0 * glycoFrac else 7700.0
+        val kcalPerKgFat = if (s.ketosisOn) 7700.0 + (9300.0 - 7700.0) * glycoFrac else 7700.0
         val fatLostKg   = fatKcal / kcalPerKgFat
         val glycoLostKg = (glycoKcal / 4.0) * (1.0 + WATER_PER_GLYC) / 1000.0
         val phase       = if (s.ketosisOn) BiolismEngine.ketoPhaseInfo(ketoHours, s.ketoAdapted) else null
 
-        LiveMetabolicState(
+        return LiveMetabolicState(
             npRq        = npRq,
             fatFrac     = sub.fatFrac,
             carbFrac    = sub.carbFrac,
@@ -79,8 +82,10 @@ class TrackerViewModel @Inject constructor(
             glycoLostKg = glycoLostKg,
             liveWeightKg = p.weightKg - fatLostKg - glycoLostKg,
             phase       = phase,
+            bmrDay      = m.bmrDay,
+            tdeeDay     = m.tdeeDay,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LiveMetabolicState())
+    }
 
 
     private var tickJob: Job? = null
@@ -238,21 +243,7 @@ class TrackerViewModel @Inject constructor(
         if (!p.isValid || _elapsedMs.value < 1000L) return
 
         val elapsedSec = _elapsedMs.value / 1000.0
-        val ketoHours  = _ketoElapsedMs.value / 3_600_000.0
-        val fh         = s.fastingHours
-        val ctxHours   = if (s.ketosisOn) ketoHours else if (fh > 0) fh else 0.0
-        val npRq       = if (s.ketosisOn) BiolismEngine.computeKetoRQ(ketoHours, s.ketoAdapted) else 0.858
-        val sub        = BiolismEngine.computeSubstrates(npRq, ctxHours)
-        val m          = BiolismEngine.computeMetabolics(p, npRq, ctxHours, s.ketoAdapted) ?: return
-
-        val kcalTotal = m.kcalSec * elapsedSec
-        val fatKcal   = kcalTotal * sub.fatFrac
-        val glycoKcal = if (s.ketosisOn) min(kcalTotal * sub.carbFrac, GLYCOGEN_KCAL) else 0.0
-        val glycoLostKg = (glycoKcal / 4.0) * (1.0 + WATER_PER_GLYC) / 1000.0
-        val glycoFrac = if (s.ketosisOn) min(1.0, glycoKcal / GLYCOGEN_KCAL) else 0.0
-        val kcalPerKgFat = if (s.ketosisOn) 7700.0 + (9300.0 - 7700.0) * glycoFrac else 7700.0
-        val fatLostKg    = fatKcal / kcalPerKgFat
-        val endWeight    = p.weightKg - fatLostKg - glycoLostKg
+        val snapshot   = computeMetabolicSnapshot(p, s, _elapsedMs.value, _ketoElapsedMs.value)
 
         val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
             .withZone(ZoneId.systemDefault())
@@ -260,16 +251,16 @@ class TrackerViewModel @Inject constructor(
             id            = System.currentTimeMillis(),
             timestamp     = fmt.format(Instant.now()),
             elapsedSec    = elapsedSec,
-            kcalBurned    = kcalTotal,
-            kcalPerMin    = if (elapsedSec > 0) kcalTotal / (elapsedSec / 60.0) else 0.0,
-            bmrDay        = m.bmrDay,
-            tdeeDay       = m.tdeeDay,
-            activityLabel = m.tdeeDay.let { p.activityMeta.label },
+            kcalBurned    = snapshot.kcalTotal,
+            kcalPerMin    = if (elapsedSec > 0) snapshot.kcalTotal / (elapsedSec / 60.0) else 0.0,
+            bmrDay        = snapshot.bmrDay,
+            tdeeDay       = snapshot.tdeeDay,
+            activityLabel = p.activityMeta.label,
             ketosis       = s.ketosisOn,
             startWeightKg = p.weightKg,
-            endWeightKg   = endWeight,
-            fatFrac       = sub.fatFrac,
-            fatLostKg     = fatLostKg,
+            endWeightKg   = snapshot.liveWeightKg,
+            fatFrac       = snapshot.fatFrac,
+            fatLostKg     = snapshot.fatLostKg,
         )
         viewModelScope.launch { repo.saveSession(session) }
         _saved.value = true
@@ -305,4 +296,6 @@ data class LiveMetabolicState(
     val glycoLostKg: Double     = 0.0,
     val liveWeightKg: Double    = 0.0,
     val phase: fr.scanneat.domain.engine.biolism.KetoPhaseInfo? = null,
+    val bmrDay: Double          = 0.0,
+    val tdeeDay: Double         = 0.0,
 )
