@@ -320,22 +320,37 @@ Output ONLY the JSON. No explanation.
         // of giving it a real last retry.
         val hasImages = content.any { it.type == "image_url" }
         var lastErr: Throwable? = null
+        // A long ingredients/micronutrient list (common on EU labels) can hit the
+        // 2000-token default before the JSON closes - finish_reason "length" says
+        // so explicitly, distinct from the model just returning garbage. One retry
+        // with a bigger budget recovers those instead of surfacing a generic
+        // "unparseable JSON" error for a response that was actually on track.
         repeat(maxRetries) { attempt ->
             val model = if (attempt == maxRetries - 1 && !hasImages) FALLBACK_MODEL else primaryModel
+            val maxTokens = if (attempt > 0) 4000 else 2000
             val result = runCatching {
                 val resp = groqApi.chatCompletions(
                     auth    = "Bearer $apiKey",
                     request = ChatRequest(
-                        model    = model,
-                        messages = listOf(ChatMessage(role = "user", content = content)),
+                        model     = model,
+                        messages  = listOf(ChatMessage(role = "user", content = content)),
+                        maxTokens = maxTokens,
                     ),
                 )
-                resp.choices.firstOrNull()?.message?.content ?: ""
+                val choice = resp.choices.firstOrNull()
+                choice to (choice?.finishReason == "length")
             }
-            result.onSuccess { return it }
-            val err = result.exceptionOrNull()!!
-            lastErr = err
-            if (!isRetryable(err)) throw err
+            result.onSuccess { (choice, truncated) ->
+                if (truncated && attempt < maxRetries - 1) {
+                    lastErr = IOException("LLM response truncated at $maxTokens tokens")
+                    return@onSuccess
+                }
+                return choice?.message?.content ?: ""
+            }
+            result.onFailure { err ->
+                lastErr = err
+                if (!isRetryable(err)) throw err
+            }
             if (attempt < maxRetries - 1) delay(500L * (attempt + 1))
         }
         throw lastErr ?: RuntimeException("All LLM retries exhausted")
