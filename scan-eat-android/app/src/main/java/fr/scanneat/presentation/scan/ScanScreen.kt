@@ -251,13 +251,14 @@ fun ScanScreen(
     }
 }
 
-// ImageProxy.image is CameraX's @ExperimentalGetImage API. Extracted into its
-// own function (rather than opting in on the whole CameraPreview composable)
-// because lint doesn't propagate a composable-level @OptIn into a lambda
-// that's SAM-converted to a Java functional interface (ImageAnalysis.Analyzer)
-// - it still flags the usage inside setAnalyzer{} even when the enclosing
-// composable is annotated. A real function declaration doesn't have that gap.
-@OptIn(androidx.camera.core.ExperimentalGetImage::class)
+// ImageProxy.image is CameraX's @ExperimentalGetImage API, which is built on
+// the androidx.annotation.experimental system rather than Kotlin's native
+// @RequiresOptIn - lint's UnsafeOptInUsageDetector only recognizes
+// androidx.annotation.OptIn for it, not kotlin.OptIn (which silently didn't
+// suppress the warning despite looking like the right fix). Extracted into
+// its own function rather than annotating the whole CameraPreview composable
+// so the experimental-API requirement doesn't leak onto its callers.
+@androidx.annotation.OptIn(markerClass = [androidx.camera.core.ExperimentalGetImage::class])
 private fun analyzeFrame(proxy: ImageProxy, scanner: com.google.mlkit.vision.barcode.BarcodeScanner, onBarcodeDetected: (String) -> Unit) {
     val media = proxy.image
     if (media != null) {
