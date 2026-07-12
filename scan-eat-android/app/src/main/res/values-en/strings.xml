@@ -8,7 +8,10 @@
     <string name="common_allow">Allow</string>
     <string name="scan_open_settings_button">Open Settings</string>
     <string name="scan_cd_scan">Scan</string>
-    <string name="scan_photo_count">%1$d photo(s)</string>
+    <plurals name="scan_photo_count">
+        <item quantity="one">%1$d photo</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
     <string name="scan_photo_index">Photo %1$d</string>
     <string name="scan_needs_photo">Product not found in the database — photograph the label to continue</string>
     <string name="scan_flash_toggle">Toggle flash</string>
@@ -51,7 +54,7 @@
     <string name="meal_snack">Snack</string>
 
     <!-- ── Bottom navigation tabs ─────────────────────────────────────────── -->
-    <string name="tab_scan">Scanner</string>
+    <string name="tab_scan">Scan</string>
     <string name="tab_diary">Diary</string>
     <string name="tab_dashboard">Dashboard</string>
     <string name="tab_biolism">Metabolism</string>

@@ -8,7 +8,10 @@
     <string name="common_allow">Autoriser</string>
     <string name="scan_open_settings_button">Ouvrir les réglages</string>
     <string name="scan_cd_scan">Scanner</string>
-    <string name="scan_photo_count">%1$d photo(s)</string>
+    <plurals name="scan_photo_count">
+        <item quantity="one">%1$d photo</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
     <string name="scan_photo_index">Photo %1$d</string>
     <string name="scan_needs_photo">Produit non trouvé dans la base — photographiez l\'étiquette pour continuer</string>
     <string name="scan_flash_toggle">Activer/désactiver le flash</string>

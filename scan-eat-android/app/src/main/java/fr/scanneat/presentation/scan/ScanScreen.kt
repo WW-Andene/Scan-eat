@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -179,7 +180,7 @@ fun ScanScreen(
                 ) {
                     Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f)) {
                         Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                            Text(stringResource(R.string.scan_photo_count, images.value.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
+                            Text(pluralStringResource(R.plurals.scan_photo_count, images.value.size, images.value.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
                             Spacer(Modifier.height(6.dp))
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 itemsIndexed(images.value) { index, payload ->
