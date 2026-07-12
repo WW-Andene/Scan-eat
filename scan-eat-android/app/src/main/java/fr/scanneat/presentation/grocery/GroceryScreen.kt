@@ -115,7 +115,7 @@ fun GroceryScreen(
                                 Checkbox(
                                     checked = checked,
                                     onCheckedChange = {
-                                        haptics.performHapticFeedback(if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.toggleChecked(item, it)
                                     },
                                     colors = CheckboxDefaults.colors(checkedColor = AccentCoral),
