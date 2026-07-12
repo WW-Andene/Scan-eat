@@ -102,7 +102,7 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                 onTest = { NotificationHelper.show(context, 903, context.getString(R.string.reminders_dinner), context.getString(R.string.reminders_test_body)) },
             )
 
-            HorizontalDivider(color = OnBackground.copy(0.06f))
+            ScanEatDivider()
 
             // Hydration
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -128,7 +128,7 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                 }
             }
 
-            HorizontalDivider(color = OnBackground.copy(0.06f))
+            ScanEatDivider()
 
             // Weight
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

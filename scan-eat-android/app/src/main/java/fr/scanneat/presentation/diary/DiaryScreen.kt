@@ -99,7 +99,7 @@ fun DiaryScreen(
                     }
                 }
             }
-            HorizontalDivider(color = OnBackground.copy(0.06f))
+            ScanEatDivider()
 
             when (activeTab) {
                 DiaryTab.MEALS    -> MealsTab(viewModel)

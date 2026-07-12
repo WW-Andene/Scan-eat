@@ -100,6 +100,15 @@ val SeparatorHeavy:  Color @Composable get() = OnBackground.copy(alpha = 0.20f)
 val SeparatorLight:  Color @Composable get() = OnBackground.copy(alpha = 0.08f)
 val SeparatorAccent: Color @Composable get() = AccentCoral.copy(alpha = 0.30f)
 
+/**
+ * The hairline `HorizontalDivider(color = OnBackground.copy(0.06f/0.08f/0.1f))`
+ * pattern was hand-copied across many screens with the alpha literal drifting
+ * per site instead of using the Separator* taxonomy above. First adoption at
+ * RemindersCard/DiaryScreen; other call sites migrate incrementally.
+ */
+@Composable
+fun ScanEatDivider(color: Color = SeparatorLight) = androidx.compose.material3.HorizontalDivider(color = color)
+
 // ── Label & secondary text ────────────────────────────────────────────────────
 val TextSecondary   = Color(0xFF7E859E)
 val TextMuted       = Color(0xFF454A60)
