@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class HistorySort { RECENT, OLDEST, NAME_AZ, SCORE_DESC }
+
 @HiltViewModel
 class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository) : ViewModel() {
     private val _query = MutableStateFlow("")
@@ -17,17 +19,29 @@ class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository)
     private val _favoritesOnly = MutableStateFlow(false)
     val favoritesOnly: StateFlow<Boolean> = _favoritesOnly.asStateFlow()
 
+    private val _sort = MutableStateFlow(HistorySort.RECENT)
+    val sort: StateFlow<HistorySort> = _sort.asStateFlow()
+
     private val allScans = repo.observeHistory(limit = 200)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val filtered: StateFlow<List<ScanResult>> = combine(allScans, _query, _favoritesOnly) { scans, q, favOnly ->
+    val filtered: StateFlow<List<ScanResult>> = combine(allScans, _query, _favoritesOnly, _sort) { scans, q, favOnly, sort ->
         scans
             .filter { !favOnly || it.favorite }
             .filter { q.isBlank() || it.product.name.contains(q, ignoreCase = true) || it.barcode?.contains(q) == true }
+            .let { list ->
+                when (sort) {
+                    HistorySort.RECENT      -> list // observeHistory is already scannedAt DESC
+                    HistorySort.OLDEST      -> list.asReversed()
+                    HistorySort.NAME_AZ     -> list.sortedBy { it.product.name.lowercase() }
+                    HistorySort.SCORE_DESC  -> list.sortedByDescending { it.audit.score }
+                }
+            }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setQuery(q: String) { _query.value = q }
     fun setFavoritesOnly(value: Boolean) { _favoritesOnly.value = value }
+    fun setSort(value: HistorySort) { _sort.value = value }
 
     fun toggleFavorite(scan: ScanResult) {
         if (scan.dbId <= 0) return

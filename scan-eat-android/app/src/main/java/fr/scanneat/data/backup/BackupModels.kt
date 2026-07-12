@@ -17,18 +17,20 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // activity, meal templates, recipes) plus, since format v2, the
 // DataStore-backed data a restore-on-a-new-device previously silently lost:
 // profile, app settings, reminder settings, fasting (active session +
-// history), hydration log, day notes, and the meal plan.
+// history), hydration log, day notes, and the meal plan. Since v3, also the
+// grocery-list checked-off state (its own DataStore file, added alongside
+// the check-off feature — easy to forget since it isn't a @Database entity).
 //
 // Deliberately excludes the Groq API key from SettingsBackup — a backup file
 // shared for debugging or support must not leak a credential.
 //
 // version bumps whenever a field is added/removed/retyped, so importFromJson
 // can refuse (rather than silently corrupt) a bundle from an incompatible
-// future or ancient export. All v2 fields default to null/empty so a v1 file
-// (which has none of them) still parses cleanly.
+// future or ancient export. All v2+ fields default to null/empty so an older
+// file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 2
+const val BACKUP_FORMAT_VERSION = 3
 
 data class ProfileBackup(
     val name: String,
@@ -81,6 +83,7 @@ data class BackupBundle(
     // rather than a structured field, since Moshi has no built-in polymorphic
     // adapter for MealPlanSlot's sealed subclasses.
     val mealPlanRaw: String? = null,
+    val groceryCheckedKeys: List<String> = emptyList(),
 )
 
 data class BackupSummary(

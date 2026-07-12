@@ -46,13 +46,36 @@ fun ScanHistoryScreen(
     val scans = viewModel.filtered.collectAsStateWithLifecycle()
     val query = viewModel.query.collectAsStateWithLifecycle()
     val favoritesOnly = viewModel.favoritesOnly.collectAsStateWithLifecycle()
+    val sort = viewModel.sort.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
+    var sortMenuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.history_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                actions = {
+                    Box {
+                        IconButton(onClick = { sortMenuExpanded = true }) {
+                            Icon(Icons.Default.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
+                        }
+                        DropdownMenu(expanded = sortMenuExpanded, onDismissRequest = { sortMenuExpanded = false }) {
+                            val options = listOf(
+                                HistorySort.RECENT to stringResource(R.string.history_sort_recent),
+                                HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),
+                                HistorySort.NAME_AZ to stringResource(R.string.history_sort_name),
+                                HistorySort.SCORE_DESC to stringResource(R.string.history_sort_score),
+                            )
+                            options.forEach { (value, label) ->
+                                DropdownMenuItem(
+                                    text = { Text(label, fontWeight = if (sort.value == value) FontWeight.Bold else FontWeight.Normal) },
+                                    onClick = { viewModel.setSort(value); sortMenuExpanded = false },
+                                )
+                            }
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },

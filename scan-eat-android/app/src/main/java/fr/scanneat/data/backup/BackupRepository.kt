@@ -16,6 +16,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
+import fr.scanneat.data.repository.planning.GroceryCheckedRepository
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import fr.scanneat.domain.engine.scoring.DietKey
@@ -55,6 +56,7 @@ class BackupRepository @Inject constructor(
     private val dayNotesRepo: DayNotesRepository,
     private val mealPlanRepo: MealPlanRepository,
     private val remindersRepo: RemindersRepository,
+    private val groceryCheckedRepo: GroceryCheckedRepository,
     private val moshi: Moshi,
 ) {
     private val bundleAdapter = moshi.adapter(BackupBundle::class.java)
@@ -103,6 +105,7 @@ class BackupRepository @Inject constructor(
             hydration = hydrationRepo.exportAll().map { (date, ml) -> HydrationEntryBackup(date.toString(), ml) },
             dayNotes = dayNotesRepo.exportAll().map { (date, text) -> DayNoteBackup(date.toString(), text) },
             mealPlanRaw = mealPlanRepo.exportRaw(),
+            groceryCheckedKeys = groceryCheckedRepo.checkedKeys.first().toList(),
         )
         return bundleAdapter.indent("  ").toJson(bundle)
     }
@@ -202,6 +205,7 @@ class BackupRepository @Inject constructor(
             runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry.text }
         })
         bundle.mealPlanRaw?.let { mealPlanRepo.importRaw(it) }
+        groceryCheckedRepo.restoreAll(bundle.groceryCheckedKeys.toSet())
     }
 
     private fun parseBundle(json: String): BackupBundle {

@@ -447,6 +447,11 @@
     <string name="history_empty">No scans recorded.</string>
     <string name="history_empty_query">No results for \"%1$s\".</string>
     <string name="history_empty_favorites">No favorites yet — tap the star on a scan to add it.</string>
+    <string name="history_sort">Sort</string>
+    <string name="history_sort_recent">Most recent</string>
+    <string name="history_sort_oldest">Oldest</string>
+    <string name="history_sort_name">Name (A-Z)</string>
+    <string name="history_sort_score">Best score</string>
 
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Grocery List</string>
