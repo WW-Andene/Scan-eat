@@ -20,6 +20,12 @@ on:
       - ".github/workflows/scoring-drift-check.yml"
   workflow_dispatch:
 
+# No step here needs to write to the repo, PRs, or packages — without an
+# explicit block the GITHUB_TOKEN falls back to the repo/org default, which
+# on many repos is broad (contents: write, etc). Least-privilege: read-only.
+permissions:
+  contents: read
+
 jobs:
   diff:
     runs-on: ubuntu-latest
