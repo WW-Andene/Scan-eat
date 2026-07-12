@@ -13,6 +13,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentHashMap
 
 // ============================================================================
 // OFF SERVICE — Open Food Facts product lookup
@@ -68,6 +69,20 @@ class OffService {
         }
     }
 
+    // ------------------------------------------------------------------
+    // Short-TTL result cache, keyed on the original (un-normalized) barcode.
+    // OFF product data is near-static (packaged goods don't get relabeled
+    // mid-day) but /api/score is hit repeatedly for the same barcode - a user
+    // rescanning a product they just looked at, or re-opening its result
+    // screen - and each hit previously re-fired the full candidate-expansion
+    // fan-out (up to ~4 concurrent HTTP requests to openfoodfacts.org) for an
+    // answer that hadn't changed. Misses are cached too (as null) so a
+    // not-found barcode doesn't keep re-paying the full fan-out either.
+    // ------------------------------------------------------------------
+    private data class CacheEntry(val product: OffProductRaw?, val expiresAtMs: Long)
+    private val cache = ConcurrentHashMap<String, CacheEntry>()
+    private val cacheTtlMs = 10 * 60 * 1000L // 10 minutes
+
     /**
      * Fetch a product from OFF by barcode, retrying against every plausible
      * alternate encoding of the same GTIN on a miss. Scanners hand back the
@@ -80,16 +95,27 @@ class OffService {
      * Candidates are fired concurrently but awaited in priority order, so a
      * lower-priority candidate that happens to respond faster never wins over
      * an earlier, more-likely one. Returns null on miss or network error.
+     *
+     * Results (hits and misses) are cached for [cacheTtlMs] to avoid refiring
+     * the whole candidate fan-out for repeat lookups of the same barcode.
      */
     suspend fun fetchProduct(barcode: String): OffProductRaw? = coroutineScope {
         val digits = barcode.filter { it.isDigit() }
         if (digits.length !in 6..14) return@coroutineScope null
 
-        val pending = barcodeCandidates(digits).map { code -> async { fetchExact(code) } }
-        for (deferred in pending) {
-            deferred.await()?.let { return@coroutineScope it }
+        val now = System.currentTimeMillis()
+        cache[digits]?.let { entry ->
+            if (entry.expiresAtMs > now) return@coroutineScope entry.product
         }
-        null
+
+        val pending = barcodeCandidates(digits).map { code -> async { fetchExact(code) } }
+        var found: OffProductRaw? = null
+        for (deferred in pending) {
+            val result = deferred.await()
+            if (result != null) { found = result; break }
+        }
+        cache[digits] = CacheEntry(found, now + cacheTtlMs)
+        found
     }
 
     private suspend fun fetchExact(code: String): OffProductRaw? = runCatching {

@@ -311,6 +311,19 @@ fun normalizeForMatching(s: String): String =
 private val NOT_FOUND = AdditiveInfo("", emptyList(), AdditiveTier.THREE, AdditiveCategory.ANTICAKING, "", "")
 private val additiveLookupCache = ConcurrentHashMap<Triple<String?, String, IngredientCategory?>, AdditiveInfo>()
 
+/**
+ * ADDITIVES_DB's synonyms, pre-normalized once at class-init time instead of on
+ * every computeFindAdditive() call. normalizeForMatching() runs a lowercase +
+ * Normalizer.normalize() + 3 regex passes, and computeFindAdditive() used to
+ * call it on every synonym of every one of the ~90 additives (roughly 200
+ * synonym strings) each time it ran a name-based scan - all on data that never
+ * changes at runtime. The outer additiveLookupCache above already dedupes
+ * repeat lookups for the *same* ingredient, but distinct ingredient names each
+ * still paid the full re-normalization cost of the entire synonym table.
+ */
+private val NORMALIZED_ADDITIVES: List<Pair<AdditiveInfo, List<String>>> =
+    ADDITIVES_DB.map { it to it.names.map(::normalizeForMatching) }
+
 fun findAdditive(eNumber: String?, name: String, category: IngredientCategory?): AdditiveInfo? {
     val key = Triple(eNumber, name, category)
     additiveLookupCache[key]?.let { return if (it === NOT_FOUND) null else it }
@@ -328,9 +341,9 @@ private fun computeFindAdditive(eNumber: String?, name: String, category: Ingred
 
     // Name-based match
     val normName = normalizeForMatching(name)
-    for (additive in ADDITIVES_DB) {
-        for (synonym in additive.names) {
-            if (normName.contains(normalizeForMatching(synonym))) return additive
+    for ((additive, normSynonyms) in NORMALIZED_ADDITIVES) {
+        for (normSynonym in normSynonyms) {
+            if (normName.contains(normSynonym)) return additive
         }
     }
 
