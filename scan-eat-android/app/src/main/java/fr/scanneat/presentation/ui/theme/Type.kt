@@ -35,7 +35,7 @@ val ScanEatTypography = Typography(
  * is Black; tabular figures are baked in so the digits never jitter in
  * width as they change. Screens still vary fontSize per their own
  * hierarchy — consolidating that onto one discrete size scale is a
- * separate, visually-verified follow-up (tracked in design_audit.md §7).
+ * separate, visually-verified follow-up.
  */
 val HeroNumberStyle = TextStyle(
     fontWeight          = FontWeight.Black,

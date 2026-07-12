@@ -63,8 +63,7 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
         requestedOnce = true
     }
 
-    Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(shape = RoundedCornerShape(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.reminders_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
 
             if (!permissionGranted) {
@@ -153,7 +152,6 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     )
                 }
             }
-        }
     }
 }
 

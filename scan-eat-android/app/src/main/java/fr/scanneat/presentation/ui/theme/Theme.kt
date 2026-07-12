@@ -63,7 +63,7 @@ private val DarkColors = darkColorScheme(
 // (large/bold-text tier). Darkening further to clear 4.5:1 as body text would
 // make the button fills unnecessarily dark — the two roles pull in opposite
 // directions, which is why these are hand-picked per role instead of one
-// formula. See design_audit.md Part A6 for the full measured breakdown.
+// formula.
 private val LightColors = lightColorScheme(
     primary          = Color(0xFFA07828),
     onPrimary        = Color.White,
@@ -86,6 +86,23 @@ private val LightColors = lightColorScheme(
 // ── Gold accent override ──────────────────────────────────────────────────────
 // Biolism screens need a darker gold in light theme for legible contrast on a
 // light background; every other theme uses the raw Gold token as-is.
+//
+// NOT A DUPLICATE TO CONSOLIDATE: Gold (0xFFC9A84C, Colors.kt), LightGoldAccent
+// (0xFF8B6914, below) and LightColors.primary (0xFFA07828, above) are three
+// deliberately different hex values for the same brand hue, each hand-tuned
+// for a different WCAG contrast role on the light background (F6F1EC):
+//   - Gold            0xFFC9A84C — dark/OLED theme accent; not measured against
+//                                  the light background, only dark surfaces.
+//   - LightGoldAccent  0xFF8B6914 — Biolism accent text/icon directly on the
+//                                  light background; darkened further than
+//                                  LightColors.primary to clear body-text
+//                                  contrast (~4.5:1) at small sizes.
+//   - LightColors.primary 0xFFA07828 — button-fill role (paired with
+//                                  onPrimary = White); only needs to clear the
+//                                  large/bold-text tier (~3.4-4.3:1) since the
+//                                  white text on top carries its own contrast.
+// A future rebrand must re-measure each role's contrast independently rather
+// than merging these into one value.
 val LocalGoldAccent = staticCompositionLocalOf { Gold }
 private val LightGoldAccent = Color(0xFF8B6914)
 

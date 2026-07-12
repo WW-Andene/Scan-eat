@@ -37,7 +37,8 @@ private fun getNutrientValue(n: NutritionPer100g, key: String): Double? = when (
     else          -> null
 }
 
-fun scoreNutritionalDensity(product: Product): PillarScore {
+fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore {
+    val en = lang == "en"
     val MAX = 25
     val deductions = mutableListOf<Deduction>()
     val bonuses = mutableListOf<Deduction>()
@@ -54,8 +55,8 @@ fun scoreNutritionalDensity(product: Product): PillarScore {
         else                -> 0.0
     }
     score += protScore
-    if (protScore < 7) deductions += Deduction("nutritional_density", "Protein ${n.proteinG}g/100g (${protScore.toInt()}/7)", protScore - 7, Severity.MINOR)
-    else bonuses += Deduction("nutritional_density", "High protein ${n.proteinG}g/100g", 7.0, Severity.INFO)
+    if (protScore < 7) deductions += Deduction("nutritional_density", if (en) "Protein ${n.proteinG}g/100g (${protScore.toInt()}/7)" else "Protéines ${n.proteinG}g/100g (${protScore.toInt()}/7)", protScore - 7, Severity.MINOR)
+    else bonuses += Deduction("nutritional_density", if (en) "High protein ${n.proteinG}g/100g" else "Riche en protéines ${n.proteinG}g/100g", 7.0, Severity.INFO)
 
     // Fiber (0–7)
     val (fLow, fMed, fHigh) = thresholds.fiberG
@@ -66,8 +67,8 @@ fun scoreNutritionalDensity(product: Product): PillarScore {
         else              -> 0.0
     }
     score += fiberScore
-    if (fiberScore >= 5) bonuses += Deduction("nutritional_density", "Good fiber ${n.fiberG}g/100g", fiberScore, Severity.INFO)
-    else deductions += Deduction("nutritional_density", "Low fiber ${n.fiberG}g/100g (${fiberScore.toInt()}/7)", fiberScore - 7, Severity.MINOR)
+    if (fiberScore >= 5) bonuses += Deduction("nutritional_density", if (en) "Good fiber ${n.fiberG}g/100g" else "Bonne teneur en fibres ${n.fiberG}g/100g", fiberScore, Severity.INFO)
+    else deductions += Deduction("nutritional_density", if (en) "Low fiber ${n.fiberG}g/100g (${fiberScore.toInt()}/7)" else "Fibres faibles ${n.fiberG}g/100g (${fiberScore.toInt()}/7)", fiberScore - 7, Severity.MINOR)
 
     // Micronutrients NRV-15% bonus (0–8): +1 per micro declared at ≥15% NRV per 100g, cap 8
     var microBonus = 0.0
@@ -82,7 +83,7 @@ fun scoreNutritionalDensity(product: Product): PillarScore {
     }
     microBonus = minOf(8.0, microBonus)
     score += microBonus
-    if (microBonus > 0) bonuses += Deduction("nutritional_density", "Micronutrient richness: ${declaredMicros.joinToString()}", microBonus, Severity.INFO)
+    if (microBonus > 0) bonuses += Deduction("nutritional_density", (if (en) "Micronutrient richness: " else "Richesse en micronutriments : ") + declaredMicros.joinToString(), microBonus, Severity.INFO)
 
     // Healthy-fat bonus (+3): omega-3 or declared omega-3 nutrition
     val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.any { ing ->
@@ -90,8 +91,8 @@ fun scoreNutritionalDensity(product: Product): PillarScore {
     }
     if (hasOmega3) {
         score += 3
-        bonuses += Deduction("nutritional_density", "Omega-3 source present", 3.0, Severity.INFO)
+        bonuses += Deduction("nutritional_density", if (en) "Omega-3 source present" else "Présence d'oméga-3", 3.0, Severity.INFO)
     }
 
-    return PillarScore("Nutritional Density", MAX, minOf(MAX.toDouble(), maxOf(0.0, score)), deductions, bonuses)
+    return PillarScore(if (en) "Nutritional Density" else "Densité nutritionnelle", MAX, minOf(MAX.toDouble(), maxOf(0.0, score)), deductions, bonuses)
 }

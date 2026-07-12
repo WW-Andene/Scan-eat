@@ -135,7 +135,7 @@ class ScanRepository @Inject constructor(
         // never reach anything already in a user's history.
         getCachedByBarcode(barcode)?.let { cached ->
             val fresh = if (cached.audit.engineVersion != ENGINE_VERSION) {
-                cached.copy(audit = scoreProduct(cached.product))
+                cached.copy(audit = scoreProduct(cached.product, lang))
             } else cached
             return@runCatching Pair(fresh, persist(fresh))
         }
@@ -166,7 +166,7 @@ class ScanRepository @Inject constructor(
                 val parsed = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
                 ScanResult(
                     product  = parsed.product,
-                    audit    = scoreProduct(parsed.product),
+                    audit    = scoreProduct(parsed.product, lang),
                     warnings = parsed.warnings,
                     source   = ScanSource.LLM,
                     barcode  = parsed.barcode,
@@ -196,7 +196,7 @@ class ScanRepository @Inject constructor(
                 model   = model,
             ),
         )
-        return resp.toDomain()
+        return resp.toDomain(lang)
     }
 
     // ---- Direct mode ----
@@ -357,13 +357,13 @@ class ScanRepository @Inject constructor(
             else -> throw ProductNotFoundException("Produit introuvable dans Open Food Facts — ajoutez une photo pour continuer")
         }
 
-        val audit = scoreProduct(finalProduct)
+        val audit = scoreProduct(finalProduct, lang)
         return ScanResult(product = finalProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
     }
 
     // ---- Server response → domain ----
 
-    private fun ServerScoreResponse.toDomain(): ScanResult {
+    private fun ServerScoreResponse.toDomain(lang: String = "fr"): ScanResult {
         val p = product
         val nutrition = NutritionPer100g(
             energyKcal    = p.nutrition.energyKcal,
@@ -411,8 +411,8 @@ class ScanRepository @Inject constructor(
         // Trust the locally recomputed audit wholesale — flags are derived from
         // the same pillars the UI renders, so overlaying the server's flags here
         // risked showing red/green flags that don't match the deductions next to
-        // them if the two engines ever disagree (see doc/AUDIT_FINDINGS.md F1).
-        val fullAudit = scoreProduct(product)
+        // them if the two engines ever disagree.
+        val fullAudit = scoreProduct(product, lang)
         return ScanResult(product = product, audit = fullAudit, warnings = warnings,
             source = when (source) {
                 "openfoodfacts" -> ScanSource.OPEN_FOOD_FACTS

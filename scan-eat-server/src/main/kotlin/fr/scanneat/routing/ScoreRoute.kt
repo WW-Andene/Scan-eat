@@ -53,7 +53,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
                                 val parsed   = groqService.parseLabel(images, key, req.lang ?: "fr", req.model ?: DEFAULT_GROQ_MODEL)
                                 val merged   = mergeOffWithLlm(offProduct, parsed.product)
                                 val conflicts = detectSourceConflicts(offProduct, parsed.product)
-                                val audit    = scoreProduct(merged)
+                                val audit    = scoreProduct(merged, req.lang ?: "fr")
                                 call.respond(ScoreResponse(
                                     product  = merged.toDto(),
                                     audit    = audit.toDto(),
@@ -69,7 +69,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
                         }
                     }
                     // OFF-only
-                    val audit = scoreProduct(offProduct)
+                    val audit = scoreProduct(offProduct, req.lang ?: "fr")
                     call.respond(ScoreResponse(
                         product  = offProduct.toDto(),
                         audit    = audit.toDto(),
@@ -90,7 +90,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
             val key = call.requireGroqKey() ?: return@post
 
             val parsed = groqService.parseLabel(images, key, req.lang ?: "fr", req.model ?: DEFAULT_GROQ_MODEL)
-            val audit  = scoreProduct(parsed.product)
+            val audit  = scoreProduct(parsed.product, req.lang ?: "fr")
             call.respond(ScoreResponse(
                 product  = parsed.product.toDto(),
                 audit    = audit.toDto(),

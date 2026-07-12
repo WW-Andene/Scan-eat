@@ -1,0 +1,31 @@
+name: Scoring Drift Check
+
+# The server hand-maintains a Kotlin copy of the Android app's pure scoring
+# logic (fr.scanneat.shared.* vs domain/engine/scoring/*). Nothing else
+# enforces the two stay identical, so this job diffs matched functions on
+# every push/PR that touches either copy and fails the build on divergence.
+
+on:
+  push:
+    paths:
+      - "scan-eat-server/src/main/kotlin/fr/scanneat/shared/**"
+      - "scan-eat-android/app/src/main/java/fr/scanneat/domain/engine/scoring/**"
+      - "scripts/check_scoring_drift.py"
+      - ".github/workflows/scoring-drift-check.yml"
+  pull_request:
+    paths:
+      - "scan-eat-server/src/main/kotlin/fr/scanneat/shared/**"
+      - "scan-eat-android/app/src/main/java/fr/scanneat/domain/engine/scoring/**"
+      - "scripts/check_scoring_drift.py"
+      - ".github/workflows/scoring-drift-check.yml"
+  workflow_dispatch:
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Diff matched scoring functions (server vs android)
+        run: python3 scripts/check_scoring_drift.py

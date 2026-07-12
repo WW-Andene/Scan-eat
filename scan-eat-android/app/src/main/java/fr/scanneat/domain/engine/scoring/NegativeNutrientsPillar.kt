@@ -6,7 +6,8 @@ import fr.scanneat.domain.model.*
 // SECTION 7: PILLAR 3 — NEGATIVE NUTRIENTS (max 25)
 // ============================================================================
 
-fun scoreNegativeNutrients(product: Product): PillarScore {
+fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
+    val en = lang == "en"
     val MAX = 25
     val deductions = mutableListOf<Deduction>()
     val bonuses = mutableListOf<Deduction>()
@@ -17,44 +18,47 @@ fun scoreNegativeNutrients(product: Product): PillarScore {
     // Saturated fat
     val sat = n.saturatedFatG
     val (satMod, satMaj, satCrit) = thresholds.satFatThresholds
+    val satLabel = if (en) "Saturated fat" else "Graisses saturées"
     when {
-        sat > satCrit -> { score -= 9; deductions += Deduction("negative_nutrients", "Saturated fat ${sat}g/100g (>$satCrit critical)", -9.0, Severity.CRITICAL) }
-        sat > satMaj  -> { score -= 6; deductions += Deduction("negative_nutrients", "Saturated fat ${sat}g/100g (>$satMaj major)", -6.0, Severity.MAJOR) }
-        sat > satMod  -> { score -= 3; deductions += Deduction("negative_nutrients", "Saturated fat ${sat}g/100g (>$satMod moderate)", -3.0, Severity.MODERATE) }
+        sat > satCrit -> { score -= 9; deductions += Deduction("negative_nutrients", "$satLabel ${sat}g/100g (>$satCrit " + (if (en) "critical" else "critique") + ")", -9.0, Severity.CRITICAL) }
+        sat > satMaj  -> { score -= 6; deductions += Deduction("negative_nutrients", "$satLabel ${sat}g/100g (>$satMaj " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
+        sat > satMod  -> { score -= 3; deductions += Deduction("negative_nutrients", "$satLabel ${sat}g/100g (>$satMod " + (if (en) "moderate" else "modéré") + ")", -3.0, Severity.MODERATE) }
     }
 
     // Sugars
     val sugars = n.addedSugarsG ?: n.sugarsG
-    val sugarLabel = if (n.addedSugarsG != null) "Added sugars" else "Total sugars (added not declared)"
+    val sugarLabel = if (n.addedSugarsG != null) (if (en) "Added sugars" else "Sucres ajoutés")
+                     else (if (en) "Total sugars (added not declared)" else "Sucres totaux (sucres ajoutés non déclarés)")
     val (sMinor, sMod, sMaj, sCrit) = thresholds.sugarThresholds
     when {
-        sugars > sCrit -> { score -= 12; deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sCrit critical)", -12.0, Severity.CRITICAL) }
-        sugars > sMaj  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMaj major)", -9.0, Severity.MAJOR) }
-        sugars > sMod  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMod moderate)", -6.0, Severity.MODERATE) }
-        sugars > sMinor -> { score -= 3; deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMinor minor)", -3.0, Severity.MINOR) }
+        sugars > sCrit -> { score -= 12; deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sCrit " + (if (en) "critical" else "critique") + ")", -12.0, Severity.CRITICAL) }
+        sugars > sMaj  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMaj " + (if (en) "major" else "majeur") + ")", -9.0, Severity.MAJOR) }
+        sugars > sMod  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMod " + (if (en) "moderate" else "modéré") + ")", -6.0, Severity.MODERATE) }
+        sugars > sMinor -> { score -= 3; deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMinor " + (if (en) "minor" else "mineur") + ")", -3.0, Severity.MINOR) }
     }
 
     // Salt
     val salt = n.saltG
+    val saltLabel = if (en) "Salt" else "Sel"
     when {
-        salt > 1.5  -> { score -= 6; deductions += Deduction("negative_nutrients", "Salt ${salt}g/100g (>1.5g major)", -6.0, Severity.MAJOR) }
-        salt > 1.25 -> { score -= 4; deductions += Deduction("negative_nutrients", "Salt ${salt}g/100g (>1.25g moderate)", -4.0, Severity.MODERATE) }
-        salt > 0.75 -> { score -= 2; deductions += Deduction("negative_nutrients", "Salt ${salt}g/100g (>0.75g minor)", -2.0, Severity.MINOR) }
+        salt > 1.5  -> { score -= 6; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>1.5g " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
+        salt > 1.25 -> { score -= 4; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>1.25g " + (if (en) "moderate" else "modéré") + ")", -4.0, Severity.MODERATE) }
+        salt > 0.75 -> { score -= 2; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>0.75g " + (if (en) "minor" else "mineur") + ")", -2.0, Severity.MINOR) }
     }
 
     // Trans fat
     val trans = n.transFatG ?: 0.0
     if (trans > 0.1) {
         score -= 10
-        deductions += Deduction("negative_nutrients", "Trans fat present: ${trans}g/100g (no safe level)", -10.0, Severity.CRITICAL)
+        deductions += Deduction("negative_nutrients", if (en) "Trans fat present: ${trans}g/100g (no safe level)" else "Présence de graisses trans : ${trans}g/100g (aucun seuil sûr)", -10.0, Severity.CRITICAL)
     }
 
     // Calorie density anomaly
     val (kcalLow, kcalHigh) = thresholds.expectedKcalRange
     if (n.energyKcal > kcalHigh * 1.25 || n.energyKcal < kcalLow * 0.5) {
         score -= 2
-        deductions += Deduction("negative_nutrients", "Energy ${n.energyKcal}kcal/100g outside category norm ($kcalLow–$kcalHigh)", -2.0, Severity.MINOR)
+        deductions += Deduction("negative_nutrients", if (en) "Energy ${n.energyKcal}kcal/100g outside category norm ($kcalLow–$kcalHigh)" else "Énergie ${n.energyKcal}kcal/100g hors norme de la catégorie ($kcalLow–$kcalHigh)", -2.0, Severity.MINOR)
     }
 
-    return PillarScore("Negative Nutrients", MAX, maxOf(0.0, score), deductions, bonuses)
+    return PillarScore(if (en) "Negative Nutrients" else "Nutriments négatifs", MAX, maxOf(0.0, score), deductions, bonuses)
 }

@@ -46,7 +46,8 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
     return NovaInference(NovaClass.ULTRA_PROCESSED, if (hasPositiveEvidence) NovaConfidence.MEDIUM else NovaConfidence.LOW)
 }
 
-fun scoreProcessing(product: Product): PillarScore {
+fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
+    val en = lang == "en"
     val MAX = 20
     val deductions = mutableListOf<Deduction>()
     val bonuses = mutableListOf<Deduction>()
@@ -58,15 +59,15 @@ fun scoreProcessing(product: Product): PillarScore {
     }
 
     if (effectiveNova != product.novaClass) {
-        deductions += Deduction("processing", "NOVA auto-adjusted ${product.novaClass.value}→${effectiveNova.value} based on ingredients", 0.0, Severity.INFO)
+        deductions += Deduction("processing", if (en) "NOVA auto-adjusted ${product.novaClass.value}→${effectiveNova.value} based on ingredients" else "NOVA ajusté automatiquement ${product.novaClass.value}→${effectiveNova.value} d'après les ingrédients", 0.0, Severity.INFO)
     }
 
     val novaWasInferred = effectiveNova != product.novaClass
     if (novaWasInferred && inferredResult.confidence != NovaConfidence.HIGH) {
         val note = if (inferredResult.confidence == NovaConfidence.LOW)
-            "NOVA heuristic confidence: LOW — ingredient list missing or too short"
+            (if (en) "NOVA heuristic confidence: LOW — ingredient list missing or too short" else "Confiance heuristique NOVA : FAIBLE — liste d'ingrédients manquante ou trop courte")
         else
-            "NOVA heuristic confidence: MEDIUM — inferred from absence of known additives"
+            (if (en) "NOVA heuristic confidence: MEDIUM — inferred from absence of known additives" else "Confiance heuristique NOVA : MOYENNE — déduite de l'absence d'additifs connus")
         deductions += Deduction("processing", note, 0.0, Severity.INFO)
     }
 
@@ -77,7 +78,7 @@ fun scoreProcessing(product: Product): PillarScore {
         NovaClass.ULTRA_PROCESSED -> 6.0
     }
 
-    deductions += Deduction("processing", "NOVA class ${effectiveNova.value} base score", base - MAX, when (effectiveNova) {
+    deductions += Deduction("processing", if (en) "NOVA class ${effectiveNova.value} base score" else "Score de base classe NOVA ${effectiveNova.value}", base - MAX, when (effectiveNova) {
         NovaClass.ULTRA_PROCESSED -> Severity.MAJOR
         NovaClass.PROCESSED -> Severity.MODERATE
         else -> Severity.INFO
@@ -87,7 +88,7 @@ fun scoreProcessing(product: Product): PillarScore {
 
     if (product.ingredients.size > 10) {
         score -= 2
-        deductions += Deduction("processing", "${product.ingredients.size} ingredients (>10 threshold)", -2.0, Severity.MINOR)
+        deductions += Deduction("processing", if (en) "${product.ingredients.size} ingredients (>10 threshold)" else "${product.ingredients.size} ingrédients (seuil >10)", -2.0, Severity.MINOR)
     }
 
     val cosmeticAdditives = product.ingredients
@@ -98,12 +99,12 @@ fun scoreProcessing(product: Product): PillarScore {
     if (upfMarkers.isNotEmpty()) {
         val penalty = minOf(4.0, upfMarkers.size * 2.0)
         score -= penalty
-        deductions += Deduction("processing", "${upfMarkers.size} UPF marker(s): ${upfMarkers.joinToString()}", -penalty, Severity.MINOR)
+        deductions += Deduction("processing", (if (en) "${upfMarkers.size} UPF marker(s): " else "${upfMarkers.size} marqueur(s) d'ultra-transformation : ") + upfMarkers.joinToString(), -penalty, Severity.MINOR)
     }
 
     if (cosmeticAdditives.isNotEmpty()) {
         score -= 2
-        deductions += Deduction("processing", "Contains cosmetic additives", -2.0, Severity.MINOR,
+        deductions += Deduction("processing", if (en) "Contains cosmetic additives" else "Contient des additifs cosmétiques", -2.0, Severity.MINOR,
             cosmeticAdditives.joinToString { "${it.eNumber} (${it.category.key})" })
     }
 
@@ -112,9 +113,9 @@ fun scoreProcessing(product: Product): PillarScore {
         val match = FIRST_INGREDIENT_PENALTY_PATTERNS.find { (re, _) -> re.containsMatchIn(first.name.trim()) }
         if (match != null) {
             score -= 3
-            deductions += Deduction("processing", "Primary ingredient is ${match.second}: \"${first.name}\"", -3.0, Severity.MODERATE)
+            deductions += Deduction("processing", (if (en) "Primary ingredient is ${match.second}: " else "L'ingrédient principal est ${match.second} : ") + "\"${first.name}\"", -3.0, Severity.MODERATE)
         }
     }
 
-    return PillarScore("Processing Level", MAX, maxOf(0.0, score), deductions, bonuses)
+    return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, score), deductions, bonuses)
 }
