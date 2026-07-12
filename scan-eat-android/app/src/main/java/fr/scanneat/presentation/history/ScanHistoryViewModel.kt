@@ -7,12 +7,18 @@ import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.text.Collator
+import java.util.Locale
 import javax.inject.Inject
 
 enum class HistorySort { RECENT, OLDEST, NAME_AZ, SCORE_DESC }
 
 @HiltViewModel
 class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository) : ViewModel() {
+    // Plain string comparison sorts accented letters (Éclair) after every
+    // unaccented one instead of near their unaccented form - a Collator with
+    // PRIMARY strength groups accents/case together for correct French order.
+    private val nameCollator: Collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
@@ -33,7 +39,7 @@ class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository)
                 when (sort) {
                     HistorySort.RECENT      -> list // observeHistory is already scannedAt DESC
                     HistorySort.OLDEST      -> list.asReversed()
-                    HistorySort.NAME_AZ     -> list.sortedBy { it.product.name.lowercase() }
+                    HistorySort.NAME_AZ     -> list.sortedWith(compareBy(nameCollator) { it.product.name })
                     HistorySort.SCORE_DESC  -> list.sortedByDescending { it.audit.score }
                 }
             }

@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.*
+import java.util.Locale
 
 // ============================================================================
 // DIET CHECKER — port of public/core/diets.js
@@ -239,13 +240,22 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
     if (dietKey == DietKey.KETO) {
         val netCarbs = (product.nutrition.carbsG - product.nutrition.fiberG).coerceAtLeast(0.0)
         val maxNet   = def.maxNetCarbsG ?: 10.0
-        if (netCarbs > maxNet) violations += "${String.format("%.1f", netCarbs)} g net carbs/100 g"
+        if (netCarbs > maxNet) {
+            // %.1f with no explicit Locale renders "15,0" on comma-decimal devices,
+            // which then glued onto an English/French unit suffix looked mixed-up
+            // twice over - Locale.US keeps the number format independent of that.
+            val netCarbsStr = String.format(Locale.US, "%.1f", netCarbs)
+            violations += if (lang == "en") "$netCarbsStr g net carbs/100 g" else "$netCarbsStr g glucides nets/100 g"
+        }
 
         val kcal    = product.nutrition.energyKcal
         val fatKcal = product.nutrition.fatG * 9.0
         val fatFrac = if (kcal > 0) fatKcal / kcal else 0.0
         val minFat  = def.minFatFractionOfKcal ?: 0.60
-        if (kcal > 50 && fatFrac < minFat) violations += "only ${(fatFrac * 100).toInt()} %E from fat"
+        if (kcal > 50 && fatFrac < minFat) {
+            val fatPct = (fatFrac * 100).toInt()
+            violations += if (lang == "en") "only $fatPct% from fat" else "seulement $fatPct % de lipides"
+        }
     }
 
     val certified              = preferredHits.isNotEmpty()
@@ -259,7 +269,8 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
             " — Note: $note"
         } else ""
         val labelStr = if (lang == "en") dietKey.labelEn else dietKey.labelFr
-        "Non $labelStr : ${effectiveViolations.take(3).joinToString()}$unverifiableNote"
+        val prefix   = if (lang == "en") "Not" else "Non"
+        "$prefix $labelStr : ${effectiveViolations.take(3).joinToString()}$unverifiableNote"
     }
 
     return DietResult(
