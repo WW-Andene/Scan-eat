@@ -31,13 +31,18 @@ class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository)
     private val allScans = repo.observeHistory(limit = 200)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val filtered: StateFlow<List<ScanResult>> = combine(allScans, _query, _favoritesOnly, _sort) { scans, q, favOnly, sort ->
-        scans
-            .filter { !favOnly || it.favorite }
+    // observeHistory is capped at 200 rows - a favorite older than the 200
+    // most-recent scans would otherwise silently vanish from its own
+    // dedicated filter. observeFavorites queries the DB directly, unbounded.
+    private val favoriteScans = repo.observeFavorites()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, _query, _favoritesOnly, _sort) { scans, favs, q, favOnly, sort ->
+        (if (favOnly) favs else scans)
             .filter { q.isBlank() || it.product.name.contains(q, ignoreCase = true) || it.barcode?.contains(q) == true }
             .let { list ->
                 when (sort) {
-                    HistorySort.RECENT      -> list // observeHistory is already scannedAt DESC
+                    HistorySort.RECENT      -> list // both sources are already scannedAt DESC
                     HistorySort.OLDEST      -> list.asReversed()
                     HistorySort.NAME_AZ     -> list.sortedWith(compareBy(nameCollator) { it.product.name })
                     HistorySort.SCORE_DESC  -> list.sortedByDescending { it.audit.score }
