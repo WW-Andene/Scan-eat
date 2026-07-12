@@ -6,11 +6,17 @@ import fr.scanneat.domain.model.*
 // SECTION 9: PILLAR 5 — INGREDIENT INTEGRITY (max 15)
 // ============================================================================
 
+// Word-boundary match rather than raw `.contains` - plain substring search lets
+// e.g. "riz" match inside "chorizo" or "eau" match inside "gâteau"/"veau",
+// wrongly counting processed ingredients as whole foods.
+private fun containsWord(text: String, word: String): Boolean =
+    Regex("(?<![a-zà-ÿ0-9])${Regex.escape(word)}(?![a-zà-ÿ0-9])", RegexOption.IGNORE_CASE).containsMatchIn(text)
+
 private fun isWholeFood(ingredient: Ingredient): Boolean {
     if (ingredient.isWholeFood == true) return true
     val lower = ingredient.name.lowercase()
     if (Regex("""sirop|huile|farine raffinée|amidon modifié|isolat|concentré""", RegexOption.IGNORE_CASE).containsMatchIn(lower)) return false
-    return WHOLE_FOOD_KEYWORDS.any { lower.contains(it) }
+    return WHOLE_FOOD_KEYWORDS.any { containsWord(lower, it) }
 }
 
 fun scoreIngredientIntegrity(product: Product): PillarScore {

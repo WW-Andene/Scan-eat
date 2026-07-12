@@ -249,6 +249,8 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         hasMisleadingMarketing = off.hasMisleadingMarketing || llm.hasMisleadingMarketing,
         namedOils           = off.namedOils   ?: llm.namedOils,
         originTransparent   = off.originTransparent || llm.originTransparent,
+        wholeGrainPrimary   = off.wholeGrainPrimary || llm.wholeGrainPrimary,
+        fermented           = off.fermented || llm.fermented,
         declaredMicronutrients = (off.declaredMicronutrients + llm.declaredMicronutrients).distinct(),
         ecoscoreGrade  = off.ecoscoreGrade,
         ecoscoreValue  = off.ecoscoreValue,

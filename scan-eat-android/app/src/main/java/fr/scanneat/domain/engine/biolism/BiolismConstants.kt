@@ -16,6 +16,11 @@ data class ActivityLevel(
     val mult: Double,
 )
 
+// Deliberately separate from PersonalScoreEngine's ACTIVITY_PAL (FAO/WHO/UNU
+// 2004 multipliers used for daily nutrition targets) - this is the classic
+// Harris-Benedict activity-multiplier set the ported Biolism metabolic model
+// was built against. Same label wording, different multipliers by design:
+// don't "fix" one to match the other without re-deriving BiolismEngine's math.
 val ACTIVITY_LEVELS = listOf(
     ActivityLevel("sedentary",  "Sedentary",          "desk job, little or no exercise",              1.200),
     ActivityLevel("light",      "Lightly Active",      "light exercise 1–3 days per week",             1.375),

@@ -75,7 +75,7 @@ private val RULES: List<AllergenRule> = listOf(
         a("soja|tofu|tempeh|edamame|l[eé]cithine de soja")),
 
     AllergenRule("fish", "Poisson", "Fish",
-        a("poisson|saumon|thon|cabillaud|merlu|sardine|maquereau|hareng|anchois|morue|\\bbar\\b")),
+        a("poisson|saumon|thon|cabillaud|merlu|sardine|maquereau|hareng|anchois|morue|filet de bar|darne de bar")),
 
     AllergenRule("crustaceans", "Crustacés", "Crustaceans",
         a("crevettes?|crabes?|homards?|langoustes?|langoustines?|[eé]crevisses?|crustac[eé]s?|shrimps?|prawns?|lobsters?|crayfish")),

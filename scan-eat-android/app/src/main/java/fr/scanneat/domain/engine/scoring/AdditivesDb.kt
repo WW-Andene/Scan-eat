@@ -235,8 +235,6 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
         "Firming agent; no concern.", "EU Regulation 1333/2008 (quantum satis)."),
     AdditiveInfo("E575", listOf("glucono-delta-lactone", "glucono delta lactone", "gdl"), AdditiveTier.THREE, AdditiveCategory.ACIDULANT,
         "Slow-release acidulant used in baked goods.", "EU authorisation without ADI."),
-    AdditiveInfo("E422_glycerol", listOf("glycérol", "glycerol", "glycérine"), AdditiveTier.THREE, AdditiveCategory.HUMECTANT,
-        "Humectant; no ADI.", "EU authorisation without ADI."),
     AdditiveInfo("E965", listOf("maltitol", "sirop de maltitol"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,
         "Sugar alcohol; moderate glycemic impact; laxative above tolerance.", "EFSA 2011 polyol opinion."),
     AdditiveInfo("E967", listOf("xylitol"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,

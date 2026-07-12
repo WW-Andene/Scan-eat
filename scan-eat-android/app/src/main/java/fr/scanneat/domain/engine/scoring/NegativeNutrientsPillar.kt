@@ -37,7 +37,7 @@ fun scoreNegativeNutrients(product: Product): PillarScore {
     // Salt
     val salt = n.saltG
     when {
-        salt > 1.5  -> { score -= 6; deductions += Deduction("negative_nutrients", "Salt ${salt}g/100g (>1.5g critical)", -6.0, Severity.MAJOR) }
+        salt > 1.5  -> { score -= 6; deductions += Deduction("negative_nutrients", "Salt ${salt}g/100g (>1.5g major)", -6.0, Severity.MAJOR) }
         salt > 1.25 -> { score -= 4; deductions += Deduction("negative_nutrients", "Salt ${salt}g/100g (>1.25g moderate)", -4.0, Severity.MODERATE) }
         salt > 0.75 -> { score -= 2; deductions += Deduction("negative_nutrients", "Salt ${salt}g/100g (>0.75g minor)", -2.0, Severity.MINOR) }
     }
