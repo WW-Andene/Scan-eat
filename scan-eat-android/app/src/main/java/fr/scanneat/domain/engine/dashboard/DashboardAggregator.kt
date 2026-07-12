@@ -193,6 +193,35 @@ fun logStreakDays(entries: List<DiaryEntry>, today: LocalDate = LocalDate.now())
 }
 
 // ============================================================================
+// longestLogStreak — the longest-ever run of consecutive logged days
+//
+// logStreakDays() above only reports the *current* streak (anchored at
+// `today`, with a 1-day grace period). It can't answer "what's my record?"
+// once a streak breaks — a user who logged 30 days in a row last month and
+// then missed a day sees that achievement disappear entirely. This scans
+// the full set of logged dates and returns the longest unbroken run found
+// anywhere in the history (no grace period — a genuine gap ends the run).
+// ============================================================================
+
+fun longestLogStreak(entries: List<DiaryEntry>): Int {
+    if (entries.isEmpty()) return 0
+    val days = entries.map { it.date }.toSortedSet()
+    var best = 1
+    var current = 1
+    var prev: LocalDate? = null
+    for (day in days) {
+        if (prev != null && day == prev.plusDays(1)) {
+            current++
+        } else {
+            current = 1
+        }
+        if (current > best) best = current
+        prev = day
+    }
+    return best
+}
+
+// ============================================================================
 // closeTheGap — nutrient suggestions to close today's deficit
 // Port of closeTheGap() from presenters.js
 // ============================================================================

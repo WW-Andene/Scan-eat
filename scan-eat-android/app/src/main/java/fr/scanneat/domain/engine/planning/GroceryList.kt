@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.planning
 
 import java.text.Normalizer
+import kotlin.math.roundToInt
 
 // ============================================================================
 // GROCERY LIST — port of public/features/grocery-list.js
@@ -53,8 +54,13 @@ fun aggregateGroceryList(recipes: List<GroceryRecipeInput>): List<GroceryItem> {
             if (recipeName !in entry.sources) entry.sources += recipeName
         }
     }
+    // Round rather than truncate — .toInt() always rounds toward zero, so
+    // e.g. three recipes each needing 0.4g of an ingredient summed to 1.2g
+    // and then silently displayed as "1 g", and several sub-0.5g totals
+    // (0.4g, 0.6g, ...) got truncated down to 0g and vanished from the list
+    // entirely once formatGroceryList() hides items with grams <= 0.
     return acc.entries
-        .map { (key, entry) -> GroceryItem(entry.name, entry.grams.toInt(), entry.sources.toList(), key = key) }
+        .map { (key, entry) -> GroceryItem(entry.name, entry.grams.roundToInt(), entry.sources.toList(), key = key) }
         .sortedBy { it.key }
 }
 
