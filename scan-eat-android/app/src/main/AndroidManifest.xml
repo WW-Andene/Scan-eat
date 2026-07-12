@@ -41,7 +41,26 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- Health Connect (API 34+, built into the OS) needs somewhere to send
+                 the user when they tap "See app's privacy policy" for Scan'eat, since
+                 this app requests READ_WEIGHT/WRITE_WEIGHT. -->
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
         </activity>
+
+        <!-- Health Connect on API 26-33 (the standalone Health Connect app) looks for
+             this action/category instead of the one above — same target, an alias
+             keeps MainActivity's own intent-filters unpolluted. -->
+        <activity-alias
+            android:name=".presentation.HealthPermissionsRationaleAlias"
+            android:exported="true"
+            android:targetActivity=".presentation.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
 
         <provider
             android:name="androidx.core.content.FileProvider"

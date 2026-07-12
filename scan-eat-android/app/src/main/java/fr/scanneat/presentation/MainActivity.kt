@@ -1,5 +1,6 @@
 package fr.scanneat.presentation
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.setContent
@@ -32,6 +33,15 @@ class MainActivity : AppCompatActivity() {
         // health/nutrition history or a raw API key (Settings) — none of that
         // belongs in a screenshot, screen recording, or the Recents thumbnail.
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
+
+        // The manifest locks phones to portrait, which is the right call for this
+        // UI - but on tablets/foldables (sw >= 600dp) a fixed-orientation activity
+        // gets letterboxed/pillarboxed by the OS's large-screen compat handling
+        // instead of filling the window. Releasing the lock there avoids that,
+        // even though the layout itself isn't width-adaptive yet.
+        if (resources.configuration.smallestScreenWidthDp >= 600) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
 
         splashScreen.setKeepOnScreenCondition { !splashViewModel.ready.value }
 
