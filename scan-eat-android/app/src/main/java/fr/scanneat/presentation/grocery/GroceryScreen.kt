@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -101,7 +102,7 @@ fun GroceryScreen(
             ) {
                 item { Spacer(Modifier.height(4.dp)) }
                 item {
-                    Text(stringResource(R.string.grocery_item_count, items.value.size),
+                    Text(pluralStringResource(R.plurals.grocery_item_count, items.value.size, items.value.size),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 }
                 items(checkable.value, key = { it.item.key }) { checkableItem ->

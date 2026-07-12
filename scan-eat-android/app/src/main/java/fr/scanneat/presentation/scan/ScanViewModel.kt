@@ -55,6 +55,17 @@ private fun noInputMessage(lang: String) =
     if (lang == "en") "Scan a barcode or take a photo"
     else "Scannez un code-barres ou prenez une photo"
 
+/**
+ * Fallback for the `else` branch of the scan-failure `when` — every sibling
+ * branch (invalidApiKeyMessage/invalidModelMessage/rateLimitedMessage/
+ * noInputMessage) routes through lang, but this default case used to hardcode
+ * the bare French literal "Erreur inconnue", so English-language users hit a
+ * French message whenever an unrecognized exception surfaced.
+ */
+private fun genericErrorMessage(lang: String) =
+    if (lang == "en") "Unknown error"
+    else "Erreur inconnue"
+
 sealed class ScanUiState {
     data object Idle     : ScanUiState()
     data object Scanning : ScanUiState()
@@ -140,7 +151,7 @@ class ScanViewModel @Inject constructor(
                                 ScanUiState.Error(invalidModelMessage(lang))
                             e is HttpException && e.code() == 429 ->
                                 ScanUiState.Error(rateLimitedMessage(lang))
-                            else -> ScanUiState.Error(e.message ?: "Erreur inconnue")
+                            else -> ScanUiState.Error(e.message ?: genericErrorMessage(lang))
                         }
                     },
                 )

@@ -460,7 +460,10 @@
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Grocery List</string>
     <string name="grocery_empty_body">Create recipes to automatically generate your grocery list.</string>
-    <string name="grocery_item_count">%1$d items · aggregated from your recipes</string>
+    <plurals name="grocery_item_count">
+        <item quantity="one">%1$d item · aggregated from your recipes</item>
+        <item quantity="other">%1$d items · aggregated from your recipes</item>
+    </plurals>
     <string name="grocery_grams">%1$d g</string>
     <string name="grocery_copied">Grocery list copied to clipboard</string>
     <string name="grocery_copy_plain">Copy (plain text)</string>
