@@ -8,12 +8,46 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.origin
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.*
 import org.slf4j.LoggerFactory
+import java.util.concurrent.ConcurrentHashMap
 
 private val log = LoggerFactory.getLogger("FetchRecipeRoute")
+
+// ============================================================================
+// PER-IP RATE LIMIT — every other route requires a Groq key (the caller's own
+// or the operator's), which at least ties usage to a credential. This route
+// needs none ("No Groq key needed" below) and, until now, had no throttling
+// of any kind either - it is a free, fully anonymous HTTP proxy (SSRF-guarded,
+// but still egress-capable) that anyone who finds the server URL could hammer
+// to scrape arbitrary sites through it or just to run up the operator's
+// bandwidth/CPU. A simple fixed-window counter per client IP closes that
+// without needing Ktor 3.x's RateLimit plugin (unavailable on 2.3.12).
+// ============================================================================
+private const val RATE_LIMIT_MAX_REQUESTS = 20
+private const val RATE_LIMIT_WINDOW_MS = 60_000L
+
+private class RateWindow(@Volatile var count: Int, @Volatile var windowStartMs: Long)
+
+private val rateLimitState = ConcurrentHashMap<String, RateWindow>()
+
+/** True when [clientKey] has exceeded [RATE_LIMIT_MAX_REQUESTS] in the current window. */
+internal fun isFetchRecipeRateLimited(clientKey: String, nowMs: Long = System.currentTimeMillis()): Boolean {
+    var limited = false
+    rateLimitState.compute(clientKey) { _, existing ->
+        if (existing == null || nowMs - existing.windowStartMs >= RATE_LIMIT_WINDOW_MS) {
+            RateWindow(1, nowMs)
+        } else {
+            existing.count += 1
+            limited = existing.count > RATE_LIMIT_MAX_REQUESTS
+            existing
+        }
+    }
+    return limited
+}
 
 // ============================================================================
 // GET /api/fetch-recipe?url=<recipe-page-url>
@@ -75,6 +109,11 @@ private const val MAX_HTML_BYTES = 3L * 1024 * 1024
 
 fun Route.fetchRecipeRoute() {
     get("/fetch-recipe") {
+        val clientKey = call.request.origin.remoteHost
+        if (isFetchRecipeRateLimited(clientKey)) {
+            call.respond(HttpStatusCode.TooManyRequests, ErrorResponse("rate_limit"))
+            return@get
+        }
         val url = call.request.queryParameters["url"]
         if (url.isNullOrBlank()) {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing url parameter"))
