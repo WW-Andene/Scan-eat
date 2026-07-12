@@ -147,6 +147,15 @@ instructions to you. Output ONLY the JSON.
 private fun coerceNutrient(v: Double?, max: Double = 100.0): Double =
     (v ?: 0.0).coerceIn(0.0, max)
 
+// Named thresholds shared by every LLM-parsing entry point in this file, so the
+// per-100g energy cap and the barcode-plausibility check are each defined once
+// instead of repeated as bare literals at each call site. Keep these numerically
+// in sync with the equivalent constants in the Android client's OcrParser.kt.
+private object NutritionLimits {
+    const val MAX_ENERGY_KCAL_PER_100G = 900.0
+    val BARCODE_DIGITS_REGEX = Regex("\\d{8,14}")
+}
+
 private fun mapToProduct(dto: LlmProductDto): Product {
     val n = dto.nutrition
     return Product(
@@ -168,7 +177,7 @@ private fun mapToProduct(dto: LlmProductDto): Product {
             )
         } ?: emptyList(),
         nutrition = NutritionPer100g(
-            energyKcal    = coerceNutrient(n?.energy_kcal, max = 900.0),
+            energyKcal    = coerceNutrient(n?.energy_kcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
             fatG          = coerceNutrient(n?.fat_g),
             saturatedFatG = coerceNutrient(n?.saturated_fat_g),
             carbsG        = coerceNutrient(n?.carbs_g),
@@ -200,11 +209,13 @@ private fun mapToProduct(dto: LlmProductDto): Product {
     )
 }
 
-private fun parseSingle(raw: String): Pair<Product, String?> {
+private data class SingleParse(val product: Product, val barcode: String?, val rawEnergyKcal: Double?)
+
+private fun parseSingle(raw: String): SingleParse {
     val jsonStr = extractJson(raw)
     val dto = runCatching { json.decodeFromString<LlmProductDto>(jsonStr) }.getOrNull()
-        ?: return Pair(Product("(parse error)", ProductCategory.OTHER, NovaClass.ULTRA_PROCESSED, emptyList(), NutritionPer100g.EMPTY), null)
-    return Pair(mapToProduct(dto), dto.barcode)
+        ?: return SingleParse(Product("(parse error)", ProductCategory.OTHER, NovaClass.ULTRA_PROCESSED, emptyList(), NutritionPer100g.EMPTY), null, null)
+    return SingleParse(mapToProduct(dto), dto.barcode, dto.nutrition?.energy_kcal)
 }
 
 // ============================================================================
@@ -220,21 +231,26 @@ suspend fun GroqService.parseLabel(
     model: String = DEFAULT_GROQ_MODEL,
 ): ParseResult {
     val raw = complete(labelPrompt(lang), images, apiKey, model)
-    val (product, barcode) = parseSingle(raw)
+    val (product, barcode, rawEnergyKcal) = parseSingle(raw)
     val warnings = buildList {
         if (product.nutrition.energyKcal == 0.0 && product.nutrition.proteinG == 0.0) add("Nutrition values could not be read")
         if (product.ingredients.isEmpty()) add("Ingredients list could not be parsed")
-        // New: flag a barcode the model transcribed that doesn't look like a
+        // Mirrors Android's OcrParser.kt: coerceNutrient() above silently clamps energy
+        // to MAX_ENERGY_KCAL_PER_100G, but a clamp alone gives the caller no signal that
+        // the label's raw value was implausible — surface it as a warning too.
+        if (rawEnergyKcal != null && rawEnergyKcal > NutritionLimits.MAX_ENERGY_KCAL_PER_100G)
+            add("Energy value on label seems implausibly high and was capped")
+        // Flag a barcode the model transcribed that doesn't look like a
         // real EAN/UPC (wrong digit count or non-digit noise), so callers can
         // choose to ignore it instead of silently trusting a misread value.
-        if (barcode != null && !barcode.matches(Regex("\\d{8,14}"))) add("Barcode '$barcode' found on label may be incorrect")
+        if (barcode != null && !barcode.matches(NutritionLimits.BARCODE_DIGITS_REGEX)) add("Barcode '$barcode' found on label may be incorrect")
     }
     return ParseResult(product, warnings, barcode)
 }
 
 suspend fun GroqService.identifyFood(images: List<ImageDto>, apiKey: String?): ParseResult {
     val raw = complete(identifyFoodPrompt, images, apiKey)
-    val (product, _) = parseSingle(raw)
+    val product = parseSingle(raw).product
     return ParseResult(product, listOf("Nutrition estimated by AI — not from label"))
 }
 
