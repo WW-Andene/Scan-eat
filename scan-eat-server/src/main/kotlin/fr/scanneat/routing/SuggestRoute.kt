@@ -34,7 +34,8 @@ fun Route.suggestRecipesRoute(groqService: GroqService) {
             call.respond(SuggestedRecipesResponse(
                 recipes = result.recipes.map { r ->
                     SuggestedRecipeDto(r.name, r.description, r.cook_time_min, r.difficulty, r.main_ingredients)
-                }
+                },
+                warnings = result.warnings,
             ))
         } catch (e: Exception) {
             log.error("[/api/suggest-recipes]", e)
@@ -68,7 +69,8 @@ fun Route.suggestFromPantryRoute(groqService: GroqService) {
             call.respond(SuggestedRecipesResponse(
                 recipes = result.recipes.map { r ->
                     SuggestedRecipeDto(r.name, r.description, r.cook_time_min, r.difficulty, r.main_ingredients)
-                }
+                },
+                warnings = result.warnings,
             ))
         } catch (e: Exception) {
             log.error("[/api/suggest-from-pantry]", e)

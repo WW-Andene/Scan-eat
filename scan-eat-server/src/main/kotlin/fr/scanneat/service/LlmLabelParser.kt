@@ -269,6 +269,7 @@ data class RecipeResult(
     val ingredients: List<RecipeIngRaw> = emptyList(),
     val steps: List<String> = emptyList(),
     val cook_time_min: Int? = null,
+    val warnings: List<String> = emptyList(),
 )
 
 @Serializable
@@ -281,7 +282,13 @@ data class RecipeIngRaw(
 suspend fun GroqService.identifyRecipe(images: List<ImageDto>, apiKey: String?): RecipeResult {
     val raw = complete(identifyRecipePrompt, images, apiKey)
     val jsonStr = extractJson(raw)
-    return runCatching { json.decodeFromString<RecipeResult>(jsonStr) }.getOrElse { RecipeResult() }
+    // Unlike identifyMenu/identifyMultiFood, this previously carried no warnings at
+    // all - a truncated/malformed Groq response (e.g. hitting maxTokens) returned an
+    // empty-ish recipe indistinguishable from "the page really has no recipe on it".
+    val result = runCatching { json.decodeFromString<RecipeResult>(jsonStr) }.getOrElse { RecipeResult() }
+    return if (result.name.isBlank() && result.ingredients.isEmpty() && result.warnings.isEmpty())
+        result.copy(warnings = listOf("No recipe could be identified"))
+    else result
 }
 
 // ---- Recipe suggestions ----
@@ -301,6 +308,7 @@ Output ONLY the JSON.
 @Serializable
 data class SuggestResult(
     val recipes: List<SuggestRecipeRaw> = emptyList(),
+    val warnings: List<String> = emptyList(),
 )
 
 @Serializable
@@ -315,11 +323,17 @@ data class SuggestRecipeRaw(
 suspend fun GroqService.suggestRecipes(ingredient: String, apiKey: String?): SuggestResult {
     val raw = complete(suggestRecipesPrompt(ingredient), apiKey = apiKey)
     val jsonStr = extractJson(raw)
-    return runCatching { json.decodeFromString<SuggestResult>(jsonStr) }.getOrElse { SuggestResult() }
+    val result = runCatching { json.decodeFromString<SuggestResult>(jsonStr) }.getOrElse { SuggestResult() }
+    return if (result.recipes.isEmpty() && result.warnings.isEmpty())
+        result.copy(warnings = listOf("No recipes could be suggested"))
+    else result
 }
 
 suspend fun GroqService.suggestFromPantry(pantry: List<String>, apiKey: String?): SuggestResult {
     val raw = complete(suggestFromPantryPrompt(pantry), apiKey = apiKey)
     val jsonStr = extractJson(raw)
-    return runCatching { json.decodeFromString<SuggestResult>(jsonStr) }.getOrElse { SuggestResult() }
+    val result = runCatching { json.decodeFromString<SuggestResult>(jsonStr) }.getOrElse { SuggestResult() }
+    return if (result.recipes.isEmpty() && result.warnings.isEmpty())
+        result.copy(warnings = listOf("No recipes could be suggested"))
+    else result
 }

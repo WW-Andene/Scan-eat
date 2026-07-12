@@ -42,6 +42,16 @@ private val httpClient = HttpClient(CIO) {
  * IPv6 unique-local address. This route proxies arbitrary user-supplied URLs,
  * so without this check it is a straight SSRF hole into whatever network the
  * server runs on.
+ *
+ * Known residual gap: this resolves DNS here to validate, but the actual
+ * request below (httpClient.get) resolves the same hostname again
+ * independently when it connects. A host serving a public IP to this check
+ * and then a private/loopback IP moments later on a short-TTL DNS record
+ * (classic DNS-rebinding) would pass validation and still reach the private
+ * address on the real request. Closing that fully requires resolving once
+ * and connecting to the pinned IP directly (while still sending the correct
+ * Host header / TLS SNI for the original hostname) - a bigger change than
+ * this pass covers; flagging so it isn't mistaken for a complete SSRF fix.
  */
 private fun isFetchableUrl(url: String): Boolean {
     val parsed = runCatching { java.net.URI(url) }.getOrNull() ?: return false
@@ -57,6 +67,11 @@ private fun isFetchableUrl(url: String): Boolean {
 }
 
 private const val MAX_REDIRECTS = 3
+
+// A malicious/misconfigured server can stream far more than a real recipe
+// page ever needs within the 8s timeout window; bodyAsText() would otherwise
+// buffer all of it in memory from a single request.
+private const val MAX_HTML_BYTES = 3L * 1024 * 1024
 
 fun Route.fetchRecipeRoute() {
     get("/fetch-recipe") {
@@ -91,7 +106,13 @@ fun Route.fetchRecipeRoute() {
                     header("Accept", "text/html,application/xhtml+xml")
                 }
             }
-            val html = response.bodyAsText()
+            val packet = response.bodyAsChannel().readRemaining(MAX_HTML_BYTES + 1)
+            if (packet.remaining > MAX_HTML_BYTES) {
+                packet.close()
+                call.respond(HttpStatusCode.PayloadTooLarge, ErrorResponse("Recipe page too large"))
+                return@get
+            }
+            val html = packet.readText()
 
             val recipe = parseSchemaOrgRecipe(html, url)
             if (recipe == null) {

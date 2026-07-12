@@ -236,6 +236,7 @@ data class SuggestedRecipeDto(
 @Serializable
 data class SuggestedRecipesResponse(
     val recipes: List<SuggestedRecipeDto>,
+    val warnings: List<String> = emptyList(),
 )
 
 // ---- /api/fetch-recipe ----

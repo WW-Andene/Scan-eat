@@ -10,7 +10,11 @@ version = "0.1.0"
 
 application {
     mainClass.set("fr.scanneat.ApplicationKt")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=true")
+    // Not defaulted on here - Application.kt's CORS install() falls back to
+    // anyHost() when isDevelopment is true, so any installDist/distTar build
+    // (not just `gradle run`) would boot with CORS open to any origin unless
+    // ALLOWED_ORIGINS is set. Pass -Dio.ktor.development=true explicitly for
+    // local runs that want it instead.
 }
 
 repositories {
@@ -20,7 +24,6 @@ repositories {
 val ktor_version     = "2.3.12"
 val kotlin_version   = "2.0.21"
 val logback_version  = "1.5.6"
-val moshi_version    = "1.15.1"
 
 dependencies {
     // Ktor server
@@ -42,17 +45,12 @@ dependencies {
 
     // JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation("com.squareup.moshi:moshi-kotlin:$moshi_version")
 
     // Logging
     implementation("ch.qos.logback:logback-classic:$logback_version")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-
-    // Config
-    implementation("com.sksamuel.hoplite:hoplite-core:2.8.0")
-    implementation("com.sksamuel.hoplite:hoplite-hocon:2.8.0")
 
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktor_version")

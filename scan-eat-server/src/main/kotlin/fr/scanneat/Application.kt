@@ -79,6 +79,10 @@ fun Application.module() {
         }
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
+        // Every route authenticates via X-Groq-Key (RouteHelpers.resolveGroqKey),
+        // not Authorization - without this a browser client's preflight fails and
+        // Direct-mode requests carrying their own key are silently blocked.
+        allowHeader("X-Groq-Key")
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Options)

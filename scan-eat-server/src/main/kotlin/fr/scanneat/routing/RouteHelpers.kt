@@ -31,16 +31,23 @@ suspend fun ApplicationCall.requireGroqKey(): String? {
 }
 
 /**
- * Reject (with 413) and return true if the declared Content-Length exceeds
- * [MAX_BODY_BYTES]. Callers must check this before `call.receive<T>()`,
- * which otherwise buffers a body of any size — MAX_BODY_BYTES was declared
- * and documented but never actually enforced. A chunked request with no
- * Content-Length header still bypasses this; a full fix needs Ktor 3.x's
- * RequestBodyLimit plugin.
+ * Reject and return true if the request has no usable Content-Length, or one
+ * exceeding [MAX_BODY_BYTES]. Callers must check this before `call.receive<T>()`,
+ * which otherwise buffers a body of any size. A chunked-encoded request (no
+ * Content-Length) previously sailed straight past the size check into an
+ * unbounded `call.receive<T>()` buffer - this API has no legitimate client
+ * that streams a chunked body (the Android app and any curl/fetch JSON POST
+ * always send a fixed Content-Length), so requiring one closes that gap
+ * without needing Ktor 3.x's RequestBodyLimit plugin (unavailable on the
+ * Ktor 2.3.12 this server is pinned to).
  */
 suspend fun ApplicationCall.rejectIfTooLarge(): Boolean {
     val len = request.headers[HttpHeaders.ContentLength]?.toLongOrNull()
-    if (len != null && len > MAX_BODY_BYTES) {
+    if (len == null) {
+        respond(HttpStatusCode.LengthRequired, ErrorResponse("Content-Length header required"))
+        return true
+    }
+    if (len > MAX_BODY_BYTES) {
         respond(HttpStatusCode.PayloadTooLarge, ErrorResponse("Request body too large"))
         return true
     }

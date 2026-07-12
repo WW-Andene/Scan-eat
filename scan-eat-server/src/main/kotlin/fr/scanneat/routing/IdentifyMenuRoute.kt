@@ -78,6 +78,7 @@ fun Route.identifyRecipeRoute(groqService: GroqService) {
                 ingredients = result.ingredients.map { i -> RecipeIngredientDto(i.name, i.quantity, i.unit) },
                 steps       = result.steps,
                 cookTimeMin = result.cook_time_min,
+                warnings    = result.warnings,
             ))
         } catch (e: Exception) {
             log.error("[/api/identify-recipe]", e)

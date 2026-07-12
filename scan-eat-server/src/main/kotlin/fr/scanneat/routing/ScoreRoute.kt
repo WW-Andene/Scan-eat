@@ -40,7 +40,12 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
                 val offProduct = offRaw?.let { mapOffProduct(it) }
 
                 if (offProduct != null) {
-                    // Sparse + have images → augment with LLM
+                    // Sparse + have images → augment with LLM. A key that's absent
+                    // (no augmentation attempted) and a key that's present but rejected
+                    // by Groq both used to fall back to OFF-only identically - a user who
+                    // deliberately supplied their own key had no way to learn it didn't
+                    // work, unlike the image-only path below which surfaces auth failures.
+                    var augmentWarning: String? = null
                     if (isOffSparse(offProduct) && images.isNotEmpty()) {
                         val key = call.resolveGroqKey()
                         if (key != null) {
@@ -59,6 +64,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
                                 return@post
                             }.onFailure { e ->
                                 log.warn("LLM augmentation failed, falling back to OFF-only: ${e.message}")
+                                augmentWarning = "AI augmentation failed (invalid API key or model) - showing Open Food Facts data only"
                             }
                         }
                     }
@@ -67,7 +73,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
                     call.respond(ScoreResponse(
                         product  = offProduct.toDto(),
                         audit    = audit.toDto(),
-                        warnings = emptyList(),
+                        warnings = listOfNotNull(augmentWarning),
                         source   = "openfoodfacts",
                         barcode  = req.barcode,
                     ))

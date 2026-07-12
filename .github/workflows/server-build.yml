@@ -50,3 +50,7 @@ jobs:
           done
           docker logs scan-eat-server-ci
           exit 1
+
+      - name: Stop smoke test container
+        if: always()
+        run: docker rm -f scan-eat-server-ci || true
