@@ -40,3 +40,13 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t scan-eat-server:ci .
+
+      - name: Smoke test image (boot + /health)
+        run: |
+          docker run -d --name scan-eat-server-ci -p 8080:8080 scan-eat-server:ci
+          for i in $(seq 1 10); do
+            curl -sf http://localhost:8080/health && exit 0
+            sleep 3
+          done
+          docker logs scan-eat-server-ci
+          exit 1
