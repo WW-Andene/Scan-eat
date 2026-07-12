@@ -848,4 +848,7 @@
     <string name="reminders_cd_test">Test reminder: %1$s</string>
     <string name="reminders_every_n_hours">%1$dh</string>
     <string name="reminders_every_n_days">%1$dd</string>
+    <string name="activity_add_cta">Add an activity</string>
+    <string name="activity_deleted_message">Activity deleted</string>
+    <string name="activity_undo">Undo</string>
 </resources>

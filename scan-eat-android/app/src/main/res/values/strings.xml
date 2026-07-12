@@ -658,6 +658,9 @@
     <string name="activity_minutes_label">minutes</string>
     <string name="activity_entry_summary">%1$d min · %2$d kcal</string>
     <string name="activity_empty">Aucune activité aujourd\'hui.</string>
+    <string name="activity_add_cta">Ajouter une activité</string>
+    <string name="activity_deleted_message">Activité supprimée</string>
+    <string name="activity_undo">Annuler</string>
     <string name="activity_add_dialog_title">Ajouter une activité</string>
     <string name="activity_type_label">Type</string>
     <string name="activity_duration_label">Durée (minutes)</string>

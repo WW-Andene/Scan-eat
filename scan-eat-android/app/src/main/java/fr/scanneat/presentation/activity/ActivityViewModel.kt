@@ -44,4 +44,11 @@ class ActivityViewModel @Inject constructor(
     }
 
     fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
+
+    /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original stats. */
+    fun restore(entry: ActivityEntry) {
+        viewModelScope.launch {
+            repo.log(entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date)
+        }
+    }
 }

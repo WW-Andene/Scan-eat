@@ -69,6 +69,10 @@ fun ActivityScreen(
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     val typeLabels = typeLabels()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.activity_deleted_message)
+    val undoLabel = stringResource(R.string.activity_undo)
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
@@ -113,9 +117,10 @@ fun ActivityScreen(
 
             if (entries.value.isEmpty()) {
                 item {
-                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text(stringResource(R.string.activity_empty), color = OnBackground.copy(0.4f))
-                    }
+                    EmptyListState(
+                        Icons.Default.DirectionsRun, stringResource(R.string.activity_empty),
+                        ctaLabel = stringResource(R.string.activity_add_cta), onCta = { showAdd = true },
+                    )
                 }
             }
 
@@ -131,6 +136,7 @@ fun ActivityScreen(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
                 containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
         }
     } else {
         Scaffold(
@@ -143,6 +149,7 @@ fun ActivityScreen(
                 )
             },
             containerColor = Background,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }
 
@@ -199,8 +206,22 @@ fun ActivityScreen(
     }
 
     deleteTarget?.let { id ->
-        val name = entries.value.find { it.id == id }?.let { typeLabels[it.type] ?: it.type.name }
-        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        val target = entries.value.find { it.id == id }
+        val name = target?.let { typeLabels[it.type] ?: it.type.name }
+        DeleteConfirmDialog(
+            itemName = name,
+            onConfirm = {
+                viewModel.delete(id)
+                deleteTarget = null
+                if (target != null) {
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                        if (result == SnackbarResult.ActionPerformed) viewModel.restore(target)
+                    }
+                }
+            },
+            onDismiss = { deleteTarget = null },
+        )
     }
 
 }
