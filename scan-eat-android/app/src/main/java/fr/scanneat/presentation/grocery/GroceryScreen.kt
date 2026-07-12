@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +31,7 @@ fun GroceryScreen(
     onBack: () -> Unit,
 ) {
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
+    val checkable = viewModel.checkableItems.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -43,6 +45,11 @@ fun GroceryScreen(
                 title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
+                    if (checkable.value.any { it.checked }) {
+                        IconButton(onClick = { viewModel.clearAllChecked() }) {
+                            Icon(Icons.Default.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))
+                        }
+                    }
                     if (items.value.isNotEmpty()) {
                         Box {
                             IconButton(onClick = { copyMenuExpanded = true }) {
@@ -95,19 +102,31 @@ fun GroceryScreen(
                     Text(stringResource(R.string.grocery_item_count, items.value.size),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 }
-                items(items.value, key = { it.name }) { item ->
+                items(checkable.value, key = { it.item.name }) { checkableItem ->
+                    val item = checkableItem.item
+                    val checked = checkableItem.checked
+                    val contentAlpha = if (checked) 0.5f else 1f
                     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(10.dp))) {
                         Surface(shape = RoundedCornerShape(10.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically,
+                            Row(Modifier.padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween) {
+                                Checkbox(
+                                    checked = checked,
+                                    onCheckedChange = { viewModel.toggleChecked(item, it) },
+                                    colors = CheckboxDefaults.colors(checkedColor = AccentCoral),
+                                )
                                 Column(Modifier.weight(1f)) {
-                                    Text(item.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                                    Text(item.name, style = MaterialTheme.typography.bodyMedium,
+                                        color = OnSurface.copy(contentAlpha), fontWeight = FontWeight.Medium,
+                                        textDecoration = if (checked) TextDecoration.LineThrough else null)
                                     if (item.sources.isNotEmpty()) {
-                                        Text(item.sources.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                        Text(item.sources.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f * contentAlpha))
                                     }
                                 }
                                 if (item.grams > 0) {
-                                    Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge, color = AccentCoral, fontWeight = FontWeight.SemiBold)
+                                    Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge,
+                                        color = AccentCoral.copy(contentAlpha), fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.padding(end = 12.dp))
                                 }
                             }
                         }
