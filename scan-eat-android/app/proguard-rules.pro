@@ -5,8 +5,18 @@
 # RecipeComponent, TemplateItem, and OcrParser's Llm*Dto classes are Moshi-
 # reflection-serialized data classes living under data.repository, not
 # data.remote.api - without this they're only protected in unminified debug
-# builds and R8 can rename/strip their fields in release.
--keep class fr.scanneat.data.repository.** { *; }
+# builds and R8 can rename/strip their fields in release. Scoped to just these
+# classes rather than the whole data.repository.** package, which also holds
+# ScanRepository/HealthConnectRepository/etc - blanket-keeping those disabled
+# R8 renaming for the code that handles the Groq API key and health data,
+# making it far easier to reverse-engineer than it needs to be.
+-keep class fr.scanneat.data.repository.planning.RecipeComponent { *; }
+-keep class fr.scanneat.data.repository.planning.TemplateItem { *; }
+-keep class fr.scanneat.data.repository.scan.LlmProductDto { *; }
+-keep class fr.scanneat.data.repository.scan.LlmIngredientDto { *; }
+-keep class fr.scanneat.data.repository.scan.LlmNutritionDto { *; }
+-keep class fr.scanneat.data.repository.scan.ScoreSnapshot { *; }
+-keep class fr.scanneat.data.repository.nutrition.CustomFoodRepository$CustomFoodJson { *; }
 -keepclassmembers class * {
     @com.squareup.moshi.FromJson *;
     @com.squareup.moshi.ToJson *;

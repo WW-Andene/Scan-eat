@@ -3,8 +3,6 @@ package fr.scanneat
 import android.content.Context
 import android.util.Log
 import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -35,7 +33,7 @@ object CrashLogger {
     }
 
     private fun appendCrash(context: Context, thread: Thread, throwable: Throwable) {
-        val stackTrace = StringWriter().also { throwable.printStackTrace(PrintWriter(it)) }.toString()
+        val stackTrace = formatWithoutMessages(throwable)
         val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(Date())
         val entry = "=== $timestamp — thread ${thread.name} ===\n$stackTrace\n"
 
@@ -43,5 +41,27 @@ object CrashLogger {
         val existingEntries = if (file.exists()) file.readText().split("=== ").filter { it.isNotBlank() } else emptyList()
         val newEntries = (existingEntries + entry.removePrefix("=== ")).takeLast(MAX_ENTRIES)
         file.writeText(newEntries.joinToString("") { "=== $it" })
+    }
+
+    /**
+     * Renders the exception chain (class names + stack frames only) without
+     * any exception .message. Several exception paths in this app build their
+     * message from real user data - e.g. Moshi's JsonDataException on a
+     * malformed backup-file field routinely embeds the offending value itself
+     * (a food name, a weight, a note) - and this handler is a global catch-all
+     * with no allowlist, so persisting messages risks writing that data to a
+     * plaintext file for any future uncaught exception, not just known ones.
+     */
+    private fun formatWithoutMessages(throwable: Throwable): String {
+        val sb = StringBuilder()
+        var current: Throwable? = throwable
+        var isCause = false
+        while (current != null) {
+            sb.append(if (isCause) "Caused by: " else "").append(current.javaClass.name).append('\n')
+            current.stackTrace.forEach { sb.append("\tat ").append(it).append('\n') }
+            current = current.cause?.takeIf { it !== current }
+            isCause = true
+        }
+        return sb.toString()
     }
 }
