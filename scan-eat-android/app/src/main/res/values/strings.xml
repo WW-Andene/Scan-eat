@@ -745,8 +745,10 @@
     <string name="dashboard_tile_mealplan">Planning</string>
     <string name="dashboard_tile_grocery">Courses</string>
     <string name="dashboard_tile_profile">Mon Profil</string>
+    <string name="dashboard_tile_customfoods">Mes aliments</string>
     <string name="dashboard_recent_scans_title">Scans récents</string>
     <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant.</string>
+    <string name="dashboard_view_all">Voir tout</string>
     <string name="dashboard_today_label">Aujourd\'hui</string>
     <string name="dashboard_macro_target">/ %1$d</string>
     <string name="dashboard_week_title">Cette semaine</string>

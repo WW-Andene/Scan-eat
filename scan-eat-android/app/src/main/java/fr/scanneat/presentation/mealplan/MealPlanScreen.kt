@@ -35,6 +35,7 @@ fun MealPlanScreen(
     onBack: () -> Unit,
 ) {
     val plan = viewModel.weekPlan.collectAsStateWithLifecycle()
+    val weekDates = viewModel.weekDates.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show day names in the wrong language.
@@ -55,7 +56,7 @@ fun MealPlanScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { Spacer(Modifier.height(4.dp)) }
-            items(viewModel.weekDates, key = { it.toEpochDay() }) { date ->
+            items(weekDates.value, key = { it.toEpochDay() }) { date ->
                 val dayPlan = plan.value[date] ?: DayPlan(date)
                 val isToday = date == LocalDate.now()
                 Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {

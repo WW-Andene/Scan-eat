@@ -7,6 +7,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.planning.DayPlan
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.planning.MealPlanSlot
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -17,7 +18,19 @@ class MealPlanViewModel @Inject constructor(
     private val repo: MealPlanRepository,
     private val prefs: UserPreferences,
 ) : ViewModel() {
-    val weekDates: List<LocalDate> = repo.weekDates()
+    // A fixed `val` captured LocalDate.now() once at construction - a ViewModel
+    // that outlives midnight would keep the same 7 dates forever, so "today"
+    // stops being highlighted and the week silently goes a day stale. Polling
+    // + distinctUntilChanged only recomputes when the start date actually rolls
+    // over, same fix HydrationViewModel's `intake` applies.
+    val weekDates: StateFlow<List<LocalDate>> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+        .map { repo.weekDates(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), repo.weekDates())
 
     val weekPlan: StateFlow<Map<LocalDate, DayPlan>> = repo.weekPlan
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())

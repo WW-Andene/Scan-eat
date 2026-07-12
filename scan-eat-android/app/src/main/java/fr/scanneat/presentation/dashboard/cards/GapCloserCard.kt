@@ -34,7 +34,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>) {
             gaps.take(3).forEach { gap ->
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, gap.deficit.toString()),
+                        stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, "%.1f".format(gap.deficit)),
                         style = MaterialTheme.typography.labelMedium, color = AmberWarning,
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

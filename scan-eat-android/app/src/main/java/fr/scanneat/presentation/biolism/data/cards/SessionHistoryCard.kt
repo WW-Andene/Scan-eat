@@ -78,22 +78,18 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
                         InfoRow(stringResource(R.string.biolism_sesshist_bmr_tdee), stringResource(R.string.biolism_sesshist_bmr_tdee_value, sess.bmrDay, sess.tdeeDay), "", TextSecondary)
                         InfoRow(stringResource(R.string.biolism_sesshist_weight_start_end), "%.1f → %.1f kg".format(sess.startWeightKg, sess.endWeightKg), "", TextSecondary)
                         InfoRow(stringResource(R.string.biolism_sesshist_fat_fraction), "%.0f%%".format(sess.fatFrac * 100), "", Warm)
-                        if (!isConfirm) {
-                            TextButton(onClick = { confirmDeleteId = sess.id }) {
-                                Text(stringResource(R.string.common_delete), color = Danger, style = MaterialTheme.typography.labelSmall)
-                            }
-                        } else {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(stringResource(R.string.biolism_sesshist_confirm_delete), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
-                                TextButton(onClick = {
+                        TextButton(onClick = { confirmDeleteId = sess.id }) {
+                            Text(stringResource(R.string.common_delete), color = Danger, style = MaterialTheme.typography.labelSmall)
+                        }
+                        if (isConfirm) {
+                            DeleteConfirmDialog(
+                                onConfirm = {
                                     onDelete(sess.id)
                                     confirmDeleteId = null
                                     if (expandedId == sess.id) expandedId = null
-                                }) { Text(stringResource(R.string.biolism_sesshist_yes), color = Danger, fontWeight = FontWeight.Bold) }
-                                TextButton(onClick = { confirmDeleteId = null }) {
-                                    Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.5f))
-                                }
-                            }
+                                },
+                                onDismiss = { confirmDeleteId = null },
+                            )
                         }
                     }
                 }

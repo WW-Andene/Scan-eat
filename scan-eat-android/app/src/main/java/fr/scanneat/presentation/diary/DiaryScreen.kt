@@ -188,12 +188,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                 fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
         }
         if (s.entries.isEmpty()) {
-            item {
-                Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.diary_empty_body),
-                        color = OnBackground.copy(0.5f))
-                }
-            }
+            item { EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.diary_empty_body)) }
         } else {
             MealSlot.values().forEach { slot ->
                 val slotEntries = bySlot[slot].orEmpty()
@@ -223,21 +218,14 @@ private fun MealsTab(viewModel: DiaryViewModel) {
         item { Spacer(Modifier.height(32.dp)) }
     }
 
-    // Delete confirmation
+    // Delete confirmation — shared dialog, same as Weight/Templates/Recipes/
+    // Activity/History instead of a one-off hand-rolled AlertDialog.
     deleteTarget?.let { id ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            containerColor   = SurfaceVariant,
-            title   = { Text(stringResource(R.string.diary_delete_confirm_title), color = OnBackground) },
-            text    = { Text(stringResource(R.string.diary_delete_confirm_body), color = OnBackground.copy(0.7f)) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.deleteEntry(id); deleteTarget = null }) {
-                    Text(stringResource(R.string.common_delete), color = FlagRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
-            },
+        val name = s.entries.firstOrNull { it.id == id }?.productName
+        DeleteConfirmDialog(
+            itemName  = name,
+            onConfirm = { viewModel.deleteEntry(id); deleteTarget = null },
+            onDismiss = { deleteTarget = null },
         )
     }
 }

@@ -1,7 +1,6 @@
 package fr.scanneat.presentation.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
@@ -21,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -33,7 +35,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.presentation.dashboard.cards.*
+import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
+import fr.scanneat.presentation.ui.theme.EmptyListState
 import fr.scanneat.presentation.ui.theme.OnBackground
 
 // Orchestrator only — each dashboard section lives in cards/*.kt, the
@@ -108,27 +112,44 @@ fun DashboardScreen(
                     FeatureTile(Icons.Default.RestaurantMenu, stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
                     FeatureTile(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
                     FeatureTile(Icons.Default.CalendarMonth, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
+                }
+            }
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FeatureTile(Icons.Default.ShoppingCart, stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
+                    // onOpenCustomFoods had no call site anywhere in the composable -
+                    // CustomFoodScreen was completely unreachable from any UI gesture.
+                    FeatureTile(Icons.Default.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
+                    Spacer(Modifier.weight(1f))
                 }
             }
 
             // ---- Recent scans ----
             item {
-                Text(
-                    stringResource(R.string.dashboard_recent_scans_title),
-                    style      = MaterialTheme.typography.titleSmall,
-                    color      = OnBackground,
-                    fontWeight = FontWeight.SemiBold,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.dashboard_recent_scans_title),
+                        style      = MaterialTheme.typography.titleSmall,
+                        color      = OnBackground,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    // onOpenHistory had no call site anywhere in the composable -
+                    // ScanHistoryScreen (search/sort/favorite/delete) was completely
+                    // unreachable from any UI gesture.
+                    if (s.recentScans.isNotEmpty()) {
+                        TextButton(onClick = onOpenHistory) {
+                            Text(stringResource(R.string.dashboard_view_all), color = AccentCoral)
+                        }
+                    }
+                }
             }
             if (s.recentScans.isEmpty()) {
                 item {
-                    Box(
-                        Modifier.fillMaxWidth().padding(vertical = 24.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(stringResource(R.string.dashboard_recent_scans_empty), color = OnBackground.copy(0.4f))
-                    }
+                    EmptyListState(Icons.Default.History, stringResource(R.string.dashboard_recent_scans_empty))
                 }
             } else {
                 items(s.recentScans, key = { it.dbId }) { scan -> ScanHistoryCard(scan) }
