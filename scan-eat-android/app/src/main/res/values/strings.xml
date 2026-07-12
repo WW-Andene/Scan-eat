@@ -787,6 +787,9 @@
     <string name="recipes_add_ingredient_button">+ Ajouter ingrédient</string>
     <string name="recipes_log_dialog_title">Logger « %1$s »</string>
     <string name="recipes_portion_label">Portion (1.0 = entière)</string>
+    <string name="recipes_field_servings">Portions (nombre)</string>
+    <string name="recipes_servings_to_log_label">Portions à logger (sur %1$d)</string>
+    <string name="recipes_per_serving_hint">≈ %1$d g par portion</string>
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>

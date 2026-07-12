@@ -25,6 +25,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.*
+import kotlin.math.roundToInt
 
 
 @Composable
@@ -67,7 +68,7 @@ fun RecipesScreen(
         }
     }
 
-    if (showAdd) AddRecipeDialog(onDismiss = { showAdd = false }, onSave = { name, comps -> viewModel.save(name, comps); showAdd = false })
+    if (showAdd) AddRecipeDialog(onDismiss = { showAdd = false }, onSave = { name, comps, servings -> viewModel.save(name, comps, servings); showAdd = false })
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
 
     deleteTarget?.let { id ->
@@ -104,12 +105,19 @@ private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit) 
 }
 
 @Composable
-private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>) -> Unit) {
+private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>, Int) -> Unit) {
     var name by remember { mutableStateOf("") }
     var components by remember { mutableStateOf(listOf<RecipeComponent>()) }
     var newIngName by remember { mutableStateOf("") }
     var newIngGrams by remember { mutableStateOf("") }
     var newIngKcal by remember { mutableStateOf("") }
+    // The recipe model has always supported a `servings` count (RecipeRepository.Recipe /
+    // RecipeEntity), but this dialog never collected it, so every recipe saved through the
+    // UI was silently persisted with servings=1 regardless of how many portions it actually
+    // makes — the log dialog's "portion fraction" then had to be reverse-engineered by hand
+    // (e.g. entering 0.25 for "1 of 4 servings"). Collecting it here is what makes the
+    // servings-based logging in LogRecipeDialog below meaningful.
+    var servingsText by remember { mutableStateOf("1") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -118,6 +126,9 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    colors = scanEatTextFieldColors())
+                OutlinedTextField(value = servingsText, onValueChange = { servingsText = it }, label = { Text(stringResource(R.string.recipes_field_servings)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = scanEatTextFieldColors())
                 HorizontalDivider(color = OnBackground.copy(0.1f))
                 Text(stringResource(R.string.recipes_ingredients_label), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
@@ -147,7 +158,12 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
             }
         },
         confirmButton = {
-            TextButton(onClick = { if (name.isNotBlank() && components.isNotEmpty()) onSave(name, components) }, enabled = name.isNotBlank() && components.isNotEmpty()) {
+            TextButton(onClick = {
+                if (name.isNotBlank() && components.isNotEmpty()) {
+                    val servings = servingsText.toIntOrNull()?.coerceAtLeast(1) ?: 1
+                    onSave(name, components, servings)
+                }
+            }, enabled = name.isNotBlank() && components.isNotEmpty()) {
                 Text(stringResource(R.string.common_create), color = AccentCoral)
             }
         },
@@ -155,10 +171,19 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
     )
 }
 
+// ============================================================================
+// FEATURE: log-by-servings — recipes always stored a `servings` count, but
+// nothing in the app ever read it, so logging a portion of a multi-serving
+// dish meant mentally computing "1 serving / 4 servings = 0.25" and typing
+// that fraction by hand. This lets the user say how many servings they ate
+// directly and does the fraction math for them, showing the per-serving
+// gram weight as a sanity check.
+// ============================================================================
 @Composable
 private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealSlot, Double) -> Unit) {
     var slot by remember { mutableStateOf(MealSlot.LUNCH) }
-    var fractionText by remember { mutableStateOf("1.0") }
+    var servingsText by remember { mutableStateOf("1") }
+    val gramsPerServing = recipe.totalGrams / recipe.servings
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
@@ -172,16 +197,23 @@ private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealS
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
                     }
                 }
-                OutlinedTextField(value = fractionText, onValueChange = { fractionText = it }, label = { Text(stringResource(R.string.recipes_portion_label)) }, singleLine = true,
-                    isError = fractionText.isNotBlank() && (fractionText.replace(',', '.').toDoubleOrNull()?.let { it <= 0.0 } != false),
+                OutlinedTextField(value = servingsText, onValueChange = { servingsText = it },
+                    label = { Text(stringResource(R.string.recipes_servings_to_log_label, recipe.servings)) }, singleLine = true,
+                    isError = servingsText.isNotBlank() && (servingsText.replace(',', '.').toDoubleOrNull()?.let { it <= 0.0 } != false),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     colors = scanEatTextFieldColors())
+                Text(stringResource(R.string.recipes_per_serving_hint, gramsPerServing.roundToInt()),
+                    style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
             }
         },
         confirmButton = {
-            // A zero/negative portion fraction would log negative kcal/macros via
+            // A zero/negative servings-to-log would log negative kcal/macros via
             // consumptionRepo.log - same numeric-entry guard as Weight/CustomFood.
-            TextButton(onClick = { fractionText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }?.let { onLog(slot, it) } }) {
+            TextButton(onClick = {
+                servingsText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }?.let { servingsToLog ->
+                    onLog(slot, servingsToLog / recipe.servings)
+                }
+            }) {
                 Text(stringResource(R.string.common_log), color = AccentCoral)
             }
         },
