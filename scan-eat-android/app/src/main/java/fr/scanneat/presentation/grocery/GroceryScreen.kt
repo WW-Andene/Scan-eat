@@ -1,9 +1,11 @@
 package fr.scanneat.presentation.grocery
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.hapticfeedback.HapticFeedbackType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -13,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +36,7 @@ fun GroceryScreen(
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
     val checkable = viewModel.checkableItems.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
+    val haptics   = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copiedMessage = stringResource(R.string.grocery_copied)
@@ -86,11 +90,7 @@ fun GroceryScreen(
     ) { padding ->
         if (items.value.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(Icons.Default.ShoppingCart, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(40.dp))
-                    Text(stringResource(R.string.grocery_empty_body),
-                        color = OnBackground.copy(0.5f))
-                }
+                EmptyListState(icon = Icons.Default.ShoppingCart, message = stringResource(R.string.grocery_empty_body))
             }
         } else {
             LazyColumn(
@@ -105,14 +105,17 @@ fun GroceryScreen(
                 items(checkable.value, key = { it.item.name }) { checkableItem ->
                     val item = checkableItem.item
                     val checked = checkableItem.checked
-                    val contentAlpha = if (checked) 0.5f else 1f
+                    val contentAlpha by animateFloatAsState(if (checked) 0.5f else 1f, label = "groceryItemAlpha")
                     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(10.dp))) {
                         Surface(shape = RoundedCornerShape(10.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                             Row(Modifier.padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween) {
                                 Checkbox(
                                     checked = checked,
-                                    onCheckedChange = { viewModel.toggleChecked(item, it) },
+                                    onCheckedChange = {
+                                        haptics.performHapticFeedback(if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
+                                        viewModel.toggleChecked(item, it)
+                                    },
                                     colors = CheckboxDefaults.colors(checkedColor = AccentCoral),
                                 )
                                 Column(Modifier.weight(1f)) {
