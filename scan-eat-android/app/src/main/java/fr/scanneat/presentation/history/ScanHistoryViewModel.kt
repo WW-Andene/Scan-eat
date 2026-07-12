@@ -3,6 +3,7 @@ package fr.scanneat.presentation.history
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.flow.*
@@ -14,11 +15,24 @@ import javax.inject.Inject
 enum class HistorySort { RECENT, OLDEST, NAME_AZ, SCORE_DESC }
 
 @HiltViewModel
-class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository) : ViewModel() {
+class ScanHistoryViewModel @Inject constructor(
+    private val repo: ScanRepository,
+    private val prefs: UserPreferences,
+) : ViewModel() {
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     // Plain string comparison sorts accented letters (Éclair) after every
     // unaccented one instead of near their unaccented form - a Collator with
     // PRIMARY strength groups accents/case together for correct French order.
-    private val nameCollator: Collator = Collator.getInstance(Locale.getDefault()).apply { strength = Collator.PRIMARY }
+    // Derived from the in-app language (not Locale.getDefault()/system locale)
+    // and recomputed whenever it changes, matching WeightScreen/DiaryScreen/
+    // MealPlanScreen's Locale(language.value) pattern - a fixed Locale.getDefault()
+    // snapshot here would ignore Settings > Language entirely for history sorting.
+    private val nameCollator: StateFlow<Collator> = language
+        .map { Collator.getInstance(Locale(it)).apply { strength = Collator.PRIMARY } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Collator.getInstance(Locale("fr")).apply { strength = Collator.PRIMARY })
+
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
@@ -48,14 +62,18 @@ class ScanHistoryViewModel @Inject constructor(private val repo: ScanRepository)
     private val favoriteScans = repo.observeFavorites()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, _query, _favoritesOnly, _sort) { scans, favs, q, favOnly, sort ->
+    // kotlinx.coroutines' typed combine() overloads stop at 5 flows, so _sort
+    // and nameCollator are paired up-front to keep this at 5 arguments.
+    private val sortAndCollator: Flow<Pair<HistorySort, Collator>> = combine(_sort, nameCollator) { sort, collator -> sort to collator }
+
+    val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, _query, _favoritesOnly, sortAndCollator) { scans, favs, q, favOnly, (sort, collator) ->
         (if (favOnly) favs else scans)
             .filter { q.isBlank() || it.product.name.contains(q, ignoreCase = true) || it.barcode?.contains(q) == true }
             .let { list ->
                 when (sort) {
                     HistorySort.RECENT      -> list // both sources are already scannedAt DESC
                     HistorySort.OLDEST      -> list.asReversed()
-                    HistorySort.NAME_AZ     -> list.sortedWith(compareBy(nameCollator) { it.product.name })
+                    HistorySort.NAME_AZ     -> list.sortedWith(compareBy(collator) { it.product.name })
                     HistorySort.SCORE_DESC  -> list.sortedByDescending { it.audit.score }
                 }
             }

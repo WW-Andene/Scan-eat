@@ -35,6 +35,10 @@ dependencies {
     implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-default-headers-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-compression-jvm:$ktor_version")
+    // Lets HEAD requests hit any GET route (notably /health) without a duplicate
+    // handler - some reverse proxies, container platforms, and uptime monitors
+    // probe liveness with HEAD instead of GET, which Ktor 404s on otherwise.
+    implementation("io.ktor:ktor-server-auto-head-response-jvm:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
 
     // Ktor client (for calling Groq + OFF)

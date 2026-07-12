@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.autohead.*
 import io.ktor.server.plugins.callloging.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -63,6 +64,10 @@ fun Application.module() {
     }
     install(CallLogging) { level = Level.INFO }
     install(DefaultHeaders)
+    // Some reverse proxies/orchestrators/uptime monitors send HEAD (not GET)
+    // for liveness checks - without this, /health only answers GET and those
+    // probes see a 404/405 instead of a clean liveness signal.
+    install(AutoHeadResponse)
     install(Compression) { gzip { priority = 1.0 } }
     val isDevelopment = developmentMode
     install(CORS) {
