@@ -44,6 +44,11 @@ class GroceryViewModel @Inject constructor(
         items.map { CheckableGroceryItem(it, checked = it.key in checked) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** "checked / total" counts for a shopping-progress readout (e.g. "3/12 checked"). */
+    val checkedProgress: StateFlow<Pair<Int, Int>> = combine(rawItems, checkedRepo.checkedCount) { items, checkedCount ->
+        checkedCount to items.size
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0 to 0)
+
     fun toggleChecked(item: GroceryItem, checked: Boolean) {
         // Keyed by GroceryItem.key (the aggregation's stable normalized identity),
         // not the display name - two differently-spelled recipe ingredients that

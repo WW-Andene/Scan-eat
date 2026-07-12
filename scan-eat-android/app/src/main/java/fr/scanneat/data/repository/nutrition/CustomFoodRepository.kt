@@ -44,6 +44,13 @@ class CustomFoodRepository @Inject constructor(
         id: String? = null,
         profileId: String = "default",
     ): FoodEntry {
+        // A blank/whitespace-only name previously passed through untouched: name.trim()
+        // still persisted an empty string, silently adding an unnamed row to the custom
+        // foods list (and to every Quick Add / search-autocomplete surface built on
+        // observeAll()) with no way to identify or remove it afterward, since
+        // deleteByName() keys on the very name that's blank. Reject it up front instead,
+        // same guard style as WeightRepository.log()'s require().
+        require(name.isNotBlank()) { "Custom food name must not be blank" }
         val entry = FoodEntry(
             name      = name.trim(),
             kcal      = kcal.coerceAtLeast(0.0),

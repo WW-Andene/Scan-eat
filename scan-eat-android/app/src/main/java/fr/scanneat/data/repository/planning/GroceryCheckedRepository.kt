@@ -41,6 +41,10 @@ class GroceryCheckedRepository @Inject constructor(
 
     val checkedKeys: Flow<Set<String>> = storeData.map { it[KEY_CHECKED] ?: emptySet() }.distinctUntilChanged()
 
+    /** Count of checked items — cheap reactive source for a "3/12 checked" progress readout,
+     *  without every collector re-deriving it from the full [checkedKeys] set. */
+    val checkedCount: Flow<Int> = checkedKeys.map { it.size }.distinctUntilChanged()
+
     suspend fun setChecked(key: String, checked: Boolean) {
         store.edit { prefs ->
             val current = prefs[KEY_CHECKED] ?: emptySet()
