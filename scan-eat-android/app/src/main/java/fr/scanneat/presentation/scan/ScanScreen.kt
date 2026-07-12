@@ -251,12 +251,37 @@ fun ScanScreen(
     }
 }
 
-// ImageProxy.image (used inside the analyzer below) is CameraX's
-// @ExperimentalGetImage API - @OptIn here (rather than the marker
-// annotation itself) contains the opt-in to this function's body instead
-// of leaking an experimental-API requirement onto every caller of a
-// composable that's otherwise a stable, ordinary screen.
+// ImageProxy.image is CameraX's @ExperimentalGetImage API. Extracted into its
+// own function (rather than opting in on the whole CameraPreview composable)
+// because lint doesn't propagate a composable-level @OptIn into a lambda
+// that's SAM-converted to a Java functional interface (ImageAnalysis.Analyzer)
+// - it still flags the usage inside setAnalyzer{} even when the enclosing
+// composable is annotated. A real function declaration doesn't have that gap.
 @OptIn(androidx.camera.core.ExperimentalGetImage::class)
+private fun analyzeFrame(proxy: ImageProxy, scanner: com.google.mlkit.vision.barcode.BarcodeScanner, onBarcodeDetected: (String) -> Unit) {
+    val media = proxy.image
+    if (media != null) {
+        val img = InputImage.fromMediaImage(media, proxy.imageInfo.rotationDegrees)
+        scanner.process(img)
+            .addOnSuccessListener { barcodes ->
+                for (bc in barcodes) {
+                    val raw = bc.rawValue ?: continue
+                    // FORMAT_ITF included for GTIN-14 case/pallet codes (14 digits) -
+                    // ScanRepository.gtin14ToEan13() already handles converting these
+                    // to a real retail EAN-13, but that logic was unreachable without
+                    // the scanner actually passing the format+length through here.
+                    if (bc.format in listOf(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
+                            Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E, Barcode.FORMAT_CODE_128,
+                            Barcode.FORMAT_ITF)) {
+                        val digits = raw.filter { it.isDigit() }
+                        if (digits.length in listOf(8, 12, 13, 14)) onBarcodeDetected(digits)
+                    }
+                }
+            }
+            .addOnCompleteListener { proxy.close() }
+    } else proxy.close()
+}
+
 @Composable
 fun CameraPreview(
     onBarcodeDetected: (String) -> Unit,
@@ -301,27 +326,7 @@ fun CameraPreview(
                         .build()
                         .also { ia ->
                             ia.setAnalyzer(executor) { proxy ->
-                                val media = proxy.image
-                                if (media != null) {
-                                    val img = InputImage.fromMediaImage(media, proxy.imageInfo.rotationDegrees)
-                                    scanner.process(img)
-                                        .addOnSuccessListener { barcodes ->
-                                            for (bc in barcodes) {
-                                                val raw = bc.rawValue ?: continue
-                                                // FORMAT_ITF included for GTIN-14 case/pallet codes (14 digits) -
-                                                // ScanRepository.gtin14ToEan13() already handles converting these
-                                                // to a real retail EAN-13, but that logic was unreachable without
-                                                // the scanner actually passing the format+length through here.
-                                                if (bc.format in listOf(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
-                                                        Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E, Barcode.FORMAT_CODE_128,
-                                                        Barcode.FORMAT_ITF)) {
-                                                    val digits = raw.filter { it.isDigit() }
-                                                    if (digits.length in listOf(8, 12, 13, 14)) onBarcodeDetected(digits)
-                                                }
-                                            }
-                                        }
-                                        .addOnCompleteListener { proxy.close() }
-                                } else proxy.close()
+                                analyzeFrame(proxy, scanner, onBarcodeDetected)
                             }
                         }
                     runCatching {
