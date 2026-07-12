@@ -135,8 +135,10 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
                         colors = scanEatTextFieldColors())
                 }
                 TextButton(onClick = {
-                    val g = newIngGrams.replace(',', '.').toDoubleOrNull() ?: return@TextButton
-                    val k = newIngKcal.replace(',', '.').toDoubleOrNull() ?: 0.0
+                    // A zero/negative gram amount would divide-by-zero or invert the
+                    // per-100g nutrition math wherever this component is later scaled.
+                    val g = newIngGrams.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return@TextButton
+                    val k = newIngKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0
                     if (newIngName.isNotBlank()) {
                         components = components + RecipeComponent(newIngName, g, k)
                         newIngName = ""; newIngGrams = ""; newIngKcal = ""
@@ -171,11 +173,18 @@ private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealS
                     }
                 }
                 OutlinedTextField(value = fractionText, onValueChange = { fractionText = it }, label = { Text(stringResource(R.string.recipes_portion_label)) }, singleLine = true,
+                    isError = fractionText.isNotBlank() && (fractionText.replace(',', '.').toDoubleOrNull()?.let { it <= 0.0 } != false),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     colors = scanEatTextFieldColors())
             }
         },
-        confirmButton = { TextButton(onClick = { fractionText.replace(',', '.').toDoubleOrNull()?.let { onLog(slot, it) } }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
+        confirmButton = {
+            // A zero/negative portion fraction would log negative kcal/macros via
+            // consumptionRepo.log - same numeric-entry guard as Weight/CustomFood.
+            TextButton(onClick = { fractionText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }?.let { onLog(slot, it) } }) {
+                Text(stringResource(R.string.common_log), color = AccentCoral)
+            }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )
 }

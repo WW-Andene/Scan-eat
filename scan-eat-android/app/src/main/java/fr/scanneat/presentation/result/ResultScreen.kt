@@ -46,6 +46,7 @@ fun ResultScreen(
     onLog: () -> Unit,
 ) {
     val state       = viewModel.state.collectAsStateWithLifecycle()
+    val language    = viewModel.language.collectAsStateWithLifecycle()
     val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showSheet   by remember { mutableStateOf(false) }
 
@@ -100,6 +101,7 @@ fun ResultScreen(
                 comparisonResult = s.comparisonResult,
                 pairings         = s.pairings,
                 betterAlternative = s.betterAlternative,
+                language         = language.value,
                 modifier         = Modifier.padding(padding),
             )
         }

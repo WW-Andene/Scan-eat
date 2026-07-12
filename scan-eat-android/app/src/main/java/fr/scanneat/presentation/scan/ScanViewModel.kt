@@ -51,6 +51,10 @@ private fun rateLimitedMessage(lang: String) =
     if (lang == "en") "Groq is rate-limiting requests right now — wait a moment and try again"
     else "Groq limite les requêtes en ce moment — patientez un instant puis réessayez"
 
+private fun noInputMessage(lang: String) =
+    if (lang == "en") "Scan a barcode or take a photo"
+    else "Scannez un code-barres ou prenez une photo"
+
 sealed class ScanUiState {
     data object Idle     : ScanUiState()
     data object Scanning : ScanUiState()
@@ -100,7 +104,9 @@ class ScanViewModel @Inject constructor(
         val barcode = _scannedBarcode.value
         val imgs    = _images.value
         if (barcode == null && imgs.isEmpty()) {
-            _state.value = ScanUiState.Error("Scannez un code-barres ou prenez une photo")
+            // Every other branch in this file threads lang through - this one was a
+            // bare French literal, so English-language users hit it in French.
+            viewModelScope.launch { _state.value = ScanUiState.Error(noInputMessage(prefs.language.first())) }
             return
         }
         if (!scoreMutex.tryLock()) return   // already scoring — ignore double-tap

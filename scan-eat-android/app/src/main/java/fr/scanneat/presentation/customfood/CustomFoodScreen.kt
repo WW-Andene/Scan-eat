@@ -118,23 +118,12 @@ fun CustomFoodScreen(
         )
     }
 
-    // Delete confirmation
+    // Delete confirmation — shared dialog, same as Weight/Templates/Recipes/Activity.
     deleteTarget?.let { name ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            containerColor   = SurfaceVariant,
-            title = { Text(stringResource(R.string.customfood_delete_confirm_title, name), color = OnBackground) },
-            text  = { Text(stringResource(R.string.customfood_delete_confirm_body), color = OnBackground.copy(0.7f)) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.delete(name); deleteTarget = null }) {
-                    Text(stringResource(R.string.common_delete), color = FlagRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) {
-                    Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
-                }
-            },
+        DeleteConfirmDialog(
+            itemName  = name,
+            onConfirm = { viewModel.delete(name); deleteTarget = null },
+            onDismiss = { deleteTarget = null },
         )
     }
 }
@@ -207,7 +196,12 @@ private fun AddFoodDialog(
     var fib  by remember { mutableStateOf("") }
     var salt by remember { mutableStateOf("") }
 
-    val valid = name.isNotBlank() && kcal.replace(',', '.').toDoubleOrNull() != null
+    // Blank macro fields default to 0.0 at save time - only reject a field that's
+    // actually filled in with something negative (kcal itself must always parse).
+    fun nonNegativeOrBlank(s: String) = s.isBlank() || (s.replace(',', '.').toDoubleOrNull()?.let { it >= 0.0 } == true)
+    val valid = name.isNotBlank() &&
+        (kcal.replace(',', '.').toDoubleOrNull()?.let { it >= 0.0 } == true) &&
+        nonNegativeOrBlank(prot) && nonNegativeOrBlank(carb) && nonNegativeOrBlank(fat) && nonNegativeOrBlank(fib) && nonNegativeOrBlank(salt)
 
     AlertDialog(
         onDismissRequest = onDismiss,

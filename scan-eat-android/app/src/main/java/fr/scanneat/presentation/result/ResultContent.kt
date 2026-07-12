@@ -27,6 +27,7 @@ internal fun ResultContent(
     comparisonResult: fr.scanneat.data.repository.scan.ComparisonResult? = null,
     pairings: List<String> = emptyList(),
     betterAlternative: ScanResult? = null,
+    language: String = "fr",
     modifier: Modifier = Modifier,
 ) {
     val audit = scan.audit
@@ -78,7 +79,7 @@ internal fun ResultContent(
 
         val allergens = personalScore?.allergenHits.orEmpty()
         if (allergens.isNotEmpty()) {
-            AllergenWarningsCard(allergens)
+            AllergenWarningsCard(allergens, language)
         }
 
         // Personal score adjustments

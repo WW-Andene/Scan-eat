@@ -200,6 +200,11 @@ fun WeightScreen(
     }
 
     if (showAdd) {
+        // A negative/zero/absurd weight fed straight into WeightSummary/WeightForecast/
+        // BMI trend calcs with no guard at all - bound it to a sane human range in
+        // whichever unit is displayed, matching ActivityScreen's validated-numeric pattern.
+        val kgValue = kgText.replace(',', '.').toDoubleOrNull()
+        val isValidWeight = kgValue != null && (if (useImperial) kgValue in 44.0..880.0 else kgValue in 20.0..400.0)
         AlertDialog(
             onDismissRequest = { showAdd = false },
             title = { Text(stringResource(R.string.weight_dialog_title), color = OnBackground) },
@@ -208,6 +213,7 @@ fun WeightScreen(
                     OutlinedTextField(
                         value = kgText, onValueChange = { kgText = it },
                         label = { Text(if (useImperial) stringResource(R.string.weight_field_lb) else stringResource(R.string.weight_field_kg)) }, singleLine = true,
+                        isError = kgText.isNotBlank() && !isValidWeight,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         colors = scanEatTextFieldColors(),
                     )
@@ -219,13 +225,14 @@ fun WeightScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    kgText.replace(',', '.').toDoubleOrNull()?.let { v ->
-                        val kg = if (useImperial) v / 2.20462 else v
+                TextButton(
+                    onClick = {
+                        val kg = if (useImperial) kgValue!! / 2.20462 else kgValue!!
                         viewModel.log(kg, notesText)
                         kgText = ""; notesText = ""; showAdd = false
-                    }
-                }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
+                    },
+                    enabled = isValidWeight,
+                ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
             },
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
             containerColor = SurfaceVariant,

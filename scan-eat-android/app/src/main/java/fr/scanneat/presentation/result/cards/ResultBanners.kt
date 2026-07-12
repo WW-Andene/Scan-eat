@@ -98,7 +98,7 @@ internal fun DietVetoBanner(reason: String?) {
 }
 
 @Composable
-internal fun AllergenWarningsCard(allergens: List<AllergenHit>) {
+internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String = "fr") {
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -113,7 +113,8 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>) {
                         color = AmberWarning, fontWeight = FontWeight.SemiBold)
                 }
                 allergens.forEach { hit ->
-                    Text(stringResource(R.string.result_allergen_hit, hit.labelFr, hit.triggers.joinToString()),
+                    val label = if (language == "en") hit.labelEn else hit.labelFr
+                    Text(stringResource(R.string.result_allergen_hit, label, hit.triggers.joinToString()),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.85f))
                 }
             }

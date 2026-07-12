@@ -20,5 +20,13 @@ val TOP_TABS = listOf(TopTab.Dashboard, TopTab.Diary, TopTab.Scan, TopTab.Biolis
 // Tab root routes — bottom nav visible, back arrow hidden
 val TAB_ROOT_ROUTES = TOP_TABS.map { it.route }.toSet()
 
-// Routes where the entire bottom nav is hidden (full-screen modals)
-val HIDDEN_NAV_ROUTES = setOf(AppRoutes.ONBOARDING, AppRoutes.RESULT)
+// Routes where the entire bottom nav is hidden (full-screen modals). Every
+// full-screen nested route pushed on top of a tab (see AppNavGraph's
+// composable(AppRoutes.X) calls) belongs here - missing one means the tab bar
+// stays visible underneath that screen's own TopAppBar back arrow, showing
+// two navigation affordances for the same "go back" action at once.
+val HIDDEN_NAV_ROUTES = setOf(
+    AppRoutes.ONBOARDING, AppRoutes.RESULT, AppRoutes.SCAN_PROFILE,
+    AppRoutes.RECIPES, AppRoutes.TEMPLATES, AppRoutes.MEAL_PLAN,
+    AppRoutes.GROCERY, AppRoutes.CUSTOM_FOODS, AppRoutes.SCAN_HISTORY,
+)

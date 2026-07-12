@@ -64,6 +64,9 @@ class ResultViewModel @Inject constructor(
 
     private val scanId: Long = savedStateHandle.get<Long>("scanId") ?: 0L
 
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     private val _logState = MutableStateFlow<LogState>(LogState.Idle)
 
     // getById() is a one-shot suspend read, not a Flow, so toggling the DB row

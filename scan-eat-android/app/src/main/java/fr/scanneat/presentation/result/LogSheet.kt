@@ -83,7 +83,10 @@ fun LogSheet(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value         = portionText,
-                    onValueChange = { portionText = it.filter { c -> c.isDigit() || c == '.' } },
+                    // Comma must survive the filter, not be stripped - line 54's
+                    // .replace(',', '.') never gets a chance to run otherwise, so a
+                    // French-locale "150,5" became the digits "1505" (10x the portion).
+                    onValueChange = { portionText = it.filter { c -> c.isDigit() || c == '.' || c == ',' } },
                     label         = { Text(stringResource(R.string.logsheet_quantity_label)) },
                     suffix        = { Text("g", color = OnSurface.copy(0.5f)) },
                     singleLine    = true,

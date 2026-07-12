@@ -64,13 +64,18 @@ fun ProfileScreen(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
                     TextButton(onClick = {
+                        // No bound at all previously - an errant value here (e.g. a typo'd
+                        // extra digit) silently propagates into ActivityViewModel's kcal-burn
+                        // calc and ProfileViewModel's BMI/TDEE. Clamp to sane human ranges
+                        // instead of rejecting outright, since a slightly-off real value
+                        // (e.g. a very tall/heavy user) should still save, just not corrupt math.
                         viewModel.save(Profile(
                             name          = name.trim(),
                             sex           = sex,
-                            ageYears      = age.toIntOrNull(),
-                            heightCm      = heightCm.replace(',', '.').toDoubleOrNull(),
-                            weightKg      = weightKg.replace(',', '.').toDoubleOrNull(),
-                            goalWeightKg  = goalWeightKg.replace(',', '.').toDoubleOrNull(),
+                            ageYears      = age.toIntOrNull()?.coerceIn(1, 120),
+                            heightCm      = heightCm.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0),
+                            weightKg      = weightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
+                            goalWeightKg  = goalWeightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
                             activityLevel = activity,
                             goal          = goal,
                             diet          = diet,

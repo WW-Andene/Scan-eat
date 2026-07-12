@@ -163,13 +163,20 @@ private fun ReminderRow(
     onToggle: (Boolean) -> Unit, onTimeChange: (String) -> Unit, onTest: () -> Unit,
 ) {
     var timeText by remember(time) { mutableStateOf(time) }
+    // Persisting on every keystroke wrote unparseable intermediate strings
+    // (e.g. "9:00" mid-type, or backgrounding after "07:3") straight to
+    // DataStore - ReminderWorker.kt's LocalTime.parse(timeStr) then silently
+    // fails and the reminder never fires again with zero UI feedback. Only
+    // commit values LocalTime.parse actually accepts; isError flags the rest.
+    val isValid = remember(timeText) { runCatching { java.time.LocalTime.parse(timeText) }.isSuccess }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(label, style = MaterialTheme.typography.bodyMedium, color = OnBackground, modifier = Modifier.weight(1f))
         OutlinedTextField(
             value = timeText,
-            onValueChange = { timeText = it; onTimeChange(it) },
+            onValueChange = { timeText = it; if (runCatching { java.time.LocalTime.parse(it) }.isSuccess) onTimeChange(it) },
             modifier = Modifier.width(90.dp),
             singleLine = true,
+            isError = !isValid,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             textStyle = MaterialTheme.typography.bodySmall,
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
