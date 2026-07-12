@@ -67,6 +67,9 @@
     <string name="mealplan_day_today">%1$s · Aujourd\'hui</string>
     <string name="mealplan_recipe_prefix">%1$s</string>
     <string name="mealplan_template_prefix">%1$s</string>
+    <string name="mealplan_assign_cd">Choisir une recette ou un modèle</string>
+    <string name="mealplan_assign_title">Planifier — %1$s</string>
+    <string name="mealplan_assign_empty">Aucune recette ni modèle enregistré. Créez-en un depuis Recettes ou Modèles.</string>
 
     <!-- ── Biolism shell ──────────────────────────────────────────────────── -->
     <string name="biolism_subtitle">Métabolisme · Science · Précision</string>
@@ -599,6 +602,8 @@
     <string name="weight_goal_delta">%1$s vers %2$s</string>
     <string name="weight_trend_caption">Tendance — %1$d dernières pesées</string>
     <string name="weight_trend_cd">Graphique de tendance : de %1$s à %2$s sur les %3$d dernières pesées</string>
+    <string name="weight_deleted_message">Pesée supprimée</string>
+    <string name="weight_undo">Annuler</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Journal</string>

@@ -89,7 +89,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
                         Text("$streak", style = MaterialTheme.typography.labelLarge, color = Color.Black, fontWeight = FontWeight.Black)
                         Text(
                             pluralStringResource(R.plurals.dashboard_streak_unit, streak),
-                            style = MaterialTheme.typography.labelSmall, color = Color.Black.copy(0.7f), fontSize = 7.sp,
+                            style = MaterialTheme.typography.labelSmall, color = Color.Black.copy(0.7f), fontSize = 9.sp, lineHeight = 10.sp,
                         )
                     }
                 }

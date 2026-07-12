@@ -26,6 +26,11 @@ private val log = LoggerFactory.getLogger("ScoreRoute")
 fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
     post("/score") {
         if (call.rejectIfTooLarge()) return@post
+        // Unauthenticated in Server mode (no X-Groq-Key required — the
+        // operator's GROQ_API_KEY covers it), and this can call out to Groq's
+        // paid vision API. Without a throttle, anyone who finds the server URL
+        // could run up the operator's Groq bill for free. See RateLimiter.kt.
+        if (call.rejectIfRateLimited(llmRateLimiter)) return@post
         val req = runCatching { call.receive<ScoreRequest>() }.getOrElse {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post

@@ -349,4 +349,88 @@ fun weightForecast(currentKg: Double, goalKg: Double, weeklySlopeKg: Double): We
     )
 }
 
+// ============================================================================
+// chronicNutrientGaps — recurring (not just today's) nutrient deficits
+//
+// closeTheGap() above only looks at *today*'s totals: a single unusually good
+// or bad day either hides a real ongoing pattern or creates a false alarm.
+// This scans the trailing 7-day window (via rollup()) day-by-day and flags
+// nutrients the user is falling short on most days they actually logged —
+// the thing worth surfacing to a user is "you're low on iron most days",
+// not "you were low on iron today because you skipped breakfast".
+// Days with no logged entries are excluded from both the numerator and
+// denominator so a day the user simply forgot to log doesn't count as a
+// "deficient" day. Requires at least 3 logged days in the window before
+// reporting anything, so a near-empty week doesn't produce a spurious trend.
+// ============================================================================
+
+data class ChronicGap(
+    val nutrient: String,
+    val daysBelowTarget: Int,
+    val daysLogged: Int,
+    val avgPctOfTarget: Int,
+    val suggestions: List<GapSuggestion>,
+)
+
+fun chronicNutrientGaps(
+    entries: List<DiaryEntry>,
+    targets: DailyTargets,
+    foodDB: List<FoodEntry>,
+    end: LocalDate = LocalDate.now(),
+    minLoggedDays: Int = 3,
+    deficitThreshold: Double = 0.85,
+): List<ChronicGap> {
+    val week = rollup(entries, end, windowDays = 7)
+    val loggedDays = week.days.filter { it.count > 0 }
+    if (loggedDays.size < minLoggedDays) return emptyList()
+
+    data class Def(val label: String, val target: Double, val bucketValue: (DayBucket) -> Double, val foodDensity: (FoodEntry) -> Double)
+
+    val defs = listOf(
+        Def("protein",  targets.proteinGTarget,  { it.proteinG })   { it.proteinG },
+        Def("fiber",    targets.fiberGTarget,     { it.fiberG })     { it.fiberG },
+        Def("iron",     targets.ironMgTarget,     { it.ironMg })     { it.ironMg },
+        Def("calcium",  targets.calciumMgTarget,  { it.calciumMg })  { it.calciumMg },
+        Def("vit_d",    targets.vitDUgTarget,     { it.vitDUg })     { it.vitDUg },
+        Def("b12",      targets.b12UgTarget,      { it.b12Ug })      { it.b12Ug },
+    )
+
+    val out = mutableListOf<ChronicGap>()
+    for (def in defs) {
+        if (def.target <= 0) continue
+        val threshold = def.target * deficitThreshold
+        val values = loggedDays.map { def.bucketValue(it) }
+        val daysBelow = values.count { it < threshold }
+        // Majority of logged days below the threshold — a recurring pattern,
+        // not an isolated bad day.
+        if (daysBelow * 2 <= loggedDays.size) continue
+
+        val avgValue = values.average()
+        val avgPct = ((avgValue / def.target) * 100).roundToInt()
+        val avgDeficit = (def.target - avgValue).coerceAtLeast(0.0)
+
+        val ranked = mutableListOf<Pair<FoodEntry, Double>>() // food, contribution
+        for (food in foodDB) {
+            val density = def.foodDensity(food)
+            if (density <= 0) continue
+            ranked += food to density
+        }
+        ranked.sortByDescending { it.second }
+        val suggestions = ranked.take(3).map { (food, density) ->
+            val grams = ((avgDeficit * 0.5 / density) * 100).roundToInt().coerceAtLeast(1)
+            val contribution = (density * (grams / 100.0) * 10).roundToInt() / 10.0
+            GapSuggestion(food.name, grams, contribution)
+        }
+
+        out += ChronicGap(
+            nutrient        = def.label,
+            daysBelowTarget = daysBelow,
+            daysLogged      = loggedDays.size,
+            avgPctOfTarget  = avgPct,
+            suggestions     = suggestions,
+        )
+    }
+    return out
+}
+
 // DailyTargets (from PersonalScoreEngine) now includes all micronutrient targets.

@@ -66,7 +66,11 @@ class ScanHistoryViewModel @Inject constructor(
     // and nameCollator are paired up-front to keep this at 5 arguments.
     private val sortAndCollator: Flow<Pair<HistorySort, Collator>> = combine(_sort, nameCollator) { sort, collator -> sort to collator }
 
-    val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, _query, _favoritesOnly, sortAndCollator) { scans, favs, q, favOnly, (sort, collator) ->
+    // Debounced like CustomFoodViewModel's search — without it, every keystroke
+    // re-filters/re-sorts the whole scan list (including the Collator-based
+    // NAME_AZ sort, non-trivial cost as history grows) on every character typed
+    // instead of once after the user pauses.
+    val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, _query.debounce(200), _favoritesOnly, sortAndCollator) { scans, favs, q, favOnly, (sort, collator) ->
         (if (favOnly) favs else scans)
             .filter { q.isBlank() || it.product.name.contains(q, ignoreCase = true) || it.barcode?.contains(q) == true }
             .let { list ->

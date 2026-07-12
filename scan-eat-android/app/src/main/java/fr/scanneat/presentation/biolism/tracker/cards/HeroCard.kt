@@ -31,8 +31,8 @@ internal fun HeroCard(
     onPrecision: () -> Unit,
 ) {
     val heroColor = if (ketosisOn) Teal else Gold
-    Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    ScanEatCard(contentPadding = PaddingValues(16.dp)) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (ketosisOn) Box(Modifier.size(6.dp).clip(CircleShape).background(Teal))
                 if (running)   Box(Modifier.size(6.dp).clip(CircleShape).background(Gold))

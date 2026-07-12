@@ -118,9 +118,27 @@ val FOOD_DB: List<FoodEntry> = listOf(
 // Search
 // ============================================================================
 
+// Was compiled fresh on every normalize() call — searchFoodDB() calls
+// normalize() once per name+alias of every FOOD_DB entry, on every single
+// keystroke of a food search, so this pattern got recompiled on the order of
+// (search-box keystrokes) x (FOOD_DB entries) x (aliases per entry) times.
+// Compiling it once at class-init time removes that entirely.
+private val DIACRITICS_RE = Regex("[\\u0300-\\u036f]")
+
 private fun normalize(s: String): String =
     Normalizer.normalize(s.lowercase(), Normalizer.Form.NFD)
-        .replace(Regex("[\\u0300-\\u036f]"), "")
+        .replace(DIACRITICS_RE, "")
+
+// FOOD_DB itself never changes at runtime, but searchFoodDB() previously
+// re-normalized every entry's name + all its aliases from scratch on every
+// call — full Normalizer.normalize() + regex pass per string, per keystroke,
+// for a list that's identical every time. Precomputing it once here turns a
+// repeated-every-search cost into a one-time cost at class-init, the same
+// strategy AdditivesDb.kt's NORMALIZED_ADDITIVES already uses for its
+// synonym table. extraFoods (the user's custom foods) is NOT precomputed
+// here since it's caller-supplied and can change between calls.
+private val NORMALIZED_FOOD_DB: List<Pair<FoodEntry, List<String>>> =
+    FOOD_DB.map { f -> f to (listOf(f.name) + f.aliases).map(::normalize) }
 
 /**
  * Find up to [limit] foods whose name or alias starts with / contains [query].
@@ -140,21 +158,26 @@ fun searchFoodDB(
     data class Ranked(val food: FoodEntry, val score: Double)
 
     val matches = mutableListOf<Ranked>()
-    fun consider(list: List<FoodEntry>, custom: Boolean) {
-        for (f in list) {
-            val haystack = listOf(f.name) + f.aliases
-            val normHay = haystack.map { normalize(it) }
-            val prefixIdx = normHay.indexOfFirst { it.startsWith(q) }
-            val score = when {
-                prefixIdx >= 0 -> if (custom) -0.5 else 0.0
-                normHay.any { it.contains(q) } -> if (custom) 0.5 else 1.0
-                else -> continue
-            }
-            matches += Ranked(f, score)
+
+    fun scoreOf(normHay: List<String>, custom: Boolean): Double? {
+        val prefixIdx = normHay.indexOfFirst { it.startsWith(q) }
+        return when {
+            prefixIdx >= 0 -> if (custom) -0.5 else 0.0
+            normHay.any { it.contains(q) } -> if (custom) 0.5 else 1.0
+            else -> null
         }
     }
-    consider(extraFoods, true)
-    consider(FOOD_DB, false)
+
+    // Custom foods are caller-supplied and can change between calls, so they're
+    // normalized live; FOOD_DB below reuses the precomputed table instead.
+    for (f in extraFoods) {
+        val normHay = (listOf(f.name) + f.aliases).map(::normalize)
+        scoreOf(normHay, custom = true)?.let { matches += Ranked(f, it) }
+    }
+    for ((f, normHay) in NORMALIZED_FOOD_DB) {
+        scoreOf(normHay, custom = false)?.let { matches += Ranked(f, it) }
+    }
+
     matches.sortWith(compareBy({ it.score }, { it.food.name }))
     return matches.take(limit).map { it.food }
 }

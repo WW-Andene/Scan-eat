@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.mealplan
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,9 +38,13 @@ fun MealPlanScreen(
     val plan = viewModel.weekPlan.collectAsStateWithLifecycle()
     val weekDates = viewModel.weekDates.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
+    val recipes = viewModel.recipes.collectAsStateWithLifecycle()
+    val templates = viewModel.templates.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show day names in the wrong language.
     val dayFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d", Locale(language.value)) }
+    // (date, meal) of the slot currently being assigned a recipe/template, or null.
+    var assignTarget by remember { mutableStateOf<Pair<LocalDate, String>?>(null) }
 
     Scaffold(
         topBar = {
@@ -74,6 +79,7 @@ fun MealPlanScreen(
                                 slot  = slot,
                                 onEdit = { text -> viewModel.setNote(date, meal, text) },
                                 onClear = { viewModel.clear(date, meal) },
+                                onAssign = { assignTarget = date to meal },
                             )
                         }
                     }
@@ -83,6 +89,16 @@ fun MealPlanScreen(
         }
     }
 
+    assignTarget?.let { (date, meal) ->
+        AssignSlotDialog(
+            mealLabel = mealLabel(meal),
+            recipes   = recipes.value,
+            templates = templates.value,
+            onPickRecipe   = { viewModel.setRecipe(date, meal, it); assignTarget = null },
+            onPickTemplate = { viewModel.setTemplate(date, meal, it); assignTarget = null },
+            onDismiss = { assignTarget = null },
+        )
+    }
 }
 
 @Composable
@@ -95,7 +111,7 @@ private fun mealLabel(key: String): String = when (key) {
 }
 
 @Composable
-private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> Unit, onClear: () -> Unit) {
+private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> Unit, onClear: () -> Unit, onAssign: () -> Unit) {
     var editing by remember { mutableStateOf(false) }
     var text by remember(slot) { mutableStateOf((slot as? MealPlanSlot.NoteSlot)?.text ?: "") }
 
@@ -137,6 +153,12 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
                     Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                 }
             }
+            // Lets a saved Recipe/Template actually be planned onto this slot — until
+            // now MealPlanSlot.RecipeSlot/TemplateSlot could only ever be produced by
+            // deserializing a backup, never by anything reachable from the UI.
+            IconButton(onClick = onAssign, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.RestaurantMenu, stringResource(R.string.mealplan_assign_cd), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+            }
             if (slot != null) {
                 IconButton(onClick = onClear, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Default.Close, stringResource(R.string.common_clear), tint = OnSurface.copy(0.3f), modifier = Modifier.size(14.dp))
@@ -144,4 +166,62 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
             }
         }
     }
+}
+
+// ============================================================================
+// FEATURE: assign a saved Recipe or Template to a meal-plan slot. Previously
+// the only way to populate a day's plan was a free-text note — the recipe/
+// template picker (and the model support behind it — MealPlanSlot.RecipeSlot/
+// TemplateSlot, MealPlanRepository's "recipe"/"template" serialization kinds,
+// MealPlanViewModel's orphan-pruning safeguard) already existed one layer
+// down but had no UI entry point to actually create one.
+// ============================================================================
+@Composable
+private fun AssignSlotDialog(
+    mealLabel: String,
+    recipes: List<Recipe>,
+    templates: List<MealTemplate>,
+    onPickRecipe: (Recipe) -> Unit,
+    onPickTemplate: (MealTemplate) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor   = SurfaceVariant,
+        title = { Text(stringResource(R.string.mealplan_assign_title, mealLabel), color = OnBackground) },
+        text = {
+            if (recipes.isEmpty() && templates.isEmpty()) {
+                Text(stringResource(R.string.mealplan_assign_empty), color = OnBackground.copy(0.6f), style = MaterialTheme.typography.bodySmall)
+            } else {
+                LazyColumn(modifier = Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (recipes.isNotEmpty()) {
+                        item { Text(stringResource(R.string.recipes_title), style = MaterialTheme.typography.labelMedium, color = AccentCoral) }
+                        items(recipes, key = { "r_${it.id}" }) { recipe ->
+                            Row(
+                                Modifier.fillMaxWidth().clickable { onPickRecipe(recipe) }.padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Icon(Icons.Default.RestaurantMenu, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                                Text(recipe.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
+                            }
+                        }
+                    }
+                    if (templates.isNotEmpty()) {
+                        item { Text(stringResource(R.string.templates_title), style = MaterialTheme.typography.labelMedium, color = AccentCoral) }
+                        items(templates, key = { "t_${it.id}" }) { template ->
+                            Row(
+                                Modifier.fillMaxWidth().clickable { onPickTemplate(template) }.padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                                Text(template.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
 }

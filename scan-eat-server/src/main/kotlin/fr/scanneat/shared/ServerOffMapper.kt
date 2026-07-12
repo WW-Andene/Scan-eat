@@ -210,6 +210,15 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         hasMisleadingMarketing = off.hasMisleadingMarketing || llm.hasMisleadingMarketing,
         namedOils           = off.namedOils   ?: llm.namedOils,
         originTransparent   = off.originTransparent || llm.originTransparent,
+        // wholeGrainPrimary/fermented were missing from this Product(...) call, so
+        // they silently fell back to the Product default (false) on every merged
+        // product regardless of what OFF or the LLM actually detected — dropping
+        // the +3/+2 global scoring bonuses (computeGlobalBonuses in ScoringEngine.kt)
+        // for whole-grain / fermented products scored via the OFF+LLM merge path.
+        // OffMapper.kt on Android (kept "in sync manually" per this file's header)
+        // already carries both fields through; this brings the server back in sync.
+        wholeGrainPrimary   = off.wholeGrainPrimary || llm.wholeGrainPrimary,
+        fermented           = off.fermented || llm.fermented,
         declaredMicronutrients = (off.declaredMicronutrients + llm.declaredMicronutrients).distinct(),
         ecoscoreGrade   = off.ecoscoreGrade,
         ecoscoreValue   = off.ecoscoreValue,

@@ -44,4 +44,9 @@ class WeightViewModel @Inject constructor(
     fun delete(id: String) {
         viewModelScope.launch { repo.delete(id) }
     }
+
+    /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original date/weight/notes. */
+    fun restore(entry: WeightEntry) {
+        viewModelScope.launch { repo.log(entry.date, entry.weightKg, entry.notes) }
+    }
 }

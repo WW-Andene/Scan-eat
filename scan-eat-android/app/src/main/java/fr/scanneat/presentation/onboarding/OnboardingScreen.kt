@@ -182,8 +182,8 @@ fun OnboardingScreen(
 
 @Composable
 private fun ValueCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, body: String) {
-    Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    ScanEatCard(shape = RoundedCornerShape(14.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(28.dp))
             Column {
                 Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)

@@ -58,6 +58,26 @@ class GroceryCheckedRepository @Inject constructor(
     }
 
     /**
+     * Drops any persisted checked key that isn't in [validKeys] — the grocery list
+     * is fully re-aggregated from live recipes on every change (GroceryList.kt's
+     * aggregateGroceryList), so a key that checked off an ingredient which no
+     * longer appears in any recipe (recipe deleted, ingredient removed/renamed)
+     * was never removed from this DataStore set. That silently inflated
+     * checkedCount/checkedKeys forever — e.g. a "5/3 checked" progress readout
+     * once enough stale keys outnumbered the current list — since nothing ever
+     * called back in to clean them up. GroceryViewModel calls this whenever the
+     * aggregated list changes, same self-healing pattern as Hydration/DayNotes'
+     * date-based prune.
+     */
+    suspend fun pruneToKeys(validKeys: Set<String>) {
+        store.edit { prefs ->
+            val current = prefs[KEY_CHECKED] ?: emptySet()
+            val pruned = current.intersect(validKeys)
+            if (pruned.size != current.size) prefs[KEY_CHECKED] = pruned
+        }
+    }
+
+    /**
      * Merges the backed-up checked set into the current one — used by backup
      * restore. A backup predating this field (or one from an empty grocery
      * list) has nothing to restore, so this is a no-op rather than wiping

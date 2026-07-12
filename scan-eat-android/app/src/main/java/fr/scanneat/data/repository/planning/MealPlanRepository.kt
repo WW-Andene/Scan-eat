@@ -106,6 +106,42 @@ class MealPlanRepository @Inject constructor(
         store.edit { prefs -> prefs.remove(KEY_PLAN) }
     }
 
+    /**
+     * Data-consistency safeguard: RecipeSlot/TemplateSlot store a denormalized
+     * copy of the recipe/template's id + name at planning time, with no foreign
+     * key and no cascade — deleting the underlying recipe or meal template (from
+     * RecipesScreen/TemplatesScreen) previously left every day it was planned on
+     * pointing at an id that resolves to nothing, forever, with zero indication
+     * to the user beyond a name that silently stopped being backed by real data.
+     * Called by MealPlanViewModel whenever the live recipe/template lists change,
+     * clearing (not guessing a replacement for) any slot whose id no longer
+     * exists. Returns the number of slots cleared, so callers can surface it.
+     */
+    suspend fun pruneOrphanedSlots(validRecipeIds: Set<String>, validTemplateIds: Set<String>): Int {
+        var removed = 0
+        store.edit { prefs ->
+            val plan = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            for ((date, day) in plan.toMap()) {
+                var updated = day
+                for (meal in listOf("breakfast", "lunch", "dinner", "snack")) {
+                    val slot = updated[meal]
+                    val orphaned = when (slot) {
+                        is MealPlanSlot.RecipeSlot   -> slot.id !in validRecipeIds
+                        is MealPlanSlot.TemplateSlot -> slot.id !in validTemplateIds
+                        else -> false
+                    }
+                    if (orphaned) {
+                        updated = updated.with(meal, null)
+                        removed++
+                    }
+                }
+                plan[date] = updated
+            }
+            if (removed > 0) prefs[KEY_PLAN] = serialize(prune(plan))
+        }
+        return removed
+    }
+
     // ---- Backup export/import ----
 
     /** Raw serialized plan blob, for BackupRepository — kept opaque since the

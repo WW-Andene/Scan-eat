@@ -44,10 +44,32 @@ class GroceryViewModel @Inject constructor(
         items.map { CheckableGroceryItem(it, checked = it.key in checked) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /** "checked / total" counts for a shopping-progress readout (e.g. "3/12 checked"). */
-    val checkedProgress: StateFlow<Pair<Int, Int>> = combine(rawItems, checkedRepo.checkedCount) { items, checkedCount ->
-        checkedCount to items.size
+    /**
+     * "checked / total" counts for a shopping-progress readout (e.g. "3/12 checked").
+     * Intersected against the *current* item keys rather than using checkedRepo's
+     * raw checkedCount directly - that count previously included every key ever
+     * checked, even ones for ingredients no longer in any recipe (recipe edited/
+     * deleted since), so the readout could show more checked items than the list
+     * actually has (e.g. "5/3 checked") instead of capping at the list size.
+     */
+    val checkedProgress: StateFlow<Pair<Int, Int>> = combine(rawItems, checkedRepo.checkedKeys) { items, checked ->
+        val validKeys = items.map { it.key }.toSet()
+        checked.count { it in validKeys } to items.size
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0 to 0)
+
+    // Self-healing: whenever the aggregated grocery list changes (recipe added/
+    // edited/removed), drop any persisted checked key that no longer corresponds
+    // to a real item, so stale keys don't accumulate in DataStore forever and the
+    // checked/total readout above never needs a defensive intersect to look right.
+    init {
+        viewModelScope.launch {
+            // drop(1): rawItems is a StateFlow seeded with emptyList() before the
+            // underlying Room query has actually run - acting on that placeholder
+            // would prune every persisted checked key away the instant this
+            // ViewModel is created, before the real recipe list even loads.
+            rawItems.drop(1).collect { items -> checkedRepo.pruneToKeys(items.map { it.key }.toSet()) }
+        }
+    }
 
     fun toggleChecked(item: GroceryItem, checked: Boolean) {
         // Keyed by GroceryItem.key (the aggregation's stable normalized identity),

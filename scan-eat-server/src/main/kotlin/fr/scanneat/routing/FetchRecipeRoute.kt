@@ -13,59 +13,24 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.*
 import org.slf4j.LoggerFactory
-import java.util.concurrent.ConcurrentHashMap
 
 private val log = LoggerFactory.getLogger("FetchRecipeRoute")
 
 // ============================================================================
 // PER-IP RATE LIMIT — every other route requires a Groq key (the caller's own
 // or the operator's), which at least ties usage to a credential. This route
-// needs none ("No Groq key needed" below) and, until now, had no throttling
-// of any kind either - it is a free, fully anonymous HTTP proxy (SSRF-guarded,
-// but still egress-capable) that anyone who finds the server URL could hammer
-// to scrape arbitrary sites through it or just to run up the operator's
-// bandwidth/CPU. A simple fixed-window counter per client IP closes that
-// without needing Ktor 3.x's RateLimit plugin (unavailable on 2.3.12).
+// needs none ("No Groq key needed" below) - it is a free, fully anonymous HTTP
+// proxy (SSRF-guarded, but still egress-capable) that anyone who finds the
+// server URL could hammer to scrape arbitrary sites through it or just to run
+// up the operator's bandwidth/CPU. Uses the shared RateLimiter (RateLimiter.kt)
+// with a dedicated instance/budget, since this route's cost profile (outbound
+// HTML fetch) differs from the LLM-calling routes' shared budget.
 // ============================================================================
-private const val RATE_LIMIT_MAX_REQUESTS = 20
-private const val RATE_LIMIT_WINDOW_MS = 60_000L
+private val fetchRecipeRateLimiter = RateLimiter(maxRequests = 20, windowMs = 60_000L)
 
-private class RateWindow(@Volatile var count: Int, @Volatile var windowStartMs: Long)
-
-private val rateLimitState = ConcurrentHashMap<String, RateWindow>()
-
-// Every distinct clientKey that ever calls this anonymous route earns a
-// permanent entry in rateLimitState above unless something removes stale
-// ones. Since this map is attacker-reachable key space (anyone who finds
-// the URL can vary their apparent client key), it would otherwise grow
-// without bound as traffic scales. Sweeping opportunistically - every
-// RATE_LIMIT_SWEEP_INTERVAL calls - keeps it bounded to roughly the number
-// of distinct clients active within one window, without needing a
-// dedicated background thread.
-private const val RATE_LIMIT_SWEEP_INTERVAL = 200
-private val rateLimitCallCount = java.util.concurrent.atomic.AtomicLong(0)
-
-private fun sweepExpiredRateLimitEntries(nowMs: Long) {
-    rateLimitState.entries.removeIf { (_, window) -> nowMs - window.windowStartMs >= RATE_LIMIT_WINDOW_MS }
-}
-
-/** True when [clientKey] has exceeded [RATE_LIMIT_MAX_REQUESTS] in the current window. */
-internal fun isFetchRecipeRateLimited(clientKey: String, nowMs: Long = System.currentTimeMillis()): Boolean {
-    if (rateLimitCallCount.incrementAndGet() % RATE_LIMIT_SWEEP_INTERVAL == 0L) {
-        sweepExpiredRateLimitEntries(nowMs)
-    }
-    var limited = false
-    rateLimitState.compute(clientKey) { _, existing ->
-        if (existing == null || nowMs - existing.windowStartMs >= RATE_LIMIT_WINDOW_MS) {
-            RateWindow(1, nowMs)
-        } else {
-            existing.count += 1
-            limited = existing.count > RATE_LIMIT_MAX_REQUESTS
-            existing
-        }
-    }
-    return limited
-}
+/** True when [clientKey] has exceeded the fetch-recipe budget in the current window. */
+internal fun isFetchRecipeRateLimited(clientKey: String, nowMs: Long = System.currentTimeMillis()): Boolean =
+    fetchRecipeRateLimiter.isLimited(clientKey, nowMs)
 
 // ============================================================================
 // GET /api/fetch-recipe?url=<recipe-page-url>

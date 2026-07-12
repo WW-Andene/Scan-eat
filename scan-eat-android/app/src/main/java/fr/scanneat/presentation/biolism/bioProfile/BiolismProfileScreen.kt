@@ -87,28 +87,26 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         // ── Overview (read-only recap) ──────────────────────────────────────────
         val hasData = p.ageYears > 0 || p.heightCm > 0 || p.weightKg > 0 || p.sex != BiolismSex.NOT_SPECIFIED
         if (hasData) {
-            Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.bioprofile_overview_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-                        Surface(shape = RoundedCornerShape(4.dp), color = Teal.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f))) {
-                            Text(stringResource(R.string.bioprofile_overview_saved_badge), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                                style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
-                        }
+            ScanEatCard(shape = RoundedCornerShape(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.bioprofile_overview_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+                    Surface(shape = RoundedCornerShape(4.dp), color = Teal.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f))) {
+                        Text(stringResource(R.string.bioprofile_overview_saved_badge), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                     }
-                    val activityLabel = ACTIVITY_LEVELS.firstOrNull { it.id == p.activityId }?.label ?: "—"
-                    val ethnicityLabel = ETHNICITY_OPTIONS.firstOrNull { it.id == p.ethnicityId }?.label ?: "—"
-                    OverviewRow(stringResource(R.string.profile_field_age), if (p.ageYears > 0) "${p.ageYears}" else null)
-                    OverviewRow(stringResource(R.string.bioprofile_field_weight), if (p.weightKg > 0) dispWeight(p.weightKg) else null)
-                    OverviewRow(stringResource(R.string.profile_field_height), if (p.heightCm > 0) dispHeight(p.heightCm) else null)
-                    OverviewRow(stringResource(R.string.bioprofile_section_activity), activityLabel)
-                    OverviewRow(stringResource(R.string.bioprofile_field_waist), if (p.waistCm > 0) dispCirc(p.waistCm) else null)
-                    OverviewRow(stringResource(R.string.bioprofile_field_hip), if (p.hipCm > 0) dispCirc(p.hipCm) else null)
-                    OverviewRow(stringResource(R.string.bioprofile_field_neck), if (p.neckCm > 0) dispCirc(p.neckCm) else null)
-                    OverviewRow(stringResource(R.string.bioprofile_section_ethnicity), ethnicityLabel)
-                    if (p.sex == BiolismSex.FEMALE) {
-                        OverviewRow(stringResource(R.string.bioprofile_field_cycle_day), "${p.cycleDay} / 28")
-                    }
+                }
+                val activityLabel = ACTIVITY_LEVELS.firstOrNull { it.id == p.activityId }?.label ?: "—"
+                val ethnicityLabel = ETHNICITY_OPTIONS.firstOrNull { it.id == p.ethnicityId }?.label ?: "—"
+                OverviewRow(stringResource(R.string.profile_field_age), if (p.ageYears > 0) "${p.ageYears}" else null)
+                OverviewRow(stringResource(R.string.bioprofile_field_weight), if (p.weightKg > 0) dispWeight(p.weightKg) else null)
+                OverviewRow(stringResource(R.string.profile_field_height), if (p.heightCm > 0) dispHeight(p.heightCm) else null)
+                OverviewRow(stringResource(R.string.bioprofile_section_activity), activityLabel)
+                OverviewRow(stringResource(R.string.bioprofile_field_waist), if (p.waistCm > 0) dispCirc(p.waistCm) else null)
+                OverviewRow(stringResource(R.string.bioprofile_field_hip), if (p.hipCm > 0) dispCirc(p.hipCm) else null)
+                OverviewRow(stringResource(R.string.bioprofile_field_neck), if (p.neckCm > 0) dispCirc(p.neckCm) else null)
+                OverviewRow(stringResource(R.string.bioprofile_section_ethnicity), ethnicityLabel)
+                if (p.sex == BiolismSex.FEMALE) {
+                    OverviewRow(stringResource(R.string.bioprofile_field_cycle_day), "${p.cycleDay} / 28")
                 }
             }
         }

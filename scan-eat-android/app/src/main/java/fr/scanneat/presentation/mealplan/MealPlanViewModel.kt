@@ -7,6 +7,10 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.planning.DayPlan
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.planning.MealPlanSlot
+import fr.scanneat.data.repository.planning.MealTemplate
+import fr.scanneat.data.repository.planning.MealTemplateRepository
+import fr.scanneat.data.repository.planning.Recipe
+import fr.scanneat.data.repository.planning.RecipeRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -17,6 +21,8 @@ import javax.inject.Inject
 class MealPlanViewModel @Inject constructor(
     private val repo: MealPlanRepository,
     private val prefs: UserPreferences,
+    private val recipeRepo: RecipeRepository,
+    private val templateRepo: MealTemplateRepository,
 ) : ViewModel() {
     // A fixed `val` captured LocalDate.now() once at construction - a ViewModel
     // that outlives midnight would keep the same 7 dates forever, so "today"
@@ -38,6 +44,50 @@ class MealPlanViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    // Saved recipes/templates, for the "assign to this slot" picker below — the
+    // repository has always been able to store a RecipeSlot/TemplateSlot
+    // (see MealPlanSlot, MealPlanRepository.serialize/deserialize), but until
+    // now nothing in the UI ever constructed one: MealPlanScreen only offered
+    // free-text notes, so planning "chicken curry (recipe)" onto Tuesday
+    // dinner was impossible even though the data model and the day-view
+    // rendering (icons for RecipeSlot/TemplateSlot) both already assumed it
+    // existed.
+    val recipes: StateFlow<List<Recipe>> = recipeRepo.observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val templates: StateFlow<List<MealTemplate>> = templateRepo.observeAll()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * Data-consistency safeguard: whenever the live recipe/template lists change
+     * (an item is added, edited, or — the case this actually protects against —
+     * deleted), drop any planned RecipeSlot/TemplateSlot whose id no longer
+     * resolves to a real recipe/template. Without this, deleting a recipe left
+     * every day it was ever planned on silently pointing at nothing forever —
+     * MealPlanRepository stores a denormalized id+name snapshot with no foreign
+     * key, so nothing else ever invalidated it. Runs automatically; exposed as
+     * a count so the UI can optionally surface "N stale plan entries removed"
+     * instead of the cleanup happening invisibly.
+     */
+    private val _lastPrunedCount = MutableStateFlow(0)
+    val lastPrunedOrphanCount: StateFlow<Int> = _lastPrunedCount.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            // Room's Flow queries and emits the real current rows on first collection
+            // (unlike a stateIn-wrapped flow, there's no synthetic emptyList() placeholder
+            // emitted first), so reacting to every emission - including the first - is
+            // safe and is what actually catches entries orphaned before this ViewModel
+            // was ever created, not just ones orphaned after.
+            combine(
+                recipeRepo.observeAll(),
+                templateRepo.observeAll(),
+            ) { recipes, templates -> recipes.map { it.id }.toSet() to templates.map { it.id }.toSet() }
+                .collect { (recipeIds, templateIds) ->
+                    _lastPrunedCount.value = repo.pruneOrphanedSlots(recipeIds, templateIds)
+                }
+        }
+    }
+
     fun setNote(date: LocalDate, meal: String, text: String) {
         // Entries are newline-delimited in storage (see MealPlanRepository.serialize) —
         // strip any embedded newline (e.g. from pasted clipboard text) so a note can't
@@ -48,5 +98,13 @@ class MealPlanViewModel @Inject constructor(
 
     fun clear(date: LocalDate, meal: String) {
         viewModelScope.launch { repo.setSlot(date, meal, null) }
+    }
+
+    fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
+        viewModelScope.launch { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name)) }
+    }
+
+    fun setTemplate(date: LocalDate, meal: String, template: MealTemplate) {
+        viewModelScope.launch { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name)) }
     }
 }

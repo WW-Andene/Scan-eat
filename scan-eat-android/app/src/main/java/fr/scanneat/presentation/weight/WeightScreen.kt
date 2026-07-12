@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -56,6 +57,10 @@ fun WeightScreen(
     var showAdd by remember { mutableStateOf(false) }
     var useImperial by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.weight_deleted_message)
+    val undoLabel = stringResource(R.string.weight_undo)
 
     fun dispWeight(kg: Double): String =
         if (useImperial) "%.1f lb".format(kg * 2.20462) else "%.1f kg".format(kg)
@@ -184,6 +189,7 @@ fun WeightScreen(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
                 containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
         }
     } else {
         Scaffold(
@@ -195,6 +201,7 @@ fun WeightScreen(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = Background,
         ) { padding -> content(padding) }
     }
@@ -240,8 +247,22 @@ fun WeightScreen(
     }
 
     deleteTarget?.let { id ->
-        val name = entries.value.find { it.id == id }?.date?.format(fmt)
-        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        val target = entries.value.find { it.id == id }
+        val name = target?.date?.format(fmt)
+        DeleteConfirmDialog(
+            itemName = name,
+            onConfirm = {
+                viewModel.delete(id)
+                deleteTarget = null
+                if (target != null) {
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                        if (result == SnackbarResult.ActionPerformed) viewModel.restore(target)
+                    }
+                }
+            },
+            onDismiss = { deleteTarget = null },
+        )
     }
 
 }
