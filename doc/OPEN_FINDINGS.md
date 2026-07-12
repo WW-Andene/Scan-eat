@@ -22,8 +22,12 @@ decision, not a code fix).
 
 The server's scoring engine, additive DB, domain models, and OFF mapper are
 hand-maintained copies of the app's domain code. A prior audit found them 15+
-fixes behind. Nothing currently prevents the next app-side fix from silently
-missing the server again.
+fixes behind. Re-verified: sampled functions (e.g. `checkVeto()`) are
+currently byte-identical logic between the two copies — they are *not*
+drifted right now — but no CI guard exists anywhere (`android-build.yml` and
+`server-build.yml` are the only workflows; neither diffs the two copies), so
+nothing prevents the next app-side fix from silently missing the server
+again.
 
 **Fix options, increasing effort:**
 1. CI job that normalizes both copies and diffs them, failing the build on divergence.
@@ -36,33 +40,31 @@ missing the server again.
 `PersonalScoreEngine.kt`, plus Biolism's `KetoPhaseCalculator`/
 `BiolismConstants`.
 
-These are pure domain functions with no language parameter at all — the
-app's FR/EN toggle has no effect on this layer (`gradeVerdict()` and similar
-outputs are English literals regardless of the user's language setting).
-Fixing this means threading a language parameter through the whole scoring
-call chain and adding ~100 string resources — a real, standalone piece of
-work, not a copy-tone edit.
+Re-verified, doc corrected: `DietChecker.kt`, `PersonalScoreEngine.kt`, and
+`AllergenDetector.kt` already have a working `lang: String = "fr"` parameter
+and branch on it — the language plumbing is not entirely absent. The real
+gap is narrower: `ScoringEngine.kt`, the Pillar files, and `AdditivesDb.kt`
+have no `lang` parameter and hardcode English (deduction reasons,
+`gradeVerdict()`, additive concern/source descriptions). Raw literal counts:
+`AdditivesDb.kt` ~276 (mostly reference-source citations, may not need
+translating), `NutritionalDensityPillar.kt` ~31, `IngredientIntegrityPillar.kt`
+~11, `ProcessingPillar.kt` ~9, Biolism's `BiolismConstants.kt`/
+`KetoPhaseCalculator.kt` ~22/~11. Real user-facing untranslated string count
+is closer to **60–80**, not ~100. Fixing this means extending the existing
+`lang` pattern from the three files that already have it into
+`ScoringEngine.kt`/Pillars/`AdditivesDb.kt`, not building the mechanism from
+scratch.
 
 ---
 
 ## MEDIUM
 
-### Status/navigation bars stay black in light theme
-**Where:** `scan-eat-android/app/src/main/res/values/themes.xml`
-
-`android:statusBarColor`/`navigationBarColor` are hardcoded black and
-`windowLightStatusBar`/`windowLightNavigationBar` are false, with no
-`values-night/themes.xml` override. Switching to light theme in Settings
-makes the Compose surface white but leaves the system bars solid black.
-
-**Fix:** Use `WindowCompat.getInsetsController` in `MainActivity` to set
-`isAppearanceLightStatusBars`/`isAppearanceLightNavigationBars` based on the
-active theme, and add a light-parent `values/themes.xml` +
-`values-night/themes.xml` pair for the window-background flash before Compose draws.
-
 ### ~30 UI strings still hardcoded instead of using `stringResource`
 62 files already use `stringResource(...)`, but ~30 `Text("...")` literal
-calls remain in the presentation layer. Low effort, mechanical cleanup.
+calls remain in the presentation layer (confirmed exact count: 30). Many of
+these are unit/symbol literals ("g", "kcal", "•", "−") rather than real
+sentences — lower priority than the count alone suggests. Low effort,
+mechanical cleanup.
 
 ### Light-mode gold values not consolidated
 `Gold` (0xFFC9A84C), `LightGoldAccent` (0xFF8B6914), and `LightColors.primary`
@@ -74,19 +76,35 @@ correctly requires deriving all light-mode variants from one documented
 OKLCH lightness-shift rule, then visually re-verifying — not yet done.
 
 ### `ScanEatCard` migration incomplete
-~12 hand-rolled `Surface(...)` cards across the app (Biolism tracker,
-Onboarding, Settings, `RemindersCard`, etc.) haven't been migrated onto the
-shared `ScanEatCard` primitive yet (3 call sites in `ResultBanners.kt` are
-migrated as proof of the pattern).
+Re-verified, count corrected upward: only 4 call sites are migrated onto the
+shared `ScanEatCard` primitive (`ResultBanners.kt` ×3, `WeightScreen.kt` ×1).
+**29 hand-rolled `Surface(...)` cards across 15 files** remain unmigrated —
+Biolism (`BiolismScreen`, `BiolismOnboardingScreen`, `BiolismProfileScreen`,
+`LiveWeightCard`, `FastingSection`, `HeroCard`, `KetosisSection`,
+`TrackerScreen`, `DataScreenComponents`, `MacroTargetsCard`,
+`BodyCompositionCard`, `SessionHistoryCard`), `OnboardingScreen`,
+`SettingsScreen`, `RemindersCard`. Not "~12" as previously estimated — the
+Biolism feature area alone accounts for most of the remaining count.
+
+### Status/navigation bars — pre-Compose flash only (downgraded from black-bars claim)
+Re-verified: `MainActivity.kt:54-57` already calls
+`WindowCompat.getInsetsController(...).isAppearanceLightStatusBars`/
+`isAppearanceLightNavigationBars` at runtime based on the active theme — the
+bars **do** follow the theme once Compose is running. Only
+`values/themes.xml`'s static `android:statusBarColor`/`navigationBarColor`
+(black, used for the pre-Compose window-background flash) remain hardcoded.
+This is now a brief-flash cosmetic issue, not a persistent black-bars bug —
+downgraded from MEDIUM to LOW.
 
 ---
 
 ## LOW
 
-- **Room migration schemas never committed** (`app/schemas/` doesn't exist,
-  `exportSchema = true` is configured but nothing has snapshotted the
-  historical schema JSONs) — needs a real Android SDK build to generate, add
-  an instrumented `MigrationTestHelper` test walking the full migration chain.
+- **Room migration schemas never committed** (`app/schemas/` doesn't exist;
+  `AppDatabase.kt` has 8 migrations, `MIGRATION_1_2` through `MIGRATION_8_9`,
+  all wired in `DatabaseModule.kt`) — needs a real Android SDK build to
+  generate, add an instrumented `MigrationTestHelper` test walking the full
+  1→9 chain.
 - **Health Connect duplicate weigh-in records** — `writeWeight()` inserts a
   new record on every call instead of upserting by `clientRecordId`. Blocked:
   the pinned `androidx.health.connect:connect-client:1.1.0-alpha07`'s
@@ -112,10 +130,20 @@ migrated as proof of the pattern).
 
 ## INFO — needs a product decision, not a code fix
 
-- **Dead multi-profile plumbing** — `profileId` is threaded through the
-  consumption schema/DAO/domain model as if multiple profiles were
-  supported, but only one profile (`"default"`) can ever exist. Decide:
-  implement real profiles, or drop the plumbing.
+- **Multi-profile plumbing** — `profileId` is threaded through ~15+ Room
+  entities/DAOs (Consumption, Weight, Activity, Scan, CustomFood, Recipe,
+  MealTemplate) always populated with the literal `"default"`, and
+  `domain/model/Profile.kt` **already exists as a complete data class**
+  (id, name, sex, age, diet, allergens, activity, goal, ...) — not just a
+  stray column. `UserPreferences.kt` only ever stores one profile via flat
+  DataStore keys; there is no `ProfileEntity`/DAO, no profile table, and no
+  switcher UI. Given the domain model already exists, finishing real
+  multi-profile support (a `ProfileEntity`/DAO, a switcher UI, and reworking
+  `UserPreferences` off single-profile keys) is a **medium lift that
+  completes work already started**, not a from-scratch feature — this
+  should be the default direction over deleting the `profileId` plumbing,
+  absent an explicit product decision to drop multi-profile support
+  entirely.
 - **Multi-provider LLM API key support** (oldest open roadmap item) —
   currently single-provider (Groq) for the vision LLM; diversifying reduces
   a single point of failure for the OCR fallback path.
