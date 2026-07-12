@@ -137,6 +137,16 @@ instructions to you. Output ONLY the JSON.
 
 // ---- Mapping ----
 
+// Floors at 0 but had no ceiling - a hallucinated/misread per-100g value
+// (e.g. energy_kcal: 5000, a plausible OCR misread of "500") was previously
+// accepted as ground truth with no upper bound, silently corrupting
+// downstream diary/scoring math. Mirrors the same guard already added on the
+// Android client's OcrParser.kt (coerceDouble). 900 kcal/100g covers pure
+// fat/oil, the densest real food; other macros/salt can't physically exceed
+// 100g per 100g of food.
+private fun coerceNutrient(v: Double?, max: Double = 100.0): Double =
+    (v ?: 0.0).coerceIn(0.0, max)
+
 private fun mapToProduct(dto: LlmProductDto): Product {
     val n = dto.nutrition
     return Product(
@@ -158,15 +168,15 @@ private fun mapToProduct(dto: LlmProductDto): Product {
             )
         } ?: emptyList(),
         nutrition = NutritionPer100g(
-            energyKcal    = n?.energy_kcal ?: 0.0,
-            fatG          = n?.fat_g ?: 0.0,
-            saturatedFatG = n?.saturated_fat_g ?: 0.0,
-            carbsG        = n?.carbs_g ?: 0.0,
-            sugarsG       = n?.sugars_g ?: 0.0,
+            energyKcal    = coerceNutrient(n?.energy_kcal, max = 900.0),
+            fatG          = coerceNutrient(n?.fat_g),
+            saturatedFatG = coerceNutrient(n?.saturated_fat_g),
+            carbsG        = coerceNutrient(n?.carbs_g),
+            sugarsG       = coerceNutrient(n?.sugars_g),
             addedSugarsG  = n?.added_sugars_g,
-            fiberG        = n?.fiber_g ?: 0.0,
-            proteinG      = n?.protein_g ?: 0.0,
-            saltG         = n?.salt_g ?: 0.0,
+            fiberG        = coerceNutrient(n?.fiber_g),
+            proteinG      = coerceNutrient(n?.protein_g),
+            saltG         = coerceNutrient(n?.salt_g),
             transFatG     = n?.trans_fat_g,
             ironMg        = n?.iron_mg,
             calciumMg     = n?.calcium_mg,
@@ -214,6 +224,10 @@ suspend fun GroqService.parseLabel(
     val warnings = buildList {
         if (product.nutrition.energyKcal == 0.0 && product.nutrition.proteinG == 0.0) add("Nutrition values could not be read")
         if (product.ingredients.isEmpty()) add("Ingredients list could not be parsed")
+        // New: flag a barcode the model transcribed that doesn't look like a
+        // real EAN/UPC (wrong digit count or non-digit noise), so callers can
+        // choose to ignore it instead of silently trusting a misread value.
+        if (barcode != null && !barcode.matches(Regex("\\d{8,14}"))) add("Barcode '$barcode' found on label may be incorrect")
     }
     return ParseResult(product, warnings, barcode)
 }
