@@ -694,6 +694,27 @@
     <string name="activity_add_dialog_title">Ajouter une activité</string>
     <string name="activity_type_label">Type</string>
     <string name="activity_duration_label">Durée (minutes)</string>
+    <string name="activity_subtype_label">Exercice</string>
+    <string name="activity_subtype_bench_press">Développé couché</string>
+    <string name="activity_subtype_squat">Squat</string>
+    <string name="activity_subtype_deadlift">Soulevé de terre</string>
+    <string name="activity_subtype_biceps_curl">Curl biceps</string>
+    <string name="activity_subtype_freestyle">Nage libre</string>
+    <string name="activity_subtype_breaststroke">Brasse</string>
+    <string name="activity_subtype_butterfly">Papillon</string>
+    <string name="activity_subtype_trail">Trail</string>
+    <string name="activity_subtype_sprint">Sprint</string>
+    <string name="activity_subtype_interval">Fractionné</string>
+    <string name="activity_subtype_road">Route</string>
+    <string name="activity_subtype_mountain">VTT</string>
+    <string name="activity_subtype_indoor">Intérieur</string>
+    <string name="activity_sets_label">Séries</string>
+    <string name="activity_reps_label">Répétitions</string>
+    <string name="activity_weight_used_label">Poids utilisé (kg)</string>
+    <string name="activity_distance_label">Distance (km)</string>
+    <string name="activity_entry_sets_reps">%1$d séries × %2$d reps</string>
+    <string name="activity_entry_weight">%1$.1f kg</string>
+    <string name="activity_entry_distance">%1$.1f km</string>
     <string name="activity_duration_invalid">Entrez une durée valide</string>
 
     <!-- ── Fasting screen ─────────────────────────────────────────────────── -->

@@ -690,6 +690,27 @@
     <string name="activity_add_dialog_title">Log an activity</string>
     <string name="activity_type_label">Type</string>
     <string name="activity_duration_label">Duration (minutes)</string>
+    <string name="activity_subtype_label">Exercise</string>
+    <string name="activity_subtype_bench_press">Bench press</string>
+    <string name="activity_subtype_squat">Squat</string>
+    <string name="activity_subtype_deadlift">Deadlift</string>
+    <string name="activity_subtype_biceps_curl">Biceps curl</string>
+    <string name="activity_subtype_freestyle">Freestyle</string>
+    <string name="activity_subtype_breaststroke">Breaststroke</string>
+    <string name="activity_subtype_butterfly">Butterfly</string>
+    <string name="activity_subtype_trail">Trail</string>
+    <string name="activity_subtype_sprint">Sprint</string>
+    <string name="activity_subtype_interval">Interval</string>
+    <string name="activity_subtype_road">Road</string>
+    <string name="activity_subtype_mountain">Mountain</string>
+    <string name="activity_subtype_indoor">Indoor</string>
+    <string name="activity_sets_label">Sets</string>
+    <string name="activity_reps_label">Reps</string>
+    <string name="activity_weight_used_label">Weight used (kg)</string>
+    <string name="activity_distance_label">Distance (km)</string>
+    <string name="activity_entry_sets_reps">%1$d sets × %2$d reps</string>
+    <string name="activity_entry_weight">%1$.1f kg</string>
+    <string name="activity_entry_distance">%1$.1f km</string>
     <string name="activity_duration_invalid">Enter a valid duration</string>
 
     <!-- ── Fasting screen ─────────────────────────────────────────────────── -->

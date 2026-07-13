@@ -31,7 +31,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MealTemplateEntity::class,
         RecipeEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -142,5 +142,18 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_foods_profileId` ON `custom_foods` (`profileId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_recipes_profileId` ON `recipes` (`profileId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_meal_templates_profileId` ON `meal_templates` (`profileId`)")
+    }
+}
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v9 → v10: activity_log gains an optional sub-type (e.g. "bench_press"
+        // under STRENGTH, "trail" under RUNNING) plus free-form training metrics
+        // (sets/reps/distance/weight used) - Activité previously had only a flat
+        // activity-type + duration, with no way to record what was actually done.
+        db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `subType` TEXT")
+        db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `sets` INTEGER")
+        db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `reps` INTEGER")
+        db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `distanceKm` REAL")
+        db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `weightUsedKg` REAL")
     }
 }

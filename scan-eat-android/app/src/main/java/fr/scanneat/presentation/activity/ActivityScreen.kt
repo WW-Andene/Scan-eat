@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.ACTIVITY_SUB_TYPES
 import fr.scanneat.data.repository.health.ActivityEntry
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.ActivityType
@@ -47,6 +48,23 @@ private fun typeLabels(): Map<ActivityType, String> = mapOf(
     ActivityType.OTHER to stringResource(R.string.activity_type_other),
 )
 
+@Composable
+private fun subTypeLabels(): Map<String, String> = mapOf(
+    "bench_press" to stringResource(R.string.activity_subtype_bench_press),
+    "squat" to stringResource(R.string.activity_subtype_squat),
+    "deadlift" to stringResource(R.string.activity_subtype_deadlift),
+    "biceps_curl" to stringResource(R.string.activity_subtype_biceps_curl),
+    "freestyle" to stringResource(R.string.activity_subtype_freestyle),
+    "breaststroke" to stringResource(R.string.activity_subtype_breaststroke),
+    "butterfly" to stringResource(R.string.activity_subtype_butterfly),
+    "trail" to stringResource(R.string.activity_subtype_trail),
+    "sprint" to stringResource(R.string.activity_subtype_sprint),
+    "interval" to stringResource(R.string.activity_subtype_interval),
+    "road" to stringResource(R.string.activity_subtype_road),
+    "mountain" to stringResource(R.string.activity_subtype_mountain),
+    "indoor" to stringResource(R.string.activity_subtype_indoor),
+)
+
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar — used when
  * hosted as a Journal sub-tab, where the tab row itself is the header and a
@@ -66,9 +84,15 @@ fun ActivityScreen(
     val entries = viewModel.entries.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by remember { mutableStateOf("30") }
+    var selectedSubType by remember { mutableStateOf<String?>(null) }
+    var setsText by remember { mutableStateOf("") }
+    var repsText by remember { mutableStateOf("") }
+    var distanceText by remember { mutableStateOf("") }
+    var weightUsedText by remember { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     val typeLabels = typeLabels()
+    val subTypeLabels = subTypeLabels()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.activity_deleted_message)
@@ -106,8 +130,20 @@ fun ActivityScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text(typeLabels[e.type] ?: e.type.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                        val subLabel = e.subType?.let { subTypeLabels[it] ?: it }
+                        Text(
+                            if (subLabel != null) "${typeLabels[e.type] ?: e.type.name} · $subLabel" else typeLabels[e.type] ?: e.type.name,
+                            style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium,
+                        )
                         Text(stringResource(R.string.activity_entry_summary, e.minutes, e.kcalBurned), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                        val metricsParts = buildList {
+                            if (e.sets != null && e.reps != null) add(stringResource(R.string.activity_entry_sets_reps, e.sets, e.reps))
+                            e.weightUsedKg?.let { add(stringResource(R.string.activity_entry_weight, it)) }
+                            e.distanceKm?.let { add(stringResource(R.string.activity_entry_distance, it)) }
+                        }
+                        if (metricsParts.isNotEmpty()) {
+                            Text(metricsParts.joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                        }
                     }
                     IconButton(onClick = { deleteTarget = e.id }) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
@@ -165,7 +201,8 @@ fun ActivityScreen(
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         typeLabels.forEach { (type, label) ->
                             FilterChip(
-                                selected = selectedType == type, onClick = { selectedType = type },
+                                selected = selectedType == type,
+                                onClick = { selectedType = type; selectedSubType = null },
                                 label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
@@ -173,6 +210,53 @@ fun ActivityScreen(
                                 ),
                             )
                         }
+                    }
+                    val availableSubTypes = ACTIVITY_SUB_TYPES[selectedType].orEmpty()
+                    if (availableSubTypes.isNotEmpty()) {
+                        Text(stringResource(R.string.activity_subtype_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            availableSubTypes.forEach { key ->
+                                FilterChip(
+                                    selected = selectedSubType == key,
+                                    onClick = { selectedSubType = if (selectedSubType == key) null else key },
+                                    label = { Text(subTypeLabels[key] ?: key, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                                        labelColor = OnBackground.copy(0.7f),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                    if (selectedType == ActivityType.STRENGTH) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            OutlinedTextField(
+                                value = setsText, onValueChange = { setsText = it }, modifier = Modifier.weight(1f),
+                                label = { Text(stringResource(R.string.activity_sets_label)) }, singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                colors = scanEatTextFieldColors(),
+                            )
+                            OutlinedTextField(
+                                value = repsText, onValueChange = { repsText = it }, modifier = Modifier.weight(1f),
+                                label = { Text(stringResource(R.string.activity_reps_label)) }, singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                colors = scanEatTextFieldColors(),
+                            )
+                        }
+                        OutlinedTextField(
+                            value = weightUsedText, onValueChange = { weightUsedText = it }, modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.activity_weight_used_label)) }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            colors = scanEatTextFieldColors(),
+                        )
+                    }
+                    if (selectedType == ActivityType.RUNNING || selectedType == ActivityType.CYCLING || selectedType == ActivityType.SWIMMING) {
+                        OutlinedTextField(
+                            value = distanceText, onValueChange = { distanceText = it }, modifier = Modifier.fillMaxWidth(),
+                            label = { Text(stringResource(R.string.activity_distance_label)) }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            colors = scanEatTextFieldColors(),
+                        )
                     }
                     val minutes = minutesText.toIntOrNull()
                     val minutesValid = minutes != null && minutes > 0
@@ -195,7 +279,16 @@ fun ActivityScreen(
                 TextButton(
                     onClick = {
                         minutesText.toIntOrNull()?.let { min ->
-                            viewModel.log(selectedType, min); showAdd = false
+                            viewModel.log(
+                                selectedType, min,
+                                subType = selectedSubType,
+                                sets = setsText.toIntOrNull(),
+                                reps = repsText.toIntOrNull(),
+                                distanceKm = distanceText.replace(',', '.').toDoubleOrNull(),
+                                weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull(),
+                            )
+                            showAdd = false
+                            selectedSubType = null; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
                         }
                     },
                     enabled = minutesValid,

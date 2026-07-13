@@ -37,9 +37,16 @@ class ActivityViewModel @Inject constructor(
         if (_date.value != today) _date.value = today
     }
 
-    fun log(type: ActivityType, minutes: Int) {
+    fun log(
+        type: ActivityType, minutes: Int,
+        subType: String? = null, sets: Int? = null, reps: Int? = null,
+        distanceKm: Double? = null, weightUsedKg: Double? = null,
+    ) {
         viewModelScope.launch {
-            repo.log(type, minutes, weightKg.value ?: 70.0)
+            repo.log(
+                type, minutes, weightKg.value ?: 70.0,
+                subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
+            )
         }
     }
 
@@ -48,7 +55,11 @@ class ActivityViewModel @Inject constructor(
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original stats. */
     fun restore(entry: ActivityEntry) {
         viewModelScope.launch {
-            repo.log(entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date)
+            repo.log(
+                entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date,
+                subType = entry.subType, sets = entry.sets, reps = entry.reps,
+                distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg,
+            )
         }
     }
 }
