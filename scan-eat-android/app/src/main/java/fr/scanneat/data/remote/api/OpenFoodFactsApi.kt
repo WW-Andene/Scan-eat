@@ -25,7 +25,7 @@ val OFF_FIELDS = listOf(
     "categories_tags", "ingredients_text_fr", "ingredients_text",
     "nova_group", "nutriments", "labels_tags", "origins", "countries_tags",
     "quantity", "ecoscore_grade", "ecoscore_score", "nutrition_grades",
-    "allergens_tags",
+    "allergens_tags", "additives_tags",
 ).joinToString(",")
 
 const val OFF_USER_AGENT = "ScanEat/0.1 (Android; +https://github.com/scanneat)"
@@ -58,4 +58,5 @@ data class OffProductDto(
     @Json(name = "ecoscore_score") val ecoscoreScore: Int?,
     @Json(name = "nutrition_grades") val nutritionGrades: String?,
     @Json(name = "allergens_tags") val allergensTags: List<String>?,
+    @Json(name = "additives_tags") val additivesTags: List<String>?,
 )

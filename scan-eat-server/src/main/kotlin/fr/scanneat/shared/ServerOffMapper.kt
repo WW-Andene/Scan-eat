@@ -62,6 +62,24 @@ private fun parseIngredients(text: String?): List<Ingredient> {
         .filter { it.name.length > 1 }
 }
 
+// OFF's own curated additives_tags (e.g. "en:e322", "en:e150d") - verified
+// against the manufacturer's declaration. Ingredient-text regex already
+// extracts E-numbers when the label spells them out, but OFF's own parser
+// catches additives named without an explicit "E" prefix (e.g. "lécithines"
+// tagged en:e322 even though the label just says "lécithines"). Only adds a
+// synthetic ingredient for a tag not already covered by a real one, so this
+// never duplicates or overrides what the label actually says.
+private fun additiveTagsToIngredients(tags: List<String>?, existing: List<Ingredient>): List<Ingredient> {
+    if (tags.isNullOrEmpty()) return emptyList()
+    val existingENumbers = existing.mapNotNull { it.eNumber }.toSet()
+    return tags.mapNotNull { tag ->
+        val m = Regex("""en:e(\d{3}[a-z]?)""").find(tag) ?: return@mapNotNull null
+        val eNum = "E${m.groupValues[1].uppercase()}"
+        if (eNum in existingENumbers) return@mapNotNull null
+        Ingredient(name = eNum, eNumber = eNum)
+    }.distinctBy { it.eNumber }
+}
+
 private fun parseWeightG(quantity: String?): Double? {
     if (quantity.isNullOrBlank()) return null
     // cl/dl added - French OFF `quantity` strings overwhelmingly label beverages in
@@ -89,7 +107,8 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
     val name = (raw.productNameFr ?: raw.productName ?: raw.genericNameFr ?: "").trim()
         .takeIf { it.isNotEmpty() } ?: return null
 
-    val ingredients = parseIngredients(raw.ingredientsTextFr ?: raw.ingredientsText)
+    val parsedIngredients = parseIngredients(raw.ingredientsTextFr ?: raw.ingredientsText)
+    val ingredients = parsedIngredients + additiveTagsToIngredients(raw.additivesTags, parsedIngredients)
     val organic = raw.labelsTags?.any { "organic" in it || "bio" in it } == true
     val category = mapCategory(raw.categoriesTags).let {
         if (it == ProductCategory.OTHER) inferCategoryFromName(name) else it

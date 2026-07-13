@@ -27,6 +27,7 @@ data class OffProductResponse(
     val ecoscoreScore: Int?,
     val nutritionGrades: String?,
     val allergensTags: List<String>? = null,
+    val additivesTags: List<String>? = null,
 )
 
 // ============================================================================
@@ -86,6 +87,22 @@ private fun parseIngredients(text: String?): List<Ingredient> {
         .filter { it.name.length > 1 }
 }
 
+// OFF's own curated additives_tags (e.g. "en:e322") - manufacturer-verified,
+// catches additives OFF's own parser found even when the label doesn't spell
+// out an explicit "E" prefix. Only adds a synthetic ingredient for a tag not
+// already covered by the ingredient-text regex above, never duplicating or
+// overriding what the label actually says.
+private fun additiveTagsToIngredients(tags: List<String>?, existing: List<Ingredient>): List<Ingredient> {
+    if (tags.isNullOrEmpty()) return emptyList()
+    val existingENumbers = existing.mapNotNull { it.eNumber }.toSet()
+    return tags.mapNotNull { tag ->
+        val m = Regex("""en:e(\d{3}[a-z]?)""").find(tag) ?: return@mapNotNull null
+        val eNum = "E${m.groupValues[1].uppercase()}"
+        if (eNum in existingENumbers) return@mapNotNull null
+        Ingredient(name = eNum, eNumber = eNum)
+    }.distinctBy { it.eNumber }
+}
+
 private fun parseWeightG(quantity: String?): Double? {
     if (quantity.isNullOrBlank()) return null
     // cl/dl added - French OFF `quantity` strings overwhelmingly label beverages in
@@ -117,7 +134,8 @@ fun mapOffProduct(off: OffProductResponse): Product? {
         .takeIf { it.isNotEmpty() } ?: return null
 
     val ingredientsText = off.ingredientsTextFr ?: off.ingredientsText
-    val ingredients = parseIngredients(ingredientsText)
+    val parsedIngredients = parseIngredients(ingredientsText)
+    val ingredients = parsedIngredients + additiveTagsToIngredients(off.additivesTags, parsedIngredients)
 
     val labelTags = off.labelsTags ?: emptyList()
     val organic   = labelTags.any { "organic" in it || "bio" in it }
