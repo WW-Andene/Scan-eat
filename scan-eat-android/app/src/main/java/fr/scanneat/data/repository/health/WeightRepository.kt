@@ -106,7 +106,7 @@ class WeightRepository @Inject constructor(
         // Health Connect can hold more than one reading per day (e.g. a scale
         // logging every weigh-in) — the most recent one per day wins, same
         // "one entry per day" convention log() already uses.
-        val byDate = external.groupBy { LocalDate.ofInstant(it.time, zone) }
+        val byDate = external.groupBy { it.time.atZone(zone).toLocalDate() }
         for ((date, records) in byDate) {
             if (date.toString() in existingDates) continue
             val latest = records.maxByOrNull { it.time } ?: continue
