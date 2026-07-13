@@ -9,6 +9,7 @@ import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
+import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.DailyTargets
