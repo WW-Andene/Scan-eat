@@ -773,6 +773,13 @@
     <string name="settings_profile_hint">Sex, age, height, weight, diet, allergens — required for the personal score.</string>
     <string name="settings_profile_button">Edit my profile</string>
     <string name="settings_section_about">About</string>
+    <string name="settings_section_legal">Legal</string>
+    <string name="settings_legal_medical_disclaimer">This app does not provide medical advice. Scores, estimates and recommendations are informational and don\'t replace guidance from a healthcare professional.</string>
+    <string name="settings_legal_data_accuracy">Nutrition information comes from open databases or label recognition and may contain errors or be incomplete.</string>
+    <string name="settings_legal_nutrition_recs">Nutrition targets are computed from published formulas (Mifflin-St Jeor, EFSA, WHO) applied to your own data; they are estimates, not prescriptions.</string>
+    <string name="settings_legal_medication">Medication tracking is a plain manual reminder. It does not check drug interactions, dosage, or contraindications — always consult a healthcare professional or pharmacist.</string>
+    <string name="settings_legal_liability">The publisher accepts no liability for health decisions made solely on information from this app.</string>
+    <string name="settings_legal_privacy">Your data (profile, history, medications) is stored locally on your device and only sent to third-party services if you explicitly enable a feature that requires it (e.g. API-based scoring).</string>
     <string name="settings_about_version">Scan\'eat v%1$s · Scoring engine v%2$s</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
     <string name="settings_section_backup">Backup</string>
@@ -807,6 +814,7 @@
     <string name="dashboard_tile_grocery">Grocery</string>
     <string name="dashboard_tile_profile">My Profile</string>
     <string name="dashboard_tile_customfoods">My Foods</string>
+    <string name="dashboard_tile_favorites">Favorites</string>
     <string name="dashboard_recent_scans_title">Recent Scans</string>
     <string name="dashboard_recent_scans_empty">No scans yet.</string>
     <string name="dashboard_view_all">View all</string>

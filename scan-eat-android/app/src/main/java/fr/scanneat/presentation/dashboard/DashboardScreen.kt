@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +55,7 @@ fun DashboardScreen(
     onOpenMealPlan: () -> Unit = {},
     onOpenGrocery: () -> Unit = {},
     onOpenCustomFoods: () -> Unit = {},
+    onOpenFavorites: () -> Unit = {},
 ) {
     val state    = viewModel.state.collectAsStateWithLifecycle()
     val s        = state.value
@@ -122,7 +124,7 @@ fun DashboardScreen(
                     // onOpenCustomFoods had no call site anywhere in the composable -
                     // CustomFoodScreen was completely unreachable from any UI gesture.
                     FeatureTile(Icons.Default.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
-                    Spacer(Modifier.weight(1f))
+                    FeatureTile(Icons.Default.Star, stringResource(R.string.dashboard_tile_favorites), Modifier.weight(1f), onClick = onOpenFavorites)
                 }
             }
 

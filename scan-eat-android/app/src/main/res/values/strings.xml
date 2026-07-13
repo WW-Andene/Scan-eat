@@ -784,6 +784,13 @@
     <string name="settings_profile_hint">Sexe, âge, taille, poids, régime, allergènes — requis pour le score personnalisé.</string>
     <string name="settings_profile_button">Modifier mon profil</string>
     <string name="settings_section_about">À propos</string>
+    <string name="settings_section_legal">Mentions légales</string>
+    <string name="settings_legal_medical_disclaimer">Cette application ne fournit pas d\'avis médical. Les scores, estimations et recommandations sont informatifs et ne remplacent pas l\'avis d\'un professionnel de santé.</string>
+    <string name="settings_legal_data_accuracy">Les informations nutritionnelles proviennent de bases de données ouvertes ou de la reconnaissance d\'étiquette et peuvent contenir des erreurs ou être incomplètes.</string>
+    <string name="settings_legal_nutrition_recs">Les objectifs nutritionnels sont calculés à partir de formules publiées (Mifflin-St Jeor, EFSA, OMS) appliquées à tes propres données ; ce sont des estimations, pas des prescriptions.</string>
+    <string name="settings_legal_medication">Le suivi des traitements est un simple aide-mémoire manuel. Il ne vérifie ni interactions médicamenteuses, ni posologie, ni contre-indications — consulte toujours un professionnel de santé ou un pharmacien.</string>
+    <string name="settings_legal_liability">L\'éditeur décline toute responsabilité en cas de décision de santé prise sur la seule base des informations de l\'application.</string>
+    <string name="settings_legal_privacy">Tes données (profil, historique, traitements) sont stockées localement sur ton appareil et ne sont transmises à des services tiers que si tu actives explicitement une fonctionnalité qui le nécessite (ex. scoring via API).</string>
     <string name="settings_about_version">Scan\'eat v%1$s · Moteur de scoring v%2$s</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
     <string name="settings_section_backup">Sauvegarde</string>
@@ -818,6 +825,7 @@
     <string name="dashboard_tile_grocery">Courses</string>
     <string name="dashboard_tile_profile">Mon Profil</string>
     <string name="dashboard_tile_customfoods">Mes aliments</string>
+    <string name="dashboard_tile_favorites">Favoris</string>
     <string name="dashboard_recent_scans_title">Scans récents</string>
     <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant.</string>
     <string name="dashboard_view_all">Voir tout</string>

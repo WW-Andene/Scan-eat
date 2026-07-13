@@ -392,6 +392,20 @@ fun SettingsScreen(
                 Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
             }
 
+            // Legal — every claim this app makes (scores, personal adjustments, hints,
+            // metabolisme estimates, medication tracking) is a heuristic or a published
+            // formula substituted with the user's own numbers, not a medical opinion.
+            SettingsSection(stringResource(R.string.settings_section_legal)) {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(stringResource(R.string.settings_legal_medical_disclaimer), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.settings_legal_data_accuracy), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.settings_legal_nutrition_recs), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.settings_legal_medication), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.settings_legal_liability), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.settings_legal_privacy), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                }
+            }
+
             Spacer(Modifier.height(40.dp))
         }
     }

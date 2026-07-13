@@ -46,6 +46,7 @@ fun ScanHistoryScreen(
     viewModel: ScanHistoryViewModel = hiltViewModel(),
     onOpenResult: (Long) -> Unit,
     onBack: () -> Unit,
+    startFavoritesOnly: Boolean = false,
 ) {
     val scans = viewModel.filtered.collectAsStateWithLifecycle()
     val query = viewModel.query.collectAsStateWithLifecycle()
@@ -54,6 +55,10 @@ fun ScanHistoryScreen(
     val canLoadMore = viewModel.canLoadMore.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
+
+    // Dashboard's "Favoris" shortcut opens History pre-filtered, rather than
+    // needing a second favorites-only screen with its own list/delete/sort logic.
+    LaunchedEffect(Unit) { if (startFavoritesOnly) viewModel.setFavoritesOnly(true) }
 
     Scaffold(
         topBar = {

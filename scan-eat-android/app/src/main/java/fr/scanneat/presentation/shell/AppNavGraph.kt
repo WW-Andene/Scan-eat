@@ -108,6 +108,7 @@ fun AppNavGraph(
                 onOpenMealPlan  = { navController.navigate(AppRoutes.MEAL_PLAN) },
                 onOpenGrocery        = { navController.navigate(AppRoutes.GROCERY) },
                 onOpenCustomFoods     = { navController.navigate(AppRoutes.CUSTOM_FOODS) },
+                onOpenFavorites      = { navController.navigate(AppRoutes.FAVORITES) },
             )
         }
 
@@ -156,6 +157,13 @@ fun AppNavGraph(
             ScanHistoryScreen(
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onBack       = { navController.popBackStack() },
+            )
+        }
+        composable(AppRoutes.FAVORITES) {
+            ScanHistoryScreen(
+                onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
+                onBack       = { navController.popBackStack() },
+                startFavoritesOnly = true,
             )
         }
     }

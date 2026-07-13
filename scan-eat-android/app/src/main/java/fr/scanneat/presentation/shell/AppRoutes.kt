@@ -16,6 +16,7 @@ object AppRoutes {
     const val GROCERY       = "grocery"
     const val CUSTOM_FOODS  = "custom_foods"
     const val SCAN_HISTORY  = "scan_history"
+    const val FAVORITES     = "favorites"
 
     fun result(scanId: Long) = "result/$scanId"
 }
