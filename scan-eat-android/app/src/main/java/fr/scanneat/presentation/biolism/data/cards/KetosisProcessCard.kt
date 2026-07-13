@@ -16,8 +16,8 @@ import fr.scanneat.presentation.ui.theme.*
 import java.util.Locale
 
 @Composable
-fun KetosisProcessCard(s: TimerState, met: MetabolicResult) {
-    val phase = BiolismEngine.ketoPhaseInfo(s.ketoHours, s.ketoAdapted)
+fun KetosisProcessCard(s: TimerState, met: MetabolicResult, lang: String = "fr") {
+    val phase = BiolismEngine.ketoPhaseInfo(s.ketoHours, s.ketoAdapted, lang)
     val phaseColor = colorFromToken(phase.colorToken)
     BioCard(stringResource(R.string.biolism_ketoproc_title), badge = { Badge(phase.label.uppercase(), phaseColor) }) {
         Text(formatDuration(s.ketoElapsedMs), style = HeroNumberStyle.copy(fontSize = 24.sp), color = phaseColor)

@@ -44,6 +44,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val manualHR    = viewModel.manualHR.collectAsStateWithLifecycle()
     val cum         = viewModel.sessionCumulative.collectAsStateWithLifecycle()
     val todayIntake = viewModel.todayIntakeKcal.collectAsStateWithLifecycle()
+    val language    = viewModel.language.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle()  // force recomposition every second
 
     val met = m.value
@@ -72,7 +73,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         item { BurnRateCard(met, s, cum.value) }
         item { SubstrateFluxCard(met, s) }
         if (s.ketosisOn) {
-            item { KetosisProcessCard(s, met) }
+            item { KetosisProcessCard(s, met, language.value) }
         }
         item { OrganHeatCard(met, s) }
         item { ThermoregulationCard(met) }

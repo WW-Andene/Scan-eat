@@ -68,12 +68,12 @@ class TrackerViewModel @Inject constructor(
 
     // Fix 8: live metabolic state derived every 100ms in ViewModel, not in composition
     val liveMetabolic: StateFlow<LiveMetabolicState> = combine(
-        profile, _timerState, _elapsedMs, _ketoElapsedMs,
-    ) { p, s, elapsedMs, ketoMs ->
-        computeMetabolicSnapshot(p, s, elapsedMs, ketoMs)
+        profile, _timerState, _elapsedMs, _ketoElapsedMs, language,
+    ) { p, s, elapsedMs, ketoMs, lang ->
+        computeMetabolicSnapshot(p, s, elapsedMs, ketoMs, lang)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LiveMetabolicState())
 
-    private fun computeMetabolicSnapshot(p: BiolismProfile, s: TimerState, elapsedMs: Long, ketoMs: Long): LiveMetabolicState {
+    private fun computeMetabolicSnapshot(p: BiolismProfile, s: TimerState, elapsedMs: Long, ketoMs: Long, lang: String): LiveMetabolicState {
         if (!p.isValid) return LiveMetabolicState()
         val elapsedSec  = elapsedMs / 1000.0
         val ketoHours   = ketoMs / 3_600_000.0
@@ -90,7 +90,7 @@ class TrackerViewModel @Inject constructor(
         val kcalPerKgFat = if (s.ketosisOn) 7700.0 + (9300.0 - 7700.0) * glycoFrac else 7700.0
         val fatLostKg   = fatKcal / kcalPerKgFat
         val glycoLostKg = (glycoKcal / 4.0) * (1.0 + WATER_PER_GLYC) / 1000.0
-        val phase       = if (s.ketosisOn) BiolismEngine.ketoPhaseInfo(ketoHours, s.ketoAdapted) else null
+        val phase       = if (s.ketosisOn) BiolismEngine.ketoPhaseInfo(ketoHours, s.ketoAdapted, lang) else null
 
         return LiveMetabolicState(
             npRq        = npRq,

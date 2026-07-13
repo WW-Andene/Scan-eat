@@ -30,11 +30,11 @@ class CustomFoodRepository @Inject constructor(
 ) {
 
     fun observeAll(profileId: String = "default"): Flow<List<FoodEntry>> =
-        dao.observeAll(profileId).map { list -> list.map { it.toFoodEntry() } }
+        dao.observeAll(profileId).map { list -> list.mapNotNull { it.toFoodEntry() } }
 
     /** Same as [observeAll] but keeps each entry's stable Room id — needed for rename(), since FoodEntry itself carries no id. */
     fun observeAllWithId(profileId: String = "default"): Flow<List<Pair<String, FoodEntry>>> =
-        dao.observeAll(profileId).map { list -> list.map { it.id to it.toFoodEntry() } }
+        dao.observeAll(profileId).map { list -> list.mapNotNull { e -> e.toFoodEntry()?.let { e.id to it } } }
 
     suspend fun save(
         name: String,
@@ -104,7 +104,7 @@ class CustomFoodRepository @Inject constructor(
      * Custom foods win ties. Port of searchFoodDB() with extraFoods.
      */
     suspend fun search(query: String, limit: Int = 6, profileId: String = "default"): List<FoodEntry> {
-        val customs = dao.observeAll(profileId).first().map { it.toFoodEntry() }
+        val customs = dao.observeAll(profileId).first().mapNotNull { it.toFoodEntry() }
         return searchFoodDB(query, limit, customs)
     }
 
@@ -144,14 +144,14 @@ class CustomFoodRepository @Inject constructor(
 
     private val jsonAdapter = moshi.adapter(CustomFoodJson::class.java)
 
-    private fun CustomFoodEntity.toFoodEntry(): FoodEntry {
-        // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -
-        // here a parse failure doesn't drop the row, it silently falls back to all-zero
-        // nutrition instead, which is arguably worse (wrong data shown, not just missing).
+    private fun CustomFoodEntity.toFoodEntry(): FoodEntry? {
+        // Was falling back to an all-zero CustomFoodJson() on parse failure, so a
+        // corrupted row showed up in Quick Add/search as a real 0-kcal food a user
+        // could log — silently corrupting their totals instead of just being
+        // absent. Now dropped, matching ConsumptionRepository's drop-on-fail.
         val j = runCatching { jsonAdapter.fromJson(nutritionJson) }
             .onFailure { android.util.Log.w("CustomFoodRepository", "Failed to parse nutrition JSON for '$name'", it) }
-            .getOrNull()
-            ?: CustomFoodJson()
+            .getOrNull() ?: return null
         return FoodEntry(
             name     = name,
             kcal     = j.kcal,

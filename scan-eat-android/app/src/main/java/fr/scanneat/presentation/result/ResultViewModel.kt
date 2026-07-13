@@ -96,14 +96,17 @@ class ResultViewModel @Inject constructor(
     private var cachedComparison: ComparisonResult? = null
 
     // Fix 2: Use a typed sealed class instead of Pair<Triple<...>> — clean and null-safe
-    private val scanLoad: Flow<ScanLoad> = prefs.profile.flatMapLatest { profile ->
+    private val scanLoad: Flow<ScanLoad> = combine(prefs.profile, prefs.language) { profile, lang -> profile to lang }.flatMapLatest { (profile, lang) ->
         flow {
             val scan = if (scanId > 0L) scanRepo.getById(scanId)
                        else scanRepo.observeHistory(limit = 1).first().firstOrNull()
 
             if (scan == null) { emit(ScanLoad.Empty); return@flow }
 
-            val personal   = computePersonalScore(scan.audit, scan.product, profile)
+            // Was previously called with the default lang="fr", so an
+            // English-language user still got all personal-score adjustment
+            // reasons (diet/allergen/health-condition call-outs) in French.
+            val personal   = computePersonalScore(scan.audit, scan.product, profile, lang)
             if (!comparisonResolved) {
                 comparisonResolved = true
                 cachedComparison = if (comparisonRepo.isArmed.first()) comparisonRepo.compare(scan)
@@ -173,9 +176,14 @@ class ResultViewModel @Inject constructor(
     fun saveToDestinations(destinations: Set<SaveDestination>) {
         val scan = state.value.scanResult ?: return
         viewModelScope.launch {
-            if (SaveDestination.FAVORIS in destinations && scan.dbId > 0) {
-                favoriteOverride.value = true
-                scanRepo.setFavorite(scan.dbId, true)
+            // Symmetric with the check: unchecking Favoris and tapping Save must
+            // actually unfavorite, not just skip re-favoriting — this popup is
+            // the only way to change favorite status for an already-favorited
+            // scan (the star icon opens it pre-selected rather than toggling).
+            if (scan.dbId > 0) {
+                val wantFavorite = SaveDestination.FAVORIS in destinations
+                favoriteOverride.value = wantFavorite
+                scanRepo.setFavorite(scan.dbId, wantFavorite)
             }
             if (SaveDestination.MES_ALIMENTS in destinations) {
                 val n = scan.product.nutrition

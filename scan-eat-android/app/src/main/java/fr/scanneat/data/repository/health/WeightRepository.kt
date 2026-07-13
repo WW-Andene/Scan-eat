@@ -147,7 +147,12 @@ class WeightRepository @Inject constructor(
             count          = all.size,
             recentCount    = recent.size,
             daysWindow     = days,
-            trendKgPerWeek = weeklyTrend(all),
+            // Was passing `all` (entire unfiltered history) here instead of the
+            // day-windowed `window` list — the regression silently ignored the
+            // requested `days` cutoff that every other stat above respects,
+            // so a plateaued-last-30-days user with a big historic loss got an
+            // overly optimistic weight-goal ETA forecast (and vice versa).
+            trendKgPerWeek = weeklyTrend(window),
         )
     }
 

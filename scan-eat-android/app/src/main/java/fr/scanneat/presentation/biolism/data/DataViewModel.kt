@@ -3,6 +3,7 @@ package fr.scanneat.presentation.biolism.data
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
@@ -17,11 +18,14 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(
     private val repo: BiolismRepository,
     private val consumptionRepo: ConsumptionRepository,
+    prefs: UserPreferences,
 ) : ViewModel() {
 
     val profile  = repo.profile.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BiolismProfile())
     val sessions = repo.sessions.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val manualHR = repo.manualHR.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
     // Real intake — sourced from the Diary's scanned/logged food (single source of truth for
     // calorie tracking), so Biolism's energy figures reflect actual consumption instead of a
