@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.scanneat.R
@@ -118,7 +117,7 @@ internal fun DualScoreRing(
                     trackColor  = SurfaceVariant,
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(classicGrade.label, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = classicColor)
+                    Text(classicGrade.label, style = HeroNumberStyle.copy(fontSize = 26.sp), color = classicColor)
                     Text("$classicScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
                 }
             }
@@ -150,8 +149,8 @@ internal fun DualScoreRing(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = if (veto) Modifier.clearAndSetSemantics { contentDescription = vetoDescription } else Modifier,
                 ) {
-                    Text(if (veto) "✗" else personalGrade.label, fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
+                    Text(if (veto) "✗" else personalGrade.label,
+                        style = HeroNumberStyle.copy(fontSize = 26.sp),
                         color = personalColor)
                     Text("$personalScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
                 }
