@@ -24,6 +24,8 @@ private val log = LoggerFactory.getLogger("ScoreRoute")
 // ============================================================================
 
 fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
+    val scoreService = ScoreService(offService, groqService)
+
     post("/score") {
         if (call.rejectIfTooLarge()) return@post
         // Unauthenticated in Server mode (no X-Groq-Key required — the
@@ -37,54 +39,18 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
         }
 
         val images = normalizeImages(req.images, req.imageBase64, req.mime)
+        val lang = req.lang ?: "fr"
+        val model = req.model ?: DEFAULT_GROQ_MODEL
 
         try {
             // ---- Barcode path ----
             if (!req.barcode.isNullOrBlank()) {
-                val offRaw = offService.fetchProduct(req.barcode)
-                val offProduct = offRaw?.let { mapOffProduct(it) }
-
-                if (offProduct != null) {
-                    // Sparse + have images → augment with LLM. A key that's absent
-                    // (no augmentation attempted) and a key that's present but rejected
-                    // by Groq both used to fall back to OFF-only identically - a user who
-                    // deliberately supplied their own key had no way to learn it didn't
-                    // work, unlike the image-only path below which surfaces auth failures.
-                    var augmentWarning: String? = null
-                    if (isOffSparse(offProduct) && images.isNotEmpty()) {
-                        val key = call.resolveGroqKey()
-                        if (key != null) {
-                            runCatching {
-                                val parsed   = groqService.parseLabel(images, key, req.lang ?: "fr", req.model ?: DEFAULT_GROQ_MODEL)
-                                val merged   = mergeOffWithLlm(offProduct, parsed.product)
-                                val conflicts = detectSourceConflicts(offProduct, parsed.product)
-                                val audit    = scoreProduct(merged, req.lang ?: "fr")
-                                call.respond(ScoreResponse(
-                                    product  = merged.toDto(),
-                                    audit    = audit.toDto(),
-                                    warnings = parsed.warnings + conflicts.map { "Conflict: ${it.field} OFF=${it.offValue} LLM=${it.llmValue}" },
-                                    source   = "merged",
-                                    barcode  = req.barcode,
-                                ))
-                                return@post
-                            }.onFailure { e ->
-                                log.warn("LLM augmentation failed, falling back to OFF-only: ${e.message}")
-                                augmentWarning = "AI augmentation failed (invalid API key or model) - showing Open Food Facts data only"
-                            }
-                        }
-                    }
-                    // OFF-only
-                    val audit = scoreProduct(offProduct, req.lang ?: "fr")
-                    call.respond(ScoreResponse(
-                        product  = offProduct.toDto(),
-                        audit    = audit.toDto(),
-                        warnings = listOfNotNull(augmentWarning),
-                        source   = "openfoodfacts",
-                        barcode  = req.barcode,
-                    ))
+                val outcome = scoreService.scoreBarcode(req.barcode, images, { call.resolveGroqKey() }, lang, model)
+                if (outcome is BarcodeScoreOutcome.Success) {
+                    call.respond(outcome.response)
                     return@post
                 }
-                // OFF miss — fall through to image path below
+                // OffMiss — fall through to image path below
             }
 
             // ---- Image-only path ----
@@ -93,16 +59,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
                 return@post
             }
             val key = call.requireGroqKey() ?: return@post
-
-            val parsed = groqService.parseLabel(images, key, req.lang ?: "fr", req.model ?: DEFAULT_GROQ_MODEL)
-            val audit  = scoreProduct(parsed.product, req.lang ?: "fr")
-            call.respond(ScoreResponse(
-                product  = parsed.product.toDto(),
-                audit    = audit.toDto(),
-                warnings = parsed.warnings,
-                source   = "llm",
-                barcode  = parsed.barcode,
-            ))
+            call.respond(scoreService.scoreFromImages(images, key, lang, model))
 
         } catch (e: Exception) {
             log.error("[/api/score]", e)

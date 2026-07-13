@@ -13,6 +13,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.BiolismSession
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun GlobalSummaryCard(allSessions: List<BiolismSession>) {
@@ -24,9 +25,9 @@ fun GlobalSummaryCard(allSessions: List<BiolismSession>) {
     val sparkMax  = (spark.maxOfOrNull { it.kcalBurned } ?: 0.001).coerceAtLeast(0.001)
     BioCard(stringResource(R.string.biolism_summary_title), badge = { TealBadge(pluralStringResource(R.plurals.biolism_summary_session_count, allSessions.size, allSessions.size)) }) {
         MetCellGrid(listOf(
-            Triple(stringResource(R.string.biolism_summary_total_burned), if (totalKcal >= 1000) "%.2fk".format(totalKcal / 1000) else "%.1f".format(totalKcal), "kcal"),
+            Triple(stringResource(R.string.biolism_summary_total_burned), if (totalKcal >= 1000) "%.2fk".format(Locale.US, totalKcal / 1000) else "%.1f".format(Locale.US, totalKcal), "kcal"),
             Triple(stringResource(R.string.biolism_summary_total_time), formatDuration((totalSec * 1000).toLong()), ""),
-            Triple(stringResource(R.string.biolism_summary_avg_session), "%.2f".format(avgKcal), "kcal"),
+            Triple(stringResource(R.string.biolism_summary_avg_session), "%.2f".format(Locale.US, avgKcal), "kcal"),
             Triple(stringResource(R.string.biolism_summary_avg_duration), formatDuration((avgSec * 1000).toLong()), ""),
         ))
         if (spark.size > 1) {

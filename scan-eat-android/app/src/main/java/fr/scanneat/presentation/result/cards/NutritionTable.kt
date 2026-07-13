@@ -19,6 +19,7 @@ import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SeparatorLight
+import java.util.Locale
 
 @Composable
 internal fun NutritionTable(nutrition: NutritionPer100g) {
@@ -52,7 +53,7 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
 // OFF-sourced doubles (e.g. sodium x1000 -> mg, cl/dl conversions) can carry
 // float-imprecision tails (12.339999999999999); round to 1 decimal so every
 // row displays with consistent precision, matching how energyKcal is rounded.
-private fun fmt1(value: Double): String = "%.1f".format(value)
+private fun fmt1(value: Double): String = "%.1f".format(Locale.US, value)
 
 @Composable
 private fun NRow(label: String, value: String) {

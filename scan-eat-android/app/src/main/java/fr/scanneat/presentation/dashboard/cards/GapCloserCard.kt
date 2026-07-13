@@ -24,6 +24,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
+import java.util.Locale
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -35,7 +36,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>) {
             gaps.take(3).forEach { gap ->
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     Text(
-                        stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, "%.1f".format(gap.deficit)),
+                        stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, "%.1f".format(Locale.US, gap.deficit)),
                         style = MaterialTheme.typography.labelMedium, color = AmberWarning,
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

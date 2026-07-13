@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import fr.scanneat.domain.model.MS_PER_HOUR
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -112,7 +113,7 @@ class RemindersRepository @Inject constructor(
         store.edit { p ->
             val now = System.currentTimeMillis()
             val last = p[K_LAST_HYDRATION_MS] ?: 0L
-            if (now - last >= intervalHours * 3_600_000L) {
+            if (now - last >= intervalHours * MS_PER_HOUR) {
                 due = true
                 p[K_LAST_HYDRATION_MS] = now
             }

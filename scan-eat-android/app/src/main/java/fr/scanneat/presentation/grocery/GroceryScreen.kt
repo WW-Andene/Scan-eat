@@ -36,6 +36,7 @@ fun GroceryScreen(
 ) {
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
     val checkable = viewModel.checkableItems.collectAsStateWithLifecycle()
+    val scopeToPlanned = viewModel.scopeToPlanned.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     val haptics   = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -91,13 +92,35 @@ fun GroceryScreen(
         },
         containerColor = Background,
     ) { padding ->
-        if (items.value.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                EmptyListState(icon = Icons.Default.ShoppingCart, message = stringResource(R.string.grocery_empty_body))
+        Column(Modifier.fillMaxSize().padding(padding)) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    stringResource(R.string.grocery_scope_planned),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = OnBackground.copy(0.85f),
+                )
+                Switch(
+                    checked = scopeToPlanned.value,
+                    onCheckedChange = { viewModel.setScopeToPlanned(it) },
+                    colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
+                )
             }
-        } else {
+            if (items.value.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    EmptyListState(
+                        icon = Icons.Default.ShoppingCart,
+                        message = stringResource(
+                            if (scopeToPlanned.value) R.string.grocery_empty_planned_body else R.string.grocery_empty_body
+                        ),
+                    )
+                }
+            } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+                modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
                 verticalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
                 item { Spacer(Modifier.height(4.dp)) }
@@ -139,6 +162,7 @@ fun GroceryScreen(
                     }
                 }
                 item { Spacer(Modifier.height(Spacing.XXL)) }
+            }
             }
         }
     }

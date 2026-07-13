@@ -12,6 +12,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun OrganHeatCard(met: MetabolicResult, s: TimerState) {
@@ -27,8 +28,8 @@ fun OrganHeatCard(met: MetabolicResult, s: TimerState) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(organ.name, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), fontWeight = FontWeight.Medium)
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Text("%.1f%%".format(organ.pct), style = MaterialTheme.typography.labelSmall, color = barColor, fontWeight = FontWeight.Bold)
-                        if (s.ketosisOn && delta != 0.0) Text("%+.1f%%".format(delta), style = MaterialTheme.typography.labelSmall, color = if (delta > 0) Teal else Violet)
+                        Text("%.1f%%".format(Locale.US, organ.pct), style = MaterialTheme.typography.labelSmall, color = barColor, fontWeight = FontWeight.Bold)
+                        if (s.ketosisOn && delta != 0.0) Text("%+.1f%%".format(Locale.US, delta), style = MaterialTheme.typography.labelSmall, color = if (delta > 0) Teal else Violet)
                         Text(kcalPerDayFmt.format(kcalDay), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                     }
                 }

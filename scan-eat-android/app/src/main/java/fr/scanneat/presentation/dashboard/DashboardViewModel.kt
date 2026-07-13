@@ -124,6 +124,11 @@ class DashboardViewModel @Inject constructor(
     ) { s, scans -> s.copy(recentScans = scans) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
+    // In-app language can differ from the device locale — WeeklyBarsCard's day-of-week
+    // labels must follow it explicitly, same as DiaryScreen/WeightScreen/MealPlanScreen.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     // Local tuple to carry 4 values cleanly through flatMapLatest
     private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 }

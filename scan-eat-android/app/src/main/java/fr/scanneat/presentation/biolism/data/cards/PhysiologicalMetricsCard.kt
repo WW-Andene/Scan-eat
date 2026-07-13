@@ -16,6 +16,7 @@ import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.abs
+import java.util.Locale
 
 @Composable
 fun PhysiologicalMetricsCard(
@@ -28,10 +29,10 @@ fun PhysiologicalMetricsCard(
 ) {
     BioCard(stringResource(R.string.biolism_physio_title), defaultOpen = false, badge = { VioletBadge(stringResource(R.string.biolism_physio_badge)) }) {
         MetCellGrid(listOf(
-            Triple(stringResource(R.string.biolism_physio_ve), "%.2f L/min".format(met.vePerMin), "VO₂ / (FiO₂ − FeO₂)"),
-            Triple(stringResource(R.string.biolism_physio_hr_estimated), "%.1f bpm".format(met.hrEstimated), "Fick · VS 70mL"),
-            Triple(stringResource(R.string.biolism_physio_atp_production), "%.2f mmol/min".format(met.atpMmolPerMin), "Berg 2015"),
-            Triple(stringResource(R.string.biolism_physio_metwater), "%.3f g/min".format(met.metWaterPerMin), "Hill 2004"),
+            Triple(stringResource(R.string.biolism_physio_ve), "%.2f L/min".format(Locale.US, met.vePerMin), "VO₂ / (FiO₂ − FeO₂)"),
+            Triple(stringResource(R.string.biolism_physio_hr_estimated), "%.1f bpm".format(Locale.US, met.hrEstimated), "Fick · VS 70mL"),
+            Triple(stringResource(R.string.biolism_physio_atp_production), "%.2f mmol/min".format(Locale.US, met.atpMmolPerMin), "Berg 2015"),
+            Triple(stringResource(R.string.biolism_physio_metwater), "%.3f g/min".format(Locale.US, met.metWaterPerMin), "Hill 2004"),
         ))
         InfoRow(stringResource(R.string.biolism_physio_n2_excretion), stringResource(R.string.biolism_physio_n2_value,
             met.nExcrGPerDay / 1440.0 * 1000, met.nExcrGPerDay), "", Violet)
@@ -40,15 +41,15 @@ fun PhysiologicalMetricsCard(
             ketoHours = s.ketoHours, fastingHours = s.fastingHours, ketosis = s.ketosisOn,
             elapsedSec = s.elapsedMs / 1000.0,
         )
-        InfoRow(stringResource(R.string.biolism_physio_glucose), "%.2f mmol/L".format(estGluc), stringResource(R.string.biolism_physio_glucose_sub),
+        InfoRow(stringResource(R.string.biolism_physio_glucose), "%.2f mmol/L".format(Locale.US, estGluc), stringResource(R.string.biolism_physio_glucose_sub),
             if (estGluc < 3.0) Danger else if (estGluc < 3.9) Warm else Teal)
         cum?.let { c ->
             Spacer(Modifier.height(8.dp))
             TintedPanel(Violet) {
                 Label(stringResource(R.string.biolism_physio_session_cum), Violet)
-                InfoRow(stringResource(R.string.biolism_physio_metwater_total), "%.3f g".format(c.metWaterTotalG), "", Teal)
-                InfoRow(stringResource(R.string.biolism_physio_atp_total), if (c.atpTotalMmol >= 1000) "%.2f mol".format(c.atpTotalMmol / 1000) else "%.2f mmol".format(c.atpTotalMmol), "", Gold)
-                InfoRow(stringResource(R.string.biolism_physio_n2_total), if (c.n2ExcretedMg >= 1000) "%.4f g".format(c.n2ExcretedMg / 1000) else "%.3f mg".format(c.n2ExcretedMg), "", Violet)
+                InfoRow(stringResource(R.string.biolism_physio_metwater_total), "%.3f g".format(Locale.US, c.metWaterTotalG), "", Teal)
+                InfoRow(stringResource(R.string.biolism_physio_atp_total), if (c.atpTotalMmol >= 1000) "%.2f mol".format(Locale.US, c.atpTotalMmol / 1000) else "%.2f mmol".format(Locale.US, c.atpTotalMmol), "", Gold)
+                InfoRow(stringResource(R.string.biolism_physio_n2_total), if (c.n2ExcretedMg >= 1000) "%.4f g".format(Locale.US, c.n2ExcretedMg / 1000) else "%.3f mg".format(Locale.US, c.n2ExcretedMg), "", Violet)
             }
         }
 

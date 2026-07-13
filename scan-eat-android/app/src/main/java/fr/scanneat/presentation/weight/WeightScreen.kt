@@ -63,7 +63,7 @@ fun WeightScreen(
     val undoLabel = stringResource(R.string.weight_undo)
 
     fun dispWeight(kg: Double): String =
-        if (useImperial) "%.1f lb".format(kg * 2.20462) else "%.1f kg".format(kg)
+        if (useImperial) "%.1f lb".format(Locale.US, kg * 2.20462) else "%.1f kg".format(Locale.US, kg)
 
     val content = @Composable { padding: PaddingValues ->
         val reversedEntries = remember(entries.value) { entries.value.reversed() }

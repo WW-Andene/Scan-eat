@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.domain.model.MS_PER_HOUR
+import fr.scanneat.domain.model.MS_PER_MINUTE
 import fr.scanneat.presentation.ui.theme.*
 
 /**
@@ -75,8 +77,8 @@ fun FastingScreen(
                                 color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
                                 trackColor = SurfaceVariant, strokeWidth = 10.dp,
                             )
-                            val h = (fs.elapsedMs / 3_600_000L).toInt()
-                            val m = ((fs.elapsedMs % 3_600_000L) / 60_000L).toInt()
+                            val h = (fs.elapsedMs / MS_PER_HOUR).toInt()
+                            val m = ((fs.elapsedMs % MS_PER_HOUR) / MS_PER_MINUTE).toInt()
                             Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {

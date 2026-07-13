@@ -4,6 +4,7 @@ import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.domain.model.DiaryEntry
+import fr.scanneat.domain.model.roundTo1Decimal
 import java.time.LocalDate
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -110,7 +111,7 @@ private fun rollup(entries: List<DiaryEntry>, end: LocalDate, windowDays: Int): 
     val daysLogged = buckets.count { it.count > 0 }
     val denom = daysLogged.coerceAtLeast(1).toDouble()
 
-    fun r1(v: Double) = (v * 10).roundToInt() / 10.0
+    fun r1(v: Double) = v.roundTo1Decimal()
 
     val total = NutrientTotals(
         kcal      = buckets.sumOf { it.kcal },
@@ -162,7 +163,7 @@ fun weekOverWeekDelta(current: RollupResult, prior: RollupResult): WeekOverWeekD
     // Plain subtraction, not a ratio — a zero-guard here isn't protecting against
     // division by zero, it was silently reporting "no change" whenever the prior
     // week had no logged data at all, hiding a real (and often large) jump.
-    fun delta(a: Double, b: Double) = ((a - b) * 10).roundToInt() / 10.0
+    fun delta(a: Double, b: Double) = (a - b).roundTo1Decimal()
     return WeekOverWeekDelta(
         kcal     = delta(current.avg.kcal,     prior.avg.kcal),
         proteinG = delta(current.avg.proteinG, prior.avg.proteinG),
@@ -292,7 +293,7 @@ fun closeTheGap(
             if (density <= 0) continue
             val grams = ((need / density) * 100).roundToInt()
             if (grams <= 0 || grams > def.gramsCap) continue
-            val contribution = (density * (grams / 100.0) * 10).roundToInt() / 10.0
+            val contribution = (density * (grams / 100.0)).roundTo1Decimal()
             ranked += Triple(food, grams, contribution)
         }
         ranked.sortByDescending { nv.foodDensity(it.first) }
@@ -300,7 +301,7 @@ fun closeTheGap(
 
         out += GapEntry(
             nutrient    = def.label,
-            deficit     = (deficit * 10).roundToInt() / 10.0,
+            deficit     = deficit.roundTo1Decimal(),
             suggestions = ranked.take(3).map { (f, g, c) -> GapSuggestion(f.name, g, c) },
         )
     }
@@ -342,7 +343,7 @@ fun weightForecast(currentKg: Double, goalKg: Double, weeklySlopeKg: Double): We
     if (weeks > MAX_FORECAST_WEEKS) return WeightForecast.Flat
     val days  = (weeks * 7).roundToInt()
     return WeightForecast.Ok(
-        weeks       = (weeks * 10).roundToInt() / 10.0,
+        weeks       = weeks.roundTo1Decimal(),
         days        = days,
         targetDate  = LocalDate.now().plusDays(days.toLong()),
         kgPerWeek   = weeklySlopeKg,
@@ -418,7 +419,7 @@ fun chronicNutrientGaps(
         ranked.sortByDescending { it.second }
         val suggestions = ranked.take(3).map { (food, density) ->
             val grams = ((avgDeficit * 0.5 / density) * 100).roundToInt().coerceAtLeast(1)
-            val contribution = (density * (grams / 100.0) * 10).roundToInt() / 10.0
+            val contribution = (density * (grams / 100.0)).roundTo1Decimal()
             GapSuggestion(food.name, grams, contribution)
         }
 

@@ -15,6 +15,7 @@ import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.abs
+import java.util.Locale
 
 @Composable
 fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
@@ -37,7 +38,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
                     Text(stringResource(R.string.biolism_macro_total_min_sub), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("%.0f kcal".format(met.macroFloorKcal), style = MaterialTheme.typography.titleMedium, color = Gold, fontWeight = FontWeight.Bold)
+                    Text("%.0f kcal".format(Locale.US, met.macroFloorKcal), style = MaterialTheme.typography.titleMedium, color = Gold, fontWeight = FontWeight.Bold)
                     val delta = met.macroFloorKcal - met.tdeeDay
                     Text(stringResource(R.string.biolism_macro_tdee_delta, met.tdeeDay, delta), style = MaterialTheme.typography.labelSmall,
                         color = if (abs(delta) < 5) Teal else OnBackground.copy(0.5f))
@@ -46,7 +47,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
         }
         Spacer(Modifier.height(10.dp))
         Label(stringResource(R.string.biolism_macro_extra_title), OnBackground.copy(0.4f))
-        InfoRow(stringResource(R.string.biolism_macro_water), "≥ %.1f L".format(met.waterNeedL),
+        InfoRow(stringResource(R.string.biolism_macro_water), "≥ %.1f L".format(Locale.US, met.waterNeedL),
             if (profile.activityMeta.mult >= 1.55)
                 stringResource(R.string.biolism_macro_water_sub_activity, if (profile.sex == BiolismSex.MALE) 2.5 else 2.0, 0.5)
             else

@@ -59,7 +59,7 @@ fun bmi(p: Profile): Double? {
     val h = p.heightCm ?: return null
     val w = p.weightKg ?: return null
     val m = h / 100.0
-    return (w / (m * m) * 10.0).roundToInt() / 10.0
+    return (w / (m * m)).roundTo1Decimal()
 }
 
 enum class BmiCategory { UNDERWEIGHT, NORMAL, OVERWEIGHT, OBESE_1, OBESE_2, OBESE_3 }

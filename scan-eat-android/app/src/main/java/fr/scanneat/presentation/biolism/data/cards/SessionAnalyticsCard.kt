@@ -12,6 +12,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.BiolismSession
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double) {
@@ -39,10 +40,10 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
     BioCard(stringResource(R.string.biolism_sessan_title), defaultOpen = false, badge = { TealBadge(stringResource(R.string.biolism_sessan_badge, sessions.size)) }) {
         MetCellGrid(
             listOf(
-                Triple(stringResource(R.string.biolism_sessan_avg_rate), "%.3f kcal/min".format(avgBurnRate), ""),
-                Triple(stringResource(R.string.biolism_sessan_fat_lost), if (totalFatLostKg >= 0.01) "%.3f kg".format(totalFatLostKg) else "%.2f g".format(totalFatLostKg * 1000), ""),
-                Triple(stringResource(R.string.biolism_sessan_weight_delta), "%s%.1f g".format(if (weightDelta > 0) "+" else "", weightDelta * 1000), trendLabel),
-                Triple(stringResource(R.string.biolism_sessan_best_efficiency), "%.3f kcal/min".format(effMax), ""),
+                Triple(stringResource(R.string.biolism_sessan_avg_rate), "%.3f kcal/min".format(Locale.US, avgBurnRate), ""),
+                Triple(stringResource(R.string.biolism_sessan_fat_lost), if (totalFatLostKg >= 0.01) "%.3f kg".format(Locale.US, totalFatLostKg) else "%.2f g".format(Locale.US, totalFatLostKg * 1000), ""),
+                Triple(stringResource(R.string.biolism_sessan_weight_delta), "%s%.1f g".format(Locale.US, if (weightDelta > 0) "+" else "", weightDelta * 1000), trendLabel),
+                Triple(stringResource(R.string.biolism_sessan_best_efficiency), "%.3f kcal/min".format(Locale.US, effMax), ""),
             ),
             accents = listOf(TextSecondary, Teal, deltaColor, Gold),
         )
@@ -74,8 +75,8 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                InfoRow(stringResource(R.string.biolism_sessan_fat_oxidised_cum), "%.1f g".format(totalFatLostKg * 1000), "", Teal)
-                InfoRow(stringResource(R.string.biolism_sessan_est_weight), "%.3f kg".format(latestWeight), "", deltaColor)
+                InfoRow(stringResource(R.string.biolism_sessan_fat_oxidised_cum), "%.1f g".format(Locale.US, totalFatLostKg * 1000), "", Teal)
+                InfoRow(stringResource(R.string.biolism_sessan_est_weight), "%.3f kg".format(Locale.US, latestWeight), "", deltaColor)
             }
         }
     }

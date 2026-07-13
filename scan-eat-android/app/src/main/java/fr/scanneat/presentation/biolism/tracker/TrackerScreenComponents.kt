@@ -22,6 +22,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.biolism.hmsFromSeconds
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.minTouchTarget
+import java.util.Locale
 
 // Shared helpers used by 2+ cards/*.kt files. Section-specific composables
 // (SubstrateLegendItem etc.) stay colocated in their own card file.
@@ -71,7 +72,7 @@ internal fun formatElapsed(sec: Double): String {
 internal fun formatFastingTime(fh: Double, weekUnit: String, dayUnit: String): String? {
     if (fh <= 0) return null
     return when {
-        fh >= 720  -> "${"%.1f".format(fh / 720)}mo"
+        fh >= 720  -> "${"%.1f".format(Locale.US, fh / 720)}mo"
         fh >= 168  -> "${(fh / 168).toInt()}$weekUnit ${((fh % 168) / 24).toInt()}$dayUnit"
         fh >= 48   -> "${(fh / 24).toInt()}$dayUnit ${(fh % 24).toInt()}h"
         fh >= 1    -> "${fh.toInt()}h ${((fh % 1) * 60).toInt()}m"

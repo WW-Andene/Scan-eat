@@ -25,6 +25,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.BiolismSession
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit) {
@@ -68,16 +69,16 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
                         }
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("%.4f kg".format(sess.fatLostKg), style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.SemiBold)
+                        Text("%.4f kg".format(Locale.US, sess.fatLostKg), style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.SemiBold)
                         Text(stringResource(R.string.biolism_sesshist_fat_lost_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
                     }
                 }
                 AnimatedVisibility(isExpanded) {
                     Column(Modifier.padding(top = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        InfoRow(stringResource(R.string.biolism_sesshist_avg_rate), "%.3f kcal/min".format(sess.kcalPerMin), "", TextSecondary)
+                        InfoRow(stringResource(R.string.biolism_sesshist_avg_rate), "%.3f kcal/min".format(Locale.US, sess.kcalPerMin), "", TextSecondary)
                         InfoRow(stringResource(R.string.biolism_sesshist_bmr_tdee), stringResource(R.string.biolism_sesshist_bmr_tdee_value, sess.bmrDay, sess.tdeeDay), "", TextSecondary)
-                        InfoRow(stringResource(R.string.biolism_sesshist_weight_start_end), "%.1f → %.1f kg".format(sess.startWeightKg, sess.endWeightKg), "", TextSecondary)
-                        InfoRow(stringResource(R.string.biolism_sesshist_fat_fraction), "%.0f%%".format(sess.fatFrac * 100), "", Warm)
+                        InfoRow(stringResource(R.string.biolism_sesshist_weight_start_end), "%.1f → %.1f kg".format(Locale.US, sess.startWeightKg, sess.endWeightKg), "", TextSecondary)
+                        InfoRow(stringResource(R.string.biolism_sesshist_fat_fraction), "%.0f%%".format(Locale.US, sess.fatFrac * 100), "", Warm)
                         TextButton(onClick = { confirmDeleteId = sess.id }) {
                             Text(stringResource(R.string.common_delete), color = Danger, style = MaterialTheme.typography.labelSmall)
                         }

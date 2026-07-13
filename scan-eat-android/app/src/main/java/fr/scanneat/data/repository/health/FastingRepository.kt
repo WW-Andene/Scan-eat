@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import fr.scanneat.domain.model.roundTo1Decimal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -98,7 +99,7 @@ class FastingRepository @Inject constructor(
                 startMs       = start,
                 endMs         = now,
                 targetHours   = target,
-                achievedHours = Math.round(achieved * 10.0) / 10.0,
+                achievedHours = achieved.roundTo1Decimal(),
                 reached       = achieved >= target,
             )
             val history = loadHistory(prefs).toMutableList()

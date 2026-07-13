@@ -25,6 +25,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.HormoneReading
 import fr.scanneat.presentation.biolism.hmsFromSeconds
 import fr.scanneat.presentation.ui.theme.*
+import java.util.Locale
 
 // ── Shared card / helper composables for the Biolism Data screen ──────────────
 // Used across cards/*.kt — internal (not private) so other files in this
@@ -120,7 +121,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("%.1f ${h.unit}".format(h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
+                Text("%.1f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
                 Surface(shape = RoundedCornerShape(3.dp), color = color.copy(0.15f),
                     border = BorderStroke(1.dp, color.copy(0.3f))) {
                     Text(h.label, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
@@ -167,7 +168,7 @@ internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: St
             Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
         }
         Column(horizontalAlignment = Alignment.End) {
-            Text("%.1f $unit".format(grams), style = MaterialTheme.typography.titleSmall, color = color, fontWeight = FontWeight.Bold)
+            Text("%.1f $unit".format(Locale.US, grams), style = MaterialTheme.typography.titleSmall, color = color, fontWeight = FontWeight.Bold)
         }
     }
     HorizontalDivider(color = OnBackground.copy(0.06f))
@@ -201,7 +202,7 @@ internal fun colorFromToken(token: String): Color = when (token) {
 
 internal fun formatDuration(ms: Long): String {
     val (h, m, sec) = hmsFromSeconds(ms / 1000)
-    return if (h > 0) "%dh %02dm".format(h, m) else "%dm %02ds".format(m, sec)
+    return if (h > 0) "%dh %02dm".format(Locale.US, h, m) else "%dm %02ds".format(Locale.US, m, sec)
 }
 
 internal fun isToday(iso: String): Boolean {

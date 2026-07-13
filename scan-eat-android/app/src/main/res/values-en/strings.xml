@@ -8,6 +8,14 @@
     <string name="common_allow">Allow</string>
     <string name="scan_open_settings_button">Open Settings</string>
     <string name="scan_cd_scan">Scan</string>
+    <string name="scan_no_camera_title">No camera detected</string>
+    <string name="scan_no_camera_body">This device has no camera. Enter the barcode manually instead.</string>
+    <string name="scan_camera_unavailable_title">Camera unavailable</string>
+    <string name="scan_camera_unavailable_body">Another app may be using the camera. Try again or enter the barcode manually.</string>
+    <string name="scan_manual_entry_label">Barcode</string>
+    <string name="scan_manual_entry_hint">Enter the barcode</string>
+    <string name="scan_manual_entry_submit">Submit</string>
+    <string name="scan_manual_entry_toggle">Enter a barcode manually</string>
     <plurals name="scan_photo_count">
         <item quantity="one">%1$d photo</item>
         <item quantity="other">%1$d photos</item>
@@ -475,6 +483,8 @@
     <string name="grocery_clear_confirm_title">Uncheck all items?</string>
     <string name="grocery_clear_confirm_body">Every checked item will be reset. This action can\'t be undone.</string>
     <string name="grocery_cleared_confirmation">Items unchecked</string>
+    <string name="grocery_scope_planned">Only meals planned this week</string>
+    <string name="grocery_empty_planned_body">No recipes planned this week yet. Add recipes to your meal plan or turn this filter off.</string>
 
     <!-- ── Profile screen ─────────────────────────────────────────────────── -->
     <string name="profile_title">My Profile</string>

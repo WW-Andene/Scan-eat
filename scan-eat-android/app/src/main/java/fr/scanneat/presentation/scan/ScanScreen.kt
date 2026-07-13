@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -37,6 +38,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -67,9 +69,30 @@ fun ScanScreen(
     val images         = viewModel.images.collectAsStateWithLifecycle()
     val barcode        = viewModel.scannedBarcode.collectAsStateWithLifecycle()
 
-    var hasCamera by remember {
-        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
+    // android:required="false" on both camera <uses-feature> entries in the manifest
+    // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
+    // with no camera at all (some tablets/Chromebooks/emulators). Requesting the CAMERA
+    // *permission* on such a device still "succeeds" trivially - there's simply no
+    // hardware behind it - so hasCamera below would stay true forever while
+    // CameraPreview's bindToLifecycle silently fails every time. Checking the actual
+    // hardware feature up front lets these devices skip straight to a usable fallback
+    // instead of a dead permission prompt.
+    val hasCameraHardware = remember {
+        context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
     }
+
+    var hasCamera by remember {
+        mutableStateOf(
+            hasCameraHardware &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    // Set when CameraPreview's own bindToLifecycle call fails (e.g. camera held by
+    // another app, or a hardware/driver fault) - previously swallowed by a bare
+    // runCatching with no onFailure branch, leaving a permanently blank preview and a
+    // capture button that silently did nothing, with zero feedback for the user.
+    var cameraUnavailable by remember { mutableStateOf(false) }
+    var manualEntryOpen by remember { mutableStateOf(false) }
     // Once the user permanently denies (checked "don't ask again", or a 2nd
     // straight denial on API 30+), RequestPermission() silently returns false
     // without even showing the system dialog again — "Autoriser" would look
@@ -106,10 +129,27 @@ fun ScanScreen(
     // left the camera only the leftover space between a header row and a
     // separate button row below it).
     Box(modifier = Modifier.fillMaxSize().background(Background)) {
-        if (hasCamera) {
+        if (hasCamera && !cameraUnavailable) {
             CameraPreview(
                 onBarcodeDetected = { viewModel.onBarcodeDetected(it) },
                 onPhotoCaptured   = { viewModel.addPhoto(it) },
+                onCameraError     = { cameraUnavailable = true },
+            )
+        } else if (!hasCameraHardware) {
+            // Camera-less device (manifest declares both <uses-feature> entries
+            // required="false") - a permission prompt here would be pointless theater,
+            // so this goes straight to the one input path that still works: manual entry.
+            NoCameraFallback(
+                titleRes = R.string.scan_no_camera_title,
+                bodyRes  = R.string.scan_no_camera_body,
+                onSubmit = { viewModel.onBarcodeDetected(it); viewModel.score() },
+            )
+        } else if (cameraUnavailable) {
+            NoCameraFallback(
+                titleRes = R.string.scan_camera_unavailable_title,
+                bodyRes  = R.string.scan_camera_unavailable_body,
+                onSubmit = { viewModel.onBarcodeDetected(it); viewModel.score() },
+                onRetry  = { cameraUnavailable = false },
             )
         } else {
             // Camera permission request UI — no camera feed behind it, so this fills the screen itself.
@@ -141,10 +181,18 @@ fun ScanScreen(
                         Text(stringResource(R.string.common_allow))
                     }
                 }
+                Spacer(Modifier.height(16.dp))
+                if (!manualEntryOpen) {
+                    TextButton(onClick = { manualEntryOpen = true }) {
+                        Text(stringResource(R.string.scan_manual_entry_toggle), color = OnBackground.copy(0.8f))
+                    }
+                } else {
+                    ManualBarcodeEntry(onSubmit = { viewModel.onBarcodeDetected(it); viewModel.score() })
+                }
             }
         }
 
-        if (hasCamera) {
+        if (hasCamera && !cameraUnavailable) {
             // ── Header — top-start, scrimmed so it stays legible over any camera scene ──
             Column(
                 modifier = Modifier.fillMaxWidth().align(Alignment.TopStart)
@@ -248,6 +296,81 @@ fun ScanScreen(
                     )
                 }
             }
+        } else if (state.value is ScanUiState.Error) {
+            // Same error surface as the camera path above, but reachable from the
+            // no-camera/camera-unavailable fallbacks too - those flows call
+            // viewModel.score() straight from manual barcode entry, with no FAB or
+            // camera preview underneath, so a scoring failure there still needs
+            // somewhere to show up instead of silently going nowhere.
+            val error = state.value as ScanUiState.Error
+            ErrorBanner(
+                message     = error.message,
+                modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = 24.dp),
+                actionLabel = stringResource(R.string.common_retry),
+                onAction    = { viewModel.score() },
+                onDismiss   = { viewModel.dismissError() },
+            )
+        }
+    }
+}
+
+/**
+ * Full-screen fallback shown in place of the camera preview: either the device has
+ * no camera hardware at all (`FEATURE_CAMERA_ANY` false, see hasCameraHardware above),
+ * or CameraPreview's own bind attempt failed at runtime. Either way the barcode-entry
+ * path via ManualBarcodeEntry below is the only way left to reach ScanViewModel.score()
+ * with a barcode, so this isn't a dead-end message — it's a working substitute input.
+ */
+@Composable
+private fun NoCameraFallback(
+    titleRes: Int,
+    bodyRes: Int,
+    onSubmit: (String) -> Unit,
+    onRetry: (() -> Unit)? = null,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(Spacing.XXL),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(Icons.Default.QrCodeScanner, null, tint = OnBackground, modifier = Modifier.size(64.dp))
+        Spacer(Modifier.height(16.dp))
+        Text(stringResource(titleRes), style = MaterialTheme.typography.titleMedium, color = OnBackground, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(8.dp))
+        Text(stringResource(bodyRes), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
+        Spacer(Modifier.height(24.dp))
+        if (onRetry != null) {
+            ScanEatPrimaryButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
+            Spacer(Modifier.height(16.dp))
+        }
+        ManualBarcodeEntry(onSubmit = onSubmit)
+    }
+}
+
+/**
+ * Same digit-count validation analyzeFrame applies to camera-detected barcodes
+ * (8/12/13/14 digits, covering EAN-8/UPC-A/EAN-13/GTIN-14) so a manually typed
+ * code reaches ScanRepository in exactly the shape it already expects.
+ */
+@Composable
+private fun ManualBarcodeEntry(onSubmit: (String) -> Unit) {
+    var text by remember { mutableStateOf("") }
+    val digits = remember(text) { text.filter { it.isDigit() } }
+    val isValid = digits.length in listOf(8, 12, 13, 14)
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text(stringResource(R.string.scan_manual_entry_label)) },
+            placeholder = { Text(stringResource(R.string.scan_manual_entry_hint)) },
+            singleLine = true,
+            isError = text.isNotEmpty() && !isValid,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.width(220.dp),
+        )
+        Spacer(Modifier.height(12.dp))
+        ScanEatPrimaryButton(onClick = { onSubmit(digits) }, enabled = isValid) {
+            Text(stringResource(R.string.scan_manual_entry_submit))
         }
     }
 }
@@ -288,6 +411,7 @@ private fun analyzeFrame(proxy: ImageProxy, scanner: com.google.mlkit.vision.bar
 fun CameraPreview(
     onBarcodeDetected: (String) -> Unit,
     onPhotoCaptured: (Bitmap) -> Unit,
+    onCameraError: () -> Unit = {},
 ) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -331,11 +455,17 @@ fun CameraPreview(
                                 analyzeFrame(proxy, scanner, onBarcodeDetected)
                             }
                         }
+                    // Previously a bare runCatching with no onFailure branch: a bind failure
+                    // (camera held by another app, transient driver/hardware fault, etc.)
+                    // left `camera` null forever with no signal to the caller - the preview
+                    // stayed blank and the capture FAB silently did nothing on every tap,
+                    // with no error shown anywhere. onCameraError lets ScanScreen switch to
+                    // the manual-entry fallback instead of a dead screen.
                     runCatching {
                         provider.unbindAll()
                         camera = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture, analysis)
                         hasFlash = camera?.cameraInfo?.hasFlashUnit() == true
-                    }
+                    }.onFailure { onCameraError() }
                 }, ContextCompat.getMainExecutor(ctx))
                 previewView
             },

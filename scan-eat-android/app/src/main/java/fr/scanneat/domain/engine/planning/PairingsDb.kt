@@ -1837,7 +1837,15 @@ fun resolveIngredient(name: String): String? {
 fun findPairings(name: String, limit: Int = 6): List<String> {
     val en = resolveIngredient(name) ?: return emptyList()
     val entry = PAIRINGS[en] ?: return emptyList()
-    return entry.pairs.take(limit).map { it.fr ?: it.b.replace("_", " ") }
+    // Sort by co-occurrence count descending before truncating - PAIRINGS entries
+    // are stored in whatever order the source dataset happened to list them (see
+    // e.g. "beef": onion 3315, tomato 2107, beef_broth 410, garlic 2817, ...),
+    // not pre-sorted by strength. Without this, take(limit) returned an arbitrary
+    // subset of a recipe's pairings rather than its `limit` *strongest* ones,
+    // silently defeating the "min co-occurrence 5 recipes" scoring this file's
+    // header comment describes and showing weaker suggestions than a lower-ranked
+    // pairing that got cut off just because it was listed first.
+    return entry.pairs.sortedByDescending { it.cooccur }.take(limit).map { it.fr ?: it.b.replace("_", " ") }
 }
 
 /**

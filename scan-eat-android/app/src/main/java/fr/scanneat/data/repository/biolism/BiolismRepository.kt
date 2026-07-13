@@ -236,6 +236,78 @@ class BiolismRepository @Inject constructor(
         p[K_SESSIONS] = Json.encodeToString(current.filter { it.id != id })
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Backup / restore — Biolism previously had no export/import path at all:
+    // its own profile override (waist/hip/neck/cycle-day, its own sex/age/height/
+    // weight when the user explicitly diverges from the app-wide profile),
+    // onboarding flag, session timer state, manual HR override, and the last-20
+    // workout session history all lived only in this device's private
+    // "biolism_prefs" DataStore, silently lost on a BackupRepository restore to
+    // a new device. Mirrors the exportForBackup/importForBackup shape already
+    // used by FastingRepository.
+    // ─────────────────────────────────────────────────────────────────────────
+    data class BiolismBackupData(
+        val onboarded: Boolean,
+        val hasProfileOverride: Boolean,
+        val sex: String?,
+        val ageYears: Int?,
+        val heightCm: Float?,
+        val weightKg: Float?,
+        val activityId: String?,
+        val ethnicityId: String?,
+        val waistCm: Float?,
+        val hipCm: Float?,
+        val neckCm: Float?,
+        val cycleDay: Int?,
+        val timerState: TimerState,
+        val manualHR: Int?,
+        val sessions: List<BiolismSession>,
+    )
+
+    suspend fun exportForBackup(): BiolismBackupData {
+        val p = storeData.first()
+        return BiolismBackupData(
+            onboarded          = p[K_ONBOARDED] ?: false,
+            hasProfileOverride = p[K_SEX] != null,
+            sex         = p[K_SEX],
+            ageYears    = p[K_AGE],
+            heightCm    = p[K_HEIGHT],
+            weightKg    = p[K_WEIGHT],
+            activityId  = p[K_ACTIVITY],
+            ethnicityId = p[K_ETHNICITY],
+            waistCm     = p[K_WAIST],
+            hipCm       = p[K_HIP],
+            neckCm      = p[K_NECK],
+            cycleDay    = p[K_CYCLE_DAY],
+            timerState  = timerState.first(),
+            manualHR    = p[K_MANUAL_HR],
+            sessions    = sessions.first(),
+        )
+    }
+
+    suspend fun importForBackup(data: BiolismBackupData) {
+        store.edit { p ->
+            p[K_ONBOARDED] = data.onboarded
+            if (data.hasProfileOverride) {
+                data.sex?.let         { p[K_SEX] = it }
+                data.ageYears?.let    { p[K_AGE] = it }
+                data.heightCm?.let    { p[K_HEIGHT] = it }
+                data.weightKg?.let    { p[K_WEIGHT] = it }
+                data.activityId?.let  { p[K_ACTIVITY] = it }
+                data.ethnicityId?.let { p[K_ETHNICITY] = it }
+                data.waistCm?.let     { p[K_WAIST] = it }
+                data.hipCm?.let       { p[K_HIP] = it }
+                data.neckCm?.let      { p[K_NECK] = it }
+                data.cycleDay?.let    { p[K_CYCLE_DAY] = it }
+            }
+            if (data.manualHR != null) p[K_MANUAL_HR] = data.manualHR else p.remove(K_MANUAL_HR)
+            if (data.sessions.isNotEmpty()) {
+                p[K_SESSIONS] = Json.encodeToString(data.sessions.map { SerializableSession.fromDomain(it) }.takeLast(20))
+            }
+        }
+        saveTimerState(data.timerState)
+    }
+
     @Serializable
     private data class SerializableSession(
         val id: Long, val timestamp: String, val elapsedSec: Double,

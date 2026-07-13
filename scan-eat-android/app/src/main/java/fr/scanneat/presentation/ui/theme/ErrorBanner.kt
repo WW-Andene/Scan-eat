@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -49,7 +48,10 @@ fun ErrorBanner(
                 TextButton(onClick = onAction) { Text(actionLabel, color = FlagRed) }
             }
             if (onDismiss != null) {
-                IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+                // Was Modifier.size(32.dp), shrinking the tap target below the
+                // 48dp WCAG/Material minimum — IconButton's own default already
+                // provides that minimum, so overriding it here undid it.
+                IconButton(onClick = onDismiss, modifier = Modifier.minTouchTarget()) {
                     Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnBackground.copy(0.7f))
                 }
             }

@@ -13,6 +13,7 @@ import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
@@ -57,6 +58,7 @@ class BackupRepository @Inject constructor(
     private val mealPlanRepo: MealPlanRepository,
     private val remindersRepo: RemindersRepository,
     private val groceryCheckedRepo: GroceryCheckedRepository,
+    private val biolismRepo: BiolismRepository,
     private val moshi: Moshi,
 ) {
     private val bundleAdapter = moshi.adapter(BackupBundle::class.java)
@@ -106,12 +108,14 @@ class BackupRepository @Inject constructor(
             dayNotes = dayNotesRepo.exportAll().map { (date, text) -> DayNoteBackup(date.toString(), text) },
             mealPlanRaw = mealPlanRepo.exportRaw(),
             groceryCheckedKeys = groceryCheckedRepo.checkedKeys.first().toList(),
+            biolism = biolismRepo.exportForBackup(),
         )
         return bundleAdapter.indent("  ").toJson(bundle)
     }
 
     /**
-     * Restores every table plus DataStore-backed data from [json]. The Room
+     * Restores every table plus DataStore-backed data (including, since v4,
+     * Biolism's own "biolism_prefs" DataStore) from [json]. The Room
      * tables land inside a single transaction — either the whole DB side
      * lands or none of it does, so a malformed file or a crash mid-import
      * can never leave the DB half-restored. The DataStore-backed data
@@ -206,6 +210,7 @@ class BackupRepository @Inject constructor(
         })
         bundle.mealPlanRaw?.let { mealPlanRepo.importRaw(it) }
         groceryCheckedRepo.restoreAll(bundle.groceryCheckedKeys.toSet())
+        bundle.biolism?.let { biolismRepo.importForBackup(it) }
     }
 
     /**

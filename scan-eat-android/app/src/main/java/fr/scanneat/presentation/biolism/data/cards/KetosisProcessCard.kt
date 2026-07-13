@@ -13,6 +13,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun KetosisProcessCard(s: TimerState, met: MetabolicResult) {
@@ -33,10 +34,10 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult) {
         MetCellGrid(
             listOf(
                 Triple(stringResource(R.string.biolism_ketoproc_time_label), formatDuration(s.ketoElapsedMs), ""),
-                if (s.fastingHours > 0) Triple(stringResource(R.string.biolism_ketoproc_fasting), "%.1f h".format(s.fastingHours), "")
-                else Triple(stringResource(R.string.biolism_ketoproc_gng_rate), "%.2f g/h".format(met.gngGPerHr), ""),
+                if (s.fastingHours > 0) Triple(stringResource(R.string.biolism_ketoproc_fasting), "%.1f h".format(Locale.US, s.fastingHours), "")
+                else Triple(stringResource(R.string.biolism_ketoproc_gng_rate), "%.2f g/h".format(Locale.US, met.gngGPerHr), ""),
                 Triple(stringResource(R.string.biolism_ketoproc_ketones_est), phase.estimatedKetoneMmol, ""),
-                Triple(stringResource(R.string.biolism_ketoproc_live_rq), "%.3f".format(met.sub.rq), ""),
+                Triple(stringResource(R.string.biolism_ketoproc_live_rq), "%.3f".format(Locale.US, met.sub.rq), ""),
             ),
             accents = listOf(phaseColor, Gold, TextSecondary, phaseColor),
         )

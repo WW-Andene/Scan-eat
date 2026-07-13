@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
+import fr.scanneat.domain.model.MS_PER_DAY
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.domain.model.ScoreAudit
 import fr.scanneat.domain.model.Product
@@ -35,7 +36,7 @@ private val KEY_ARMED      = booleanPreferencesKey("compare_armed")
 private val KEY_ARMED_AT   = longPreferencesKey("compare_armed_at")
 private val KEY_PREV_JSON  = stringPreferencesKey("compare_prev_json")
 
-private const val COMPARE_ARM_TTL_MS = 24L * 60 * 60 * 1000   // 24 h
+private const val COMPARE_ARM_TTL_MS = MS_PER_DAY   // 24 h
 
 data class ScoreSnapshot(
     val name: String,

@@ -29,6 +29,7 @@ import fr.scanneat.presentation.result.ResultScreen
 import fr.scanneat.presentation.scan.ScanScreen
 import fr.scanneat.presentation.settings.SettingsScreen
 import fr.scanneat.presentation.templates.TemplatesScreen
+import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 
 @Composable
 fun AppNavGraph(
@@ -36,14 +37,45 @@ fun AppNavGraph(
     startDestination: String,
     modifier: Modifier = Modifier,
 ) {
+    // System "Remove animations" setting must gate nav transitions too, not just
+    // the score-reveal animation — a slide+fade on every screen push/pop is
+    // exactly the kind of motion that setting exists to suppress. When reduced,
+    // collapse every transition to an instant (zero-duration) fade so content
+    // still swaps but nothing slides/animates.
+    val reducedMotion = rememberReducedMotion()
+    val instant = tween<Float>(durationMillis = 0)
     NavHost(
         navController    = navController,
         startDestination = startDestination,
         modifier         = modifier,
-        enterTransition  = { if (isTabSwitch()) fadeIn(tween(200)) else slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
-        exitTransition   = { if (isTabSwitch()) fadeOut(tween(200)) else slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) },
-        popEnterTransition = { if (isTabSwitch()) fadeIn(tween(200)) else slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300)) },
-        popExitTransition  = { if (isTabSwitch()) fadeOut(tween(200)) else slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)) },
+        enterTransition  = {
+            when {
+                reducedMotion -> fadeIn(instant)
+                isTabSwitch() -> fadeIn(tween(200))
+                else -> slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
+            }
+        },
+        exitTransition   = {
+            when {
+                reducedMotion -> fadeOut(instant)
+                isTabSwitch() -> fadeOut(tween(200))
+                else -> slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300))
+            }
+        },
+        popEnterTransition = {
+            when {
+                reducedMotion -> fadeIn(instant)
+                isTabSwitch() -> fadeIn(tween(200))
+                else -> slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300))
+            }
+        },
+        popExitTransition  = {
+            when {
+                reducedMotion -> fadeOut(instant)
+                isTabSwitch() -> fadeOut(tween(200))
+                else -> slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300))
+            }
+        },
     ) {
         // ── Onboarding ────────────────────────────────────────────────────
         composable(AppRoutes.ONBOARDING) {

@@ -8,6 +8,14 @@
     <string name="common_allow">Autoriser</string>
     <string name="scan_open_settings_button">Ouvrir les réglages</string>
     <string name="scan_cd_scan">Scanner</string>
+    <string name="scan_no_camera_title">Aucune caméra détectée</string>
+    <string name="scan_no_camera_body">Cet appareil n\'a pas de caméra. Saisissez le code-barres manuellement.</string>
+    <string name="scan_camera_unavailable_title">Caméra indisponible</string>
+    <string name="scan_camera_unavailable_body">Une autre appli utilise peut-être la caméra. Réessayez ou saisissez le code-barres manuellement.</string>
+    <string name="scan_manual_entry_label">Code-barres</string>
+    <string name="scan_manual_entry_hint">Saisir le code-barres</string>
+    <string name="scan_manual_entry_submit">Valider</string>
+    <string name="scan_manual_entry_toggle">Saisir un code-barres manuellement</string>
     <plurals name="scan_photo_count">
         <item quantity="one">%1$d photo</item>
         <item quantity="other">%1$d photos</item>
@@ -476,6 +484,8 @@
     <string name="grocery_clear_confirm_title">Décocher tous les articles ?</string>
     <string name="grocery_clear_confirm_body">Toutes les cases cochées seront réinitialisées. Cette action est irréversible.</string>
     <string name="grocery_cleared_confirmation">Articles décochés</string>
+    <string name="grocery_scope_planned">Uniquement les repas planifiés cette semaine</string>
+    <string name="grocery_empty_planned_body">Aucune recette planifiée cette semaine. Ajoutez des recettes à votre planning ou désactivez ce filtre.</string>
 
     <!-- ── Profile screen ─────────────────────────────────────────────────── -->
     <string name="profile_title">Mon profil</string>

@@ -55,8 +55,9 @@ fun DashboardScreen(
     onOpenGrocery: () -> Unit = {},
     onOpenCustomFoods: () -> Unit = {},
 ) {
-    val state = viewModel.state.collectAsStateWithLifecycle()
-    val s     = state.value
+    val state    = viewModel.state.collectAsStateWithLifecycle()
+    val s        = state.value
+    val language = viewModel.language.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -85,7 +86,7 @@ fun DashboardScreen(
             item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }
 
             // ---- Weekly bars ----
-            s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets) } }
+            s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets, language = language.value) } }
 
             // ---- Week-over-week delta ----
             s.weekDelta?.let { delta ->

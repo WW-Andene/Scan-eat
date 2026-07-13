@@ -2,13 +2,13 @@ package fr.scanneat.data.repository.health
 
 import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.data.local.db.weight.WeightEntity
+import fr.scanneat.domain.model.roundTo1Decimal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.roundToInt
 
 // ============================================================================
 // WEIGHT REPOSITORY — port of public/data/weight-log.js
@@ -60,7 +60,7 @@ class WeightRepository @Inject constructor(
     suspend fun log(date: LocalDate, weightKg: Double, notes: String = "", profileId: String = "default") {
         require(weightKg > 0 && weightKg <= 400) { "Invalid weight: $weightKg" }
         val existing = dao.findByDate(date.toString(), profileId)
-        val rounded = (weightKg * 10.0).roundToInt() / 10.0
+        val rounded = weightKg.roundTo1Decimal()
         dao.upsert(WeightEntity(
             id        = existing?.id ?: UUID.randomUUID().toString(),
             date      = date.toString(),
@@ -89,7 +89,7 @@ class WeightRepository @Inject constructor(
         val recent  = all.filter { !it.date.isBefore(cutoff) }
         val window  = recent.ifEmpty { listOf(all.first()) }
         val first   = window.first()
-        val delta   = ((latest.weightKg - first.weightKg) * 10.0).roundToInt() / 10.0
+        val delta   = (latest.weightKg - first.weightKg).roundTo1Decimal()
 
         return WeightSummary(
             latestKg       = latest.weightKg,
@@ -120,7 +120,7 @@ class WeightRepository @Inject constructor(
             den += (xn[i] - meanX) * (xn[i] - meanX)
         }
         if (den == 0.0) return 0.0
-        return ((num / den) * 7.0 * 10.0).roundToInt() / 10.0
+        return ((num / den) * 7.0).roundTo1Decimal()
     }
 
     private fun WeightEntity.toDomain() = WeightEntry(id, LocalDate.parse(date), weightKg, notes)

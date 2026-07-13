@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,10 +20,18 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.RollupResult
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.presentation.ui.theme.*
+import java.time.format.TextStyle
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
-internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
+internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, language: String) {
+    // In-app language can differ from the device locale - dayOfWeek.name is always
+    // the English enum constant (MONDAY, TUESDAY, ...) regardless of it, so every
+    // other screen with day/date labels (DiaryScreen, WeightScreen, MealPlanScreen)
+    // explicitly formats with Locale(language) instead. This card previously didn't,
+    // so its day labels stayed in English even when the user picked another language.
+    val locale = remember(language) { Locale(language) }
   Box(Modifier.fillMaxWidth().glassSheen()) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -58,7 +67,8 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 rollup.days.forEach { day ->
                     Text(
-                        day.date.dayOfWeek.name.take(2),
+                        day.date.dayOfWeek.getDisplayName(TextStyle.NARROW, locale)
+                            .replaceFirstChar { it.uppercaseChar() },
                         modifier  = Modifier.weight(1f),
                         style     = MaterialTheme.typography.labelSmall,
                         color     = if (day.date == java.time.LocalDate.now()) AccentCoral else OnSurface.copy(0.4f),

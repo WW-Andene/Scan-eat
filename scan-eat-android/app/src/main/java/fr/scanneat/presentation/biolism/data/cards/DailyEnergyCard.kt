@@ -13,6 +13,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import java.util.Locale
 
 @Composable
 fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState, sessions: List<BiolismSession>, todayIntakeKcal: Double) {
@@ -21,16 +22,16 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.S)) {
             Text(stringResource(R.string.biolism_energy_tdee_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), letterSpacing = 1.sp)
-            Text("%.1f".format(met.tdeeDay), style = HeroNumberStyle.copy(fontSize = 34.sp), color = Gold)
+            Text("%.1f".format(Locale.US, met.tdeeDay), style = HeroNumberStyle.copy(fontSize = 34.sp), color = Gold)
             Text(stringResource(R.string.biolism_energy_tdee_sub, met.tdeeDay / met.bmrDay.coerceAtLeast(1.0)), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         }
         InfoRow(stringResource(R.string.biolism_energy_activity_level), profile.activityMeta.label, profile.activityMeta.note, Gold)
         val kcalJ = stringResource(R.string.biolism_energy_kcal_j)
         MetCellGrid(listOf(
-            Triple(stringResource(R.string.biolism_energy_bmr_avg), "%.1f".format(met.bmrDay), stringResource(R.string.biolism_energy_bmr_avg_sub)),
-            Triple("Mifflin-St Jeor", "%.1f".format(met.bmrMsj), kcalJ),
-            Triple("Katch-McArdle", "%.1f".format(met.bmrKm), stringResource(R.string.biolism_energy_km_sub)),
-        ) + if (s.ketosisOn) listOf(Triple(stringResource(R.string.biolism_energy_bmr_suppressed), "%.1f".format(met.bmrDay * met.ketoSupprFactor), stringResource(R.string.biolism_energy_bmr_suppressed_sub))) else emptyList())
+            Triple(stringResource(R.string.biolism_energy_bmr_avg), "%.1f".format(Locale.US, met.bmrDay), stringResource(R.string.biolism_energy_bmr_avg_sub)),
+            Triple("Mifflin-St Jeor", "%.1f".format(Locale.US, met.bmrMsj), kcalJ),
+            Triple("Katch-McArdle", "%.1f".format(Locale.US, met.bmrKm), stringResource(R.string.biolism_energy_km_sub)),
+        ) + if (s.ketosisOn) listOf(Triple(stringResource(R.string.biolism_energy_bmr_suppressed), "%.1f".format(Locale.US, met.bmrDay * met.ketoSupprFactor), stringResource(R.string.biolism_energy_bmr_suppressed_sub))) else emptyList())
         Spacer(Modifier.height(6.dp))
         InfoRow(stringResource(R.string.biolism_energy_deficit), stringResource(R.string.biolism_energy_kcal_per_day_value, met.tdeeDay - 500), stringResource(R.string.biolism_energy_deficit_sub), Teal)
         InfoRow(stringResource(R.string.biolism_energy_surplus), stringResource(R.string.biolism_energy_kcal_per_day_value, met.tdeeDay + 300), stringResource(R.string.biolism_energy_surplus_sub), Violet)
@@ -46,12 +47,12 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
         Spacer(Modifier.height(8.dp))
         TintedPanel(if (netBal > 200) Danger else if (netBal < -50) Teal else Gold) {
             Label(stringResource(R.string.biolism_energy_balance_title), if (netBal > 200) Danger else if (netBal < -50) Teal else Gold)
-            InfoRow(stringResource(R.string.biolism_energy_intake), "%.0f kcal".format(todayIntakeKcal), stringResource(R.string.biolism_energy_intake_sub), Teal)
-            InfoRow(stringResource(R.string.biolism_energy_expenditure), "%.0f kcal".format(totalOut), stringResource(R.string.biolism_energy_expenditure_sub, met.tdeeDay, todaySessKcal), Gold)
-            InfoRow(stringResource(R.string.biolism_energy_net_balance), "%+.0f kcal".format(netBal),
+            InfoRow(stringResource(R.string.biolism_energy_intake), "%.0f kcal".format(Locale.US, todayIntakeKcal), stringResource(R.string.biolism_energy_intake_sub), Teal)
+            InfoRow(stringResource(R.string.biolism_energy_expenditure), "%.0f kcal".format(Locale.US, totalOut), stringResource(R.string.biolism_energy_expenditure_sub, met.tdeeDay, todaySessKcal), Gold)
+            InfoRow(stringResource(R.string.biolism_energy_net_balance), "%+.0f kcal".format(Locale.US, netBal),
                 if (netBal > 200) stringResource(R.string.biolism_energy_status_surplus) else if (netBal < -50) stringResource(R.string.biolism_energy_status_deficit) else stringResource(R.string.biolism_energy_status_balanced),
                 if (netBal > 200) Danger else if (netBal < -50) Teal else Gold)
-            InfoRow(stringResource(R.string.biolism_energy_weight_impact), "%+.3f kg".format(netBal / 7700.0), stringResource(R.string.biolism_energy_weight_impact_sub), TextSecondary)
+            InfoRow(stringResource(R.string.biolism_energy_weight_impact), "%+.3f kg".format(Locale.US, netBal / 7700.0), stringResource(R.string.biolism_energy_weight_impact_sub), TextSecondary)
         }
     }
 }

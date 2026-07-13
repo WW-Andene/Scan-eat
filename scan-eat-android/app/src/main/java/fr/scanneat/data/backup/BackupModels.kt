@@ -7,6 +7,7 @@ import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.template.MealTemplateEntity
 import fr.scanneat.data.local.db.weight.WeightEntity
+import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastCompletion
 import fr.scanneat.data.repository.reminders.ReminderSettings
 
@@ -20,6 +21,9 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // history), hydration log, day notes, and the meal plan. Since v3, also the
 // grocery-list checked-off state (its own DataStore file, added alongside
 // the check-off feature — easy to forget since it isn't a @Database entity).
+// Since v4, also Biolism's own DataStore (biolism_prefs): its profile override,
+// onboarding flag, session timer state, manual HR, and workout session history
+// — previously silently lost on restore-to-a-new-device just like the v2 data.
 //
 // Deliberately excludes the Groq API key from SettingsBackup — a backup file
 // shared for debugging or support must not leak a credential.
@@ -30,7 +34,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 3
+const val BACKUP_FORMAT_VERSION = 4
 
 data class ProfileBackup(
     val name: String,
@@ -84,6 +88,7 @@ data class BackupBundle(
     // adapter for MealPlanSlot's sealed subclasses.
     val mealPlanRaw: String? = null,
     val groceryCheckedKeys: List<String> = emptyList(),
+    val biolism: BiolismRepository.BiolismBackupData? = null,
 )
 
 data class BackupSummary(

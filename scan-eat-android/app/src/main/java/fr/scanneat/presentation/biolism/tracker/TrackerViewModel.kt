@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
+import fr.scanneat.domain.model.MS_PER_HOUR
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.time.Instant
@@ -214,7 +215,7 @@ class TrackerViewModel @Inject constructor(
     // ── Add time to keto/fasting timers ──────────────────────────────────────
     fun addKetoHours(hours: Double) {
         val s = _timerState.value
-        val addMs = (hours * 3_600_000L).toLong()
+        val addMs = (hours * MS_PER_HOUR).toLong()
         val next  = s.copy(ketoAccumulatedMs = (s.ketoAccumulatedMs + addMs).coerceAtLeast(0L))
         _timerState.value = next
         _ketoElapsedMs.value = next.ketoElapsedMs
@@ -223,7 +224,7 @@ class TrackerViewModel @Inject constructor(
 
     fun addFastingHours(hours: Double) {
         val s = _timerState.value
-        val deltaMs = (hours * 3_600_000L).toLong()
+        val deltaMs = (hours * MS_PER_HOUR).toLong()
         // Upper-bounded at "now" too — unlike addKetoHours' single coerceAtLeast(0),
         // repeatedly tapping the "-" stepper here could otherwise push lastMealTs into
         // the future, making fastingHours negative and silently blanking the badge.
