@@ -77,3 +77,20 @@ private fun parseCsvLine(line: String): List<String> {
 
 fun findNonConsumableByBarcode(context: Context, barcode: String): NonConsumableDbEntry? =
     NonConsumableStore.get(context)[barcode.filter { it.isDigit() }]
+
+private fun normalizeForMatch(s: String): String =
+    java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
+        .replace(Regex("\\p{Mn}"), "")
+        .lowercase()
+        .filter { it.isLetterOrDigit() || it == ' ' }
+        .trim()
+
+/** Same OCR-name fallback as MedicationLookupDb.findMedicationByName, against OPF's ~1,250 household/chemical entries. */
+fun findNonConsumableByName(context: Context, name: String): NonConsumableDbEntry? {
+    val query = normalizeForMatch(name)
+    if (query.length < 3) return null
+    return NonConsumableStore.get(context).values.firstOrNull { entry ->
+        val candidate = normalizeForMatch("${entry.brand} ${entry.name}")
+        candidate.contains(query) || query.contains(normalizeForMatch(entry.name))
+    }
+}

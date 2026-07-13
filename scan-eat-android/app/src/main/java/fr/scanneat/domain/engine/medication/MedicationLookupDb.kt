@@ -97,3 +97,29 @@ fun findMedicationByBarcode(context: Context, barcode: String): MedicationDbEntr
     if (digits.length == 14) store[digits.substring(1)]?.let { return it }
     return null
 }
+
+private fun normalizeForMatch(s: String): String =
+    java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
+        .replace(Regex("\\p{Mn}"), "")
+        .lowercase()
+        .filter { it.isLetterOrDigit() || it == ' ' }
+        .trim()
+
+/**
+ * Fallback for when there's no barcode/DataMatrix/QR to scan at all — OCR
+ * reads the drug name off the box (see OcrParser.identifyProductName), and
+ * this matches it against BDPM's ~12,300 entries by name instead. A linear
+ * scan is fine here: this only runs once per explicit user action ("identify
+ * without a label"), never per camera frame. Accent/case-insensitive, and
+ * matches on whichever direction (OCR text found within the BDPM name, or
+ * vice versa) since OCR text is rarely an exact full match to the official
+ * denomination (e.g. missing dosage/form suffixes, or the reverse).
+ */
+fun findMedicationByName(context: Context, name: String): MedicationDbEntry? {
+    val query = normalizeForMatch(name)
+    if (query.length < 3) return null
+    return MedicationStore.get(context).values.firstOrNull { entry ->
+        val candidate = normalizeForMatch(entry.name)
+        candidate.contains(query) || query.contains(candidate)
+    }
+}

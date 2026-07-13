@@ -16,8 +16,10 @@ import fr.scanneat.data.repository.scan.ProductNotFoundException
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.medication.MedicationDbEntry
 import fr.scanneat.domain.engine.medication.findMedicationByBarcode
+import fr.scanneat.domain.engine.medication.findMedicationByName
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
+import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByName
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -179,10 +181,14 @@ class ScanViewModel @Inject constructor(
     }
 
     /**
-     * Identifies a food from photo(s) with no barcode/label to OCR (fresh
-     * produce, a plated dish) — routes to ScanRepository's identifyMode instead
-     * of the label-parsing path score() uses. Only makes sense with no barcode
-     * held, since a barcode already has a much more reliable lookup path.
+     * Identifies whatever is in photo(s) with no barcode/DataMatrix/QR to
+     * scan — a medication or household product without any machine-readable
+     * code, or fresh produce / a plated dish. Previously this always assumed
+     * food (scoreFromImages' identifyMode), which would score a medication box
+     * as if it were something to eat. Now reads just the printed name first
+     * and checks it against the medication/non-consumable name-lookup DBs —
+     * only falling back to the food nutrition-estimate path when neither
+     * matches, same priority order as the barcode path in score() below.
      */
     fun identifyFromPhotos() {
         val imgs = _images.value
@@ -196,6 +202,17 @@ class ScanViewModel @Inject constructor(
                 if (!online) {
                     _state.value = ScanUiState.Error(noInputMessage(lang))
                     return@launch
+                }
+                val name = runCatching { scanRepo.identifyProductName(imgs) }.getOrNull()
+                if (name != null) {
+                    withContext(Dispatchers.IO) { findMedicationByName(appContext, name) }?.let { entry ->
+                        _state.value = ScanUiState.MedicationFound(entry)
+                        return@launch
+                    }
+                    withContext(Dispatchers.IO) { findNonConsumableByName(appContext, name) }?.let { entry ->
+                        _state.value = ScanUiState.NonConsumableFound(entry)
+                        return@launch
+                    }
                 }
                 val result = scanRepo.scoreFromImages(imgs, lang, online, identifyMode = true)
                 result.fold(

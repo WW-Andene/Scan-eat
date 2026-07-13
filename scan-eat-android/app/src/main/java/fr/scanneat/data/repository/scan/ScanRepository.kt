@@ -201,6 +201,19 @@ class ScanRepository @Inject constructor(
         Pair(result, persist(result))
     }
 
+    /**
+     * Reads just the printed product/brand name off a photo — the first step
+     * of "identify without a label", so a medication or non-consumable with
+     * no barcode at all can still be matched by name before falling back to
+     * scoring it as food (see ScanViewModel.identifyFromPhotos).
+     */
+    suspend fun identifyProductName(images: List<ImagePayload>): String? {
+        val apiKey = prefs.groqApiKey.first()
+        val cerebrasKey = prefs.cerebrasApiKey.first()
+        if (apiKey.isBlank() && cerebrasKey.isBlank()) return null
+        return ocrParser.identifyProductName(images, apiKey, cerebrasKey)
+    }
+
     // ---- Server mode ----
 
     private suspend fun scoreViaServer(
