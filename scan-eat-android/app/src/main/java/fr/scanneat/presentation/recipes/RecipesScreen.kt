@@ -1,35 +1,28 @@
 package fr.scanneat.presentation.recipes
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
-import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
-import fr.scanneat.domain.model.MealSlot
+import fr.scanneat.presentation.recipes.components.AddRecipeDialog
+import fr.scanneat.presentation.recipes.components.LogOfficialRecipeDialog
+import fr.scanneat.presentation.recipes.components.LogRecipeDialog
+import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
+import fr.scanneat.presentation.recipes.components.RecipeCard
 import fr.scanneat.presentation.ui.theme.*
-import kotlin.math.roundToInt
-
 
 @Composable
 fun RecipesScreen(
@@ -130,274 +123,3 @@ fun RecipesScreen(
 
 }
 
-@Composable
-private fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit) {
-    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
-        Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(recipe.name, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                        Text(stringResource(R.string.recipes_summary, recipe.totalKcal.toInt(), recipe.components.size, recipe.totalGrams.toInt()),
-                            style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                    }
-                    Row {
-                        // Sized to match TemplatesScreen's identical Log+Delete row pattern —
-                        // left at the unconstrained 48dp default, this delete control had a
-                        // larger hit target than every other delete affordance in the app,
-                        // right next to the primary Log action.
-                        IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
-                        IconButton(onClick = onRename, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f)) }
-                        IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
-                    }
-                }
-                recipe.components.take(3).forEach { c ->
-                    Text(stringResource(R.string.templates_item_summary, c.productName, c.grams.toInt(), c.kcal.toInt()),
-                        style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
-                }
-                if (recipe.components.size > 3) Text(stringResource(R.string.templates_more_items, recipe.components.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
-                // Diet/allergen check previously only ever ran on scanned products -
-                // a recipe built from ingredients the user's own profile forbids
-                // (allergen or diet violation) had no warning anywhere in this screen.
-                warning?.let {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
-                        Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
-                    }
-                }
-                // findPairings()/PairingsDb.kt (Ahn et al. flavor-network data) was
-                // already used for scanned products but never reached Recipes - the
-                // exact same "what goes well with this" question applies here too.
-                if (pairings.isNotEmpty()) {
-                    Text(
-                        stringResource(R.string.recipes_pairs_well_with, pairings.joinToString(", ")),
-                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warning: String?, pairings: List<String>, onLog: () -> Unit, onClone: () -> Unit) {
-    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
-        Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(if (isFrench) recipe.nameFr else recipe.nameEn, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            stringResource(R.string.recipes_summary, recipe.totalKcal.toInt(), recipe.ingredients.size, recipe.totalGrams.toInt()),
-                            style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f),
-                        )
-                    }
-                    Row {
-                        IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
-                        IconButton(onClick = onClone, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.ContentCopy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
-                    }
-                }
-                recipe.ingredients.take(4).forEach { ing ->
-                    Text("${ing.foodName} · ${ing.grams.toInt()} g", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
-                }
-                warning?.let {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
-                        Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
-                    }
-                }
-                if (pairings.isNotEmpty()) {
-                    Text(
-                        stringResource(R.string.recipes_pairs_well_with, pairings.joinToString(", ")),
-                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LogOfficialRecipeDialog(recipe: OfficialRecipe, isFrench: Boolean, onDismiss: () -> Unit, onLog: (MealSlot) -> Unit) {
-    var slot by remember { mutableStateOf(MealSlot.LUNCH) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
-        title = { Text(stringResource(R.string.recipes_log_dialog_title, if (isFrench) recipe.nameFr else recipe.nameEn), color = OnBackground) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    MealSlot.values().forEach { s ->
-                        FilterChip(selected = slot == s, onClick = { slot = s }, label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
-                    }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = { onLog(slot) }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-    )
-}
-
-@Composable
-private fun AddRecipeDialog(
-    onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>, Int) -> Unit,
-    searchResults: List<FoodEntry> = emptyList(), onQueryChange: (String) -> Unit = {},
-) {
-    var name by remember { mutableStateOf("") }
-    var components by remember { mutableStateOf(listOf<RecipeComponent>()) }
-    var newIngName by remember { mutableStateOf("") }
-    var newIngGrams by remember { mutableStateOf("") }
-    var newIngKcal by remember { mutableStateOf("") }
-    // Set once a FOOD_DB/custom-food search result is picked - carries full
-    // macros (protein/carbs/fat/fiber), not just the kcal the manual fields
-    // below ever captured. Cleared whenever the name is edited by hand again,
-    // so a stale selection can't silently get applied to a since-retyped name.
-    var selectedFood by remember { mutableStateOf<FoodEntry?>(null) }
-    // The recipe model has always supported a `servings` count (RecipeRepository.Recipe /
-    // RecipeEntity), but this dialog never collected it, so every recipe saved through the
-    // UI was silently persisted with servings=1 regardless of how many portions it actually
-    // makes — the log dialog's "portion fraction" then had to be reverse-engineered by hand
-    // (e.g. entering 0.25 for "1 of 4 servings"). Collecting it here is what makes the
-    // servings-based logging in LogRecipeDialog below meaningful.
-    var servingsText by remember { mutableStateOf("1") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor  = SurfaceVariant,
-        title = { Text(stringResource(R.string.recipes_add_dialog_title), color = OnBackground) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    colors = scanEatTextFieldColors())
-                OutlinedTextField(value = servingsText, onValueChange = { servingsText = it }, label = { Text(stringResource(R.string.recipes_field_servings)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = scanEatTextFieldColors())
-                HorizontalDivider(color = OnBackground.copy(0.1f))
-                Text(stringResource(R.string.recipes_ingredients_label), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
-                components.forEach { c ->
-                    Text(stringResource(R.string.recipes_ingredient_summary_compact, c.productName, c.grams.toInt(), c.kcal.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface)
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(
-                        value = newIngName,
-                        onValueChange = { newIngName = it; selectedFood = null; onQueryChange(it) },
-                        label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
-                        colors = scanEatTextFieldColors(),
-                    )
-                    OutlinedTextField(value = newIngGrams, onValueChange = { newIngGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = scanEatTextFieldColors())
-                    // Manual kcal entry only matters as a fallback once no database match is
-                    // picked - hidden once one is, since its full macros are used instead.
-                    if (selectedFood == null) {
-                        OutlinedTextField(value = newIngKcal, onValueChange = { newIngKcal = it }, label = { Text("kcal") }, modifier = Modifier.weight(1f), singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            colors = scanEatTextFieldColors())
-                    }
-                }
-                // FOOD_DB + custom-food search results - previously this dialog had no
-                // lookup at all, so ingredients could never carry real protein/carbs/
-                // fat/fiber, and a user's own custom food could never be reused here.
-                if (selectedFood == null && searchResults.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        searchResults.take(5).forEach { food ->
-                            Text(
-                                food.name, style = MaterialTheme.typography.bodySmall, color = AccentCoral,
-                                modifier = Modifier.fillMaxWidth().clickable {
-                                    selectedFood = food
-                                    newIngName = food.name
-                                    onQueryChange("")
-                                }.padding(vertical = 4.dp),
-                            )
-                        }
-                    }
-                }
-                TextButton(onClick = {
-                    // A zero/negative gram amount would divide-by-zero or invert the
-                    // per-100g nutrition math wherever this component is later scaled.
-                    val g = newIngGrams.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return@TextButton
-                    if (newIngName.isBlank()) return@TextButton
-                    val food = selectedFood
-                    val component = if (food != null) {
-                        RecipeComponent(
-                            productName = food.name, grams = g,
-                            kcal     = food.kcal * g / 100.0,
-                            proteinG = food.proteinG * g / 100.0,
-                            carbsG   = food.carbsG * g / 100.0,
-                            fatG     = food.fatG * g / 100.0,
-                            fiberG   = food.fiberG * g / 100.0,
-                        )
-                    } else {
-                        val k = newIngKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0
-                        RecipeComponent(newIngName, g, k)
-                    }
-                    components = components + component
-                    newIngName = ""; newIngGrams = ""; newIngKcal = ""; selectedFood = null; onQueryChange("")
-                }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentCoral) }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                if (name.isNotBlank() && components.isNotEmpty()) {
-                    val servings = servingsText.toIntOrNull()?.coerceAtLeast(1) ?: 1
-                    onSave(name, components, servings)
-                }
-            }, enabled = name.isNotBlank() && components.isNotEmpty()) {
-                Text(stringResource(R.string.common_create), color = AccentCoral)
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-    )
-}
-
-// ============================================================================
-// FEATURE: log-by-servings — recipes always stored a `servings` count, but
-// nothing in the app ever read it, so logging a portion of a multi-serving
-// dish meant mentally computing "1 serving / 4 servings = 0.25" and typing
-// that fraction by hand. This lets the user say how many servings they ate
-// directly and does the fraction math for them, showing the per-serving
-// gram weight as a sanity check.
-// ============================================================================
-@Composable
-private fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealSlot, Double) -> Unit) {
-    var slot by remember { mutableStateOf(MealSlot.LUNCH) }
-    var servingsText by remember { mutableStateOf("1") }
-    val gramsPerServing = recipe.totalGrams / recipe.servings
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
-        title = { Text(stringResource(R.string.recipes_log_dialog_title, recipe.name), color = OnBackground) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    MealSlot.values().forEach { s ->
-                        FilterChip(selected = slot == s, onClick = { slot = s }, label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
-                    }
-                }
-                OutlinedTextField(value = servingsText, onValueChange = { servingsText = it },
-                    label = { Text(stringResource(R.string.recipes_servings_to_log_label, recipe.servings)) }, singleLine = true,
-                    isError = servingsText.isNotBlank() && (servingsText.replace(',', '.').toDoubleOrNull()?.let { it <= 0.0 } != false),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    colors = scanEatTextFieldColors())
-                Text(stringResource(R.string.recipes_per_serving_hint, gramsPerServing.roundToInt()),
-                    style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-            }
-        },
-        confirmButton = {
-            // A zero/negative servings-to-log would log negative kcal/macros via
-            // consumptionRepo.log - same numeric-entry guard as Weight/CustomFood.
-            TextButton(onClick = {
-                servingsText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }?.let { servingsToLog ->
-                    onLog(slot, servingsToLog / recipe.servings)
-                }
-            }) {
-                Text(stringResource(R.string.common_log), color = AccentCoral)
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-    )
-}
