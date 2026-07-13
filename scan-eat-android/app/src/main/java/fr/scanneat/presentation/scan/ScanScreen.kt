@@ -486,6 +486,21 @@ private fun ManualBarcodeEntry(onSubmit: (String) -> Unit) {
     }
 }
 
+/**
+ * Many French medication boxes carry no EAN-13 at all — only a GS1 DataMatrix
+ * (sometimes a QR) encoding a GS1 "element string": AI 01 (14-digit GTIN),
+ * often followed by AI 17 (expiry), AI 10 (batch/lot), etc., e.g.
+ * "0103400999999941726073110ABC123". This pulls just the GTIN out of that
+ * string so it can be looked up exactly like a scanned barcode. FNC1 (ASCII
+ * 29, GS) separators before a variable-length field are stripped if present;
+ * fixed-length AI 01 doesn't need one to terminate correctly.
+ */
+private fun extractGtinFromGs1(raw: String): String? {
+    val cleaned = raw.filterNot { it.code == 29 } // strip GS1 FNC1/group-separator control chars (ASCII 29)
+    val match = Regex("01(\\d{14})").find(cleaned) ?: return null
+    return match.groupValues[1]
+}
+
 // ImageProxy.image is CameraX's @ExperimentalGetImage API, which is built on
 // the androidx.annotation.experimental system rather than Kotlin's native
 // @RequiresOptIn - lint's UnsafeOptInUsageDetector only recognizes
@@ -517,6 +532,22 @@ private fun analyzeFrame(
                             Barcode.FORMAT_ITF)) {
                         val digits = raw.filter { it.isDigit() }
                         if (digits.length in listOf(8, 12, 13, 14)) {
+                            onBarcodeDetected(digits)
+                            bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
+                            foundAny = true
+                            break
+                        }
+                    } else if (bc.format == Barcode.FORMAT_DATA_MATRIX || bc.format == Barcode.FORMAT_QR_CODE) {
+                        // Many French medication boxes carry no EAN-13 at all - only a
+                        // GS1 DataMatrix (2D "CIP DataMatrix"), and some carry a plain
+                        // QR code that just encodes the barcode digits directly. Try the
+                        // GS1 GTIN extraction first; if that finds nothing, fall back to
+                        // treating the raw value as a plain barcode only when it's
+                        // exactly digits of a plausible length (never for an arbitrary
+                        // QR code like a URL).
+                        val digits = extractGtinFromGs1(raw)
+                            ?: raw.takeIf { it.all(Char::isDigit) && it.length in listOf(8, 12, 13, 14) }
+                        if (digits != null) {
                             onBarcodeDetected(digits)
                             bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
                             foundAny = true

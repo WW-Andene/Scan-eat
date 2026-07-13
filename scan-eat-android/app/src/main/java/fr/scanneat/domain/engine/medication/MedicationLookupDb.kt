@@ -83,5 +83,17 @@ private fun parseCsvLine(line: String): List<String> {
     return out
 }
 
-fun findMedicationByBarcode(context: Context, barcode: String): MedicationDbEntry? =
-    MedicationStore.get(context)[barcode.filter { it.isDigit() }]
+/**
+ * The BDPM CSV keys entries by CIP13 (13 digits) — but a 2D DataMatrix/QR on
+ * the box (see ScanScreen.extractGtinFromGs1) yields a GTIN-14, formed per
+ * GS1 France pharma rules by prepending a packaging-indicator digit (almost
+ * always "3") to the CIP13. A direct 14-digit lookup would always miss, so
+ * this also tries the CIP13 obtained by dropping that leading digit.
+ */
+fun findMedicationByBarcode(context: Context, barcode: String): MedicationDbEntry? {
+    val digits = barcode.filter { it.isDigit() }
+    val store = MedicationStore.get(context)
+    store[digits]?.let { return it }
+    if (digits.length == 14) store[digits.substring(1)]?.let { return it }
+    return null
+}
