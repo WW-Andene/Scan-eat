@@ -37,6 +37,13 @@ data class ResultUiState(
 // good choice, and surfacing one for every single scan would just be noise.
 private val ALTERNATIVE_ELIGIBLE_GRADES = setOf(Grade.C, Grade.D, Grade.F)
 
+// Branded/manufactured categories whose name is a flavor or product label, not
+// a raw ingredient - "pairs well with" suggestions don't make sense for them.
+private val NON_PAIRABLE_CATEGORIES = setOf(
+    ProductCategory.BEVERAGE_SOFT, ProductCategory.BEVERAGE_JUICE, ProductCategory.BEVERAGE_WATER,
+    ProductCategory.SNACK_SWEET, ProductCategory.SNACK_SALTY, ProductCategory.CONDIMENT,
+)
+
 sealed class LogState {
     data object Idle    : LogState()
     data object Loading : LogState()
@@ -112,7 +119,13 @@ class ResultViewModel @Inject constructor(
                 cachedComparison = if (comparisonRepo.isArmed.first()) comparisonRepo.compare(scan)
                                    else { comparisonRepo.arm(scan); null }
             }
-            val pairs      = findPairings(scan.product.name, limit = 5)
+            // Pairing suggestions are meant for a whole/raw ingredient ("tomate",
+            // "boeuf") - a branded beverage or sweet snack's name often carries a
+            // flavor descriptor ("Vanille", "Fraise") that happens to key an
+            // ingredient in the pairings database, producing baking-ingredient
+            // suggestions for a soda that has nothing to do with them.
+            val pairs      = if (scan.product.category in NON_PAIRABLE_CATEGORIES) emptyList()
+                              else findPairings(scan.product.name, limit = 5)
             val alternative = if (scan.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES)
                 scanRepo.findBetterAlternative(scan) else null
 

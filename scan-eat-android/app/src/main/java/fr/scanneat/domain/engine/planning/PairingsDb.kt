@@ -1821,7 +1821,14 @@ fun resolveIngredient(name: String): String? {
     if (q.length < 2) return null
     FR_TO_EN[q]?.let { return it }
     val tokens = q.split(Regex("\\s+")).filter { it.length >= 2 }
-    for (size in tokens.size downTo 1) {
+    // A branded/multi-word product name (e.g. "Coca-Cola Vanille") can contain an
+    // incidental flavor word ("vanille") that happens to key an ingredient, even
+    // though the product itself isn't that ingredient at all. Requiring the
+    // matched span to cover at least half the meaningful tokens keeps genuine
+    // near-synonyms ("boeuf haché" -> boeuf) while rejecting a single stray word
+    // buried in an otherwise unrelated name.
+    val minSize = ((tokens.size + 1) / 2).coerceAtLeast(1)
+    for (size in tokens.size downTo minSize) {
         for (start in 0..(tokens.size - size)) {
             val candidate = tokens.subList(start, start + size).joinToString(" ")
             FR_TO_EN[candidate]?.let { return it }
