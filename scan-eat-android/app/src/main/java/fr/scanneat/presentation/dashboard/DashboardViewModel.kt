@@ -86,7 +86,15 @@ class DashboardViewModel @Inject constructor(
     }
         .flatMapLatest { (today, allEntries, profile, bioProfile) ->
             flow {
-                val targets   = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
+                // WeeklyBarsCard/gap engines below all read targets.kcal directly, but
+                // only calorieBalance further down ever substituted the richer
+                // Biolism TDEE for it - so this same screen could show a Biolism-based
+                // "1850/2400 kcal today" balance right next to a WeeklyBarsCard target
+                // line still drawn from the plain PAL-based estimate. Overriding once,
+                // at the source, keeps every consumer of `targets` in agreement.
+                val bioTdeePreview = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
+                val targets = (if (hasMinimalProfile(profile)) dailyTargets(profile) else null)
+                    ?.let { if (bioTdeePreview != null) it.copy(kcal = bioTdeePreview) else it }
                 val thisWeek  = weeklyRollup(allEntries, LocalDate.now())
                 val priorWeek = weeklyRollup(allEntries, LocalDate.now().minusDays(7))
                 val wSummary  = weightRepo.summarize(30)
@@ -103,13 +111,11 @@ class DashboardViewModel @Inject constructor(
                 // happened to be true today.
                 val chronic = if (targets != null) chronicNutrientGaps(allEntries, targets, FOOD_DB) else emptyList()
 
-                val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
-                val tdee = bioTdee ?: targets?.kcal
-                val calorieBalance = tdee?.let {
+                val calorieBalance = targets?.kcal?.let {
                     CalorieBalance(
                         kcalIn          = today.totals.energyKcal,
                         tdee            = it,
-                        tdeeFromBiolism = bioTdee != null,
+                        tdeeFromBiolism = bioTdeePreview != null,
                         net             = today.totals.energyKcal - it,
                     )
                 }

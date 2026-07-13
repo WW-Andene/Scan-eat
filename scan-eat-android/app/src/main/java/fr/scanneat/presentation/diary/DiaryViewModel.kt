@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
+import fr.scanneat.domain.engine.biolism.BiolismEngine
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.DailyTargets
@@ -31,6 +33,7 @@ class DiaryViewModel @Inject constructor(
     private val notesRepo: DayNotesRepository,
     private val customFoodRepo: CustomFoodRepository,
     private val prefs: UserPreferences,
+    private val biolismRepo: BiolismRepository,
 ) : ViewModel() {
 
     // Fix 13: selectedDate as a StateFlow — avoids stale data across midnight
@@ -49,9 +52,18 @@ class DiaryViewModel @Inject constructor(
     // Journal's macro summary previously showed only raw totals ("120g protein")
     // with no reference to the profile's actual daily target, even though
     // Dashboard's equivalent card computes and displays exactly that.
-    val targets: StateFlow<DailyTargets?> = prefs.profile
-        .map { profile -> if (hasMinimalProfile(profile)) dailyTargets(profile) else null }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    //
+    // The kcal target itself previously came from dailyTargets(profile) alone,
+    // ignoring a valid Biolism profile entirely - Dashboard's CalorieBalanceCard
+    // already prefers BiolismEngine.computeMetabolics().tdeeDay (a richer,
+    // body-composition-aware TDEE) over the plain PAL-based profile estimate
+    // whenever one exists, so Journal and Dashboard could silently disagree on
+    // the same day's calorie target. Same override rule, applied here too.
+    val targets: StateFlow<DailyTargets?> = combine(prefs.profile, biolismRepo.profile) { profile, bioProfile ->
+        val base = if (hasMinimalProfile(profile)) dailyTargets(profile) else return@combine null
+        val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
+        if (bioTdee != null) base.copy(kcal = bioTdee) else base
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun goToPreviousDay() { _selectedDate.value = _selectedDate.value.minusDays(1) }
     fun goToNextDay()     { _selectedDate.value = _selectedDate.value.plusDays(1) }
