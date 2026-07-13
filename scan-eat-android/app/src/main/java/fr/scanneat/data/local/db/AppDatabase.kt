@@ -34,7 +34,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         RecipeEntity::class,
         MedicationEntity::class,
     ],
-    version = 11,
+    version = 12,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -179,5 +179,15 @@ val MIGRATION_10_11 = object : Migration(10, 11) {
                 "PRIMARY KEY(`id`))"
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_medications_profileId` ON `medications` (`profileId`)")
+    }
+}
+val MIGRATION_11_12 = object : Migration(11, 12) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v11 → v12: medications gain an optional daily reminder — Fasting/
+        // Hydration/Weight all fire a notification via ReminderWorker, but a
+        // medication's "schedule" was just a display-only free-text note with
+        // no way to actually be reminded to take it.
+        db.execSQL("ALTER TABLE `medications` ADD COLUMN `reminderOn` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `medications` ADD COLUMN `reminderTime` TEXT NOT NULL DEFAULT '08:00'")
     }
 }

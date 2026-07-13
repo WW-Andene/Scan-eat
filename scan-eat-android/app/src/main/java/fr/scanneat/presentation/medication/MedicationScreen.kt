@@ -38,6 +38,7 @@ fun MedicationScreen(
     var showAdd by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<Medication?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    var reminderTarget by remember { mutableStateOf<Medication?>(null) }
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
@@ -73,6 +74,16 @@ fun MedicationScreen(
                         checked = m.active, onCheckedChange = { viewModel.setActive(m, it) },
                         colors = SwitchDefaults.colors(checkedTrackColor = Teal),
                     )
+                    // Previously "schedule" was display-only text — no way to actually
+                    // be reminded to take a medication, unlike Fasting/Hydration/Weight
+                    // which all fire a real notification.
+                    IconButton(onClick = { reminderTarget = m }, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            stringResource(R.string.medication_reminder_cd),
+                            tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
+                        )
+                    }
                     IconButton(onClick = { renameTarget = m }, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f))
                     }
@@ -139,5 +150,38 @@ fun MedicationScreen(
     deleteTarget?.let { id ->
         val name = medications.value.find { it.id == id }?.name
         DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+    }
+
+    reminderTarget?.let { m ->
+        var on by remember(m.id) { mutableStateOf(m.reminderOn) }
+        var time by remember(m.id) { mutableStateOf(m.reminderTime) }
+        val isValidTime = remember(time) { runCatching { java.time.LocalTime.parse(time) }.isSuccess }
+        AlertDialog(
+            onDismissRequest = { reminderTarget = null },
+            containerColor = SurfaceVariant,
+            title = { Text(stringResource(R.string.medication_reminder_dialog_title, m.name), color = OnBackground) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.medication_reminder_toggle), color = OnBackground.copy(0.8f))
+                        Switch(checked = on, onCheckedChange = { on = it }, colors = SwitchDefaults.colors(checkedTrackColor = Teal))
+                    }
+                    OutlinedTextField(
+                        value = time, onValueChange = { time = it },
+                        label = { Text(stringResource(R.string.medication_reminder_time_label)) },
+                        placeholder = { Text("08:00") }, singleLine = true,
+                        isError = !isValidTime,
+                        colors = scanEatTextFieldColors(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.setReminder(m, on, time); reminderTarget = null },
+                    enabled = isValidTime,
+                ) { Text(stringResource(R.string.common_save), color = Teal) }
+            },
+            dismissButton = { TextButton(onClick = { reminderTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        )
     }
 }

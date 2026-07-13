@@ -14,4 +14,6 @@ data class MedicationEntity(
     val active: Boolean = true,
     val createdAt: Long,
     val profileId: String = "default",
+    val reminderOn: Boolean = false,
+    val reminderTime: String = "08:00",
 )

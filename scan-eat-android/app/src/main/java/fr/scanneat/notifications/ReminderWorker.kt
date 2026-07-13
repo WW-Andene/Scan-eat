@@ -11,6 +11,7 @@ import dagger.assisted.AssistedInject
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.FastingRepository
+import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import kotlinx.coroutines.flow.first
@@ -26,6 +27,7 @@ class ReminderWorker @AssistedInject constructor(
     private val remindersRepo: RemindersRepository,
     private val weightRepo: WeightRepository,
     private val fastingRepo: FastingRepository,
+    private val medicationRepo: MedicationRepository,
     private val prefs: UserPreferences,
 ) : CoroutineWorker(context, params) {
 
@@ -76,6 +78,15 @@ class ReminderWorker @AssistedInject constructor(
 
         s.customReminders.forEach { cr ->
             checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label)
+        }
+
+        // Medication tracking previously had a "schedule" that was only ever a
+        // display-only free-text note — no way to actually be reminded to take
+        // it, unlike every other trackable thing in this app.
+        medicationRepo.observeAll().first().filter { it.active && it.reminderOn }.forEach { med ->
+            checkMeal(true, med.reminderTime, remindersRepo.medicationLastFiredKey(med.id), now, med.id.hashCode(),
+                localizedString(lang, R.string.reminders_notif_medication_title),
+                String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name))
         }
 
         // Hydration/weight/meals all fire a reminder — an active fast reaching

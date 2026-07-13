@@ -152,6 +152,9 @@ class RemindersRepository @Inject constructor(
 
     val customLastFiredKey: (Int) -> Preferences.Key<String> = { id -> stringPreferencesKey("rem_custom_${id}_last") }
 
+    /** Per-medication daily-reminder fired-today key, keyed by the medication's own stable id. */
+    val medicationLastFiredKey: (String) -> Preferences.Key<String> = { id -> stringPreferencesKey("rem_medication_${id}_last") }
+
     suspend fun setBreakfast(on: Boolean, time: String) = store.edit {
         it[K_BREAKFAST_ON] = on; it[K_BREAKFAST_TIME] = time
         if (on) markStaleIfPast(it, time, K_LAST_BREAKFAST_DATE)

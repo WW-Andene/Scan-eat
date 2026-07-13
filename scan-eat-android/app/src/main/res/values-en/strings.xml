@@ -959,6 +959,8 @@
     <string name="reminders_notif_weight_body">It\'s been a while — log your weight.</string>
     <string name="reminders_notif_fasting_title">Fast complete</string>
     <string name="reminders_notif_fasting_body">You\'ve reached your fasting goal — well done!</string>
+    <string name="reminders_notif_medication_title">Medication</string>
+    <string name="reminders_notif_medication_body">Time to take: %1$s</string>
     <string name="reminders_breakfast">Breakfast</string>
     <string name="reminders_snack">Snack</string>
     <string name="reminders_lunch">Lunch</string>
@@ -984,6 +986,10 @@
     <string name="medication_field_name">Medication name</string>
     <string name="medication_field_dosage">Dosage</string>
     <string name="medication_field_schedule">Schedule / frequency</string>
+    <string name="medication_reminder_cd">Medication reminder</string>
+    <string name="medication_reminder_dialog_title">Reminder — %1$s</string>
+    <string name="medication_reminder_toggle">Enable daily reminder</string>
+    <string name="medication_reminder_time_label">Time (HH:mm)</string>
     <string name="activity_calendar_day_logged">%1$s: activity logged</string>
     <string name="activity_calendar_day_empty">%1$s: no activity</string>
     <string name="activity_deleted_message">Activity deleted</string>

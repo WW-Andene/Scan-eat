@@ -23,6 +23,11 @@ data class Medication(
     val scheduleNote: String = "",
     val barcode: String? = null,
     val active: Boolean = true,
+    // Fasting/Hydration/Weight all fire a reminder via ReminderWorker — a
+    // medication's "schedule" was only ever a display-only free-text note
+    // with no way to actually be reminded to take it.
+    val reminderOn: Boolean = false,
+    val reminderTime: String = "08:00",
 )
 
 @Singleton
@@ -39,11 +44,13 @@ class MedicationRepository @Inject constructor(private val dao: MedicationDao) {
         active: Boolean = true,
         id: String? = null,
         profileId: String = "default",
+        reminderOn: Boolean = false,
+        reminderTime: String = "08:00",
     ): Medication {
         val medication = Medication(
             id = id ?: UUID.randomUUID().toString(),
             name = name.trim(), dosage = dosage.trim(), scheduleNote = scheduleNote.trim(),
-            barcode = barcode, active = active,
+            barcode = barcode, active = active, reminderOn = reminderOn, reminderTime = reminderTime,
         )
         dao.upsert(medication.toEntity(System.currentTimeMillis(), profileId))
         return medication
@@ -58,9 +65,11 @@ class MedicationRepository @Inject constructor(private val dao: MedicationDao) {
     private fun Medication.toEntity(createdAt: Long, profileId: String) = MedicationEntity(
         id = id, name = name, dosage = dosage, scheduleNote = scheduleNote,
         barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
+        reminderOn = reminderOn, reminderTime = reminderTime,
     )
 
     private fun MedicationEntity.toDomain() = Medication(
         id = id, name = name, dosage = dosage, scheduleNote = scheduleNote, barcode = barcode, active = active,
+        reminderOn = reminderOn, reminderTime = reminderTime,
     )
 }

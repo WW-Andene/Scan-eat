@@ -18,14 +18,25 @@ class MedicationViewModel @Inject constructor(
     val medications: StateFlow<List<Medication>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun save(name: String, dosage: String, scheduleNote: String) {
+    fun save(name: String, dosage: String, scheduleNote: String, reminderOn: Boolean = false, reminderTime: String = "08:00") {
         if (name.isBlank()) return
-        viewModelScope.launch { repo.save(name, dosage, scheduleNote) }
+        viewModelScope.launch { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime) }
     }
 
     fun rename(medication: Medication, newName: String) {
         if (newName.isBlank()) return
-        viewModelScope.launch { repo.save(newName, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id) }
+        viewModelScope.launch {
+            repo.save(newName, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
+                reminderOn = medication.reminderOn, reminderTime = medication.reminderTime)
+        }
+    }
+
+    /** Toggles/updates a medication's own reminder — previously "schedule" was display-only text with no actual reminder capability. */
+    fun setReminder(medication: Medication, on: Boolean, time: String) {
+        viewModelScope.launch {
+            repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
+                reminderOn = on, reminderTime = time)
+        }
     }
 
     fun setActive(medication: Medication, active: Boolean) {
