@@ -430,6 +430,7 @@
     <string name="biolism_fasting_status_disabled">Désactivé — active pour ajuster les estimations hormonales/cétose ci-dessous. Séparé du minuteur de Journal.</string>
     <string name="biolism_fasting_log_meal">J\'ai mangé</string>
     <string name="biolism_fasting_time_label">Temps de jeûne :</string>
+    <string name="biolism_fasting_import_real">Importer le jeûne en cours (%1$.1f h)</string>
     <string name="biolism_summary_title">Résumé global</string>
     <plurals name="biolism_summary_session_count">
         <item quantity="one">%1$d SESSION</item>

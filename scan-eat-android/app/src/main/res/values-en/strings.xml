@@ -429,6 +429,7 @@
     <string name="biolism_fasting_status_disabled">Disabled — enable to adjust hormone/ketosis estimates below. Separate from Journal\'s timer.</string>
     <string name="biolism_fasting_log_meal">I ate</string>
     <string name="biolism_fasting_time_label">Fasting time:</string>
+    <string name="biolism_fasting_import_real">Import active fast (%1$.1f h)</string>
     <string name="biolism_summary_title">Global summary</string>
     <plurals name="biolism_summary_session_count">
         <item quantity="one">%1$d SESSION</item>

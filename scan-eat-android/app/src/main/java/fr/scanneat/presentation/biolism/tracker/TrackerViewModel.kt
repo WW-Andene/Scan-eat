@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
+import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.domain.model.MS_PER_HOUR
 import kotlinx.coroutines.*
@@ -19,6 +20,7 @@ import javax.inject.Inject
 class TrackerViewModel @Inject constructor(
     private val repo: BiolismRepository,
     private val prefs: UserPreferences,
+    private val fastingRepo: FastingRepository,
 ) : ViewModel() {
 
     // ── Profile ───────────────────────────────────────────────────────────────
@@ -227,6 +229,27 @@ class TrackerViewModel @Inject constructor(
     fun logMealNow() {
         val s = _timerState.value
         val next = s.copy(fastingActive = true, lastMealTs = System.currentTimeMillis())
+        _timerState.value = next
+        viewModelScope.launch { repo.saveTimerState(next) }
+    }
+
+    // ── Bridge to the real Jeûne (Fasting tab) timer ─────────────────────────
+    // Biolism's fasting toggle is a deliberately separate, manual metabolic
+    // simulation input (see biolism_fasting_status_disabled: "Séparé du
+    // minuteur de Journal") - a user exploring "what if I fasted 16h" isn't
+    // necessarily running a real fast. So this doesn't force a live sync; it
+    // only offers a one-tap import of the real fast's current elapsed time
+    // when one happens to be running, so the two don't have to be re-entered
+    // by hand and can't silently drift out of agreement if the user wants them
+    // aligned.
+    val realFastHours: StateFlow<Double?> = fastingRepo.state
+        .map { it?.takeIf { f -> f.isActive }?.elapsedHours }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun importRealFast() {
+        val hours = realFastHours.value ?: return
+        val s = _timerState.value
+        val next = s.copy(fastingActive = true, lastMealTs = System.currentTimeMillis() - (hours * MS_PER_HOUR).toLong())
         _timerState.value = next
         viewModelScope.launch { repo.saveTimerState(next) }
     }

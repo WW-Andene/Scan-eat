@@ -20,6 +20,7 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun FastingRow(
     active: Boolean, fastingHours: Double, onToggle: () -> Unit, onLogMeal: () -> Unit, onAddHours: (Double) -> Unit,
+    realFastHours: Double? = null, onImportRealFast: () -> Unit = {},
 ) {
     val fastFmt = formatFastingTime(fastingHours, stringResource(R.string.biolism_unit_week), stringResource(R.string.biolism_unit_day))
     Surface(
@@ -67,6 +68,25 @@ internal fun FastingRow(
                     listOf("6h" to 6.0, "12h" to 12.0, "24h" to 24.0, "1s" to 168.0, "1m" to 720.0).forEach { (label, h) ->
                         StepperChip(label = label, color = Violet, onMinus = { onAddHours(-h) }, onPlus = { onAddHours(h) })
                     }
+                }
+            }
+            // Bridges to the real Jeûne (Fasting tab) timer, which previously had zero
+            // connection to Biolism's own (deliberately separate, manual) fasting input -
+            // a one-tap import instead of a forced live sync, since Biolism's toggle is
+            // meant to also support exploring a hypothetical fast the user isn't actually
+            // running (see biolism_fasting_status_disabled).
+            if (realFastHours != null) {
+                Surface(
+                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable { onImportRealFast() },
+                    shape = RoundedCornerShape(4.dp),
+                    color = VioletHaze,
+                    border = BorderStroke(1.dp, Violet.copy(0.4f)),
+                ) {
+                    Text(
+                        stringResource(R.string.biolism_fasting_import_real, realFastHours),
+                        modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                        style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold,
+                    )
                 }
             }
         }

@@ -46,6 +46,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     val saved        = viewModel.saved.collectAsStateWithLifecycle()
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
     val language     = viewModel.language.collectAsStateWithLifecycle()
+    val realFastHours = viewModel.realFastHours.collectAsStateWithLifecycle()
 
     val s    = timer.value
     val p    = profile.value
@@ -110,6 +111,8 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 onToggle      = viewModel::toggleFastingActive,
                 onLogMeal     = viewModel::logMealNow,
                 onAddHours    = viewModel::addFastingHours,
+                realFastHours = realFastHours.value,
+                onImportRealFast = viewModel::importRealFast,
             )
             if (s.fastingActive) {
                 FastingHealthCaution(healthConditions.value, language.value)
