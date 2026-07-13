@@ -68,7 +68,7 @@ fun WeightScreen(
     val content = @Composable { padding: PaddingValues ->
         val reversedEntries = remember(entries.value) { entries.value.reversed() }
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Unit toggle
@@ -90,7 +90,7 @@ fun WeightScreen(
             // Summary card
             summary.value?.let { s ->
                 item {
-                    ScanEatCard(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ScanEatCard(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
                                 Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
@@ -131,7 +131,7 @@ fun WeightScreen(
                     val maxW = (last8.maxOf { it.weightKg }).coerceAtLeast(minW + 0.1)
                     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
                     Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp)) {
+                        Column(Modifier.padding(Spacing.M)) {
                             Text(stringResource(R.string.weight_trend_caption, last8.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             Spacer(Modifier.height(8.dp))
                             val trendDescription = stringResource(
@@ -160,7 +160,7 @@ fun WeightScreen(
             items(reversedEntries, key = { it.id }) { e ->
                 Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(12.dp),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(Spacing.M),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -186,7 +186,7 @@ fun WeightScreen(
             content(PaddingValues(0.dp))
             FloatingActionButton(
                 onClick = { showAdd = true },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.L),
                 containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
             SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))

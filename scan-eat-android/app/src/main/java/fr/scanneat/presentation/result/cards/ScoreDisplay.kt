@@ -92,7 +92,7 @@ internal fun DualScoreRing(
 ) {
     val vetoDescription = stringResource(R.string.result_veto_description)
     Row(
-        modifier              = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier              = Modifier.fillMaxWidth().padding(vertical = Spacing.S),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment     = Alignment.CenterVertically,
     ) {

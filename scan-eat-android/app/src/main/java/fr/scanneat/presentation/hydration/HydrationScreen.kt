@@ -54,9 +54,9 @@ fun HydrationScreen(
 
     val content = @Composable { padding: PaddingValues ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.XL),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {
             Spacer(Modifier.height(16.dp))
 
@@ -112,7 +112,7 @@ fun HydrationScreen(
             if (pct >= 1f) {
                 Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
                     Surface(shape = RoundedCornerShape(12.dp), color = FlagGreen.copy(0.15f)) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             Icon(Icons.Default.CheckCircle, null, tint = FlagGreen, modifier = Modifier.size(18.dp))
                             Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = FlagGreen)
                         }

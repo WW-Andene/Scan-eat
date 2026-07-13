@@ -19,6 +19,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.ScanEatOutlinedButton
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
 
 @Composable
@@ -27,7 +28,7 @@ internal fun SessionControls(
     onStartPause: () -> Unit, onSave: () -> Unit, onReset: () -> Unit,
 ) {
     val hasElapsed = elapsed > 0
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         ScanEatPrimaryButton(
             onClick = onStartPause,
             modifier = Modifier.weight(1f),

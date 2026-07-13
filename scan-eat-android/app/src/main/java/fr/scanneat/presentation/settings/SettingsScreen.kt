@@ -132,7 +132,7 @@ fun SettingsScreen(
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {
             Spacer(Modifier.height(4.dp))
 
@@ -152,7 +152,7 @@ fun SettingsScreen(
 
             // ---- API Mode ----
             SettingsSection(stringResource(R.string.settings_section_api_mode)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     ApiMode.entries.forEach { m ->
                         FilterChip(
                             selected = mode.value == m,
@@ -197,7 +197,7 @@ fun SettingsScreen(
                         stringResource(R.string.settings_groq_model_hint, DEFAULT_MODEL),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         listOf(DEFAULT_MODEL, FALLBACK_MODEL).forEach { m ->
                             FilterChip(
                                 selected = localModel == m,
@@ -235,7 +235,7 @@ fun SettingsScreen(
 
             // Fix 4: Language toggle
             SettingsSection(stringResource(R.string.settings_section_language)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     listOf("fr" to stringResource(R.string.settings_lang_fr), "en" to stringResource(R.string.settings_lang_en)).forEach { (code, label) ->
                         FilterChip(
                             selected = language.value == code,
@@ -251,7 +251,7 @@ fun SettingsScreen(
 
             // Fix 4: Theme toggle
             SettingsSection(stringResource(R.string.settings_section_theme)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     listOf("oled" to stringResource(R.string.settings_theme_oled), "dark" to stringResource(R.string.settings_theme_dark), "light" to stringResource(R.string.settings_theme_light)).forEach { (key, label) ->
                         FilterChip(
                             selected = theme.value == key,
@@ -280,7 +280,7 @@ fun SettingsScreen(
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(stringResource(R.string.settings_colorblind_mode), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     listOf(
                         "none" to stringResource(R.string.settings_colorblind_none),
                         "deuteranopia" to stringResource(R.string.settings_colorblind_deuteranopia),
@@ -306,7 +306,7 @@ fun SettingsScreen(
                         Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f)) {
                             Text(
                                 grade.label,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                 style = MaterialTheme.typography.labelSmall, color = c, fontWeight = FontWeight.Bold,
                             )
                         }
@@ -318,7 +318,7 @@ fun SettingsScreen(
             SettingsSection(stringResource(R.string.settings_section_backup)) {
                 Text(stringResource(R.string.settings_backup_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 val working = backupState.value is BackupUiState.Working
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     ScanEatPrimaryButton(
                         onClick = { viewModel.prepareExport() },
                         enabled = !working,
@@ -394,7 +394,7 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         content()
     }
@@ -407,7 +407,7 @@ private fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
             Text(stringResource(R.string.common_save))
         }
         androidx.compose.animation.AnimatedVisibility(visible = saved) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                 Text(stringResource(R.string.settings_saved_confirmation), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
             }

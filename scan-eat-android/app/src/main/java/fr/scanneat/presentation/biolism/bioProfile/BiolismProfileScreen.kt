@@ -59,7 +59,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = Spacing.L)
             .padding(bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
@@ -67,7 +67,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
 
         if (saved.value) {
             Surface(shape = RoundedCornerShape(12.dp), color = Teal.copy(0.1f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f)), modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.bioprofile_saved), modifier = Modifier.padding(12.dp), color = Teal, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.bioprofile_saved), modifier = Modifier.padding(Spacing.M), color = Teal, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -87,11 +87,11 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         // ── Overview (read-only recap) ──────────────────────────────────────────
         val hasData = p.ageYears > 0 || p.heightCm > 0 || p.weightKg > 0 || p.sex != BiolismSex.NOT_SPECIFIED
         if (hasData) {
-            ScanEatCard(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.bioprofile_overview_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
                     Surface(shape = RoundedCornerShape(4.dp), color = Teal.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f))) {
-                        Text(stringResource(R.string.bioprofile_overview_saved_badge), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        Text(stringResource(R.string.bioprofile_overview_saved_badge), modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                     }
                 }
@@ -114,7 +114,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         // ── Identity ──────────────────────────────────────────────────────────
         ProfileSection(stringResource(R.string.profile_section_identity)) {
             // Sex
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 BiolismSex.values().forEach { s ->
                     val label = when(s) {
                         BiolismSex.MALE -> stringResource(R.string.bioprofile_sex_male)

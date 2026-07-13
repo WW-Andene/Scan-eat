@@ -96,7 +96,7 @@ fun ScanHistoryScreen(
             OutlinedTextField(
                 value = query.value,
                 onValueChange = { viewModel.setQuery(it) },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.S),
                 placeholder = { Text(stringResource(R.string.history_search_placeholder), color = OnBackground.copy(0.4f)) },
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
                 trailingIcon = {
@@ -109,7 +109,7 @@ fun ScanHistoryScreen(
                 colors = scanEatTextFieldColors(),
             )
 
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
                 FilterChip(
                     selected = favoritesOnly.value,
                     onClick  = { viewModel.setFavoritesOnly(!favoritesOnly.value) },
@@ -120,8 +120,8 @@ fun ScanHistoryScreen(
             }
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
+                verticalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
                 items(scans.value, key = { it.dbId }) { scan ->
                     val gradeColor = gradeColor(scan.audit.grade)
@@ -134,9 +134,9 @@ fun ScanHistoryScreen(
                                 .background(SurfaceVariant)
                                 .clickable { if (scan.dbId > 0) onOpenResult(scan.dbId) }
                                 .clearAndSetSemantics { contentDescription = summary }
-                                .padding(12.dp),
+                                .padding(Spacing.M),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
                         ) {
                             Surface(shape = RoundedCornerShape(8.dp), color = gradeColor.copy(0.2f)) {
                                 Text(

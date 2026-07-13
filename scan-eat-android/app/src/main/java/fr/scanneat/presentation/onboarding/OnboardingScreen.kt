@@ -42,7 +42,7 @@ fun OnboardingScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {
             Spacer(Modifier.height(40.dp))
 
@@ -68,7 +68,7 @@ fun OnboardingScreen(
                 1 -> {
                     Text(stringResource(R.string.onboarding_value_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
 
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                         ValueCard(
                             icon    = Icons.Default.Fingerprint,
                             title   = stringResource(R.string.onboarding_value_transparency_title),
@@ -183,7 +183,7 @@ fun OnboardingScreen(
 @Composable
 private fun ValueCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, body: String) {
     ScanEatCard {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
             Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(28.dp))
             Column {
                 Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
@@ -202,7 +202,7 @@ private fun ModeCard(selected: Boolean, title: String, subtitle: String, onClick
         border  = if (selected) ButtonDefaults.outlinedButtonBorder(enabled = true).copy(width = 1.5.dp) else null,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
             // onClick = null: the whole Surface above is already clickable (onClick = onClick) —
             // a second independent actionable control nested inside it is a real screen-reader/
             // interaction conflict (two actionable elements claiming the same tap), not just redundant.

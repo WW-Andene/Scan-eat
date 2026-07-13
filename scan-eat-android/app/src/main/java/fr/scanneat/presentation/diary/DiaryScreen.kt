@@ -75,7 +75,7 @@ fun DiaryScreen(
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L).padding(bottom = Spacing.S),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 DiaryTab.entries.forEach { tab ->
@@ -89,7 +89,7 @@ fun DiaryScreen(
                     ) {
                         Text(
                             stringResource(tab.labelRes),
-                            modifier = Modifier.padding(vertical = 8.dp),
+                            modifier = Modifier.padding(vertical = Spacing.S),
                             style = MaterialTheme.typography.labelSmall,
                             color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
                             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
@@ -140,7 +140,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     // MealSlot) on every recomposition (e.g. every note keystroke).
     val bySlot = remember(s.entries) { s.entries.groupBy { it.mealSlot } }
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item { Spacer(Modifier.height(4.dp)) }
@@ -170,7 +170,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                 value = noteText,
                 onValueChange = { noteText = it },
                 label = { Text(stringResource(R.string.diary_note_label)) },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = Spacing.S, bottom = Spacing.XS),
                 singleLine = false,
                 maxLines = 3,
                 trailingIcon = {
@@ -185,7 +185,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
             )
 
             Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.titleSmall, color = OnBackground,
-                fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+                fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.S))
         }
         if (s.entries.isEmpty()) {
             item { EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.diary_empty_body)) }
@@ -198,7 +198,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                             slot.diaryLabel(),
                             style = MaterialTheme.typography.labelMedium,
                             color = AccentCoral.copy(0.8f),
-                            modifier = Modifier.padding(top = 4.dp),
+                            modifier = Modifier.padding(top = Spacing.XS),
                         )
                     }
                     items(slotEntries, key = { it.id }) { entry ->
@@ -211,7 +211,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
         // next to the logging they nudge you toward, not buried in Réglages.
         item {
             Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground,
-                fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+                fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.S))
         }
         item { RemindersCard() }
 
@@ -234,7 +234,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
 private fun MacroSummaryCard(totals: ConsumedNutrition) {
     Box(Modifier.fillMaxWidth().glassSheen()) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Text(stringResource(R.string.diary_totals_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                     MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal")
@@ -260,9 +260,9 @@ private fun MacroItem(label: String, value: String, unit: String) {
 private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
         Row(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(12.dp),
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(Spacing.M),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)

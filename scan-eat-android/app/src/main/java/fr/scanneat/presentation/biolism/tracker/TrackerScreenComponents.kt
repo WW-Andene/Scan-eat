@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.hmsFromSeconds
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.minTouchTarget
 
 // Shared helpers used by 2+ cards/*.kt files. Section-specific composables
@@ -45,7 +46,7 @@ internal fun StepperChip(label: String, color: Color, onMinus: () -> Unit, onPlu
                 .padding(horizontal = 6.dp, vertical = 3.dp),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold,
         )
-        Text(label, modifier = Modifier.padding(horizontal = 4.dp),
+        Text(label, modifier = Modifier.padding(horizontal = Spacing.XS),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
         Text(
             "+",

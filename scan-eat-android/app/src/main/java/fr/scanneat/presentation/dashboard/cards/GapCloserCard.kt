@@ -21,6 +21,7 @@ import fr.scanneat.domain.engine.dashboard.GapEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.AmberWarning
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
 
@@ -29,10 +30,10 @@ import fr.scanneat.presentation.ui.theme.glassSheen
 internal fun GapCloserCard(gaps: List<GapEntry>) {
   Box(Modifier.fillMaxWidth().glassSheen()) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.dashboard_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             gaps.take(3).forEach { gap ->
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     Text(
                         stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, "%.1f".format(gap.deficit)),
                         style = MaterialTheme.typography.labelMedium, color = AmberWarning,
@@ -45,7 +46,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>) {
                             ) {
                                 Text(
                                     stringResource(R.string.dashboard_gap_suggestion, s.name, s.grams),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                     style    = MaterialTheme.typography.labelSmall,
                                     color    = AccentCoral,
                                 )

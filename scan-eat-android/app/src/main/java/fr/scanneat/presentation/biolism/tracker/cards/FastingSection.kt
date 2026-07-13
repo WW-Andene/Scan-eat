@@ -28,7 +28,7 @@ internal fun FastingRow(
         color = if (active && fastingHours > 0) VioletHaze else VioletTrace,
         border = BorderStroke(1.dp, if (active && fastingHours > 0) VioletBorder else VioletTrace),
     ) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Checkbox(checked = active, onCheckedChange = { onToggle() },
@@ -45,7 +45,7 @@ internal fun FastingRow(
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (fastFmt != null) {
                             Surface(shape = RoundedCornerShape(4.dp), color = VioletHaze, border = BorderStroke(1.dp, VioletGlow)) {
-                                Text(fastFmt, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                Text(fastFmt, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                     style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -55,7 +55,7 @@ internal fun FastingRow(
                             color = VioletHaze,
                             border = BorderStroke(1.dp, Violet.copy(0.4f)),
                         ) {
-                            Text(stringResource(R.string.biolism_fasting_log_meal), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            Text(stringResource(R.string.biolism_fasting_log_meal), modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                 style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
                         }
                     }

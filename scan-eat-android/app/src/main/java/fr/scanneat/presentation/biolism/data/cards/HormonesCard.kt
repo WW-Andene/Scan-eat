@@ -21,7 +21,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
         badge = { GoldBadge(stringResource(R.string.biolism_hormones_badge)) }) {
         Text(stringResource(R.string.biolism_hormones_disclaimer),
             style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
-            modifier = Modifier.background(OnBackground.copy(0.03f), RoundedCornerShape(6.dp)).padding(8.dp))
+            modifier = Modifier.background(OnBackground.copy(0.03f), RoundedCornerShape(6.dp)).padding(Spacing.S))
         Spacer(Modifier.height(8.dp))
 
         Label(stringResource(R.string.biolism_hormones_sex_section), Gold)

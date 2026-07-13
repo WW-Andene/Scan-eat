@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.FlagGreen
 import fr.scanneat.presentation.ui.theme.FlagRed
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 
 @Composable
 internal fun FlagsSection(redFlags: List<String>, greenFlags: List<String>) {
@@ -33,9 +34,9 @@ private fun FlagRow(text: String, isRed: Boolean) {
         modifier = Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .background(color.copy(alpha = 0.1f))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = Spacing.M, vertical = Spacing.S),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Icon(if (isRed) Icons.Default.Warning else Icons.Default.CheckCircle, null,
             tint = color, modifier = Modifier.size(16.dp))

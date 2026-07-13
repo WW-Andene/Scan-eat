@@ -16,6 +16,7 @@ import fr.scanneat.domain.engine.scoring.personalGrade
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.result.cards.*
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 
 // Assembles the sections that make up a scan result. Each section lives in
 // cards/*.kt (one file per independent card/banner). Was previously inlined
@@ -35,12 +36,12 @@ internal fun ResultContent(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = 20.dp, vertical = Spacing.M),
+        verticalArrangement = Arrangement.spacedBy(Spacing.L),
     ) {
         // Product name + source
         Text(audit.productName, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
             Text(scan.product.category.key.replace('_', ' ').replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
             Text("•", color = OnBackground.copy(0.3f))

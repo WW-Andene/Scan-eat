@@ -23,7 +23,7 @@ import kotlin.math.roundToInt
 internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
     Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(18.dp))) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), color = SurfaceVariant) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                 val kcalPct = targets?.let { (totals.energyKcal / it.kcal).toFloat() }
                 val kcalColor = when {

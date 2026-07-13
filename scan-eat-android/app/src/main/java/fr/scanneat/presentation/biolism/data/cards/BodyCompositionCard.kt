@@ -84,7 +84,7 @@ private fun BmiChip(m: MetabolicResult) {
         BiolismBmiCategory.OBESE       -> Danger
     }
     Surface(shape = RoundedCornerShape(4.dp), color = color.copy(0.15f), border = BorderStroke(1.dp, color.copy(0.3f))) {
-        Text(m.bmiClass.name, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+        Text(m.bmiClass.name, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
     }
 }

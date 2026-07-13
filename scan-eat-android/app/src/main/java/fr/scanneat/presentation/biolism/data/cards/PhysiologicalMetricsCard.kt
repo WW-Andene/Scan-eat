@@ -57,7 +57,7 @@ fun PhysiologicalMetricsCard(
         var hrText by remember { mutableStateOf(manualHR?.toString() ?: "") }
         TintedPanel(Violet) {
             Label(stringResource(R.string.biolism_physio_hr_check_title), Violet)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = hrText, onValueChange = { hrText = it; it.toIntOrNull()?.let { bpm -> onSaveManualHR(bpm) } },
                     label = { Text(stringResource(R.string.biolism_physio_hr_input_label)) }, singleLine = true,

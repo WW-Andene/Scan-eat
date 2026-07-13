@@ -114,7 +114,7 @@ fun ScanScreen(
         } else {
             // Camera permission request UI — no camera feed behind it, so this fills the screen itself.
             Column(
-                modifier = Modifier.fillMaxSize().padding(32.dp),
+                modifier = Modifier.fillMaxSize().padding(Spacing.XXL),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -149,7 +149,7 @@ fun ScanScreen(
             Column(
                 modifier = Modifier.fillMaxWidth().align(Alignment.TopStart)
                     .background(Brush.verticalGradient(listOf(Color.Black.copy(0.55f), Color.Transparent)))
-                    .padding(horizontal = 20.dp).padding(top = 16.dp, bottom = 28.dp),
+                    .padding(horizontal = 20.dp).padding(top = Spacing.L, bottom = 28.dp),
             ) {
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
                 Text(
@@ -164,7 +164,7 @@ fun ScanScreen(
                     shape = RoundedCornerShape(24.dp),
                     color = SurfaceVariant.copy(0.9f),
                 ) {
-                    Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(bc, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
@@ -176,13 +176,13 @@ fun ScanScreen(
             if (images.value.isNotEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = 88.dp)
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = Spacing.L),
                 ) {
                     Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f)) {
                         Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
                             Text(pluralStringResource(R.plurals.scan_photo_count, images.value.size, images.value.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
                             Spacer(Modifier.height(6.dp))
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                                 itemsIndexed(images.value) { index, payload ->
                                     Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
                                         .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
@@ -226,9 +226,9 @@ fun ScanScreen(
             if (state.value is ScanUiState.Error) {
                 val error = state.value as ScanUiState.Error
                 if (error.needsPhoto) {
-                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
+                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp),
                         color = SurfaceVariant, shape = RoundedCornerShape(12.dp)) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.scan_needs_photo),
@@ -241,7 +241,7 @@ fun ScanScreen(
                 } else {
                     ErrorBanner(
                         message     = error.message,
-                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 96.dp),
+                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp),
                         actionLabel = stringResource(R.string.common_retry),
                         onAction    = { viewModel.score() },
                         onDismiss   = { viewModel.dismissError() },
@@ -347,7 +347,7 @@ fun CameraPreview(
                     torchOn = !torchOn
                     camera?.cameraControl?.enableTorch(torchOn)
                 },
-                modifier       = Modifier.align(Alignment.TopEnd).padding(16.dp).size(40.dp),
+                modifier       = Modifier.align(Alignment.TopEnd).padding(Spacing.L).size(40.dp),
                 containerColor = if (torchOn) AccentCoral else SurfaceVariant,
             ) {
                 Icon(
@@ -366,7 +366,7 @@ fun CameraPreview(
                     }
                 })
             },
-            modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp),
+            modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.L),
             containerColor = SurfaceVariant,
         ) {
             Icon(Icons.Default.CameraAlt, stringResource(R.string.scan_capture), tint = OnSurface)

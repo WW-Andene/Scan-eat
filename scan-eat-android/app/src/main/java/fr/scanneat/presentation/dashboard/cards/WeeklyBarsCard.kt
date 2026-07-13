@@ -25,7 +25,7 @@ import kotlin.math.roundToInt
 internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
   Box(Modifier.fillMaxWidth().glassSheen()) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.dashboard_week_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                 Text(stringResource(R.string.dashboard_week_avg_kcal, rollup.avg.kcal.roundToInt()), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
@@ -33,7 +33,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
             val peak = (listOf(targets?.kcal ?: 0.0) + rollup.days.map { it.kcal }).maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
             Row(
                 modifier              = Modifier.fillMaxWidth().height(64.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                 verticalAlignment     = Alignment.Bottom,
             ) {
                 rollup.days.forEach { day ->
@@ -55,7 +55,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?) {
                 }
             }
             // Day labels
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 rollup.days.forEach { day ->
                     Text(
                         day.date.dayOfWeek.name.take(2),

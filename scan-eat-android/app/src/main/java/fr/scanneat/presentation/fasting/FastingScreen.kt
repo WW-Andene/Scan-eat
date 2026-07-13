@@ -43,15 +43,15 @@ fun FastingScreen(
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            verticalArrangement = Arrangement.spacedBy(Spacing.L),
         ) {
             item { Spacer(Modifier.height(8.dp)) }
 
             // Streak
             if (streak.value > 0) {
                 item {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Icon(Icons.Default.LocalFireDepartment, null, tint = CalorieOrange)
                         Text(pluralStringResource(R.plurals.fasting_streak, streak.value, streak.value), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                     }
@@ -64,7 +64,7 @@ fun FastingScreen(
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.L),
                     ) {
                         val fs = state.value
                         if (fs != null) {
@@ -79,7 +79,7 @@ fun FastingScreen(
                             val m = ((fs.elapsedMs % 3_600_000L) / 60_000L).toInt()
                             Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                                 OutlinedButton(onClick = { viewModel.cancel() }, border = ButtonDefaults.outlinedButtonBorder(enabled = true)) {
                                     Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.7f))
                                 }
@@ -91,7 +91,7 @@ fun FastingScreen(
                             // Not active
                             Text(stringResource(R.string.fasting_start_title), style = MaterialTheme.typography.titleMedium, color = OnSurface, fontWeight = FontWeight.SemiBold)
                             Text(stringResource(R.string.fasting_target_duration_label), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                                 listOf(12, 16, 18, 20, 24).forEach { h ->
                                     FilterChip(
                                         selected = targetHours == h, onClick = { targetHours = h },

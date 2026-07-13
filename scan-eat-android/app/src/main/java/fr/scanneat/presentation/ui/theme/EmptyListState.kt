@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun EmptyListState(icon: ImageVector, message: String, ctaLabel: String? = null, onCta: (() -> Unit)? = null) {
     Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Icon(icon, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.EmptyState))
             Text(message, color = OnBackground.copy(0.5f))
             if (ctaLabel != null && onCta != null) {

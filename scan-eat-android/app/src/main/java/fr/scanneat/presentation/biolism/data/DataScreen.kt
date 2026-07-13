@@ -28,6 +28,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.biolism.data.cards.*
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 
 // Orchestrator only — each card section lives in cards/*.kt (one file per
 // independent card), shared helpers (BioCard, MetCellGrid, InfoRow, ...) in
@@ -51,7 +52,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     if (met == null) {
         val bgColor = MaterialTheme.colorScheme.background
         Box(Modifier.fillMaxSize().background(bgColor), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(48.dp))
                 Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
                 Text(stringResource(R.string.biolism_datascreen_empty_tab_hint), style = MaterialTheme.typography.bodySmall, color = Gold)

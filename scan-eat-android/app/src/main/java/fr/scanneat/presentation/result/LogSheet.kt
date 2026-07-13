@@ -63,8 +63,8 @@ fun LogSheet(
         shape            = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
     ) {
         Column(
-            modifier              = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp),
-            verticalArrangement   = Arrangement.spacedBy(16.dp),
+            modifier              = Modifier.fillMaxWidth().padding(horizontal = Spacing.XL).padding(bottom = Spacing.XXL),
+            verticalArrangement   = Arrangement.spacedBy(Spacing.L),
         ) {
             // Title
             Text(
@@ -80,7 +80,7 @@ fun LogSheet(
             )
 
             // Portion input
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 OutlinedTextField(
                     value         = portionText,
                     // Comma must survive the filter, not be stripped - line 54's
@@ -127,7 +127,7 @@ fun LogSheet(
                 add(Pair(preset200, 200.0))
                 add(Pair(preset50, 50.0))
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 presets.take(4).forEach { (label, g) ->
                     FilterChip(
                         selected  = portionG == g,
@@ -144,7 +144,7 @@ fun LogSheet(
 
             // Meal slot selector
             Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 MealSlot.entries.forEach { slot ->
                     FilterChip(
                         selected  = selectedSlot == slot,

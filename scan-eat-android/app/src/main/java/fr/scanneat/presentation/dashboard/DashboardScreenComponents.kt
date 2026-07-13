@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 
 // Shared helper used repeatedly by the orchestrator's feature-tile rows.
@@ -28,9 +29,9 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
         color = SurfaceVariant,
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(Spacing.M),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.XS),
         ) {
             Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(26.dp))
             Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))

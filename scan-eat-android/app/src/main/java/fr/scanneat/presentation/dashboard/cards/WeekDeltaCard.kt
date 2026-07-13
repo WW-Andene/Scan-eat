@@ -19,6 +19,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.WeekOverWeekDelta
 import fr.scanneat.presentation.ui.theme.AmberWarning
 import fr.scanneat.presentation.ui.theme.FlagGreen
+import fr.scanneat.presentation.ui.theme.Spacing
 import kotlin.math.roundToInt
 
 @Composable
@@ -29,7 +30,7 @@ internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .background(color.copy(0.1f))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .padding(horizontal = 14.dp, vertical = Spacing.S),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {

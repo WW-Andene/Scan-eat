@@ -19,7 +19,7 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
     BioCard(stringResource(R.string.biolism_energy_title),
         badge = { if (s.ketosisOn) TealBadge(stringResource(R.string.biolism_energy_keto_badge, ((1.0 - met.ketoSupprFactor) * 100).toInt())) }
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.S)) {
             Text(stringResource(R.string.biolism_energy_tdee_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), letterSpacing = 1.sp)
             Text("%.1f".format(met.tdeeDay), style = HeroNumberStyle.copy(fontSize = 34.sp), color = Gold)
             Text(stringResource(R.string.biolism_energy_tdee_sub, met.tdeeDay / met.bmrDay.coerceAtLeast(1.0)), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))

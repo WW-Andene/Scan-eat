@@ -97,8 +97,8 @@ fun GroceryScreen(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+                verticalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
                 item { Spacer(Modifier.height(4.dp)) }
                 item {
@@ -111,7 +111,7 @@ fun GroceryScreen(
                     val contentAlpha by animateFloatAsState(if (checked) 0.5f else 1f, label = "groceryItemAlpha")
                     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
                         Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                            Row(Modifier.padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically,
+                            Row(Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.XS), verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween) {
                                 Checkbox(
                                     checked = checked,
@@ -132,7 +132,7 @@ fun GroceryScreen(
                                 if (item.grams > 0) {
                                     Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge,
                                         color = AccentCoral.copy(contentAlpha), fontWeight = FontWeight.SemiBold,
-                                        modifier = Modifier.padding(end = 12.dp))
+                                        modifier = Modifier.padding(end = Spacing.M))
                                 }
                             }
                         }

@@ -65,8 +65,8 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
     Box(Modifier.fillMaxSize().background(Background), contentAlignment = Alignment.Center) {
         Surface(shape = RoundedCornerShape(20.dp), color = SurfaceVariant, modifier = Modifier.padding(20.dp).fillMaxWidth()) {
             Column(
-                Modifier.padding(24.dp).verticalScroll(rememberScrollState()).heightIn(max = 560.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                Modifier.padding(Spacing.XL).verticalScroll(rememberScrollState()).heightIn(max = 560.dp),
+                verticalArrangement = Arrangement.spacedBy(Spacing.L),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     (1 until onboardSteps.size).forEach { i ->
@@ -92,7 +92,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
 
                 when (step) {
                     1 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             listOf(BiolismSex.MALE to stringResource(R.string.biolism_onboard_male), BiolismSex.FEMALE to stringResource(R.string.biolism_onboard_female)).forEach { (v, label) ->
                                 FilterChip(selected = sex == v, onClick = { sex = v }, label = { Text(label) },
                                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold))
@@ -113,7 +113,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                                 Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
                                     .background(if (activityId == lvl.id) GoldHaze else OnBackground.copy(0.03f))
                                     .selectable(selected = activityId == lvl.id, onClick = { activityId = lvl.id }, role = Role.RadioButton)
-                                    .padding(12.dp),
+                                    .padding(Spacing.M),
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Column(Modifier.weight(1f)) {

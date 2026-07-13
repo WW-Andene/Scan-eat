@@ -13,10 +13,11 @@ import fr.scanneat.domain.engine.scoring.PersonalAdjustment
 import fr.scanneat.presentation.ui.theme.FlagGreen
 import fr.scanneat.presentation.ui.theme.FlagRed
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 
 @Composable
 internal fun AdjustmentsSection(adjustments: List<PersonalAdjustment>) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Text(stringResource(R.string.result_adjustments_title), style = MaterialTheme.typography.titleSmall,
             color = OnBackground, fontWeight = FontWeight.SemiBold)
         adjustments.filter { !it.veto }.forEach { adj ->
@@ -25,7 +26,7 @@ internal fun AdjustmentsSection(adjustments: List<PersonalAdjustment>) {
                 adj.points < 0 -> FlagRed
                 else           -> OnBackground.copy(0.5f)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(
                     if (adj.points > 0) "+${adj.points.toInt()}" else "${adj.points.toInt()}",
                     style = MaterialTheme.typography.labelMedium, color = color,

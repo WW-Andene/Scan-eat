@@ -41,7 +41,7 @@ fun ErrorBanner(
     onDismiss: (() -> Unit)? = null,
 ) {
     Surface(modifier = modifier.fillMaxWidth(), color = FlagRed.copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp)) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.ErrorOutline, null, tint = FlagRed)
             Spacer(Modifier.width(8.dp))
             Text(message, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnBackground)

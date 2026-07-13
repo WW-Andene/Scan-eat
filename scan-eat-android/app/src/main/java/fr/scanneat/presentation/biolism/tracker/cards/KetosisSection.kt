@@ -30,7 +30,7 @@ internal fun KetosisToggleRow(
         color = bgColor,
         border = BorderStroke(1.dp, borderColor),
     ) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Checkbox(checked = active, onCheckedChange = { onToggle() },
@@ -45,7 +45,7 @@ internal fun KetosisToggleRow(
                     border = BorderStroke(1.dp, TealGlow)) {
                     Text(if (active) stringResource(R.string.biolism_ketosis_oxi_active, fatPct, npRq)
                          else stringResource(R.string.biolism_ketosis_nprq_inactive, npRq),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                         style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                 }
             }
@@ -71,7 +71,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
         color = if (active) GoldHaze else GoldTrace,
         border = BorderStroke(1.dp, if (active) GoldBorder else GoldTrace),
     ) {
-        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(Modifier.fillMaxWidth().padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Checkbox(checked = active, onCheckedChange = { onToggle() },
                     colors = CheckboxDefaults.colors(checkedColor = Gold, uncheckedColor = Gold.copy(0.4f)))
@@ -91,7 +91,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                 }
             }
             Surface(shape = RoundedCornerShape(4.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
-                Text(if (active) "RQ→0.715" else "RQ→0.720", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                Text(if (active) "RQ→0.715" else "RQ→0.720", modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold)
             }
         }

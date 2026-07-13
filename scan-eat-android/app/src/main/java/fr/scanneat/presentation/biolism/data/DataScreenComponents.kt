@@ -44,7 +44,7 @@ internal fun BioCard(
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { open = !open },
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
                     Box(Modifier.width(2.dp).height(16.dp).background(Gold, RoundedCornerShape(1.dp)))
                     Text(title, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
@@ -52,7 +52,7 @@ internal fun BioCard(
                     Icon(if (open) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(20.dp))
                 }
                 AnimatedVisibility(open) {
-                    Column(Modifier.padding(top = 12.dp), content = content)
+                    Column(Modifier.padding(top = Spacing.M), content = content)
                 }
             }
         }
@@ -63,7 +63,7 @@ internal fun BioCard(
 @Composable
 internal fun MetCellGrid(items: List<Triple<String, String, String>>, accents: List<Color> = emptyList()) {
     items.chunked(2).forEachIndexed { row, pair ->
-        Row(Modifier.fillMaxWidth().padding(bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth().padding(bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             pair.forEachIndexed { col, (label, value, sub) ->
                 val accent = accents.getOrNull(row * 2 + col) ?: OnBackground
                 MetCell(label, value, sub, accent, Modifier.weight(1f))
@@ -86,7 +86,7 @@ internal fun MetCell(label: String, value: String, sub: String, accent: Color = 
 
 @Composable
 internal fun InfoRow(label: String, value: String, note: String, color: Color = OnBackground) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().padding(vertical = Spacing.XS), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
             if (note.isNotBlank()) Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))

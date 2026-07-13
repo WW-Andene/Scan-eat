@@ -27,9 +27,9 @@ internal fun ScanHistoryCard(scan: ScanResult) {
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .background(SurfaceVariant)
-                .padding(12.dp),
+                .padding(Spacing.M),
             verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Surface(shape = RoundedCornerShape(8.dp), color = gradeColor.copy(0.2f)) {
                 Text(

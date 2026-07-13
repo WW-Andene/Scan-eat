@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.domain.engine.biolism.KetoPhaseInfo
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -36,11 +37,11 @@ internal fun PhaseStrip(phase: KetoPhaseInfo, ketoHours: Double, color: Color) {
                 .background(color.copy(0.7f)),
         )
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = Spacing.S),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S), modifier = Modifier.weight(1f)) {
                 Box(Modifier.size(7.dp).clip(CircleShape).background(color))
                 Text(phase.label, style = MaterialTheme.typography.labelMedium, color = color, fontWeight = FontWeight.Bold)
                 Text(phase.description, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), maxLines = 1,

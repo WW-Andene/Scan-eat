@@ -15,7 +15,7 @@ import fr.scanneat.presentation.ui.theme.*
 fun SubstrateFluxCard(met: MetabolicResult, s: TimerState) {
     BioCard(stringResource(R.string.biolism_flux_title), badge = {
         if (s.ketosisOn) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Box(Modifier.size(6.dp).padding(top = 5.dp)); TealBadge(stringResource(R.string.biolism_flux_badge))
             }
         }

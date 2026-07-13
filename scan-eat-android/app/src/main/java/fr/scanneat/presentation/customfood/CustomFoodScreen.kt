@@ -65,7 +65,7 @@ fun CustomFoodScreen(
                 onValueChange = { viewModel.setQuery(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = Spacing.L, vertical = Spacing.S),
                 placeholder = { Text(stringResource(R.string.customfood_search_placeholder), color = OnBackground.copy(0.4f)) },
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
                 trailingIcon = {
@@ -81,8 +81,8 @@ fun CustomFoodScreen(
             )
 
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
+                verticalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
                 if (displayList.isEmpty()) {
                     item {
@@ -135,7 +135,7 @@ private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Un
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(SurfaceVariant)
-            .padding(12.dp),
+            .padding(Spacing.M),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -210,15 +210,15 @@ private fun AddFoodDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 FoodField(stringResource(R.string.customfood_field_name), name, KeyboardType.Text) { name = it }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     FoodField(stringResource(R.string.customfood_field_kcal), kcal, KeyboardType.Decimal, Modifier.weight(1f)) { kcal = it }
                     FoodField(stringResource(R.string.customfood_field_protein), prot, KeyboardType.Decimal, Modifier.weight(1f)) { prot = it }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     FoodField(stringResource(R.string.customfood_field_carbs), carb, KeyboardType.Decimal, Modifier.weight(1f)) { carb = it }
                     FoodField(stringResource(R.string.customfood_field_fat), fat, KeyboardType.Decimal, Modifier.weight(1f)) { fat = it }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     FoodField(stringResource(R.string.customfood_field_fiber), fib, KeyboardType.Decimal, Modifier.weight(1f)) { fib = it }
                     FoodField(stringResource(R.string.customfood_field_salt), salt, KeyboardType.Decimal, Modifier.weight(1f)) { salt = it }
                 }

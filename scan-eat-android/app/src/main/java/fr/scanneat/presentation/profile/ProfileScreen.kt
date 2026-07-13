@@ -199,7 +199,7 @@ private fun OutlinedInput(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SexSelector(current: Sex, onSelect: (Sex) -> Unit) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Sex.values().forEach { s ->
             val label = when (s) {
                 Sex.MALE -> stringResource(R.string.sex_male)
@@ -251,7 +251,7 @@ private fun GoalSelector(current: Goal, onSelect: (Goal) -> Unit) {
         Goal.MAINTAIN to stringResource(R.string.goal_maintain),
         Goal.GAIN to stringResource(R.string.goal_gain),
     )
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Goal.values().forEach { g ->
             FilterChip(
                 selected = current == g, onClick = { onSelect(g) },
@@ -269,7 +269,7 @@ private fun GoalSelector(current: Goal, onSelect: (Goal) -> Unit) {
 @Composable
 private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
     val diets = DietKey.values().filter { it != DietKey.NONE }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         FilterChip(
             selected = current == DietKey.NONE, onClick = { onSelect(DietKey.NONE) },
             label = { Text(stringResource(R.string.diet_none), style = MaterialTheme.typography.labelMedium) },
@@ -279,7 +279,7 @@ private fun DietSelector(current: DietKey, onSelect: (DietKey) -> Unit) {
             ),
         )
         val isEnglish = Locale.current.language == "en"
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             diets.forEach { d ->
                 FilterChip(
                     selected = current == d, onClick = { onSelect(d) },
@@ -320,9 +320,9 @@ private fun allergenLabels(): Map<String, String> = mapOf(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AllergenSelector(current: Set<String>, onSelect: (Set<String>) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Text(stringResource(R.string.profile_allergen_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             allergenLabels().forEach { (key, label) ->
                 FilterChip(
                     selected = key in current,

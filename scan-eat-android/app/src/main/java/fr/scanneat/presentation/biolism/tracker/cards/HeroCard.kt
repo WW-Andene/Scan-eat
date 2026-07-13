@@ -32,13 +32,13 @@ internal fun HeroCard(
 ) {
     val heroColor = if (ketosisOn) Teal else Gold
     ScanEatCard(contentPadding = PaddingValues(16.dp)) {
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (ketosisOn) Box(Modifier.size(6.dp).clip(CircleShape).background(Teal))
                 if (running)   Box(Modifier.size(6.dp).clip(CircleShape).background(Gold))
                 Surface(shape = RoundedCornerShape(4.dp), color = if (running) GoldHaze else VioletHaze,
                     border = BorderStroke(1.dp, if (running) GoldGlow else VioletGlow)) {
-                    Text(if (running) stringResource(R.string.biolism_hero_running) else stringResource(R.string.biolism_hero_paused), modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    Text(if (running) stringResource(R.string.biolism_hero_running) else stringResource(R.string.biolism_hero_paused), modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
                         style = MaterialTheme.typography.labelSmall, color = if (running) Gold else Violet, fontWeight = FontWeight.Bold)
                 }
             }
@@ -68,13 +68,13 @@ internal fun HeroCard(
                 color = OnBackground.copy(0.4f), fontWeight = FontWeight.Medium)
 
             // Substrate bar
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
                     Box(Modifier.weight(fatFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(if (ketosisOn) Teal else Warm))
                     Box(Modifier.weight(carbFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Gold.copy(0.6f)))
                     Box(Modifier.weight(protFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Violet.copy(0.7f)))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                     SubstrateLegendItem(if (ketosisOn) Teal else Warm, stringResource(R.string.biolism_hero_legend_fat, fatPct))
                     SubstrateLegendItem(Gold.copy(0.9f), stringResource(R.string.biolism_hero_legend_carbs, carbPct))
                     SubstrateLegendItem(Violet, stringResource(R.string.biolism_hero_legend_protein, protPct))
@@ -86,7 +86,7 @@ internal fun HeroCard(
 
 @Composable
 private fun SubstrateLegendItem(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Box(Modifier.size(6.dp).clip(CircleShape).background(color))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
     }

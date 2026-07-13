@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
 import java.util.Locale
 
@@ -28,7 +29,7 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
         border = BorderStroke(1.dp, color.copy(0.15f)),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.biolism_liveweight_title), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Text(if (ketosisOn) stringResource(R.string.biolism_liveweight_method_ketosis) else stringResource(R.string.biolism_liveweight_method_normal),
@@ -40,7 +41,7 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
                 val deltaG = (liveWeight - baseWeight) * 1000.0
                 Text(stringResource(R.string.biolism_liveweight_delta, String.format(Locale.US, "%.4f", deltaG)), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(stringResource(R.string.biolism_liveweight_base, String.format(Locale.US, "%.3f", baseWeight)), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                 Text("−", color = OnBackground.copy(0.3f))
                 Text(stringResource(R.string.biolism_liveweight_fat_lost, String.format(Locale.US, "%.4f", fatLostKg * 1000)), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))

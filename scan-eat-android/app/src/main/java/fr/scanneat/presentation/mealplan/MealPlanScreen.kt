@@ -57,15 +57,15 @@ fun MealPlanScreen(
         containerColor = Background,
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(4.dp)) }
             items(weekDates.value, key = { it.toEpochDay() }) { date ->
                 val dayPlan = plan.value[date] ?: DayPlan(date)
                 val isToday = date == LocalDate.now()
                 Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Text(
                             if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
                             style = MaterialTheme.typography.titleSmall,
@@ -115,7 +115,7 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
     var editing by remember { mutableStateOf(false) }
     var text by remember(slot) { mutableStateOf((slot as? MealPlanSlot.NoteSlot)?.text ?: "") }
 
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(meal, style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f), modifier = Modifier.width(72.dp))
         if (editing) {
             OutlinedTextField(
@@ -193,13 +193,13 @@ private fun AssignSlotDialog(
             if (recipes.isEmpty() && templates.isEmpty()) {
                 Text(stringResource(R.string.mealplan_assign_empty), color = OnBackground.copy(0.6f), style = MaterialTheme.typography.bodySmall)
             } else {
-                LazyColumn(modifier = Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                LazyColumn(modifier = Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     if (recipes.isNotEmpty()) {
                         item { Text(stringResource(R.string.recipes_title), style = MaterialTheme.typography.labelMedium, color = AccentCoral) }
                         items(recipes, key = { "r_${it.id}" }) { recipe ->
                             Row(
-                                Modifier.fillMaxWidth().clickable { onPickRecipe(recipe) }.padding(vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                Modifier.fillMaxWidth().clickable { onPickRecipe(recipe) }.padding(vertical = Spacing.S),
+                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
                                 Icon(Icons.Default.RestaurantMenu, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
                                 Text(recipe.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
@@ -210,8 +210,8 @@ private fun AssignSlotDialog(
                         item { Text(stringResource(R.string.templates_title), style = MaterialTheme.typography.labelMedium, color = AccentCoral) }
                         items(templates, key = { "t_${it.id}" }) { template ->
                             Row(
-                                Modifier.fillMaxWidth().clickable { onPickTemplate(template) }.padding(vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                Modifier.fillMaxWidth().clickable { onPickTemplate(template) }.padding(vertical = Spacing.S),
+                                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
                                 Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
                                 Text(template.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface)

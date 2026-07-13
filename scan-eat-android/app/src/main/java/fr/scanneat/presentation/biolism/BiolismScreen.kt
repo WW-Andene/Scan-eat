@@ -50,10 +50,10 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Background)
-                .padding(horizontal = 16.dp)
-                .padding(top = 12.dp, bottom = 8.dp),
+                .padding(horizontal = Spacing.L)
+                .padding(top = Spacing.M, bottom = Spacing.S),
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Text(stringResource(R.string.tab_biolism), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 22.sp), color = LocalGoldAccent.current)
             }
             Text(stringResource(R.string.biolism_subtitle), style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
@@ -74,7 +74,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                     ) {
                         Text(
                             stringResource(tab.labelRes),
-                            modifier = Modifier.padding(vertical = 8.dp),
+                            modifier = Modifier.padding(vertical = Spacing.S),
                             style = MaterialTheme.typography.labelMedium,
                             color = if (isActive) LocalGoldAccent.current else fgColor.copy(0.5f),
                             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
