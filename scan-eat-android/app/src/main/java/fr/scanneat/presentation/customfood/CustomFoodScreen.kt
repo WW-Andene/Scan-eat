@@ -1,28 +1,22 @@
 package fr.scanneat.presentation.customfood
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
-import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.presentation.customfood.components.AddFoodDialog
+import fr.scanneat.presentation.customfood.components.FoodEntryRow
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -143,158 +137,4 @@ fun CustomFoodScreen(
             onConfirm   = { newName -> viewModel.rename(id, newName); renameTarget = null },
         )
     }
-}
-
-@Composable
-private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Unit, onRename: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceVariant)
-            .padding(Spacing.M),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    entry.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = OnSurface,
-                    fontWeight = FontWeight.Medium,
-                )
-                if (isCustom) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = AccentCoral.copy(0.15f),
-                    ) {
-                        Text(
-                            stringResource(R.string.customfood_custom_badge),
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AccentCoral,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                }
-            }
-            Text(
-                stringResource(R.string.customfood_macro_summary, entry.kcal.toInt(), entry.proteinG.toInt(), entry.carbsG.toInt(), entry.fatG.toInt()),
-                style = MaterialTheme.typography.bodySmall,
-                color = OnSurface.copy(0.55f),
-            )
-        }
-        if (isCustom) {
-            IconButton(onClick = onRename, modifier = Modifier.size(32.dp)) {
-                Icon(
-                    Icons.Default.Edit, stringResource(R.string.common_rename),
-                    tint = OnSurface.copy(0.5f),
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                Icon(
-                    Icons.Default.Close, stringResource(R.string.common_delete),
-                    tint = OnSurface.copy(0.4f),
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AddFoodDialog(
-    onDismiss: () -> Unit,
-    onSave: (String, Double, Double, Double, Double, Double, Double) -> Unit,
-) {
-    var name by remember { mutableStateOf("") }
-    var kcal by remember { mutableStateOf("") }
-    var prot by remember { mutableStateOf("") }
-    var carb by remember { mutableStateOf("") }
-    var fat  by remember { mutableStateOf("") }
-    var fib  by remember { mutableStateOf("") }
-    var salt by remember { mutableStateOf("") }
-
-    // Blank macro fields default to 0.0 at save time - only reject a field that's
-    // actually filled in with something negative (kcal itself must always parse).
-    fun nonNegativeOrBlank(s: String) = s.isBlank() || (s.replace(',', '.').toDoubleOrNull()?.let { it >= 0.0 } == true)
-    val valid = name.isNotBlank() &&
-        (kcal.replace(',', '.').toDoubleOrNull()?.let { it >= 0.0 } == true) &&
-        nonNegativeOrBlank(prot) && nonNegativeOrBlank(carb) && nonNegativeOrBlank(fat) && nonNegativeOrBlank(fib) && nonNegativeOrBlank(salt)
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor   = SurfaceVariant,
-        title = { Text(stringResource(R.string.customfood_add_title), color = OnBackground) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                FoodField(stringResource(R.string.customfood_field_name), name, KeyboardType.Text) { name = it }
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FoodField(stringResource(R.string.customfood_field_kcal), kcal, KeyboardType.Decimal, Modifier.weight(1f)) { kcal = it }
-                    FoodField(stringResource(R.string.customfood_field_protein), prot, KeyboardType.Decimal, Modifier.weight(1f)) { prot = it }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FoodField(stringResource(R.string.customfood_field_carbs), carb, KeyboardType.Decimal, Modifier.weight(1f)) { carb = it }
-                    FoodField(stringResource(R.string.customfood_field_fat), fat, KeyboardType.Decimal, Modifier.weight(1f)) { fat = it }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FoodField(stringResource(R.string.customfood_field_fiber), fib, KeyboardType.Decimal, Modifier.weight(1f)) { fib = it }
-                    FoodField(stringResource(R.string.customfood_field_salt), salt, KeyboardType.Decimal, Modifier.weight(1f)) { salt = it }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onSave(
-                        name.trim(),
-                        kcal.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                        prot.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                        carb.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                        fat.replace(',', '.').toDoubleOrNull()  ?: 0.0,
-                        fib.replace(',', '.').toDoubleOrNull()  ?: 0.0,
-                        salt.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                    )
-                },
-                enabled = valid,
-            ) {
-                Text(stringResource(R.string.common_create), color = if (valid) AccentCoral else OnBackground.copy(0.3f))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
-            }
-        },
-    )
-}
-
-@Composable
-private fun FoodField(
-    label: String,
-    value: String,
-    keyboardType: KeyboardType,
-    modifier: Modifier = Modifier.fillMaxWidth(),
-    onValue: (String) -> Unit,
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValue,
-        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-        modifier = modifier,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        shape = RoundedCornerShape(8.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor   = AccentCoral,
-            unfocusedBorderColor = OnBackground.copy(0.18f),
-            focusedTextColor     = OnBackground,
-            unfocusedTextColor   = OnBackground,
-        ),
-    )
 }
