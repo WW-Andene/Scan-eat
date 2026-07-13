@@ -38,6 +38,7 @@ fun RecipesScreen(
     val language = viewModel.language.collectAsStateWithLifecycle()
     val warnings = viewModel.recipeWarnings.collectAsStateWithLifecycle()
     val officialWarnings = viewModel.officialRecipeWarnings.collectAsStateWithLifecycle()
+    val pairings = viewModel.recipePairings.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -74,6 +75,7 @@ fun RecipesScreen(
                     recipe   = recipe,
                     isFrench = language.value == "fr",
                     warning  = officialWarnings.value[recipe.nameFr],
+                    pairings = viewModel.officialRecipePairings[recipe.nameFr] ?: emptyList(),
                     onLog    = { logOfficialTarget = recipe },
                     onClone  = { viewModel.cloneOfficial(recipe) },
                 )
@@ -92,7 +94,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, warning = warnings.value[recipe.id], onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe })
+                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe })
             }
             item { Spacer(Modifier.height(32.dp)) }
         }
@@ -119,7 +121,7 @@ fun RecipesScreen(
 }
 
 @Composable
-private fun RecipeCard(recipe: Recipe, warning: String?, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit) {
+private fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
         Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -153,13 +155,22 @@ private fun RecipeCard(recipe: Recipe, warning: String?, onLog: () -> Unit, onDe
                         Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
                     }
                 }
+                // findPairings()/PairingsDb.kt (Ahn et al. flavor-network data) was
+                // already used for scanned products but never reached Recipes - the
+                // exact same "what goes well with this" question applies here too.
+                if (pairings.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.recipes_pairs_well_with, pairings.joinToString(", ")),
+                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warning: String?, onLog: () -> Unit, onClone: () -> Unit) {
+private fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warning: String?, pairings: List<String>, onLog: () -> Unit, onClone: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
         Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -184,6 +195,12 @@ private fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warnin
                         Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                         Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
                     }
+                }
+                if (pairings.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.recipes_pairs_well_with, pairings.joinToString(", ")),
+                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+                    )
                 }
             }
         }

@@ -55,6 +55,10 @@ data class DashboardUiState(
     // entirely, since only the *current* streak (logStreakDays) was ever shown.
     val longestStreak: Int = 0,
     val weekly: RollupResult? = null,
+    // monthlyRollup() was fully implemented (same shape as weeklyRollup, which
+    // already has a card) but had zero callers - there was no way to see
+    // anything past a single week anywhere on the Dashboard.
+    val monthly: RollupResult? = null,
     val weekDelta: WeekOverWeekDelta? = null,
     val weightSummary: fr.scanneat.data.repository.health.WeightSummary? = null,
     val weightForecast: WeightForecast = WeightForecast.InsufficientData,
@@ -112,6 +116,7 @@ class DashboardViewModel @Inject constructor(
                     ?.let { if (bioTdeePreview != null) it.copy(kcal = bioTdeePreview) else it }
                 val thisWeek  = weeklyRollup(allEntries, LocalDate.now())
                 val priorWeek = weeklyRollup(allEntries, LocalDate.now().minusDays(7))
+                val thisMonth = monthlyRollup(allEntries, LocalDate.now())
                 val wSummary  = weightRepo.summarize(30)
                 val forecast  = if (wSummary != null && profile.goalWeightKg != null)
                     weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
@@ -142,6 +147,7 @@ class DashboardViewModel @Inject constructor(
                     streak         = logStreakDays(allEntries),
                     longestStreak  = longestLogStreak(allEntries),
                     weekly         = thisWeek,
+                    monthly        = thisMonth,
                     weekDelta      = weekOverWeekDelta(thisWeek, priorWeek),
                     weightSummary  = wSummary,
                     weightForecast = forecast,

@@ -11,6 +11,7 @@ import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
 import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
+import fr.scanneat.domain.engine.planning.findPairings
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.DiaryEntry
@@ -68,6 +69,28 @@ class RecipesViewModel @Inject constructor(
 
     /** Officially-sourced starter recipes (see OfficialRecipeDb.kt) — read-only, browsable alongside the user's own. */
     val officialRecipes: List<OfficialRecipe> = OFFICIAL_RECIPE_DB
+
+    /**
+     * recipe id -> ingredients (French names) that pair well with the recipe's
+     * main (largest by grams) ingredient. findPairings()/PairingsDb.kt was
+     * already used for scanned products (ResultViewModel) but never reached
+     * Recipes at all - a natural place to also deepen recipe discovery, since
+     * it's the exact same "what goes well with this" question.
+     */
+    val recipePairings: StateFlow<Map<String, List<String>>> = recipes.map { list ->
+        list.mapNotNull { recipe ->
+            val main = recipe.components.maxByOrNull { it.grams } ?: return@mapNotNull null
+            val pairs = findPairings(main.productName, limit = 4)
+            if (pairs.isEmpty()) null else recipe.id to pairs
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Same as [recipePairings], for the official/starter recipes. */
+    val officialRecipePairings: Map<String, List<String>> = OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
+        val main = recipe.ingredients.maxByOrNull { it.grams } ?: return@mapNotNull null
+        val pairs = findPairings(main.foodName, limit = 4)
+        if (pairs.isEmpty()) null else recipe.nameFr to pairs
+    }.toMap()
 
     fun save(name: String, components: List<RecipeComponent>, servings: Int = 1) {
         viewModelScope.launch { repo.save(name, components, servings) }

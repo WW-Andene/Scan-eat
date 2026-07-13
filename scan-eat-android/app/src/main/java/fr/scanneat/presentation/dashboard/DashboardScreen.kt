@@ -105,6 +105,9 @@ fun DashboardScreen(
             // ---- Weekly bars ----
             s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets, language = language.value) } }
 
+            // ---- Monthly trend ----
+            s.monthly?.let { item { MonthlyTrendCard(rollup = it, targets = s.targets) } }
+
             // ---- Week-over-week delta ----
             s.weekDelta?.let { delta ->
                 if (delta.kcal != 0.0) item { WeekDeltaCard(delta = delta) }

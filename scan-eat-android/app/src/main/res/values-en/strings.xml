@@ -856,6 +856,8 @@
     <string name="dashboard_macro_target">/ %1$d</string>
     <string name="dashboard_week_title">This Week</string>
     <string name="dashboard_week_avg_kcal">%1$d kcal/day avg.</string>
+    <string name="dashboard_month_title">Last 30 Days</string>
+    <string name="dashboard_month_days_logged">%1$d/%2$d days logged</string>
     <string name="dashboard_week_delta">%1$s kcal vs last week</string>
     <string name="dashboard_gap_title">Close the Gaps</string>
     <string name="dashboard_gap_entry">%1$s: −%2$s missing</string>
@@ -883,6 +885,7 @@
     <string name="templates_add_dialog_title">New Meal Template</string>
     <string name="recipes_empty_body">No recipes yet. Create your first multi-ingredient recipe.</string>
     <string name="recipes_summary">%1$d kcal · %2$d ingredients · %3$d g</string>
+    <string name="recipes_pairs_well_with">Pairs well with: %1$s</string>
     <string name="recipes_add_dialog_title">New Recipe</string>
     <string name="recipes_field_name">Recipe name</string>
     <string name="recipes_ingredients_label">Ingredients</string>
