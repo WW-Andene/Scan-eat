@@ -15,6 +15,7 @@ import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.engine.scoring.dailyTargets
 import fr.scanneat.domain.engine.scoring.hasMinimalProfile
+import fr.scanneat.domain.engine.scoring.withKcalOverride
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.domain.model.DailySummary
 import fr.scanneat.domain.model.DiaryEntry
@@ -63,7 +64,29 @@ class DiaryViewModel @Inject constructor(
     val targets: StateFlow<DailyTargets?> = combine(prefs.profile, biolismRepo.profile) { profile, bioProfile ->
         val base = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
         val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
-        base?.let { if (bioTdee != null) it.copy(kcal = bioTdee) else it }
+        // Previously only kcal was swapped for Biolism's tdee, leaving fat/carbs
+        // computed from the old profile-only kcal - the shown macros no longer
+        // summed to the kcal figure right next to them. withKcalOverride rescales
+        // every kcal-derived field together so the whole row stays consistent.
+        base?.let { if (bioTdee != null) it.withKcalOverride(bioTdee) else it }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // "What would my macros be at my goal weight" - previously the Journal only
+    // ever showed targets derived from the current profile weight, even for a
+    // user who set a goal weight in Profile explicitly to plan around it. Only
+    // emits when a goal weight is actually set and differs from the current one
+    // (otherwise it would just silently duplicate the row above).
+    val goalTargets: StateFlow<DailyTargets?> = combine(prefs.profile, biolismRepo.profile) { profile, bioProfile ->
+        val goalWeight = profile.goalWeightKg
+        if (!hasMinimalProfile(profile) || goalWeight == null || goalWeight == profile.weightKg) return@combine null
+        val base = dailyTargets(profile, weightKgOverride = goalWeight) ?: return@combine null
+        val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile.copy(weightKg = goalWeight))?.tdeeDay else null
+        if (bioTdee != null) base.withKcalOverride(bioTdee) else base
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** For the goal-targets row's label ("Objectif : NN kg") - null hides the row. */
+    val goalWeightKg: StateFlow<Double?> = combine(prefs.profile, goalTargets) { profile, goal ->
+        profile.goalWeightKg.takeIf { goal != null }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun goToPreviousDay() { _selectedDate.value = _selectedDate.value.minusDays(1) }

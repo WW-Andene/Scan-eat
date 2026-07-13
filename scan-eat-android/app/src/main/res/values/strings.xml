@@ -685,6 +685,7 @@
     <string name="diary_macro_protein">Protéines</string>
     <string name="diary_macro_carbs">Glucides</string>
     <string name="diary_macro_fat">Lipides</string>
+    <string name="diary_goal_targets_title">Objectif (poids idéal : %1$s kg)</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
     <string name="diary_edit_portion_label">Portion (g)</string>
 

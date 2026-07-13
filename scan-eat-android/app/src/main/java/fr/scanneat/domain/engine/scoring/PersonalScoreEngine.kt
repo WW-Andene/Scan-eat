@@ -126,14 +126,22 @@ data class DailyTargets(
  */
 private const val GOAL_KCAL_ADJUSTMENT = 500.0
 
-fun dailyTargets(p: Profile): DailyTargets? {
-    val tdee = tdeeKcal(p) ?: return null
+/**
+ * [weightKgOverride] recomputes every weight-derived figure (BMR, protein
+ * PRI target) as if the profile's body weight were this value instead of
+ * [Profile.weightKg] - used to show what the day's macro targets would look
+ * like at the user's stated goal weight, alongside the targets for their
+ * current weight. Diet/health-condition/sex/age fields are untouched.
+ */
+fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
+    val effectiveP = weightKgOverride?.let { p.copy(weightKg = it) } ?: p
+    val tdee = tdeeKcal(effectiveP) ?: return null
     val goalAdjustedKcal = when (p.goal) {
         Goal.LOSE     -> tdee - GOAL_KCAL_ADJUSTMENT
         Goal.GAIN     -> tdee + GOAL_KCAL_ADJUSTMENT
         Goal.MAINTAIN -> tdee
     }
-    val pri  = proteinPriG(p) ?: 0.0
+    val pri  = proteinPriG(effectiveP) ?: 0.0
     // Sex-specific iron: menstruating women 16 mg/day (EFSA 2015). Uses the
     // profile's own isMenstruating answer rather than inferring from age —
     // the app already asks this explicitly (ProfileScreen shows the checkbox
@@ -182,6 +190,31 @@ fun dailyTargets(p: Profile): DailyTargets? {
         potassiumMgTarget = 3500.0,
         zincMgTarget      = zincTarget,
         vitCMgTarget      = 95.0,
+    )
+}
+
+/**
+ * Rescales every kcal-derived field in [targets] onto [newKcal] - satFat/
+ * sugars/fat/carbs are all a fixed fraction of the day's calorie budget, so
+ * swapping in a richer TDEE (e.g. Biolism's body-composition-aware estimate)
+ * without also rescaling them left macros that no longer summed to the kcal
+ * figure shown next to them. proteinGTarget (per-kg body weight, not kcal)
+ * and the diet-driven carbsGDailyMax hard cap (a fixed clinical ceiling, not
+ * a kcal fraction) are deliberately left untouched.
+ */
+fun DailyTargets.withKcalOverride(newKcal: Double): DailyTargets {
+    if (newKcal <= 0.0 || kcal <= 0.0) return this
+    val ratio = newKcal / kcal
+    val newFatTarget = fatGTarget * ratio
+    val newCarbsTarget = if (carbsGDailyMax != null) carbsGTarget
+        else ((newKcal - proteinGTarget * 4.0 - newFatTarget * 9.0) / 4.0).coerceAtLeast(0.0)
+    return copy(
+        kcal             = newKcal,
+        satFatGMax       = satFatGMax * ratio,
+        freeSugarsGMax   = freeSugarsGMax * ratio,
+        freeSugarsGIdeal = freeSugarsGIdeal * ratio,
+        fatGTarget       = newFatTarget,
+        carbsGTarget     = newCarbsTarget,
     )
 }
 

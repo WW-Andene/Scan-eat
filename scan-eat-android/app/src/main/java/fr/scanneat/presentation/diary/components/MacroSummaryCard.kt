@@ -15,35 +15,57 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.CardRadius
+import java.util.Locale
 
 @Composable
-internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?) {
+internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?, goalTargets: DailyTargets? = null, goalWeightKg: Double? = null) {
     Box(Modifier.fillMaxWidth().glassSheen()) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
             Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Text(stringResource(R.string.diary_totals_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal", targets?.kcal?.toInt())
-                    MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g", targets?.proteinGTarget?.takeIf { it > 0 }?.toInt())
-                    MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g", targets?.carbsGTarget?.takeIf { it > 0 }?.toInt())
-                    MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g", targets?.fatGTarget?.takeIf { it > 0 }?.toInt())
+                MacroRow(totals, targets, AccentCoral)
+                // Second row: what the same day's totals look like against the
+                // targets for the user's stated goal weight instead of their
+                // current one - previously the only way to see this was to edit
+                // Profile's weight field to the goal value, check, then edit it
+                // back, since goalWeightKg was collected but never used here.
+                if (goalTargets != null && goalWeightKg != null) {
+                    Text(
+                        stringResource(R.string.diary_goal_targets_title, formatWeight(goalWeightKg)),
+                        style = MaterialTheme.typography.titleSmall, color = Gold, fontWeight = FontWeight.SemiBold,
+                    )
+                    MacroRow(totals, goalTargets, Gold)
                 }
             }
         }
     }
 }
 
+private fun formatWeight(kg: Double): String =
+    if (kg == kg.toInt().toDouble()) kg.toInt().toString() else String.format(Locale.getDefault(), "%.1f", kg)
+
 @Composable
-private fun MacroItem(label: String, value: String, unit: String, target: Int?) {
+private fun MacroRow(totals: ConsumedNutrition, targets: DailyTargets?, accent: androidx.compose.ui.graphics.Color) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+        MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal", targets?.kcal?.toInt(), accent)
+        MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g", targets?.proteinGTarget?.takeIf { it > 0 }?.toInt(), accent)
+        MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g", targets?.carbsGTarget?.takeIf { it > 0 }?.toInt(), accent)
+        MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g", targets?.fatGTarget?.takeIf { it > 0 }?.toInt(), accent)
+    }
+}
+
+@Composable
+private fun MacroItem(label: String, value: String, unit: String, target: Int?, accent: androidx.compose.ui.graphics.Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         // Previously only the raw total was shown, with no indication of the
         // profile-derived daily target it should be measured against.
-        Text(if (target != null) "$value/$target" else value, style = MaterialTheme.typography.titleMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
+        Text(if (target != null) "$value/$target" else value, style = MaterialTheme.typography.titleMedium, color = accent, fontWeight = FontWeight.Bold)
         Text(unit, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f))
     }
