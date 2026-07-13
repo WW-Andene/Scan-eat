@@ -7,6 +7,7 @@ import fr.scanneat.data.local.db.AppDatabase
 import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.customfood.CustomFoodDao
+import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.template.MealTemplateDao
@@ -51,6 +52,7 @@ class BackupRepository @Inject constructor(
     private val activityDao: ActivityDao,
     private val mealTemplateDao: MealTemplateDao,
     private val recipeDao: RecipeDao,
+    private val medicationDao: MedicationDao,
     private val prefs: UserPreferences,
     private val hydrationRepo: HydrationRepository,
     private val fastingRepo: FastingRepository,
@@ -78,6 +80,7 @@ class BackupRepository @Inject constructor(
             activities    = activityDao.getAllForBackup(),
             mealTemplates = mealTemplateDao.getAllForBackup(),
             recipes       = recipeDao.getAllForBackup(),
+            medications   = medicationDao.getAllForBackup(),
             profile = ProfileBackup(
                 name = profile.name,
                 sex = profile.sex.name,
@@ -161,6 +164,7 @@ class BackupRepository @Inject constructor(
             activityDao.insertAll(bundle.activities)
             mealTemplateDao.insertAll(bundle.mealTemplates)
             recipeDao.insertAll(bundle.recipes)
+            medicationDao.insertAll(bundle.medications)
         }
 
         restoreDataStoreData(bundle)
