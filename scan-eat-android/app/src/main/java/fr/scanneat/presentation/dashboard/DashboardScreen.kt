@@ -22,11 +22,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -61,6 +65,15 @@ fun DashboardScreen(
     val state    = viewModel.state.collectAsStateWithLifecycle()
     val s        = state.value
     val language = viewModel.language.collectAsStateWithLifecycle()
+    val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val gapLoggedMessage = gapLoggedName.value?.let { stringResource(R.string.dashboard_gap_logged, it) }
+    LaunchedEffect(gapLoggedName.value) {
+        gapLoggedMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearGapLoggedMessage()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -74,6 +87,7 @@ fun DashboardScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Background,
     ) { padding ->
         LazyColumn(
@@ -103,7 +117,7 @@ fun DashboardScreen(
 
             // ---- Gap-closer suggestions ----
             if (s.gapSuggestions.isNotEmpty()) {
-                item { GapCloserCard(gaps = s.gapSuggestions) }
+                item { GapCloserCard(gaps = s.gapSuggestions, onSuggestionClick = viewModel::logGapSuggestion) }
             }
 
             // ---- Feature tiles — meal-planning tools only; daily logging tasks

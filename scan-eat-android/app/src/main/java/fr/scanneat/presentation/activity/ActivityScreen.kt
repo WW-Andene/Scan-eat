@@ -83,6 +83,7 @@ fun ActivityScreen(
 
     val entries      = viewModel.entries.collectAsStateWithLifecycle()
     val markedDates  = viewModel.markedDates.collectAsStateWithLifecycle()
+    val pastSubTypes = viewModel.pastSubTypes.collectAsStateWithLifecycle()
     var showCalendar     by remember { mutableStateOf(false) }
     var calendarMonth    by remember { mutableStateOf(java.time.YearMonth.now()) }
     var calendarSelected by remember { mutableStateOf<java.time.LocalDate?>(null) }
@@ -90,6 +91,7 @@ fun ActivityScreen(
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by remember { mutableStateOf("30") }
     var selectedSubType by remember { mutableStateOf<String?>(null) }
+    var customSubTypeText by remember { mutableStateOf("") }
     var setsText by remember { mutableStateOf("") }
     var repsText by remember { mutableStateOf("") }
     var distanceText by remember { mutableStateOf("") }
@@ -245,7 +247,7 @@ fun ActivityScreen(
                         typeLabels.forEach { (type, label) ->
                             FilterChip(
                                 selected = selectedType == type,
-                                onClick = { selectedType = type; selectedSubType = null },
+                                onClick = { selectedType = type; selectedSubType = null; customSubTypeText = "" },
                                 label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
@@ -261,7 +263,7 @@ fun ActivityScreen(
                             availableSubTypes.forEach { key ->
                                 FilterChip(
                                     selected = selectedSubType == key,
-                                    onClick = { selectedSubType = if (selectedSubType == key) null else key },
+                                    onClick = { selectedSubType = if (selectedSubType == key) null else key; customSubTypeText = "" },
                                     label = { Text(subTypeLabels[key] ?: key, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
@@ -271,6 +273,37 @@ fun ActivityScreen(
                             }
                         }
                     }
+                    // Free-text sub-type — the fixed chip lists above only cover a
+                    // handful of common exercises per type; there was previously no
+                    // way to log something like "rowing" or "pilates" at all.
+                    // Suggestions drawn from the user's own past entries (no new
+                    // data source), excluding names already offered as fixed chips.
+                    val pastForType = remember(selectedType, pastSubTypes.value) {
+                        pastSubTypes.value[selectedType].orEmpty().filter { it !in availableSubTypes }
+                    }
+                    if (pastForType.isNotEmpty()) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            pastForType.forEach { suggestion ->
+                                FilterChip(
+                                    selected = selectedSubType == suggestion,
+                                    onClick = { selectedSubType = suggestion; customSubTypeText = suggestion },
+                                    label = { Text(suggestion, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                                        labelColor = OnBackground.copy(0.7f),
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                    OutlinedTextField(
+                        value = customSubTypeText,
+                        onValueChange = { customSubTypeText = it; selectedSubType = it.ifBlank { null } },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.activity_subtype_custom_label)) },
+                        singleLine = true,
+                        colors = scanEatTextFieldColors(),
+                    )
                     if (selectedType == ActivityType.STRENGTH) {
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             OutlinedTextField(
@@ -331,7 +364,7 @@ fun ActivityScreen(
                                 weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull(),
                             )
                             showAdd = false
-                            selectedSubType = null; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
+                            selectedSubType = null; customSubTypeText = ""; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
                         }
                     },
                     enabled = minutesValid,

@@ -31,15 +31,33 @@ class ActivityViewModel @Inject constructor(
     val weightKg: StateFlow<Double?> = prefs.profile.map { it.weightKg }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // Both markedDates and pastSubTypes are derived from the same 365-day
+    // range read — computed together so logging a new entry only re-triggers
+    // one repo.getRange() call, not two.
+    private val yearRange: StateFlow<List<ActivityEntry>> = entries.map {
+        repo.getRange(LocalDate.now().minusDays(365), LocalDate.now())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     // Dates with at least one logged activity — drives the calendar marker dots.
     // Re-derived off `entries` (not a one-shot fetch) so logging an activity
     // today updates today's dot immediately instead of only after the screen
     // is left and reopened (WhileSubscribed would otherwise cache a stale set).
-    val markedDates: StateFlow<Set<LocalDate>> = entries.map {
-        val from = LocalDate.now().minusDays(365)
-        val to   = LocalDate.now()
-        repo.getRange(from, to).map { e -> e.date }.toSet()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+    val markedDates: StateFlow<Set<LocalDate>> = yearRange
+        .map { it.map { e -> e.date }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    // Past custom sub-types the user has typed for each activity type — the
+    // add-entry dialog only offered a fixed, hard-coded sub-type list (e.g.
+    // "bench_press", "freestyle") with no way to enter something like
+    // "rowing" or "pilates" at all. Surfaced as autocomplete suggestions
+    // alongside a free-text field, not a replacement for it.
+    val pastSubTypes: StateFlow<Map<ActivityType, List<String>>> = yearRange
+        .map { list ->
+            list.mapNotNull { e -> e.subType?.let { e.type to it } }
+                .groupBy({ it.first }, { it.second })
+                .mapValues { (_, subs) -> subs.distinct().sorted() }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     // Refresh to today if the date has changed since last foreground (e.g. app kept alive overnight)
     fun refreshDate() {

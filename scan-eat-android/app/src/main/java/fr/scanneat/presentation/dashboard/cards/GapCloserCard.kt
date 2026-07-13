@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,11 +14,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.GapEntry
+import fr.scanneat.domain.engine.dashboard.GapSuggestion
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.OnSurface
@@ -26,9 +29,10 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
 import java.util.Locale
 
+/** [onSuggestionClick] logs the suggested food (see DashboardViewModel.logGapSuggestion) — previously these chips had no action at all. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun GapCloserCard(gaps: List<GapEntry>) {
+internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggestion) -> Unit) {
   Box(Modifier.fillMaxWidth().glassSheen()) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -42,6 +46,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         gap.suggestions.take(3).forEach { s ->
                             Surface(
+                                modifier = Modifier.clip(RoundedCornerShape(16.dp)).clickable { onSuggestionClick(s) },
                                 shape = RoundedCornerShape(16.dp),
                                 color = AccentCoral.copy(0.15f),
                             ) {

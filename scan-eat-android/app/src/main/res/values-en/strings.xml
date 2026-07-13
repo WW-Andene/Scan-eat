@@ -716,6 +716,7 @@
     <string name="activity_type_label">Type</string>
     <string name="activity_duration_label">Duration (minutes)</string>
     <string name="activity_subtype_label">Exercise</string>
+    <string name="activity_subtype_custom_label">Other exercise (free text)</string>
     <string name="activity_subtype_bench_press">Bench press</string>
     <string name="activity_subtype_squat">Squat</string>
     <string name="activity_subtype_deadlift">Deadlift</string>
@@ -845,6 +846,7 @@
     <string name="dashboard_gap_title">Close the Gaps</string>
     <string name="dashboard_gap_entry">%1$s: −%2$s missing</string>
     <string name="dashboard_gap_suggestion">%1$s · %2$d g</string>
+    <string name="dashboard_gap_logged">%1$s logged to the diary</string>
     <string name="dashboard_calorie_balance_title">Caloric Balance</string>
     <string name="dashboard_calorie_in_out">%1$d / %2$d kcal</string>
     <string name="dashboard_calorie_net">Net balance</string>

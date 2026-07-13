@@ -15,9 +15,12 @@ import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
+import fr.scanneat.presentation.result.defaultMealForHour
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import javax.inject.Inject
 
 /**
@@ -128,6 +131,36 @@ class DashboardViewModel @Inject constructor(
     // labels must follow it explicitly, same as DiaryScreen/WeightScreen/MealPlanScreen.
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // ── Gap-closer suggestions: previously a dead end ────────────────────────
+    // GapCloserCard rendered suggestion chips (e.g. "Lentilles, 80 g") with no
+    // way to act on them — tapping did nothing. GapSuggestion.name is always
+    // an exact FOOD_DB entry name (see chronicNutrientGaps/closeTheGap, which
+    // build it from FoodEntry.name), so it's looked up directly rather than
+    // fuzzy-searched.
+    private val _gapLoggedName = MutableStateFlow<String?>(null)
+    /** Non-null briefly after a successful log, for a one-shot confirmation snackbar. */
+    val gapLoggedName: StateFlow<String?> = _gapLoggedName.asStateFlow()
+
+    fun logGapSuggestion(suggestion: GapSuggestion) {
+        val food = FOOD_DB.find { it.name == suggestion.name } ?: return
+        viewModelScope.launch {
+            consumptionRepo.log(
+                DiaryEntry(
+                    date        = LocalDate.now(),
+                    mealSlot    = defaultMealForHour(LocalTime.now().hour),
+                    productName = food.name,
+                    barcode     = null,
+                    portionG    = suggestion.grams.toDouble(),
+                    nutrition   = food.toProduct(suggestion.grams.toDouble()).nutrition,
+                    source      = ScanSource.MANUAL,
+                )
+            )
+            _gapLoggedName.value = food.name
+        }
+    }
+
+    fun clearGapLoggedMessage() { _gapLoggedName.value = null }
 
     // Local tuple to carry 4 values cleanly through flatMapLatest
     private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
