@@ -24,12 +24,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.domain.engine.biolism.ETHNICITY_OPTIONS
 import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.engine.scoring.dietNote
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
@@ -40,6 +42,7 @@ fun ProfileScreen(
     val tdee         = viewModel.tdee.collectAsStateWithLifecycle()
     val tdeeGoal     = viewModel.tdeeAtGoalWeight.collectAsStateWithLifecycle()
     val saved   = viewModel.saved.collectAsStateWithLifecycle()
+    val biolismProfile = viewModel.biolismProfile.collectAsStateWithLifecycle()
 
     // Local mutable state mirrors the saved profile
     var name       by remember(profile.value.id) { mutableStateOf(profile.value.name) }
@@ -54,6 +57,13 @@ fun ProfileScreen(
     var allergens  by remember(profile.value.id) { mutableStateOf(profile.value.allergens) }
     var conditions by remember(profile.value.id) { mutableStateOf(profile.value.healthConditions) }
     var isMenstruating by remember(profile.value.id) { mutableStateOf(profile.value.isMenstruating) }
+    // Circumferences + ethnicity — previously only editable from Métabolisme >
+    // Mon Profil (BiolismProfileScreen), even though they live in the same
+    // BiolismRepository already synced with this screen's shared fields.
+    var waistCm    by remember(biolismProfile.value) { mutableStateOf(biolismProfile.value.waistCm.takeIf { it > 0 }?.toString() ?: "") }
+    var hipCm      by remember(biolismProfile.value) { mutableStateOf(biolismProfile.value.hipCm.takeIf { it > 0 }?.toString() ?: "") }
+    var neckCm     by remember(biolismProfile.value) { mutableStateOf(biolismProfile.value.neckCm.takeIf { it > 0 }?.toString() ?: "") }
+    var ethnicityId by remember(biolismProfile.value) { mutableStateOf(biolismProfile.value.ethnicityId) }
 
     LaunchedEffect(saved.value) {
         if (saved.value) { viewModel.clearSaved(); onBack() }
@@ -85,6 +95,12 @@ fun ProfileScreen(
                             healthConditions = conditions,
                             isMenstruating = isMenstruating,
                         ))
+                        viewModel.saveBodyMeasurements(
+                            waistCm     = waistCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+                            hipCm       = hipCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+                            neckCm      = neckCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
+                            ethnicityId = ethnicityId,
+                        )
                     }) {
                         Text(stringResource(R.string.common_save), color = AccentCoral, fontWeight = FontWeight.SemiBold)
                     }
@@ -144,6 +160,31 @@ fun ProfileScreen(
                             colors = CheckboxDefaults.colors(checkedColor = AccentCoral),
                         )
                         Text(stringResource(R.string.profile_menstruating_checkbox), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
+                    }
+                }
+            }
+
+            // ---- Body measurements (shared with Métabolisme > Mon Profil) ----
+            // Only editable from BiolismProfileScreen before — surfaced here too so
+            // both profile screens expose the same complete set of fields, and so a
+            // user who never opens Métabolisme can still benefit from Navy BF%/WHtR
+            // calculations that need these.
+            ProfileSection(stringResource(R.string.profile_section_measurements)) {
+                OutlinedInput(stringResource(R.string.profile_field_waist), waistCm, KeyboardType.Decimal) { waistCm = it }
+                OutlinedInput(stringResource(R.string.profile_field_hip), hipCm, KeyboardType.Decimal) { hipCm = it }
+                OutlinedInput(stringResource(R.string.profile_field_neck), neckCm, KeyboardType.Decimal) { neckCm = it }
+                Text(stringResource(R.string.profile_field_ethnicity), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                val isFrench = Locale.current.language == "fr"
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    ETHNICITY_OPTIONS.forEach { opt ->
+                        FilterChip(
+                            selected = ethnicityId == opt.id,
+                            onClick  = { ethnicityId = opt.id },
+                            label    = { Text(if (isFrench) opt.labelFr else opt.label, maxLines = 1) },
+                            colors   = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                            ),
+                        )
                     }
                 }
             }

@@ -170,6 +170,23 @@ class BiolismRepository @Inject constructor(
         p.remove(K_SEX); p.remove(K_AGE); p.remove(K_HEIGHT); p.remove(K_WEIGHT); p.remove(K_ACTIVITY)
     }
 
+    /**
+     * Writes only the Biolism-exclusive fields (waist/hip/neck/ethnicity) —
+     * unlike saveProfile(), this never touches K_SEX/AGE/HEIGHT/WEIGHT/ACTIVITY,
+     * so it doesn't create a shared-field override. Lets Réglages > Mon Profil
+     * surface and edit these fields (previously only reachable from
+     * Métabolisme > Mon Profil) without freezing sex/age/height/weight/activity
+     * away from the main Profile the next time it's edited.
+     */
+    suspend fun saveBodyMeasurements(waistCm: Double, hipCm: Double, neckCm: Double, ethnicityId: String) {
+        store.edit { p ->
+            p[K_WAIST]     = waistCm.toFloat()
+            p[K_HIP]       = hipCm.toFloat()
+            p[K_NECK]      = neckCm.toFloat()
+            p[K_ETHNICITY] = ethnicityId
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Session timer state
     // ─────────────────────────────────────────────────────────────────────────

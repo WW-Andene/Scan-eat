@@ -507,6 +507,11 @@
     <string name="profile_tdee_goal_label">TDEE target weight</string>
     <string name="profile_section_identity">Identity</string>
     <string name="profile_section_body">Body</string>
+    <string name="profile_section_measurements">Body measurements (Metabolism)</string>
+    <string name="profile_field_waist">Waist circumference (cm)</string>
+    <string name="profile_field_hip">Hip circumference (cm)</string>
+    <string name="profile_field_neck">Neck circumference (cm)</string>
+    <string name="profile_field_ethnicity">Ethnicity</string>
     <string name="profile_section_activity">Activity</string>
     <string name="profile_section_diet">Diet</string>
     <string name="profile_section_allergens">Declared Allergens</string>

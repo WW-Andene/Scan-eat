@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
+import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -41,11 +42,26 @@ class ProfileViewModel @Inject constructor(
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
+    // Circumferences + ethnicity previously only existed in the Métabolisme
+    // profile screen (BiolismProfileScreen), invisible from Réglages > Mon
+    // Profil even though they're stored in the same synced BiolismRepository
+    // as the shared sex/age/height/weight/activity fields. Exposed here so
+    // both screens surface the same complete set of fields.
+    val biolismProfile: StateFlow<BiolismProfile> = biolismRepo.profile
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BiolismProfile())
+
     fun save(profile: Profile) {
         viewModelScope.launch {
             prefs.saveProfile(profile)
             biolismRepo.clearProfileOverride()
             _saved.value = true
+        }
+    }
+
+    /** Saves only the circumference/ethnicity fields — sex/age/height/weight/activity keep following [profile] via the shared BiolismRepository sync. */
+    fun saveBodyMeasurements(waistCm: Double, hipCm: Double, neckCm: Double, ethnicityId: String) {
+        viewModelScope.launch {
+            biolismRepo.saveBodyMeasurements(waistCm, hipCm, neckCm, ethnicityId)
         }
     }
 

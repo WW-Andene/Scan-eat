@@ -508,6 +508,11 @@
     <string name="profile_tdee_goal_label">TDEE poids cible</string>
     <string name="profile_section_identity">Identité</string>
     <string name="profile_section_body">Corps</string>
+    <string name="profile_section_measurements">Mesures corporelles (Métabolisme)</string>
+    <string name="profile_field_waist">Tour de taille (cm)</string>
+    <string name="profile_field_hip">Tour de hanches (cm)</string>
+    <string name="profile_field_neck">Tour de cou (cm)</string>
+    <string name="profile_field_ethnicity">Origine ethnique</string>
     <string name="profile_section_activity">Activité</string>
     <string name="profile_section_diet">Alimentation</string>
     <string name="profile_section_allergens">Allergènes déclarés</string>
