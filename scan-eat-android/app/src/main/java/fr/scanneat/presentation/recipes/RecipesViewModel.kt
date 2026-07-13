@@ -5,12 +5,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
+import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
+import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.planning.findPairings
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
@@ -18,15 +21,18 @@ import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanSource
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class RecipesViewModel @Inject constructor(
     private val repo: RecipeRepository,
     private val consumptionRepo: ConsumptionRepository,
+    private val customFoodRepo: CustomFoodRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
     val recipes: StateFlow<List<Recipe>> = repo.observeAll()
@@ -91,6 +97,23 @@ class RecipesViewModel @Inject constructor(
         val pairs = findPairings(main.foodName, limit = 4)
         if (pairs.isEmpty()) null else recipe.nameFr to pairs
     }.toMap()
+
+    // ── Ingredient search for the "add ingredient" dialog ────────────────────
+    // Previously pure manual entry: name/grams/kcal typed by hand, with no
+    // lookup at all - every recipe ingredient's protein/carbs/fat/fiber
+    // defaulted to 0 even when the food was already in FOOD_DB or the user's
+    // own custom foods (searchFoodDB already merges both, same as Diary's
+    // manual-add search), and a user's own custom food could never be reused
+    // as a recipe ingredient with correct macros.
+    private val _ingredientQuery = MutableStateFlow("")
+    val ingredientQuery: StateFlow<String> = _ingredientQuery.asStateFlow()
+
+    val ingredientSearchResults: StateFlow<List<FoodEntry>> =
+        combine(_ingredientQuery.debounce(200), customFoodRepo.observeAll()) { q, customs -> q to customs }
+            .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 6, customs) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
 
     fun save(name: String, components: List<RecipeComponent>, servings: Int = 1) {
         viewModelScope.launch { repo.save(name, components, servings) }

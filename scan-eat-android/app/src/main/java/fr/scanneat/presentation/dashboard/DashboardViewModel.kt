@@ -9,6 +9,7 @@ import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
 import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.dashboard.*
@@ -76,6 +77,7 @@ class DashboardViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val biolismRepo: BiolismRepository,
     private val activityRepo: ActivityRepository,
+    private val customFoodRepo: CustomFoodRepository,
 ) : ViewModel() {
 
     // Combine 4 flows with the type-safe 4-parameter lambda (not the array form).
@@ -103,7 +105,16 @@ class DashboardViewModel @Inject constructor(
         // Array<*>-indexed unchecked casts the previous form needed.
         Quad(today, allEntries, profile, bioProfile)
     }
-        .flatMapLatest { (today, allEntries, profile, bioProfile) ->
+        // Nested rather than folded into the 5-way combine above (which is
+        // already at Kotlin's typed-overload limit) - closeTheGap()/
+        // chronicNutrientGaps() below documented their own foodDB param as
+        // "FOOD_DB + custom foods" but this ViewModel only ever passed bare
+        // FOOD_DB, so a user's own custom foods (e.g. "Lentilles maison",
+        // high in iron) could never be suggested to close a real deficit.
+        .combine(customFoodRepo.observeAll()) { quad, customFoods -> quad to customFoods }
+        .flatMapLatest { (quad, customFoods) ->
+            val (today, allEntries, profile, bioProfile) = quad
+            val foodDb = FOOD_DB + customFoods
             flow {
                 // WeeklyBarsCard/gap engines below all read targets.kcal directly, but
                 // only calorieBalance further down ever substituted the richer
@@ -122,14 +133,14 @@ class DashboardViewModel @Inject constructor(
                     weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
                 else WeightForecast.InsufficientData
                 val gaps = if (targets != null && today.entries.isNotEmpty())
-                    closeTheGap(today.totals, targets, FOOD_DB)
+                    closeTheGap(today.totals, targets, foodDb)
                 else emptyList()
                 // chronicNutrientGaps() was fully built (7-day recurring-deficit
                 // scan) but never called from any ViewModel - closeTheGap() above
                 // only ever looks at today, so a real ongoing shortfall (e.g. low
                 // fiber 5 of the last 7 days) never surfaced unless it also
                 // happened to be true today.
-                val chronic = if (targets != null) chronicNutrientGaps(allEntries, targets, FOOD_DB) else emptyList()
+                val chronic = if (targets != null) chronicNutrientGaps(allEntries, targets, foodDb) else emptyList()
 
                 val calorieBalance = targets?.kcal?.let {
                     CalorieBalance(
@@ -171,16 +182,19 @@ class DashboardViewModel @Inject constructor(
     // ── Gap-closer suggestions: previously a dead end ────────────────────────
     // GapCloserCard rendered suggestion chips (e.g. "Lentilles, 80 g") with no
     // way to act on them — tapping did nothing. GapSuggestion.name is always
-    // an exact FOOD_DB entry name (see chronicNutrientGaps/closeTheGap, which
-    // build it from FoodEntry.name), so it's looked up directly rather than
-    // fuzzy-searched.
+    // an exact FoodEntry.name from the same merged FOOD_DB+custom-foods list
+    // closeTheGap/chronicNutrientGaps were given, so it's looked up directly
+    // rather than fuzzy-searched.
     private val _gapLoggedName = MutableStateFlow<String?>(null)
     /** Non-null briefly after a successful log, for a one-shot confirmation snackbar. */
     val gapLoggedName: StateFlow<String?> = _gapLoggedName.asStateFlow()
 
     fun logGapSuggestion(suggestion: GapSuggestion) {
-        val food = FOOD_DB.find { it.name == suggestion.name } ?: return
         viewModelScope.launch {
+            // Previously only ever searched raw FOOD_DB - a suggestion built from a
+            // user's own custom food (now possible since closeTheGap/chronicNutrientGaps
+            // are given FOOD_DB + custom foods) would silently no-op here otherwise.
+            val food = (FOOD_DB + customFoodRepo.observeAll().first()).find { it.name == suggestion.name } ?: return@launch
             consumptionRepo.log(
                 DiaryEntry(
                     date        = LocalDate.now(),

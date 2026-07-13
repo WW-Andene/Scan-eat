@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.recipes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
+import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.*
@@ -100,7 +102,15 @@ fun RecipesScreen(
         }
     }
 
-    if (showAdd) AddRecipeDialog(onDismiss = { showAdd = false }, onSave = { name, comps, servings -> viewModel.save(name, comps, servings); showAdd = false })
+    if (showAdd) {
+        val searchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
+        AddRecipeDialog(
+            onDismiss = { showAdd = false },
+            onSave = { name, comps, servings -> viewModel.save(name, comps, servings); showAdd = false },
+            searchResults = searchResults.value,
+            onQueryChange = viewModel::setIngredientQuery,
+        )
+    }
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
     logOfficialTarget?.let { recipe ->
         LogOfficialRecipeDialog(recipe = recipe, isFrench = language.value == "fr", onDismiss = { logOfficialTarget = null }, onLog = { slot -> viewModel.logOfficial(recipe, slot); logOfficialTarget = null })
@@ -231,12 +241,20 @@ private fun LogOfficialRecipeDialog(recipe: OfficialRecipe, isFrench: Boolean, o
 }
 
 @Composable
-private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>, Int) -> Unit) {
+private fun AddRecipeDialog(
+    onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>, Int) -> Unit,
+    searchResults: List<FoodEntry> = emptyList(), onQueryChange: (String) -> Unit = {},
+) {
     var name by remember { mutableStateOf("") }
     var components by remember { mutableStateOf(listOf<RecipeComponent>()) }
     var newIngName by remember { mutableStateOf("") }
     var newIngGrams by remember { mutableStateOf("") }
     var newIngKcal by remember { mutableStateOf("") }
+    // Set once a FOOD_DB/custom-food search result is picked - carries full
+    // macros (protein/carbs/fat/fiber), not just the kcal the manual fields
+    // below ever captured. Cleared whenever the name is edited by hand again,
+    // so a stale selection can't silently get applied to a since-retyped name.
+    var selectedFood by remember { mutableStateOf<FoodEntry?>(null) }
     // The recipe model has always supported a `servings` count (RecipeRepository.Recipe /
     // RecipeEntity), but this dialog never collected it, so every recipe saved through the
     // UI was silently persisted with servings=1 regardless of how many portions it actually
@@ -262,24 +280,61 @@ private fun AddRecipeDialog(onDismiss: () -> Unit, onSave: (String, List<RecipeC
                     Text(stringResource(R.string.recipes_ingredient_summary_compact, c.productName, c.grams.toInt(), c.kcal.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(value = newIngName, onValueChange = { newIngName = it }, label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
-                        colors = scanEatTextFieldColors())
+                    OutlinedTextField(
+                        value = newIngName,
+                        onValueChange = { newIngName = it; selectedFood = null; onQueryChange(it) },
+                        label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
+                        colors = scanEatTextFieldColors(),
+                    )
                     OutlinedTextField(value = newIngGrams, onValueChange = { newIngGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = scanEatTextFieldColors())
-                    OutlinedTextField(value = newIngKcal, onValueChange = { newIngKcal = it }, label = { Text("kcal") }, modifier = Modifier.weight(1f), singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = scanEatTextFieldColors())
+                    // Manual kcal entry only matters as a fallback once no database match is
+                    // picked - hidden once one is, since its full macros are used instead.
+                    if (selectedFood == null) {
+                        OutlinedTextField(value = newIngKcal, onValueChange = { newIngKcal = it }, label = { Text("kcal") }, modifier = Modifier.weight(1f), singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = scanEatTextFieldColors())
+                    }
+                }
+                // FOOD_DB + custom-food search results - previously this dialog had no
+                // lookup at all, so ingredients could never carry real protein/carbs/
+                // fat/fiber, and a user's own custom food could never be reused here.
+                if (selectedFood == null && searchResults.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        searchResults.take(5).forEach { food ->
+                            Text(
+                                food.name, style = MaterialTheme.typography.bodySmall, color = AccentCoral,
+                                modifier = Modifier.fillMaxWidth().clickable {
+                                    selectedFood = food
+                                    newIngName = food.name
+                                    onQueryChange("")
+                                }.padding(vertical = 4.dp),
+                            )
+                        }
+                    }
                 }
                 TextButton(onClick = {
                     // A zero/negative gram amount would divide-by-zero or invert the
                     // per-100g nutrition math wherever this component is later scaled.
                     val g = newIngGrams.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return@TextButton
-                    val k = newIngKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0
-                    if (newIngName.isNotBlank()) {
-                        components = components + RecipeComponent(newIngName, g, k)
-                        newIngName = ""; newIngGrams = ""; newIngKcal = ""
+                    if (newIngName.isBlank()) return@TextButton
+                    val food = selectedFood
+                    val component = if (food != null) {
+                        RecipeComponent(
+                            productName = food.name, grams = g,
+                            kcal     = food.kcal * g / 100.0,
+                            proteinG = food.proteinG * g / 100.0,
+                            carbsG   = food.carbsG * g / 100.0,
+                            fatG     = food.fatG * g / 100.0,
+                            fiberG   = food.fiberG * g / 100.0,
+                        )
+                    } else {
+                        val k = newIngKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0
+                        RecipeComponent(newIngName, g, k)
                     }
+                    components = components + component
+                    newIngName = ""; newIngGrams = ""; newIngKcal = ""; selectedFood = null; onQueryChange("")
                 }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentCoral) }
             }
         },
