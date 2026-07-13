@@ -205,7 +205,7 @@ class ResultViewModel @Inject constructor(
                         RecipeComponent(
                             productName = scan.product.name, grams = 100.0,
                             kcal = n.energyKcal, proteinG = n.proteinG, carbsG = n.carbsG,
-                            fatG = n.fatG, saltG = n.saltG,
+                            fatG = n.fatG, saltG = n.saltG, fiberG = n.fiberG,
                         ),
                     ),
                 )

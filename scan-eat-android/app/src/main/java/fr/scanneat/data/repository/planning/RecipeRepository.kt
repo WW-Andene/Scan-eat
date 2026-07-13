@@ -34,6 +34,7 @@ data class RecipeComponent(
     val carbsG: Double = 0.0,
     val fatG: Double = 0.0,
     val saltG: Double = 0.0,
+    val fiberG: Double = 0.0,
 )
 
 data class Recipe(
@@ -59,7 +60,7 @@ data class Recipe(
             saturatedFatG = 0.0,
             carbsG        = scale(totalCarbsG),
             sugarsG       = 0.0,
-            fiberG        = 0.0,
+            fiberG        = scale(components.sumOf { it.fiberG }),
             proteinG      = scale(totalProteinG),
             saltG         = scale(components.sumOf { it.saltG }),
         )

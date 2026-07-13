@@ -91,6 +91,7 @@ class RecipesViewModel @Inject constructor(
                 proteinG    = (food?.proteinG ?: 0.0) * ing.grams / 100.0,
                 carbsG      = (food?.carbsG ?: 0.0) * ing.grams / 100.0,
                 fatG        = (food?.fatG ?: 0.0) * ing.grams / 100.0,
+                fiberG      = (food?.fiberG ?: 0.0) * ing.grams / 100.0,
             )
         }
         save(recipe.nameFr, components)
