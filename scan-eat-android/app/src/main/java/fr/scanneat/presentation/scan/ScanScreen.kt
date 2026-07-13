@@ -312,6 +312,21 @@ fun ScanScreen(
             )
         }
     }
+
+    (state.value as? ScanUiState.MedicationFound)?.let { found ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissError() },
+            containerColor = SurfaceVariant,
+            title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
+            text = { Text(stringResource(R.string.scan_medication_found_body, found.entry.name), color = OnBackground.copy(0.7f)) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.saveDetectedMedication(found.entry) }) {
+                    Text(stringResource(R.string.scan_medication_found_add), color = Teal)
+                }
+            },
+            dismissButton = { TextButton(onClick = { viewModel.dismissError() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        )
+    }
 }
 
 /**

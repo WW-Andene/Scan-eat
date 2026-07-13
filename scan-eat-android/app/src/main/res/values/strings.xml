@@ -7,6 +7,9 @@
     <string name="scan_camera_permission_title">Accès à la caméra requis</string>
     <string name="common_allow">Autoriser</string>
     <string name="scan_open_settings_button">Ouvrir les réglages</string>
+    <string name="scan_medication_found_title">Médicament détecté</string>
+    <string name="scan_medication_found_body">%1$s reconnu depuis la base publique des médicaments (ANSM). L\'ajouter à ton Traitement ?</string>
+    <string name="scan_medication_found_add">Ajouter au Traitement</string>
     <string name="scan_cd_scan">Scanner</string>
     <string name="scan_no_camera_title">Aucune caméra détectée</string>
     <string name="scan_no_camera_body">Cet appareil n\'a pas de caméra. Saisissez le code-barres manuellement.</string>

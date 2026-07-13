@@ -7,6 +7,9 @@
     <string name="scan_camera_permission_title">Camera access required</string>
     <string name="common_allow">Allow</string>
     <string name="scan_open_settings_button">Open Settings</string>
+    <string name="scan_medication_found_title">Medication detected</string>
+    <string name="scan_medication_found_body">%1$s recognized from the public medication database (ANSM). Add it to your Treatment list?</string>
+    <string name="scan_medication_found_add">Add to Treatment</string>
     <string name="scan_cd_scan">Scan</string>
     <string name="scan_no_camera_title">No camera detected</string>
     <string name="scan_no_camera_body">This device has no camera. Enter the barcode manually instead.</string>

@@ -9,8 +9,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.ImagePayload
+import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.scan.ProductNotFoundException
 import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.domain.engine.medication.MedicationDbEntry
+import fr.scanneat.domain.engine.medication.findMedicationByBarcode
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,6 +74,8 @@ sealed class ScanUiState {
     data object Scanning : ScanUiState()
     data class  Success(val result: ScanResult, val persistedId: Long) : ScanUiState()
     data class  Error(val message: String, val needsPhoto: Boolean = false) : ScanUiState()
+    /** Barcode matched the medication lookup DB instead of a food product - offer to save it to Traitement rather than running it through food scoring. */
+    data class  MedicationFound(val entry: MedicationDbEntry) : ScanUiState()
 }
 
 @HiltViewModel
@@ -78,6 +83,7 @@ class ScanViewModel @Inject constructor(
     private val scanRepo: ScanRepository,
     private val prefs: UserPreferences,       // Fix 15/21: read language from preferences
     private val connectivityManager: ConnectivityManager,
+    private val medicationRepo: MedicationRepository,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
@@ -119,6 +125,15 @@ class ScanViewModel @Inject constructor(
             // bare French literal, so English-language users hit it in French.
             viewModelScope.launch { _state.value = ScanUiState.Error(noInputMessage(prefs.language.first())) }
             return
+        }
+        // A medication barcode run through food scoring produces a meaningless
+        // nutrition-based grade - check the (small, curated) medication lookup
+        // DB first and short-circuit into a distinct "save to Traitement?" path.
+        if (barcode != null) {
+            findMedicationByBarcode(barcode)?.let { entry ->
+                _state.value = ScanUiState.MedicationFound(entry)
+                return
+            }
         }
         if (!scoreMutex.tryLock()) return   // already scoring — ignore double-tap
         viewModelScope.launch {
@@ -162,6 +177,14 @@ class ScanViewModel @Inject constructor(
     }
 
     fun dismissError() { _state.value = ScanUiState.Idle }
+
+    /** Confirms saving a detected medication (ScanUiState.MedicationFound) into Traitement. */
+    fun saveDetectedMedication(entry: MedicationDbEntry) {
+        viewModelScope.launch {
+            medicationRepo.save(name = entry.name, dosage = entry.form, barcode = entry.barcode)
+            clearQueue()
+        }
+    }
 
     private fun isOnline(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
