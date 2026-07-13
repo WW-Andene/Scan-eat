@@ -338,6 +338,7 @@ class ScanRepository @Inject constructor(
                 ecoscoreGrade     = dto.ecoscoreGrade,
                 ecoscoreScore     = dto.ecoscoreScore,
                 nutritionGrades   = dto.nutritionGrades,
+                allergensTags     = dto.allergensTags,
             ))
         }
 

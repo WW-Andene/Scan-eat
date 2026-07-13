@@ -99,8 +99,31 @@ private val RULES: List<AllergenRule> = listOf(
         a("lupin|farine de lupin")),
 )
 
+// OFF's own curated allergens_tags → our ANNEX_II keys. OFF verifies these
+// against the manufacturer's declaration, so a tag hit is authoritative -
+// merged into the regex-based detection below rather than replacing it,
+// since OFF's tags are sometimes missing even when the ingredient text
+// clearly names the allergen (manufacturer didn't bother tagging it).
+private val OFF_ALLERGEN_TAG_MAP: Map<String, String> = mapOf(
+    "en:gluten" to "gluten",
+    "en:crustaceans" to "crustaceans",
+    "en:eggs" to "eggs",
+    "en:fish" to "fish",
+    "en:peanuts" to "peanuts",
+    "en:soybeans" to "soy",
+    "en:milk" to "lactose",
+    "en:nuts" to "nuts",
+    "en:celery" to "celery",
+    "en:mustard" to "mustard",
+    "en:sesame-seeds" to "sesame",
+    "en:sulphur-dioxide-and-sulphites" to "sulfites",
+    "en:lupin" to "lupin",
+    "en:molluscs" to "molluscs",
+)
+
 /**
- * Detect EU-mandatory allergens from product ingredient names.
+ * Detect EU-mandatory allergens from product ingredient names, augmented with
+ * OFF's own curated allergens_tags when the product came from that source.
  * Returns one entry per allergen found, with the triggering ingredient names.
  *
  * Port of detectAllergens() from allergens.js.
@@ -117,6 +140,12 @@ fun detectAllergens(product: Product, lang: String = "fr"): List<AllergenHit> {
                 hits.getOrPut(rule.key) { mutableSetOf() }.add(name)
             }
         }
+    }
+
+    val offLabel = if (lang == "en") "Declared by Open Food Facts" else "Déclaré par Open Food Facts"
+    for (tag in product.declaredAllergenTags) {
+        val key = OFF_ALLERGEN_TAG_MAP[tag] ?: continue
+        hits.getOrPut(key) { mutableSetOf() }.add(offLabel)
     }
 
     // Return in ANNEX_II order so the UI always shows allergens in EU-canonical order

@@ -133,6 +133,7 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
         ecoscoreGrade   = raw.ecoscoreGrade?.lowercase()?.takeIf { it.matches(Regex("[a-e]")) },
         ecoscoreValue   = raw.ecoscoreScore?.toDouble(),
         nutriscoreGrade = raw.nutritionGrades?.lowercase()?.firstOrNull()?.toString()?.takeIf { it.matches(Regex("[a-e]")) },
+        declaredAllergenTags = raw.allergensTags.orEmpty(),
     )
 }
 
@@ -223,6 +224,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         ecoscoreGrade   = off.ecoscoreGrade,
         ecoscoreValue   = off.ecoscoreValue,
         nutriscoreGrade = off.nutriscoreGrade,
+        declaredAllergenTags = off.declaredAllergenTags,
     )
 }
 

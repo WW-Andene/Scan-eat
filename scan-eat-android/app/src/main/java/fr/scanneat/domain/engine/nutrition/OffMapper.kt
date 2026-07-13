@@ -26,6 +26,7 @@ data class OffProductResponse(
     val ecoscoreGrade: String?,
     val ecoscoreScore: Int?,
     val nutritionGrades: String?,
+    val allergensTags: List<String>? = null,
 )
 
 // ============================================================================
@@ -162,6 +163,7 @@ fun mapOffProduct(off: OffProductResponse): Product? {
         ecoscoreGrade      = off.ecoscoreGrade?.lowercase()?.takeIf { it.matches(Regex("[a-e]")) },
         ecoscoreValue      = off.ecoscoreScore?.toDouble(),
         nutriscoreGrade    = off.nutritionGrades?.lowercase()?.firstOrNull()?.toString()?.takeIf { it.matches(Regex("[a-e]")) },
+        declaredAllergenTags = off.allergensTags.orEmpty(),
     )
 }
 
@@ -255,6 +257,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         ecoscoreGrade  = off.ecoscoreGrade,
         ecoscoreValue  = off.ecoscoreValue,
         nutriscoreGrade = off.nutriscoreGrade,
+        declaredAllergenTags = off.declaredAllergenTags,
     )
 }
 

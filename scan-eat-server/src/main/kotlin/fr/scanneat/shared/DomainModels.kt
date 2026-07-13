@@ -122,6 +122,11 @@ data class Product(
     val ecoscoreGrade: String? = null,
     val ecoscoreValue: Double? = null,
     val nutriscoreGrade: String? = null,
+    // OFF's own curated allergen tags (e.g. "en:gluten", "en:milk") - verified
+    // against the manufacturer's declaration, more reliable than regexing the
+    // free-text ingredient list. Empty when OFF has none declared or the
+    // product came from the LLM/photo fallback path instead.
+    val declaredAllergenTags: List<String> = emptyList(),
 )
 
 // Score output types
