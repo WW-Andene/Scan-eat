@@ -4,6 +4,7 @@ import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.activity.ActivityEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
@@ -103,7 +104,10 @@ data class ActivityEntry(
 data class DailyBurned(val kcal: Int, val minutes: Int, val count: Int)
 
 @Singleton
-class ActivityRepository @Inject constructor(private val dao: ActivityDao) {
+class ActivityRepository @Inject constructor(
+    private val dao: ActivityDao,
+    private val healthConnect: HealthConnectRepository,
+) {
 
     fun observeByDate(date: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
         dao.observeByDate(date.toString(), profileId).map { list -> list.map { it.toDomain() } }
@@ -124,6 +128,7 @@ class ActivityRepository @Inject constructor(private val dao: ActivityDao) {
     ) {
         val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
                    else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm)
+        val loggedAt = System.currentTimeMillis()
         dao.insert(ActivityEntity(
             id           = UUID.randomUUID().toString(),
             date         = date.toString(),
@@ -131,7 +136,7 @@ class ActivityRepository @Inject constructor(private val dao: ActivityDao) {
             minutes      = minutes.coerceAtLeast(0),
             kcalBurned   = kcal,
             note         = note,
-            loggedAt     = System.currentTimeMillis(),
+            loggedAt     = loggedAt,
             profileId    = profileId,
             subType      = subType,
             sets         = sets?.coerceAtLeast(0),
@@ -139,6 +144,10 @@ class ActivityRepository @Inject constructor(private val dao: ActivityDao) {
             distanceKm   = distanceKm?.coerceAtLeast(0.0),
             weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
         ))
+        // Health Connect had zero Activité wiring at all before this - a logged
+        // workout stayed invisible to it and any other app reading from it,
+        // unlike weight/hydration which already mirror.
+        healthConnect.writeActivity(type, minutes.coerceAtLeast(0), kcal, Instant.ofEpochMilli(loggedAt))
     }
 
     suspend fun delete(id: String) = dao.delete(id)
