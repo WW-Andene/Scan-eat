@@ -611,6 +611,9 @@
     <!-- ── Weight screen ──────────────────────────────────────────────────── -->
     <string name="weight_title">Weight</string>
     <string name="weight_kg">%1$s kg</string>
+    <string name="weight_cd_calendar">Calendar</string>
+    <string name="weight_calendar_day_summary">%1$s: %2$s</string>
+    <string name="weight_calendar_day_empty">%1$s: no entry</string>
     <string name="weight_delta_kg">%1$s kg (30d)</string>
     <string name="weight_trend_kg_week">%1$s kg/wk</string>
     <string name="weight_goal_forecast">Goal in %1$dd</string>
@@ -630,6 +633,7 @@
     <string name="diary_cd_prev_day">Previous day</string>
     <string name="diary_today_button">Today</string>
     <string name="diary_cd_next_day">Next day</string>
+    <string name="diary_cd_calendar">Calendar</string>
     <string name="diary_tab_meals">Meals</string>
     <string name="diary_tab_weight">Weight</string>
     <string name="diary_tab_water">Hydration</string>

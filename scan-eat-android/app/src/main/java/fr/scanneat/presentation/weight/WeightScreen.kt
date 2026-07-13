@@ -57,6 +57,9 @@ fun WeightScreen(
     var showAdd by remember { mutableStateOf(false) }
     var useImperial by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    var showCalendar by remember { mutableStateOf(false) }
+    var calendarMonth by remember { mutableStateOf(java.time.YearMonth.now()) }
+    var calendarSelected by remember { mutableStateOf<java.time.LocalDate?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.weight_deleted_message)
@@ -71,9 +74,12 @@ fun WeightScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Unit toggle
+            // Unit toggle + calendar toggle
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { showCalendar = !showCalendar }) {
+                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(false to "kg", true to "lb").forEach { (imperial, label) ->
                             FilterChip(
@@ -82,6 +88,35 @@ fun WeightScreen(
                                 label = { Text(label) },
                                 colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
                             )
+                        }
+                    }
+                }
+            }
+
+            if (showCalendar) {
+                item {
+                    val markedDates = remember(entries.value) { entries.value.map { it.date }.toSet() }
+                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
+                        Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(Spacing.M)) {
+                                MonthCalendar(
+                                    month = calendarMonth,
+                                    selected = calendarSelected,
+                                    markedDates = markedDates,
+                                    locale = Locale(language.value),
+                                    onMonthChange = { calendarMonth = it },
+                                    onDayClick = { calendarSelected = if (calendarSelected == it) null else it },
+                                )
+                                calendarSelected?.let { day ->
+                                    val entry = entries.value.find { it.date == day }
+                                    Spacer(Modifier.height(Spacing.S))
+                                    Text(
+                                        if (entry != null) stringResource(R.string.weight_calendar_day_summary, day.format(fmt), dispWeight(entry.weightKg))
+                                        else stringResource(R.string.weight_calendar_day_empty, day.format(fmt)),
+                                        style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f),
+                                    )
+                                }
+                            }
                         }
                     }
                 }

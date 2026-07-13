@@ -126,6 +126,8 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     // default to Locale.getDefault() and could show the day name in the wrong language.
     val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
+    var showCalendar by remember { mutableStateOf(false) }
+    var calendarMonth by remember(selectedDate.value) { mutableStateOf(java.time.YearMonth.from(selectedDate.value)) }
     // Fix 9: initialise to empty on date change; LaunchedEffect seeds the stored
     // note once per date and sets it — won't fire again while the user is typing because
     // selectedDate.value doesn't change until they navigate to a different day.
@@ -159,9 +161,30 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                     IconButton(onClick = { viewModel.goToNextDay() }, enabled = !isToday.value) {
                         Icon(Icons.Default.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday.value) OnBackground else OnBackground.copy(0.3f))
                     }
+                    IconButton(onClick = { showCalendar = !showCalendar }) {
+                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
+                    }
                 }
                 if (!isToday.value) {
                     TextButton(onClick = { viewModel.goToToday() }) { Text(stringResource(R.string.diary_today_button), color = AccentCoral, style = MaterialTheme.typography.labelMedium) }
+                }
+            }
+        }
+
+        if (showCalendar) {
+            item {
+                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
+                    Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(Spacing.M)) {
+                            MonthCalendar(
+                                month = calendarMonth,
+                                selected = selectedDate.value,
+                                locale = Locale(language.value),
+                                onMonthChange = { calendarMonth = it },
+                                onDayClick = { day -> viewModel.selectDate(day); showCalendar = false },
+                            )
+                        }
+                    }
                 }
             }
         }
