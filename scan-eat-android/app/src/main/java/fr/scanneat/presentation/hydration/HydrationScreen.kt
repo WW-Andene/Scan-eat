@@ -49,18 +49,13 @@ fun HydrationScreen(
     viewModel: HydrationViewModel = hiltViewModel(),
     onBack: () -> Unit,
     embedded: Boolean = false,
+    onOpenCalendar: () -> Unit = {},
 ) {
     val intake      = viewModel.intake.collectAsStateWithLifecycle()
     val goal        = viewModel.goal.collectAsStateWithLifecycle()
-    val markedDates = viewModel.markedDates.collectAsStateWithLifecycle()
     val glasses     = intake.value / HYD_GLASS_ML
     val goalGlasses = goal.value / HYD_GLASS_ML
     val pct         = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
-
-    var showCalendar      by remember { mutableStateOf(false) }
-    var calendarMonth     by remember { mutableStateOf(YearMonth.now()) }
-    var calendarSelected  by remember { mutableStateOf<LocalDate?>(null) }
-    val locale = Locale.getDefault()
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
@@ -70,41 +65,13 @@ fun HydrationScreen(
         ) {
         item { Spacer(Modifier.height(16.dp)) }
 
-        // Calendar toggle
+        // Previously an inline single-domain MonthCalendar toggled here; now
+        // routes to the unified Calendar (Dashboard), which shows hydration
+        // alongside every other tracker.
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                IconButton(onClick = { showCalendar = !showCalendar }) {
-                    Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar),
-                        tint = if (showCalendar) semanticBlue() else OnBackground.copy(0.5f))
-                }
-            }
-        }
-
-        if (showCalendar) {
-            item {
-                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
-                    Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(Spacing.M)) {
-                            MonthCalendar(
-                                month = calendarMonth,
-                                selected = calendarSelected,
-                                markedDates = markedDates.value,
-                                locale = locale,
-                                onMonthChange = { calendarMonth = it },
-                                onDayClick = { calendarSelected = if (calendarSelected == it) null else it },
-                            )
-                            calendarSelected?.let { day ->
-                                Spacer(Modifier.height(Spacing.S))
-                                val dayIntake = if (day == LocalDate.now()) intake.value else null
-                                Text(
-                                    if (dayIntake != null) stringResource(R.string.hydration_calendar_day_intake, day.toString(), dayIntake)
-                                    else if (day in markedDates.value) stringResource(R.string.hydration_calendar_day_logged, day.toString())
-                                    else stringResource(R.string.hydration_calendar_day_empty, day.toString()),
-                                    style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f),
-                                )
-                            }
-                        }
-                    }
+                IconButton(onClick = onOpenCalendar) {
+                    Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
                 }
             }
         }

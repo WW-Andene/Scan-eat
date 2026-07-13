@@ -751,6 +751,7 @@
 
     <!-- ── Fasting screen ─────────────────────────────────────────────────── -->
     <string name="fasting_title">Intermittent Fasting</string>
+    <string name="fasting_cd_calendar">Calendar</string>
     <plurals name="fasting_streak">
         <item quantity="one">%1$d consecutive day</item>
         <item quantity="other">%1$d consecutive days</item>
@@ -1002,6 +1003,8 @@
     <string name="medication_field_dosage">Dosage</string>
     <string name="medication_field_schedule">Schedule / frequency</string>
     <string name="medication_reminder_cd">Medication reminder</string>
+    <string name="medication_cd_calendar">Calendar</string>
+    <string name="medication_cd_taken_today">Mark as taken today</string>
     <string name="medication_reminder_dialog_title">Reminder — %1$s</string>
     <string name="medication_reminder_toggle">Enable daily reminder</string>
     <string name="medication_reminder_time_label">Time (HH:mm)</string>
@@ -1017,10 +1020,12 @@
     <string name="calendar_legend_activity">Activity</string>
     <string name="calendar_legend_hydration">Water</string>
     <string name="calendar_legend_fasting">Fasting</string>
+    <string name="calendar_legend_medication">Medication</string>
     <string name="calendar_day_empty">Nothing logged this day</string>
     <string name="calendar_day_meals">%1$d meal(s) · %2$d kcal</string>
     <string name="calendar_day_weight">%1$.1f kg</string>
     <string name="calendar_day_activity">%1$d activity(ies) · %2$d min · %3$d kcal</string>
     <string name="calendar_day_hydration">%1$d mL drunk</string>
     <string name="calendar_day_fasting">Fasting: %1$.1f h / %2$d h target</string>
+    <string name="calendar_day_medication">Taken: %1$s</string>
 </resources>

@@ -77,17 +77,13 @@ fun ActivityScreen(
     viewModel: ActivityViewModel = hiltViewModel(),
     onBack: () -> Unit,
     embedded: Boolean = false,
+    onOpenCalendar: () -> Unit = {},
 ) {
     // Refresh date when screen becomes active (handles midnight crossing)
     LaunchedEffect(Unit) { viewModel.refreshDate() }
 
     val entries      = viewModel.entries.collectAsStateWithLifecycle()
-    val markedDates  = viewModel.markedDates.collectAsStateWithLifecycle()
     val pastSubTypes = viewModel.pastSubTypes.collectAsStateWithLifecycle()
-    var showCalendar     by remember { mutableStateOf(false) }
-    var calendarMonth    by remember { mutableStateOf(java.time.YearMonth.now()) }
-    var calendarSelected by remember { mutableStateOf<java.time.LocalDate?>(null) }
-    val locale = java.util.Locale.getDefault()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by remember { mutableStateOf("30") }
     var selectedSubType by remember { mutableStateOf<String?>(null) }
@@ -110,40 +106,13 @@ fun ActivityScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Calendar toggle
+            // Previously an inline single-domain MonthCalendar toggled here;
+            // now routes to the unified Calendar (Dashboard), which shows
+            // activity alongside every other tracker.
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    IconButton(onClick = { showCalendar = !showCalendar }) {
-                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar),
-                            tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
-                    }
-                }
-            }
-
-            if (showCalendar) {
-                item {
-                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
-                        Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(Spacing.M)) {
-                                MonthCalendar(
-                                    month = calendarMonth,
-                                    selected = calendarSelected,
-                                    markedDates = markedDates.value,
-                                    locale = locale,
-                                    onMonthChange = { calendarMonth = it },
-                                    onDayClick = { calendarSelected = if (calendarSelected == it) null else it },
-                                )
-                                calendarSelected?.let { day ->
-                                    Spacer(Modifier.height(Spacing.S))
-                                    val hasActivity = day in markedDates.value
-                                    Text(
-                                        if (hasActivity) stringResource(R.string.activity_calendar_day_logged, day.toString())
-                                        else stringResource(R.string.activity_calendar_day_empty, day.toString()),
-                                        style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f),
-                                    )
-                                }
-                            }
-                        }
+                    IconButton(onClick = onOpenCalendar) {
+                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
                     }
                 }
             }

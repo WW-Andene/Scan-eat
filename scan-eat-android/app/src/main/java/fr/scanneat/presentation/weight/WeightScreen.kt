@@ -42,6 +42,7 @@ fun WeightScreen(
     viewModel: WeightViewModel = hiltViewModel(),
     onBack: () -> Unit,
     embedded: Boolean = false,
+    onOpenCalendar: () -> Unit = {},
 ) {
     val entries  = viewModel.entries.collectAsStateWithLifecycle()
     val summary  = viewModel.summary.collectAsStateWithLifecycle()
@@ -65,9 +66,6 @@ fun WeightScreen(
     val useImperial = useImperialState.value
     fun setUseImperial(v: Boolean) = viewModel.setUseImperial(v)
     var deleteTarget by remember { mutableStateOf<String?>(null) }
-    var showCalendar by remember { mutableStateOf(false) }
-    var calendarMonth by remember { mutableStateOf(java.time.YearMonth.now()) }
-    var calendarSelected by remember { mutableStateOf<java.time.LocalDate?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.weight_deleted_message)
@@ -82,11 +80,13 @@ fun WeightScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Unit toggle + calendar toggle
+            // Unit toggle + calendar nav — previously an inline single-domain
+            // MonthCalendar toggled here; now routes to the unified Calendar
+            // (Dashboard) which shows weight alongside every other tracker.
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { showCalendar = !showCalendar }) {
-                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
+                    IconButton(onClick = onOpenCalendar) {
+                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(false to "kg", true to "lb").forEach { (imperial, label) ->
@@ -96,35 +96,6 @@ fun WeightScreen(
                                 label = { Text(label) },
                                 colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
                             )
-                        }
-                    }
-                }
-            }
-
-            if (showCalendar) {
-                item {
-                    val markedDates = remember(entries.value) { entries.value.map { it.date }.toSet() }
-                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
-                        Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(Spacing.M)) {
-                                MonthCalendar(
-                                    month = calendarMonth,
-                                    selected = calendarSelected,
-                                    markedDates = markedDates,
-                                    locale = Locale(language.value),
-                                    onMonthChange = { calendarMonth = it },
-                                    onDayClick = { calendarSelected = if (calendarSelected == it) null else it },
-                                )
-                                calendarSelected?.let { day ->
-                                    val entry = entries.value.find { it.date == day }
-                                    Spacer(Modifier.height(Spacing.S))
-                                    Text(
-                                        if (entry != null) stringResource(R.string.weight_calendar_day_summary, day.format(fmt), dispWeight(entry.weightKg))
-                                        else stringResource(R.string.weight_calendar_day_empty, day.format(fmt)),
-                                        style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f),
-                                    )
-                                }
-                            }
                         }
                     }
                 }

@@ -35,6 +35,7 @@ fun FastingScreen(
     viewModel: FastingViewModel = hiltViewModel(),
     onBack: () -> Unit,
     embedded: Boolean = false,
+    onOpenCalendar: () -> Unit = {},
 ) {
     val state   = viewModel.fastingState.collectAsStateWithLifecycle()
     val history = viewModel.history.collectAsStateWithLifecycle()
@@ -61,6 +62,18 @@ fun FastingScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.L),
         ) {
             item { Spacer(Modifier.height(8.dp)) }
+
+            // Previously no calendar entry point at all for Jeûne (unlike
+            // Weight/Activity/Hydration, which each had their own local one) -
+            // routes straight to the unified Calendar instead of adding yet
+            // another single-domain grid.
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    IconButton(onClick = onOpenCalendar) {
+                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.fasting_cd_calendar), tint = OnBackground.copy(0.6f))
+                    }
+                }
+            }
 
             // Streak
             if (streak.value > 0) {

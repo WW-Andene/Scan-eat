@@ -9,6 +9,8 @@ import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.FastCompletion
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.data.repository.health.MedicationLogEntry
+import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,7 +20,7 @@ import java.time.YearMonth
 import javax.inject.Inject
 
 /** Which tracker(s) have data on a given day - drives the small per-source dots under each date. */
-enum class CalendarSource { MEALS, WEIGHT, ACTIVITY, HYDRATION, FASTING }
+enum class CalendarSource { MEALS, WEIGHT, ACTIVITY, HYDRATION, FASTING, MEDICATION }
 
 data class CalendarDayDetail(
     val date: LocalDate,
@@ -28,8 +30,10 @@ data class CalendarDayDetail(
     val activities: List<ActivityEntry> = emptyList(),
     val hydrationMl: Int = 0,
     val fastCompletion: FastCompletion? = null,
+    val medicationsTaken: List<MedicationLogEntry> = emptyList(),
 ) {
-    val isEmpty: Boolean get() = mealCount == 0 && weightKg == null && activities.isEmpty() && hydrationMl == 0 && fastCompletion == null
+    val isEmpty: Boolean get() = mealCount == 0 && weightKg == null && activities.isEmpty() &&
+        hydrationMl == 0 && fastCompletion == null && medicationsTaken.isEmpty()
 }
 
 /**
@@ -41,9 +45,8 @@ data class CalendarDayDetail(
  * of them into one month grid (multi-source dots per day) plus a day-detail
  * panel for whichever date is selected.
  *
- * Medication is deliberately not included - MedicationRepository tracks an
- * active list with a reminder schedule, not a dated "taken on this day" log,
- * so there is no real per-day event for it to mark here.
+ * Medication is included via MedicationRepository's adherence log (a dated
+ * "I took this" event, separate from the active list + reminder schedule).
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -53,6 +56,7 @@ class CalendarViewModel @Inject constructor(
     private val activityRepo: ActivityRepository,
     private val hydrationRepo: HydrationRepository,
     private val fastingRepo: FastingRepository,
+    private val medicationRepo: MedicationRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
 
@@ -83,7 +87,8 @@ class CalendarViewModel @Inject constructor(
             weightRepo.observeAll(),
             fastingRepo.history,
             flow { emit(activityRepo.getRange(start, end)) },
-        ) { diaryEntries, weights, fastHistory, activities ->
+            flow { emit(medicationRepo.getLogRange(start, end)) },
+        ) { diaryEntries, weights, fastHistory, activities, medicationLog ->
             val out = mutableMapOf<LocalDate, MutableSet<CalendarSource>>()
             fun mark(date: LocalDate, source: CalendarSource) {
                 if (date < start || date > end) return
@@ -93,11 +98,12 @@ class CalendarViewModel @Inject constructor(
             weights.forEach { mark(it.date, CalendarSource.WEIGHT) }
             activities.forEach { mark(it.date, CalendarSource.ACTIVITY) }
             fastHistory.forEach { f -> runCatching { LocalDate.parse(f.date) }.getOrNull()?.let { mark(it, CalendarSource.FASTING) } }
+            medicationLog.forEach { mark(it.date, CalendarSource.MEDICATION) }
             out
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    /** Aggregated detail for [selectedDate], reactive to any of the five sources changing. */
+    /** Aggregated detail for [selectedDate], reactive to any of the six sources changing. */
     val dayDetail: StateFlow<CalendarDayDetail> = _selectedDate.flatMapLatest { date ->
         combine(
             consumptionRepo.observeDay(date),
@@ -115,6 +121,8 @@ class CalendarViewModel @Inject constructor(
                 hydrationMl    = hydrationMl,
                 fastCompletion = fastHistory.find { it.date == date.toString() },
             )
+        }.combine(medicationRepo.observeLogByDate(date)) { detail, medsTaken ->
+            detail.copy(medicationsTaken = medsTaken)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalendarDayDetail(LocalDate.now()))
 }

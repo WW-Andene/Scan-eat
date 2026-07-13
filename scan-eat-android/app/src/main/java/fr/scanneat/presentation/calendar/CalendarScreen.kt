@@ -31,12 +31,14 @@ import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.roundToInt
 
+@Composable
 private fun colorFor(source: CalendarSource): Color = when (source) {
-    CalendarSource.MEALS     -> AccentCoral
-    CalendarSource.WEIGHT    -> Gold
-    CalendarSource.ACTIVITY  -> Warm
-    CalendarSource.HYDRATION -> Teal
-    CalendarSource.FASTING   -> Violet
+    CalendarSource.MEALS      -> AccentCoral
+    CalendarSource.WEIGHT     -> Gold
+    CalendarSource.ACTIVITY   -> Warm
+    CalendarSource.HYDRATION  -> Teal
+    CalendarSource.FASTING    -> Violet
+    CalendarSource.MEDICATION -> semanticGreen()
 }
 
 /**
@@ -86,6 +88,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
                             LegendDot(colorFor(CalendarSource.ACTIVITY), stringResource(R.string.calendar_legend_activity))
                             LegendDot(colorFor(CalendarSource.HYDRATION), stringResource(R.string.calendar_legend_hydration))
                             LegendDot(colorFor(CalendarSource.FASTING), stringResource(R.string.calendar_legend_fasting))
+                            LegendDot(colorFor(CalendarSource.MEDICATION), stringResource(R.string.calendar_legend_medication))
                         }
                     }
                 }
@@ -209,6 +212,12 @@ private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale) {
                     }
                     detail.fastCompletion?.let { f ->
                         DetailRow(colorFor(CalendarSource.FASTING), stringResource(R.string.calendar_day_fasting, f.achievedHours, f.targetHours))
+                    }
+                    if (detail.medicationsTaken.isNotEmpty()) {
+                        DetailRow(
+                            colorFor(CalendarSource.MEDICATION),
+                            stringResource(R.string.calendar_day_medication, detail.medicationsTaken.joinToString(", ") { it.medicationName }),
+                        )
                     }
                 }
             }

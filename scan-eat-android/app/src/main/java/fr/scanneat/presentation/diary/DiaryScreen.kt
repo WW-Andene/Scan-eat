@@ -62,6 +62,7 @@ fun DiaryScreen(
     viewModel: DiaryViewModel = hiltViewModel(),
     onBack: () -> Unit,
     isTabRoot: Boolean = false,
+    onOpenCalendar: () -> Unit = {},
 ) {
     var activeTab by remember { mutableStateOf(DiaryTab.MEALS) }
     var showAddEntry by remember { mutableStateOf(false) }
@@ -120,11 +121,11 @@ fun DiaryScreen(
 
             when (activeTab) {
                 DiaryTab.MEALS    -> MealsTab(viewModel)
-                DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true)
-                DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true)
-                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true)
-                DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true)
-                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true)
+                DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
+                DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
+                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
+                DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
+                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
             }
         }
     }

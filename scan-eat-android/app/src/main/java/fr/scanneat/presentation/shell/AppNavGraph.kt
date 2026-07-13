@@ -97,7 +97,7 @@ fun AppNavGraph(
 
         composable(TopTab.Diary.route) {
             // isTabRoot=true suppresses the back arrow inside DiaryScreen.
-            DiaryScreen(onBack = {}, isTabRoot = true)
+            DiaryScreen(onBack = {}, isTabRoot = true, onOpenCalendar = { navController.navigate(AppRoutes.CALENDAR) })
         }
 
         composable(TopTab.Dashboard.route) {

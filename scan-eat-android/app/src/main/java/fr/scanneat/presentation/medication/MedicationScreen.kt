@@ -33,8 +33,10 @@ fun MedicationScreen(
     viewModel: MedicationViewModel = hiltViewModel(),
     onBack: () -> Unit,
     embedded: Boolean = false,
+    onOpenCalendar: () -> Unit = {},
 ) {
     val medications = viewModel.medications.collectAsStateWithLifecycle()
+    val todayTaken = viewModel.todayTaken.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<Medication?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -46,6 +48,17 @@ fun MedicationScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item { Spacer(Modifier.height(8.dp)) }
+            // Previously no calendar entry point at all for Traitement (unlike
+            // Weight/Activity/Hydration, which each had their own local one) -
+            // routes straight to the unified Calendar rather than embedding
+            // another single-domain grid here.
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    IconButton(onClick = onOpenCalendar) {
+                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.medication_cd_calendar), tint = OnBackground.copy(0.6f))
+                    }
+                }
+            }
             if (medications.value.isEmpty()) {
                 item {
                     EmptyListState(
@@ -55,6 +68,7 @@ fun MedicationScreen(
                 }
             }
             items(medications.value, key = { it.id }) { m ->
+                val takenToday = todayTaken.value.find { it.medicationId == m.id }
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(Spacing.M),
                     verticalAlignment = Alignment.CenterVertically,
@@ -69,6 +83,18 @@ fun MedicationScreen(
                         if (details.isNotBlank()) {
                             Text(details, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                         }
+                    }
+                    // "Taken today" - previously there was no way to log a dose at all,
+                    // only to keep/remove a medication from the active list.
+                    IconButton(
+                        onClick = { if (takenToday != null) viewModel.undoTaken(takenToday) else viewModel.markTaken(m) },
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Icon(
+                            if (takenToday != null) Icons.Default.CheckCircle else Icons.Default.CheckCircleOutline,
+                            stringResource(R.string.medication_cd_taken_today),
+                            tint = if (takenToday != null) Teal else OnSurface.copy(0.4f),
+                        )
                     }
                     Switch(
                         checked = m.active, onCheckedChange = { viewModel.setActive(m, it) },
