@@ -25,12 +25,14 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun HeroCard(
-    kcalTotal: Double, precision: Boolean, running: Boolean, ketosisOn: Boolean,
+    kcalTotal: Double, kcalSec: Double, precision: Boolean, showPerSec: Boolean,
+    running: Boolean, ketosisOn: Boolean,
     elapsedSec: Double, fatPct: Int, carbPct: Int, protPct: Int,
     fatFrac: Double, carbFrac: Double, protFrac: Double, npRq: Double,
-    onPrecision: () -> Unit,
+    onPrecision: () -> Unit, onToggleRate: () -> Unit,
 ) {
     val heroColor = if (ketosisOn) Teal else Gold
+    val displayValue = if (showPerSec) kcalSec else kcalTotal
     ScanEatCard(contentPadding = PaddingValues(16.dp)) {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -48,11 +50,17 @@ internal fun HeroCard(
                 letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
 
             Text(
-                if (precision) String.format(Locale.US, "%.4f", kcalTotal) else String.format(Locale.US, "%.1f", kcalTotal),
+                if (precision) String.format(Locale.US, "%.4f", displayValue) else String.format(Locale.US, "%.2f", displayValue),
                 style = HeroNumberStyle.copy(fontSize = 42.sp),
                 color = heroColor,
             )
-            Text("kcal", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            // Toggle between total burned and burn rate per second
+            TextButton(onClick = onToggleRate) {
+                Text(
+                    if (showPerSec) stringResource(R.string.biolism_hero_unit_per_sec) else stringResource(R.string.biolism_hero_unit_total),
+                    style = MaterialTheme.typography.labelSmall, color = heroColor.copy(0.7f),
+                )
+            }
             if (ketosisOn) {
                 Text(stringResource(R.string.biolism_hero_oxidation, fatPct, carbPct, protPct, npRq),
                     style = MaterialTheme.typography.labelSmall, color = Teal.copy(0.8f))

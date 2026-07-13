@@ -413,6 +413,8 @@
     <string name="biolism_hero_oxidation">oxidation: %1$d%% fat · %2$d%% carbs · %3$d%% protein · npRQ %4$.3f</string>
     <string name="biolism_hero_precision_low">← 1 digit</string>
     <string name="biolism_hero_precision_high">4 digits →</string>
+    <string name="biolism_hero_unit_total">total kcal</string>
+    <string name="biolism_hero_unit_per_sec">kcal / sec</string>
     <string name="biolism_hero_legend_fat">Fat %1$d%%</string>
     <string name="biolism_hero_legend_carbs">Carbs %1$d%%</string>
     <string name="biolism_hero_legend_protein">Protein %1$d%%</string>

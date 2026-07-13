@@ -25,7 +25,7 @@ internal fun KetosisToggleRow(
     val bgColor     = if (active) TealHaze   else TealTrace
 
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { onToggle() },
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         color = bgColor,
         border = BorderStroke(1.dp, borderColor),

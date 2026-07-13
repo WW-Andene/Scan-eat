@@ -56,6 +56,7 @@ fun DashboardScreen(
     onOpenGrocery: () -> Unit = {},
     onOpenCustomFoods: () -> Unit = {},
     onOpenFavorites: () -> Unit = {},
+    onOpenResult: (Long) -> Unit = {},
 ) {
     val state    = viewModel.state.collectAsStateWithLifecycle()
     val s        = state.value
@@ -156,7 +157,7 @@ fun DashboardScreen(
                     EmptyListState(Icons.Default.History, stringResource(R.string.dashboard_recent_scans_empty))
                 }
             } else {
-                items(s.recentScans, key = { it.dbId }) { scan -> ScanHistoryCard(scan) }
+                items(s.recentScans, key = { it.dbId }) { scan -> ScanHistoryCard(scan, onItemClick = onOpenResult) }
             }
 
             item { Spacer(Modifier.height(32.dp)) }

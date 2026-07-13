@@ -41,8 +41,9 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     val timer     = viewModel.timerState.collectAsStateWithLifecycle()
     val elapsedMs = viewModel.elapsedMs.collectAsStateWithLifecycle()
     val ketoMs    = viewModel.ketoElapsedMs.collectAsStateWithLifecycle()
-    val precision = viewModel.heroPrecision.collectAsStateWithLifecycle()
-    val saved     = viewModel.saved.collectAsStateWithLifecycle()
+    val precision    = viewModel.heroPrecision.collectAsStateWithLifecycle()
+    val showPerSec   = viewModel.showKcalPerSec.collectAsStateWithLifecycle()
+    val saved        = viewModel.saved.collectAsStateWithLifecycle()
 
     val s    = timer.value
     val p    = profile.value
@@ -114,7 +115,9 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
             // ── Hero kcal display ──────────────────────────────────────────────
             HeroCard(
                 kcalTotal    = kcalTotal,
+                kcalSec      = lm.kcalSec,
                 precision    = precision.value,
+                showPerSec   = showPerSec.value,
                 running      = s.running,
                 ketosisOn    = s.ketosisOn,
                 elapsedSec   = elapsedSec,
@@ -126,6 +129,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 protFrac     = lm.protFrac,
                 npRq         = lm.npRq,
                 onPrecision  = viewModel::togglePrecision,
+                onToggleRate = viewModel::toggleRateMode,
             )
 
             // ── Live weight ────────────────────────────────────────────────────

@@ -41,6 +41,10 @@ class TrackerViewModel @Inject constructor(
     private val _heroPrecision = MutableStateFlow(false)
     val heroPrecision: StateFlow<Boolean> = _heroPrecision.asStateFlow()
 
+    // ── Rate display: total kcal vs kcal/sec ─────────────────────────────────
+    private val _showKcalPerSec = MutableStateFlow(false)
+    val showKcalPerSec: StateFlow<Boolean> = _showKcalPerSec.asStateFlow()
+
     // ── Saved confirmation ────────────────────────────────────────────────────
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
@@ -271,6 +275,7 @@ class TrackerViewModel @Inject constructor(
     // UI helpers
     // ─────────────────────────────────────────────────────────────────────────
     fun togglePrecision() { _heroPrecision.value = !_heroPrecision.value }
+    fun toggleRateMode()  { _showKcalPerSec.value = !_showKcalPerSec.value }
     fun saveManualHR(bpm: Int?) = viewModelScope.launch { repo.saveManualHR(bpm) }
     fun clearSaved() { _saved.value = false }
 

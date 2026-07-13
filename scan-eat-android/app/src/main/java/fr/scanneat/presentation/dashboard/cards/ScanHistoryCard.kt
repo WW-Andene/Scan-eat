@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -19,14 +20,17 @@ import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun ScanHistoryCard(scan: ScanResult) {
+internal fun ScanHistoryCard(scan: ScanResult, onItemClick: ((Long) -> Unit)? = null) {
     val gradeColor = gradeColor(scan.audit.grade)
+    val clickMod = if (onItemClick != null && scan.dbId > 0)
+        Modifier.clickable { onItemClick(scan.dbId) } else Modifier
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .background(SurfaceVariant)
+                .then(clickMod)
                 .padding(Spacing.M),
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.M),

@@ -109,6 +109,7 @@ fun AppNavGraph(
                 onOpenGrocery        = { navController.navigate(AppRoutes.GROCERY) },
                 onOpenCustomFoods     = { navController.navigate(AppRoutes.CUSTOM_FOODS) },
                 onOpenFavorites      = { navController.navigate(AppRoutes.FAVORITES) },
+                onOpenResult         = { id -> navController.navigate(AppRoutes.result(id)) },
             )
         }
 
