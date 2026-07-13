@@ -3,6 +3,7 @@ package fr.scanneat.presentation.result
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,7 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.AmberWarning
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -50,6 +53,7 @@ fun ResultScreen(
     val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showSheet   by remember { mutableStateOf(false) }
     var showSaveMenu by remember { mutableStateOf(false) }
+    var showHints    by remember { mutableStateOf(false) }
 
     // Navigate to diary after successful log
     LaunchedEffect(state.value.logState) {
@@ -70,6 +74,9 @@ fun ResultScreen(
                 },
                 actions = {
                     state.value.scanResult?.let { scan ->
+                        IconButton(onClick = { showHints = true }) {
+                            Icon(Icons.Default.Lightbulb, stringResource(R.string.hint_cd_open), tint = AmberWarning)
+                        }
                         IconButton(onClick = { showSaveMenu = true }) {
                             Icon(
                                 if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
@@ -115,6 +122,13 @@ fun ResultScreen(
             sheetState = sheetState,
             onConfirm  = { g, slot -> viewModel.log(g, slot) },
             onDismiss  = { showSheet = false },
+        )
+    }
+
+    if (showHints && state.value.scanResult != null) {
+        HintPanel(
+            hints = generateProductHints(state.value.scanResult!!.product, language.value),
+            onDismiss = { showHints = false },
         )
     }
 

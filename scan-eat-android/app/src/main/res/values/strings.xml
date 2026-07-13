@@ -824,6 +824,12 @@
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>
     <string name="result_cd_favorite">Ajouter aux favoris</string>
+    <string name="hint_cd_open">Voir les informations</string>
+    <string name="hint_panel_title">Bon à savoir</string>
+    <string name="hint_section_benefits">Bénéfices</string>
+    <string name="hint_section_risks">Points de vigilance</string>
+    <string name="hint_section_facts">Informations</string>
+    <string name="hint_panel_empty">Aucune information particulière pour ce produit.</string>
     <string name="result_cd_unfavorite">Retirer des favoris</string>
     <string name="save_destinations_title">Enregistrer dans...</string>
     <string name="save_destinations_courses">Courses</string>
