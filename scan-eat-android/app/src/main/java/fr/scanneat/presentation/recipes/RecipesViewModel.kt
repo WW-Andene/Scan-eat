@@ -11,6 +11,8 @@ import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
 import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.NutritionPer100g
@@ -31,6 +33,38 @@ class RecipesViewModel @Inject constructor(
 
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    /**
+     * recipe id -> short warning, e.g. "Contains gluten (your allergen)" or
+     * "Not vegan: chicken". checkDiet()/checkUserAllergens() previously only
+     * ever ran against scanned Products - a saved recipe (this screen) or a
+     * cloned official recipe could silently contain an ingredient the user's
+     * own diet/allergen profile forbids, with no warning anywhere in this flow.
+     */
+    val recipeWarnings: StateFlow<Map<String, String>> = combine(recipes, prefs.profile, language) { list, profile, lang ->
+        list.mapNotNull { recipe ->
+            val product = recipe.toCheckProduct()
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(product, profile.diet, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            if (parts.isEmpty()) null else recipe.id to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Same check as [recipeWarnings], for the official/starter recipes shown above the user's own. */
+    val officialRecipeWarnings: StateFlow<Map<String, String>> = combine(prefs.profile, language) { profile, lang ->
+        OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
+            val product = recipe.toCheckProduct()
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(product, profile.diet, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            if (parts.isEmpty()) null else recipe.nameFr to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     /** Officially-sourced starter recipes (see OfficialRecipeDb.kt) — read-only, browsable alongside the user's own. */
     val officialRecipes: List<OfficialRecipe> = OFFICIAL_RECIPE_DB

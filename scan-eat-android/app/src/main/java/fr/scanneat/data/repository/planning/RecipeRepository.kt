@@ -50,6 +50,21 @@ data class Recipe(
     val totalFatG: Double get() = components.sumOf { it.fatG }
     val totalGrams: Double get() = components.sumOf { it.grams }
 
+    /**
+     * Synthetic Product so a saved recipe can be run through the same
+     * checkDiet()/checkUserAllergens() the barcode-scan path already uses -
+     * those checks previously only ever saw scanned Products, so a vegan or
+     * allergic user could freely save/log a recipe containing an ingredient
+     * their own profile forbids, with no warning anywhere in the recipe flow.
+     */
+    fun toCheckProduct(): Product = Product(
+        name        = name,
+        category    = ProductCategory.OTHER,
+        novaClass   = NovaClass.UNPROCESSED,
+        ingredients = components.map { c -> Ingredient(name = c.productName, category = IngredientCategory.FOOD) },
+        nutrition   = nutritionPer100g,
+    )
+
     /** Per-100g nutrition (for the scoring engine). */
     val nutritionPer100g: NutritionPer100g get() {
         val basis = if (totalGrams > 0) totalGrams else 100.0

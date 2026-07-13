@@ -36,6 +36,8 @@ fun RecipesScreen(
 ) {
     val recipes = viewModel.recipes.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
+    val warnings = viewModel.recipeWarnings.collectAsStateWithLifecycle()
+    val officialWarnings = viewModel.officialRecipeWarnings.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -71,6 +73,7 @@ fun RecipesScreen(
                 OfficialRecipeCard(
                     recipe   = recipe,
                     isFrench = language.value == "fr",
+                    warning  = officialWarnings.value[recipe.nameFr],
                     onLog    = { logOfficialTarget = recipe },
                     onClone  = { viewModel.cloneOfficial(recipe) },
                 )
@@ -89,7 +92,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe })
+                RecipeCard(recipe, warning = warnings.value[recipe.id], onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe })
             }
             item { Spacer(Modifier.height(32.dp)) }
         }
@@ -116,7 +119,7 @@ fun RecipesScreen(
 }
 
 @Composable
-private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit) {
+private fun RecipeCard(recipe: Recipe, warning: String?, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
         Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -141,13 +144,22 @@ private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit, 
                         style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
                 }
                 if (recipe.components.size > 3) Text(stringResource(R.string.templates_more_items, recipe.components.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
+                // Diet/allergen check previously only ever ran on scanned products -
+                // a recipe built from ingredients the user's own profile forbids
+                // (allergen or diet violation) had no warning anywhere in this screen.
+                warning?.let {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, onLog: () -> Unit, onClone: () -> Unit) {
+private fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warning: String?, onLog: () -> Unit, onClone: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
         Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -166,6 +178,12 @@ private fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, onLog:
                 }
                 recipe.ingredients.take(4).forEach { ing ->
                     Text("${ing.foodName} · ${ing.grams.toInt()} g", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
+                }
+                warning?.let {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+                    }
                 }
             }
         }
