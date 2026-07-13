@@ -61,9 +61,9 @@ class DiaryViewModel @Inject constructor(
     // whenever one exists, so Journal and Dashboard could silently disagree on
     // the same day's calorie target. Same override rule, applied here too.
     val targets: StateFlow<DailyTargets?> = combine(prefs.profile, biolismRepo.profile) { profile, bioProfile ->
-        val base = if (hasMinimalProfile(profile)) dailyTargets(profile) else return@combine null
+        val base = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
         val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
-        if (bioTdee != null) base.copy(kcal = bioTdee) else base
+        base?.let { if (bioTdee != null) it.copy(kcal = bioTdee) else it }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun goToPreviousDay() { _selectedDate.value = _selectedDate.value.minusDays(1) }
