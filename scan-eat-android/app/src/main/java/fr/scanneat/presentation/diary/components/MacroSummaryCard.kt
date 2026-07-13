@@ -29,7 +29,7 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                     MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal", targets?.kcal?.toInt())
                     MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g", targets?.proteinGTarget?.takeIf { it > 0 }?.toInt())
-                    MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g", targets?.carbsGDailyMax?.takeIf { it > 0 }?.toInt())
+                    MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g", targets?.carbsGTarget?.takeIf { it > 0 }?.toInt())
                     MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g", targets?.fatGTarget?.takeIf { it > 0 }?.toInt())
                 }
             }

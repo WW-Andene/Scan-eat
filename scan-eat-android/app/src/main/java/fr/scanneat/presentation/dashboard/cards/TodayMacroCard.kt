@@ -33,16 +33,17 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
                     else             -> AccentCoral
                 }
                 val protPct = targets?.proteinGTarget?.takeIf { it > 0 }?.let { (totals.proteinG / it).toFloat() }
-                // Only a diet with an actual daily carb budget (e.g. keto) gives this
-                // ring a target - most diets are ingredient-exclusion only, not a
-                // macro budget, so it stays an unfilled ring for them same as before.
-                val carbsMax = targets?.carbsGDailyMax
-                val carbsPct = carbsMax?.takeIf { it > 0 }?.let { (totals.carbsG / it).toFloat() }
-                val carbsColor = if (carbsPct != null && carbsPct > 1f) semanticRed() else AccentCoral
+                // A hard cap (e.g. keto's 30g) still turns the ring red once exceeded;
+                // every other diet gets the general AMDR-derived target instead of a
+                // bare unfilled ring, same treatment as calories/protein/fat.
+                val carbsTarget = targets?.carbsGTarget
+                val carbsPct = carbsTarget?.takeIf { it > 0 }?.let { (totals.carbsG / it).toFloat() }
+                val carbsIsHardCap = targets?.carbsGDailyMax != null
+                val carbsColor = if (carbsIsHardCap && carbsPct != null && carbsPct > 1f) semanticRed() else AccentCoral
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                     MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor, targets?.kcal?.roundToInt())
                     MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral, targets?.proteinGTarget?.takeIf { it > 0 }?.roundToInt())
-                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", carbsPct, carbsColor, carbsMax?.takeIf { it > 0 }?.roundToInt())
+                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", carbsPct, carbsColor, carbsTarget?.takeIf { it > 0 }?.roundToInt())
                     val fatPct = targets?.fatGTarget?.takeIf { it > 0 }?.let { (totals.fatG / it).toFloat() }
                     val fatColor = if (fatPct != null && fatPct > 1.1f) semanticRed() else AccentCoral
                     MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", fatPct, fatColor, targets?.fatGTarget?.roundToInt())

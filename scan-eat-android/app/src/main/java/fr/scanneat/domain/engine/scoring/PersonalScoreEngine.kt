@@ -109,6 +109,13 @@ data class DailyTargets(
     // implies a daily total (most diets are ingredient-exclusion only, not
     // macro-budget diets, so this stays null for them).
     val carbsGDailyMax: Double? = null,
+    // General carb target shown in the Journal/Dashboard for every diet (unlike
+    // carbsGDailyMax, which is only a hard cap for macro-budget diets like keto).
+    // Previously the Journal only ever showed a carbs target for keto users -
+    // everyone else saw a bare total with no "/target" the way calories,
+    // protein and fat all had, even though the same AMDR-derived number was
+    // trivially available as "whatever's left of kcal after protein+fat".
+    val carbsGTarget: Double,
 )
 
 /**
@@ -150,6 +157,11 @@ fun dailyTargets(p: Profile): DailyTargets? {
     // carbs/day; carnivore structurally has no plant fiber intake to target.
     val carbsMax = if (p.diet == DietKey.KETO) 30.0 else null
     val fiberTarget = if (p.diet == DietKey.CARNIVORE) 0.0 else 25.0
+    val fatTarget = (0.30 * goalAdjustedKcal / 9.0)
+    // Remaining calories after protein+fat, converted at 4 kcal/g - the
+    // standard "carbs fill the rest of the budget" AMDR approach, so every
+    // diet gets a real number here instead of only keto's hard cap.
+    val generalCarbsTarget = ((goalAdjustedKcal - pri * 4.0 - fatTarget * 9.0) / 4.0).coerceAtLeast(0.0)
 
     return DailyTargets(
         kcal              = goalAdjustedKcal,
@@ -158,9 +170,10 @@ fun dailyTargets(p: Profile): DailyTargets? {
         freeSugarsGIdeal  = (0.05 * goalAdjustedKcal / 4.0),
         saltGMax          = saltCap,
         proteinGTarget    = pri,
-        fatGTarget        = (0.30 * goalAdjustedKcal / 9.0),
+        fatGTarget        = fatTarget,
         fiberGTarget      = fiberTarget,
         carbsGDailyMax    = carbsMax,
+        carbsGTarget      = carbsMax ?: generalCarbsTarget,
         ironMgTarget      = ironTarget,
         calciumMgTarget   = 950.0,
         vitDUgTarget      = vitDTarget,
