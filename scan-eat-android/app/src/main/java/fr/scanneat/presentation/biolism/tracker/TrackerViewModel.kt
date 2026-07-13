@@ -3,6 +3,7 @@ package fr.scanneat.presentation.biolism.tracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
@@ -17,11 +18,25 @@ import javax.inject.Inject
 @HiltViewModel
 class TrackerViewModel @Inject constructor(
     private val repo: BiolismRepository,
+    private val prefs: UserPreferences,
 ) : ViewModel() {
 
     // ── Profile ───────────────────────────────────────────────────────────────
     val profile: StateFlow<BiolismProfile> = repo.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BiolismProfile())
+
+    // BiolismProfile (above) is Biolism's own sex/age/weight/... profile and has
+    // no healthConditions field — the app-wide Profile (UserPreferences) is the
+    // only place diabetes/pregnancy/kidney_disease/etc. live. Extended fasting
+    // and ketogenic states carry real, documented risk for some of these
+    // conditions (see HealthConditionCaution.kt), the same personalization gap
+    // the food-scoring/hint-panel path already closed.
+    val healthConditions: StateFlow<Set<String>> = prefs.profile
+        .map { it.healthConditions }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
     // ── Timer state from DataStore (source of truth on resume) ───────────────
     private val _timerState = MutableStateFlow(TimerState())

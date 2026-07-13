@@ -44,6 +44,8 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     val precision    = viewModel.heroPrecision.collectAsStateWithLifecycle()
     val showPerSec   = viewModel.showKcalPerSec.collectAsStateWithLifecycle()
     val saved        = viewModel.saved.collectAsStateWithLifecycle()
+    val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
+    val language     = viewModel.language.collectAsStateWithLifecycle()
 
     val s    = timer.value
     val p    = profile.value
@@ -97,6 +99,9 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
             if (s.ketosisOn) {
                 AdaptedToggleRow(active = s.ketoAdapted, ketoHours = ketoHours, onToggle = viewModel::toggleKetoAdapted)
             }
+            if (s.ketosisOn) {
+                KetosisHealthCaution(healthConditions.value, language.value)
+            }
 
             // ── Fasting row ────────────────────────────────────────────────────
             FastingRow(
@@ -106,6 +111,9 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 onLogMeal     = viewModel::logMealNow,
                 onAddHours    = viewModel::addFastingHours,
             )
+            if (s.fastingActive) {
+                FastingHealthCaution(healthConditions.value, language.value)
+            }
 
             // ── Phase strip ────────────────────────────────────────────────────
             if (s.ketosisOn && phase != null) {
