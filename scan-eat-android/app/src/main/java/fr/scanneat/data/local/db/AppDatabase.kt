@@ -12,6 +12,8 @@ import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.consumption.ConsumptionEntity
 import fr.scanneat.data.local.db.customfood.CustomFoodDao
 import fr.scanneat.data.local.db.customfood.CustomFoodEntity
+import fr.scanneat.data.local.db.medication.MedicationDao
+import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
@@ -30,8 +32,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         ActivityEntity::class,
         MealTemplateEntity::class,
         RecipeEntity::class,
+        MedicationEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -43,6 +46,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun activityDao(): ActivityDao
     abstract fun mealTemplateDao(): MealTemplateDao
     abstract fun recipeDao(): RecipeDao
+    abstract fun medicationDao(): MedicationDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -155,5 +159,25 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
         db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `reps` INTEGER")
         db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `distanceKm` REAL")
         db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `weightUsedKg` REAL")
+    }
+}
+val MIGRATION_10_11 = object : Migration(10, 11) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v10 → v11: new `medications` table backing the Traitement tab -
+        // manual medication tracking (name/dosage/schedule note/active flag),
+        // same shape as every other user-content table.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `medications` (" +
+                "`id` TEXT NOT NULL, " +
+                "`name` TEXT NOT NULL, " +
+                "`dosage` TEXT NOT NULL, " +
+                "`scheduleNote` TEXT NOT NULL, " +
+                "`barcode` TEXT, " +
+                "`active` INTEGER NOT NULL, " +
+                "`createdAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_medications_profileId` ON `medications` (`profileId`)")
     }
 }

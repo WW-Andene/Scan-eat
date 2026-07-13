@@ -1,0 +1,143 @@
+package fr.scanneat.presentation.medication
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
+import fr.scanneat.data.repository.health.Medication
+import fr.scanneat.presentation.ui.theme.*
+
+/**
+ * [embedded] = true skips this screen's own Scaffold/TopAppBar - used when
+ * hosted as a Journal sub-tab, same convention as Weight/Hydration/Activity/
+ * Fasting. Manual entry only for now - barcode-scan medication lookup and a
+ * curated medication database are a larger, separate effort.
+ */
+@Composable
+fun MedicationScreen(
+    viewModel: MedicationViewModel = hiltViewModel(),
+    onBack: () -> Unit,
+    embedded: Boolean = false,
+) {
+    val medications = viewModel.medications.collectAsStateWithLifecycle()
+    var showAdd by remember { mutableStateOf(false) }
+    var renameTarget by remember { mutableStateOf<Medication?>(null) }
+    var deleteTarget by remember { mutableStateOf<String?>(null) }
+
+    val content = @Composable { padding: PaddingValues ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item { Spacer(Modifier.height(8.dp)) }
+            if (medications.value.isEmpty()) {
+                item {
+                    EmptyListState(
+                        Icons.Default.Medication, stringResource(R.string.medication_empty_body),
+                        ctaLabel = stringResource(R.string.medication_cd_new), onCta = { showAdd = true },
+                    )
+                }
+            }
+            items(medications.value, key = { it.id }) { m ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(Spacing.M),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(m.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                        val details = listOfNotNull(
+                            m.dosage.takeIf { it.isNotBlank() },
+                            m.scheduleNote.takeIf { it.isNotBlank() },
+                        ).joinToString(" · ")
+                        if (details.isNotBlank()) {
+                            Text(details, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                        }
+                    }
+                    Switch(
+                        checked = m.active, onCheckedChange = { viewModel.setActive(m, it) },
+                        colors = SwitchDefaults.colors(checkedTrackColor = Teal),
+                    )
+                    IconButton(onClick = { renameTarget = m }, modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f))
+                    }
+                    IconButton(onClick = { deleteTarget = m.id }, modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
+                    }
+                }
+            }
+            item { Spacer(Modifier.height(32.dp)) }
+        }
+    }
+
+    if (embedded) {
+        Box(Modifier.fillMaxSize()) {
+            content(PaddingValues(0.dp))
+            FloatingActionButton(
+                onClick = { showAdd = true },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.L),
+                containerColor = Teal,
+            ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = androidx.compose.ui.graphics.Color.Black) }
+        }
+    } else {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.medication_title), color = OnBackground) },
+                    navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.medication_cd_new), tint = Teal) } },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
+                )
+            },
+            containerColor = Background,
+        ) { padding -> content(padding) }
+    }
+
+    if (showAdd) {
+        var name by remember { mutableStateOf("") }
+        var dosage by remember { mutableStateOf("") }
+        var scheduleNote by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showAdd = false },
+            containerColor = SurfaceVariant,
+            title = { Text(stringResource(R.string.medication_add_dialog_title), color = OnBackground) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.medication_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
+                    OutlinedTextField(value = dosage, onValueChange = { dosage = it }, label = { Text(stringResource(R.string.medication_field_dosage)) }, singleLine = true, colors = scanEatTextFieldColors())
+                    OutlinedTextField(value = scheduleNote, onValueChange = { scheduleNote = it }, label = { Text(stringResource(R.string.medication_field_schedule)) }, singleLine = true, colors = scanEatTextFieldColors())
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.save(name, dosage, scheduleNote); showAdd = false }, enabled = name.isNotBlank()) {
+                    Text(stringResource(R.string.common_create), color = Teal)
+                }
+            },
+            dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        )
+    }
+
+    renameTarget?.let { m ->
+        RenameDialog(currentName = m.name, onDismiss = { renameTarget = null }, onConfirm = { newName -> viewModel.rename(m, newName); renameTarget = null })
+    }
+
+    deleteTarget?.let { id ->
+        val name = medications.value.find { it.id == id }?.name
+        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+    }
+}

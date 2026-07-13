@@ -633,9 +633,10 @@
     <string name="diary_cd_next_day">Jour suivant</string>
     <string name="diary_tab_meals">Repas</string>
     <string name="diary_tab_weight">Poids</string>
-    <string name="diary_tab_water">Eau</string>
+    <string name="diary_tab_water">Hydratation</string>
     <string name="diary_tab_activity">Activité</string>
     <string name="diary_tab_fasting">Jeûne</string>
+    <string name="diary_tab_treatment">Traitement</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Log it\'.</string>
@@ -690,6 +691,13 @@
     <string name="activity_entry_summary">%1$d min · %2$d kcal</string>
     <string name="activity_empty">Aucune activité aujourd\'hui.</string>
     <string name="activity_add_cta">Ajouter une activité</string>
+    <string name="medication_title">Traitement</string>
+    <string name="medication_empty_body">Aucun traitement enregistré.</string>
+    <string name="medication_cd_new">Nouveau traitement</string>
+    <string name="medication_add_dialog_title">Nouveau traitement</string>
+    <string name="medication_field_name">Nom du médicament</string>
+    <string name="medication_field_dosage">Dosage</string>
+    <string name="medication_field_schedule">Horaire / fréquence</string>
     <string name="activity_deleted_message">Activité supprimée</string>
     <string name="activity_undo">Annuler</string>
     <string name="activity_add_dialog_title">Ajouter une activité</string>

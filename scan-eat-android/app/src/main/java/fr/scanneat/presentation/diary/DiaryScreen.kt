@@ -29,6 +29,7 @@ import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.activity.ActivityScreen
 import fr.scanneat.presentation.fasting.FastingScreen
 import fr.scanneat.presentation.hydration.HydrationScreen
+import fr.scanneat.presentation.medication.MedicationScreen
 import fr.scanneat.presentation.reminders.RemindersCard
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.weight.WeightScreen
@@ -42,6 +43,7 @@ private enum class DiaryTab(val labelRes: Int) {
     WATER(R.string.diary_tab_water),
     ACTIVITY(R.string.diary_tab_activity),
     FASTING(R.string.diary_tab_fasting),
+    TREATMENT(R.string.diary_tab_treatment),
 }
 
 /**
@@ -107,6 +109,7 @@ fun DiaryScreen(
                 DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true)
                 DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true)
                 DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true)
+                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true)
             }
         }
     }
