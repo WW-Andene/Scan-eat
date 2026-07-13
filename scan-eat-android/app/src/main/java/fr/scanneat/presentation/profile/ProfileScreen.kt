@@ -51,6 +51,7 @@ fun ProfileScreen(
     var goal       by remember(profile.value.id) { mutableStateOf(profile.value.goal) }
     var diet       by remember(profile.value.id) { mutableStateOf(profile.value.diet) }
     var allergens  by remember(profile.value.id) { mutableStateOf(profile.value.allergens) }
+    var conditions by remember(profile.value.id) { mutableStateOf(profile.value.healthConditions) }
     var isMenstruating by remember(profile.value.id) { mutableStateOf(profile.value.isMenstruating) }
 
     LaunchedEffect(saved.value) {
@@ -80,6 +81,7 @@ fun ProfileScreen(
                             goal          = goal,
                             diet          = diet,
                             allergens     = allergens,
+                            healthConditions = conditions,
                             isMenstruating = isMenstruating,
                         ))
                     }) {
@@ -146,6 +148,11 @@ fun ProfileScreen(
             // ---- Allergens ----
             ProfileSection(stringResource(R.string.profile_section_allergens)) {
                 AllergenSelector(allergens) { allergens = it }
+            }
+
+            // ---- Health conditions ----
+            ProfileSection(stringResource(R.string.profile_section_conditions)) {
+                ConditionsSelector(conditions) { conditions = it }
             }
 
             // ---- Diet ----
@@ -316,6 +323,39 @@ private fun allergenLabels(): Map<String, String> = mapOf(
     "celery" to stringResource(R.string.allergen_celery), "mustard" to stringResource(R.string.allergen_mustard),
     "sulfites" to stringResource(R.string.allergen_sulfites), "lupin" to stringResource(R.string.allergen_lupin),
 )
+
+@Composable
+private fun conditionLabels(): Map<String, String> = mapOf(
+    "diabetes" to stringResource(R.string.condition_diabetes),
+    "hypertension" to stringResource(R.string.condition_hypertension),
+    "pregnancy" to stringResource(R.string.condition_pregnancy),
+    "kidney_disease" to stringResource(R.string.condition_kidney_disease),
+    "thyroid_disorder" to stringResource(R.string.condition_thyroid_disorder),
+    "food_allergies" to stringResource(R.string.condition_food_allergies),
+    "intolerances" to stringResource(R.string.condition_intolerances),
+    "digestive_disorders" to stringResource(R.string.condition_digestive_disorders),
+)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ConditionsSelector(current: Set<String>, onSelect: (Set<String>) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        Text(stringResource(R.string.profile_condition_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            conditionLabels().forEach { (key, label) ->
+                FilterChip(
+                    selected = key in current,
+                    onClick  = { onSelect(if (key in current) current - key else current + key) },
+                    label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                        labelColor = OnBackground.copy(0.7f),
+                    ),
+                )
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

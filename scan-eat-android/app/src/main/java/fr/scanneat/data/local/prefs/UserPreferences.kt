@@ -52,6 +52,7 @@ class UserPreferences @Inject constructor(
         val KEY_PROFILE_GOAL         = stringPreferencesKey("profile_goal")
         val KEY_PROFILE_MENSTRUATING = booleanPreferencesKey("profile_menstruating")
         val KEY_PROFILE_ALLERGENS    = stringPreferencesKey("profile_allergens") // comma-separated
+        val KEY_PROFILE_CONDITIONS   = stringPreferencesKey("profile_conditions") // comma-separated
     }
 
     // ---- API / app settings ----
@@ -114,6 +115,12 @@ class UserPreferences @Inject constructor(
                 ?.filter { it.isNotEmpty() }
                 ?.toSet()
                 ?: emptySet(),
+            healthConditions = p[KEY_PROFILE_CONDITIONS]
+                ?.split(",")
+                ?.map { it.trim() }
+                ?.filter { it.isNotEmpty() }
+                ?.toSet()
+                ?: emptySet(),
         )
     }.distinctUntilChanged()
 
@@ -133,6 +140,7 @@ class UserPreferences @Inject constructor(
         p[KEY_PROFILE_GOAL]         = profile.goal.name
         p[KEY_PROFILE_MENSTRUATING] = profile.isMenstruating
         p[KEY_PROFILE_ALLERGENS]    = profile.allergens.joinToString(",")
+        p[KEY_PROFILE_CONDITIONS]   = profile.healthConditions.joinToString(",")
     }
 
     /** Convenience — update only weight (used by WeightRepository after logging). */

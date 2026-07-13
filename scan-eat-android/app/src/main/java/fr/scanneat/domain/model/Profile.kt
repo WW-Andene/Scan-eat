@@ -34,6 +34,10 @@ data class Profile(
     // DietKey lives in domain/engine/scoring/DietChecker.kt
     val diet: fr.scanneat.domain.engine.scoring.DietKey = fr.scanneat.domain.engine.scoring.DietKey.NONE,
     val allergens: Set<String> = emptySet(),
+    // Free-form keys ("diabetes", "hypertension", "pregnancy", "kidney_disease",
+    // "thyroid_disorder", "food_allergies", "intolerances", "digestive_disorders") -
+    // same pattern as allergens, consumed by PersonalScoreEngine/HydrationRepository.
+    val healthConditions: Set<String> = emptySet(),
     val isMenstruating: Boolean = false,
 )
 // NOTE: DailyTargets is defined in domain/engine/scoring/PersonalScoreEngine.kt (canonical location).

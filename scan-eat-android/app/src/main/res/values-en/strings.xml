@@ -503,6 +503,16 @@
     <string name="profile_field_goal_weight">Goal weight (kg)</string>
     <string name="profile_menstruating_checkbox">Of menstruating age (adjusts iron needs)</string>
     <string name="profile_allergen_hint">Select the allergens to watch for</string>
+    <string name="profile_section_conditions">Health conditions</string>
+    <string name="profile_condition_hint">Select the conditions to factor into calculations</string>
+    <string name="condition_diabetes">Diabetes</string>
+    <string name="condition_hypertension">Hypertension</string>
+    <string name="condition_pregnancy">Pregnancy</string>
+    <string name="condition_kidney_disease">Kidney disease</string>
+    <string name="condition_thyroid_disorder">Thyroid disorder</string>
+    <string name="condition_food_allergies">Food allergies</string>
+    <string name="condition_intolerances">Intolerances</string>
+    <string name="condition_digestive_disorders">Digestive disorders</string>
     <string name="sex_male">Male</string>
     <string name="sex_female">Female</string>
     <string name="sex_not_specified">Not specified</string>

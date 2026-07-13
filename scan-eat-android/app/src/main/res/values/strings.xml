@@ -504,6 +504,16 @@
     <string name="profile_field_goal_weight">Poids cible (kg)</string>
     <string name="profile_menstruating_checkbox">En âge menstruel (ajuste le besoin en fer)</string>
     <string name="profile_allergen_hint">Sélectionne les allergènes à surveiller</string>
+    <string name="profile_section_conditions">Conditions de santé</string>
+    <string name="profile_condition_hint">Sélectionne les conditions à prendre en compte dans les calculs</string>
+    <string name="condition_diabetes">Diabète</string>
+    <string name="condition_hypertension">Hypertension</string>
+    <string name="condition_pregnancy">Grossesse</string>
+    <string name="condition_kidney_disease">Maladie rénale</string>
+    <string name="condition_thyroid_disorder">Trouble thyroïdien</string>
+    <string name="condition_food_allergies">Allergies alimentaires</string>
+    <string name="condition_intolerances">Intolérances</string>
+    <string name="condition_digestive_disorders">Troubles digestifs</string>
     <string name="sex_male">Homme</string>
     <string name="sex_female">Femme</string>
     <string name="sex_not_specified">Non précisé</string>

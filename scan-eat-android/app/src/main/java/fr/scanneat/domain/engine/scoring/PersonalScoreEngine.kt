@@ -118,12 +118,18 @@ fun dailyTargets(p: Profile): DailyTargets? {
     // Older adults: higher vitD target 20 µg/day (EFSA 2016 ≥75y)
     val vitDTarget = if ((p.ageYears ?: 0) >= 75) 20.0 else 15.0
 
+    // WHO guidance caps free sugars/salt harder for these conditions than the
+    // general-population default - halved rather than a made-up clinical value,
+    // since an exact per-condition target needs a dietitian, not this app.
+    val sugarsCapFraction = if ("diabetes" in p.healthConditions) 0.05 else 0.10
+    val saltCap = if ("hypertension" in p.healthConditions) 3.0 else 5.0
+
     return DailyTargets(
         kcal              = tdee,
         satFatGMax        = (0.10 * tdee / 9.0),
-        freeSugarsGMax    = (0.10 * tdee / 4.0),
+        freeSugarsGMax    = (sugarsCapFraction * tdee / 4.0),
         freeSugarsGIdeal  = (0.05 * tdee / 4.0),
-        saltGMax          = 5.0,
+        saltGMax          = saltCap,
         proteinGTarget    = pri,
         fiberGTarget      = 25.0,
         ironMgTarget      = ironTarget,
@@ -148,7 +154,7 @@ data class PersonalAdjustment(
     val veto: Boolean = false,
 )
 
-enum class AdjustmentCategory { DIET, AGE, SEX, ACTIVITY, BMI, GOAL, MODIFIER }
+enum class AdjustmentCategory { DIET, AGE, SEX, ACTIVITY, BMI, GOAL, MODIFIER, CONDITION }
 
 data class PersonalScoreResult(
     val personalScore: Int,
@@ -183,7 +189,8 @@ fun computePersonalScore(
 
     val applicable = (profile.diet != DietKey.NONE) ||
         hasMinimalProfile(profile) ||
-        profile.allergens.isNotEmpty()
+        profile.allergens.isNotEmpty() ||
+        profile.healthConditions.isNotEmpty()
 
     if (!applicable) {
         return PersonalScoreResult(
@@ -230,6 +237,71 @@ fun computePersonalScore(
     val allergenHits = if (profile.allergens.isNotEmpty())
         checkUserAllergens(product, profile.allergens, lang)
     else emptyList()
+
+    // ===== HEALTH CONDITIONS =====
+    // Only the conditions with an established, simple nutrition-level rule get a
+    // scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
+    // alcohol veto). Thyroid disorders / food_allergies / intolerances / digestive
+    // disorders are still selectable (surfaced elsewhere, e.g. the hint system) but
+    // have no dedicated nutrition-threshold rule reliable enough to code here yet.
+    val conditions = profile.healthConditions
+    if ("diabetes" in conditions) {
+        val sugars = product.nutrition.sugarsG
+        if (sugars >= 15.0) {
+            adjustments += PersonalAdjustment(
+                points = -4.0,
+                reason = if (lang == "en") "High sugar (${sugars} g/100 g) — caution advised for diabetes"
+                         else "Sucres élevés (${sugars} g/100 g) — prudence recommandée en cas de diabète",
+                category = AdjustmentCategory.CONDITION,
+            )
+        } else if (sugars <= 5.0) {
+            adjustments += PersonalAdjustment(
+                points = 2.0,
+                reason = if (lang == "en") "Low sugar — diabetes-friendly"
+                         else "Faible en sucres — adapté au diabète",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+    }
+    if ("hypertension" in conditions) {
+        val salt = product.nutrition.saltG
+        if (salt >= 1.2) {
+            adjustments += PersonalAdjustment(
+                points = -4.0,
+                reason = if (lang == "en") "High salt (${salt} g/100 g) — caution advised for hypertension"
+                         else "Sel élevé (${salt} g/100 g) — prudence recommandée en cas d'hypertension",
+                category = AdjustmentCategory.CONDITION,
+            )
+        } else if (salt <= 0.3) {
+            adjustments += PersonalAdjustment(
+                points = 2.0,
+                reason = if (lang == "en") "Low salt — hypertension-friendly"
+                         else "Faible en sel — adapté à l'hypertension",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+    }
+    if ("kidney_disease" in conditions && product.nutrition.proteinG >= 15.0) {
+        adjustments += PersonalAdjustment(
+            points = -3.0,
+            reason = if (lang == "en") "High protein (${product.nutrition.proteinG} g/100 g) — caution advised for kidney disease"
+                     else "Protéines élevées (${product.nutrition.proteinG} g/100 g) — prudence recommandée en cas de maladie rénale",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+    if ("pregnancy" in conditions) {
+        val alcoholHit = product.ingredients.any { ing ->
+            val n = ing.name.lowercase()
+            "alcool" in n || "alcohol" in n || "vin " in n || "wine" in n || "bière" in n || "beer" in n
+        }
+        if (alcoholHit) {
+            veto = true
+            val reason = if (lang == "en") "Contains alcohol — avoid during pregnancy"
+                         else "Contient de l'alcool — à éviter pendant la grossesse"
+            dietReason = dietReason ?: reason
+            adjustments += PersonalAdjustment(0.0, reason, AdjustmentCategory.CONDITION, veto = true)
+        }
+    }
 
     // ===== AGE-BASED =====
     val age = profile.ageYears

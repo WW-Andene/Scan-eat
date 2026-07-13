@@ -100,7 +100,7 @@ class HydrationRepository @Inject constructor(
      * Derive daily water goal from sex + activity level via BiolismEngine's
      * EFSA-based formula (2.5L male / 2.0L female + 0.5L activity bonus).
      */
-    fun goalMl(sex: Sex, activityLevel: ActivityLevel): Int {
+    fun goalMl(sex: Sex, activityLevel: ActivityLevel, healthConditions: Set<String> = emptySet()): Int {
         if (sex == Sex.NOT_SPECIFIED) return HYD_DEFAULT_GOAL_ML
         val biolismSex = when (sex) {
             Sex.MALE -> BiolismSex.MALE
@@ -116,7 +116,9 @@ class HydrationRepository @Inject constructor(
         }
         val mult = ACTIVITY_LEVELS.find { it.id == activityId }?.mult ?: 1.55
         val waterNeedL = BiolismEngine.computeWaterNeedL(biolismSex, mult)
-        return (waterNeedL * 1000).toInt()
+        // EFSA 2010 AI: +0.3L/day during pregnancy on top of the sex/activity baseline.
+        val pregnancyBonusL = if ("pregnancy" in healthConditions) 0.3 else 0.0
+        return ((waterNeedL + pregnancyBonusL) * 1000).toInt()
     }
 
     // ---- Backup export/import ----
