@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ScanEatCard(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(16.dp),
+    shape: Shape = RoundedCornerShape(CardRadius.CARD),
     color: Color = SurfaceVariant,
     contentPadding: PaddingValues = PaddingValues(14.dp),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,

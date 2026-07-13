@@ -182,7 +182,7 @@ fun OnboardingScreen(
 
 @Composable
 private fun ValueCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, body: String) {
-    ScanEatCard(shape = RoundedCornerShape(14.dp)) {
+    ScanEatCard {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(28.dp))
             Column {
@@ -197,7 +197,7 @@ private fun ValueCard(icon: androidx.compose.ui.graphics.vector.ImageVector, tit
 private fun ModeCard(selected: Boolean, title: String, subtitle: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        shape   = RoundedCornerShape(14.dp),
+        shape   = RoundedCornerShape(12.dp),
         color   = if (selected) AccentCoral.copy(0.15f) else SurfaceVariant,
         border  = if (selected) ButtonDefaults.outlinedButtonBorder(enabled = true).copy(width = 1.5.dp) else null,
         modifier = Modifier.fillMaxWidth(),

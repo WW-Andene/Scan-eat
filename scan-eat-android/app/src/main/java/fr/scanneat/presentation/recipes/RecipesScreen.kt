@@ -80,8 +80,8 @@ fun RecipesScreen(
 
 @Composable
 private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit) {
-    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(14.dp))) {
-        Surface(shape = RoundedCornerShape(14.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
+        Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {

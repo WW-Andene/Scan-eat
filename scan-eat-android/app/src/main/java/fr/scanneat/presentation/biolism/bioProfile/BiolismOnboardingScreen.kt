@@ -110,7 +110,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                     3 -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         ACTIVITY_LEVELS.forEach { lvl ->
                             Row(
-                                Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
                                     .background(if (activityId == lvl.id) GoldHaze else OnBackground.copy(0.03f))
                                     .selectable(selected = activityId == lvl.id, onClick = { activityId = lvl.id }, role = Role.RadioButton)
                                     .padding(12.dp),
