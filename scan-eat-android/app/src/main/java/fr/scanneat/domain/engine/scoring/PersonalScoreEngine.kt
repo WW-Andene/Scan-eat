@@ -336,6 +336,28 @@ fun computePersonalScore(
             category = AdjustmentCategory.CONDITION,
         )
     }
+    // Knüppel et al., Scientific Reports 2017 (Whitehall II cohort): higher sweet
+    // food/beverage sugar intake prospectively associated with incident common
+    // mental disorder and depression in men over ~5 years follow-up.
+    if ("depression" in conditions && product.nutrition.sugarsG >= 15.0) {
+        adjustments += PersonalAdjustment(
+            points = -2.0,
+            reason = if (lang == "en") "High sugar (${product.nutrition.sugarsG} g/100 g) — prospectively associated with depression risk (Knüppel et al., Whitehall II cohort, Sci Rep 2017)"
+                     else "Sucres élevés (${product.nutrition.sugarsG} g/100 g) — associé de façon prospective au risque de dépression (Knüppel et al., cohorte Whitehall II, Sci Rep 2017)",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+    // Adjibade et al., BMC Medicine 2019 (French NutriNet-Santé cohort): higher
+    // ultra-processed food consumption prospectively associated with incident
+    // depressive symptoms.
+    if ("depression" in conditions && product.novaClass == NovaClass.ULTRA_PROCESSED) {
+        adjustments += PersonalAdjustment(
+            points = -2.0,
+            reason = if (lang == "en") "Ultra-processed (NOVA 4) — prospectively associated with incident depressive symptoms (Adjibade et al., NutriNet-Santé cohort, BMC Medicine 2019)"
+                     else "Ultra-transformé (NOVA 4) — associé de façon prospective à l'apparition de symptômes dépressifs (Adjibade et al., cohorte NutriNet-Santé, BMC Medicine 2019)",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
 
     // ===== AGE-BASED =====
     val age = profile.ageYears

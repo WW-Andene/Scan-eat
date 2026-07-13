@@ -133,6 +133,17 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
         risks += if (en) "Contains alcohol — can worsen depressive symptoms and interacts with most antidepressants"
                  else "Contient de l'alcool — peut aggraver les symptômes dépressifs et interagit avec la plupart des antidépresseurs"
     }
+    // Mirrors PersonalScoreEngine's own sugar/NOVA depression adjustments exactly
+    // (same 15.0 g threshold, same two cited cohort studies) so the two surfaces
+    // never disagree.
+    if ("depression" in conditions && n.sugarsG >= 15.0) {
+        risks += if (en) "High sugar (${n.sugarsG} g/100 g) — prospectively associated with depression risk (Knüppel et al., Whitehall II cohort, Sci Rep 2017)"
+                 else "Sucres élevés (${n.sugarsG} g/100 g) — associé de façon prospective au risque de dépression (Knüppel et al., cohorte Whitehall II, Sci Rep 2017)"
+    }
+    if ("depression" in conditions && product.novaClass == NovaClass.ULTRA_PROCESSED) {
+        risks += if (en) "Ultra-processed (NOVA 4) — prospectively associated with incident depressive symptoms (Adjibade et al., NutriNet-Santé cohort, BMC Medicine 2019)"
+                 else "Ultra-transformé (NOVA 4) — associé de façon prospective à l'apparition de symptômes dépressifs (Adjibade et al., cohorte NutriNet-Santé, BMC Medicine 2019)"
+    }
 
     // ---- Facts ----
     facts += if (en) "NOVA processing class: ${product.novaClass.value}/4" else "Classe de transformation NOVA : ${product.novaClass.value}/4"
