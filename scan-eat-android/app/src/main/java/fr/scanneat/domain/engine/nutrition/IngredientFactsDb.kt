@@ -1,6 +1,5 @@
 package fr.scanneat.domain.engine.nutrition
 
-import fr.scanneat.domain.engine.scoring.normalizeForMatching
 import fr.scanneat.domain.model.Ingredient
 
 // ============================================================================
@@ -319,19 +318,6 @@ private val FACTS: List<IngredientFact> = listOf(
  */
 fun findIngredientFacts(ingredients: List<Ingredient>, lang: String, limit: Int = 3): List<String> {
     val en = lang == "en"
-    val seen = mutableSetOf<IngredientFact>()
-    val result = mutableListOf<String>()
-    for (ingredient in ingredients) {
-        if (result.size >= limit) break
-        val normName = normalizeForMatching(ingredient.name)
-        for (fact in FACTS) {
-            if (fact in seen) continue
-            if (fact.names.any { normName.contains(normalizeForMatching(it)) }) {
-                seen += fact
-                result += if (en) fact.factEn else fact.factFr
-                break
-            }
-        }
-    }
-    return result
+    return matchIngredientDictionary(ingredients, FACTS, IngredientFact::names, limit)
+        .map { if (en) it.factEn else it.factFr }
 }

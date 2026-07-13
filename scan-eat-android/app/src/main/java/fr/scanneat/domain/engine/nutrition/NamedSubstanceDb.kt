@@ -1,11 +1,11 @@
 package fr.scanneat.domain.engine.nutrition
 
-import fr.scanneat.domain.engine.scoring.normalizeForMatching
 import fr.scanneat.domain.model.Ingredient
 
 // ============================================================================
-// NAMED SUBSTANCE DB — the "Cluedo" pattern generalized past E-numbers and
-// basic macro/micronutrients: named compounds that show up in ingredient
+// NAMED SUBSTANCE DB — the same table-plus-substring-match pattern as
+// AdditivesDb, generalized past E-numbers and basic macro/micronutrients:
+// named compounds that show up in ingredient
 // lists (caffeine, creatine, melatonin, ginseng, ...) with a stable,
 // citable verdict — either an EFSA-authorised health claim under
 // Regulation (EU) No 432/2012 (List of permitted health claims), or the
@@ -63,19 +63,7 @@ private val SUBSTANCES: List<NamedSubstance> = listOf(
  */
 fun findNamedSubstanceHints(ingredients: List<Ingredient>, lang: String): Pair<List<String>, List<String>> {
     val en = lang == "en"
-    val benefits = mutableListOf<String>()
-    val cautions = mutableListOf<String>()
-    val seen = mutableSetOf<NamedSubstance>()
-    for (ingredient in ingredients) {
-        val normName = normalizeForMatching(ingredient.name)
-        for (substance in SUBSTANCES) {
-            if (substance in seen) continue
-            if (substance.names.any { normName.contains(normalizeForMatching(it)) }) {
-                seen += substance
-                val text = if (en) substance.textEn else substance.textFr
-                if (substance.status == ClaimStatus.AUTHORISED) benefits += text else cautions += text
-            }
-        }
-    }
-    return benefits to cautions
+    val matched = matchIngredientDictionary(ingredients, SUBSTANCES, NamedSubstance::names)
+    val (authorised, none) = matched.partition { it.status == ClaimStatus.AUTHORISED }
+    return authorised.map { if (en) it.textEn else it.textFr } to none.map { if (en) it.textEn else it.textFr }
 }
