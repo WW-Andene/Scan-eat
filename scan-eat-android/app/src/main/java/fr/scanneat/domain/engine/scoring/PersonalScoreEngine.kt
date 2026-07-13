@@ -106,8 +106,21 @@ data class DailyTargets(
     val carbsGDailyMax: Double? = null,
 )
 
+/**
+ * Standard ~0.45 kg/week (1 lb/week) deficit/surplus - a 3500 kcal/lb energy
+ * equivalence spread over 7 days. Applied on top of TDEE so the kcal target
+ * actually reflects the Goal the user picked in Profile, instead of always
+ * showing maintenance calories regardless of Lose/Gain.
+ */
+private const val GOAL_KCAL_ADJUSTMENT = 500.0
+
 fun dailyTargets(p: Profile): DailyTargets? {
     val tdee = tdeeKcal(p) ?: return null
+    val goalAdjustedKcal = when (p.goal) {
+        Goal.LOSE     -> tdee - GOAL_KCAL_ADJUSTMENT
+        Goal.GAIN     -> tdee + GOAL_KCAL_ADJUSTMENT
+        Goal.MAINTAIN -> tdee
+    }
     val pri  = proteinPriG(p) ?: 0.0
     // Sex-specific iron: menstruating women 16 mg/day (EFSA 2015). Uses the
     // profile's own isMenstruating answer rather than inferring from age —
@@ -134,10 +147,10 @@ fun dailyTargets(p: Profile): DailyTargets? {
     val fiberTarget = if (p.diet == DietKey.CARNIVORE) 0.0 else 25.0
 
     return DailyTargets(
-        kcal              = tdee,
-        satFatGMax        = (0.10 * tdee / 9.0),
-        freeSugarsGMax    = (sugarsCapFraction * tdee / 4.0),
-        freeSugarsGIdeal  = (0.05 * tdee / 4.0),
+        kcal              = goalAdjustedKcal,
+        satFatGMax        = (0.10 * goalAdjustedKcal / 9.0),
+        freeSugarsGMax    = (sugarsCapFraction * goalAdjustedKcal / 4.0),
+        freeSugarsGIdeal  = (0.05 * goalAdjustedKcal / 4.0),
         saltGMax          = saltCap,
         proteinGTarget    = pri,
         fiberGTarget      = fiberTarget,

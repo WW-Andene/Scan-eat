@@ -128,12 +128,17 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                 }
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    if (step == 0) {
+                    // Skip must stay reachable from every step, not just the
+                    // first — a user mid-way through (e.g. stuck on step 1's
+                    // required sex/age/height/weight fields) previously had no
+                    // way out except repeatedly tapping Back to step 0 first.
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        if (step > 0) {
+                            TextButton(onClick = { step -= 1 }) { Text(stringResource(R.string.biolism_onboard_back), color = OnBackground.copy(0.5f)) }
+                        }
                         TextButton(onClick = { viewModel.skipOnboarding() }) {
                             Text(stringResource(R.string.biolism_onboard_skip), color = OnBackground.copy(0.5f))
                         }
-                    } else {
-                        TextButton(onClick = { step -= 1 }) { Text(stringResource(R.string.biolism_onboard_back), color = OnBackground.copy(0.5f)) }
                     }
                     Button(
                         onClick = {
