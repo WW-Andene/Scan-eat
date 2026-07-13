@@ -32,6 +32,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -65,9 +71,10 @@ fun ScanScreen(
 ) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val state          = viewModel.state.collectAsStateWithLifecycle()
-    val images         = viewModel.images.collectAsStateWithLifecycle()
-    val barcode        = viewModel.scannedBarcode.collectAsStateWithLifecycle()
+    val state       = viewModel.state.collectAsStateWithLifecycle()
+    val images      = viewModel.images.collectAsStateWithLifecycle()
+    val barcode     = viewModel.scannedBarcode.collectAsStateWithLifecycle()
+    val instantMode = viewModel.instantMode.collectAsStateWithLifecycle()
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
     // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
@@ -129,11 +136,16 @@ fun ScanScreen(
     // left the camera only the leftover space between a header row and a
     // separate button row below it).
     Box(modifier = Modifier.fillMaxSize().background(Background)) {
+        // barcodeBounds: (rect, rotatedImgW, rotatedImgH) — updated on every frame that contains a barcode
+        var barcodeBounds by remember { mutableStateOf<Triple<android.graphics.Rect, Int, Int>?>(null) }
+
         if (hasCamera && !cameraUnavailable) {
             CameraPreview(
                 onBarcodeDetected = { viewModel.onBarcodeDetected(it) },
                 onPhotoCaptured   = { viewModel.addPhoto(it) },
                 onCameraError     = { cameraUnavailable = true },
+                onBarcodeBounds   = { rect, w, h -> barcodeBounds = Triple(rect, w, h) },
+                onBoundsCleared   = { barcodeBounds = null },
             )
         } else if (!hasCameraHardware) {
             // Camera-less device (manifest declares both <uses-feature> entries
@@ -255,8 +267,30 @@ fun ScanScreen(
                 }
             }
 
-            // ── Score FAB — bottom-end, distinct corner from CameraPreview's own
-            // flash toggle (top-end) and photo-capture button (bottom-center) ──
+            // ── Bounding box overlay — drawn in image→screen mapped coordinates ──
+            barcodeBounds?.let { (rect, imgW, imgH) ->
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val scaleX = size.width / imgW.toFloat()
+                    val scaleY = size.height / imgH.toFloat()
+                    val scale  = maxOf(scaleX, scaleY)
+                    val offX   = (size.width  - imgW  * scale) / 2f
+                    val offY   = (size.height - imgH * scale) / 2f
+                    val left   = offX + rect.left   * scale
+                    val top    = offY + rect.top    * scale
+                    val right  = offX + rect.right  * scale
+                    val bottom = offY + rect.bottom * scale
+                    drawRoundRect(
+                        color        = AccentCoral,
+                        topLeft      = Offset(left, top),
+                        size         = Size(right - left, bottom - top),
+                        cornerRadius = CornerRadius(8f, 8f),
+                        style        = Stroke(width = 3f),
+                        alpha        = 0.85f,
+                    )
+                }
+            }
+
+            // ── Score FAB — bottom-end ──
             FloatingActionButton(
                 onClick = { viewModel.score() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp),
@@ -268,6 +302,16 @@ fun ScanScreen(
                         color = Color.Black, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                     else -> Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
                 }
+            }
+
+            // ── Instant mode FAB — bottom-start ──
+            FloatingActionButton(
+                onClick = { viewModel.toggleInstantMode() },
+                modifier       = Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 20.dp),
+                containerColor = if (instantMode.value) AccentCoral else SurfaceVariant,
+                shape          = CircleShape,
+            ) {
+                Icon(Icons.Default.Bolt, stringResource(R.string.scan_instant_toggle), tint = if (instantMode.value) Color.Black else OnSurface)
             }
 
             // ── Error — floats just above the button cluster ──
@@ -413,25 +457,37 @@ private fun ManualBarcodeEntry(onSubmit: (String) -> Unit) {
 // its own function rather than annotating the whole CameraPreview composable
 // so the experimental-API requirement doesn't leak onto its callers.
 @androidx.annotation.OptIn(markerClass = [androidx.camera.core.ExperimentalGetImage::class])
-private fun analyzeFrame(proxy: ImageProxy, scanner: com.google.mlkit.vision.barcode.BarcodeScanner, onBarcodeDetected: (String) -> Unit) {
+private fun analyzeFrame(
+    proxy: ImageProxy,
+    scanner: com.google.mlkit.vision.barcode.BarcodeScanner,
+    onBarcodeDetected: (String) -> Unit,
+    onBarcodeBounds: ((android.graphics.Rect, Int, Int) -> Unit)? = null,
+    onBoundsCleared: (() -> Unit)? = null,
+) {
     val media = proxy.image
     if (media != null) {
-        val img = InputImage.fromMediaImage(media, proxy.imageInfo.rotationDegrees)
+        val rotation = proxy.imageInfo.rotationDegrees
+        val (imgW, imgH) = if (rotation == 90 || rotation == 270)
+            Pair(proxy.height, proxy.width) else Pair(proxy.width, proxy.height)
+        val img = InputImage.fromMediaImage(media, rotation)
         scanner.process(img)
             .addOnSuccessListener { barcodes ->
+                var foundAny = false
                 for (bc in barcodes) {
                     val raw = bc.rawValue ?: continue
-                    // FORMAT_ITF included for GTIN-14 case/pallet codes (14 digits) -
-                    // ScanRepository.gtin14ToEan13() already handles converting these
-                    // to a real retail EAN-13, but that logic was unreachable without
-                    // the scanner actually passing the format+length through here.
                     if (bc.format in listOf(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
                             Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E, Barcode.FORMAT_CODE_128,
                             Barcode.FORMAT_ITF)) {
                         val digits = raw.filter { it.isDigit() }
-                        if (digits.length in listOf(8, 12, 13, 14)) onBarcodeDetected(digits)
+                        if (digits.length in listOf(8, 12, 13, 14)) {
+                            onBarcodeDetected(digits)
+                            bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
+                            foundAny = true
+                            break
+                        }
                     }
                 }
+                if (!foundAny) onBoundsCleared?.invoke()
             }
             .addOnCompleteListener { proxy.close() }
     } else proxy.close()
@@ -442,6 +498,8 @@ fun CameraPreview(
     onBarcodeDetected: (String) -> Unit,
     onPhotoCaptured: (Bitmap) -> Unit,
     onCameraError: () -> Unit = {},
+    onBarcodeBounds: ((android.graphics.Rect, Int, Int) -> Unit)? = null,
+    onBoundsCleared: (() -> Unit)? = null,
 ) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -482,7 +540,7 @@ fun CameraPreview(
                         .build()
                         .also { ia ->
                             ia.setAnalyzer(executor) { proxy ->
-                                analyzeFrame(proxy, scanner, onBarcodeDetected)
+                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodeBounds, onBoundsCleared)
                             }
                         }
                     // Previously a bare runCatching with no onFailure branch: a bind failure

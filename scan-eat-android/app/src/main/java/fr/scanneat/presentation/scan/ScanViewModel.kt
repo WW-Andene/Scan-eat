@@ -101,10 +101,16 @@ class ScanViewModel @Inject constructor(
 
     private val scoreMutex = Mutex()
 
+    private val _instantMode = MutableStateFlow(false)
+    val instantMode: StateFlow<Boolean> = _instantMode.asStateFlow()
+
+    fun toggleInstantMode() { _instantMode.value = !_instantMode.value }
+
     fun onBarcodeDetected(barcode: String) {
         if (_state.value is ScanUiState.Scanning) return
         if (_scannedBarcode.value == barcode) return
         _scannedBarcode.value = barcode
+        if (_instantMode.value) score()
     }
 
     fun addPhoto(bitmap: Bitmap) {

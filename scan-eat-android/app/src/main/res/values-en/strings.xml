@@ -30,6 +30,7 @@
     <string name="scan_needs_photo">Product not found in the database — photograph the label to continue</string>
     <string name="scan_flash_toggle">Toggle flash</string>
     <string name="scan_capture">Capture</string>
+    <string name="scan_instant_toggle">Instant mode</string>
 
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
     <string name="hydration_title">Hydration</string>

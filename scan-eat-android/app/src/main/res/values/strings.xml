@@ -30,6 +30,7 @@
     <string name="scan_needs_photo">Produit non trouvé dans la base — photographiez l\'étiquette pour continuer</string>
     <string name="scan_flash_toggle">Activer/désactiver le flash</string>
     <string name="scan_capture">Capturer</string>
+    <string name="scan_instant_toggle">Mode instantané</string>
 
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
     <string name="hydration_title">Hydratation</string>
