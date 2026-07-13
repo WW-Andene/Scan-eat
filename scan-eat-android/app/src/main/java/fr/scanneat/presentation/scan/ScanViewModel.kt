@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.scan
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -7,6 +8,7 @@ import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.health.MedicationRepository
@@ -17,6 +19,7 @@ import fr.scanneat.domain.engine.medication.findMedicationByBarcode
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
 import fr.scanneat.domain.model.ScanResult
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -88,6 +92,7 @@ class ScanViewModel @Inject constructor(
     private val prefs: UserPreferences,       // Fix 15/21: read language from preferences
     private val connectivityManager: ConnectivityManager,
     private val medicationRepo: MedicationRepository,
+    @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
@@ -136,22 +141,24 @@ class ScanViewModel @Inject constructor(
             viewModelScope.launch { _state.value = ScanUiState.Error(noInputMessage(prefs.language.first())) }
             return
         }
-        // A medication barcode run through food scoring produces a meaningless
-        // nutrition-based grade - check the (small, curated) medication lookup
-        // DB first and short-circuit into a distinct "save to Traitement?" path.
-        if (barcode != null) {
-            findMedicationByBarcode(barcode)?.let { entry ->
-                _state.value = ScanUiState.MedicationFound(entry)
-                return
-            }
-            findNonConsumableByBarcode(barcode)?.let { entry ->
-                _state.value = ScanUiState.NonConsumableFound(entry)
-                return
-            }
-        }
         if (!scoreMutex.tryLock()) return   // already scoring — ignore double-tap
         viewModelScope.launch {
             try {
+                // A medication barcode run through food scoring produces a meaningless
+                // nutrition-based grade - check the (asset-backed, ~12k-entry) medication
+                // lookup DB first and short-circuit into a distinct "save to Traitement?"
+                // path. Parsing the backing CSV is real file IO, so it runs off the main
+                // thread rather than blocking the tap that triggered score().
+                if (barcode != null) {
+                    withContext(Dispatchers.IO) { findMedicationByBarcode(appContext, barcode) }?.let { entry ->
+                        _state.value = ScanUiState.MedicationFound(entry)
+                        return@launch
+                    }
+                    withContext(Dispatchers.IO) { findNonConsumableByBarcode(appContext, barcode) }?.let { entry ->
+                        _state.value = ScanUiState.NonConsumableFound(entry)
+                        return@launch
+                    }
+                }
                 _state.value = ScanUiState.Scanning
                 val lang   = prefs.language.first()    // Fix 15/21: thread language into scan
                 val online = isOnline()

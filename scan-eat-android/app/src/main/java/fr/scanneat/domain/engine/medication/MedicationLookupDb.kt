@@ -1,17 +1,20 @@
 package fr.scanneat.domain.engine.medication
 
+import android.content.Context
+
 // ============================================================================
-// MEDICATION LOOKUP DB — a small, hand-verified starter set sourced from the
-// official French public drug database (BDPM, ANSM / base-donnees-publique
-// .medicaments.gouv.fr, data.gouv.fr), joining CIS_bdpm.txt (drug identity)
-// with CIS_CIP_bdpm.txt (CIP13 barcode per commercial presentation).
-// Fetched and cross-checked against the live BDPM flat files on 2026-07-13.
-//
-// Deliberately small (10 entries, common OTC drugs) rather than importing the
-// full ~15k CIS / ~40k CIP13 dataset in one go - this proves the barcode ->
-// medication lookup path end-to-end with real, verifiable data; growing the
-// table further is a separate, incremental step (e.g. a periodic import job
-// reading the same two flat files), not something to do all at once here.
+// MEDICATION LOOKUP DB — sourced from the official French public drug
+// database (BDPM, ANSM / base-donnees-publique.medicaments.gouv.fr),
+// joining CIS_bdpm.txt (drug identity) with CIS_CIP_bdpm.txt (CIP13 barcode
+// per commercial presentation). Snapshot fetched from the live BDPM flat
+// files on 2026-07-13, filtered to actively marketed ("Commercialisée")
+// drugs with an active presentation and a valid 13-digit CIP13, excluding
+// homeopathic entries (their "denomination" is a dilution range, not a
+// scannable product name). Bundled as assets/medications_bdpm.csv (~12,300
+// rows) rather than a Kotlin literal — a list that size would blow past the
+// JVM's 64KB per-method bytecode limit if built as one big list-of-data-
+// -class-calls, and a plain-text asset is trivially diffable/re-generatable
+// from the same two source files for a future refresh.
 // ============================================================================
 
 data class MedicationDbEntry(
@@ -23,19 +26,55 @@ data class MedicationDbEntry(
     val cis: String,       // BDPM's own drug identifier (CIS code)
 )
 
-private val ENTRIES: List<MedicationDbEntry> = listOf(
-    MedicationDbEntry("3400932959358", "ADVIL 200 mg, comprimé enrobé", "comprimé enrobé", "orale", "HALEON FRANCE", "68634000"),
-    MedicationDbEntry("3400935655769", "AERIUS 5 mg, comprimé pelliculé", "comprimé pelliculé", "orale", "ORGANON (HOLLANDE)", "61833327"),
-    MedicationDbEntry("3400930170441", "DAFALGAN 1000 mg, comprimé pelliculé", "comprimé pelliculé", "orale", "UPSA", "62887947"),
-    MedicationDbEntry("3400935955838", "DOLIPRANE 1000 mg, comprimé", "comprimé", "orale", "OPELLA HEALTHCARE FRANCE", "60234100"),
-    MedicationDbEntry("3400932320189", "DOLIPRANE 500 mg, comprimé", "comprimé", "orale", "OPELLA HEALTHCARE FRANCE", "63368332"),
-    MedicationDbEntry("3400938571905", "IMODIUMCAPS 2 mg, gélule", "gélule", "orale", "KENVUE FRANCE", "61203061"),
-    MedicationDbEntry("3400933964351", "NUROFEN 200 mg, comprimé enrobé", "comprimé enrobé", "orale", "RECKITT BENCKISER HEALTHCARE FRANCE", "60305960"),
-    MedicationDbEntry("3400930986080", "SPASFON, comprimé enrobé", "comprimé enrobé", "orale", "TEVA SANTE", "68081368"),
-    MedicationDbEntry("3400932351176", "VOLTARENE 50 mg, comprimé enrobé gastro-résistant", "comprimé enrobé gastro-résistant(e)", "orale", "NOVARTIS PHARMA", "62431527"),
-    MedicationDbEntry("3400932644551", "XANAX 0,50 mg, comprimé sécable", "comprimé sécable", "orale", "VIATRIS UP", "60647049"),
-)
+private object MedicationStore {
+    @Volatile private var cache: Map<String, MedicationDbEntry>? = null
 
-private val BY_BARCODE: Map<String, MedicationDbEntry> = ENTRIES.associateBy { it.barcode }
+    fun get(context: Context): Map<String, MedicationDbEntry> {
+        cache?.let { return it }
+        synchronized(this) {
+            cache?.let { return it }
+            val map = HashMap<String, MedicationDbEntry>(16_000)
+            context.assets.open("medications_bdpm.csv").bufferedReader(Charsets.UTF_8).useLines { lines ->
+                for (line in lines) {
+                    val cols = parseCsvLine(line)
+                    if (cols.size < 6) continue
+                    val entry = MedicationDbEntry(
+                        barcode = cols[0], name = cols[1], form = cols[2],
+                        route = cols[3], holder = cols[4], cis = cols[5],
+                    )
+                    map[entry.barcode] = entry
+                }
+            }
+            cache = map
+            return map
+        }
+    }
+}
 
-fun findMedicationByBarcode(barcode: String): MedicationDbEntry? = BY_BARCODE[barcode.filter { it.isDigit() }]
+/**
+ * Minimal RFC4180-style single-line CSV parser: handles double-quoted fields
+ * (needed because drug names routinely contain commas, e.g. "X 500 mg,
+ * comprimé"), with "" as the escaped-quote sequence inside a quoted field.
+ * No embedded-newline support — the generating export never produces one.
+ */
+private fun parseCsvLine(line: String): List<String> {
+    val out = ArrayList<String>()
+    val sb = StringBuilder()
+    var inQuotes = false
+    var i = 0
+    while (i < line.length) {
+        val c = line[i]
+        when {
+            inQuotes && c == '"' && i + 1 < line.length && line[i + 1] == '"' -> { sb.append('"'); i++ }
+            c == '"' -> inQuotes = !inQuotes
+            c == ',' && !inQuotes -> { out.add(sb.toString()); sb.setLength(0) }
+            else -> sb.append(c)
+        }
+        i++
+    }
+    out.add(sb.toString())
+    return out
+}
+
+fun findMedicationByBarcode(context: Context, barcode: String): MedicationDbEntry? =
+    MedicationStore.get(context)[barcode.filter { it.isDigit() }]
