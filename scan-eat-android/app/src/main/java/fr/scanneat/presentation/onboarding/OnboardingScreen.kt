@@ -15,7 +15,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,7 +60,7 @@ fun OnboardingScreen(
                     ScanEatPrimaryButton(
                         onClick = { page = 1 },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.onboarding_start_button), fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.onboarding_start_button), style = MaterialTheme.typography.titleMedium) }
                 }
 
                 // ---- Page 1: Value proposition — what sets this apart ----
@@ -85,7 +84,7 @@ fun OnboardingScreen(
                     ScanEatPrimaryButton(
                         onClick = { page = 2 },
                         modifier = Modifier.fillMaxWidth(),
-                    ) { Text(stringResource(R.string.onboarding_continue_button), fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.onboarding_continue_button), style = MaterialTheme.typography.titleMedium) }
                 }
 
                 // ---- Page 2: API mode ----
@@ -148,7 +147,7 @@ fun OnboardingScreen(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = (selectedMode == ApiMode.DIRECT && apiKey.isNotBlank()) ||
                                   (selectedMode == ApiMode.SERVER && serverUrl.isNotBlank()),
-                    ) { Text(stringResource(R.string.onboarding_continue_button), fontSize = 16.sp) }
+                    ) { Text(stringResource(R.string.onboarding_continue_button), style = MaterialTheme.typography.titleMedium) }
                     TextButton(
                         // Previously never persisted selectedMode at all on skip — it
                         // only "worked" because ApiMode.DIRECT also happens to be

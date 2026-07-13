@@ -54,7 +54,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                 .padding(top = Spacing.M, bottom = Spacing.S),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Text(stringResource(R.string.tab_biolism), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, fontSize = 22.sp), color = LocalGoldAccent.current)
+                Text(stringResource(R.string.tab_biolism), style = MaterialTheme.typography.headlineSmall, color = LocalGoldAccent.current)
             }
             Text(stringResource(R.string.biolism_subtitle), style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
             Spacer(Modifier.height(10.dp))

@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
@@ -50,7 +49,7 @@ internal fun OutlinedInput(
     OutlinedTextField(
         value         = value,
         onValueChange = onValue,
-        label         = { Text(label, fontSize = 13.sp) },
+        label         = { Text(label, style = MaterialTheme.typography.bodyMedium) },
         modifier      = Modifier.fillMaxWidth(),
         singleLine    = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),

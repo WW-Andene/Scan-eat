@@ -34,7 +34,7 @@ fun ScanEatPrimaryButton(
         onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        shape   = RoundedCornerShape(12.dp),
+        shape   = RoundedCornerShape(CardRadius.CONTROL),
         colors  = ButtonDefaults.buttonColors(containerColor = containerColor),
     ) {
         ProvideTextStyle(LocalTextStyle.current.copy(color = Color.Black, fontWeight = FontWeight.SemiBold)) {
@@ -60,7 +60,7 @@ fun ScanEatOutlinedButton(
         onClick = onClick,
         modifier = modifier,
         enabled = enabled,
-        shape   = RoundedCornerShape(12.dp),
+        shape   = RoundedCornerShape(CardRadius.CONTROL),
         content = content,
     )
 }
