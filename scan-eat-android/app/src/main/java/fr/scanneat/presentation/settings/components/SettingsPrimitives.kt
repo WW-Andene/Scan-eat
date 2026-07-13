@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +41,7 @@ internal fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
         }
         AnimatedVisibility(visible = saved) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(androidx.compose.material.icons.Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                 Text(stringResource(R.string.settings_saved_confirmation), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
             }
         }
