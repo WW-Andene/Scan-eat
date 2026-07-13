@@ -1,7 +1,5 @@
 package fr.scanneat.presentation.diary
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,7 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -22,19 +19,20 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
-import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.activity.ActivityScreen
+import fr.scanneat.presentation.diary.components.AddDiaryEntryDialog
+import fr.scanneat.presentation.diary.components.DiaryEntryCard
+import fr.scanneat.presentation.diary.components.EditPortionDialog
+import fr.scanneat.presentation.diary.components.MacroSummaryCard
 import fr.scanneat.presentation.fasting.FastingScreen
 import fr.scanneat.presentation.hydration.HydrationScreen
 import fr.scanneat.presentation.medication.MedicationScreen
 import fr.scanneat.presentation.reminders.MealRemindersCard
-import fr.scanneat.presentation.result.LogSheet
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.weight.WeightScreen
 import kotlinx.coroutines.flow.first
@@ -134,106 +132,6 @@ fun DiaryScreen(
     if (showAddEntry) {
         AddDiaryEntryDialog(viewModel = viewModel, onDismiss = { showAddEntry = false })
     }
-}
-
-/**
- * Search-and-log flow — previously the only way to add a diary entry was via
- * barcode/photo scan; there was no way to log a home-cooked meal, a fruit, or
- * anything not barcode-scanned directly from the Journal. Two steps: pick a
- * food from search (built-in FOOD_DB + the user's own custom foods), then
- * reuse the same portion/meal-slot picker (LogSheet) the scan-result flow uses.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Unit) {
-    val query   = viewModel.searchQuery.collectAsStateWithLifecycle()
-    val results = viewModel.searchResults.collectAsStateWithLifecycle()
-    var selected by remember { mutableStateOf<FoodEntry?>(null) }
-
-    val picked = selected
-    if (picked != null) {
-        val product = remember(picked) {
-            Product(
-                name = picked.name, category = ProductCategory.OTHER, novaClass = NovaClass.UNPROCESSED,
-                ingredients = listOf(Ingredient(name = picked.name, percentage = 100.0, category = IngredientCategory.FOOD, isWholeFood = true)),
-                nutrition = NutritionPer100g(
-                    energyKcal = picked.kcal, fatG = picked.fatG, saturatedFatG = 0.0, carbsG = picked.carbsG,
-                    sugarsG = 0.0, fiberG = picked.fiberG, proteinG = picked.proteinG, saltG = picked.saltG,
-                ),
-                weightG = 100.0,
-            )
-        }
-        LogSheet(
-            product    = product,
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            onConfirm  = { portionG, mealSlot ->
-                viewModel.addEntry(picked, portionG, mealSlot)
-                selected = null
-                onDismiss()
-            },
-            onDismiss  = { selected = null },
-        )
-        return
-    }
-
-    AlertDialog(
-        onDismissRequest = { viewModel.clearSearch(); onDismiss() },
-        containerColor = SurfaceVariant,
-        title = { Text(stringResource(R.string.diary_add_entry_title), color = OnBackground) },
-        text = {
-            Column(modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 360.dp)) {
-                OutlinedTextField(
-                    value = query.value,
-                    onValueChange = { viewModel.setSearchQuery(it) },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.diary_add_entry_search_hint), color = OnBackground.copy(0.4f)) },
-                    leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
-                    trailingIcon = {
-                        if (query.value.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.clearSearch() }) {
-                                Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = scanEatTextFieldColors(),
-                )
-                Spacer(Modifier.height(Spacing.S))
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    if (query.value.isNotBlank() && results.value.isEmpty()) {
-                        item {
-                            Text(stringResource(R.string.diary_add_entry_no_results, query.value),
-                                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
-                                modifier = Modifier.padding(vertical = Spacing.M))
-                        }
-                    }
-                    items(results.value, key = { it.name }) { entry ->
-                        Surface(
-                            onClick = { selected = entry },
-                            shape = RoundedCornerShape(10.dp),
-                            color = SurfaceVariant,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(entry.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground,
-                                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                                Text(stringResource(R.string.diary_add_entry_kcal_per_100g, entry.kcal.toInt()),
-                                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { viewModel.clearSearch(); onDismiss() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
-        },
-    )
 }
 
 @Composable
@@ -390,85 +288,6 @@ private fun MealsTab(viewModel: DiaryViewModel) {
             onConfirm = { newPortionG -> viewModel.updateEntry(entry.copy(portionG = newPortionG)); editTarget = null },
             onDismiss = { editTarget = null },
         )
-    }
-}
-
-@Composable
-private fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
-    var text by remember(entry.id) { mutableStateOf(entry.portionG.toInt().toString()) }
-    val portion = text.replace(',', '.').toDoubleOrNull()
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(entry.productName, color = OnBackground) },
-        text = {
-            OutlinedTextField(
-                value = text, onValueChange = { text = it },
-                label = { Text(stringResource(R.string.diary_edit_portion_label)) },
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
-                shape = RoundedCornerShape(12.dp),
-                colors = scanEatTextFieldColors(),
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { portion?.let { if (it > 0) onConfirm(it) } }, enabled = portion != null && portion > 0) {
-                Text(stringResource(R.string.common_save), color = AccentCoral)
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant,
-    )
-}
-
-@Composable
-private fun MacroSummaryCard(totals: ConsumedNutrition, targets: fr.scanneat.domain.engine.scoring.DailyTargets?) {
-    Box(Modifier.fillMaxWidth().glassSheen()) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
-            Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                Text(stringResource(R.string.diary_totals_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal", targets?.kcal?.toInt())
-                    MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g", targets?.proteinGTarget?.takeIf { it > 0 }?.toInt())
-                    MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g", targets?.carbsGDailyMax?.takeIf { it > 0 }?.toInt())
-                    MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g", targets?.fatGTarget?.takeIf { it > 0 }?.toInt())
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MacroItem(label: String, value: String, unit: String, target: Int?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Previously only the raw total was shown, with no indication of the
-        // profile-derived daily target it should be measured against.
-        Text(if (target != null) "$value/$target" else value, style = MaterialTheme.typography.titleMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
-        Text(unit, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f))
-    }
-}
-
-@Composable
-private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit, onEdit: () -> Unit) {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
-        Row(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant)
-                .clickable(onClick = onEdit).padding(Spacing.M),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(stringResource(R.string.diary_entry_summary, entry.portionG.toInt(), entry.consumed.energyKcal.toInt()),
-                    style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-            }
-            IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
-            }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
-            }
-        }
     }
 }
 
