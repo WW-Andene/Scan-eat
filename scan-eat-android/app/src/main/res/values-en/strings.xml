@@ -502,6 +502,7 @@
     <string name="profile_title">My Profile</string>
     <string name="profile_bmi_label">BMI</string>
     <string name="profile_tdee_kcal">%1$d kcal</string>
+    <string name="profile_tdee_goal_label">TDEE target weight</string>
     <string name="profile_section_identity">Identity</string>
     <string name="profile_section_body">Body</string>
     <string name="profile_section_activity">Activity</string>

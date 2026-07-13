@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -16,6 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val prefs: UserPreferences,
+    private val biolismRepo: BiolismRepository,
 ) : ViewModel() {
 
     val profile: StateFlow<Profile> = prefs.profile
@@ -31,12 +33,18 @@ class ProfileViewModel @Inject constructor(
     val bmiCat: StateFlow<BmiCategory?> = bmiValue.map { bmiCategory(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val tdeeAtGoalWeight: StateFlow<Double?> = profile.map { p ->
+        val gw = p.goalWeightKg ?: return@map null
+        tdeeKcal(p.copy(weightKg = gw))
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
     fun save(profile: Profile) {
         viewModelScope.launch {
             prefs.saveProfile(profile)
+            biolismRepo.clearProfileOverride()
             _saved.value = true
         }
     }

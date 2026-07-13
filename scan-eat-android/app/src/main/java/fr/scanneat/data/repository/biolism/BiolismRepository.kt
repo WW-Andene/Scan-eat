@@ -128,17 +128,46 @@ class BiolismRepository @Inject constructor(
         }
     }.distinctUntilChanged()
 
-    suspend fun saveProfile(profile: BiolismProfile) = store.edit { p ->
-        p[K_SEX]       = profile.sex.name
-        p[K_AGE]       = profile.ageYears
-        p[K_HEIGHT]    = profile.heightCm.toFloat()
-        p[K_WEIGHT]    = profile.weightKg.toFloat()
-        p[K_ACTIVITY]  = profile.activityId
-        p[K_ETHNICITY] = profile.ethnicityId
-        p[K_WAIST]     = profile.waistCm.toFloat()
-        p[K_HIP]       = profile.hipCm.toFloat()
-        p[K_NECK]      = profile.neckCm.toFloat()
-        p[K_CYCLE_DAY] = profile.cycleDay
+    suspend fun saveProfile(profile: BiolismProfile) {
+        store.edit { p ->
+            p[K_SEX]       = profile.sex.name
+            p[K_AGE]       = profile.ageYears
+            p[K_HEIGHT]    = profile.heightCm.toFloat()
+            p[K_WEIGHT]    = profile.weightKg.toFloat()
+            p[K_ACTIVITY]  = profile.activityId
+            p[K_ETHNICITY] = profile.ethnicityId
+            p[K_WAIST]     = profile.waistCm.toFloat()
+            p[K_HIP]       = profile.hipCm.toFloat()
+            p[K_NECK]      = profile.neckCm.toFloat()
+            p[K_CYCLE_DAY] = profile.cycleDay
+        }
+        // Mirror shared fields back to the universal profile so both stores stay in sync
+        val current = userPreferences.profile.first()
+        val sex = when (profile.sex) {
+            BiolismSex.MALE          -> fr.scanneat.domain.model.Sex.MALE
+            BiolismSex.FEMALE        -> fr.scanneat.domain.model.Sex.FEMALE
+            BiolismSex.NOT_SPECIFIED -> fr.scanneat.domain.model.Sex.NOT_SPECIFIED
+        }
+        val activityLevel = when (profile.activityId) {
+            "light"    -> fr.scanneat.domain.model.ActivityLevel.LIGHTLY_ACTIVE
+            "moderate" -> fr.scanneat.domain.model.ActivityLevel.MODERATELY_ACTIVE
+            "very"     -> fr.scanneat.domain.model.ActivityLevel.VERY_ACTIVE
+            "extra"    -> fr.scanneat.domain.model.ActivityLevel.EXTRA_ACTIVE
+            else       -> fr.scanneat.domain.model.ActivityLevel.SEDENTARY
+        }
+        userPreferences.saveProfile(
+            current.copy(
+                sex           = sex,
+                ageYears      = profile.ageYears.takeIf { it > 0 } ?: current.ageYears,
+                heightCm      = profile.heightCm.takeIf { it > 0 } ?: current.heightCm,
+                weightKg      = profile.weightKg.takeIf { it > 0 } ?: current.weightKg,
+                activityLevel = activityLevel,
+            )
+        )
+    }
+
+    suspend fun clearProfileOverride() = store.edit { p ->
+        p.remove(K_SEX); p.remove(K_AGE); p.remove(K_HEIGHT); p.remove(K_WEIGHT); p.remove(K_ACTIVITY)
     }
 
     // ─────────────────────────────────────────────────────────────────────────

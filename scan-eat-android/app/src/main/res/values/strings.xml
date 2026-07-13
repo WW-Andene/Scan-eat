@@ -503,6 +503,7 @@
     <string name="profile_title">Mon profil</string>
     <string name="profile_bmi_label">IMC</string>
     <string name="profile_tdee_kcal">%1$d kcal</string>
+    <string name="profile_tdee_goal_label">TDEE poids cible</string>
     <string name="profile_section_identity">Identité</string>
     <string name="profile_section_body">Corps</string>
     <string name="profile_section_activity">Activité</string>

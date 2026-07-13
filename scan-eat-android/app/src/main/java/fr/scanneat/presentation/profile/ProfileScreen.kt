@@ -36,8 +36,9 @@ fun ProfileScreen(
     onBack: () -> Unit,
 ) {
     val profile = viewModel.profile.collectAsStateWithLifecycle()
-    val bmi     = viewModel.bmiValue.collectAsStateWithLifecycle()
-    val tdee    = viewModel.tdee.collectAsStateWithLifecycle()
+    val bmi          = viewModel.bmiValue.collectAsStateWithLifecycle()
+    val tdee         = viewModel.tdee.collectAsStateWithLifecycle()
+    val tdeeGoal     = viewModel.tdeeAtGoalWeight.collectAsStateWithLifecycle()
     val saved   = viewModel.saved.collectAsStateWithLifecycle()
 
     // Local mutable state mirrors the saved profile
@@ -104,12 +105,20 @@ fun ProfileScreen(
             Spacer(Modifier.height(4.dp))
 
             // ---- BMI / TDEE preview ----
-            if (bmi.value != null || tdee.value != null) {
+            if (bmi.value != null || tdee.value != null || tdeeGoal.value != null) {
                 Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
                     Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Row(modifier = Modifier.padding(14.dp), horizontalArrangement = Arrangement.SpaceAround) {
-                            bmi.value?.let { MetricChip(stringResource(R.string.profile_bmi_label), "${it}") }
-                            tdee.value?.let { MetricChip("TDEE", stringResource(R.string.profile_tdee_kcal, it.roundToInt())) }
+                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                                bmi.value?.let { MetricChip(stringResource(R.string.profile_bmi_label), "${it}") }
+                                tdee.value?.let { MetricChip("TDEE", stringResource(R.string.profile_tdee_kcal, it.roundToInt())) }
+                            }
+                            tdeeGoal.value?.let {
+                                HorizontalDivider(color = OnSurface.copy(0.08f))
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                    MetricChip(stringResource(R.string.profile_tdee_goal_label), stringResource(R.string.profile_tdee_kcal, it.roundToInt()))
+                                }
+                            }
                         }
                     }
                 }
