@@ -33,11 +33,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -282,7 +280,7 @@ fun ScanScreen(
                     drawRoundRect(
                         color        = AccentCoral,
                         topLeft      = Offset(left, top),
-                        size         = Size(right - left, bottom - top),
+                        size         = androidx.compose.ui.geometry.Size(right - left, bottom - top),
                         cornerRadius = CornerRadius(8f, 8f),
                         style        = Stroke(width = 3f),
                         alpha        = 0.85f,
