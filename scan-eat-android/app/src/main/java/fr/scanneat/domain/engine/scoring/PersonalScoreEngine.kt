@@ -100,6 +100,10 @@ data class DailyTargets(
     val potassiumMgTarget: Double = 3500.0, // EFSA DRV 2016 AI
     val zincMgTarget: Double = 9.4,         // EFSA DRV 2014 (adult men)
     val vitCMgTarget: Double = 95.0,        // EFSA DRV 2013
+    // Diet-driven target overrides - null unless the selected diet actually
+    // implies a daily total (most diets are ingredient-exclusion only, not
+    // macro-budget diets, so this stays null for them).
+    val carbsGDailyMax: Double? = null,
 )
 
 fun dailyTargets(p: Profile): DailyTargets? {
@@ -124,6 +128,11 @@ fun dailyTargets(p: Profile): DailyTargets? {
     val sugarsCapFraction = if ("diabetes" in p.healthConditions) 0.05 else 0.10
     val saltCap = if ("hypertension" in p.healthConditions) 3.0 else 5.0
 
+    // Diet-driven overrides - Volek & Phinney clinical ketosis range is 20-50g net
+    // carbs/day; carnivore structurally has no plant fiber intake to target.
+    val carbsMax = if (p.diet == DietKey.KETO) 30.0 else null
+    val fiberTarget = if (p.diet == DietKey.CARNIVORE) 0.0 else 25.0
+
     return DailyTargets(
         kcal              = tdee,
         satFatGMax        = (0.10 * tdee / 9.0),
@@ -131,7 +140,8 @@ fun dailyTargets(p: Profile): DailyTargets? {
         freeSugarsGIdeal  = (0.05 * tdee / 4.0),
         saltGMax          = saltCap,
         proteinGTarget    = pri,
-        fiberGTarget      = 25.0,
+        fiberGTarget      = fiberTarget,
+        carbsGDailyMax    = carbsMax,
         ironMgTarget      = ironTarget,
         calciumMgTarget   = 950.0,
         vitDUgTarget      = vitDTarget,

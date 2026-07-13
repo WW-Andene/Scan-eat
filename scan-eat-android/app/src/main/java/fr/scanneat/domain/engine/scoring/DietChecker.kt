@@ -236,8 +236,10 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
         testAny(re)?.let { preferredHits += it }
     }
 
-    // Keto: macro-based check
-    if (dietKey == DietKey.KETO) {
+    // Macro-based check - data-driven off DietDef.maxNetCarbsG/minFatFractionOfKcal
+    // rather than hardcoded to one enum value, so any future diet needing the same
+    // net-carbs/fat-fraction rule (not just KETO) only needs a DIET_DEFS entry.
+    if (def.maxNetCarbsG != null || def.minFatFractionOfKcal != null) {
         val netCarbs = (product.nutrition.carbsG - product.nutrition.fiberG).coerceAtLeast(0.0)
         val maxNet   = def.maxNetCarbsG ?: 10.0
         if (netCarbs > maxNet) {

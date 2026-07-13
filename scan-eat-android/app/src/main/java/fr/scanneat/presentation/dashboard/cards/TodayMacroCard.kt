@@ -33,10 +33,16 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
                     else             -> AccentCoral
                 }
                 val protPct = targets?.proteinGTarget?.takeIf { it > 0 }?.let { (totals.proteinG / it).toFloat() }
+                // Only a diet with an actual daily carb budget (e.g. keto) gives this
+                // ring a target - most diets are ingredient-exclusion only, not a
+                // macro budget, so it stays an unfilled ring for them same as before.
+                val carbsMax = targets?.carbsGDailyMax
+                val carbsPct = carbsMax?.takeIf { it > 0 }?.let { (totals.carbsG / it).toFloat() }
+                val carbsColor = if (carbsPct != null && carbsPct > 1f) FlagRed else AccentCoral
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                     MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor)
                     MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral)
-                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", null, AccentCoral)
+                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", carbsPct, carbsColor)
                     MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", null, AccentCoral)
                 }
             }
