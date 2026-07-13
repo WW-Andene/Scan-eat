@@ -3,10 +3,12 @@ package fr.scanneat.data.repository.health
 import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
+import androidx.health.connect.client.records.HydrationRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.health.connect.client.units.Mass
+import androidx.health.connect.client.units.Volume
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.Instant
 import java.time.LocalDate
@@ -39,6 +41,13 @@ class HealthConnectRepository @Inject constructor(
         val PERMISSIONS: Set<String> = setOf(
             HealthPermission.getWritePermission(WeightRecord::class),
             HealthPermission.getReadPermission(WeightRecord::class),
+            // Hydration is write-only (see writeHydrationDelta) - Health Connect's
+            // HydrationRecord models a volume over a start/end interval, but this
+            // app stores intake as a single mutable running total per day, so
+            // reading external records back and merging them risks double-
+            // counting on every re-read rather than being a safe idempotent
+            // import the way readExternalWeights() is for WeightRepository.
+            HealthPermission.getWritePermission(HydrationRecord::class),
         )
     }
 
@@ -102,5 +111,27 @@ class HealthConnectRepository @Inject constructor(
         val end = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
         val ids = readWeights(start, end).map { it.metadata.id }
         if (ids.isNotEmpty()) client().deleteRecords(WeightRecord::class, ids, emptyList())
+    }
+
+    /**
+     * Mirrors a single hydration delta (e.g. +1 glass, 250 mL) as its own
+     * instantaneous HydrationRecord - HydrationRepository.add()/addGlass() had
+     * zero Health Connect wiring before, unlike weight, so a day's water intake
+     * never left this app. A tiny (1s) interval rather than a true zero-length
+     * one: HydrationRecord requires startTime < endTime.
+     */
+    suspend fun writeHydrationDelta(mlDelta: Int) {
+        if (mlDelta <= 0) return
+        if (!hasPermissions()) return
+        val end = Instant.now()
+        val start = end.minusSeconds(1)
+        val record = HydrationRecord(
+            startTime = start,
+            startZoneOffset = ZoneId.systemDefault().rules.getOffset(start),
+            endTime = end,
+            endZoneOffset = ZoneId.systemDefault().rules.getOffset(end),
+            volume = Volume.milliliters(mlDelta.toDouble()),
+        )
+        client().insertRecords(listOf(record))
     }
 }

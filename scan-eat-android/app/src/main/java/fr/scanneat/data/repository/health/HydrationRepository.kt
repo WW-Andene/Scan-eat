@@ -37,6 +37,7 @@ private val Context.hydrationDataStore by preferencesDataStore(name = "hydration
 @Singleton
 class HydrationRepository @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val healthConnect: HealthConnectRepository,
 ) {
     private val store = context.hydrationDataStore
 
@@ -72,7 +73,16 @@ class HydrationRepository @Inject constructor(
     fun observe(date: LocalDate): Flow<Int> =
         storeData.map { prefs -> prefs[key(date)] ?: 0 }.distinctUntilChanged()
 
-    /** Add (or subtract) mL for a date. Clamps to ≥ 0. */
+    /**
+     * Add (or subtract) mL for a date. Clamps to ≥ 0.
+     * A positive delta also mirrors into Health Connect (see writeHydrationDelta) -
+     * previously hydration had zero Health Connect wiring at all, unlike weight,
+     * so logged water intake never left this app. Only the positive delta is
+     * mirrored (an "undo"/subtract has no well-defined prior record to shrink),
+     * and only for today's date - HydrationRecord models a real point in time,
+     * so mirroring a past-dated correction as "now" would misrepresent when it
+     * was actually drunk.
+     */
     suspend fun add(date: LocalDate, ml: Int) {
         store.edit { prefs ->
             val current = prefs[key(date)] ?: 0
@@ -80,6 +90,7 @@ class HydrationRepository @Inject constructor(
             prefs[key(date)] = next
             prune(prefs)
         }
+        if (ml > 0 && date == LocalDate.now()) healthConnect.writeHydrationDelta(ml)
     }
 
     /** Set intake directly (for edit flows). */
