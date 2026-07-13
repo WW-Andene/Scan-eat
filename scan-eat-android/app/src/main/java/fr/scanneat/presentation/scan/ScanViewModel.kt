@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -105,6 +106,13 @@ class ScanViewModel @Inject constructor(
     // in-app language rather than always defaulting to French.
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // Lets the MedicationFound dialog cross-reference the drug's class against
+    // e.g. pregnancy/kidney_disease the same way PersonalScoreEngine already
+    // personalizes the food score for those same profile.healthConditions.
+    val healthConditions: StateFlow<Set<String>> = prefs.profile
+        .map { it.healthConditions }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     private val _images = MutableStateFlow<List<ImagePayload>>(emptyList())
     val images: StateFlow<List<ImagePayload>> = _images.asStateFlow()

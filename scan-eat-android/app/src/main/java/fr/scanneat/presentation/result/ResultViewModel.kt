@@ -74,6 +74,12 @@ class ResultViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    // Needed so the hint panel can cross-reference health conditions (pregnancy,
+    // etc.) the same way PersonalScoreEngine already does for the score itself —
+    // the hint panel is a separate UI surface and previously ignored the profile.
+    val profile: StateFlow<Profile> = prefs.profile
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
+
     private val _logState = MutableStateFlow<LogState>(LogState.Idle)
 
     // getById() is a one-shot suspend read, not a Flow, so toggling the DB row

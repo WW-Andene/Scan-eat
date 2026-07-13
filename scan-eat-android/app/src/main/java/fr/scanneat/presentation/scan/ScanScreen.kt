@@ -77,6 +77,7 @@ fun ScanScreen(
     val barcode     = viewModel.scannedBarcode.collectAsStateWithLifecycle()
     val instantMode = viewModel.instantMode.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
+    val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
     // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
@@ -360,7 +361,9 @@ fun ScanScreen(
     }
 
     (state.value as? ScanUiState.MedicationFound)?.let { found ->
-        val hints = remember(found.entry, language.value) { generateMedicationHints(found.entry, language.value) }
+        val hints = remember(found.entry, language.value, healthConditions.value) {
+            generateMedicationHints(found.entry, healthConditions.value, language.value)
+        }
         AlertDialog(
             onDismissRequest = { viewModel.dismissError() },
             containerColor = SurfaceVariant,

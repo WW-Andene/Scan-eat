@@ -228,12 +228,44 @@ data class MedicationHints(
     val cautions: List<String>,
 )
 
+// Condition-specific amplifications on top of the generic class caution above —
+// closes the same PersonalScoreEngine-vs-hint-panel gap ProductHints closes for
+// food (see HealthConditionGuidanceDb). These are the well-known, SPC-documented
+// condition/class interactions (e.g. ACE inhibitors and sartans are formally
+// contraindicated in pregnancy; NSAIDs can both raise blood pressure and blunt
+// antihypertensive drugs) — not a general "ask your doctor" restatement.
+private val CONDITION_AMPLIFICATIONS: Map<Pair<DrugClass, String>, Pair<String, String>> = mapOf(
+    (DrugClass.ACE_INHIBITOR to "pregnancy") to (
+        "Votre profil indique une grossesse : les IEC sont formellement contre-indiqués pendant la grossesse (risque foetal documenté) — contactez votre médecin sans attendre." to
+        "Your profile indicates pregnancy: ACE inhibitors are formally contraindicated during pregnancy (documented fetal risk) — contact your doctor promptly."),
+    (DrugClass.SARTAN to "pregnancy") to (
+        "Votre profil indique une grossesse : les sartans sont formellement contre-indiqués pendant la grossesse (risque foetal documenté) — contactez votre médecin sans attendre." to
+        "Your profile indicates pregnancy: sartans are formally contraindicated during pregnancy (documented fetal risk) — contact your doctor promptly."),
+    (DrugClass.NSAID to "pregnancy") to (
+        "Votre profil indique une grossesse : les AINS sont déconseillés dès le début du 2e trimestre et contre-indiqués au 3e trimestre — demandez conseil à votre médecin ou pharmacien." to
+        "Your profile indicates pregnancy: NSAIDs are discouraged from the start of the second trimester and contraindicated in the third — ask your doctor or pharmacist."),
+    (DrugClass.NSAID to "hypertension") to (
+        "Votre profil indique une hypertension : les AINS peuvent élever la tension artérielle et réduire l'efficacité de certains traitements antihypertenseurs." to
+        "Your profile indicates hypertension: NSAIDs can raise blood pressure and reduce the effectiveness of some blood-pressure medications."),
+    (DrugClass.METFORMIN to "kidney_disease") to (
+        "Votre profil indique une maladie rénale : la posologie de la metformine doit être adaptée à la fonction rénale — assurez-vous que votre médecin en a connaissance." to
+        "Your profile indicates kidney disease: metformin dosing must be adjusted to kidney function — make sure your doctor is aware."),
+    (DrugClass.ACE_INHIBITOR to "kidney_disease") to (
+        "Votre profil indique une maladie rénale : les IEC nécessitent une surveillance de la fonction rénale et du potassium sanguin." to
+        "Your profile indicates kidney disease: ACE inhibitors require monitoring of kidney function and blood potassium."),
+    (DrugClass.SARTAN to "kidney_disease") to (
+        "Votre profil indique une maladie rénale : les sartans nécessitent une surveillance de la fonction rénale et du potassium sanguin." to
+        "Your profile indicates kidney disease: sartans require monitoring of kidney function and blood potassium."),
+)
+
 /**
  * Build hints for a scanned medication from its BDPM active substance(s)
  * and dispensing condition — the same "trace back to a concrete sourced
- * field" discipline as ProductHints, applied to MedicationDbEntry.
+ * field" discipline as ProductHints, applied to MedicationDbEntry. Also
+ * cross-references [healthConditions] (Profile.healthConditions) the same
+ * way PersonalScoreEngine already does for the numeric score.
  */
-fun generateMedicationHints(entry: MedicationDbEntry, lang: String): MedicationHints {
+fun generateMedicationHints(entry: MedicationDbEntry, healthConditions: Set<String>, lang: String): MedicationHints {
     val en = lang == "en"
     val facts = mutableListOf<String>()
     val cautions = mutableListOf<String>()
@@ -241,8 +273,16 @@ fun generateMedicationHints(entry: MedicationDbEntry, lang: String): MedicationH
     matchNameDictionary(entry.activeSubstances, DRUG_FACTS, DrugFact::keys)
         .forEach { facts += if (en) it.factEn else it.factFr }
 
-    matchNameDictionary(entry.activeSubstances, CLASS_CAUTIONS, ClassCaution::keys)
-        .forEach { cautions += if (en) it.cautionEn else it.cautionFr }
+    val matchedClasses = matchNameDictionary(entry.activeSubstances, CLASS_CAUTIONS, ClassCaution::keys)
+    matchedClasses.forEach { cautions += if (en) it.cautionEn else it.cautionFr }
+
+    for (caution in matchedClasses) {
+        for (condition in healthConditions) {
+            CONDITION_AMPLIFICATIONS[caution.drugClass to condition]?.let { (frText, enText) ->
+                cautions += if (en) enText else frText
+            }
+        }
+    }
 
     // BDPM's own dispensing-condition field (CIS_CPD_bdpm.txt) — a real
     // sourced fact, not an inference: an empty list means BDPM recorded no

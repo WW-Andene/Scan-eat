@@ -50,6 +50,7 @@ fun ResultScreen(
 ) {
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
+    val profile     = viewModel.profile.collectAsStateWithLifecycle()
     val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showSheet   by remember { mutableStateOf(false) }
     var showSaveMenu by remember { mutableStateOf(false) }
@@ -127,7 +128,7 @@ fun ResultScreen(
 
     if (showHints && state.value.scanResult != null) {
         HintPanel(
-            hints = generateProductHints(state.value.scanResult!!.product, language.value),
+            hints = generateProductHints(state.value.scanResult!!.product, profile.value, language.value),
             onDismiss = { showHints = false },
         )
     }

@@ -2,13 +2,16 @@ package fr.scanneat.domain.engine.nutrition
 
 import fr.scanneat.domain.model.NovaClass
 import fr.scanneat.domain.model.Product
+import fr.scanneat.domain.model.Profile
 
 // ============================================================================
 // PRODUCT HINTS — the "💡" info panel's content. Deliberately rule-based off
 // data already on the Product (NOVA class, nutrition thresholds, organic/
-// fermented flags), not fabricated medical claims: every hint traces back to
-// a concrete field, so there is no line here that isn't backed by the
-// product's own declared data.
+// fermented flags) and, where the profile has it, Profile.healthConditions
+// — not fabricated medical claims: every hint traces back to a concrete
+// field, so there is no line here that isn't backed by either the
+// product's own declared data or a cited public-health guidance source
+// (see HealthConditionGuidanceDb).
 // ============================================================================
 
 data class ProductHints(
@@ -17,7 +20,7 @@ data class ProductHints(
     val facts: List<String>,
 )
 
-fun generateProductHints(product: Product, lang: String): ProductHints {
+fun generateProductHints(product: Product, profile: Profile, lang: String): ProductHints {
     val en = lang == "en"
     val n = product.nutrition
     val benefits = mutableListOf<String>()
@@ -77,6 +80,26 @@ fun generateProductHints(product: Product, lang: String): ProductHints {
                  else "Porte des allégations santé marketing — à vérifier au regard des valeurs nutritionnelles ci-dessus"
     }
     risks += substanceCautions
+
+    // ---- Personalized (Profile.healthConditions) ----
+    // Closes the gap with PersonalScoreEngine, which already personalizes the
+    // *score* for diabetes/hypertension/kidney_disease/pregnancy — the hint
+    // panel is a separate surface and previously ignored the profile entirely.
+    risks += findHealthConditionGuidance(product.ingredients, profile.healthConditions, lang)
+    val containsCaffeineSource = product.ingredients.any {
+        val norm = fr.scanneat.domain.engine.scoring.normalizeForMatching(it.name)
+        listOf("cafeine", "guarana", "mate", "yerba mate", "cafe", "the vert", "the noir", "coffee", "tea", "cocoa", "cacao")
+            .any { syn -> norm.contains(fr.scanneat.domain.engine.scoring.normalizeForMatching(syn)) }
+    }
+    if ("pregnancy" in profile.healthConditions && containsCaffeineSource) {
+        // ANSES: pregnant women should keep total caffeine intake under 200 mg/day —
+        // a stricter, condition-specific limit than the generic EFSA "75 mg = alertness"
+        // claim threshold already reported above for the general population. Flagged
+        // on any caffeine-source ingredient, not just declared caffeine content,
+        // since coffee/tea/cocoa rarely declare an exact mg figure on-label.
+        risks += if (en) "May contain caffeine — ANSES recommends pregnant women keep total daily caffeine intake under 200 mg"
+                 else "Peut contenir de la caféine — l'ANSES recommande de limiter l'apport total en caféine à 200 mg/jour pendant la grossesse"
+    }
 
     // ---- Facts ----
     facts += if (en) "NOVA processing class: ${product.novaClass.value}/4" else "Classe de transformation NOVA : ${product.novaClass.value}/4"
