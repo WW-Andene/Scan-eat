@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.WeightForecast
+import fr.scanneat.presentation.reminders.WeightReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
@@ -212,6 +213,7 @@ fun WeightScreen(
                 }
                 }
             }
+            item { WeightReminderCard() }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }

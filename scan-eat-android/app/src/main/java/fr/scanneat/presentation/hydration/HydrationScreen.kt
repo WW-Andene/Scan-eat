@@ -27,6 +27,7 @@ import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.HYD_GLASS_ML
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.presentation.reminders.HydrationReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -198,6 +199,9 @@ fun HydrationScreen(
                 color = OnBackground.copy(0.4f),
             )
         }
+
+        item { HydrationReminderCard() }
+        item { Spacer(Modifier.height(32.dp)) }
         }
     }
 

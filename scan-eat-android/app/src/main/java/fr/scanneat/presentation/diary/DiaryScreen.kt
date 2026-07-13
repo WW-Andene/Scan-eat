@@ -30,7 +30,7 @@ import fr.scanneat.presentation.activity.ActivityScreen
 import fr.scanneat.presentation.fasting.FastingScreen
 import fr.scanneat.presentation.hydration.HydrationScreen
 import fr.scanneat.presentation.medication.MedicationScreen
-import fr.scanneat.presentation.reminders.RemindersCard
+import fr.scanneat.presentation.reminders.MealRemindersCard
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.weight.WeightScreen
 import kotlinx.coroutines.flow.first
@@ -233,14 +233,11 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                 }
             }
         }
-        // Reminders — meal, hydration, and weigh-in notifications live in Journal,
-        // next to the logging they nudge you toward, not buried in Réglages.
         item {
             Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground,
                 fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.S))
         }
-        item { RemindersCard() }
-
+        item { MealRemindersCard() }
         item { Spacer(Modifier.height(32.dp)) }
     }
 

@@ -36,177 +36,149 @@ import fr.scanneat.notifications.NotificationHelper
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
+private fun permissionState(): Triple<Boolean, Boolean, () -> Unit> {
     val context = LocalContext.current
-    val s = viewModel.settings.collectAsStateWithLifecycle().value
-
     var permissionGranted by remember {
         mutableStateOf(
             Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED,
         )
     }
-    // Once the user permanently denies (checked "don't ask again", or a 2nd
-    // straight denial on API 30+), RequestPermission() silently returns false
-    // without even showing the system dialog again - same gap ScanScreen's
-    // camera-permission flow already handles by tracking this and swapping to
-    // an "Open Settings" action once the OS won't show the dialog anymore.
     var requestedOnce by remember { mutableStateOf(false) }
     var permanentlyDenied by remember { mutableStateOf(false) }
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         permissionGranted = granted
         if (!granted) {
             val activity = context as? Activity
-            val canShowRationale = activity?.let {
-                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.POST_NOTIFICATIONS)
-            } ?: true
+            val canShowRationale = activity?.let { ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.POST_NOTIFICATIONS) } ?: true
             if (requestedOnce && !canShowRationale) permanentlyDenied = true
         }
         requestedOnce = true
     }
+    return Triple(permissionGranted, permanentlyDenied) { launcher.launch(Manifest.permission.POST_NOTIFICATIONS) }
+}
 
+@Composable
+private fun PermissionBanner(permissionGranted: Boolean, permanentlyDenied: Boolean, onRequest: () -> Unit) {
+    val context = LocalContext.current
+    if (!permissionGranted) {
+        if (permanentlyDenied) {
+            ScanEatPrimaryButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))) }) {
+                Text(stringResource(R.string.scan_open_settings_button))
+            }
+        } else {
+            ScanEatPrimaryButton(onClick = onRequest) { Text(stringResource(R.string.reminders_enable_notifications)) }
+        }
+    }
+}
+
+@Composable
+fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val s = viewModel.settings.collectAsStateWithLifecycle().value
+    val (permGranted, permDenied, onRequest) = permissionState()
     ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(R.string.reminders_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+        PermissionBanner(permGranted, permDenied, onRequest)
+        ReminderRow(defaultLabel = stringResource(R.string.reminders_breakfast), customLabel = s.breakfastLabel, on = s.breakfastOn, time = s.breakfastTime,
+            onToggle = { viewModel.setBreakfast(it, s.breakfastTime) }, onTimeChange = { viewModel.setBreakfast(s.breakfastOn, it) }, onLabelChange = { viewModel.setBreakfastLabel(it) },
+            onTest = { NotificationHelper.show(context, 901, context.getString(R.string.reminders_breakfast), context.getString(R.string.reminders_test_body)) })
+        ReminderRow(defaultLabel = stringResource(R.string.reminders_snack), customLabel = s.snackLabel, on = s.snackOn, time = s.snackTime,
+            onToggle = { viewModel.setSnack(it, s.snackTime) }, onTimeChange = { viewModel.setSnack(s.snackOn, it) }, onLabelChange = { viewModel.setSnackLabel(it) },
+            onTest = { NotificationHelper.show(context, 906, context.getString(R.string.reminders_snack), context.getString(R.string.reminders_test_body)) })
+        ReminderRow(defaultLabel = stringResource(R.string.reminders_lunch), customLabel = s.lunchLabel, on = s.lunchOn, time = s.lunchTime,
+            onToggle = { viewModel.setLunch(it, s.lunchTime) }, onTimeChange = { viewModel.setLunch(s.lunchOn, it) }, onLabelChange = { viewModel.setLunchLabel(it) },
+            onTest = { NotificationHelper.show(context, 902, context.getString(R.string.reminders_lunch), context.getString(R.string.reminders_test_body)) })
+        ReminderRow(defaultLabel = stringResource(R.string.reminders_dinner), customLabel = s.dinnerLabel, on = s.dinnerOn, time = s.dinnerTime,
+            onToggle = { viewModel.setDinner(it, s.dinnerTime) }, onTimeChange = { viewModel.setDinner(s.dinnerOn, it) }, onLabelChange = { viewModel.setDinnerLabel(it) },
+            onTest = { NotificationHelper.show(context, 903, context.getString(R.string.reminders_dinner), context.getString(R.string.reminders_test_body)) })
+        s.customReminders.forEach { cr ->
+            CustomReminderRow(reminder = cr, onUpdate = { viewModel.updateCustomReminder(it) }, onDelete = { viewModel.deleteCustomReminder(cr.id) },
+                onTest = { NotificationHelper.show(context, cr.id, cr.label, cr.label) })
+        }
+        var showAddDialog by remember { mutableStateOf(false) }
+        TextButton(onClick = { showAddDialog = true }, modifier = Modifier.align(Alignment.End)) {
+            Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(stringResource(R.string.reminders_add_custom), style = MaterialTheme.typography.labelMedium)
+        }
+        if (showAddDialog) {
+            AddCustomReminderDialog(onConfirm = { label, time -> viewModel.addCustomReminder(label, time); showAddDialog = false }, onDismiss = { showAddDialog = false })
+        }
+    }
+}
 
-            if (!permissionGranted) {
-                if (permanentlyDenied) {
-                    ScanEatPrimaryButton(
-                        onClick = {
-                            context.startActivity(
-                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
-                            )
-                        },
-                    ) { Text(stringResource(R.string.scan_open_settings_button)) }
-                } else {
-                    ScanEatPrimaryButton(
-                        onClick = { permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS) },
-                    ) { Text(stringResource(R.string.reminders_enable_notifications)) }
+@Composable
+fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val s = viewModel.settings.collectAsStateWithLifecycle().value
+    val (permGranted, permDenied, onRequest) = permissionState()
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+        PermissionBanner(permGranted, permDenied, onRequest)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.reminders_hydration), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { NotificationHelper.show(context, 904, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) }) {
+                    Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_hydration)), tint = HydrationBlue)
                 }
+                val lbl = stringResource(R.string.reminders_hydration)
+                Switch(checked = s.hydrationOn, onCheckedChange = { viewModel.setHydration(it, s.hydrationIntervalHours) },
+                    colors = SwitchDefaults.colors(checkedTrackColor = HydrationBlue), modifier = Modifier.semantics { contentDescription = lbl })
             }
-
-            ReminderRow(
-                defaultLabel = stringResource(R.string.reminders_breakfast), customLabel = s.breakfastLabel,
-                on = s.breakfastOn, time = s.breakfastTime,
-                onToggle = { viewModel.setBreakfast(it, s.breakfastTime) },
-                onTimeChange = { viewModel.setBreakfast(s.breakfastOn, it) },
-                onLabelChange = { viewModel.setBreakfastLabel(it) },
-                onTest = { NotificationHelper.show(context, 901, context.getString(R.string.reminders_breakfast), context.getString(R.string.reminders_test_body)) },
-            )
-            ReminderRow(
-                defaultLabel = stringResource(R.string.reminders_snack), customLabel = s.snackLabel,
-                on = s.snackOn, time = s.snackTime,
-                onToggle = { viewModel.setSnack(it, s.snackTime) },
-                onTimeChange = { viewModel.setSnack(s.snackOn, it) },
-                onLabelChange = { viewModel.setSnackLabel(it) },
-                onTest = { NotificationHelper.show(context, 906, context.getString(R.string.reminders_snack), context.getString(R.string.reminders_test_body)) },
-            )
-            ReminderRow(
-                defaultLabel = stringResource(R.string.reminders_lunch), customLabel = s.lunchLabel,
-                on = s.lunchOn, time = s.lunchTime,
-                onToggle = { viewModel.setLunch(it, s.lunchTime) },
-                onTimeChange = { viewModel.setLunch(s.lunchOn, it) },
-                onLabelChange = { viewModel.setLunchLabel(it) },
-                onTest = { NotificationHelper.show(context, 902, context.getString(R.string.reminders_lunch), context.getString(R.string.reminders_test_body)) },
-            )
-            ReminderRow(
-                defaultLabel = stringResource(R.string.reminders_dinner), customLabel = s.dinnerLabel,
-                on = s.dinnerOn, time = s.dinnerTime,
-                onToggle = { viewModel.setDinner(it, s.dinnerTime) },
-                onTimeChange = { viewModel.setDinner(s.dinnerOn, it) },
-                onLabelChange = { viewModel.setDinnerLabel(it) },
-                onTest = { NotificationHelper.show(context, 903, context.getString(R.string.reminders_dinner), context.getString(R.string.reminders_test_body)) },
-            )
-
-            // Custom meal reminders
-            s.customReminders.forEach { cr ->
-                CustomReminderRow(
-                    reminder = cr,
-                    onUpdate = { viewModel.updateCustomReminder(it) },
-                    onDelete = { viewModel.deleteCustomReminder(cr.id) },
-                    onTest   = { NotificationHelper.show(context, cr.id, cr.label, cr.label) },
-                )
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(3, 6, 9, 12).forEach { h ->
+                FilterChip(selected = s.hydrationIntervalHours == h, onClick = { viewModel.setHydration(s.hydrationOn, h) },
+                    label = { Text(stringResource(R.string.reminders_every_n_hours, h)) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = HydrationBlue.copy(0.2f), selectedLabelColor = HydrationBlue))
             }
-            var showAddDialog by remember { mutableStateOf(false) }
-            TextButton(onClick = { showAddDialog = true }, modifier = Modifier.align(Alignment.End)) {
-                Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text(stringResource(R.string.reminders_add_custom), style = MaterialTheme.typography.labelMedium)
-            }
-            if (showAddDialog) {
-                AddCustomReminderDialog(
-                    onConfirm = { label, time -> viewModel.addCustomReminder(label, time); showAddDialog = false },
-                    onDismiss = { showAddDialog = false },
-                )
-            }
+        }
+        ReminderRow(label = stringResource(R.string.reminders_custom_daily), on = s.hydrationCustomOn, time = s.hydrationCustomTime,
+            onToggle = { viewModel.setHydrationCustom(it, s.hydrationCustomTime) }, onTimeChange = { viewModel.setHydrationCustom(s.hydrationCustomOn, it) },
+            onTest = { NotificationHelper.show(context, 907, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) })
+    }
+}
 
-            ScanEatDivider()
-
-            // Hydration
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.reminders_hydration), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { NotificationHelper.show(context, 904, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) }) {
-                        Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_hydration)), tint = HydrationBlue)
-                    }
-                    val hydrationLabel = stringResource(R.string.reminders_hydration)
-                    Switch(checked = s.hydrationOn, onCheckedChange = { viewModel.setHydration(it, s.hydrationIntervalHours) },
-                        colors = SwitchDefaults.colors(checkedTrackColor = HydrationBlue),
-                        modifier = Modifier.semantics { contentDescription = hydrationLabel })
+@Composable
+fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val s = viewModel.settings.collectAsStateWithLifecycle().value
+    val (permGranted, permDenied, onRequest) = permissionState()
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+        PermissionBanner(permGranted, permDenied, onRequest)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.reminders_weight), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { NotificationHelper.show(context, 905, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) }) {
+                    Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_weight)), tint = Gold)
                 }
+                val lbl = stringResource(R.string.reminders_weight)
+                Switch(checked = s.weightOn, onCheckedChange = { viewModel.setWeight(it, s.weightThresholdDays) },
+                    colors = SwitchDefaults.colors(checkedTrackColor = Gold), modifier = Modifier.semantics { contentDescription = lbl })
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(3, 6, 9, 12).forEach { h ->
-                    FilterChip(
-                        selected = s.hydrationIntervalHours == h,
-                        onClick = { viewModel.setHydration(s.hydrationOn, h) },
-                        label = { Text(stringResource(R.string.reminders_every_n_hours, h)) },
-                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = HydrationBlue.copy(0.2f), selectedLabelColor = HydrationBlue),
-                    )
-                }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(1 to R.string.reminders_weight_preset_day, 7 to R.string.reminders_weight_preset_week,
+                30 to R.string.reminders_weight_preset_month, 365 to R.string.reminders_weight_preset_year).forEach { (d, res) ->
+                FilterChip(selected = s.weightThresholdDays == d, onClick = { viewModel.setWeight(s.weightOn, d) },
+                    label = { Text(stringResource(res)) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold))
             }
-            ReminderRow(
-                label = stringResource(R.string.reminders_custom_daily), on = s.hydrationCustomOn, time = s.hydrationCustomTime,
-                onToggle = { viewModel.setHydrationCustom(it, s.hydrationCustomTime) },
-                onTimeChange = { viewModel.setHydrationCustom(s.hydrationCustomOn, it) },
-                onTest = { NotificationHelper.show(context, 907, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) },
-            )
+        }
+        ReminderRow(label = stringResource(R.string.reminders_custom_daily), on = s.weightCustomOn, time = s.weightCustomTime,
+            onToggle = { viewModel.setWeightCustom(it, s.weightCustomTime) }, onTimeChange = { viewModel.setWeightCustom(s.weightCustomOn, it) },
+            onTest = { NotificationHelper.show(context, 908, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) })
+    }
+}
 
-            ScanEatDivider()
-
-            // Weight
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.reminders_weight), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { NotificationHelper.show(context, 905, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) }) {
-                        Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_weight)), tint = Gold)
-                    }
-                    val weightLabel = stringResource(R.string.reminders_weight)
-                    Switch(checked = s.weightOn, onCheckedChange = { viewModel.setWeight(it, s.weightThresholdDays) },
-                        colors = SwitchDefaults.colors(checkedTrackColor = Gold),
-                        modifier = Modifier.semantics { contentDescription = weightLabel })
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(
-                    1 to R.string.reminders_weight_preset_day,
-                    7 to R.string.reminders_weight_preset_week,
-                    30 to R.string.reminders_weight_preset_month,
-                    365 to R.string.reminders_weight_preset_year,
-                ).forEach { (d, labelRes) ->
-                    FilterChip(
-                        selected = s.weightThresholdDays == d,
-                        onClick = { viewModel.setWeight(s.weightOn, d) },
-                        label = { Text(stringResource(labelRes)) },
-                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
-                    )
-                }
-            }
-            ReminderRow(
-                label = stringResource(R.string.reminders_custom_daily), on = s.weightCustomOn, time = s.weightCustomTime,
-                onToggle = { viewModel.setWeightCustom(it, s.weightCustomTime) },
-                onTimeChange = { viewModel.setWeightCustom(s.weightCustomOn, it) },
-                onTest = { NotificationHelper.show(context, 908, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) },
-            )
+@Composable
+fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        MealRemindersCard(viewModel)
+        HydrationReminderCard(viewModel)
+        WeightReminderCard(viewModel)
     }
 }
 
