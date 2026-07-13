@@ -19,6 +19,7 @@ import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import fr.scanneat.data.repository.planning.GroceryCheckedRepository
+import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import fr.scanneat.domain.engine.scoring.DietKey
@@ -60,6 +61,7 @@ class BackupRepository @Inject constructor(
     private val mealPlanRepo: MealPlanRepository,
     private val remindersRepo: RemindersRepository,
     private val groceryCheckedRepo: GroceryCheckedRepository,
+    private val manualGroceryRepo: ManualGroceryRepository,
     private val biolismRepo: BiolismRepository,
     private val moshi: Moshi,
 ) {
@@ -112,6 +114,7 @@ class BackupRepository @Inject constructor(
             mealPlanRaw = mealPlanRepo.exportRaw(),
             groceryCheckedKeys = groceryCheckedRepo.checkedKeys.first().toList(),
             biolism = biolismRepo.exportForBackup(),
+            manualGroceryItems = manualGroceryRepo.exportAll(),
         )
         return bundleAdapter.indent("  ").toJson(bundle)
     }
@@ -214,6 +217,7 @@ class BackupRepository @Inject constructor(
         bundle.mealPlanRaw?.let { mealPlanRepo.importRaw(it) }
         groceryCheckedRepo.restoreAll(bundle.groceryCheckedKeys.toSet())
         bundle.biolism?.let { biolismRepo.importForBackup(it) }
+        manualGroceryRepo.importAll(bundle.manualGroceryItems)
     }
 
     /**

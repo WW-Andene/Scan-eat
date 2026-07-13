@@ -11,6 +11,7 @@ import fr.scanneat.domain.engine.planning.GroceryRecipeInput
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import java.util.UUID
@@ -85,4 +86,21 @@ class ManualGroceryRepository @Inject constructor(
     }
 
     private fun serialize(list: List<ManualGroceryItem>): String = adapter.toJson(list)
+
+    // ---- Backup export/import ----
+    // Previously entirely absent from BackupRepository - an ad-hoc grocery
+    // item (e.g. "Save to..." from a scanned product) was silently lost on
+    // backup/restore or device migration, unlike every other grocery-list
+    // input (recipes, checked-off state).
+
+    suspend fun exportAll(): List<ManualGroceryItem> = parse(storeData.first()[KEY_ITEMS])
+
+    /** Restores entries from a backup - merged with (not replacing) whatever manual items already exist locally, keyed by id, same non-destructive intent as every other importAll() in this app. */
+    suspend fun importAll(entries: List<ManualGroceryItem>) {
+        if (entries.isEmpty()) return
+        store.edit { prefs ->
+            val merged = (parse(prefs[KEY_ITEMS]) + entries).distinctBy { it.id }
+            prefs[KEY_ITEMS] = serialize(merged)
+        }
+    }
 }

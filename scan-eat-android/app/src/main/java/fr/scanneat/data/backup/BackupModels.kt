@@ -10,6 +10,7 @@ import fr.scanneat.data.local.db.template.MealTemplateEntity
 import fr.scanneat.data.local.db.weight.WeightEntity
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastCompletion
+import fr.scanneat.data.repository.planning.ManualGroceryItem
 import fr.scanneat.data.repository.reminders.ReminderSettings
 
 // ============================================================================
@@ -27,7 +28,9 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // — previously silently lost on restore-to-a-new-device just like the v2 data.
 // Since v5, also the "Traitement" (medication) list — an 8th @Database entity
 // that had zero presence here despite being active health data (name, dosage,
-// reminder schedule) with no other persistence path.
+// reminder schedule) with no other persistence path — and manually-added
+// grocery items (e.g. "Save to..." from a scanned product), also previously
+// silently lost on backup/restore.
 //
 // Deliberately excludes the Groq API key from SettingsBackup — a backup file
 // shared for debugging or support must not leak a credential.
@@ -94,6 +97,7 @@ data class BackupBundle(
     val groceryCheckedKeys: List<String> = emptyList(),
     val biolism: BiolismRepository.BiolismBackupData? = null,
     val medications: List<MedicationEntity> = emptyList(),
+    val manualGroceryItems: List<ManualGroceryItem> = emptyList(),
 )
 
 data class BackupSummary(
