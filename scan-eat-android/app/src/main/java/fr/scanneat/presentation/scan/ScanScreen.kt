@@ -327,6 +327,21 @@ fun ScanScreen(
             dismissButton = { TextButton(onClick = { viewModel.dismissError() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )
     }
+
+    (state.value as? ScanUiState.NonConsumableFound)?.let { found ->
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissError() },
+            containerColor = SurfaceVariant,
+            title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(stringResource(R.string.scan_nonconsumable_found_body, found.entry.name, found.entry.brand), color = OnBackground.copy(0.8f))
+                    Text(stringResource(R.string.scan_nonconsumable_safety_line), color = FlagRed, fontWeight = FontWeight.SemiBold)
+                }
+            },
+            confirmButton = { TextButton(onClick = { viewModel.dismissError() }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
+        )
+    }
 }
 
 /**

@@ -14,6 +14,8 @@ import fr.scanneat.data.repository.scan.ProductNotFoundException
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.medication.MedicationDbEntry
 import fr.scanneat.domain.engine.medication.findMedicationByBarcode
+import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
+import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -76,6 +78,8 @@ sealed class ScanUiState {
     data class  Error(val message: String, val needsPhoto: Boolean = false) : ScanUiState()
     /** Barcode matched the medication lookup DB instead of a food product - offer to save it to Traitement rather than running it through food scoring. */
     data class  MedicationFound(val entry: MedicationDbEntry) : ScanUiState()
+    /** Barcode matched a household/chemical product - not something to run through food scoring, and never something to imply is safe to consume. */
+    data class  NonConsumableFound(val entry: NonConsumableDbEntry) : ScanUiState()
 }
 
 @HiltViewModel
@@ -132,6 +136,10 @@ class ScanViewModel @Inject constructor(
         if (barcode != null) {
             findMedicationByBarcode(barcode)?.let { entry ->
                 _state.value = ScanUiState.MedicationFound(entry)
+                return
+            }
+            findNonConsumableByBarcode(barcode)?.let { entry ->
+                _state.value = ScanUiState.NonConsumableFound(entry)
                 return
             }
         }

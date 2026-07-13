@@ -10,6 +10,9 @@
     <string name="scan_medication_found_title">Médicament détecté</string>
     <string name="scan_medication_found_body">%1$s reconnu depuis la base publique des médicaments (ANSM). L\'ajouter à ton Traitement ?</string>
     <string name="scan_medication_found_add">Ajouter au Traitement</string>
+    <string name="scan_nonconsumable_found_title">Produit non alimentaire</string>
+    <string name="scan_nonconsumable_found_body">%1$s (%2$s) — ce produit n\'est pas destiné à la consommation.</string>
+    <string name="scan_nonconsumable_safety_line">Ne pas ingérer. En cas d\'ingestion ou d\'exposition, contactez immédiatement les urgences (15 ou 112 en Europe) ou un centre antipoison.</string>
     <string name="scan_cd_scan">Scanner</string>
     <string name="scan_no_camera_title">Aucune caméra détectée</string>
     <string name="scan_no_camera_body">Cet appareil n\'a pas de caméra. Saisissez le code-barres manuellement.</string>
