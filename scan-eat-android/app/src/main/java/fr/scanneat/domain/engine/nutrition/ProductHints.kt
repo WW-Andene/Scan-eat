@@ -77,6 +77,9 @@ fun generateProductHints(product: Product, lang: String): ProductHints {
     facts += if (en) "Energy: ${n.energyKcal} kcal/100 g" else "Énergie : ${n.energyKcal} kcal/100 g"
     if (product.origin != null) facts += if (en) "Origin: ${product.origin}" else "Origine : ${product.origin}"
     n.cholesterolMg?.let { facts += if (en) "Cholesterol: ${it} mg/100 g" else "Cholestérol : ${it} mg/100 g" }
+    // Trivia matched against the actual ingredient list — see IngredientFactsDb
+    // for why this is a hand-curated substring match rather than LLM-generated.
+    facts += findIngredientFacts(product.ingredients, lang)
 
     return ProductHints(benefits, risks, facts)
 }
