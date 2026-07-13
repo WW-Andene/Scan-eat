@@ -250,9 +250,6 @@ class BiolismRepository @Inject constructor(
         p[K_FASTING_ACTIVE] = true
     }
 
-    suspend fun setKetosisOn(on: Boolean) = store.edit { p -> p[K_KETOSIS_ON] = on }
-    suspend fun setKetoAdapted(on: Boolean) = store.edit { p -> p[K_KETO_ADAPTED] = on }
-
     val manualHR: Flow<Int?> = storeData.map { p -> p[K_MANUAL_HR] }.distinctUntilChanged()
     suspend fun saveManualHR(bpm: Int?) = store.edit { p ->
         if (bpm != null) p[K_MANUAL_HR] = bpm else p.remove(K_MANUAL_HR)

@@ -103,6 +103,11 @@ class MealPlanViewModel @Inject constructor(
         viewModelScope.launch { repo.setSlot(date, meal, null) }
     }
 
+    /** Clear every slot for a day in one action instead of one tap per meal. */
+    fun clearDay(date: LocalDate) {
+        viewModelScope.launch { repo.clearDay(date) }
+    }
+
     fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
         viewModelScope.launch { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name)) }
     }

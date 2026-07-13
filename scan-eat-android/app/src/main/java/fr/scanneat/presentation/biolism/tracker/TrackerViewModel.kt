@@ -50,10 +50,6 @@ class TrackerViewModel @Inject constructor(
     val elapsedMs:     StateFlow<Long> = _elapsedMs.asStateFlow()
     val ketoElapsedMs: StateFlow<Long> = _ketoElapsedMs.asStateFlow()
 
-    // ── Manual HR ────────────────────────────────────────────────────────────
-    val manualHR: StateFlow<Int?> = repo.manualHR
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
     // ── Precision toggle ─────────────────────────────────────────────────────
     private val _heroPrecision = MutableStateFlow(false)
     val heroPrecision: StateFlow<Boolean> = _heroPrecision.asStateFlow()
@@ -286,7 +282,7 @@ class TrackerViewModel @Inject constructor(
         if (!p.isValid || _elapsedMs.value < 1000L) return
 
         val elapsedSec = _elapsedMs.value / 1000.0
-        val snapshot   = computeMetabolicSnapshot(p, s, _elapsedMs.value, _ketoElapsedMs.value)
+        val snapshot   = computeMetabolicSnapshot(p, s, _elapsedMs.value, _ketoElapsedMs.value, language.value)
 
         val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
             .withZone(ZoneId.systemDefault())
@@ -314,7 +310,6 @@ class TrackerViewModel @Inject constructor(
     // ─────────────────────────────────────────────────────────────────────────
     fun togglePrecision() { _heroPrecision.value = !_heroPrecision.value }
     fun toggleRateMode()  { _showKcalPerSec.value = !_showKcalPerSec.value }
-    fun saveManualHR(bpm: Int?) = viewModelScope.launch { repo.saveManualHR(bpm) }
     fun clearSaved() { _saved.value = false }
 
     override fun onCleared() {

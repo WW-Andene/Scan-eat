@@ -90,6 +90,11 @@ data class DailyTargets(
     val freeSugarsGIdeal: Double,
     val saltGMax: Double = 5.0,
     val proteinGTarget: Double,
+    // 30% of kcal from fat (WHO/EFSA acceptable macronutrient range 20-35%,
+    // midpoint) - unlike satFatGMax (saturated fat only), this was previously
+    // entirely absent, so the Journal's fat total had no target to show
+    // (unlike calories/protein/carbs, which all had one).
+    val fatGTarget: Double,
     val fiberGTarget: Double = 25.0,        // EFSA DRV 2017
     // Micros — EFSA Population Reference Intakes (adults, sex-averaged where split)
     val ironMgTarget: Double = 11.0,        // EFSA 2015: 11 mg men / 16 mg menstruating women
@@ -153,6 +158,7 @@ fun dailyTargets(p: Profile): DailyTargets? {
         freeSugarsGIdeal  = (0.05 * goalAdjustedKcal / 4.0),
         saltGMax          = saltCap,
         proteinGTarget    = pri,
+        fatGTarget        = (0.30 * goalAdjustedKcal / 9.0),
         fiberGTarget      = fiberTarget,
         carbsGDailyMax    = carbsMax,
         ironMgTarget      = ironTarget,

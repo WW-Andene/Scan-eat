@@ -85,6 +85,7 @@
     <!-- ── Meal Plan screen ───────────────────────────────────────────────── -->
     <string name="mealplan_title">Plan de repas</string>
     <string name="mealplan_day_today">%1$s · Aujourd\'hui</string>
+    <string name="mealplan_clear_day">Vider la journée</string>
     <string name="mealplan_recipe_prefix">%1$s</string>
     <string name="mealplan_template_prefix">%1$s</string>
     <string name="mealplan_assign_cd">Choisir une recette ou un modèle</string>
@@ -685,6 +686,7 @@
     <string name="diary_macro_carbs">Glucides</string>
     <string name="diary_macro_fat">Lipides</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
+    <string name="diary_edit_portion_label">Portion (g)</string>
 
     <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
     <string name="onboarding_welcome_body">Scannez un code-barres ou photographiez une étiquette pour obtenir un score nutritionnel 0–100 basé sur la composition réelle du produit.</string>

@@ -76,10 +76,6 @@ class MealPlanRepository @Inject constructor(
         deserialize(prefs[KEY_PLAN] ?: "")
     }.distinctUntilChanged()
 
-    fun dayPlan(date: LocalDate): Flow<DayPlan> = weekPlan.map { plan ->
-        plan[date] ?: DayPlan(date)
-    }
-
     // ---- Mutations ----
 
     /** Set a slot for a specific date + meal. Prunes old entries. */

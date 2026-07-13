@@ -101,8 +101,6 @@ data class ActivityEntry(
     val weightUsedKg: Double? = null,
 )
 
-data class DailyBurned(val kcal: Int, val minutes: Int, val count: Int)
-
 @Singleton
 class ActivityRepository @Inject constructor(
     private val dao: ActivityDao,
@@ -151,16 +149,6 @@ class ActivityRepository @Inject constructor(
     }
 
     suspend fun delete(id: String) = dao.delete(id)
-
-    /** Sum kcal burned for a date. */
-    suspend fun dailyBurned(date: LocalDate = LocalDate.now(), profileId: String = "default"): DailyBurned {
-        val entries = dao.getRange(date.toString(), date.toString(), profileId)
-        return DailyBurned(
-            kcal    = entries.sumOf { it.kcalBurned },
-            minutes = entries.sumOf { it.minutes },
-            count   = entries.size,
-        )
-    }
 
     suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =
         dao.getRange(from.toString(), to.toString(), profileId).map { it.toDomain() }

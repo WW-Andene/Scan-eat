@@ -43,7 +43,9 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
                     MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor, targets?.kcal?.roundToInt())
                     MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral, targets?.proteinGTarget?.takeIf { it > 0 }?.roundToInt())
                     MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", carbsPct, carbsColor, carbsMax?.takeIf { it > 0 }?.roundToInt())
-                    MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", null, AccentCoral, null)
+                    val fatPct = targets?.fatGTarget?.takeIf { it > 0 }?.let { (totals.fatG / it).toFloat() }
+                    val fatColor = if (fatPct != null && fatPct > 1.1f) semanticRed() else AccentCoral
+                    MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", fatPct, fatColor, targets?.fatGTarget?.roundToInt())
                 }
             }
         }

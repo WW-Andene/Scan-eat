@@ -45,13 +45,9 @@ class ConsumptionRepository @Inject constructor(
 
     suspend fun delete(id: Long) = dao.delete(id)
 
-    /** Flow-based range query — use in ViewModels instead of suspend getRange(). */
     fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<DiaryEntry>> =
         dao.observeRange(from.toString(), to.toString(), profileId)
             .map { list -> list.mapNotNull { it.toDomain() } }
-
-    suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<DiaryEntry> =
-        dao.getRange(from.toString(), to.toString(), profileId).mapNotNull { it.toDomain() }
 
     // ---- Mapping ----
 

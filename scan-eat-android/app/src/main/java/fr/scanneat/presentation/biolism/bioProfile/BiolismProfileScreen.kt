@@ -215,16 +215,19 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         // ── Save ──────────────────────────────────────────────────────────────
         Button(
             onClick = {
+                // Onboarding normalizes comma decimals (French-locale default)
+                // before parsing; this edit screen didn't, so a French user
+                // typing "82,5" here (metric mode) silently saved weightKg=0.
                 viewModel.save(BiolismProfile(
                     sex         = sex,
                     ageYears    = age.toIntOrNull() ?: 0,
-                    heightCm    = height.toDoubleOrNull() ?: 0.0,
-                    weightKg    = weight.toDoubleOrNull() ?: 0.0,
+                    heightCm    = height.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                    weightKg    = weight.replace(',', '.').toDoubleOrNull() ?: 0.0,
                     activityId  = activityId,
                     ethnicityId = ethnicityId,
-                    waistCm     = waist.toDoubleOrNull() ?: 0.0,
-                    hipCm       = hip.toDoubleOrNull() ?: 0.0,
-                    neckCm      = neck.toDoubleOrNull() ?: 0.0,
+                    waistCm     = waist.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                    hipCm       = hip.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                    neckCm      = neck.replace(',', '.').toDoubleOrNull() ?: 0.0,
                     cycleDay    = cycleDay.toIntOrNull()?.coerceIn(1, 28) ?: 14,
                 ))
             },

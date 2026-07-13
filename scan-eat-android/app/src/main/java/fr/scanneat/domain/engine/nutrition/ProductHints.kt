@@ -88,6 +88,23 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     // Thresholds/wording deliberately mirror PersonalScoreEngine's own
     // condition checks exactly (same 15.0/5.0 sugar, 1.2/0.3 salt, 15.0
     // protein cutoffs) so the two surfaces never disagree with each other.
+    // Allergen/diet violations were computed by PersonalScoreEngine for the
+    // score itself (checkUserAllergens/checkDiet) but never surfaced here —
+    // a user with a declared allergy got a score penalty with no
+    // corresponding line in the hint panel explaining why.
+    val allergenHits = fr.scanneat.domain.engine.scoring.checkUserAllergens(product, profile.allergens, lang)
+    allergenHits.forEach { hit ->
+        val label = if (en) hit.labelEn else hit.labelFr
+        risks += if (en) "Contains $label — you've flagged this as an allergen" else "Contient $label — vous avez signalé cet allergène"
+    }
+    if (profile.diet != fr.scanneat.domain.engine.scoring.DietKey.NONE) {
+        val dietResult = fr.scanneat.domain.engine.scoring.checkDiet(product, profile.diet, lang)
+        if (!dietResult.compliant && dietResult.violations.isNotEmpty()) {
+            val list = dietResult.violations.joinToString(", ")
+            risks += if (en) "Not compliant with your diet — contains: $list" else "Non compatible avec votre régime — contient : $list"
+        }
+    }
+
     val conditions = profile.healthConditions
     if ("diabetes" in conditions) {
         if (n.sugarsG >= 15.0) risks += if (en) "High sugar (${n.sugarsG} g/100 g) — caution advised for diabetes"

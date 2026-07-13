@@ -66,12 +66,22 @@ fun MealPlanScreen(
                 val isToday = date == LocalDate.now()
                 Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        Text(
-                            if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = if (isToday) AccentCoral else OnSurface,
-                            fontWeight = FontWeight.SemiBold,
-                        )
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(
+                                if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = if (isToday) AccentCoral else OnSurface,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            // MealPlanRepository.clearDay() previously had no UI entry
+                            // point - clearing a fully-planned day took one tap per
+                            // meal slot instead of one action for the whole day.
+                            if (MEALS.any { dayPlan[it] != null }) {
+                                IconButton(onClick = { viewModel.clearDay(date) }, modifier = Modifier.size(28.dp)) {
+                                    Icon(Icons.Default.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
                         MEALS.forEach { meal ->
                             val slot = dayPlan[meal]
                             MealPlanRow(

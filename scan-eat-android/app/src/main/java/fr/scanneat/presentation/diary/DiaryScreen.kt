@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.diary
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -247,6 +248,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     // default to Locale.getDefault() and could show the day name in the wrong language.
     val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
+    var editTarget by remember { mutableStateOf<DiaryEntry?>(null) }
     var showCalendar by remember { mutableStateOf(false) }
     var calendarMonth by remember(selectedDate.value) { mutableStateOf(java.time.YearMonth.from(selectedDate.value)) }
     // Fix 9: initialise to empty on date change; LaunchedEffect seeds the stored
@@ -355,7 +357,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                         )
                     }
                     items(slotEntries, key = { it.id }) { entry ->
-                        DiaryEntryCard(entry = entry, onDelete = { deleteTarget = entry.id })
+                        DiaryEntryCard(entry = entry, onDelete = { deleteTarget = entry.id }, onEdit = { editTarget = entry })
                     }
                 }
             }
@@ -378,6 +380,44 @@ private fun MealsTab(viewModel: DiaryViewModel) {
             onDismiss = { deleteTarget = null },
         )
     }
+
+    // DiaryViewModel.updateEntry()/consumptionRepo.update() have always existed
+    // but nothing in this screen called them - fixing a wrong portion size
+    // required deleting and re-logging the entry from scratch.
+    editTarget?.let { entry ->
+        EditPortionDialog(
+            entry = entry,
+            onConfirm = { newPortionG -> viewModel.updateEntry(entry.copy(portionG = newPortionG)); editTarget = null },
+            onDismiss = { editTarget = null },
+        )
+    }
+}
+
+@Composable
+private fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
+    var text by remember(entry.id) { mutableStateOf(entry.portionG.toInt().toString()) }
+    val portion = text.replace(',', '.').toDoubleOrNull()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(entry.productName, color = OnBackground) },
+        text = {
+            OutlinedTextField(
+                value = text, onValueChange = { text = it },
+                label = { Text(stringResource(R.string.diary_edit_portion_label)) },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                shape = RoundedCornerShape(12.dp),
+                colors = scanEatTextFieldColors(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { portion?.let { if (it > 0) onConfirm(it) } }, enabled = portion != null && portion > 0) {
+                Text(stringResource(R.string.common_save), color = AccentCoral)
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        containerColor = SurfaceVariant,
+    )
 }
 
 @Composable
@@ -390,7 +430,7 @@ private fun MacroSummaryCard(totals: ConsumedNutrition, targets: fr.scanneat.dom
                     MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal", targets?.kcal?.toInt())
                     MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g", targets?.proteinGTarget?.takeIf { it > 0 }?.toInt())
                     MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g", targets?.carbsGDailyMax?.takeIf { it > 0 }?.toInt())
-                    MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g", null)
+                    MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g", targets?.fatGTarget?.takeIf { it > 0 }?.toInt())
                 }
             }
         }
@@ -409,10 +449,11 @@ private fun MacroItem(label: String, value: String, unit: String, target: Int?) 
 }
 
 @Composable
-private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit) {
+private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit, onEdit: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
         Row(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(Spacing.M),
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant)
+                .clickable(onClick = onEdit).padding(Spacing.M),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
@@ -420,6 +461,9 @@ private fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit) {
                 Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(stringResource(R.string.diary_entry_summary, entry.portionG.toInt(), entry.consumed.energyKcal.toInt()),
                     style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+            }
+            IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
