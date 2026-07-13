@@ -624,6 +624,9 @@
     <string name="templates_title">Meal Templates</string>
     <string name="templates_empty_body">Meal templates are created automatically when you log a meal from the diary.</string>
     <string name="templates_summary">%1$d kcal · %2$d items · %3$s</string>
+    <string name="templates_manage_items_cd">Manage template items</string>
+    <string name="templates_manage_items_title">Items — %1$s</string>
+    <string name="templates_no_items_yet">No items yet. Add one below.</string>
     <string name="common_log">Log</string>
     <string name="templates_item_summary">• %1$s · %2$d g · %3$d kcal</string>
     <string name="templates_more_items">+ %1$d more…</string>

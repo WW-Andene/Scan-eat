@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,6 +38,7 @@ fun TemplatesScreen(
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<MealTemplate?>(null) }
     var showAdd by remember { mutableStateOf(false) }
+    var itemsTarget by remember { mutableStateOf<MealTemplate?>(null) }
 
     Scaffold(
         topBar = {
@@ -66,8 +69,14 @@ fun TemplatesScreen(
                                         style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                                 }
                                 Row {
-                                    IconButton(onClick = { logTarget = template }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral)
+                                    // Previously the only way a template could get items was
+                                    // never - create() always built one with an empty list and
+                                    // there was no UI anywhere to add to it afterward.
+                                    IconButton(onClick = { itemsTarget = template }, modifier = Modifier.size(36.dp)) {
+                                        Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_manage_items_cd), tint = Teal)
+                                    }
+                                    IconButton(onClick = { logTarget = template }, modifier = Modifier.size(36.dp), enabled = template.items.isNotEmpty()) {
+                                        Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
                                     }
                                     IconButton(onClick = { renameTarget = template }, modifier = Modifier.size(36.dp)) {
                                         Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f))
@@ -128,6 +137,19 @@ fun TemplatesScreen(
         )
     }
 
+    itemsTarget?.let { t ->
+        // Re-fetch the live template by id every recomposition — after each
+        // add/remove the underlying list changes via the repo, and `t` itself
+        // is a stale snapshot from whenever the dialog was opened.
+        val live = templates.value.find { it.id == t.id } ?: t
+        EditTemplateItemsDialog(
+            template = live,
+            onAdd    = { item -> viewModel.addItem(live, item) },
+            onRemove = { index -> viewModel.removeItem(live, index) },
+            onDismiss = { itemsTarget = null },
+        )
+    }
+
     if (showAdd) {
         var name by remember { mutableStateOf("") }
         var meal by remember { mutableStateOf(MealSlot.LUNCH) }
@@ -157,4 +179,57 @@ fun TemplatesScreen(
         )
     }
 
+}
+
+/** Same ingredient-adding shape as RecipesScreen's AddRecipeDialog — templates never had an equivalent, so items could only ever be added by directly editing the database. */
+@Composable
+private fun EditTemplateItemsDialog(
+    template: MealTemplate,
+    onAdd: (TemplateItem) -> Unit,
+    onRemove: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var newName by remember { mutableStateOf("") }
+    var newGrams by remember { mutableStateOf("") }
+    var newKcal by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.templates_manage_items_title, template.name), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (template.items.isEmpty()) {
+                    Text(stringResource(R.string.templates_no_items_yet), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                }
+                template.items.forEachIndexed { index, item ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(stringResource(R.string.recipes_ingredient_summary_compact, item.productName, item.grams.toInt(), item.kcal.toInt()),
+                            style = MaterialTheme.typography.bodySmall, color = OnSurface, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { onRemove(index) }, modifier = Modifier.size(28.dp)) {
+                            Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
+                        }
+                    }
+                }
+                HorizontalDivider(color = OnBackground.copy(0.1f))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    OutlinedTextField(value = newName, onValueChange = { newName = it }, label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
+                        colors = scanEatTextFieldColors())
+                    OutlinedTextField(value = newGrams, onValueChange = { newGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = scanEatTextFieldColors())
+                    OutlinedTextField(value = newKcal, onValueChange = { newKcal = it }, label = { Text("kcal") }, modifier = Modifier.weight(1f), singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = scanEatTextFieldColors())
+                }
+                TextButton(onClick = {
+                    val g = newGrams.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return@TextButton
+                    val k = newKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0
+                    if (newName.isNotBlank()) {
+                        onAdd(TemplateItem(productName = newName.trim(), grams = g, meal = template.meal.name.lowercase(), kcal = k))
+                        newName = ""; newGrams = ""; newKcal = ""
+                    }
+                }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentCoral) }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
+    )
 }

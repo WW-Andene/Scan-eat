@@ -38,4 +38,18 @@ class TemplatesViewModel @Inject constructor(
             consumptionRepo.logAll(repo.expand(template, date, mealOverride))
         }
     }
+
+    // create() always built a template with items = emptyList() and there was
+    // no UI anywhere to add one afterward — TemplateItem(...) was constructed
+    // nowhere in the whole presentation layer. Every template a user created
+    // stayed a permanent 0-item, 0-kcal template; "Log" just planted nothing.
+    // Mirrors Recipes' own add-ingredient pattern (RecipeComponent).
+    fun addItem(template: MealTemplate, item: TemplateItem) {
+        viewModelScope.launch { repo.save(template.name, template.meal, template.items + item, id = template.id) }
+    }
+
+    fun removeItem(template: MealTemplate, index: Int) {
+        val items = template.items.toMutableList().also { if (index in it.indices) it.removeAt(index) }
+        viewModelScope.launch { repo.save(template.name, template.meal, items, id = template.id) }
+    }
 }
