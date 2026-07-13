@@ -2,8 +2,11 @@ package fr.scanneat.data.repository.health
 
 import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationEntity
+import fr.scanneat.data.local.db.medication.MedicationLogDao
+import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,8 +33,20 @@ data class Medication(
     val reminderTime: String = "08:00",
 )
 
+/** One "I took this" event on a given day - see MedicationLogEntity for why this needed its own table. */
+data class MedicationLogEntry(
+    val id: String,
+    val medicationId: String,
+    val medicationName: String,
+    val date: LocalDate,
+    val takenAt: Long,
+)
+
 @Singleton
-class MedicationRepository @Inject constructor(private val dao: MedicationDao) {
+class MedicationRepository @Inject constructor(
+    private val dao: MedicationDao,
+    private val logDao: MedicationLogDao,
+) {
 
     fun observeAll(profileId: String = "default"): Flow<List<Medication>> =
         dao.observeAll(profileId).map { list -> list.map { it.toDomain() } }
@@ -71,5 +86,31 @@ class MedicationRepository @Inject constructor(private val dao: MedicationDao) {
     private fun MedicationEntity.toDomain() = Medication(
         id = id, name = name, dosage = dosage, scheduleNote = scheduleNote, barcode = barcode, active = active,
         reminderOn = reminderOn, reminderTime = reminderTime,
+    )
+
+    // ── Adherence log ("I took this") ────────────────────────────────────────
+
+    fun observeLogByDate(date: LocalDate, profileId: String = "default"): Flow<List<MedicationLogEntry>> =
+        logDao.observeByDate(date.toString(), profileId).map { list -> list.map { it.toLogDomain() } }
+
+    suspend fun getLogRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<MedicationLogEntry> =
+        logDao.getRange(from.toString(), to.toString(), profileId).map { it.toLogDomain() }
+
+    suspend fun logTaken(medication: Medication, date: LocalDate = LocalDate.now(), profileId: String = "default") {
+        logDao.insert(MedicationLogEntity(
+            id             = UUID.randomUUID().toString(),
+            medicationId   = medication.id,
+            medicationName = medication.name,
+            date           = date.toString(),
+            takenAt        = System.currentTimeMillis(),
+            profileId      = profileId,
+        ))
+    }
+
+    suspend fun deleteLogEntry(id: String) = logDao.delete(id)
+
+    private fun MedicationLogEntity.toLogDomain() = MedicationLogEntry(
+        id = id, medicationId = medicationId, medicationName = medicationName,
+        date = LocalDate.parse(date), takenAt = takenAt,
     )
 }

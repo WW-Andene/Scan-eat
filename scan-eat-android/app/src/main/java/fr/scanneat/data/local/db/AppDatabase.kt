@@ -14,6 +14,8 @@ import fr.scanneat.data.local.db.customfood.CustomFoodDao
 import fr.scanneat.data.local.db.customfood.CustomFoodEntity
 import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationEntity
+import fr.scanneat.data.local.db.medication.MedicationLogDao
+import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
@@ -33,8 +35,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MealTemplateEntity::class,
         RecipeEntity::class,
         MedicationEntity::class,
+        MedicationLogEntity::class,
     ],
-    version = 13,
+    version = 14,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -47,6 +50,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun mealTemplateDao(): MealTemplateDao
     abstract fun recipeDao(): RecipeDao
     abstract fun medicationDao(): MedicationDao
+    abstract fun medicationLogDao(): MedicationLogDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -203,5 +207,26 @@ val MIGRATION_12_13 = object : Migration(12, 13) {
         // fresh duplicate every time (activity, unlike weight, has no
         // one-entry-per-day convention to dedupe against instead).
         db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `externalSourceId` TEXT")
+    }
+}
+val MIGRATION_13_14 = object : Migration(13, 14) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v13 → v14: new `medication_log` table - a dated "I took this" event.
+        // MedicationEntity itself is only the active list + reminder schedule,
+        // with no per-day record of whether a dose was actually taken, so
+        // Traitement had no dated event of its own for the unified Calendar
+        // (or any screen) to show.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `medication_log` (" +
+                "`id` TEXT NOT NULL, " +
+                "`medicationId` TEXT NOT NULL, " +
+                "`medicationName` TEXT NOT NULL, " +
+                "`date` TEXT NOT NULL, " +
+                "`takenAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_log_date_profileId` ON `medication_log` (`date`, `profileId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_log_medicationId` ON `medication_log` (`medicationId`)")
     }
 }

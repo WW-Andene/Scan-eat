@@ -4,6 +4,7 @@ import fr.scanneat.data.local.db.activity.ActivityEntity
 import fr.scanneat.data.local.db.consumption.ConsumptionEntity
 import fr.scanneat.data.local.db.customfood.CustomFoodEntity
 import fr.scanneat.data.local.db.medication.MedicationEntity
+import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.template.MealTemplateEntity
@@ -31,6 +32,9 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // reminder schedule) with no other persistence path — and manually-added
 // grocery items (e.g. "Save to..." from a scanned product), also previously
 // silently lost on backup/restore.
+// Since v6, also medication_log — the "I took this" adherence events added
+// alongside Traitement's calendar entry (previously Traitement's active list
+// was backed up, but not whether/when a dose was actually taken).
 //
 // Deliberately excludes the Groq API key from SettingsBackup — a backup file
 // shared for debugging or support must not leak a credential.
@@ -41,7 +45,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 5
+const val BACKUP_FORMAT_VERSION = 6
 
 data class ProfileBackup(
     val name: String,
@@ -98,6 +102,7 @@ data class BackupBundle(
     val biolism: BiolismRepository.BiolismBackupData? = null,
     val medications: List<MedicationEntity> = emptyList(),
     val manualGroceryItems: List<ManualGroceryItem> = emptyList(),
+    val medicationLog: List<MedicationLogEntity> = emptyList(),
 )
 
 data class BackupSummary(
@@ -109,8 +114,9 @@ data class BackupSummary(
     val mealTemplates: Int,
     val recipes: Int,
     val medications: Int = 0,
+    val medicationLog: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -122,6 +128,7 @@ data class BackupSummary(
             mealTemplates = bundle.mealTemplates.size,
             recipes       = bundle.recipes.size,
             medications   = bundle.medications.size,
+            medicationLog = bundle.medicationLog.size,
         )
     }
 }
