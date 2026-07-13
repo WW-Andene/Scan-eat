@@ -85,13 +85,31 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     // Closes the gap with PersonalScoreEngine, which already personalizes the
     // *score* for diabetes/hypertension/kidney_disease/pregnancy — the hint
     // panel is a separate surface and previously ignored the profile entirely.
+    // Thresholds/wording deliberately mirror PersonalScoreEngine's own
+    // condition checks exactly (same 15.0/5.0 sugar, 1.2/0.3 salt, 15.0
+    // protein cutoffs) so the two surfaces never disagree with each other.
+    val conditions = profile.healthConditions
+    if ("diabetes" in conditions) {
+        if (n.sugarsG >= 15.0) risks += if (en) "High sugar (${n.sugarsG} g/100 g) — caution advised for diabetes"
+                                        else "Sucres élevés (${n.sugarsG} g/100 g) — prudence recommandée en cas de diabète"
+        else if (n.sugarsG <= 5.0) benefits += if (en) "Low sugar — diabetes-friendly" else "Faible en sucres — adapté au diabète"
+    }
+    if ("hypertension" in conditions) {
+        if (n.saltG >= 1.2) risks += if (en) "High salt (${n.saltG} g/100 g) — caution advised for hypertension"
+                                     else "Sel élevé (${n.saltG} g/100 g) — prudence recommandée en cas d'hypertension"
+        else if (n.saltG <= 0.3) benefits += if (en) "Low salt — hypertension-friendly" else "Faible en sel — adapté à l'hypertension"
+    }
+    if ("kidney_disease" in conditions && n.proteinG >= 15.0) {
+        risks += if (en) "High protein (${n.proteinG} g/100 g) — caution advised for kidney disease"
+                 else "Protéines élevées (${n.proteinG} g/100 g) — prudence recommandée en cas de maladie rénale"
+    }
     risks += findHealthConditionGuidance(product.ingredients, profile.healthConditions, lang)
     val containsCaffeineSource = product.ingredients.any {
         val norm = fr.scanneat.domain.engine.scoring.normalizeForMatching(it.name)
         listOf("cafeine", "guarana", "mate", "yerba mate", "cafe", "the vert", "the noir", "coffee", "tea", "cocoa", "cacao")
             .any { syn -> norm.contains(fr.scanneat.domain.engine.scoring.normalizeForMatching(syn)) }
     }
-    if ("pregnancy" in profile.healthConditions && containsCaffeineSource) {
+    if ("pregnancy" in conditions && containsCaffeineSource) {
         // ANSES: pregnant women should keep total caffeine intake under 200 mg/day —
         // a stricter, condition-specific limit than the generic EFSA "75 mg = alertness"
         // claim threshold already reported above for the general population. Flagged
