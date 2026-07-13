@@ -26,11 +26,24 @@ import fr.scanneat.domain.model.Grade
 // or bad," and the two must never be the same hue or they stop being readable.
 // Raw OLED literals — consumed only by Theme.kt to build the OLED color scheme
 // (can't reference MaterialTheme.colorScheme while constructing it).
-internal val OledBackgroundRaw     = Color(0xFF0F0D12)  // near-black, faint warm-plum undertone
+internal val OledBackgroundRaw     = Color(0xFF000000)  // true pure black — every OLED pixel off, not a darker Dark
 internal val OledOnBackgroundRaw   = Color(0xFFEFEAE6)
-internal val OledSurfaceRaw        = Color(0xFF1C1820)
-internal val OledSurfaceVariantRaw = Color(0xFF2C2631)  // one step lighter than surface — the elevation tier Dark already has
+internal val OledSurfaceRaw        = Color(0xFF141118)
+internal val OledSurfaceVariantRaw = Color(0xFF241F29)  // one step lighter than surface — the elevation tier Dark already has
 internal val OledOnSurfaceRaw      = Color(0xFFCFC7CC)
+
+// High/Low Contrast — WCAG-maximal variants, not brand-color re-tunes.
+internal val HighContrastBackgroundRaw = Color(0xFF000000)
+internal val HighContrastOnBackgroundRaw = Color(0xFFFFFFFF)
+internal val HighContrastSurfaceRaw = Color(0xFF000000)
+internal val HighContrastOnSurfaceRaw = Color(0xFFFFFFFF)
+internal val HighContrastOutlineRaw = Color(0xFFFFFFFF)
+
+internal val LowContrastBackgroundRaw = Color(0xFF3A3A3A)
+internal val LowContrastOnBackgroundRaw = Color(0xFFB8B8B8)
+internal val LowContrastSurfaceRaw = Color(0xFF454545)
+internal val LowContrastOnSurfaceRaw = Color(0xFFAFAFAF)
+internal val LowContrastOutlineRaw = Color(0xFF6A6A6A)
 
 // Theme-reactive roles. Every screen reads these instead of a fixed literal, so
 // switching OLED/Sombre/Clair in Settings actually repaints the app — previously

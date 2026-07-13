@@ -81,7 +81,7 @@
 
     <!-- ── Biolism shell ──────────────────────────────────────────────────── -->
     <string name="biolism_subtitle">Métabolisme · Science · Précision</string>
-    <string name="biolism_tab_tracker">Tracker</string>
+    <string name="biolism_tab_tracker">Suivi</string>
     <string name="biolism_tab_data">Données</string>
     <string name="biolism_tab_profile">Profil</string>
 
@@ -721,6 +721,8 @@
     <string name="settings_theme_oled">OLED</string>
     <string name="settings_theme_dark">Sombre</string>
     <string name="settings_theme_light">Clair</string>
+    <string name="settings_theme_high_contrast">Contraste élevé</string>
+    <string name="settings_theme_low_contrast">Contraste faible</string>
     <string name="settings_section_profile">Profil nutritionnel</string>
     <string name="settings_section_accessibility">Accessibilité</string>
     <string name="settings_section_reminders">Rappels</string>

@@ -83,6 +83,44 @@ private val LightColors = lightColorScheme(
     outline          = Color(0xFFCCBFB8),
 )
 
+private val HighContrastColors = darkColorScheme(
+    primary          = Color(0xFFFFD700),
+    onPrimary        = Color.Black,
+    secondary        = Color(0xFF00FFFF),
+    onSecondary      = Color.Black,
+    tertiary         = Color(0xFF00FF00),
+    background       = HighContrastBackgroundRaw,
+    onBackground     = HighContrastOnBackgroundRaw,
+    surface          = HighContrastSurfaceRaw,
+    onSurface        = HighContrastOnSurfaceRaw,
+    surfaceVariant   = HighContrastSurfaceRaw,
+    onSurfaceVariant = HighContrastOnSurfaceRaw,
+    error            = Color(0xFFFF5555),
+    onError          = Color.Black,
+    errorContainer   = Color(0xFF400000),
+    onErrorContainer = Color(0xFFFF5555),
+    outline          = HighContrastOutlineRaw,
+)
+
+private val LowContrastColors = darkColorScheme(
+    primary          = Gold,
+    onPrimary        = Color.Black,
+    secondary        = AccentCoral,
+    onSecondary      = Color.Black,
+    tertiary         = Teal,
+    background       = LowContrastBackgroundRaw,
+    onBackground     = LowContrastOnBackgroundRaw,
+    surface          = LowContrastSurfaceRaw,
+    onSurface        = LowContrastOnSurfaceRaw,
+    surfaceVariant   = LowContrastSurfaceRaw,
+    onSurfaceVariant = LowContrastOnSurfaceRaw,
+    error            = FlagRed,
+    onError          = Color.White,
+    errorContainer   = Color(0x26EF5350),
+    onErrorContainer = FlagRed,
+    outline          = LowContrastOutlineRaw,
+)
+
 // ── Gold accent override ──────────────────────────────────────────────────────
 // Biolism screens need a darker gold in light theme for legible contrast on a
 // light background; every other theme uses the raw Gold token as-is.
@@ -153,9 +191,11 @@ fun ScanEatTheme(
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when (theme) {
-        "dark"  -> DarkColors
-        "light" -> LightColors
-        else    -> OledColors
+        "dark"           -> DarkColors
+        "light"          -> LightColors
+        "high_contrast"  -> HighContrastColors
+        "low_contrast"   -> LowContrastColors
+        else             -> OledColors
     }
     val goldAccent = if (theme == "light") LightGoldAccent else Gold
     val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography

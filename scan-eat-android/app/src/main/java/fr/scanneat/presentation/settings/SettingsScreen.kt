@@ -251,8 +251,14 @@ fun SettingsScreen(
 
             // Fix 4: Theme toggle
             SettingsSection(stringResource(R.string.settings_section_theme)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    listOf("oled" to stringResource(R.string.settings_theme_oled), "dark" to stringResource(R.string.settings_theme_dark), "light" to stringResource(R.string.settings_theme_light)).forEach { (key, label) ->
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    listOf(
+                        "oled" to stringResource(R.string.settings_theme_oled),
+                        "dark" to stringResource(R.string.settings_theme_dark),
+                        "light" to stringResource(R.string.settings_theme_light),
+                        "high_contrast" to stringResource(R.string.settings_theme_high_contrast),
+                        "low_contrast" to stringResource(R.string.settings_theme_low_contrast),
+                    ).forEach { (key, label) ->
                         FilterChip(
                             selected = theme.value == key,
                             onClick  = { viewModel.setTheme(key) },

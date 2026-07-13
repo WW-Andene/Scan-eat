@@ -143,14 +143,14 @@ fun ProfileScreen(
                 GoalSelector(goal) { goal = it }
             }
 
-            // ---- Diet ----
-            ProfileSection(stringResource(R.string.profile_section_diet)) {
-                DietSelector(diet) { diet = it }
-            }
-
             // ---- Allergens ----
             ProfileSection(stringResource(R.string.profile_section_allergens)) {
                 AllergenSelector(allergens) { allergens = it }
+            }
+
+            // ---- Diet ----
+            ProfileSection(stringResource(R.string.profile_section_diet)) {
+                DietSelector(diet) { diet = it }
             }
 
             Spacer(Modifier.height(40.dp))

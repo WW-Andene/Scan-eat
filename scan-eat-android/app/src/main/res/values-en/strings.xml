@@ -717,6 +717,8 @@
     <string name="settings_theme_oled">OLED</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_high_contrast">High contrast</string>
+    <string name="settings_theme_low_contrast">Low contrast</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
     <string name="settings_section_reminders">Reminders</string>
