@@ -31,11 +31,24 @@ data class GroceryComponent(
     val grams: Double,
 )
 
-private fun normalizeKey(name: String): String =
+fun normalizeKey(name: String): String =
     Normalizer.normalize(name.trim().lowercase(), Normalizer.Form.NFD)
         .replace(Regex("[\\u0300-\\u036f]"), "")
 
 private class GroceryAcc(val name: String, var grams: Double, val sources: MutableList<String>)
+
+/**
+ * Resolves the aggregated row key a raw ingredient/item name would land on,
+ * after mergePluralVariants() folds a plural spelling into its singular
+ * counterpart. Used to match a manual grocery item back to the aggregated
+ * [GroceryItem] it contributed to (e.g. for deletion) without re-deriving a
+ * separate, possibly-out-of-sync normalization elsewhere.
+ */
+fun canonicalGroceryKey(name: String, existingKeys: Set<String>): String {
+    val key = normalizeKey(name)
+    val singular = key.dropLast(1)
+    return if (key.endsWith("s") && key !in existingKeys && singular in existingKeys) singular else key
+}
 
 /**
  * Aggregate recipes into a deduplicated, alphabetically-sorted grocery list.
