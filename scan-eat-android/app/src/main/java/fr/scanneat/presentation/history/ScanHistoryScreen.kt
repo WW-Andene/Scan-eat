@@ -166,7 +166,7 @@ fun ScanHistoryScreen(
                             IconButton(onClick = { deleteTarget = scan.dbId }) {
                                 Icon(Icons.Default.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
                             }
-                            Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(20.dp))
+                            Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
                         }
                     }
                 }

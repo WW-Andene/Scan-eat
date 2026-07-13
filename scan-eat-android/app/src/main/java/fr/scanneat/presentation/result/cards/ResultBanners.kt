@@ -89,7 +89,7 @@ internal fun DietVetoBanner(reason: String?) {
         ) {
             Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(Icons.Default.Block, null, tint = semanticRed(), modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Block, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Inline))
                 Text(reason ?: "", style = MaterialTheme.typography.bodySmall,
                     color = OnBackground, modifier = Modifier.weight(1f))
             }
@@ -108,7 +108,7 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String
             Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
                     Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
                         color = semanticAmber(), fontWeight = FontWeight.SemiBold)
                 }

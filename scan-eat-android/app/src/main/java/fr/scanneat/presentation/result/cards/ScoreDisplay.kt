@@ -122,7 +122,7 @@ internal fun DualScoreRing(
                 }
             }
         }
-        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = OnBackground.copy(0.3f), modifier = Modifier.size(20.dp))
+        Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = OnBackground.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
         val personalColor = if (veto) semanticRed() else gradeColor(personalGrade)
         val (personalAnimated, personalCompletion) = rememberScoreReveal(personalScore / 100f)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {

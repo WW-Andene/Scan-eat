@@ -118,7 +118,7 @@ fun HydrationScreen(
                                         overGoal -> Gold
                                         else -> semanticBlue()
                                     },
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(IconSize.Inline),
                                 )
                             }
                         }
