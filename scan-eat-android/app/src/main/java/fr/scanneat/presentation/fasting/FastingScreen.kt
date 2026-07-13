@@ -42,6 +42,18 @@ fun FastingScreen(
     viewModel.tick.collectAsStateWithLifecycle() // force recomposition every second
 
     var targetHours by remember { mutableIntStateOf(16) }
+    var customMode by remember { mutableStateOf(false) }
+    var customStart by remember { mutableStateOf("18:00") }
+    var customEnd by remember { mutableStateOf("06:00") }
+    val customHours = remember(customStart, customEnd) {
+        runCatching {
+            val start = java.time.LocalTime.parse(customStart)
+            val end = java.time.LocalTime.parse(customEnd)
+            var minutes = java.time.Duration.between(start, end).toMinutes()
+            if (minutes <= 0) minutes += 24 * 60 // overnight window, e.g. 18:00 -> 06:00
+            minutes / 60.0
+        }.getOrNull()
+    }
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
@@ -96,7 +108,7 @@ fun FastingScreen(
                             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                                 listOf(12, 16, 18, 20, 24).forEach { h ->
                                     FilterChip(
-                                        selected = targetHours == h, onClick = { targetHours = h },
+                                        selected = !customMode && targetHours == h, onClick = { customMode = false; targetHours = h },
                                         label = { Text(stringResource(R.string.fasting_hours_chip, h), style = MaterialTheme.typography.labelMedium) },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
@@ -104,9 +116,42 @@ fun FastingScreen(
                                         ),
                                     )
                                 }
+                                FilterChip(
+                                    selected = customMode, onClick = { customMode = true },
+                                    label = { Text(stringResource(R.string.fasting_custom_chip), style = MaterialTheme.typography.labelMedium) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                        labelColor = OnBackground.copy(0.7f),
+                                    ),
+                                )
                             }
-                            ScanEatPrimaryButton(onClick = { viewModel.start(targetHours) }, modifier = Modifier.fillMaxWidth()) {
-                                Text(stringResource(R.string.fasting_start_button, targetHours))
+                            if (customMode) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                                    OutlinedTextField(
+                                        value = customStart, onValueChange = { customStart = it },
+                                        label = { Text(stringResource(R.string.fasting_custom_start_label)) },
+                                        singleLine = true, modifier = Modifier.width(110.dp),
+                                        textStyle = MaterialTheme.typography.bodySmall,
+                                    )
+                                    Text("→", style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
+                                    OutlinedTextField(
+                                        value = customEnd, onValueChange = { customEnd = it },
+                                        label = { Text(stringResource(R.string.fasting_custom_end_label)) },
+                                        singleLine = true, modifier = Modifier.width(110.dp),
+                                        textStyle = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                                if (customHours != null) {
+                                    Text(stringResource(R.string.fasting_target_progress, customHours.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                                }
+                            }
+                            val effectiveHours = if (customMode) customHours?.toInt() else targetHours
+                            ScanEatPrimaryButton(
+                                onClick = { effectiveHours?.let { viewModel.start(it) } },
+                                enabled = effectiveHours != null,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(stringResource(R.string.fasting_start_button, effectiveHours ?: targetHours))
                             }
                         }
                     }

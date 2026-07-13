@@ -694,6 +694,9 @@
     <string name="fasting_target_duration_label">Target duration</string>
     <string name="fasting_hours_chip">%1$dh</string>
     <string name="fasting_start_button">Start %1$dh</string>
+    <string name="fasting_custom_chip">Custom</string>
+    <string name="fasting_custom_start_label">Start</string>
+    <string name="fasting_custom_end_label">End</string>
     <string name="fasting_history_title">History</string>
     <string name="fasting_history_entry">%1$sh / %2$dh</string>
 
