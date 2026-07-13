@@ -164,8 +164,8 @@ fun FastingScreen(
                 items(history.value.take(20), key = { it.endMs }) { c ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                        Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) FlagGreen else AmberWarning)
-                        Icon(if (c.reached) Icons.Default.CheckCircle else Icons.Default.Close, null, tint = if (c.reached) FlagGreen else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
+                        Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) semanticGreen() else semanticAmber())
+                        Icon(if (c.reached) Icons.Default.CheckCircle else Icons.Default.Close, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
                     }
                 }
             }

@@ -25,8 +25,8 @@ internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummar
                 Column {
                     Text(stringResource(R.string.weight_kg, summary.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
                     val deltaColor = when {
-                        summary.deltaKg < 0 -> FlagGreen
-                        summary.deltaKg > 0 -> FlagRed
+                        summary.deltaKg < 0 -> semanticGreen()
+                        summary.deltaKg > 0 -> semanticRed()
                         else -> OnSurface.copy(0.5f)
                     }
                     val sign = if (summary.deltaKg >= 0) "+" else ""

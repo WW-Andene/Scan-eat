@@ -32,7 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.AmberWarning
+import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -75,7 +75,7 @@ fun ResultScreen(
                 actions = {
                     state.value.scanResult?.let { scan ->
                         IconButton(onClick = { showHints = true }) {
-                            Icon(Icons.Default.Lightbulb, stringResource(R.string.hint_cd_open), tint = AmberWarning)
+                            Icon(Icons.Default.Lightbulb, stringResource(R.string.hint_cd_open), tint = semanticAmber())
                         }
                         IconButton(onClick = { showSaveMenu = true }) {
                             Icon(

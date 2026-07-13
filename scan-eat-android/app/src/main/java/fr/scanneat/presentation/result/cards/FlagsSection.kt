@@ -14,10 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import fr.scanneat.presentation.ui.theme.FlagGreen
-import fr.scanneat.presentation.ui.theme.FlagRed
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.semanticRed
 
 @Composable
 internal fun FlagsSection(redFlags: List<String>, greenFlags: List<String>) {
@@ -29,7 +29,7 @@ internal fun FlagsSection(redFlags: List<String>, greenFlags: List<String>) {
 
 @Composable
 private fun FlagRow(text: String, isRed: Boolean) {
-    val color = if (isRed) FlagRed else FlagGreen
+    val color = if (isRed) semanticRed() else semanticGreen()
     Row(
         modifier = Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))

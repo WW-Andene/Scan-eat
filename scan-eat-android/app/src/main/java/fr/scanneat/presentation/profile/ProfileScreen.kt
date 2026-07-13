@@ -371,7 +371,7 @@ private fun AllergenSelector(current: Set<String>, onSelect: (Set<String>) -> Un
                     },
                     label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = AmberWarning.copy(0.2f), selectedLabelColor = AmberWarning,
+                        selectedContainerColor = semanticAmber().copy(0.2f), selectedLabelColor = semanticAmber(),
                         labelColor = OnBackground.copy(0.7f),
                     ),
                 )

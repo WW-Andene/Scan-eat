@@ -17,15 +17,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.WeekOverWeekDelta
-import fr.scanneat.presentation.ui.theme.AmberWarning
-import fr.scanneat.presentation.ui.theme.FlagGreen
+import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.Spacing
 import kotlin.math.roundToInt
 
 @Composable
 internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
     val sign = if (delta.kcal >= 0) "+" else ""
-    val color = if (delta.kcal <= 0) FlagGreen else AmberWarning
+    val color = if (delta.kcal <= 0) semanticGreen() else semanticAmber()
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))

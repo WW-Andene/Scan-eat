@@ -16,15 +16,17 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.AmberWarning
-import fr.scanneat.presentation.ui.theme.FlagGreen
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.semanticGreen
 
 /** The "💡" hint panel — benefits / risks / facts, each traced to a concrete product field (see ProductHints.kt). */
 @Composable
 fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
+    val green = semanticGreen()
+    val amber = semanticAmber()
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
@@ -32,10 +34,10 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
         text = {
             Column(modifier = Modifier.widthIn(max = 320.dp)) {
                 if (hints.benefits.isNotEmpty()) {
-                    HintSection(stringResource(R.string.hint_section_benefits), hints.benefits, FlagGreen)
+                    HintSection(stringResource(R.string.hint_section_benefits), hints.benefits, green)
                 }
                 if (hints.risks.isNotEmpty()) {
-                    HintSection(stringResource(R.string.hint_section_risks), hints.risks, AmberWarning)
+                    HintSection(stringResource(R.string.hint_section_risks), hints.risks, amber)
                 }
                 if (hints.facts.isNotEmpty()) {
                     HintSection(stringResource(R.string.hint_section_facts), hints.facts, OnBackground.copy(0.6f))

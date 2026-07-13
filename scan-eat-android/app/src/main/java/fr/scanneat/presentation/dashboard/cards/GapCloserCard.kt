@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.GapEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.AmberWarning
+import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -37,7 +37,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>) {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     Text(
                         stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, "%.1f".format(Locale.US, gap.deficit)),
-                        style = MaterialTheme.typography.labelMedium, color = AmberWarning,
+                        style = MaterialTheme.typography.labelMedium, color = semanticAmber(),
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         gap.suggestions.take(3).forEach { s ->

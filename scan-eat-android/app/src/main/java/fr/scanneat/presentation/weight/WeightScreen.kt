@@ -130,7 +130,7 @@ fun WeightScreen(
                             Column {
                                 Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
                                 val sign = if (s.deltaKg >= 0) "+" else ""
-                                val dColor = if (s.deltaKg <= 0) FlagGreen else FlagRed
+                                val dColor = if (s.deltaKg <= 0) semanticGreen() else semanticRed()
                                 Text(stringResource(R.string.weight_delta_kg, "$sign${s.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = dColor)
                             }
                             Column(horizontalAlignment = Alignment.End) {
@@ -150,7 +150,7 @@ fun WeightScreen(
                                 Text(
                                     stringResource(R.string.weight_goal_delta, "${if (toGoal > 0) "−" else "+"}${dispWeight(kotlin.math.abs(toGoal))}", dispWeight(goal)),
                                     style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
-                                    color = if (kotlin.math.abs(toGoal) < 0.5) FlagGreen else AccentCoral,
+                                    color = if (kotlin.math.abs(toGoal) < 0.5) semanticGreen() else AccentCoral,
                                 )
                             }
                         }

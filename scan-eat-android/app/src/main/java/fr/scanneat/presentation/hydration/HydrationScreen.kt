@@ -2,6 +2,7 @@ package fr.scanneat.presentation.hydration
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,6 +31,8 @@ import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.YearMonth
+import java.util.Locale
 import javax.inject.Inject
 
 
@@ -46,19 +49,66 @@ fun HydrationScreen(
     onBack: () -> Unit,
     embedded: Boolean = false,
 ) {
-    val intake = viewModel.intake.collectAsStateWithLifecycle()
-    val goal   = viewModel.goal.collectAsStateWithLifecycle()
-    val glasses = intake.value / HYD_GLASS_ML
+    val intake      = viewModel.intake.collectAsStateWithLifecycle()
+    val goal        = viewModel.goal.collectAsStateWithLifecycle()
+    val markedDates = viewModel.markedDates.collectAsStateWithLifecycle()
+    val glasses     = intake.value / HYD_GLASS_ML
     val goalGlasses = goal.value / HYD_GLASS_ML
-    val pct = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
+    val pct         = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
+
+    var showCalendar      by remember { mutableStateOf(false) }
+    var calendarMonth     by remember { mutableStateOf(YearMonth.now()) }
+    var calendarSelected  by remember { mutableStateOf<LocalDate?>(null) }
+    val locale = Locale.getDefault()
 
     val content = @Composable { padding: PaddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.XL),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {
-            Spacer(Modifier.height(16.dp))
+        item { Spacer(Modifier.height(16.dp)) }
+
+        // Calendar toggle
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                IconButton(onClick = { showCalendar = !showCalendar }) {
+                    Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar),
+                        tint = if (showCalendar) semanticBlue() else OnBackground.copy(0.5f))
+                }
+            }
+        }
+
+        if (showCalendar) {
+            item {
+                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
+                    Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(Spacing.M)) {
+                            MonthCalendar(
+                                month = calendarMonth,
+                                selected = calendarSelected,
+                                markedDates = markedDates.value,
+                                locale = locale,
+                                onMonthChange = { calendarMonth = it },
+                                onDayClick = { calendarSelected = if (calendarSelected == it) null else it },
+                            )
+                            calendarSelected?.let { day ->
+                                Spacer(Modifier.height(Spacing.S))
+                                val dayIntake = if (day == LocalDate.now()) intake.value else null
+                                Text(
+                                    if (dayIntake != null) stringResource(R.string.hydration_calendar_day_intake, day.toString(), dayIntake)
+                                    else if (day in markedDates.value) stringResource(R.string.hydration_calendar_day_logged, day.toString())
+                                    else stringResource(R.string.hydration_calendar_day_empty, day.toString()),
+                                    style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item {
 
             // Big ring
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp)) {
@@ -66,19 +116,19 @@ fun HydrationScreen(
                     modifier = Modifier
                         .size(200.dp)
                         .background(
-                            Brush.radialGradient(listOf(HydrationBlue.copy(alpha = 0.2f), Color.Transparent)),
+                            Brush.radialGradient(listOf(semanticBlue().copy(alpha = 0.2f), Color.Transparent)),
                             CircleShape,
                         ),
                 )
                 CircularProgressIndicator(
                     progress = { pct.coerceIn(0f, 1f) },
                     modifier = Modifier.size(180.dp),
-                    color = HydrationBlue,
+                    color = semanticBlue(),
                     trackColor = SurfaceVariant,
                     strokeWidth = 14.dp,
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${intake.value}", style = MaterialTheme.typography.headlineLarge, color = HydrationBlue, fontWeight = FontWeight.Bold)
+                    Text("${intake.value}", style = MaterialTheme.typography.headlineLarge, color = semanticBlue(), fontWeight = FontWeight.Bold)
                     Text(stringResource(R.string.hydration_goal_ml, goal.value), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                     Text(stringResource(R.string.hydration_glasses_count, glasses, goalGlasses), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), fontSize = 11.sp)
                 }
@@ -99,7 +149,7 @@ fun HydrationScreen(
                                     tint = when {
                                         !filled -> OnBackground.copy(0.15f)
                                         overGoal -> Gold
-                                        else -> HydrationBlue
+                                        else -> semanticBlue()
                                     },
                                     modifier = Modifier.size(20.dp),
                                 )
@@ -111,10 +161,10 @@ fun HydrationScreen(
 
             if (pct >= 1f) {
                 Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
-                    Surface(shape = RoundedCornerShape(12.dp), color = FlagGreen.copy(0.15f)) {
+                    Surface(shape = RoundedCornerShape(12.dp), color = semanticGreen().copy(0.15f)) {
                         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                            Icon(Icons.Default.CheckCircle, null, tint = FlagGreen, modifier = Modifier.size(18.dp))
-                            Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = FlagGreen)
+                            Icon(Icons.Default.CheckCircle, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
+                            Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
                         }
                     }
                 }
@@ -136,7 +186,7 @@ fun HydrationScreen(
 
                 FloatingActionButton(
                     onClick = { viewModel.addGlass() },
-                    containerColor = HydrationBlue,
+                    containerColor = semanticBlue(),
                     shape = CircleShape,
                     modifier = Modifier.size(56.dp),
                 ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
@@ -147,6 +197,7 @@ fun HydrationScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = OnBackground.copy(0.4f),
             )
+        }
         }
     }
 

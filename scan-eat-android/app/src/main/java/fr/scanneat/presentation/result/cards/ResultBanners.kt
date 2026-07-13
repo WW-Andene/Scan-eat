@@ -33,7 +33,7 @@ internal fun ComparisonCard(cmp: ComparisonResult) {
         Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
         val delta = cmp.scoreDelta
-        val dColor = if (delta >= 0) FlagGreen else FlagRed
+        val dColor = if (delta >= 0) semanticGreen() else semanticRed()
         val dSign  = if (delta >= 0) "+" else ""
         Text("${cmp.prev.name} → ${cmp.next.name}",
             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
@@ -41,10 +41,10 @@ internal fun ComparisonCard(cmp: ComparisonResult) {
             style = MaterialTheme.typography.bodyMedium, color = dColor, fontWeight = FontWeight.Bold)
         if (cmp.addedRedFlags.isNotEmpty())
             Text(stringResource(R.string.result_comparison_new_issues, cmp.addedRedFlags.joinToString()),
-                style = MaterialTheme.typography.bodySmall, color = FlagRed)
+                style = MaterialTheme.typography.bodySmall, color = semanticRed())
         if (cmp.removedRedFlags.isNotEmpty())
             Text(stringResource(R.string.result_comparison_resolved_issues, cmp.removedRedFlags.joinToString()),
-                style = MaterialTheme.typography.bodySmall, color = FlagGreen)
+                style = MaterialTheme.typography.bodySmall, color = semanticGreen())
     }
 }
 
@@ -85,11 +85,11 @@ internal fun DietVetoBanner(reason: String?) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape    = RoundedCornerShape(12.dp),
-            color    = FlagRed.copy(alpha = 0.15f),
+            color    = semanticRed().copy(alpha = 0.15f),
         ) {
             Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(Icons.Default.Block, null, tint = FlagRed, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Block, null, tint = semanticRed(), modifier = Modifier.size(20.dp))
                 Text(reason ?: "", style = MaterialTheme.typography.bodySmall,
                     color = OnBackground, modifier = Modifier.weight(1f))
             }
@@ -103,14 +103,14 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape    = RoundedCornerShape(12.dp),
-            color    = AmberWarning.copy(alpha = 0.15f),
+            color    = semanticAmber().copy(alpha = 0.15f),
         ) {
             Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Icon(Icons.Default.Warning, null, tint = AmberWarning, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(20.dp))
                     Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
-                        color = AmberWarning, fontWeight = FontWeight.SemiBold)
+                        color = semanticAmber(), fontWeight = FontWeight.SemiBold)
                 }
                 allergens.forEach { hit ->
                     val label = if (language == "en") hit.labelEn else hit.labelFr

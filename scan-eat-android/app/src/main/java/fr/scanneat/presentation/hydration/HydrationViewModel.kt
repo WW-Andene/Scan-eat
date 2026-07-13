@@ -35,6 +35,11 @@ class HydrationViewModel @Inject constructor(
         .map { repo.goalMl(it.sex, it.activityLevel, it.healthConditions) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
 
+    // Dates with at least one glass logged — drives the calendar marker dots
+    val markedDates: StateFlow<Set<LocalDate>> = flow {
+        emit(repo.exportAll().filter { it.second > 0 }.map { it.first }.toSet())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
     fun addGlass()    = viewModelScope.launch { repo.addGlass() }
     fun removeGlass() = viewModelScope.launch { repo.removeGlass() }
 }

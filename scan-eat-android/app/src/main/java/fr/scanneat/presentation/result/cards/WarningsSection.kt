@@ -12,7 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
-import fr.scanneat.presentation.ui.theme.AmberWarning
+import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.glassSheen
@@ -22,10 +22,10 @@ internal fun WarningsSection(warnings: List<String>) {
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(8.dp))) {
         Column(modifier = Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(AmberWarning.copy(0.1f))
+            .background(semanticAmber().copy(0.1f))
             .padding(Spacing.M)) {
             Text(stringResource(R.string.result_notes_title), style = MaterialTheme.typography.labelMedium,
-                color = AmberWarning, fontWeight = FontWeight.SemiBold)
+                color = semanticAmber(), fontWeight = FontWeight.SemiBold)
             warnings.forEach { Text(stringResource(R.string.result_warning_item, it), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f)) }
         }
     }

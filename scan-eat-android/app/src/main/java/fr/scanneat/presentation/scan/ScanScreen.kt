@@ -336,7 +336,7 @@ fun ScanScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     Text(stringResource(R.string.scan_nonconsumable_found_body, found.entry.name, found.entry.brand), color = OnBackground.copy(0.8f))
-                    Text(stringResource(R.string.scan_nonconsumable_safety_line), color = FlagRed, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
                 }
             },
             confirmButton = { TextButton(onClick = { viewModel.dismissError() }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },

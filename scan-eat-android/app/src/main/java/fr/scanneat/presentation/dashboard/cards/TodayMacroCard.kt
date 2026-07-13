@@ -28,8 +28,8 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
                 val kcalPct = targets?.let { (totals.energyKcal / it.kcal).toFloat() }
                 val kcalColor = when {
                     kcalPct == null  -> AccentCoral
-                    kcalPct > 1.1f   -> FlagRed
-                    kcalPct > 0.9f   -> FlagGreen
+                    kcalPct > 1.1f   -> semanticRed()
+                    kcalPct > 0.9f   -> semanticGreen()
                     else             -> AccentCoral
                 }
                 val protPct = targets?.proteinGTarget?.takeIf { it > 0 }?.let { (totals.proteinG / it).toFloat() }
@@ -38,7 +38,7 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
                 // macro budget, so it stays an unfilled ring for them same as before.
                 val carbsMax = targets?.carbsGDailyMax
                 val carbsPct = carbsMax?.takeIf { it > 0 }?.let { (totals.carbsG / it).toFloat() }
-                val carbsColor = if (carbsPct != null && carbsPct > 1f) FlagRed else AccentCoral
+                val carbsColor = if (carbsPct != null && carbsPct > 1f) semanticRed() else AccentCoral
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                     MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor)
                     MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral)

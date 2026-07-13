@@ -183,3 +183,38 @@ fun gradeColor(grade: Grade): Color {
     }
     return palette.getValue(grade)
 }
+
+// ── Colorblind-safe semantic color accessors (Okabe-Ito 2008 palette) ─────────
+// All UI code should read these instead of the raw constants so that colorblind
+// mode actually affects every element, not just grade chips.
+
+/** Good / positive / success signal. */
+@Composable
+fun semanticGreen(): Color = when (LocalColorblindMode.current) {
+    "protanopia", "deuteranopia" -> Color(0xFF56B4E9) // sky blue — unambiguous for red-green CVD
+    "tritanopia"                 -> Color(0xFF009E73) // bluish green — safe on blue-yellow axis
+    else                         -> FlagGreen
+}
+
+/** Bad / danger / rejection signal. */
+@Composable
+fun semanticRed(): Color = when (LocalColorblindMode.current) {
+    "protanopia", "deuteranopia" -> Color(0xFFD55E00) // vermilion — distinct from sky blue above
+    "tritanopia"                 -> Color(0xFFCC79A7) // reddish purple — safe on blue-yellow axis
+    else                         -> FlagRed
+}
+
+/** Warning / caution signal. */
+@Composable
+fun semanticAmber(): Color = when (LocalColorblindMode.current) {
+    "protanopia", "deuteranopia" -> Color(0xFFF0E442) // yellow — strongly distinct from vermilion
+    "tritanopia"                 -> Color(0xFFE69F00) // orange — safe on blue-yellow axis
+    else                         -> AmberWarning
+}
+
+/** Hydration / water indicator. */
+@Composable
+fun semanticBlue(): Color = when (LocalColorblindMode.current) {
+    "tritanopia" -> Color(0xFF009E73) // tritanopia can't distinguish blue well; use bluish-green
+    else         -> HydrationBlue     // blue is fine for protan/deutan and normal
+}

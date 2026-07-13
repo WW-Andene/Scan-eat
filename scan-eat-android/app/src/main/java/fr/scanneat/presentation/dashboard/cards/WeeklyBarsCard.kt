@@ -51,7 +51,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                     val isOver  = targets != null && day.kcal > targets.kcal
                     val color   = when {
                         day.count == 0 -> OnSurface.copy(0.1f)
-                        isOver         -> FlagRed.copy(0.7f)
+                        isOver         -> semanticRed().copy(0.7f)
                         else           -> AccentCoral.copy(if (isToday) 1f else 0.6f)
                     }
                     Box(

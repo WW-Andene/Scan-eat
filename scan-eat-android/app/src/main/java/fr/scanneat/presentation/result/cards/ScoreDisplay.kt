@@ -123,11 +123,11 @@ internal fun DualScoreRing(
             }
         }
         Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = OnBackground.copy(0.3f), modifier = Modifier.size(20.dp))
-        val personalColor = if (veto) FlagRed else gradeColor(personalGrade)
+        val personalColor = if (veto) semanticRed() else gradeColor(personalGrade)
         val (personalAnimated, personalCompletion) = rememberScoreReveal(personalScore / 100f)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.result_personal_score_label), style = MaterialTheme.typography.labelSmall,
-                color = if (veto) FlagRed else AccentCoral)
+                color = if (veto) semanticRed() else AccentCoral)
             Spacer(Modifier.height(4.dp))
             Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
                 Box(

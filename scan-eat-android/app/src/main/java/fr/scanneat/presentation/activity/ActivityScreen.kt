@@ -81,7 +81,12 @@ fun ActivityScreen(
     // Refresh date when screen becomes active (handles midnight crossing)
     LaunchedEffect(Unit) { viewModel.refreshDate() }
 
-    val entries = viewModel.entries.collectAsStateWithLifecycle()
+    val entries      = viewModel.entries.collectAsStateWithLifecycle()
+    val markedDates  = viewModel.markedDates.collectAsStateWithLifecycle()
+    var showCalendar     by remember { mutableStateOf(false) }
+    var calendarMonth    by remember { mutableStateOf(java.time.YearMonth.now()) }
+    var calendarSelected by remember { mutableStateOf<java.time.LocalDate?>(null) }
+    val locale = java.util.Locale.getDefault()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by remember { mutableStateOf("30") }
     var selectedSubType by remember { mutableStateOf<String?>(null) }
@@ -103,6 +108,44 @@ fun ActivityScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            // Calendar toggle
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    IconButton(onClick = { showCalendar = !showCalendar }) {
+                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar),
+                            tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
+                    }
+                }
+            }
+
+            if (showCalendar) {
+                item {
+                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
+                        Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(Spacing.M)) {
+                                MonthCalendar(
+                                    month = calendarMonth,
+                                    selected = calendarSelected,
+                                    markedDates = markedDates.value,
+                                    locale = locale,
+                                    onMonthChange = { calendarMonth = it },
+                                    onDayClick = { calendarSelected = if (calendarSelected == it) null else it },
+                                )
+                                calendarSelected?.let { day ->
+                                    Spacer(Modifier.height(Spacing.S))
+                                    val hasActivity = day in markedDates.value
+                                    Text(
+                                        if (hasActivity) stringResource(R.string.activity_calendar_day_logged, day.toString())
+                                        else stringResource(R.string.activity_calendar_day_empty, day.toString()),
+                                        style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Daily burned summary
             val totalKcal = entries.value.sumOf { it.kcalBurned }
             val totalMin  = entries.value.sumOf { it.minutes }
@@ -111,7 +154,7 @@ fun ActivityScreen(
                     ScanEatCard(shape = RoundedCornerShape(12.dp), contentPadding = PaddingValues(16.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("$totalKcal", style = MaterialTheme.typography.titleLarge, color = FlagRed, fontWeight = FontWeight.Bold)
+                                Text("$totalKcal", style = MaterialTheme.typography.titleLarge, color = semanticRed(), fontWeight = FontWeight.Bold)
                                 Text(stringResource(R.string.activity_kcal_burned_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -266,7 +309,7 @@ fun ActivityScreen(
                         isError = minutesText.isNotBlank() && !minutesValid,
                         supportingText = {
                             if (minutesText.isNotBlank() && !minutesValid) {
-                                Text(stringResource(R.string.activity_duration_invalid), color = FlagRed)
+                                Text(stringResource(R.string.activity_duration_invalid), color = semanticRed())
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

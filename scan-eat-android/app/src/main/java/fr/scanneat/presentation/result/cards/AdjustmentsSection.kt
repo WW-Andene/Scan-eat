@@ -10,8 +10,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.PersonalAdjustment
-import fr.scanneat.presentation.ui.theme.FlagGreen
-import fr.scanneat.presentation.ui.theme.FlagRed
+import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 
@@ -22,8 +22,8 @@ internal fun AdjustmentsSection(adjustments: List<PersonalAdjustment>) {
             color = OnBackground, fontWeight = FontWeight.SemiBold)
         adjustments.filter { !it.veto }.forEach { adj ->
             val color = when {
-                adj.points > 0 -> FlagGreen
-                adj.points < 0 -> FlagRed
+                adj.points > 0 -> semanticGreen()
+                adj.points < 0 -> semanticRed()
                 else           -> OnBackground.copy(0.5f)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {

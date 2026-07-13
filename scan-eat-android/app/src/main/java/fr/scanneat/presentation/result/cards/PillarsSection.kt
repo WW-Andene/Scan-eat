@@ -14,9 +14,9 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.PillarScore
 import fr.scanneat.domain.model.ScoreAudit
-import fr.scanneat.presentation.ui.theme.AmberWarning
-import fr.scanneat.presentation.ui.theme.FlagGreen
-import fr.scanneat.presentation.ui.theme.FlagRed
+import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 
@@ -33,7 +33,7 @@ internal fun PillarsSection(pillars: ScoreAudit.Pillars) {
 @Composable
 private fun PillarRow(pillar: PillarScore) {
     val ratio = (pillar.score.toFloat() / pillar.max.toFloat()).coerceIn(0f, 1f)
-    val color = when { ratio >= 0.7f -> FlagGreen; ratio >= 0.4f -> AmberWarning; else -> FlagRed }
+    val color = when { ratio >= 0.7f -> semanticGreen(); ratio >= 0.4f -> semanticAmber(); else -> semanticRed() }
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(pillar.name, style = MaterialTheme.typography.labelMedium, color = OnBackground)
