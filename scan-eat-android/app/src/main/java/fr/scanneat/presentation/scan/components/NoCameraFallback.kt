@@ -32,8 +32,12 @@ import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
 import fr.scanneat.presentation.ui.theme.Spacing
 
 /**
- * Shown when the camera is unavailable (permission denied, hardware error) —
- * with a barcode, so this isn't a dead-end message — it's a working substitute input.
+ * Full-screen fallback shown in place of the camera preview: either the device has
+ * no camera hardware at all (`FEATURE_CAMERA_ANY` false, see ScanScreen's own
+ * hasCameraHardware check), or CameraPreview's own bind attempt failed at runtime.
+ * Either way the barcode-entry path via ManualBarcodeEntry below is the only way
+ * left to reach ScanViewModel.score() with a barcode, so this isn't a dead-end
+ * message — it's a working substitute input.
  */
 @Composable
 internal fun NoCameraFallback(
