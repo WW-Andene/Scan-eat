@@ -108,7 +108,7 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String
             Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Icon(Icons.Default.Warning, null, tint = AmberWarning, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Warning, null, tint = AmberWarning, modifier = Modifier.size(20.dp))
                     Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
                         color = AmberWarning, fontWeight = FontWeight.SemiBold)
                 }
