@@ -7,6 +7,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
 import fr.scanneat.domain.engine.biolism.computeMetabolics
@@ -33,6 +34,14 @@ data class CalorieBalance(
     val tdee: Double,
     val tdeeFromBiolism: Boolean,
     val net: Double,
+    // Logged Activité kcal for today — previously computed and stored
+    // (ActivityRepository.dailyBurned) but never read anywhere near the
+    // Dashboard, so a logged workout had zero visible effect on the day's
+    // calorie readout. Kept informational rather than folded into tdee/net:
+    // Biolism's TDEE is already computed off a general PAL/activity-level
+    // input, so silently adding logged-workout kcal on top risks double-
+    // counting the same activity twice rather than showing something new.
+    val exerciseKcal: Int = 0,
 )
 
 data class DashboardUiState(
@@ -57,6 +66,7 @@ class DashboardViewModel @Inject constructor(
     private val scanRepo: ScanRepository,
     private val prefs: UserPreferences,
     private val biolismRepo: BiolismRepository,
+    private val activityRepo: ActivityRepository,
 ) : ViewModel() {
 
     // Combine 4 flows with the type-safe 4-parameter lambda (not the array form).
@@ -137,8 +147,8 @@ class DashboardViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
     val state: StateFlow<DashboardUiState> = combine(
-        heavyState, scanRepo.observeHistory(limit = 20),
-    ) { s, scans -> s.copy(recentScans = scans) }
+        heavyState, scanRepo.observeHistory(limit = 20), activityRepo.observeByDate(LocalDate.now()),
+    ) { s, scans, activity -> s.copy(recentScans = scans, calorieBalance = s.calorieBalance?.copy(exerciseKcal = activity.sumOf { it.kcalBurned })) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
     // In-app language can differ from the device locale — WeeklyBarsCard's day-of-week

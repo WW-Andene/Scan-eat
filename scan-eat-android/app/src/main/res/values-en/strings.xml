@@ -860,6 +860,7 @@
     <string name="dashboard_chronic_gap_entry">%1$s: low %2$d/%3$d days (avg %4$d%% of target)</string>
     <string name="dashboard_calorie_balance_title">Caloric Balance</string>
     <string name="dashboard_calorie_in_out">%1$d / %2$d kcal</string>
+    <string name="dashboard_calorie_exercise">+%1$d kcal burned (Activity)</string>
     <string name="dashboard_calorie_net">Net balance</string>
     <string name="dashboard_calorie_surplus">SURPLUS</string>
     <string name="dashboard_calorie_deficit">DEFICIT</string>

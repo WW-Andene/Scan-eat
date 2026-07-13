@@ -71,6 +71,15 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
                     stringResource(R.string.dashboard_calorie_in_out, balance.kcalIn.roundToInt(), balance.tdee.roundToInt()),
                     style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
                 )
+                // Activité previously had zero visible connection to this card - a
+                // logged workout changed nothing here despite ActivityRepository
+                // already tracking its estimated kcal burn.
+                if (balance.exerciseKcal > 0) {
+                    Text(
+                        stringResource(R.string.dashboard_calorie_exercise, balance.exerciseKcal),
+                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f),
+                    )
+                }
             }
         }
 
