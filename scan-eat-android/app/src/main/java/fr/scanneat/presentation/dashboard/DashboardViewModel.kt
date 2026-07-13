@@ -45,6 +45,7 @@ data class DashboardUiState(
     val weightSummary: fr.scanneat.data.repository.health.WeightSummary? = null,
     val weightForecast: WeightForecast = WeightForecast.InsufficientData,
     val gapSuggestions: List<GapEntry> = emptyList(),
+    val chronicGaps: List<ChronicGap> = emptyList(),
     val recentScans: List<ScanResult> = emptyList(),
 )
 
@@ -95,6 +96,12 @@ class DashboardViewModel @Inject constructor(
                 val gaps = if (targets != null && today.entries.isNotEmpty())
                     closeTheGap(today.totals, targets, FOOD_DB)
                 else emptyList()
+                // chronicNutrientGaps() was fully built (7-day recurring-deficit
+                // scan) but never called from any ViewModel - closeTheGap() above
+                // only ever looks at today, so a real ongoing shortfall (e.g. low
+                // fiber 5 of the last 7 days) never surfaced unless it also
+                // happened to be true today.
+                val chronic = if (targets != null) chronicNutrientGaps(allEntries, targets, FOOD_DB) else emptyList()
 
                 val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
                 val tdee = bioTdee ?: targets?.kcal
@@ -117,6 +124,7 @@ class DashboardViewModel @Inject constructor(
                     weightSummary  = wSummary,
                     weightForecast = forecast,
                     gapSuggestions = gaps,
+                    chronicGaps    = chronic,
                 ))
             }
         }

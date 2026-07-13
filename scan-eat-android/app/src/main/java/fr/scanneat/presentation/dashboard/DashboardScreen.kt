@@ -120,6 +120,11 @@ fun DashboardScreen(
                 item { GapCloserCard(gaps = s.gapSuggestions, onSuggestionClick = viewModel::logGapSuggestion) }
             }
 
+            // ---- Chronic (recurring, multi-day) nutrient gaps ----
+            if (s.chronicGaps.isNotEmpty()) {
+                item { ChronicGapCard(gaps = s.chronicGaps, onSuggestionClick = viewModel::logGapSuggestion) }
+            }
+
             // ---- Feature tiles — meal-planning tools only; daily logging tasks
             // (weight, fasting, water, activity) live in Journal now, and Profile's
             // canonical entry point is Journal's top bar, not a Dashboard tile. ----

@@ -873,6 +873,8 @@
     <string name="dashboard_gap_entry">%1$s : −%2$s manquant</string>
     <string name="dashboard_gap_suggestion">%1$s · %2$d g</string>
     <string name="dashboard_gap_logged">%1$s ajouté au journal</string>
+    <string name="dashboard_chronic_gap_title">Écarts récurrents</string>
+    <string name="dashboard_chronic_gap_entry">%1$s : bas %2$d/%3$d jours (%4$d %% de l\'objectif en moyenne)</string>
     <string name="dashboard_calorie_balance_title">Bilan calorique</string>
     <string name="dashboard_calorie_in_out">%1$d / %2$d kcal</string>
     <string name="dashboard_calorie_net">Bilan net</string>
