@@ -31,6 +31,8 @@ import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.domain.engine.scoring.ENGINE_VERSION
 import fr.scanneat.domain.model.Grade
+import fr.scanneat.presentation.settings.components.SaveButtonRow
+import fr.scanneat.presentation.settings.components.SettingsSection
 import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalDate
 
@@ -409,25 +411,3 @@ fun SettingsScreen(
 
 }
 
-@Composable
-private fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-        Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-        content()
-    }
-}
-
-@Composable
-private fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        ScanEatPrimaryButton(onClick = onSave) {
-            Text(stringResource(R.string.common_save))
-        }
-        androidx.compose.animation.AnimatedVisibility(visible = saved) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
-                Text(stringResource(R.string.settings_saved_confirmation), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
-            }
-        }
-    }
-}
