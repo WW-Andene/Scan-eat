@@ -201,4 +201,4 @@ data class ScanResult(
     val favorite: Boolean = false,
 )
 
-enum class ScanSource { OPEN_FOOD_FACTS, LLM, MERGED }
+enum class ScanSource { OPEN_FOOD_FACTS, LLM, MERGED, MANUAL }

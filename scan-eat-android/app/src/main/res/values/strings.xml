@@ -650,6 +650,10 @@
     <string name="diary_today_button">Aujourd\'hui</string>
     <string name="diary_cd_next_day">Jour suivant</string>
     <string name="diary_cd_calendar">Calendrier</string>
+    <string name="diary_add_entry_title">Ajouter un aliment</string>
+    <string name="diary_add_entry_search_hint">Rechercher un aliment…</string>
+    <string name="diary_add_entry_no_results">Aucun résultat pour « %1$s »</string>
+    <string name="diary_add_entry_kcal_per_100g">%1$d kcal/100 g</string>
     <string name="diary_tab_meals">Repas</string>
     <string name="diary_tab_weight">Poids</string>
     <string name="diary_tab_water">Hydratation</string>
