@@ -150,7 +150,11 @@ fun OnboardingScreen(
                                   (selectedMode == ApiMode.SERVER && serverUrl.isNotBlank()),
                     ) { Text(stringResource(R.string.onboarding_continue_button), fontSize = 16.sp) }
                     TextButton(
-                        onClick = { viewModel.skipApiSetup(); page = 3 },
+                        // Previously never persisted selectedMode at all on skip — it
+                        // only "worked" because ApiMode.DIRECT also happens to be
+                        // UserPreferences' own default, so a toggle to SERVER (with no
+                        // URL filled in) then skipping silently discarded that choice.
+                        onClick = { viewModel.setMode(selectedMode); viewModel.skipApiSetup(); page = 3 },
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.onboarding_api_skip), color = OnBackground.copy(0.5f)) }
                 }

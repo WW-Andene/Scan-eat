@@ -3,6 +3,8 @@ package fr.scanneat.data.repository.planning
 import android.content.Context
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.domain.engine.planning.GroceryComponent
 import fr.scanneat.domain.engine.planning.GroceryRecipeInput
@@ -22,6 +24,7 @@ import javax.inject.Singleton
 // the same aggregateGroceryList() as regular recipe ingredients.
 // ============================================================================
 
+@JsonClass(generateAdapter = true)
 data class ManualGroceryItem(val id: String, val name: String, val grams: Double)
 
 private val Context.manualGroceryDataStore by preferencesDataStore(name = "manual_grocery")
@@ -30,8 +33,11 @@ private val KEY_ITEMS = stringPreferencesKey("manual_grocery_items")
 @Singleton
 class ManualGroceryRepository @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val moshi: Moshi,
 ) {
     private val store = context.manualGroceryDataStore
+    private val listType = com.squareup.moshi.Types.newParameterizedType(List::class.java, ManualGroceryItem::class.java)
+    private val adapter = moshi.adapter<List<ManualGroceryItem>>(listType)
 
     private val storeData: Flow<Preferences> = store.data.catch { e ->
         if (e is IOException) emit(emptyPreferences()) else throw e
@@ -60,15 +66,23 @@ class ManualGroceryRepository @Inject constructor(
         }
     }
 
+    /**
+     * Previously a hand-rolled "id,name,grams" joined with "|" — any product
+     * name containing a comma (extremely common in real OFF names, e.g.
+     * "Nutella, pâte à tartiner") produced more than 3 comma-split parts,
+     * failed the size check, and silently vanished from the list on the next
+     * DataStore reload. Real JSON (same pattern as every other repo in this
+     * app) can't be corrupted by a name's own punctuation.
+     *
+     * A pre-existing pipe-joined value from before this fix is simply treated
+     * as unparseable JSON and discarded (returns an empty list, not a crash) -
+     * an acceptable one-time loss of an ad-hoc, easily re-added shopping list,
+     * versus perpetuating a serialization format that silently drops entries.
+     */
     private fun parse(raw: String?): List<ManualGroceryItem> {
         if (raw.isNullOrEmpty()) return emptyList()
-        return raw.split("|").mapNotNull { entry ->
-            val p = entry.split(",")
-            if (p.size != 3) return@mapNotNull null
-            runCatching { ManualGroceryItem(p[0], p[1], p[2].toDouble()) }.getOrNull()
-        }
+        return runCatching { adapter.fromJson(raw) }.getOrNull() ?: emptyList()
     }
 
-    private fun serialize(list: List<ManualGroceryItem>): String =
-        list.joinToString("|") { "${it.id},${it.name},${it.grams}" }
+    private fun serialize(list: List<ManualGroceryItem>): String = adapter.toJson(list)
 }

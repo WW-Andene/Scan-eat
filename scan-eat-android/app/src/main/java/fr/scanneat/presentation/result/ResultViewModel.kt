@@ -190,7 +190,12 @@ class ResultViewModel @Inject constructor(
                 )
             }
             if (SaveDestination.COURSES in destinations) {
-                manualGroceryRepo.add(scan.product.name, 100.0)
+                // Previously hardcoded to 100g regardless of the actual product — a
+                // 1.5kg bag of rice and a 30g snack both landed on the grocery list
+                // as "100 g", actively corrupting the "how much do I need to buy"
+                // math aggregateGroceryList() exists to compute. weightG is the
+                // label's own stated package weight when the scan captured one.
+                manualGroceryRepo.add(scan.product.name, scan.product.weightG ?: 100.0)
             }
             if (SaveDestination.REPAS in destinations) {
                 val n = scan.product.nutrition

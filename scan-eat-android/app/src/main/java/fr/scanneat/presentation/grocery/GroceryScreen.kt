@@ -36,6 +36,7 @@ fun GroceryScreen(
 ) {
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
     val checkable = viewModel.checkableItems.collectAsStateWithLifecycle()
+    val manualItemKeys = viewModel.manualItemKeys.collectAsStateWithLifecycle()
     val scopeToPlanned = viewModel.scopeToPlanned.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     val haptics   = LocalHapticFeedback.current
@@ -155,7 +156,17 @@ fun GroceryScreen(
                                 if (item.grams > 0) {
                                     Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge,
                                         color = AccentCoral.copy(contentAlpha), fontWeight = FontWeight.SemiBold,
-                                        modifier = Modifier.padding(end = Spacing.M))
+                                        modifier = Modifier.padding(end = Spacing.S))
+                                }
+                                // Manually-added items (e.g. "Save to grocery" from a scanned
+                                // product) previously had no way to be removed at all, only
+                                // checked off — the only way to hide one was to leave it
+                                // permanently ticked. Only shown when this row actually has a
+                                // manual contribution, since a recipe-only row has nothing here to delete.
+                                if (item.key in manualItemKeys.value) {
+                                    IconButton(onClick = { viewModel.deleteManualContribution(item.key) }, modifier = Modifier.size(32.dp)) {
+                                        Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                                    }
                                 }
                             }
                         }

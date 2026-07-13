@@ -99,9 +99,16 @@ internal fun ResultContent(
         // Nutrition table
         NutritionTable(nutrition = scan.product.nutrition)
 
-        // Warnings
-        if (audit.warnings.isNotEmpty()) {
-            WarningsSection(warnings = audit.warnings)
+        // Warnings — ScanResult.warnings (OCR-parse issues, and OFF-vs-LLM source-
+        // conflict warnings like "Conflict: energy_kcal OFF=120 LLM=340") was
+        // populated by ScanRepository but never read anywhere in the UI, so the
+        // single most actionable warning class — "the label doesn't match Open
+        // Food Facts" — was silently swallowed. Merged with audit.warnings here
+        // rather than given its own section, since both are the same "heads up"
+        // concept from the user's perspective.
+        val allWarnings = (audit.warnings + scan.warnings).distinct()
+        if (allWarnings.isNotEmpty()) {
+            WarningsSection(warnings = allWarnings)
         }
 
         Spacer(Modifier.height(32.dp))

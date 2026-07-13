@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.planning.GroceryCheckedRepository
+import fr.scanneat.data.repository.planning.ManualGroceryItem
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.planning.MealPlanSlot
@@ -139,4 +140,29 @@ class GroceryViewModel @Inject constructor(
     fun clearAllChecked() {
         viewModelScope.launch { checkedRepo.clearAll() }
     }
+
+    // ManualGroceryRepository.remove() previously had zero callers anywhere in the
+    // app — an ad-hoc item (e.g. "Save to grocery" from a scanned product) could
+    // only ever be hidden by checking it off, never actually removed, so it
+    // stayed in the list forever. GroceryItem.key uses the same normalized-name
+    // identity aggregateGroceryList() builds it from, so a manual item can be
+    // matched back to (and deleted from) the aggregated row it contributes to
+    // without needing the aggregation itself to carry per-source ids.
+    val manualItemKeys: StateFlow<Set<String>> = manualGroceryRepo.items
+        .map { list -> list.map { groceryKeyOf(it.name) }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    /** Removes every manual entry that contributed to the aggregated row keyed [groceryKey] — a recipe-sourced contribution to the same row, if any, is untouched. */
+    fun deleteManualContribution(groceryKey: String) {
+        viewModelScope.launch {
+            manualGroceryRepo.items.first()
+                .filter { groceryKeyOf(it.name) == groceryKey }
+                .forEach { manualGroceryRepo.remove(it.id) }
+        }
+    }
 }
+
+/** Same normalization aggregateGroceryList() uses internally for GroceryItem.key (trim/lowercase/strip diacritics) — kept in sync manually since that helper is private to the domain module. */
+private fun groceryKeyOf(name: String): String =
+    java.text.Normalizer.normalize(name.trim().lowercase(), java.text.Normalizer.Form.NFD)
+        .replace(Regex("[\\u0300-\\u036f]"), "")

@@ -48,12 +48,42 @@ val ACTIVITY_SUB_TYPES: Map<ActivityType, List<String>> = mapOf(
 )
 
 /**
- * MET × weight_kg × (minutes / 60).
+ * MET × weight_kg × (minutes / 60), using the fixed per-type MET table.
  * Returns 0 for missing / invalid inputs — mirrors the JS behaviour.
  */
 fun estimateKcalBurned(type: ActivityType, minutes: Int, weightKg: Double): Int {
     if (minutes <= 0 || weightKg <= 0) return 0
     return (type.met * weightKg * (minutes / 60.0)).roundToInt()
+}
+
+/**
+ * Pace-adjusted running estimate — distanceKm/weightUsedKg were added to
+ * ActivityEntry this session and shown in ActivityScreen, but only ever fed
+ * a fixed per-type MET table that ignores them entirely: a 5km jog and a
+ * 20km run of the same duration produced identical burn numbers. For
+ * running specifically there's a well-established, verifiable metabolic
+ * equation (ACSM: VO2 ml/kg/min = 3.5 + 0.2 × speed_m_per_min, MET =
+ * VO2/3.5) that actually uses pace instead of a single flat MET value.
+ * Left to the fixed-MET fallback for every other type/when distance is
+ * missing, rather than guessing at a similarly precise formula for
+ * strength training's weightUsedKg — no equivalent well-established
+ * equation exists for external resistance the way it does for running
+ * pace, and fabricating one would be worse than not adjusting at all.
+ */
+fun estimateKcalBurnedWithDistance(type: ActivityType, minutes: Int, weightKg: Double, distanceKm: Double?): Int {
+    if (minutes <= 0 || weightKg <= 0) return 0
+    if (type == ActivityType.RUNNING && distanceKm != null && distanceKm > 0) {
+        val speedMPerMin = distanceKm * 1000.0 / minutes
+        // ACSM running equation is validated for speeds >= 134 m/min (~8 km/h);
+        // below that it under-predicts badly (that's walking-pace territory), so
+        // it's only applied in the range it was actually derived for.
+        if (speedMPerMin >= 134.0) {
+            val vo2 = 3.5 + 0.2 * speedMPerMin
+            val met = vo2 / 3.5
+            return (met * weightKg * (minutes / 60.0)).roundToInt()
+        }
+    }
+    return estimateKcalBurned(type, minutes, weightKg)
 }
 
 data class ActivityEntry(
@@ -93,7 +123,7 @@ class ActivityRepository @Inject constructor(private val dao: ActivityDao) {
         weightUsedKg: Double? = null,
     ) {
         val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
-                   else estimateKcalBurned(type, minutes, weightKg)
+                   else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm)
         dao.insert(ActivityEntity(
             id           = UUID.randomUUID().toString(),
             date         = date.toString(),
