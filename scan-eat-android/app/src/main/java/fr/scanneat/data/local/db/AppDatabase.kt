@@ -34,7 +34,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         RecipeEntity::class,
         MedicationEntity::class,
     ],
-    version = 12,
+    version = 13,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -189,5 +189,19 @@ val MIGRATION_11_12 = object : Migration(11, 12) {
         // no way to actually be reminded to take it.
         db.execSQL("ALTER TABLE `medications` ADD COLUMN `reminderOn` INTEGER NOT NULL DEFAULT 0")
         db.execSQL("ALTER TABLE `medications` ADD COLUMN `reminderTime` TEXT NOT NULL DEFAULT '08:00'")
+    }
+}
+val MIGRATION_12_13 = object : Migration(12, 13) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v12 → v13: activity_log gains an optional externalSourceId - Health
+        // Connect sync for Activité was write-only (mirrors a logged workout
+        // out), same as it was for weight before weight got a read-back sync.
+        // A workout logged by an external fitness tracker straight into Health
+        // Connect could never be pulled into Scan'eat's own history. This
+        // column is the dedup key: without a stable id to check against,
+        // re-running the sync would re-import the same external session as a
+        // fresh duplicate every time (activity, unlike weight, has no
+        // one-entry-per-day convention to dedupe against instead).
+        db.execSQL("ALTER TABLE `activity_log` ADD COLUMN `externalSourceId` TEXT")
     }
 }

@@ -165,6 +165,42 @@ class ActivityRepository @Inject constructor(
     suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =
         dao.getRange(from.toString(), to.toString(), profileId).map { it.toDomain() }
 
+    /**
+     * Pulls in workouts Health Connect has from an *external* source (a
+     * fitness tracker's own app, etc.) that aren't already imported - sync
+     * was previously write-only for Activité (unlike weight, which already
+     * reads back), so a tracker writing straight into Health Connect never
+     * reached Scan'eat's own history. Dedup is by Health Connect's own
+     * record id (ActivityEntity.externalSourceId) rather than a per-day
+     * convention like WeightRepository's: activity genuinely has multiple
+     * entries per day, so "already have one for this day" isn't a safe
+     * dedup signal here the way it is for weight. Inserted directly via the
+     * DAO (not log()) so an imported session is never re-mirrored back out
+     * to Health Connect as a brand-new, differently-id'd one.
+     */
+    suspend fun syncFromHealthConnect(profileId: String = "default", days: Int = 30) {
+        val zone = java.time.ZoneId.systemDefault()
+        val start = LocalDate.now().minusDays(days.toLong()).atStartOfDay(zone).toInstant()
+        val end = LocalDate.now().plusDays(1).atStartOfDay(zone).toInstant()
+        val external = healthConnect.readExternalActivity(start, end)
+        if (external.isEmpty()) return
+        val alreadyImported = dao.getImportedExternalIds(profileId).toSet()
+        for (session in external) {
+            if (session.id in alreadyImported) continue
+            val minutes = java.time.Duration.between(session.startTime, session.endTime).toMinutes().toInt().coerceAtLeast(1)
+            dao.insert(ActivityEntity(
+                id               = UUID.randomUUID().toString(),
+                date             = session.endTime.atZone(zone).toLocalDate().toString(),
+                type             = session.type.key,
+                minutes          = minutes,
+                kcalBurned       = session.kcal,
+                loggedAt         = session.endTime.toEpochMilli(),
+                profileId        = profileId,
+                externalSourceId = session.id,
+            ))
+        }
+    }
+
     private fun ActivityEntity.toDomain() = ActivityEntry(
         id           = id,
         date         = LocalDate.parse(date),

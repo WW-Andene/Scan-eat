@@ -18,6 +18,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.roundToInt
 
 // ============================================================================
 // HEALTH CONNECT REPOSITORY — platform health-data sync for weight.
@@ -52,17 +53,32 @@ class HealthConnectRepository @Inject constructor(
         // counting on every re-read rather than being a safe idempotent
         // import the way readExternalWeights() is for WeightRepository.
         private val hydrationPermissions = setOf(HealthPermission.getWritePermission(HydrationRecord::class))
-        // Activity is write-only too, same reasoning as hydration - and, unlike
-        // weight, there's no stored Health-Connect-record id to delete later
-        // (ActivityRepository.delete() only ever gets the local row's own id),
-        // so a deleted in-app activity currently leaves its HC mirror behind.
-        private val activityPermissions = setOf(
+        // Activity now reads back too (see readExternalActivity) - unlike
+        // hydration, ActivityEntity is a genuine multi-entry-per-day table
+        // with a dedup key (externalSourceId, added alongside this), so a
+        // safe idempotent import is possible the same way it already is for
+        // weight. There's still no stored Health-Connect-record id to delete
+        // later (ActivityRepository.delete() only ever gets the local row's
+        // own id), so a deleted in-app activity still leaves its HC mirror
+        // behind - that part of the original write-only limitation stands.
+        //
+        // Write and read are two separate subsets (not one combined set) for
+        // the same reason weight/hydration/activity writes each check their
+        // own subset via hasPermission() below rather than the full
+        // PERMISSIONS set: a user who granted only the write half (or only
+        // the read half) must not lose the other half's functionality just
+        // because this pair happens to ship together.
+        private val activityWritePermissions = setOf(
             HealthPermission.getWritePermission(ExerciseSessionRecord::class),
             HealthPermission.getWritePermission(TotalCaloriesBurnedRecord::class),
         )
+        private val activityReadPermissions = setOf(
+            HealthPermission.getReadPermission(ExerciseSessionRecord::class),
+            HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
+        )
 
         /** Requested together up front (single system permission dialog) - see [hasPermission] for why writes each check only their own subset instead of this combined set. */
-        val PERMISSIONS: Set<String> = weightPermissions + hydrationPermissions + activityPermissions
+        val PERMISSIONS: Set<String> = weightPermissions + hydrationPermissions + activityWritePermissions + activityReadPermissions
     }
 
     fun availability(): HealthConnectAvailability = when (HealthConnectClient.getSdkStatus(context)) {
@@ -174,7 +190,7 @@ class HealthConnectRepository @Inject constructor(
      * one — end = when it was logged, start = end minus the logged duration.
      */
     suspend fun writeActivity(type: ActivityType, minutes: Int, kcal: Int, endTime: Instant) {
-        if (minutes <= 0 || !hasPermission(activityPermissions)) return
+        if (minutes <= 0 || !hasPermission(activityWritePermissions)) return
         val start = endTime.minusSeconds(minutes * 60L)
         val startOffset = ZoneId.systemDefault().rules.getOffset(start)
         val endOffset = ZoneId.systemDefault().rules.getOffset(endTime)
@@ -205,4 +221,62 @@ class HealthConnectRepository @Inject constructor(
         ActivityType.HIIT          -> ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING
         ActivityType.OTHER         -> ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT
     }
+
+    // Inverse of exerciseTypeFor() - anything Health Connect reports that isn't
+    // one of our own 8 types (it has dozens more: badminton, rowing, skiing...)
+    // still gets imported, just bucketed as OTHER rather than silently dropped,
+    // same fallback convention ActivityType.fromKey() already uses for an
+    // unrecognized stored key.
+    private fun activityTypeFor(exerciseType: Int): ActivityType = when (exerciseType) {
+        ExerciseSessionRecord.EXERCISE_TYPE_WALKING -> ActivityType.WALKING_BRISK
+        ExerciseSessionRecord.EXERCISE_TYPE_RUNNING -> ActivityType.RUNNING
+        ExerciseSessionRecord.EXERCISE_TYPE_BIKING  -> ActivityType.CYCLING
+        ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL,
+        ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_OPEN_WATER -> ActivityType.SWIMMING
+        ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING -> ActivityType.STRENGTH
+        ExerciseSessionRecord.EXERCISE_TYPE_YOGA -> ActivityType.YOGA
+        ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING -> ActivityType.HIIT
+        else -> ActivityType.OTHER
+    }
+
+    /**
+     * A workout Health Connect has from an external source (a fitness
+     * tracker's own app, etc.) in the given window - excludes this app's own
+     * mirrored sessions, same dataOrigin filter [readExternalWeights] uses.
+     * Energy comes from whichever TotalCaloriesBurnedRecord's window most
+     * overlaps the session's, since Health Connect has no direct link between
+     * the two record types beyond time overlap (see [writeActivity]'s own
+     * doc comment on why they're separate records in the first place).
+     */
+    suspend fun readExternalActivity(start: Instant, end: Instant): List<ExternalActivitySession> {
+        if (!hasPermission(activityReadPermissions)) return emptyList()
+        val sessions = client()
+            .readRecords(ReadRecordsRequest(recordType = ExerciseSessionRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end)))
+            .records
+            .filter { it.metadata.dataOrigin.packageName != context.packageName }
+        if (sessions.isEmpty()) return emptyList()
+        val calorieRecords = client()
+            .readRecords(ReadRecordsRequest(recordType = TotalCaloriesBurnedRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end)))
+            .records
+            .filter { it.metadata.dataOrigin.packageName != context.packageName }
+        return sessions.map { session ->
+            val overlapping = calorieRecords.filter { it.startTime < session.endTime && it.endTime > session.startTime }
+            val kcal = overlapping.sumOf { it.energy.inKilocalories }.roundToInt()
+            ExternalActivitySession(
+                id        = session.metadata.id,
+                type      = activityTypeFor(session.exerciseType),
+                startTime = session.startTime,
+                endTime   = session.endTime,
+                kcal      = kcal,
+            )
+        }
+    }
 }
+
+data class ExternalActivitySession(
+    val id: String,
+    val type: ActivityType,
+    val startTime: Instant,
+    val endTime: Instant,
+    val kcal: Int,
+)

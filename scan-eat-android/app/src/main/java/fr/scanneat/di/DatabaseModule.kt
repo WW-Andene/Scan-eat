@@ -19,6 +19,7 @@ import fr.scanneat.data.local.db.MIGRATION_8_9
 import fr.scanneat.data.local.db.MIGRATION_9_10
 import fr.scanneat.data.local.db.MIGRATION_10_11
 import fr.scanneat.data.local.db.MIGRATION_11_12
+import fr.scanneat.data.local.db.MIGRATION_12_13
 import javax.inject.Singleton
 
 @Module
@@ -27,7 +28,7 @@ object DatabaseModule {
     @Provides @Singleton
     fun provideDatabase(@ApplicationContext ctx: Context): AppDatabase =
         Room.databaseBuilder(ctx, AppDatabase::class.java, "scanneat.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13)
             .fallbackToDestructiveMigration()   // safety net only — real migrations registered above
             .build()
 

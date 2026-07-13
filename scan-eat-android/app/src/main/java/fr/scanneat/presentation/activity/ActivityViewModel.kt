@@ -20,6 +20,17 @@ class ActivityViewModel @Inject constructor(
     private val prefs: UserPreferences,
 ) : ViewModel() {
 
+    init {
+        // Sync was previously write-only for Activité too (log() mirrors into
+        // Health Connect, but nothing ever read external data back) - a
+        // fitness tracker writing its own sessions straight into Health
+        // Connect never reached this screen, unlike weight which already
+        // reads back. Same as WeightViewModel's identical init call: runs
+        // once per screen open, no-ops entirely if Health Connect isn't
+        // available/permitted, so always safe to call.
+        viewModelScope.launch { repo.syncFromHealthConnect() }
+    }
+
     // Fix #6: use a reactive date so entries refresh automatically after midnight
     private val _date = MutableStateFlow(LocalDate.now())
     val date: StateFlow<LocalDate> = _date.asStateFlow()

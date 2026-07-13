@@ -22,4 +22,12 @@ data class ActivityEntity(
     val reps: Int? = null,
     val distanceKm: Double? = null,
     val weightUsedKg: Double? = null,
+    // Health Connect's own record id, set only for a workout imported from an
+    // external source (a fitness tracker's own app writing straight into
+    // Health Connect) via ActivityRepository.syncFromHealthConnect() - the
+    // dedup key that makes re-running that sync safe (without it, the same
+    // external session would be re-imported as a fresh duplicate on every
+    // sync, since Health Connect itself has no "already imported" concept).
+    // Null for every activity logged directly in-app.
+    val externalSourceId: String? = null,
 )
