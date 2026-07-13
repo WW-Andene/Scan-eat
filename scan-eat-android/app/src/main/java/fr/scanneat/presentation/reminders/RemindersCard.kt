@@ -134,7 +134,7 @@ fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = HydrationBlue.copy(0.2f), selectedLabelColor = HydrationBlue))
             }
         }
-        ReminderRow(label = stringResource(R.string.reminders_custom_daily), on = s.hydrationCustomOn, time = s.hydrationCustomTime,
+        ReminderRow(defaultLabel = stringResource(R.string.reminders_custom_daily), on = s.hydrationCustomOn, time = s.hydrationCustomTime,
             onToggle = { viewModel.setHydrationCustom(it, s.hydrationCustomTime) }, onTimeChange = { viewModel.setHydrationCustom(s.hydrationCustomOn, it) },
             onTest = { NotificationHelper.show(context, 907, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) })
     }
@@ -167,7 +167,7 @@ fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold))
             }
         }
-        ReminderRow(label = stringResource(R.string.reminders_custom_daily), on = s.weightCustomOn, time = s.weightCustomTime,
+        ReminderRow(defaultLabel = stringResource(R.string.reminders_custom_daily), on = s.weightCustomOn, time = s.weightCustomTime,
             onToggle = { viewModel.setWeightCustom(it, s.weightCustomTime) }, onTimeChange = { viewModel.setWeightCustom(s.weightCustomOn, it) },
             onTest = { NotificationHelper.show(context, 908, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) })
     }
