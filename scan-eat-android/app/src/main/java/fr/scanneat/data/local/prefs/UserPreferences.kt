@@ -40,6 +40,7 @@ class UserPreferences @Inject constructor(
         val KEY_ONBOARDING_COMPLETE  = booleanPreferencesKey("onboarding_complete")
         val KEY_DYSLEXIC_FONT        = booleanPreferencesKey("dyslexic_font")
         val KEY_COLORBLIND_MODE      = stringPreferencesKey("colorblind_mode")
+        val KEY_USE_IMPERIAL_WEIGHT  = booleanPreferencesKey("use_imperial_weight")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         // Profile — flat keys
         val KEY_PROFILE_NAME         = stringPreferencesKey("profile_name")
@@ -97,6 +98,13 @@ class UserPreferences @Inject constructor(
     val dyslexicFont: Flow<Boolean>       = storeData.map { it[KEY_DYSLEXIC_FONT] ?: false }.distinctUntilChanged()
     /** "none" | "deuteranopia" | "protanopia" | "tritanopia" */
     val colorblindMode: Flow<String>      = storeData.map { it[KEY_COLORBLIND_MODE] ?: "none" }.distinctUntilChanged()
+    /**
+     * WeightScreen's kg/lb display toggle was plain Compose `remember` state
+     * with no backing store at all — every time the screen was left and
+     * reopened (or the process was recreated), the unit silently reset to kg,
+     * forcing anyone using lb to re-toggle it every visit.
+     */
+    val useImperialWeight: Flow<Boolean> = storeData.map { it[KEY_USE_IMPERIAL_WEIGHT] ?: false }.distinctUntilChanged()
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = ApiKeyCipher.encrypt(key) }
     suspend fun setCerebrasApiKey(key: String) = store.edit { it[KEY_CEREBRAS_API_KEY] = ApiKeyCipher.encrypt(key) }
@@ -108,6 +116,7 @@ class UserPreferences @Inject constructor(
     suspend fun setOnboardingComplete(v: Boolean) = store.edit { it[KEY_ONBOARDING_COMPLETE] = v }
     suspend fun setDyslexicFont(v: Boolean)       = store.edit { it[KEY_DYSLEXIC_FONT] = v }
     suspend fun setColorblindMode(mode: String)   = store.edit { it[KEY_COLORBLIND_MODE] = mode }
+    suspend fun setUseImperialWeight(v: Boolean)  = store.edit { it[KEY_USE_IMPERIAL_WEIGHT] = v }
 
     // ---- Profile ----
 

@@ -107,9 +107,22 @@ class ComparisonRepository @Inject constructor(
         val prevJson = prefs[KEY_PREV_JSON] ?: return null
         val prev = runCatching { snapshotAdapter.fromJson(prevJson) }.getOrNull() ?: return null
 
+        val nextSnapshot = next.toSnapshot()
+        // Previously compared any two consecutive scans regardless of product
+        // type — scanning a shampoo then a yogurt (or a medication then a
+        // snack) produced a misleading "score delta / added issues" banner
+        // between two unrelated categories. findBetterAlternative() already
+        // restricts to same category; the arm/compare pair didn't. Disarms
+        // (rather than leaving Product A armed) so a mismatched second scan
+        // doesn't linger waiting for a third, same-category one to compare
+        // against instead — that would surprise the user just as much.
+        if (nextSnapshot.category != prev.category) {
+            disarm()
+            return null
+        }
+
         disarm()
 
-        val nextSnapshot = next.toSnapshot()
         return ComparisonResult(
             prev              = prev,
             next              = nextSnapshot,

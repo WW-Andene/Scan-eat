@@ -29,4 +29,8 @@ val HIDDEN_NAV_ROUTES = setOf(
     AppRoutes.ONBOARDING, AppRoutes.RESULT, AppRoutes.SCAN_PROFILE,
     AppRoutes.RECIPES, AppRoutes.TEMPLATES, AppRoutes.MEAL_PLAN,
     AppRoutes.GROCERY, AppRoutes.CUSTOM_FOODS, AppRoutes.SCAN_HISTORY,
+    // Was missing — Favorites is its own separately-pushed route (AppNavGraph),
+    // not a tab root, so the bottom nav stayed visible underneath its own
+    // TopAppBar back arrow, showing two "go back" affordances at once.
+    AppRoutes.FAVORITES,
 )

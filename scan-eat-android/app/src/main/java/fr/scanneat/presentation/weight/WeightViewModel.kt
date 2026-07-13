@@ -46,6 +46,16 @@ class WeightViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    // Previously plain Compose `remember` state in WeightScreen with no backing
+    // store — every screen reopen (or process recreation) silently reset the
+    // unit to kg, forcing a re-toggle to lb every single visit.
+    val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setUseImperial(v: Boolean) {
+        viewModelScope.launch { prefs.setUseImperialWeight(v) }
+    }
+
     fun log(kg: Double, notes: String = "") {
         viewModelScope.launch { repo.log(LocalDate.now(), kg, notes) }
     }

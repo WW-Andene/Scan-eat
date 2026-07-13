@@ -259,6 +259,12 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     LaunchedEffect(selectedDate.value) {
         noteText = viewModel.dayNote.first()
     }
+    // Previously only saved via the small checkmark icon that appears once the
+    // text differs from the stored note — navigating to another day via the
+    // arrows/calendar/"today" button (the far more common way to move around)
+    // discarded whatever was typed with zero warning, since noteText is
+    // remember(selectedDate.value)-scoped and resets the instant the date changes.
+    val saveNoteIfDirty = { if (noteText != dayNote.value) viewModel.saveNote(noteText) }
 
     val s = summary.value
     // Group by meal slot once per entries change, not re-filtered 4x (once per
@@ -276,9 +282,9 @@ private fun MealsTab(viewModel: DiaryViewModel) {
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { viewModel.goToPreviousDay() }) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
+                    IconButton(onClick = { saveNoteIfDirty(); viewModel.goToPreviousDay() }) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
                     Text(selectedDate.value.format(dateFmt), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                    IconButton(onClick = { viewModel.goToNextDay() }, enabled = !isToday.value) {
+                    IconButton(onClick = { saveNoteIfDirty(); viewModel.goToNextDay() }, enabled = !isToday.value) {
                         Icon(Icons.Default.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday.value) OnBackground else OnBackground.copy(0.3f))
                     }
                     IconButton(onClick = { showCalendar = !showCalendar }) {
@@ -286,7 +292,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                     }
                 }
                 if (!isToday.value) {
-                    TextButton(onClick = { viewModel.goToToday() }) { Text(stringResource(R.string.diary_today_button), color = AccentCoral, style = MaterialTheme.typography.labelMedium) }
+                    TextButton(onClick = { saveNoteIfDirty(); viewModel.goToToday() }) { Text(stringResource(R.string.diary_today_button), color = AccentCoral, style = MaterialTheme.typography.labelMedium) }
                 }
             }
         }
@@ -301,7 +307,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                                 selected = selectedDate.value,
                                 locale = Locale(language.value),
                                 onMonthChange = { calendarMonth = it },
-                                onDayClick = { day -> viewModel.selectDate(day); showCalendar = false },
+                                onDayClick = { day -> saveNoteIfDirty(); viewModel.selectDate(day); showCalendar = false },
                             )
                         }
                     }

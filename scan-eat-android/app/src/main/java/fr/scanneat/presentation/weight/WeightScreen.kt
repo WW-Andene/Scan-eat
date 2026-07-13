@@ -48,6 +48,7 @@ fun WeightScreen(
     val forecast = viewModel.forecast.collectAsStateWithLifecycle()
     val goalWeightKg = viewModel.goalWeightKg.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
+    val useImperialState = viewModel.useImperial.collectAsStateWithLifecycle()
     // In-app language (Settings) can differ from the device locale, so day/month
     // abbreviations must follow it explicitly - ofPattern() alone defaults to
     // Locale.getDefault(), which would silently mix languages in the date labels.
@@ -56,7 +57,13 @@ fun WeightScreen(
     var kgText by remember { mutableStateOf("") }
     var notesText by remember { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
-    var useImperial by remember { mutableStateOf(false) }
+    // Previously plain remember state with no backing store — reset to kg on
+    // every screen reopen/process recreation. Local var still used as the
+    // read/write surface everywhere below (unchanged call sites), just backed
+    // by the persisted StateFlow instead of a value that can never survive
+    // leaving the screen.
+    val useImperial = useImperialState.value
+    fun setUseImperial(v: Boolean) = viewModel.setUseImperial(v)
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var showCalendar by remember { mutableStateOf(false) }
     var calendarMonth by remember { mutableStateOf(java.time.YearMonth.now()) }
@@ -85,7 +92,7 @@ fun WeightScreen(
                         listOf(false to "kg", true to "lb").forEach { (imperial, label) ->
                             FilterChip(
                                 selected = useImperial == imperial,
-                                onClick = { useImperial = imperial },
+                                onClick = { setUseImperial(imperial) },
                                 label = { Text(label) },
                                 colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
                             )
