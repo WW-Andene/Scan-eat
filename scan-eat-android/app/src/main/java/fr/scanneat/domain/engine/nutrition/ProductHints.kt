@@ -49,6 +49,11 @@ fun generateProductHints(product: Product, lang: String): ProductHints {
         benefits += if (en) "Declared micronutrients: ${product.declaredMicronutrients.joinToString(", ")}"
                     else "Micronutriments déclarés : ${product.declaredMicronutrients.joinToString(", ")}"
     }
+    // Named substances (caffeine, creatine, melatonin, ginseng, ...) matched
+    // against the actual ingredient list — see NamedSubstanceDb for the
+    // EFSA-authorised-claim-or-not distinction this splits on.
+    val (substanceBenefits, substanceCautions) = findNamedSubstanceHints(product.ingredients, lang)
+    benefits += substanceBenefits
 
     // ---- Risks ----
     if (n.saturatedFatG >= 5.0) risks += if (en) "High in saturated fat (${n.saturatedFatG} g/100 g)" else "Riche en graisses saturées (${n.saturatedFatG} g/100 g)"
@@ -71,6 +76,7 @@ fun generateProductHints(product: Product, lang: String): ProductHints {
         risks += if (en) "Carries marketing health claims — verify against the actual nutrition values above"
                  else "Porte des allégations santé marketing — à vérifier au regard des valeurs nutritionnelles ci-dessus"
     }
+    risks += substanceCautions
 
     // ---- Facts ----
     facts += if (en) "NOVA processing class: ${product.novaClass.value}/4" else "Classe de transformation NOVA : ${product.novaClass.value}/4"

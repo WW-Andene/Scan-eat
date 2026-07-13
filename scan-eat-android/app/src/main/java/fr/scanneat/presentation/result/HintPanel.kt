@@ -1,15 +1,27 @@
 package fr.scanneat.presentation.result
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,22 +39,36 @@ import fr.scanneat.presentation.ui.theme.semanticGreen
 fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
     val green = semanticGreen()
     val amber = semanticAmber()
+    val neutral = OnBackground.copy(0.7f)
+    val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.facts.isEmpty()
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
         title = { Text(stringResource(R.string.hint_panel_title), color = OnBackground) },
         text = {
-            Column(modifier = Modifier.widthIn(max = 320.dp)) {
+            // A long ingredient list can produce enough benefit/risk/fact lines to
+            // overflow AlertDialog's unconstrained text slot on a small screen —
+            // scroll within a capped height instead of letting the dialog grow
+            // past the viewport with no way to reach the close button.
+            Column(
+                modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
+            ) {
                 if (hints.benefits.isNotEmpty()) {
-                    HintSection(stringResource(R.string.hint_section_benefits), hints.benefits, green)
+                    HintSection(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Default.ThumbUp)
+                }
+                if (hints.benefits.isNotEmpty() && hints.risks.isNotEmpty()) {
+                    HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
                 }
                 if (hints.risks.isNotEmpty()) {
-                    HintSection(stringResource(R.string.hint_section_risks), hints.risks, amber)
+                    HintSection(stringResource(R.string.hint_section_risks), hints.risks, amber, Icons.Default.WarningAmber)
+                }
+                if ((hints.benefits.isNotEmpty() || hints.risks.isNotEmpty()) && hints.facts.isNotEmpty()) {
+                    HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
                 }
                 if (hints.facts.isNotEmpty()) {
-                    HintSection(stringResource(R.string.hint_section_facts), hints.facts, OnBackground.copy(0.6f))
+                    HintSection(stringResource(R.string.hint_section_facts), hints.facts, neutral, Icons.Default.Lightbulb)
                 }
-                if (hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.facts.isEmpty()) {
+                if (isEmpty) {
                     Text(stringResource(R.string.hint_panel_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                 }
             }
@@ -54,13 +80,19 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun HintSection(title: String, lines: List<String>, accent: androidx.compose.ui.graphics.Color) {
+private fun HintSection(title: String, lines: List<String>, accent: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
     Column(modifier = Modifier.padding(bottom = Spacing.S)) {
-        Text(title, style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.padding(0.dp))
+            Text(title, style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.Bold)
+        }
         lines.forEach { line ->
             Row(modifier = Modifier.padding(top = Spacing.XS)) {
-                Text("• ", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
-                Text(line, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
+                Text("•  ", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
+                // weight(1f) so a wrapped second line stays within the dialog's
+                // width instead of the un-weighted Text being measured at its
+                // natural (unwrapped) width and overflowing the Row.
+                Text(line, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f), modifier = Modifier.weight(1f))
             }
         }
     }
