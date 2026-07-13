@@ -79,8 +79,31 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
     )
 }
 
+/**
+ * Shared facts/cautions layout for scan-result dialogs that aren't full
+ * food scoring — MedicationFound and NonConsumableFound in ScanScreen.kt
+ * both use this instead of duplicating the section/scroll/divider
+ * plumbing HintPanel already has above.
+ */
 @Composable
-private fun HintSection(title: String, lines: List<String>, accent: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+fun FactsCautionsColumn(facts: List<String>, cautions: List<String>) {
+    val amber = semanticAmber()
+    val neutral = OnBackground.copy(0.7f)
+    Column(modifier = Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState())) {
+        if (cautions.isNotEmpty()) {
+            HintSection(stringResource(R.string.hint_section_risks), cautions, amber, Icons.Default.WarningAmber)
+        }
+        if (cautions.isNotEmpty() && facts.isNotEmpty()) {
+            HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
+        }
+        if (facts.isNotEmpty()) {
+            HintSection(stringResource(R.string.hint_section_facts), facts, neutral, Icons.Default.Lightbulb)
+        }
+    }
+}
+
+@Composable
+internal fun HintSection(title: String, lines: List<String>, accent: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
     Column(modifier = Modifier.padding(bottom = Spacing.S)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.padding(0.dp))

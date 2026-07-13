@@ -21,9 +21,11 @@ import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -97,6 +99,12 @@ class ScanViewModel @Inject constructor(
 
     private val _state = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
     val state: StateFlow<ScanUiState> = _state.asStateFlow()
+
+    // Needed so the MedicationFound/NonConsumableFound dialogs can render their
+    // hint text (see MedicationSubstanceDb/NonConsumableHints) in the user's
+    // in-app language rather than always defaulting to French.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
     private val _images = MutableStateFlow<List<ImagePayload>>(emptyList())
     val images: StateFlow<List<ImagePayload>> = _images.asStateFlow()

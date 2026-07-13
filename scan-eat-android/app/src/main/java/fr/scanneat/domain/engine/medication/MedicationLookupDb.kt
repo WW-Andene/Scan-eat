@@ -5,25 +5,30 @@ import android.content.Context
 // ============================================================================
 // MEDICATION LOOKUP DB — sourced from the official French public drug
 // database (BDPM, ANSM / base-donnees-publique.medicaments.gouv.fr),
-// joining CIS_bdpm.txt (drug identity) with CIS_CIP_bdpm.txt (CIP13 barcode
-// per commercial presentation). Snapshot fetched from the live BDPM flat
-// files on 2026-07-13, filtered to actively marketed ("Commercialisée")
-// drugs with an active presentation and a valid 13-digit CIP13, excluding
+// joining CIS_bdpm.txt (drug identity), CIS_CIP_bdpm.txt (CIP13 barcode per
+// commercial presentation), CIS_COMPO_bdpm.txt (active substance(s) per
+// drug) and CIS_CPD_bdpm.txt (dispensing condition, e.g. "liste I",
+// "réservé à l'usage HOSPITALIER" — blank means no restriction, i.e. sold
+// over the counter). Snapshot fetched from the live BDPM flat files on
+// 2026-07-13, filtered to actively marketed ("Commercialisée") drugs with
+// an active presentation and a valid 13-digit CIP13, excluding
 // homeopathic entries (their "denomination" is a dilution range, not a
 // scannable product name). Bundled as assets/medications_bdpm.csv (~12,300
 // rows) rather than a Kotlin literal — a list that size would blow past the
 // JVM's 64KB per-method bytecode limit if built as one big list-of-data-
 // -class-calls, and a plain-text asset is trivially diffable/re-generatable
-// from the same two source files for a future refresh.
+// from the same four source files for a future refresh.
 // ============================================================================
 
 data class MedicationDbEntry(
-    val barcode: String,   // CIP13, EAN-13 scannable on the box
-    val name: String,      // BDPM denomination
-    val form: String,      // pharmaceutical form (comprimé, gélule, ...)
-    val route: String,     // administration route (orale, ...)
-    val holder: String,    // marketing authorization holder
-    val cis: String,       // BDPM's own drug identifier (CIS code)
+    val barcode: String,               // CIP13, EAN-13 scannable on the box
+    val name: String,                  // BDPM denomination
+    val form: String,                  // pharmaceutical form (comprimé, gélule, ...)
+    val route: String,                 // administration route (orale, ...)
+    val holder: String,                // marketing authorization holder
+    val cis: String,                   // BDPM's own drug identifier (CIS code)
+    val activeSubstances: List<String>, // BDPM "dénomination commune" per active substance (may be empty for rare combination products)
+    val dispensingConditions: List<String>, // e.g. "liste I", "stupéfiant" — empty means no restriction (sold OTC)
 )
 
 private object MedicationStore {
@@ -41,6 +46,8 @@ private object MedicationStore {
                     val entry = MedicationDbEntry(
                         barcode = cols[0], name = cols[1], form = cols[2],
                         route = cols[3], holder = cols[4], cis = cols[5],
+                        activeSubstances = cols.getOrNull(6)?.split(";")?.filter { it.isNotBlank() } ?: emptyList(),
+                        dispensingConditions = cols.getOrNull(7)?.split(";")?.filter { it.isNotBlank() } ?: emptyList(),
                     )
                     map[entry.barcode] = entry
                 }

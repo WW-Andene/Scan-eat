@@ -54,6 +54,9 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import fr.scanneat.R
 import fr.scanneat.data.remote.api.ImagePayload
+import fr.scanneat.domain.engine.medication.generateMedicationHints
+import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
+import fr.scanneat.presentation.result.FactsCautionsColumn
 import fr.scanneat.presentation.ui.theme.*
 import java.util.concurrent.Executors
 
@@ -73,6 +76,7 @@ fun ScanScreen(
     val images      = viewModel.images.collectAsStateWithLifecycle()
     val barcode     = viewModel.scannedBarcode.collectAsStateWithLifecycle()
     val instantMode = viewModel.instantMode.collectAsStateWithLifecycle()
+    val language    = viewModel.language.collectAsStateWithLifecycle()
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
     // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
@@ -356,11 +360,17 @@ fun ScanScreen(
     }
 
     (state.value as? ScanUiState.MedicationFound)?.let { found ->
+        val hints = remember(found.entry, language.value) { generateMedicationHints(found.entry, language.value) }
         AlertDialog(
             onDismissRequest = { viewModel.dismissError() },
             containerColor = SurfaceVariant,
             title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
-            text = { Text(stringResource(R.string.scan_medication_found_body, found.entry.name), color = OnBackground.copy(0.7f)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(stringResource(R.string.scan_medication_found_body, found.entry.name), color = OnBackground.copy(0.7f))
+                    FactsCautionsColumn(hints.facts, hints.cautions)
+                }
+            },
             confirmButton = {
                 TextButton(onClick = { viewModel.saveDetectedMedication(found.entry) }) {
                     Text(stringResource(R.string.scan_medication_found_add), color = Teal)
@@ -371,6 +381,7 @@ fun ScanScreen(
     }
 
     (state.value as? ScanUiState.NonConsumableFound)?.let { found ->
+        val hints = remember(found.entry, language.value) { generateNonConsumableHints(found.entry.category, language.value) }
         AlertDialog(
             onDismissRequest = { viewModel.dismissError() },
             containerColor = SurfaceVariant,
@@ -379,6 +390,7 @@ fun ScanScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     Text(stringResource(R.string.scan_nonconsumable_found_body, found.entry.name, found.entry.brand), color = OnBackground.copy(0.8f))
                     Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
+                    FactsCautionsColumn(hints.facts, hints.cautions)
                 }
             },
             confirmButton = { TextButton(onClick = { viewModel.dismissError() }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
