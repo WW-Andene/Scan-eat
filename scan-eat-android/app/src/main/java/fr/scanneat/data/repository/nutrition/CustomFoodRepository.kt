@@ -32,6 +32,10 @@ class CustomFoodRepository @Inject constructor(
     fun observeAll(profileId: String = "default"): Flow<List<FoodEntry>> =
         dao.observeAll(profileId).map { list -> list.map { it.toFoodEntry() } }
 
+    /** Same as [observeAll] but keeps each entry's stable Room id — needed for rename(), since FoodEntry itself carries no id. */
+    fun observeAllWithId(profileId: String = "default"): Flow<List<Pair<String, FoodEntry>>> =
+        dao.observeAll(profileId).map { list -> list.map { it.id to it.toFoodEntry() } }
+
     suspend fun save(
         name: String,
         kcal: Double,
@@ -80,6 +84,20 @@ class CustomFoodRepository @Inject constructor(
 
     suspend fun deleteByName(name: String, profileId: String = "default") =
         dao.deleteByName(name, profileId)
+
+    /**
+     * CustomFoodScreen previously had delete as its only entry point — a typo
+     * in a custom food's name could never be fixed without deleting and
+     * re-creating it from scratch (losing its id, and any DiaryEntry/Recipe/
+     * MealTemplate that already logged it keeps its own nutrition values
+     * snapshotted independently at creation time, so they're unaffected by
+     * this — only the searchable/displayed name changes going forward).
+     */
+    suspend fun rename(id: String, newName: String) {
+        require(newName.isNotBlank()) { "Custom food name must not be blank" }
+        val existing = dao.findById(id) ?: return
+        dao.insert(existing.copy(name = newName.trim()))
+    }
 
     /**
      * Search across both built-in FOOD_DB and user's custom foods.

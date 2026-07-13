@@ -21,6 +21,10 @@ class CustomFoodViewModel @Inject constructor(
     val foods: StateFlow<List<FoodEntry>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** id-keyed, for the rename action — FoodEntry itself carries no stable id. */
+    val foodsWithId: StateFlow<List<Pair<String, FoodEntry>>> = repo.observeAllWithId()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query.asStateFlow()
 
@@ -54,5 +58,10 @@ class CustomFoodViewModel @Inject constructor(
 
     fun delete(name: String) {
         viewModelScope.launch { repo.deleteByName(name) }
+    }
+
+    fun rename(id: String, newName: String) {
+        if (newName.isBlank()) return
+        viewModelScope.launch { repo.rename(id, newName) }
     }
 }

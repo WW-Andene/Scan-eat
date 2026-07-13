@@ -89,6 +89,14 @@ class RemindersRepository @Inject constructor(
         val K_LAST_HYDRATION_CUSTOM_DATE = stringPreferencesKey("rem_last_hydration_custom_date")
         val K_LAST_WEIGHT_NUDGE_DATE = stringPreferencesKey("rem_last_weight_nudge_date")
         val K_LAST_WEIGHT_CUSTOM_DATE     = stringPreferencesKey("rem_last_weight_custom_date")
+        // Hydration/weight/meals all have a dedicated reminder card wired through
+        // this repository + ReminderWorker; an active fast reaching its target
+        // hour previously had none at all, despite the ring on FastingScreen
+        // being the only way a user would ever find out. Keyed by the fast's
+        // own startMs (not a date) so a new fast can notify again even on the
+        // same calendar day, and a still-running fast that already notified
+        // doesn't repeat every worker run.
+        val K_LAST_FASTING_NOTIFIED_START = longPreferencesKey("rem_last_fasting_notified_start")
     }
 
     val settings: Flow<ReminderSettings> = storeData.map { p ->
@@ -190,6 +198,11 @@ class RemindersRepository @Inject constructor(
         p[K_WEIGHT_CUSTOM_ON] = settings.weightCustomOn; p[K_WEIGHT_CUSTOM_TIME] = settings.weightCustomTime
         p[K_CUSTOM_REMINDERS] = Json.encodeToString(settings.customReminders)
     }
+
+    suspend fun fastingTargetAlreadyNotified(startMs: Long): Boolean =
+        storeData.first()[K_LAST_FASTING_NOTIFIED_START] == startMs
+
+    suspend fun markFastingTargetNotified(startMs: Long) = store.edit { it[K_LAST_FASTING_NOTIFIED_START] = startMs }
 
     suspend fun wasFiredToday(key: Preferences.Key<String>): Boolean =
         storeData.first()[key] == LocalDate.now().toString()

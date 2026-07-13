@@ -957,6 +957,8 @@
     <string name="reminders_notif_hydration_body">Remember to drink a glass of water.</string>
     <string name="reminders_notif_weight_title">Weigh-in</string>
     <string name="reminders_notif_weight_body">It\'s been a while — log your weight.</string>
+    <string name="reminders_notif_fasting_title">Fast complete</string>
+    <string name="reminders_notif_fasting_body">You've reached your fasting goal — well done!</string>
     <string name="reminders_breakfast">Breakfast</string>
     <string name="reminders_snack">Snack</string>
     <string name="reminders_lunch">Lunch</string>

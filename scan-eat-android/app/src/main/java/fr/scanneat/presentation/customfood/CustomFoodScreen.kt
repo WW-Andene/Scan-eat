@@ -31,10 +31,12 @@ fun CustomFoodScreen(
     onBack: () -> Unit,
 ) {
     val foods   = viewModel.foods.collectAsStateWithLifecycle()
+    val foodsWithId = viewModel.foodsWithId.collectAsStateWithLifecycle()
     val query   = viewModel.query.collectAsStateWithLifecycle()
     val results = viewModel.searchResults.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    var renameTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to current name
 
     val displayList = if (query.value.isBlank()) foods.value else results.value
 
@@ -99,6 +101,13 @@ fun CustomFoodScreen(
                         entry    = entry,
                         isCustom = entry.name in customNames,
                         onDelete = { deleteTarget = entry.name },
+                        onRename = {
+                            // Previously delete was the only entry point — a typo in a
+                            // custom food's name could never be fixed without deleting
+                            // and re-creating it from scratch.
+                            foodsWithId.value.firstOrNull { it.second.name == entry.name }
+                                ?.let { (id, _) -> renameTarget = id to entry.name }
+                        },
                     )
                 }
 
@@ -126,10 +135,18 @@ fun CustomFoodScreen(
             onDismiss = { deleteTarget = null },
         )
     }
+
+    renameTarget?.let { (id, currentName) ->
+        RenameDialog(
+            currentName = currentName,
+            onDismiss   = { renameTarget = null },
+            onConfirm   = { newName -> viewModel.rename(id, newName); renameTarget = null },
+        )
+    }
 }
 
 @Composable
-private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Unit) {
+private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Unit, onRename: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -172,6 +189,13 @@ private fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Un
             )
         }
         if (isCustom) {
+            IconButton(onClick = onRename, modifier = Modifier.size(32.dp)) {
+                Icon(
+                    Icons.Default.Edit, stringResource(R.string.common_rename),
+                    tint = OnSurface.copy(0.5f),
+                    modifier = Modifier.size(16.dp),
+                )
+            }
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                 Icon(
                     Icons.Default.Close, stringResource(R.string.common_delete),

@@ -10,6 +10,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import kotlinx.coroutines.flow.first
@@ -24,6 +25,7 @@ class ReminderWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val remindersRepo: RemindersRepository,
     private val weightRepo: WeightRepository,
+    private val fastingRepo: FastingRepository,
     private val prefs: UserPreferences,
 ) : CoroutineWorker(context, params) {
 
@@ -74,6 +76,20 @@ class ReminderWorker @AssistedInject constructor(
 
         s.customReminders.forEach { cr ->
             checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label)
+        }
+
+        // Hydration/weight/meals all fire a reminder — an active fast reaching
+        // its target hour previously had none at all, even though the app
+        // already has this exact worker/notification infrastructure. Not gated
+        // by a settings toggle (unlike the others): it only ever fires while
+        // the user has actually started a fast, so there's no "off by default,
+        // spamming a feature you don't use" risk the other reminders guard against.
+        fastingRepo.state.first()?.let { fast ->
+            if (fast.elapsedHours >= fast.targetHours && !remindersRepo.fastingTargetAlreadyNotified(fast.startMs)) {
+                NotificationHelper.show(applicationContext, 109,
+                    localizedString(lang, R.string.reminders_notif_fasting_title), localizedString(lang, R.string.reminders_notif_fasting_body))
+                remindersRepo.markFastingTargetNotified(fast.startMs)
+            }
         }
 
         return Result.success()

@@ -970,6 +970,8 @@
     <string name="reminders_notif_hydration_body">Pense à boire un verre d\'eau.</string>
     <string name="reminders_notif_weight_title">Pesée</string>
     <string name="reminders_notif_weight_body">Ça fait un moment — enregistre ton poids.</string>
+    <string name="reminders_notif_fasting_title">Jeûne terminé</string>
+    <string name="reminders_notif_fasting_body">Tu as atteint ton objectif de jeûne — bravo !</string>
     <string name="reminders_breakfast">Petit-déjeuner</string>
     <string name="reminders_snack">Collation</string>
     <string name="reminders_lunch">Déjeuner</string>
