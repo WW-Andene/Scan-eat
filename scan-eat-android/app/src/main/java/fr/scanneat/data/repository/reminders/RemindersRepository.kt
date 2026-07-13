@@ -10,11 +10,17 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.time.LocalDate
 import java.time.LocalTime
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+
+@Serializable
+data class CustomReminder(val id: Int, val label: String, val time: String, val on: Boolean)
 
 // ============================================================================
 // REMINDERS REPOSITORY — port of Biolism/src/App.jsx RemindersCard
@@ -26,14 +32,15 @@ import javax.inject.Singleton
 // ============================================================================
 
 data class ReminderSettings(
-    val breakfastOn: Boolean = false, val breakfastTime: String = "06:00",
-    val snackOn: Boolean = false, val snackTime: String = "09:00",
-    val lunchOn: Boolean = false, val lunchTime: String = "12:00",
-    val dinnerOn: Boolean = false, val dinnerTime: String = "18:00",
+    val breakfastOn: Boolean = false, val breakfastTime: String = "06:00", val breakfastLabel: String = "",
+    val snackOn: Boolean = false, val snackTime: String = "09:00", val snackLabel: String = "",
+    val lunchOn: Boolean = false, val lunchTime: String = "12:00", val lunchLabel: String = "",
+    val dinnerOn: Boolean = false, val dinnerTime: String = "18:00", val dinnerLabel: String = "",
     val hydrationOn: Boolean = false, val hydrationIntervalHours: Int = 3,
     val hydrationCustomOn: Boolean = false, val hydrationCustomTime: String = "12:00",
     val weightOn: Boolean = false, val weightThresholdDays: Int = 1,
     val weightCustomOn: Boolean = false, val weightCustomTime: String = "12:00",
+    val customReminders: List<CustomReminder> = emptyList(),
 )
 
 private val Context.remindersDataStore by preferencesDataStore(name = "reminders")
@@ -68,6 +75,12 @@ class RemindersRepository @Inject constructor(
         val K_WEIGHT_CUSTOM_ON   = booleanPreferencesKey("rem_weight_custom_on")
         val K_WEIGHT_CUSTOM_TIME = stringPreferencesKey("rem_weight_custom_time")
 
+        val K_BREAKFAST_LABEL = stringPreferencesKey("rem_breakfast_label")
+        val K_SNACK_LABEL     = stringPreferencesKey("rem_snack_label")
+        val K_LUNCH_LABEL     = stringPreferencesKey("rem_lunch_label")
+        val K_DINNER_LABEL    = stringPreferencesKey("rem_dinner_label")
+        val K_CUSTOM_REMINDERS = stringPreferencesKey("rem_custom_list")
+
         val K_LAST_BREAKFAST_DATE    = stringPreferencesKey("rem_last_breakfast_date")
         val K_LAST_SNACK_DATE        = stringPreferencesKey("rem_last_snack_date")
         val K_LAST_LUNCH_DATE        = stringPreferencesKey("rem_last_lunch_date")
@@ -79,11 +92,12 @@ class RemindersRepository @Inject constructor(
     }
 
     val settings: Flow<ReminderSettings> = storeData.map { p ->
+        val customs = runCatching { Json.decodeFromString<List<CustomReminder>>(p[K_CUSTOM_REMINDERS] ?: "[]") }.getOrElse { emptyList() }
         ReminderSettings(
-            breakfastOn = p[K_BREAKFAST_ON] ?: false, breakfastTime = p[K_BREAKFAST_TIME] ?: "06:00",
-            snackOn     = p[K_SNACK_ON] ?: false,      snackTime     = p[K_SNACK_TIME] ?: "09:00",
-            lunchOn     = p[K_LUNCH_ON] ?: false,      lunchTime     = p[K_LUNCH_TIME] ?: "12:00",
-            dinnerOn    = p[K_DINNER_ON] ?: false,      dinnerTime    = p[K_DINNER_TIME] ?: "18:00",
+            breakfastOn = p[K_BREAKFAST_ON] ?: false, breakfastTime = p[K_BREAKFAST_TIME] ?: "06:00", breakfastLabel = p[K_BREAKFAST_LABEL] ?: "",
+            snackOn     = p[K_SNACK_ON] ?: false,      snackTime     = p[K_SNACK_TIME] ?: "09:00",     snackLabel     = p[K_SNACK_LABEL] ?: "",
+            lunchOn     = p[K_LUNCH_ON] ?: false,      lunchTime     = p[K_LUNCH_TIME] ?: "12:00",     lunchLabel     = p[K_LUNCH_LABEL] ?: "",
+            dinnerOn    = p[K_DINNER_ON] ?: false,      dinnerTime    = p[K_DINNER_TIME] ?: "18:00",    dinnerLabel    = p[K_DINNER_LABEL] ?: "",
             hydrationOn = p[K_HYDRATION_ON] ?: false,
             hydrationIntervalHours = p[K_HYDRATION_INTERVAL] ?: 3,
             hydrationCustomOn   = p[K_HYDRATION_CUSTOM_ON] ?: false,
@@ -92,6 +106,7 @@ class RemindersRepository @Inject constructor(
             weightThresholdDays = p[K_WEIGHT_THRESHOLD] ?: 1,
             weightCustomOn   = p[K_WEIGHT_CUSTOM_ON] ?: false,
             weightCustomTime = p[K_WEIGHT_CUSTOM_TIME] ?: "12:00",
+            customReminders = customs,
         )
     }.distinctUntilChanged()
 
@@ -103,6 +118,31 @@ class RemindersRepository @Inject constructor(
         val target = runCatching { LocalTime.parse(time) }.getOrNull() ?: return
         if (!LocalTime.now().isBefore(target)) prefs[lastFiredKey] = LocalDate.now().toString()
     }
+
+    suspend fun setBreakfastLabel(label: String) = store.edit { it[K_BREAKFAST_LABEL] = label }
+    suspend fun setSnackLabel(label: String)     = store.edit { it[K_SNACK_LABEL] = label }
+    suspend fun setLunchLabel(label: String)     = store.edit { it[K_LUNCH_LABEL] = label }
+    suspend fun setDinnerLabel(label: String)    = store.edit { it[K_DINNER_LABEL] = label }
+
+    private fun customs(p: Preferences): List<CustomReminder> =
+        runCatching { Json.decodeFromString<List<CustomReminder>>(p[K_CUSTOM_REMINDERS] ?: "[]") }.getOrElse { emptyList() }
+
+    suspend fun addCustomReminder(label: String, time: String) = store.edit { p ->
+        val list = customs(p)
+        val nextId = (list.maxOfOrNull { it.id } ?: 909) + 1
+        p[K_CUSTOM_REMINDERS] = Json.encodeToString(list + CustomReminder(nextId, label, time, false))
+    }
+
+    suspend fun updateCustomReminder(reminder: CustomReminder) = store.edit { p ->
+        val list = customs(p).map { if (it.id == reminder.id) reminder else it }
+        p[K_CUSTOM_REMINDERS] = Json.encodeToString(list)
+    }
+
+    suspend fun deleteCustomReminder(id: Int) = store.edit { p ->
+        p[K_CUSTOM_REMINDERS] = Json.encodeToString(customs(p).filter { it.id != id })
+    }
+
+    val customLastFiredKey: (Int) -> Preferences.Key<String> = { id -> stringPreferencesKey("rem_custom_${id}_last") }
 
     suspend fun setBreakfast(on: Boolean, time: String) = store.edit {
         it[K_BREAKFAST_ON] = on; it[K_BREAKFAST_TIME] = time

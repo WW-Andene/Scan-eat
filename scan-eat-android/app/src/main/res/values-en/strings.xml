@@ -949,6 +949,9 @@
     <string name="reminders_cd_test">Test reminder: %1$s</string>
     <string name="reminders_every_n_hours">%1$dh</string>
     <string name="reminders_custom_daily">Custom daily reminder</string>
+    <string name="reminders_add_custom">Add reminder</string>
+    <string name="reminders_custom_label_hint">Reminder name</string>
+    <string name="reminders_custom_time_hint">Time (HH:mm)</string>
     <string name="reminders_weight_preset_day">1 day</string>
     <string name="reminders_weight_preset_week">1 week</string>
     <string name="reminders_weight_preset_month">1 month</string>

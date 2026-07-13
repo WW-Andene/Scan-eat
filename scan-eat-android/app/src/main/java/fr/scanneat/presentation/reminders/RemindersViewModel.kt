@@ -3,6 +3,7 @@ package fr.scanneat.presentation.reminders
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.repository.reminders.CustomReminder
 import fr.scanneat.data.repository.reminders.ReminderSettings
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,4 +27,13 @@ class RemindersViewModel @Inject constructor(
     fun setHydrationCustom(on: Boolean, time: String) = viewModelScope.launch { repo.setHydrationCustom(on, time) }
     fun setWeight(on: Boolean, thresholdDays: Int)    = viewModelScope.launch { repo.setWeight(on, thresholdDays) }
     fun setWeightCustom(on: Boolean, time: String)    = viewModelScope.launch { repo.setWeightCustom(on, time) }
+
+    fun setBreakfastLabel(label: String) = viewModelScope.launch { repo.setBreakfastLabel(label) }
+    fun setSnackLabel(label: String)     = viewModelScope.launch { repo.setSnackLabel(label) }
+    fun setLunchLabel(label: String)     = viewModelScope.launch { repo.setLunchLabel(label) }
+    fun setDinnerLabel(label: String)    = viewModelScope.launch { repo.setDinnerLabel(label) }
+
+    fun addCustomReminder(label: String, time: String) = viewModelScope.launch { repo.addCustomReminder(label, time) }
+    fun updateCustomReminder(r: CustomReminder)        = viewModelScope.launch { repo.updateCustomReminder(r) }
+    fun deleteCustomReminder(id: Int)                  = viewModelScope.launch { repo.deleteCustomReminder(id) }
 }

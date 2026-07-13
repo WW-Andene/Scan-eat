@@ -962,6 +962,9 @@
     <string name="reminders_cd_test">Tester le rappel : %1$s</string>
     <string name="reminders_every_n_hours">%1$dh</string>
     <string name="reminders_custom_daily">Rappel quotidien personnalisé</string>
+    <string name="reminders_add_custom">Ajouter un rappel</string>
+    <string name="reminders_custom_label_hint">Nom du rappel</string>
+    <string name="reminders_custom_time_hint">Heure (HH:mm)</string>
     <string name="reminders_weight_preset_day">1 jour</string>
     <string name="reminders_weight_preset_week">1 semaine</string>
     <string name="reminders_weight_preset_month">1 mois</string>

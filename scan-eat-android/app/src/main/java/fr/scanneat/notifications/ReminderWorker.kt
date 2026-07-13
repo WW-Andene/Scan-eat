@@ -72,6 +72,10 @@ class ReminderWorker @AssistedInject constructor(
         checkMeal(s.weightCustomOn, s.weightCustomTime, RemindersRepository.K_LAST_WEIGHT_CUSTOM_DATE, now, 108,
             localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body))
 
+        s.customReminders.forEach { cr ->
+            checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label)
+        }
+
         return Result.success()
     }
 
