@@ -24,7 +24,7 @@ import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
 
 @Composable
-internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
+internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStreak: Int = 0) {
     val isSurplus = balance.net > 200
     val isDeficit = balance.net < -50
     val balColor = if (isSurplus) semanticRed() else if (isDeficit) AccentCoral else semanticAmber()
@@ -71,6 +71,15 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int) {
                     stringResource(R.string.dashboard_calorie_in_out, balance.kcalIn.roundToInt(), balance.tdee.roundToInt()),
                     style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
                 )
+                // longestLogStreak() (the all-time record) was computed but never shown
+                // anywhere - only shown once it's actually a real record to beat, i.e.
+                // strictly longer than today's current streak.
+                if (longestStreak > streak) {
+                    Text(
+                        pluralStringResource(R.plurals.dashboard_streak_record, longestStreak, longestStreak),
+                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f),
+                    )
+                }
                 // Activité previously had zero visible connection to this card - a
                 // logged workout changed nothing here despite ActivityRepository
                 // already tracking its estimated kcal burn.

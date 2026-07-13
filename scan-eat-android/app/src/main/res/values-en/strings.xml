@@ -833,6 +833,10 @@
         <item quantity="one">day</item>
         <item quantity="other">days</item>
     </plurals>
+    <plurals name="dashboard_streak_record">
+        <item quantity="one">Record: %1$d day</item>
+        <item quantity="other">Record: %1$d days</item>
+    </plurals>
     <string name="dashboard_features_title">Features</string>
     <string name="dashboard_tile_weight">Weight</string>
     <string name="dashboard_tile_fasting">Fasting</string>

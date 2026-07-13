@@ -850,6 +850,10 @@
         <item quantity="one">jour</item>
         <item quantity="other">jours</item>
     </plurals>
+    <plurals name="dashboard_streak_record">
+        <item quantity="one">Record : %1$d jour</item>
+        <item quantity="other">Record : %1$d jours</item>
+    </plurals>
     <string name="dashboard_features_title">Fonctionnalités</string>
     <string name="dashboard_tile_weight">Poids</string>
     <string name="dashboard_tile_fasting">Jeûne</string>

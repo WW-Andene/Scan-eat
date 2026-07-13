@@ -97,7 +97,7 @@ fun DashboardScreen(
             item { Spacer(Modifier.height(4.dp)) }
 
             // ---- Caloric balance — the hero card, streak badge overlapping its corner ----
-            s.calorieBalance?.let { item { CalorieBalanceCard(it, streak = s.streak) } }
+            s.calorieBalance?.let { item { CalorieBalanceCard(it, streak = s.streak, longestStreak = s.longestStreak) } }
 
             // ---- Today's macros as rings ----
             item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }

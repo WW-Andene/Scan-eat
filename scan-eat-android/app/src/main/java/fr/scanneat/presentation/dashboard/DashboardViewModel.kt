@@ -49,6 +49,11 @@ data class DashboardUiState(
     val targets: DailyTargets? = null,
     val calorieBalance: CalorieBalance? = null,
     val streak: Int = 0,
+    // longestLogStreak() was fully built (scans full history for the longest-
+    // ever unbroken logging run) but had zero callers - a user who logged 30
+    // days straight last month and then missed a day saw that record vanish
+    // entirely, since only the *current* streak (logStreakDays) was ever shown.
+    val longestStreak: Int = 0,
     val weekly: RollupResult? = null,
     val weekDelta: WeekOverWeekDelta? = null,
     val weightSummary: fr.scanneat.data.repository.health.WeightSummary? = null,
@@ -135,6 +140,7 @@ class DashboardViewModel @Inject constructor(
                     targets        = targets,
                     calorieBalance = calorieBalance,
                     streak         = logStreakDays(allEntries),
+                    longestStreak  = longestLogStreak(allEntries),
                     weekly         = thisWeek,
                     weekDelta      = weekOverWeekDelta(thisWeek, priorWeek),
                     weightSummary  = wSummary,
