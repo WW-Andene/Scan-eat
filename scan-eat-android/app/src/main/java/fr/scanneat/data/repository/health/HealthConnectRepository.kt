@@ -74,4 +74,21 @@ class HealthConnectRepository @Inject constructor(
             .readRecords(ReadRecordsRequest(recordType = WeightRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end)))
             .records
     }
+
+    /**
+     * Deletes whatever weight record(s) this app previously mirrored for [date] —
+     * WeightRepository.delete() previously never called this at all, so deleting a
+     * bad/duplicate entry in-app left a stale record permanently in Health Connect
+     * (and any other app reading from it) with no way to remove it except manually
+     * in the Health Connect app itself. insertRecords() has no stable id to target
+     * directly, so this reads the day's records back and deletes them by their
+     * Health Connect-assigned metadata id.
+     */
+    suspend fun deleteWeight(date: LocalDate) {
+        if (!hasPermissions()) return
+        val start = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
+        val end = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
+        val ids = readWeights(start, end).map { it.metadata.id }
+        if (ids.isNotEmpty()) client().deleteRecords(WeightRecord::class, ids, emptyList())
+    }
 }

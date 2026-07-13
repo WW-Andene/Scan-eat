@@ -171,6 +171,26 @@ class RemindersRepository @Inject constructor(
         if (on) markStaleIfPast(it, time, K_LAST_WEIGHT_CUSTOM_DATE)
     }
 
+    /**
+     * Restores every field of [settings] in one transaction — backup restore
+     * previously only called setBreakfast/setLunch/setDinner/setHydration/
+     * setWeight, which silently dropped snack, all four custom labels,
+     * hydration/weight custom-time reminders, and every user-created custom
+     * reminder even though exportToJson serializes all of them. A user
+     * restoring a backup on a new phone lost that data with no warning.
+     */
+    suspend fun restoreAll(settings: ReminderSettings) = store.edit { p ->
+        p[K_BREAKFAST_ON] = settings.breakfastOn; p[K_BREAKFAST_TIME] = settings.breakfastTime; p[K_BREAKFAST_LABEL] = settings.breakfastLabel
+        p[K_SNACK_ON]     = settings.snackOn;     p[K_SNACK_TIME]     = settings.snackTime;     p[K_SNACK_LABEL]     = settings.snackLabel
+        p[K_LUNCH_ON]     = settings.lunchOn;     p[K_LUNCH_TIME]     = settings.lunchTime;     p[K_LUNCH_LABEL]     = settings.lunchLabel
+        p[K_DINNER_ON]    = settings.dinnerOn;    p[K_DINNER_TIME]    = settings.dinnerTime;    p[K_DINNER_LABEL]    = settings.dinnerLabel
+        p[K_HYDRATION_ON] = settings.hydrationOn; p[K_HYDRATION_INTERVAL] = settings.hydrationIntervalHours
+        p[K_HYDRATION_CUSTOM_ON] = settings.hydrationCustomOn; p[K_HYDRATION_CUSTOM_TIME] = settings.hydrationCustomTime
+        p[K_WEIGHT_ON] = settings.weightOn; p[K_WEIGHT_THRESHOLD] = settings.weightThresholdDays
+        p[K_WEIGHT_CUSTOM_ON] = settings.weightCustomOn; p[K_WEIGHT_CUSTOM_TIME] = settings.weightCustomTime
+        p[K_CUSTOM_REMINDERS] = Json.encodeToString(settings.customReminders)
+    }
+
     suspend fun wasFiredToday(key: Preferences.Key<String>): Boolean =
         storeData.first()[key] == LocalDate.now().toString()
 

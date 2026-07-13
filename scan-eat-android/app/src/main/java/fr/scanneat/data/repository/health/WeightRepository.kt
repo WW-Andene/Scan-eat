@@ -72,7 +72,19 @@ class WeightRepository @Inject constructor(
         if (existing?.weightKg != rounded) healthConnect.writeWeight(date, rounded)
     }
 
-    suspend fun delete(id: String) = dao.delete(id)
+    /**
+     * Previously never touched Health Connect at all — log() mirrors a write
+     * there, but deleting a bad/duplicate entry in-app (including via the
+     * Undo-snackbar flow in WeightScreen) left a permanently stale record in
+     * Health Connect and any other app reading from it. Looks the entry up
+     * first purely to get its date, since Health Connect has no stable id to
+     * target directly from the local Room id.
+     */
+    suspend fun delete(id: String) {
+        val entry = dao.findById(id)
+        dao.delete(id)
+        entry?.let { runCatching { healthConnect.deleteWeight(LocalDate.parse(it.date)) } }
+    }
 
     /** Reactive summary — recomputes whenever any weight entry changes. */
     fun observeSummary(days: Int = 30, profileId: String = "default"): Flow<WeightSummary?> =

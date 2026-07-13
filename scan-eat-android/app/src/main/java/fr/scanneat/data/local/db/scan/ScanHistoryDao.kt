@@ -17,7 +17,12 @@ interface ScanHistoryDao {
     @Query("SELECT * FROM scan_history WHERE barcode = :barcode AND profileId = :profileId ORDER BY scannedAt DESC LIMIT 1")
     suspend fun findByBarcode(barcode: String, profileId: String = "default"): ScanHistoryEntity?
 
-    @Query("SELECT * FROM scan_history WHERE profileId = :profileId AND favorite = 1 ORDER BY scannedAt DESC")
+    // Previously unbounded (no LIMIT) unlike observeRecent above — a heavy user
+    // who favorites hundreds of products over years re-ran a full, unpaginated
+    // query on every single insert/favorite toggle, holding the whole result set
+    // in memory. 200 is generous for a "favorites" list (by definition a curated
+    // subset) while still bounding the query and the LazyColumn behind it.
+    @Query("SELECT * FROM scan_history WHERE profileId = :profileId AND favorite = 1 ORDER BY scannedAt DESC LIMIT 200")
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanHistoryEntity>>
 
     /**

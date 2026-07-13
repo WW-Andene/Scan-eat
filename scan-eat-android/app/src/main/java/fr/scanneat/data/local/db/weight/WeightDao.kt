@@ -14,6 +14,9 @@ interface WeightDao {
     @Query("SELECT * FROM weight_log WHERE date = :date AND profileId = :profileId LIMIT 1")
     suspend fun findByDate(date: String, profileId: String = "default"): WeightEntity?
 
+    @Query("SELECT * FROM weight_log WHERE id = :id LIMIT 1")
+    suspend fun findById(id: String): WeightEntity?
+
     /** Upsert: Room INSERT OR REPLACE on unique date index. */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: WeightEntity)

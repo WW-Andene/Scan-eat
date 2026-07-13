@@ -194,13 +194,12 @@ class BackupRepository @Inject constructor(
             prefs.setDyslexicFont(s.dyslexicFont)
             prefs.setColorblindMode(s.colorblindMode)
         }
-        bundle.reminderSettings?.let { r ->
-            remindersRepo.setBreakfast(r.breakfastOn, r.breakfastTime)
-            remindersRepo.setLunch(r.lunchOn, r.lunchTime)
-            remindersRepo.setDinner(r.dinnerOn, r.dinnerTime)
-            remindersRepo.setHydration(r.hydrationOn, r.hydrationIntervalHours)
-            remindersRepo.setWeight(r.weightOn, r.weightThresholdDays)
-        }
+        // restoreAll writes every ReminderSettings field in one transaction — the
+        // previous piecemeal setBreakfast/setLunch/setDinner/setHydration/setWeight
+        // calls silently dropped snack, all four custom labels, hydration/weight
+        // custom-time reminders, and every user-created custom reminder despite
+        // exportToJson serializing all of them.
+        bundle.reminderSettings?.let { r -> remindersRepo.restoreAll(r) }
         fastingRepo.importForBackup(bundle.fastingActiveStartMs, bundle.fastingActiveTargetHours, bundle.fastingHistory)
         hydrationRepo.importAll(bundle.hydration.mapNotNull { entry ->
             runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry.ml }
