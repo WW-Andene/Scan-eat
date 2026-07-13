@@ -528,6 +528,8 @@
     <string name="condition_food_allergies">Allergies alimentaires</string>
     <string name="condition_intolerances">Intolérances</string>
     <string name="condition_digestive_disorders">Troubles digestifs</string>
+    <string name="condition_cancer">Cancer / traitement oncologique</string>
+    <string name="condition_depression">Dépression</string>
     <string name="sex_male">Homme</string>
     <string name="sex_female">Femme</string>
     <string name="sex_not_specified">Non précisé</string>

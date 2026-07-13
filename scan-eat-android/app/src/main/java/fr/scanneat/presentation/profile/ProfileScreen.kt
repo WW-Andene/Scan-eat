@@ -343,6 +343,8 @@ private fun conditionLabels(): Map<String, String> = mapOf(
     "food_allergies" to stringResource(R.string.condition_food_allergies),
     "intolerances" to stringResource(R.string.condition_intolerances),
     "digestive_disorders" to stringResource(R.string.condition_digestive_disorders),
+    "cancer" to stringResource(R.string.condition_cancer),
+    "depression" to stringResource(R.string.condition_depression),
 )
 
 @OptIn(ExperimentalLayoutApi::class)

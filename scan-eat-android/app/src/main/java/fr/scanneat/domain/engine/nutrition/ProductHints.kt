@@ -118,6 +118,21 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
         risks += if (en) "May contain caffeine — ANSES recommends pregnant women keep total daily caffeine intake under 200 mg"
                  else "Peut contenir de la caféine — l'ANSES recommande de limiter l'apport total en caféine à 200 mg/jour pendant la grossesse"
     }
+    // Same alcohol-content check PersonalScoreEngine already runs for its own
+    // cancer/depression adjustments — kept in sync so the hint panel never
+    // disagrees with the score adjustments section.
+    val containsAlcohol = product.ingredients.any {
+        val norm = it.name.lowercase()
+        "alcool" in norm || "alcohol" in norm || "vin " in norm || "wine" in norm || "bière" in norm || "beer" in norm
+    }
+    if ("cancer" in conditions && containsAlcohol) {
+        risks += if (en) "Contains alcohol — WCRF cancer prevention guidance recommends limiting alcohol intake"
+                 else "Contient de l'alcool — les recommandations WCRF de prévention du cancer conseillent d'en limiter la consommation"
+    }
+    if ("depression" in conditions && containsAlcohol) {
+        risks += if (en) "Contains alcohol — can worsen depressive symptoms and interacts with most antidepressants"
+                 else "Contient de l'alcool — peut aggraver les symptômes dépressifs et interagit avec la plupart des antidépresseurs"
+    }
 
     // ---- Facts ----
     facts += if (en) "NOVA processing class: ${product.novaClass.value}/4" else "Classe de transformation NOVA : ${product.novaClass.value}/4"

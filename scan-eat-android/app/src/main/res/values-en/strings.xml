@@ -527,6 +527,8 @@
     <string name="condition_food_allergies">Food allergies</string>
     <string name="condition_intolerances">Intolerances</string>
     <string name="condition_digestive_disorders">Digestive disorders</string>
+    <string name="condition_cancer">Cancer / oncology treatment</string>
+    <string name="condition_depression">Depression</string>
     <string name="sex_male">Male</string>
     <string name="sex_female">Female</string>
     <string name="sex_not_specified">Not specified</string>

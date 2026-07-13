@@ -256,6 +256,12 @@ private val CONDITION_AMPLIFICATIONS: Map<Pair<DrugClass, String>, Pair<String, 
     (DrugClass.SARTAN to "kidney_disease") to (
         "Votre profil indique une maladie rénale : les sartans nécessitent une surveillance de la fonction rénale et du potassium sanguin." to
         "Your profile indicates kidney disease: sartans require monitoring of kidney function and blood potassium."),
+    // FDA/EMA pharmacovigilance data links long-term opioid use with an increased
+    // risk of new-onset or worsening depression — a documented class effect, not
+    // an assumption from the opioid caution text alone.
+    (DrugClass.OPIOID to "depression") to (
+        "Votre profil indique une dépression : l'usage prolongé d'opioïdes est associé à un risque accru de dépression (données de pharmacovigilance FDA/EMA) — signalez ce traitement à votre médecin." to
+        "Your profile indicates depression: long-term opioid use is associated with an increased risk of depression (FDA/EMA pharmacovigilance data) — disclose this treatment to your doctor."),
 )
 
 /**

@@ -251,9 +251,10 @@ fun computePersonalScore(
     // ===== HEALTH CONDITIONS =====
     // Only the conditions with an established, simple nutrition-level rule get a
     // scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
-    // alcohol veto). Thyroid disorders / food_allergies / intolerances / digestive
-    // disorders are still selectable (surfaced elsewhere, e.g. the hint system) but
-    // have no dedicated nutrition-threshold rule reliable enough to code here yet.
+    // alcohol veto, WCRF/NHS alcohol caution for cancer/depression). Thyroid
+    // disorders / food_allergies / intolerances / digestive disorders are still
+    // selectable (surfaced elsewhere, e.g. the hint system) but have no dedicated
+    // nutrition-threshold rule reliable enough to code here yet.
     val conditions = profile.healthConditions
     if ("diabetes" in conditions) {
         val sugars = product.nutrition.sugarsG
@@ -299,11 +300,11 @@ fun computePersonalScore(
             category = AdjustmentCategory.CONDITION,
         )
     }
+    val alcoholHit = product.ingredients.any { ing ->
+        val n = ing.name.lowercase()
+        "alcool" in n || "alcohol" in n || "vin " in n || "wine" in n || "bière" in n || "beer" in n
+    }
     if ("pregnancy" in conditions) {
-        val alcoholHit = product.ingredients.any { ing ->
-            val n = ing.name.lowercase()
-            "alcool" in n || "alcohol" in n || "vin " in n || "wine" in n || "bière" in n || "beer" in n
-        }
         if (alcoholHit) {
             veto = true
             val reason = if (lang == "en") "Contains alcohol — avoid during pregnancy"
@@ -311,6 +312,29 @@ fun computePersonalScore(
             dietReason = dietReason ?: reason
             adjustments += PersonalAdjustment(0.0, reason, AdjustmentCategory.CONDITION, veto = true)
         }
+    }
+    // WCRF/AICR (World Cancer Research Fund) Cancer Prevention Recommendations:
+    // alcohol intake is a well-established risk factor for several cancer types —
+    // a caution, not a veto, since abstinence isn't universally medically required
+    // the way it is in pregnancy.
+    if ("cancer" in conditions && alcoholHit) {
+        adjustments += PersonalAdjustment(
+            points = -2.0,
+            reason = if (lang == "en") "Contains alcohol — WCRF cancer prevention guidance recommends limiting alcohol intake"
+                     else "Contient de l'alcool — les recommandations WCRF de prévention du cancer conseillent d'en limiter la consommation",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+    // NHS/CDC guidance: alcohol is a depressant that can worsen depressive symptoms
+    // and interacts with most antidepressant classes (notably MAOIs and, to a
+    // lesser extent, SSRIs) — a caution, not a veto.
+    if ("depression" in conditions && alcoholHit) {
+        adjustments += PersonalAdjustment(
+            points = -2.0,
+            reason = if (lang == "en") "Contains alcohol — can worsen depressive symptoms and interacts with most antidepressants"
+                     else "Contient de l'alcool — peut aggraver les symptômes dépressifs et interagit avec la plupart des antidépresseurs",
+            category = AdjustmentCategory.CONDITION,
+        )
     }
 
     // ===== AGE-BASED =====

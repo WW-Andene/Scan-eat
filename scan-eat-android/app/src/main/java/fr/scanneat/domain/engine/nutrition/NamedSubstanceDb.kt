@@ -53,6 +53,9 @@ private val SUBSTANCES: List<NamedSubstance> = listOf(
     NamedSubstance(listOf("l-theanine", "theanine"), ClaimStatus.NONE,
         "L-théanine : aucune allégation de santé autorisée par l'EFSA à ce jour, malgré son association fréquente avec la caféine dans les compléments et boissons.",
         "L-theanine: no EFSA-authorised health claim to date, despite its frequent pairing with caffeine in supplements and drinks."),
+    NamedSubstance(listOf("millepertuis", "st john's wort", "st johns wort", "hypericum"), ClaimStatus.NONE,
+        "Millepertuis : aucune allégation de santé autorisée par l'EFSA ; interactions majeures documentées par l'EMA avec de nombreux médicaments (dont les antidépresseurs) — signalez-en la prise à votre médecin.",
+        "St John's Wort: no EFSA-authorised health claim; the EMA has documented major interactions with numerous medications (including antidepressants) — disclose use to your doctor."),
 )
 
 /**
