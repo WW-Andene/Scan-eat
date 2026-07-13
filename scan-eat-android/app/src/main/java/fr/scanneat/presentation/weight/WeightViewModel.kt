@@ -19,6 +19,15 @@ class WeightViewModel @Inject constructor(
     private val repo: WeightRepository,
     private val prefs: UserPreferences,
 ) : ViewModel() {
+    init {
+        // Sync was previously write-only (log() mirrors into Health Connect, but
+        // nothing ever read external data back) — a smart scale writing its own
+        // readings straight into Health Connect never reached this screen. Runs
+        // once per screen open rather than on a timer; no-ops entirely if Health
+        // Connect isn't available/permitted, so this is always safe to call.
+        viewModelScope.launch { repo.syncFromHealthConnect() }
+    }
+
     val entries: StateFlow<List<WeightEntry>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

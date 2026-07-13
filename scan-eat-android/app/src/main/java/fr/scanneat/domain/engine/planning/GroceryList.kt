@@ -35,25 +35,27 @@ private fun normalizeKey(name: String): String =
     Normalizer.normalize(name.trim().lowercase(), Normalizer.Form.NFD)
         .replace(Regex("[\\u0300-\\u036f]"), "")
 
+private class GroceryAcc(val name: String, var grams: Double, val sources: MutableList<String>)
+
 /**
  * Aggregate recipes into a deduplicated, alphabetically-sorted grocery list.
  * Port of aggregateGroceryList() from grocery-list.js.
  */
 fun aggregateGroceryList(recipes: List<GroceryRecipeInput>): List<GroceryItem> {
-    data class Acc(val name: String, var grams: Double, val sources: MutableList<String>)
-
-    val acc = mutableMapOf<String, Acc>()
+    val acc = mutableMapOf<String, GroceryAcc>()
     for (recipe in recipes) {
         for (component in recipe.components) {
             val rawName = component.productName.trim()
             if (rawName.isEmpty()) continue
             val key = normalizeKey(rawName)
-            val entry = acc.getOrPut(key) { Acc(rawName, 0.0, mutableListOf()) }
+            val entry = acc.getOrPut(key) { GroceryAcc(rawName, 0.0, mutableListOf()) }
             entry.grams += component.grams.coerceAtLeast(0.0)
             val recipeName = recipe.name.trim().ifEmpty { "—" }
             if (recipeName !in entry.sources) entry.sources += recipeName
         }
     }
+    mergePluralVariants(acc)
+
     // Round rather than truncate — .toInt() always rounds toward zero, so
     // e.g. three recipes each needing 0.4g of an ingredient summed to 1.2g
     // and then silently displayed as "1 g", and several sub-0.5g totals
@@ -62,6 +64,29 @@ fun aggregateGroceryList(recipes: List<GroceryRecipeInput>): List<GroceryItem> {
     return acc.entries
         .map { (key, entry) -> GroceryItem(entry.name, entry.grams.roundToInt(), entry.sources.toList(), key = key) }
         .sortedBy { it.key }
+}
+
+/**
+ * Merges a singular/plural pair ("tomate" from one recipe, "tomates" from
+ * another) into one row instead of two separate list entries with separate
+ * gram totals — previously understated how much of an ingredient is really
+ * needed across the week's recipes. Deliberately conservative: only merges
+ * when BOTH the bare key and its "+s" form are actually present in this
+ * aggregation, never by blindly stripping a trailing "s" off every key (that
+ * would mangle words that are already singular and simply end in "s", e.g.
+ * French "maïs"/"houmous" have no separate singular entry to wrongly fold
+ * into). The shorter (singular) key is kept as canonical so an existing
+ * checked-off state for it survives a merge where possible.
+ */
+private fun mergePluralVariants(acc: MutableMap<String, GroceryAcc>) {
+    val pluralKeys = acc.keys.filter { it.endsWith("s") && it.dropLast(1) in acc }.toList()
+    for (pluralKey in pluralKeys) {
+        val singularKey = pluralKey.dropLast(1)
+        val plural = acc.remove(pluralKey) ?: continue
+        val singular = acc.getValue(singularKey)
+        singular.grams += plural.grams
+        for (source in plural.sources) if (source !in singular.sources) singular.sources += source
+    }
 }
 
 /**

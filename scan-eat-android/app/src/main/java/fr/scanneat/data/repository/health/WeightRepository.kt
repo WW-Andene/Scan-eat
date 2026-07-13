@@ -86,6 +86,41 @@ class WeightRepository @Inject constructor(
         entry?.let { runCatching { healthConnect.deleteWeight(LocalDate.parse(it.date)) } }
     }
 
+    /**
+     * Pulls in weight records Health Connect has from an *external* source
+     * (a smart scale's own app, etc.) that aren't already logged here —
+     * sync was previously write-only, so a scale writing straight into
+     * Health Connect never actually reached Scan'eat's own history. Only
+     * fills genuinely empty days rather than overwriting an existing local
+     * entry for that date, so it can never silently clobber a manual
+     * correction the user already made in-app for that day. No-ops
+     * entirely if Health Connect isn't available/permitted.
+     */
+    suspend fun syncFromHealthConnect(profileId: String = "default", days: Int = 90) {
+        val zone = java.time.ZoneId.systemDefault()
+        val start = LocalDate.now().minusDays(days.toLong()).atStartOfDay(zone).toInstant()
+        val end = LocalDate.now().plusDays(1).atStartOfDay(zone).toInstant()
+        val external = healthConnect.readExternalWeights(start, end)
+        if (external.isEmpty()) return
+        val existingDates = dao.getRecent(Int.MAX_VALUE, profileId).map { it.date }.toSet()
+        // Health Connect can hold more than one reading per day (e.g. a scale
+        // logging every weigh-in) — the most recent one per day wins, same
+        // "one entry per day" convention log() already uses.
+        val byDate = external.groupBy { LocalDate.ofInstant(it.time, zone) }
+        for ((date, records) in byDate) {
+            if (date.toString() in existingDates) continue
+            val latest = records.maxByOrNull { it.time } ?: continue
+            dao.upsert(WeightEntity(
+                id        = UUID.randomUUID().toString(),
+                date      = date.toString(),
+                weightKg  = latest.weight.inKilograms.roundTo1Decimal(),
+                notes     = "",
+                loggedAt  = System.currentTimeMillis(),
+                profileId = profileId,
+            ))
+        }
+    }
+
     /** Reactive summary — recomputes whenever any weight entry changes. */
     fun observeSummary(days: Int = 30, profileId: String = "default"): Flow<WeightSummary?> =
         observeAll(profileId).map { _ -> summarize(days, profileId) }

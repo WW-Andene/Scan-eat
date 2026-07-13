@@ -76,6 +76,18 @@ class HealthConnectRepository @Inject constructor(
     }
 
     /**
+     * Same as [readWeights] but excludes records this app itself wrote —
+     * readWeights() existed but had zero callers anywhere: sync was
+     * write-only, so a smart scale (or any other app) writing into Health
+     * Connect never appeared in Scan'eat's own weight history. Filtering out
+     * this app's own dataOrigin is what makes importing them back safe —
+     * without it, WeightRepository's own writeWeight() calls would get read
+     * back as if they were new external data, in an endless feedback loop.
+     */
+    suspend fun readExternalWeights(start: Instant, end: Instant): List<WeightRecord> =
+        readWeights(start, end).filter { it.metadata.dataOrigin.packageName != context.packageName }
+
+    /**
      * Deletes whatever weight record(s) this app previously mirrored for [date] —
      * WeightRepository.delete() previously never called this at all, so deleting a
      * bad/duplicate entry in-app left a stale record permanently in Health Connect
