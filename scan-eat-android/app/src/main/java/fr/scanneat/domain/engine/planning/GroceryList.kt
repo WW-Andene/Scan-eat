@@ -1,5 +1,11 @@
 package fr.scanneat.domain.engine.planning
 
+import fr.scanneat.domain.model.Ingredient
+import fr.scanneat.domain.model.IngredientCategory
+import fr.scanneat.domain.model.NovaClass
+import fr.scanneat.domain.model.NutritionPer100g
+import fr.scanneat.domain.model.Product
+import fr.scanneat.domain.model.ProductCategory
 import java.text.Normalizer
 import kotlin.math.roundToInt
 
@@ -19,7 +25,26 @@ data class GroceryItem(
     // (GroceryCheckedRepository) persists against this, not `name`, so a
     // renamed recipe or a different row-fetch order can't silently orphan it.
     val key: String,
-)
+) {
+    /**
+     * Synthetic Product (name-only ingredient, zero nutrition) so
+     * checkDiet()/checkUserAllergens() can flag a grocery row the same way
+     * Recipes' cards do - grocery aggregation carries no per-100g macros of
+     * its own, so keyword-based checks (allergens, vegan/halal/kosher, etc.)
+     * work as intended while any macro-based diet rule (e.g. keto's net-carbs
+     * cap) simply never fires here, rather than firing spuriously on 0s.
+     */
+    fun toCheckProduct(): Product = Product(
+        name        = name,
+        category    = ProductCategory.OTHER,
+        novaClass   = NovaClass.UNPROCESSED,
+        ingredients = listOf(Ingredient(name = name, category = IngredientCategory.FOOD)),
+        nutrition   = NutritionPer100g(
+            energyKcal = 0.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 0.0,
+            sugarsG = 0.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.0,
+        ),
+    )
+}
 
 data class GroceryRecipeInput(
     val name: String,

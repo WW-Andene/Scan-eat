@@ -3,6 +3,7 @@ package fr.scanneat.presentation.grocery
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.planning.GroceryCheckedRepository
 import fr.scanneat.data.repository.planning.ManualGroceryItem
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
@@ -11,6 +12,8 @@ import fr.scanneat.data.repository.planning.MealPlanSlot
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -29,6 +32,7 @@ class GroceryViewModel @Inject constructor(
     private val checkedRepo: GroceryCheckedRepository,
     private val mealPlanRepo: MealPlanRepository,
     private val manualGroceryRepo: ManualGroceryRepository,
+    private val prefs: UserPreferences,
 ) : ViewModel() {
 
     // "Planned this week only" scope: when on, the grocery list is built from the
@@ -92,6 +96,24 @@ class GroceryViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val groceryItems: StateFlow<List<GroceryItem>> = rawItems
+
+    /**
+     * item key -> short warning, same checkDiet()/checkUserAllergens() reused
+     * from Recipes' identical fix - the grocery list previously ran no diet/
+     * allergen check at all, so a vegan or allergic user's shopping list could
+     * silently include an ingredient their own profile forbids.
+     */
+    val itemWarnings: StateFlow<Map<String, String>> = combine(rawItems, prefs.profile, prefs.language) { items, profile, lang ->
+        items.mapNotNull { item ->
+            val product = item.toCheckProduct()
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(product, profile.diet, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            if (parts.isEmpty()) null else item.key to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     /** Same list, annotated with persisted check-off state so the UI can tick items while shopping. */
     val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(rawItems, checkedRepo.checkedKeys) { items, checked ->

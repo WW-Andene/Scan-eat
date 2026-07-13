@@ -37,6 +37,7 @@ fun GroceryScreen(
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
     val checkable = viewModel.checkableItems.collectAsStateWithLifecycle()
     val manualItemKeys = viewModel.manualItemKeys.collectAsStateWithLifecycle()
+    val itemWarnings = viewModel.itemWarnings.collectAsStateWithLifecycle()
     val scopeToPlanned = viewModel.scopeToPlanned.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     val haptics   = LocalHapticFeedback.current
@@ -151,6 +152,12 @@ fun GroceryScreen(
                                         textDecoration = if (checked) TextDecoration.LineThrough else null)
                                     if (item.sources.isNotEmpty()) {
                                         Text(item.sources.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f * contentAlpha))
+                                    }
+                                    // Diet/allergen check previously only ran on scanned products and
+                                    // (as of this same round) Recipes - the grocery list itself, the
+                                    // other place a user relies on the app to protect them, had none.
+                                    itemWarnings.value[item.key]?.let {
+                                        Text(it, style = MaterialTheme.typography.labelSmall, color = semanticAmber().copy(contentAlpha))
                                     }
                                 }
                                 if (item.grams > 0) {
