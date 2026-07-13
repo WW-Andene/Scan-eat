@@ -26,11 +26,14 @@ import javax.inject.Singleton
 // ============================================================================
 
 data class ReminderSettings(
-    val breakfastOn: Boolean = false, val breakfastTime: String = "07:30",
-    val lunchOn: Boolean = false, val lunchTime: String = "12:30",
-    val dinnerOn: Boolean = false, val dinnerTime: String = "19:00",
-    val hydrationOn: Boolean = false, val hydrationIntervalHours: Int = 2,
-    val weightOn: Boolean = false, val weightThresholdDays: Int = 3,
+    val breakfastOn: Boolean = false, val breakfastTime: String = "06:00",
+    val snackOn: Boolean = false, val snackTime: String = "09:00",
+    val lunchOn: Boolean = false, val lunchTime: String = "12:00",
+    val dinnerOn: Boolean = false, val dinnerTime: String = "18:00",
+    val hydrationOn: Boolean = false, val hydrationIntervalHours: Int = 3,
+    val hydrationCustomOn: Boolean = false, val hydrationCustomTime: String = "12:00",
+    val weightOn: Boolean = false, val weightThresholdDays: Int = 1,
+    val weightCustomOn: Boolean = false, val weightCustomTime: String = "12:00",
 )
 
 private val Context.remindersDataStore by preferencesDataStore(name = "reminders")
@@ -50,31 +53,45 @@ class RemindersRepository @Inject constructor(
     companion object {
         val K_BREAKFAST_ON   = booleanPreferencesKey("rem_breakfast_on")
         val K_BREAKFAST_TIME = stringPreferencesKey("rem_breakfast_time")
+        val K_SNACK_ON       = booleanPreferencesKey("rem_snack_on")
+        val K_SNACK_TIME     = stringPreferencesKey("rem_snack_time")
         val K_LUNCH_ON       = booleanPreferencesKey("rem_lunch_on")
         val K_LUNCH_TIME     = stringPreferencesKey("rem_lunch_time")
         val K_DINNER_ON      = booleanPreferencesKey("rem_dinner_on")
         val K_DINNER_TIME    = stringPreferencesKey("rem_dinner_time")
         val K_HYDRATION_ON       = booleanPreferencesKey("rem_hydration_on")
         val K_HYDRATION_INTERVAL = intPreferencesKey("rem_hydration_interval_h")
+        val K_HYDRATION_CUSTOM_ON   = booleanPreferencesKey("rem_hydration_custom_on")
+        val K_HYDRATION_CUSTOM_TIME = stringPreferencesKey("rem_hydration_custom_time")
         val K_WEIGHT_ON        = booleanPreferencesKey("rem_weight_on")
         val K_WEIGHT_THRESHOLD = intPreferencesKey("rem_weight_threshold_days")
+        val K_WEIGHT_CUSTOM_ON   = booleanPreferencesKey("rem_weight_custom_on")
+        val K_WEIGHT_CUSTOM_TIME = stringPreferencesKey("rem_weight_custom_time")
 
         val K_LAST_BREAKFAST_DATE    = stringPreferencesKey("rem_last_breakfast_date")
+        val K_LAST_SNACK_DATE        = stringPreferencesKey("rem_last_snack_date")
         val K_LAST_LUNCH_DATE        = stringPreferencesKey("rem_last_lunch_date")
         val K_LAST_DINNER_DATE       = stringPreferencesKey("rem_last_dinner_date")
         val K_LAST_HYDRATION_MS      = longPreferencesKey("rem_last_hydration_ms")
+        val K_LAST_HYDRATION_CUSTOM_DATE = stringPreferencesKey("rem_last_hydration_custom_date")
         val K_LAST_WEIGHT_NUDGE_DATE = stringPreferencesKey("rem_last_weight_nudge_date")
+        val K_LAST_WEIGHT_CUSTOM_DATE     = stringPreferencesKey("rem_last_weight_custom_date")
     }
 
     val settings: Flow<ReminderSettings> = storeData.map { p ->
         ReminderSettings(
-            breakfastOn = p[K_BREAKFAST_ON] ?: false, breakfastTime = p[K_BREAKFAST_TIME] ?: "07:30",
-            lunchOn     = p[K_LUNCH_ON] ?: false,      lunchTime     = p[K_LUNCH_TIME] ?: "12:30",
-            dinnerOn    = p[K_DINNER_ON] ?: false,      dinnerTime    = p[K_DINNER_TIME] ?: "19:00",
+            breakfastOn = p[K_BREAKFAST_ON] ?: false, breakfastTime = p[K_BREAKFAST_TIME] ?: "06:00",
+            snackOn     = p[K_SNACK_ON] ?: false,      snackTime     = p[K_SNACK_TIME] ?: "09:00",
+            lunchOn     = p[K_LUNCH_ON] ?: false,      lunchTime     = p[K_LUNCH_TIME] ?: "12:00",
+            dinnerOn    = p[K_DINNER_ON] ?: false,      dinnerTime    = p[K_DINNER_TIME] ?: "18:00",
             hydrationOn = p[K_HYDRATION_ON] ?: false,
-            hydrationIntervalHours = p[K_HYDRATION_INTERVAL] ?: 2,
+            hydrationIntervalHours = p[K_HYDRATION_INTERVAL] ?: 3,
+            hydrationCustomOn   = p[K_HYDRATION_CUSTOM_ON] ?: false,
+            hydrationCustomTime = p[K_HYDRATION_CUSTOM_TIME] ?: "12:00",
             weightOn        = p[K_WEIGHT_ON] ?: false,
-            weightThresholdDays = p[K_WEIGHT_THRESHOLD] ?: 3,
+            weightThresholdDays = p[K_WEIGHT_THRESHOLD] ?: 1,
+            weightCustomOn   = p[K_WEIGHT_CUSTOM_ON] ?: false,
+            weightCustomTime = p[K_WEIGHT_CUSTOM_TIME] ?: "12:00",
         )
     }.distinctUntilChanged()
 
@@ -95,12 +112,24 @@ class RemindersRepository @Inject constructor(
         it[K_LUNCH_ON] = on; it[K_LUNCH_TIME] = time
         if (on) markStaleIfPast(it, time, K_LAST_LUNCH_DATE)
     }
+    suspend fun setSnack(on: Boolean, time: String) = store.edit {
+        it[K_SNACK_ON] = on; it[K_SNACK_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_SNACK_DATE)
+    }
     suspend fun setDinner(on: Boolean, time: String) = store.edit {
         it[K_DINNER_ON] = on; it[K_DINNER_TIME] = time
         if (on) markStaleIfPast(it, time, K_LAST_DINNER_DATE)
     }
     suspend fun setHydration(on: Boolean, intervalHours: Int) = store.edit { it[K_HYDRATION_ON] = on; it[K_HYDRATION_INTERVAL] = intervalHours }
+    suspend fun setHydrationCustom(on: Boolean, time: String) = store.edit {
+        it[K_HYDRATION_CUSTOM_ON] = on; it[K_HYDRATION_CUSTOM_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_HYDRATION_CUSTOM_DATE)
+    }
     suspend fun setWeight(on: Boolean, thresholdDays: Int)    = store.edit { it[K_WEIGHT_ON] = on; it[K_WEIGHT_THRESHOLD] = thresholdDays }
+    suspend fun setWeightCustom(on: Boolean, time: String) = store.edit {
+        it[K_WEIGHT_CUSTOM_ON] = on; it[K_WEIGHT_CUSTOM_TIME] = time
+        if (on) markStaleIfPast(it, time, K_LAST_WEIGHT_CUSTOM_DATE)
+    }
 
     suspend fun wasFiredToday(key: Preferences.Key<String>): Boolean =
         storeData.first()[key] == LocalDate.now().toString()

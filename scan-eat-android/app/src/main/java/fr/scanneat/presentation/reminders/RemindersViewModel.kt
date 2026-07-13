@@ -19,8 +19,11 @@ class RemindersViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ReminderSettings())
 
     fun setBreakfast(on: Boolean, time: String) = viewModelScope.launch { repo.setBreakfast(on, time) }
+    fun setSnack(on: Boolean, time: String)     = viewModelScope.launch { repo.setSnack(on, time) }
     fun setLunch(on: Boolean, time: String)     = viewModelScope.launch { repo.setLunch(on, time) }
     fun setDinner(on: Boolean, time: String)    = viewModelScope.launch { repo.setDinner(on, time) }
     fun setHydration(on: Boolean, intervalHours: Int) = viewModelScope.launch { repo.setHydration(on, intervalHours) }
+    fun setHydrationCustom(on: Boolean, time: String) = viewModelScope.launch { repo.setHydrationCustom(on, time) }
     fun setWeight(on: Boolean, thresholdDays: Int)    = viewModelScope.launch { repo.setWeight(on, thresholdDays) }
+    fun setWeightCustom(on: Boolean, time: String)    = viewModelScope.launch { repo.setWeightCustom(on, time) }
 }

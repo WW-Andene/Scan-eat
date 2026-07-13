@@ -44,6 +44,8 @@ class ReminderWorker @AssistedInject constructor(
 
         checkMeal(s.breakfastOn, s.breakfastTime, RemindersRepository.K_LAST_BREAKFAST_DATE, now, 101,
             localizedString(lang, R.string.reminders_notif_breakfast_title), localizedString(lang, R.string.reminders_notif_breakfast_body))
+        checkMeal(s.snackOn, s.snackTime, RemindersRepository.K_LAST_SNACK_DATE, now, 106,
+            localizedString(lang, R.string.reminders_notif_snack_title), localizedString(lang, R.string.reminders_notif_snack_body))
         checkMeal(s.lunchOn, s.lunchTime, RemindersRepository.K_LAST_LUNCH_DATE, now, 102,
             localizedString(lang, R.string.reminders_notif_lunch_title), localizedString(lang, R.string.reminders_notif_lunch_body))
         checkMeal(s.dinnerOn, s.dinnerTime, RemindersRepository.K_LAST_DINNER_DATE, now, 103,
@@ -55,6 +57,8 @@ class ReminderWorker @AssistedInject constructor(
                     localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body))
             }
         }
+        checkMeal(s.hydrationCustomOn, s.hydrationCustomTime, RemindersRepository.K_LAST_HYDRATION_CUSTOM_DATE, now, 107,
+            localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body))
 
         if (s.weightOn) {
             val lastDate = weightRepo.observeAll().first().maxByOrNull { it.date }?.date
@@ -65,6 +69,8 @@ class ReminderWorker @AssistedInject constructor(
                 remindersRepo.markFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)
             }
         }
+        checkMeal(s.weightCustomOn, s.weightCustomTime, RemindersRepository.K_LAST_WEIGHT_CUSTOM_DATE, now, 108,
+            localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body))
 
         return Result.success()
     }

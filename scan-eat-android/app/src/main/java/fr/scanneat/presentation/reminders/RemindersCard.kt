@@ -88,6 +88,12 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                 onTest = { NotificationHelper.show(context, 901, context.getString(R.string.reminders_breakfast), context.getString(R.string.reminders_test_body)) },
             )
             ReminderRow(
+                label = stringResource(R.string.reminders_snack), on = s.snackOn, time = s.snackTime,
+                onToggle = { viewModel.setSnack(it, s.snackTime) },
+                onTimeChange = { viewModel.setSnack(s.snackOn, it) },
+                onTest = { NotificationHelper.show(context, 906, context.getString(R.string.reminders_snack), context.getString(R.string.reminders_test_body)) },
+            )
+            ReminderRow(
                 label = stringResource(R.string.reminders_lunch), on = s.lunchOn, time = s.lunchTime,
                 onToggle = { viewModel.setLunch(it, s.lunchTime) },
                 onTimeChange = { viewModel.setLunch(s.lunchOn, it) },
@@ -116,7 +122,7 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                (1..4).forEach { h ->
+                listOf(3, 6, 9, 12).forEach { h ->
                     FilterChip(
                         selected = s.hydrationIntervalHours == h,
                         onClick = { viewModel.setHydration(s.hydrationOn, h) },
@@ -125,6 +131,12 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     )
                 }
             }
+            ReminderRow(
+                label = stringResource(R.string.reminders_custom_daily), on = s.hydrationCustomOn, time = s.hydrationCustomTime,
+                onToggle = { viewModel.setHydrationCustom(it, s.hydrationCustomTime) },
+                onTimeChange = { viewModel.setHydrationCustom(s.hydrationCustomOn, it) },
+                onTest = { NotificationHelper.show(context, 907, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) },
+            )
 
             ScanEatDivider()
 
@@ -142,15 +154,26 @@ fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(2, 3, 4, 7, 14).forEach { d ->
+                listOf(
+                    1 to R.string.reminders_weight_preset_day,
+                    7 to R.string.reminders_weight_preset_week,
+                    30 to R.string.reminders_weight_preset_month,
+                    365 to R.string.reminders_weight_preset_year,
+                ).forEach { (d, labelRes) ->
                     FilterChip(
                         selected = s.weightThresholdDays == d,
                         onClick = { viewModel.setWeight(s.weightOn, d) },
-                        label = { Text(stringResource(R.string.reminders_every_n_days, d)) },
+                        label = { Text(stringResource(labelRes)) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
                     )
                 }
             }
+            ReminderRow(
+                label = stringResource(R.string.reminders_custom_daily), on = s.weightCustomOn, time = s.weightCustomTime,
+                onToggle = { viewModel.setWeightCustom(it, s.weightCustomTime) },
+                onTimeChange = { viewModel.setWeightCustom(s.weightCustomOn, it) },
+                onTest = { NotificationHelper.show(context, 908, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) },
+            )
     }
 }
 

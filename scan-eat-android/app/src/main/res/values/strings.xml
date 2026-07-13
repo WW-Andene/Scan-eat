@@ -860,6 +860,8 @@
     <string name="reminders_enable_notifications">Activer les notifications</string>
     <string name="reminders_notif_breakfast_title">Petit-déjeuner</string>
     <string name="reminders_notif_breakfast_body">N\'oublie pas de journaliser ton petit-déjeuner.</string>
+    <string name="reminders_notif_snack_title">Collation</string>
+    <string name="reminders_notif_snack_body">N\'oublie pas de journaliser ta collation.</string>
     <string name="reminders_notif_lunch_title">Déjeuner</string>
     <string name="reminders_notif_lunch_body">N\'oublie pas de journaliser ton déjeuner.</string>
     <string name="reminders_notif_dinner_title">Dîner</string>
@@ -869,6 +871,7 @@
     <string name="reminders_notif_weight_title">Pesée</string>
     <string name="reminders_notif_weight_body">Ça fait un moment — enregistre ton poids.</string>
     <string name="reminders_breakfast">Petit-déjeuner</string>
+    <string name="reminders_snack">Collation</string>
     <string name="reminders_lunch">Déjeuner</string>
     <string name="reminders_dinner">Dîner</string>
     <string name="reminders_hydration">Hydratation</string>
@@ -876,5 +879,9 @@
     <string name="reminders_test_body">Ceci est un rappel de test.</string>
     <string name="reminders_cd_test">Tester le rappel : %1$s</string>
     <string name="reminders_every_n_hours">%1$dh</string>
-    <string name="reminders_every_n_days">%1$dj</string>
+    <string name="reminders_custom_daily">Rappel quotidien personnalisé</string>
+    <string name="reminders_weight_preset_day">1 jour</string>
+    <string name="reminders_weight_preset_week">1 semaine</string>
+    <string name="reminders_weight_preset_month">1 mois</string>
+    <string name="reminders_weight_preset_year">1 an</string>
 </resources>
