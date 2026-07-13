@@ -73,18 +73,18 @@ fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
             Text(stringResource(R.string.reminders_hydration), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { NotificationHelper.show(context, 904, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) }) {
-                    Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_hydration)), tint = HydrationBlue)
+                    Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_hydration)), tint = semanticBlue())
                 }
                 val lbl = stringResource(R.string.reminders_hydration)
                 Switch(checked = s.hydrationOn, onCheckedChange = { viewModel.setHydration(it, s.hydrationIntervalHours) },
-                    colors = SwitchDefaults.colors(checkedTrackColor = HydrationBlue), modifier = Modifier.semantics { contentDescription = lbl })
+                    colors = SwitchDefaults.colors(checkedTrackColor = semanticBlue()), modifier = Modifier.semantics { contentDescription = lbl })
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf(3, 6, 9, 12).forEach { h ->
                 FilterChip(selected = s.hydrationIntervalHours == h, onClick = { viewModel.setHydration(s.hydrationOn, h) },
                     label = { Text(stringResource(R.string.reminders_every_n_hours, h)) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = HydrationBlue.copy(0.2f), selectedLabelColor = HydrationBlue))
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = semanticBlue().copy(0.2f), selectedLabelColor = semanticBlue()))
             }
         }
         ReminderRow(defaultLabel = stringResource(R.string.reminders_custom_daily), on = s.hydrationCustomOn, time = s.hydrationCustomTime,
