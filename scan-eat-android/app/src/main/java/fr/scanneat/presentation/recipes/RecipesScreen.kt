@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
+import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
@@ -34,10 +35,12 @@ fun RecipesScreen(
     onBack: () -> Unit,
 ) {
     val recipes = viewModel.recipes.collectAsStateWithLifecycle()
+    val language = viewModel.language.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<Recipe?>(null) }
+    var logOfficialTarget by remember { mutableStateOf<OfficialRecipe?>(null) }
 
     Scaffold(
         topBar = {
@@ -54,6 +57,29 @@ fun RecipesScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            // ---- Official starter recipes — real CIQUAL/ANSES-sourced nutrition,
+            // built to the Santé publique France / PNNS "assiette-type" portion
+            // model. Read-only: log them directly, or clone into an editable
+            // recipe of your own. See OfficialRecipeDb.kt for full provenance. ----
+            item {
+                Text(stringResource(R.string.recipes_official_section_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+            }
+            item {
+                Text(stringResource(R.string.recipes_official_section_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            }
+            items(viewModel.officialRecipes) { recipe ->
+                OfficialRecipeCard(
+                    recipe   = recipe,
+                    isFrench = language.value == "fr",
+                    onLog    = { logOfficialTarget = recipe },
+                    onClone  = { viewModel.cloneOfficial(recipe) },
+                )
+            }
+            item { Spacer(Modifier.height(Spacing.M)) }
+            item {
+                Text(stringResource(R.string.recipes_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+            }
+
             if (recipes.value.isEmpty()) {
                 item {
                     EmptyListState(
@@ -71,6 +97,9 @@ fun RecipesScreen(
 
     if (showAdd) AddRecipeDialog(onDismiss = { showAdd = false }, onSave = { name, comps, servings -> viewModel.save(name, comps, servings); showAdd = false })
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
+    logOfficialTarget?.let { recipe ->
+        LogOfficialRecipeDialog(recipe = recipe, isFrench = language.value == "fr", onDismiss = { logOfficialTarget = null }, onLog = { slot -> viewModel.logOfficial(recipe, slot); logOfficialTarget = null })
+    }
     renameTarget?.let { recipe ->
         RenameDialog(
             currentName = recipe.name,
@@ -115,6 +144,55 @@ private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit, 
             }
         }
     }
+}
+
+@Composable
+private fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, onLog: () -> Unit, onClone: () -> Unit) {
+    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
+        Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(if (isFrench) recipe.nameFr else recipe.nameEn, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            stringResource(R.string.recipes_summary, recipe.totalKcal.toInt(), recipe.ingredients.size, recipe.totalGrams.toInt()),
+                            style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f),
+                        )
+                    }
+                    Row {
+                        IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                        IconButton(onClick = onClone, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.ContentCopy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
+                    }
+                }
+                recipe.ingredients.take(4).forEach { ing ->
+                    Text("${ing.foodName} · ${ing.grams.toInt()} g", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogOfficialRecipeDialog(recipe: OfficialRecipe, isFrench: Boolean, onDismiss: () -> Unit, onLog: (MealSlot) -> Unit) {
+    var slot by remember { mutableStateOf(MealSlot.LUNCH) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.recipes_log_dialog_title, if (isFrench) recipe.nameFr else recipe.nameEn), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    MealSlot.values().forEach { s ->
+                        FilterChip(selected = slot == s, onClick = { slot = s }, label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { onLog(slot) }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
 }
 
 @Composable

@@ -864,6 +864,9 @@
 
     <!-- ── Recipes screen ─────────────────────────────────────────────────── -->
     <string name="recipes_title">Recipes</string>
+    <string name="recipes_official_section_title">Balanced meal ideas</string>
+    <string name="recipes_official_section_hint">Nutrition computed from the CIQUAL (ANSES) food composition tables; plate split follows Manger Bouger / PNNS guidelines (½ vegetables, ¼ starches, ¼ protein).</string>
+    <string name="recipes_official_clone_cd">Add to my recipes</string>
     <string name="recipes_cd_new">New recipe</string>
     <string name="templates_cd_new">New meal template</string>
     <string name="templates_add_dialog_title">New Meal Template</string>
