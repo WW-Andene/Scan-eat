@@ -49,6 +49,7 @@ fun ResultScreen(
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showSheet   by remember { mutableStateOf(false) }
+    var showSaveMenu by remember { mutableStateOf(false) }
 
     // Navigate to diary after successful log
     LaunchedEffect(state.value.logState) {
@@ -69,7 +70,7 @@ fun ResultScreen(
                 },
                 actions = {
                     state.value.scanResult?.let { scan ->
-                        IconButton(onClick = { viewModel.toggleFavorite() }) {
+                        IconButton(onClick = { showSaveMenu = true }) {
                             Icon(
                                 if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
                                 stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
@@ -114,6 +115,17 @@ fun ResultScreen(
             sheetState = sheetState,
             onConfirm  = { g, slot -> viewModel.log(g, slot) },
             onDismiss  = { showSheet = false },
+        )
+    }
+
+    if (showSaveMenu && state.value.scanResult != null) {
+        SaveDestinationsPopup(
+            alreadyFavorite = state.value.scanResult!!.favorite,
+            onSave = { destinations ->
+                viewModel.saveToDestinations(destinations)
+                showSaveMenu = false
+            },
+            onDismiss = { showSaveMenu = false },
         )
     }
 }

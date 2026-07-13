@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.planning.GroceryCheckedRepository
+import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.planning.MealPlanSlot
 import fr.scanneat.data.repository.planning.Recipe
@@ -26,6 +27,7 @@ class GroceryViewModel @Inject constructor(
     private val recipeRepo: RecipeRepository,
     private val checkedRepo: GroceryCheckedRepository,
     private val mealPlanRepo: MealPlanRepository,
+    private val manualGroceryRepo: ManualGroceryRepository,
 ) : ViewModel() {
 
     // "Planned this week only" scope: when on, the grocery list is built from the
@@ -62,20 +64,24 @@ class GroceryViewModel @Inject constructor(
     // toggling scopeToPlanned on/off never discards check-off state for an
     // ingredient that's just temporarily out of view, only for one that's truly
     // gone (recipe deleted/edited).
-    private val allRecipeItems: StateFlow<List<GroceryItem>> = recipes
-        .map { list -> aggregateGroceryList(list.map { it.toGroceryInput() }) }
+    private val allRecipeItems: StateFlow<List<GroceryItem>> = combine(recipes, manualGroceryRepo.asRecipeInputs) { list, manual ->
+        aggregateGroceryList(list.map { it.toGroceryInput() } + manual)
+    }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // A shared StateFlow so groceryItems and checkableItems don't each trigger their
-    // own Room query + aggregateGroceryList() run for the same recipe change.
-    private val rawItems: StateFlow<List<GroceryItem>> = combine(recipes, plannedRecipeCounts, _scopeToPlanned) { list, counts, scoped ->
+    // own Room query + aggregateGroceryList() run for the same recipe change. Manual
+    // items (added ad-hoc, e.g. from a scanned product's "Save to..." popup) always
+    // show regardless of the planned-week scope - they were never tied to a recipe
+    // or meal-plan slot in the first place.
+    private val rawItems: StateFlow<List<GroceryItem>> = combine(recipes, plannedRecipeCounts, _scopeToPlanned, manualGroceryRepo.asRecipeInputs) { list, counts, scoped, manual ->
         val inputs = if (!scoped) {
             list.map { it.toGroceryInput() }
         } else {
             list.flatMap { r -> List(counts[r.id] ?: 0) { r.toGroceryInput() } }
         }
-        aggregateGroceryList(inputs)
+        aggregateGroceryList(inputs + manual)
     }
         // Room's Flow reuses whatever dispatcher is already active in the collecting
         // coroutine rather than always using its background query executor - without

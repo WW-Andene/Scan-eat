@@ -8,6 +8,10 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.scan.ComparisonRepository
 import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.data.repository.planning.ManualGroceryRepository
+import fr.scanneat.data.repository.planning.RecipeComponent
+import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
@@ -59,6 +63,9 @@ class ResultViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
     private val comparisonRepo: ComparisonRepository,
     private val prefs: UserPreferences,
+    private val customFoodRepo: CustomFoodRepository,
+    private val recipeRepo: RecipeRepository,
+    private val manualGroceryRepo: ManualGroceryRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -151,4 +158,49 @@ class ResultViewModel @Inject constructor(
         favoriteOverride.value = newValue
         viewModelScope.launch { scanRepo.setFavorite(scan.dbId, newValue) }
     }
+
+    /**
+     * Multi-destination save from the scanned product's "Save to..." popup —
+     * each destination is independent (a product can go to several at once)
+     * and none of them requires the others to be reachable first.
+     */
+    fun saveToDestinations(destinations: Set<SaveDestination>) {
+        val scan = state.value.scanResult ?: return
+        viewModelScope.launch {
+            if (SaveDestination.FAVORIS in destinations && scan.dbId > 0) {
+                favoriteOverride.value = true
+                scanRepo.setFavorite(scan.dbId, true)
+            }
+            if (SaveDestination.MES_ALIMENTS in destinations) {
+                val n = scan.product.nutrition
+                customFoodRepo.save(
+                    name     = scan.product.name,
+                    kcal     = n.energyKcal,
+                    proteinG = n.proteinG,
+                    carbsG   = n.carbsG,
+                    fatG     = n.fatG,
+                    fiberG   = n.fiberG,
+                    saltG    = n.saltG,
+                )
+            }
+            if (SaveDestination.COURSES in destinations) {
+                manualGroceryRepo.add(scan.product.name, 100.0)
+            }
+            if (SaveDestination.REPAS in destinations) {
+                val n = scan.product.nutrition
+                recipeRepo.save(
+                    name = scan.product.name,
+                    components = listOf(
+                        RecipeComponent(
+                            productName = scan.product.name, grams = 100.0,
+                            kcal = n.energyKcal, proteinG = n.proteinG, carbsG = n.carbsG,
+                            fatG = n.fatG, saltG = n.saltG,
+                        ),
+                    ),
+                )
+            }
+        }
+    }
 }
+
+enum class SaveDestination { COURSES, MES_ALIMENTS, REPAS, FAVORIS }

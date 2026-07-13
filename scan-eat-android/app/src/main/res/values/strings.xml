@@ -815,6 +815,11 @@
     <string name="result_title">Score</string>
     <string name="result_cd_favorite">Ajouter aux favoris</string>
     <string name="result_cd_unfavorite">Retirer des favoris</string>
+    <string name="save_destinations_title">Enregistrer dans...</string>
+    <string name="save_destinations_courses">Courses</string>
+    <string name="save_destinations_mes_aliments">Mes aliments</string>
+    <string name="save_destinations_repas">Repas</string>
+    <string name="save_destinations_favoris">Favoris</string>
     <string name="result_score_out_of_100">%1$d / 100</string>
     <string name="result_comparison_title">Comparaison A→B</string>
     <string name="result_comparison_score">Score : %1$s pts</string>
