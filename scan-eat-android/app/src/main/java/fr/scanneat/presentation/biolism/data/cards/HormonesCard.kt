@@ -22,7 +22,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
         Text(stringResource(R.string.biolism_hormones_disclaimer),
             style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
             modifier = Modifier.background(OnBackground.copy(0.03f), RoundedCornerShape(6.dp)).padding(Spacing.S))
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
 
         Label(stringResource(R.string.biolism_hormones_sex_section), Gold)
         listOf(
@@ -33,7 +33,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
         ).filterNotNull().forEach { (name, reading, note) ->
             HormoneRow(name, reading, note)
         }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         Label(stringResource(R.string.biolism_hormones_metabolic_section), Teal)
         listOf(
             Triple(stringResource(R.string.biolism_hormones_insulin), h.insulin, "Phinney 2012"),
@@ -41,7 +41,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
             Triple(stringResource(R.string.biolism_hormones_cortisol), h.cortisol, "Bjorntorp 2000"),
             Triple(stringResource(R.string.biolism_hormones_ft3), h.fT3, "Phinney 1983"),
         ).forEach { (name, reading, note) -> HormoneRow(name, reading, note) }
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         Label(stringResource(R.string.biolism_hormones_appetite_section), Violet)
         listOf(
             Triple(stringResource(R.string.biolism_hormones_leptin), h.leptin, "Considine 1996"),
@@ -69,7 +69,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
             if (met.bfPct > 25) add(Triple(highFatLabel, highFatTags, Warm))
         }
         if (modifiers.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Spacing.S))
             TintedPanel(OnBackground) {
                 Label(stringResource(R.string.biolism_hormones_modifiers_title), OnBackground.copy(0.4f))
                 modifiers.forEach { (label, tags, color) ->

@@ -64,7 +64,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 // a recipe built from ingredients the user's own profile forbids
                 // (allergen or diet violation) had no warning anywhere in this screen.
                 warning?.let {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                         Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
                     }

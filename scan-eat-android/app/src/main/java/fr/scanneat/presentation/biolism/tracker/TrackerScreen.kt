@@ -81,7 +81,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
             .padding(bottom = Spacing.XXL),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
 
         if (!p.isValid) {
             EmptyProfilePrompt()

@@ -26,7 +26,7 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
         ))
         // Navy tape (when available)
         met.navyBfPct?.let { navy ->
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Spacing.S))
             TintedPanel(Teal) {
                 Label(stringResource(R.string.biolism_body_navy_method), Teal)
                 MetCellGrid(listOf(
@@ -38,7 +38,7 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
             }
         }
         // IBW
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         Label(stringResource(R.string.biolism_body_ibw_title), OnBackground.copy(0.4f))
         val ibwDelta = profile.weightKg - met.ibwMean
         MetCellGrid(listOf(
@@ -49,7 +49,7 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
                 stringResource(R.string.biolism_body_ibw_delta_sub, if (ibwDelta > 0) "+" else "", ibwDelta)),
         ))
         // Visceral
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         TintedPanel(Gold) {
             Label(stringResource(R.string.biolism_body_visceral_title), Gold)
             val riskThin = stringResource(R.string.biolism_body_risk_thin)

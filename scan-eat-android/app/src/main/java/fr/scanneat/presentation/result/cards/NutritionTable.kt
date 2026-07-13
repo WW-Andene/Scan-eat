@@ -19,6 +19,7 @@ import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SeparatorLight
+import fr.scanneat.presentation.ui.theme.Spacing
 import java.util.Locale
 
 @Composable
@@ -27,7 +28,7 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
     Column {
         Text(stringResource(R.string.result_nutrition_title), style = MaterialTheme.typography.titleSmall,
             color = OnBackground, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         NRow(stringResource(R.string.result_nutri_energy), "${nutrition.energyKcal.toInt()} kcal")
         NRow(stringResource(R.string.result_nutri_fat), "${fmt1(nutrition.fatG)} g")
         NRow(stringResource(R.string.result_nutri_saturated), "${fmt1(nutrition.saturatedFatG)} g")

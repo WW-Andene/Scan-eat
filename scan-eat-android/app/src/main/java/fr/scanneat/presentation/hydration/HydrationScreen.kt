@@ -63,7 +63,7 @@ fun HydrationScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {
-        item { Spacer(Modifier.height(16.dp)) }
+        item { Spacer(Modifier.height(Spacing.L)) }
 
         // Previously an inline single-domain MonthCalendar toggled here; now
         // routes to the unified Calendar (Dashboard), which shows hydration
@@ -168,7 +168,7 @@ fun HydrationScreen(
         }
 
         item { HydrationReminderCard() }
-        item { Spacer(Modifier.height(32.dp)) }
+        item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
 

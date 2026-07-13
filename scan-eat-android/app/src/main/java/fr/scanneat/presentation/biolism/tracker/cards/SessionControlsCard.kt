@@ -35,7 +35,7 @@ internal fun SessionControls(
             containerColor = Gold,
         ) {
             Icon(if (running) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Color.Black)
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(Spacing.XS))
             Text(if (running) stringResource(R.string.biolism_sessctrl_pause) else if (hasElapsed) stringResource(R.string.biolism_sessctrl_resume) else stringResource(R.string.biolism_sessctrl_start),
                 color = Color.Black, fontWeight = FontWeight.Bold)
         }
@@ -44,13 +44,13 @@ internal fun SessionControls(
                 if (saved) {
                     ScanEatOutlinedButton(onClick = {}, enabled = false) {
                         Icon(Icons.Default.Check, null, tint = Teal, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
+                        Spacer(Modifier.width(Spacing.XS))
                         Text(stringResource(R.string.biolism_sessctrl_saved), color = Teal)
                     }
                 } else {
                     ScanEatOutlinedButton(onClick = onSave) {
                         Icon(Icons.Default.Save, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(4.dp))
+                        Spacer(Modifier.width(Spacing.XS))
                         Text(stringResource(R.string.biolism_sessctrl_save))
                     }
                 }

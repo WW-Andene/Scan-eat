@@ -91,7 +91,7 @@ fun RecipesScreen(
             items(recipes.value, key = { it.id }) { recipe ->
                 RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe })
             }
-            item { Spacer(Modifier.height(32.dp)) }
+            item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
 

@@ -22,7 +22,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
     BioCard(stringResource(R.string.biolism_macro_title), defaultOpen = false, badge = { GoldBadge(stringResource(R.string.biolism_macro_badge)) }) {
         InfoRow(stringResource(R.string.biolism_macro_tdee_label),
             stringResource(R.string.biolism_macro_tdee_value, met.tdeeDay, met.bmrDay, profile.activityMeta.mult, met.ffm), "", Gold)
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Spacing.XS))
         MacroTargetRow(stringResource(R.string.biolism_macro_protein), met.macroProtMinG, "g",
             stringResource(R.string.biolism_macro_protein_sub, met.protGPerKgFfm, met.ffm), Violet)
         MacroTargetRow(stringResource(R.string.biolism_macro_carbs), met.macroCarbMinG, "g",
@@ -30,7 +30,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
         MacroTargetRow(stringResource(R.string.biolism_macro_fat), met.macroFatMinG, "g",
             stringResource(R.string.biolism_macro_fat_sub, met.essentialFatMinG), Warm)
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         Surface(shape = RoundedCornerShape(10.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldBorder), modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {

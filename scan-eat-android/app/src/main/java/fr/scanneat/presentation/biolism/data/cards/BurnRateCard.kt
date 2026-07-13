@@ -31,7 +31,7 @@ fun BurnRateCard(met: MetabolicResult, s: TimerState, cum: SessionCumulative?) {
         InfoRow(stringResource(R.string.biolism_burn_co2), "%.4f L/min".format(Locale.US, met.vco2PerMin), "", TextSecondary)
         InfoRow(stringResource(R.string.biolism_burn_oxycal), "%.4f kcal/L O₂".format(Locale.US, met.sub.oxycaloric), "", if (s.ketosisOn) Teal else TextSecondary)
         cum?.let { c ->
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Spacing.S))
             TintedPanel(if (s.ketosisOn) Teal else Gold) {
                 Label(stringResource(R.string.biolism_burn_session_cum), if (s.ketosisOn) Teal else Gold)
                 InfoRow(stringResource(R.string.biolism_burn_kcal_burned), "%.4f kcal".format(Locale.US, c.kcalTotal), "", if (s.ketosisOn) Teal else Gold)

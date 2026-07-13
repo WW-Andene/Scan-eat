@@ -76,7 +76,7 @@ private fun CautionBanner(text: String) {
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             verticalAlignment = Alignment.Top,
         ) {
             Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.padding(top = 2.dp))

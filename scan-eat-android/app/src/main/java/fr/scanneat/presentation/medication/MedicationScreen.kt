@@ -47,7 +47,7 @@ fun MedicationScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item { Spacer(Modifier.height(8.dp)) }
+            item { Spacer(Modifier.height(Spacing.S)) }
             // Previously no calendar entry point at all for Traitement (unlike
             // Weight/Activity/Hydration, which each had their own local one) -
             // routes straight to the unified Calendar rather than embedding
@@ -118,7 +118,7 @@ fun MedicationScreen(
                     }
                 }
             }
-            item { Spacer(Modifier.height(32.dp)) }
+            item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
 

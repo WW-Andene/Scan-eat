@@ -147,7 +147,7 @@ fun WeightScreen(
                     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(Spacing.M)) {
                             Text(stringResource(R.string.weight_trend_caption, last8.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                            Spacer(Modifier.height(8.dp))
+                            Spacer(Modifier.height(Spacing.S))
                             val trendDescription = stringResource(
                                 R.string.weight_trend_cd,
                                 dispWeight(last8.first().weightKg),

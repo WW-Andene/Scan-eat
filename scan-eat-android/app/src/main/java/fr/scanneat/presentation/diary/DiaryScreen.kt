@@ -175,7 +175,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
         modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        item { Spacer(Modifier.height(4.dp)) }
+        item { Spacer(Modifier.height(Spacing.XS)) }
 
         // Day navigation — meal logging is scoped to a single day; the other
         // Journal tabs (weight, water, activity, fasting) manage their own
@@ -265,7 +265,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                 fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.S))
         }
         item { MealRemindersCard() }
-        item { Spacer(Modifier.height(32.dp)) }
+        item { Spacer(Modifier.height(Spacing.XXL)) }
     }
 
     // Delete confirmation — shared dialog, same as Weight/Templates/Recipes/

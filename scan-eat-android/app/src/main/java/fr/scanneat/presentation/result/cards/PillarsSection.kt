@@ -19,6 +19,7 @@ import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.Spacing
 
 @Composable
 internal fun PillarsSection(pillars: ScoreAudit.Pillars) {
@@ -40,7 +41,7 @@ private fun PillarRow(pillar: PillarScore) {
             Text(stringResource(R.string.result_pillar_score, pillar.score.toInt(), pillar.max), style = MaterialTheme.typography.labelMedium,
                 color = color, fontWeight = FontWeight.SemiBold)
         }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Spacing.XS))
         LinearProgressIndicator(
             progress   = { ratio },
             modifier   = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),

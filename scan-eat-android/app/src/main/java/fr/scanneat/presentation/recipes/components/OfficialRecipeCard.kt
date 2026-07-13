@@ -55,7 +55,7 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
                     Text("${ing.foodName} · ${ing.grams.toInt()} g", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
                 }
                 warning?.let {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                         Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
                     }

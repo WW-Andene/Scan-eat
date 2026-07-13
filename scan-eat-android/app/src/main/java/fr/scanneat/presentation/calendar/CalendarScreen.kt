@@ -72,7 +72,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(Spacing.XS))
             Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
                 Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(Spacing.M)) {
@@ -227,7 +227,7 @@ private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale) {
 
 @Composable
 private fun DetailRow(color: Color, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Box(Modifier.size(8.dp).clip(CircleShape).background(color))
         Text(text, style = MaterialTheme.typography.bodySmall, color = OnSurface)
     }

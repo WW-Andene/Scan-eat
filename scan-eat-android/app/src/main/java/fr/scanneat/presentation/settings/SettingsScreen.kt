@@ -135,7 +135,7 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(Spacing.XS))
 
             // ---- Profile — first thing in Réglages, not buried at the bottom ----
             SettingsSection(stringResource(R.string.settings_section_profile)) {
@@ -146,7 +146,7 @@ fun SettingsScreen(
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                 ) {
                     Icon(Icons.Default.Person, null, tint = OnBackground, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(Spacing.S))
                     Text(stringResource(R.string.settings_profile_button), color = OnBackground)
                 }
             }
@@ -283,7 +283,7 @@ fun SettingsScreen(
                         colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
                     )
                 }
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(Spacing.XS))
                 Text(stringResource(R.string.settings_colorblind_mode), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     listOf(

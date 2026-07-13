@@ -61,7 +61,7 @@ fun FastingScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(Spacing.L),
         ) {
-            item { Spacer(Modifier.height(8.dp)) }
+            item { Spacer(Modifier.height(Spacing.S)) }
 
             // Previously no calendar entry point at all for Jeûne (unlike
             // Weight/Activity/Hydration, which each had their own local one) -
@@ -183,7 +183,7 @@ fun FastingScreen(
                 }
             }
 
-            item { Spacer(Modifier.height(32.dp)) }
+            item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
 

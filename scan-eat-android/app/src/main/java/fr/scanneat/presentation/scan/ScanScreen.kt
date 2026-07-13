@@ -170,13 +170,13 @@ fun ScanScreen(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Icon(Icons.Default.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(Spacing.L))
                 Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
                     color = OnBackground, textAlign = TextAlign.Center)
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(Spacing.S))
                 Text(stringResource(R.string.camera_permission_rationale),
                     style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(Spacing.XL))
                 if (permanentlyDenied) {
                     ScanEatPrimaryButton(
                         onClick = {
@@ -192,7 +192,7 @@ fun ScanScreen(
                         Text(stringResource(R.string.common_allow))
                     }
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(Spacing.L))
                 if (!manualEntryOpen) {
                     TextButton(onClick = { manualEntryOpen = true }) {
                         Text(stringResource(R.string.scan_manual_entry_toggle), color = OnBackground.copy(0.8f))
@@ -225,7 +225,7 @@ fun ScanScreen(
                 ) {
                     Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(Spacing.S))
                         Text(bc, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
                     }
                 }
@@ -340,7 +340,7 @@ fun ScanScreen(
                         color = SurfaceVariant, shape = RoundedCornerShape(CardRadius.CONTROL)) {
                         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(Spacing.S))
                             Text(stringResource(R.string.scan_needs_photo),
                                 Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
                             IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {

@@ -99,7 +99,7 @@ internal fun DualScoreRing(
         val (classicAnimated, classicCompletion) = rememberScoreReveal(classicScore / 100f)
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.result_classic_score_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(Spacing.XS))
             Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier
@@ -128,7 +128,7 @@ internal fun DualScoreRing(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.result_personal_score_label), style = MaterialTheme.typography.labelSmall,
                 color = if (veto) semanticRed() else AccentCoral)
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(Spacing.XS))
             Box(modifier = Modifier.size(110.dp), contentAlignment = Alignment.Center) {
                 Box(
                     modifier = Modifier

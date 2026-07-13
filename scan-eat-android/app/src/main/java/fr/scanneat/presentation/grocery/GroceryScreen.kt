@@ -125,7 +125,7 @@ fun GroceryScreen(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
                 verticalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
-                item { Spacer(Modifier.height(4.dp)) }
+                item { Spacer(Modifier.height(Spacing.XS)) }
                 item {
                     Text(pluralStringResource(R.plurals.grocery_item_count, items.value.size, items.value.size),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))

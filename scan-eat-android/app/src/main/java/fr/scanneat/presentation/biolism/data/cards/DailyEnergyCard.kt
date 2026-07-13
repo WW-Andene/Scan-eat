@@ -44,7 +44,7 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
         val todaySessKcal = remember(sessions) { sessions.filter { isToday(it.timestamp) }.sumOf { it.kcalBurned } }
         val totalOut = met.tdeeDay + todaySessKcal
         val netBal = todayIntakeKcal - totalOut
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         val balanceColor = if (netBal > 200) semanticRed() else if (netBal < -50) semanticGreen() else semanticAmber()
         TintedPanel(balanceColor) {
             Label(stringResource(R.string.biolism_energy_balance_title), balanceColor)

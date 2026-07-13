@@ -31,7 +31,7 @@ fun GlobalSummaryCard(allSessions: List<BiolismSession>) {
             Triple(stringResource(R.string.biolism_summary_avg_duration), formatDuration((avgSec * 1000).toLong()), ""),
         ))
         if (spark.size > 1) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Spacing.S))
             Label(stringResource(R.string.biolism_summary_spark_label, spark.size), OnBackground.copy(0.4f))
             Row(Modifier.fillMaxWidth().height(52.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.Bottom) {
                 spark.forEachIndexed { i, sess ->

@@ -24,7 +24,7 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult, lang: String = "fr")
         Text(stringResource(R.string.biolism_ketoproc_elapsed_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
         Spacer(Modifier.height(6.dp))
         Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         LinearProgressIndicator(
             progress = { (phase.progressPct / 100.0).toFloat().coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth().height(4.dp),
@@ -42,7 +42,7 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult, lang: String = "fr")
             accents = listOf(phaseColor, Gold, TextSecondary, phaseColor),
         )
         if (s.ketoHours >= 1440) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Spacing.S))
             Text(stringResource(R.string.biolism_ketoproc_warning),
                 style = MaterialTheme.typography.labelSmall, color = semanticRed(), fontWeight = FontWeight.SemiBold)
         }

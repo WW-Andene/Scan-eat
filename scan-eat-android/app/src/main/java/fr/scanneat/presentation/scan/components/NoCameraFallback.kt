@@ -52,14 +52,14 @@ internal fun NoCameraFallback(
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(Icons.Default.QrCodeScanner, null, tint = OnBackground, modifier = Modifier.size(64.dp))
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(Spacing.L))
         Text(stringResource(titleRes), style = MaterialTheme.typography.titleMedium, color = OnBackground, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         Text(stringResource(bodyRes), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(Spacing.XL))
         if (onRetry != null) {
             ScanEatPrimaryButton(onClick = onRetry) { Text(stringResource(R.string.common_retry)) }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(Spacing.L))
         }
         ManualBarcodeEntry(onSubmit = onSubmit)
     }
@@ -86,7 +86,7 @@ internal fun ManualBarcodeEntry(onSubmit: (String) -> Unit) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.width(220.dp),
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(Spacing.M))
         ScanEatPrimaryButton(onClick = { onSubmit(digits) }, enabled = isValid) {
             Text(stringResource(R.string.scan_manual_entry_submit))
         }

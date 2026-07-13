@@ -44,7 +44,7 @@ fun PhysiologicalMetricsCard(
         InfoRow(stringResource(R.string.biolism_physio_glucose), "%.2f mmol/L".format(Locale.US, estGluc), stringResource(R.string.biolism_physio_glucose_sub),
             if (estGluc < 3.0) semanticRed() else if (estGluc < 3.9) semanticAmber() else semanticGreen())
         cum?.let { c ->
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(Spacing.S))
             TintedPanel(Violet) {
                 Label(stringResource(R.string.biolism_physio_session_cum), Violet)
                 InfoRow(stringResource(R.string.biolism_physio_metwater_total), "%.3f g".format(Locale.US, c.metWaterTotalG), "", Teal)
@@ -54,7 +54,7 @@ fun PhysiologicalMetricsCard(
         }
 
         // Manual HR cross-check
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(Spacing.S))
         var hrText by remember { mutableStateOf(manualHR?.toString() ?: "") }
         TintedPanel(Violet) {
             Label(stringResource(R.string.biolism_physio_hr_check_title), Violet)

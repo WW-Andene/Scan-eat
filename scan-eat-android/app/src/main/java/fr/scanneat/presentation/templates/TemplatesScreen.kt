@@ -97,7 +97,7 @@ fun TemplatesScreen(
                     }
                 }
             }
-            item { Spacer(Modifier.height(32.dp)) }
+            item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
 

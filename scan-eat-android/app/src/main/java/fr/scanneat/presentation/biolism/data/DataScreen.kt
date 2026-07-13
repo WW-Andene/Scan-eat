@@ -93,6 +93,6 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         if (sessions.value.isNotEmpty()) {
             item { SessionHistoryCard(sessions.value, viewModel::deleteSession) }
         }
-        item { Spacer(Modifier.height(16.dp)) }
+        item { Spacer(Modifier.height(Spacing.L)) }
     }
 }

@@ -36,7 +36,7 @@ fun SubstrateFluxCard(met: MetabolicResult, s: TimerState) {
         InfoRow(stringResource(R.string.biolism_flux_beta_ox), "%.3f mmol/min".format(Locale.US, met.acCoaFatMmolMin), "", Warm)
         InfoRow(stringResource(R.string.biolism_flux_glycolysis), "%.3f mmol/min".format(Locale.US, met.acCoaCarbMmolMin), "", TextSecondary)
         InfoRow(stringResource(R.string.biolism_flux_protein_aa), "%.3f mmol/min".format(Locale.US, met.acCoaProtMmolMin), "", Violet)
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Spacing.XS))
         InfoRow(stringResource(R.string.biolism_flux_bhb), if (met.bhbMmolPerMin > 0) "%.4f mmol/min".format(Locale.US, met.bhbMmolPerMin) else stringResource(R.string.biolism_flux_bhb_none),
             if (met.ketoActivation > 0) stringResource(R.string.biolism_flux_bhb_activation, met.ketoActivation * 100) else "", Teal)
         InfoRow(stringResource(R.string.biolism_flux_gluconeogenesis), "%.3f g glucose/h".format(Locale.US, met.gngGPerHr),

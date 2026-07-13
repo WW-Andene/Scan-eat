@@ -60,7 +60,7 @@ fun MealPlanScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            item { Spacer(Modifier.height(4.dp)) }
+            item { Spacer(Modifier.height(Spacing.XS)) }
             items(weekDates.value, key = { it.toEpochDay() }) { date ->
                 val dayPlan = plan.value[date] ?: DayPlan(date)
                 val isToday = date == LocalDate.now()
@@ -96,7 +96,7 @@ fun MealPlanScreen(
                     }
                 }
             }
-            item { Spacer(Modifier.height(32.dp)) }
+            item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
 

@@ -95,7 +95,7 @@ fun DashboardScreen(
             modifier            = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            item { Spacer(Modifier.height(4.dp)) }
+            item { Spacer(Modifier.height(Spacing.XS)) }
 
             // ---- Caloric balance — the hero card, streak badge overlapping its corner ----
             s.calorieBalance?.let { item { CalorieBalanceCard(it, streak = s.streak, longestStreak = s.longestStreak) } }
@@ -192,7 +192,7 @@ fun DashboardScreen(
                 items(s.recentScans, key = { it.dbId }) { scan -> ScanHistoryCard(scan, onItemClick = onOpenResult) }
             }
 
-            item { Spacer(Modifier.height(32.dp)) }
+            item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
 }
