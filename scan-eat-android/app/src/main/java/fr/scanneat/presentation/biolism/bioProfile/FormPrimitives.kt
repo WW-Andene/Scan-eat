@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.CardRadius
 import java.util.Locale
 
 /** Reusable, stateless form primitives local to the Biolism profile edit screen. */
@@ -68,7 +69,7 @@ internal fun BioInputUnit(
         label = { Text(if (useImperial) imperialLabel else metricLabel, style = MaterialTheme.typography.labelMedium) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.18f),
             focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,
@@ -82,7 +83,7 @@ internal fun BioInput(label: String, value: String, keyboardType: KeyboardType =
         value = value, onValueChange = onValue, label = { Text(label, style = MaterialTheme.typography.labelMedium) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.18f),
             focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,

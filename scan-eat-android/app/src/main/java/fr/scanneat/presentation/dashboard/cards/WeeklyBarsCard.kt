@@ -33,7 +33,7 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
     // so its day labels stayed in English even when the user picked another language.
     val locale = remember(language) { Locale(language) }
   Box(Modifier.fillMaxWidth().glassSheen()) {
-    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
+    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.dashboard_week_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)

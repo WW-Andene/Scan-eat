@@ -40,7 +40,7 @@ internal fun BioCard(
 ) {
     var open by remember { mutableStateOf(defaultOpen) }
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f)) {
-        Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { open = !open },

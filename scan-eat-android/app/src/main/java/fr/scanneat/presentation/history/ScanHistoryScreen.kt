@@ -110,7 +110,7 @@ fun ScanHistoryScreen(
                     }
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(CardRadius.CONTROL),
                 colors = scanEatTextFieldColors(),
             )
 
@@ -131,11 +131,11 @@ fun ScanHistoryScreen(
                 items(scans.value, key = { it.dbId }) { scan ->
                     val gradeColor = gradeColor(scan.audit.grade)
                     val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
-                    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
+                    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(CardRadius.CONTROL))
                                 .background(SurfaceVariant)
                                 .clickable { if (scan.dbId > 0) onOpenResult(scan.dbId) }
                                 .clearAndSetSemantics { contentDescription = summary }

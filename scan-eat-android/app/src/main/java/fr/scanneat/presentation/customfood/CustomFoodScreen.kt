@@ -72,7 +72,7 @@ fun CustomFoodScreen(
                     }
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(CardRadius.CONTROL),
                 colors = scanEatTextFieldColors(),
             )
 

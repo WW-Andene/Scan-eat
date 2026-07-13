@@ -63,7 +63,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
     val s = onboardSteps[step]
 
     Box(Modifier.fillMaxSize().background(Background), contentAlignment = Alignment.Center) {
-        Surface(shape = RoundedCornerShape(20.dp), color = SurfaceVariant, modifier = Modifier.padding(20.dp).fillMaxWidth()) {
+        Surface(shape = RoundedCornerShape(CardRadius.PROMINENT), color = SurfaceVariant, modifier = Modifier.padding(20.dp).fillMaxWidth()) {
             Column(
                 Modifier.padding(Spacing.XL).verticalScroll(rememberScrollState()).heightIn(max = 560.dp),
                 verticalArrangement = Arrangement.spacedBy(Spacing.L),
@@ -110,7 +110,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                     3 -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         ACTIVITY_LEVELS.forEach { lvl ->
                             Row(
-                                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                                Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL))
                                     .background(if (activityId == lvl.id) GoldHaze else OnBackground.copy(0.03f))
                                     .selectable(selected = activityId == lvl.id, onClick = { activityId = lvl.id }, role = Role.RadioButton)
                                     .padding(Spacing.M),
@@ -147,7 +147,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                         },
                         enabled = canAdvance,
                         colors = ButtonDefaults.buttonColors(containerColor = Gold, disabledContainerColor = Gold.copy(0.3f)),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
                     ) {
                         Text(if (step < onboardSteps.size - 1) stringResource(R.string.biolism_onboard_next) else stringResource(R.string.biolism_onboard_finish), color = Color.Black, fontWeight = FontWeight.Bold)
                     }
@@ -163,7 +163,7 @@ private fun OnboardField(label: String, value: String, keyboardType: KeyboardTyp
         value = value, onValueChange = onValue, label = { Text(label, style = MaterialTheme.typography.labelMedium) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.18f),
             focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,

@@ -73,8 +73,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Spacer(Modifier.height(4.dp))
-            Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(16.dp))) {
-                Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+            Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
+                Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(Spacing.M)) {
                         MultiMarkerMonthGrid(
                             month = month.value, selected = selected.value, markers = markers.value, locale = locale,
@@ -183,8 +183,8 @@ private fun MultiMarkerMonthGrid(
 @Composable
 private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale) {
     val dateFmt = DateTimeFormatter.ofPattern("EEEE d MMMM", locale)
-    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(16.dp))) {
-        Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
+        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(
                     detail.date.format(dateFmt).replaceFirstChar { it.uppercase() },

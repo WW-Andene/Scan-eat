@@ -27,7 +27,7 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun ComparisonCard(cmp: ComparisonResult) {
     ScanEatCard(
-        shape = RoundedCornerShape(12.dp), color = AccentCoral.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
         contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
@@ -51,7 +51,7 @@ internal fun ComparisonCard(cmp: ComparisonResult) {
 @Composable
 internal fun PairingsCard(pairings: List<String>) {
     ScanEatCard(
-        shape = RoundedCornerShape(12.dp), color = AccentCoral.copy(alpha = 0.08f),
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.08f),
         contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
@@ -69,7 +69,7 @@ internal fun PairingsCard(pairings: List<String>) {
 @Composable
 internal fun AlternativeCard(alternative: ScanResult) {
     ScanEatCard(
-        shape = RoundedCornerShape(12.dp), color = AccentCoral.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
         contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
@@ -81,10 +81,10 @@ internal fun AlternativeCard(alternative: ScanResult) {
 
 @Composable
 internal fun DietVetoBanner(reason: String?) {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(12.dp),
+            shape    = RoundedCornerShape(CardRadius.CONTROL),
             color    = semanticRed().copy(alpha = 0.15f),
         ) {
             Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically,
@@ -99,10 +99,10 @@ internal fun DietVetoBanner(reason: String?) {
 
 @Composable
 internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String = "fr") {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(12.dp))) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(12.dp),
+            shape    = RoundedCornerShape(CardRadius.CONTROL),
             color    = semanticAmber().copy(alpha = 0.15f),
         ) {
             Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {

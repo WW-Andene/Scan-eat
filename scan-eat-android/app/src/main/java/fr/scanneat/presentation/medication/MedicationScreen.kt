@@ -70,7 +70,7 @@ fun MedicationScreen(
             items(medications.value, key = { it.id }) { m ->
                 val takenToday = todayTaken.value.find { it.medicationId == m.id }
                 Row(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(Spacing.M),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).background(SurfaceVariant).padding(Spacing.M),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {

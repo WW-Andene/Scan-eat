@@ -20,6 +20,7 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.CardRadius
 
 /** Reusable, stateless form primitives local to the Profile screen. */
 
@@ -53,7 +54,7 @@ internal fun OutlinedInput(
         modifier      = Modifier.fillMaxWidth(),
         singleLine    = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        shape  = RoundedCornerShape(12.dp),
+        shape  = RoundedCornerShape(CardRadius.CONTROL),
         colors = scanEatTextFieldColors(),
     )
 }

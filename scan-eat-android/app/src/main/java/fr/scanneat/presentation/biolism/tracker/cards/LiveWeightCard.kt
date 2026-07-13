@@ -18,13 +18,14 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
+import fr.scanneat.presentation.ui.theme.CardRadius
 import java.util.Locale
 
 @Composable
 internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: Double, glycoLostKg: Double, ketosisOn: Boolean) {
     val color = if (ketosisOn) Teal else Gold
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         color = color.copy(0.04f),
         border = BorderStroke(1.dp, color.copy(0.15f)),
         modifier = Modifier.fillMaxWidth(),

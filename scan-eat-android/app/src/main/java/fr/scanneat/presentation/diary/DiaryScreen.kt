@@ -200,8 +200,8 @@ private fun MealsTab(viewModel: DiaryViewModel) {
 
         if (showCalendar) {
             item {
-                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
-                    Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(Spacing.M)) {
                             MonthCalendar(
                                 month = calendarMonth,
@@ -233,7 +233,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                         }
                     }
                 },
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(CardRadius.CONTROL),
                 colors = scanEatTextFieldColors(),
             )
 

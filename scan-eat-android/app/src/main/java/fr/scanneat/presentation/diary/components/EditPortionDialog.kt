@@ -18,6 +18,7 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
 internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
@@ -32,7 +33,7 @@ internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double) -> Unit, o
                 label = { Text(stringResource(R.string.diary_edit_portion_label)) },
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(CardRadius.CONTROL),
                 colors = scanEatTextFieldColors(),
             )
         },

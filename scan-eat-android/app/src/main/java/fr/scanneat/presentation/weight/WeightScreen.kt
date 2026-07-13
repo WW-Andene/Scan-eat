@@ -143,8 +143,8 @@ fun WeightScreen(
                     val last8 = entries.value.takeLast(8)
                     val minW = last8.minOf { it.weightKg }
                     val maxW = (last8.maxOf { it.weightKg }).coerceAtLeast(minW + 0.1)
-                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
-                    Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(Spacing.M)) {
                             Text(stringResource(R.string.weight_trend_caption, last8.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             Spacer(Modifier.height(8.dp))
@@ -172,9 +172,9 @@ fun WeightScreen(
 
             // Entries
             items(reversedEntries, key = { it.id }) { e ->
-                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
+                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(Spacing.M),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).background(SurfaceVariant).padding(Spacing.M),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {

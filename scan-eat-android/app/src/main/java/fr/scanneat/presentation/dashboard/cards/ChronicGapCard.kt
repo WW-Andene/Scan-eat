@@ -27,6 +27,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
+import fr.scanneat.presentation.ui.theme.CardRadius
 
 /**
  * Surfaces chronicNutrientGaps() — recurring, multi-day nutrient shortfalls,
@@ -38,7 +39,7 @@ import fr.scanneat.presentation.ui.theme.glassSheen
 @Composable
 internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSuggestion) -> Unit) {
   Box(Modifier.fillMaxWidth().glassSheen()) {
-    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
+    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.dashboard_chronic_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
             gaps.take(3).forEach { gap ->
@@ -54,8 +55,8 @@ internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSugge
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         gap.suggestions.take(3).forEach { s ->
                             Surface(
-                                modifier = Modifier.clip(RoundedCornerShape(16.dp)).clickable { onSuggestionClick(s) },
-                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier.clip(RoundedCornerShape(CardRadius.CARD)).clickable { onSuggestionClick(s) },
+                                shape = RoundedCornerShape(CardRadius.CARD),
                                 color = AccentCoral.copy(0.15f),
                             ) {
                                 Text(

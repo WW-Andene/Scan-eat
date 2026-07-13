@@ -25,7 +25,7 @@ internal fun FastingRow(
     val fastFmt = formatFastingTime(fastingHours, stringResource(R.string.biolism_unit_week), stringResource(R.string.biolism_unit_day))
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (active && fastingHours > 0) VioletHaze else VioletTrace,
         border = BorderStroke(1.dp, if (active && fastingHours > 0) VioletBorder else VioletTrace),
     ) {

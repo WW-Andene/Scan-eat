@@ -143,7 +143,7 @@ fun SettingsScreen(
                 OutlinedButton(
                     onClick = onOpenProfile,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
                 ) {
                     Icon(Icons.Default.Person, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
@@ -185,7 +185,7 @@ fun SettingsScreen(
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true, shape = RoundedCornerShape(12.dp),
+                        singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
                         colors = scanEatTextFieldColors(),
                     )
                     Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
@@ -211,7 +211,7 @@ fun SettingsScreen(
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true, shape = RoundedCornerShape(12.dp),
+                        singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
                         colors = scanEatTextFieldColors(),
                     )
                     SaveButtonRow(saved = savedField.value == "cerebrasApiKey") { viewModel.saveCerebrasApiKey(localCerebrasKey) }
@@ -225,7 +225,7 @@ fun SettingsScreen(
                         value = localUrl, onValueChange = { localUrl = it },
                         modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_server_url_placeholder)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                        singleLine = true, shape = RoundedCornerShape(12.dp),
+                        singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
                         colors = scanEatTextFieldColors(),
                     )
                     SaveButtonRow(saved = savedField.value == "serverUrl") { viewModel.saveServerUrl(localUrl) }
@@ -335,7 +335,7 @@ fun SettingsScreen(
                     OutlinedButton(
                         onClick = { importLauncher.launch(arrayOf("application/json")) },
                         enabled = !working,
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
                     ) {
                         Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
@@ -372,7 +372,7 @@ fun SettingsScreen(
                         } else {
                             OutlinedButton(
                                 onClick = { healthConnectLauncher.launch(viewModel.healthConnectPermissions) },
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(CardRadius.CONTROL),
                             ) {
                                 Icon(Icons.Default.MonitorHeart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(6.dp))

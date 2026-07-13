@@ -24,11 +24,11 @@ internal fun ScanHistoryCard(scan: ScanResult, onItemClick: ((Long) -> Unit)? = 
     val gradeColor = gradeColor(scan.audit.grade)
     val clickMod = if (onItemClick != null && scan.dbId > 0)
         Modifier.clickable { onItemClick(scan.dbId) } else Modifier
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(12.dp))) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(CardRadius.CONTROL))
                 .background(SurfaceVariant)
                 .then(clickMod)
                 .padding(Spacing.M),

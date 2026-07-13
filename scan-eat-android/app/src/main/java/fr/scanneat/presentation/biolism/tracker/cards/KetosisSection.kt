@@ -26,7 +26,7 @@ internal fun KetosisToggleRow(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         color = bgColor,
         border = BorderStroke(1.dp, borderColor),
     ) {
@@ -66,8 +66,8 @@ internal fun KetosisToggleRow(
 internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -> Unit) {
     val threeWeeks = ketoHours >= 504.0
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { onToggle() },
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).clickable { onToggle() },
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (active) GoldHaze else GoldTrace,
         border = BorderStroke(1.dp, if (active) GoldBorder else GoldTrace),
     ) {

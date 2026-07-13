@@ -122,7 +122,7 @@ fun ActivityScreen(
             val totalMin  = entries.value.sumOf { it.minutes }
             if (totalKcal > 0) {
                 item {
-                    ScanEatCard(shape = RoundedCornerShape(12.dp), contentPadding = PaddingValues(16.dp)) {
+                    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(16.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("$totalKcal", style = MaterialTheme.typography.titleLarge, color = semanticRed(), fontWeight = FontWeight.Bold)
@@ -139,7 +139,7 @@ fun ActivityScreen(
 
             items(entries.value, key = { it.id }) { e ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(SurfaceVariant).padding(Spacing.M),
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).background(SurfaceVariant).padding(Spacing.M),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {

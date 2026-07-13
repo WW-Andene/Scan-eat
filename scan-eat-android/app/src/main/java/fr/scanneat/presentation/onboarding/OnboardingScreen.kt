@@ -124,7 +124,7 @@ fun OnboardingScreen(
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             colors = scanEatTextFieldColors(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
                         )
                         Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                     } else {
@@ -133,7 +133,7 @@ fun OnboardingScreen(
                             label = { Text(stringResource(R.string.settings_server_url)) },
                             modifier = Modifier.fillMaxWidth(), singleLine = true,
                             colors = scanEatTextFieldColors(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
                         )
                     }
 
@@ -201,7 +201,7 @@ private fun ValueCard(icon: androidx.compose.ui.graphics.vector.ImageVector, tit
 private fun ModeCard(selected: Boolean, title: String, subtitle: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        shape   = RoundedCornerShape(12.dp),
+        shape   = RoundedCornerShape(CardRadius.CONTROL),
         color   = if (selected) AccentCoral.copy(0.15f) else SurfaceVariant,
         border  = if (selected) ButtonDefaults.outlinedButtonBorder(enabled = true).copy(width = 1.5.dp) else null,
         modifier = Modifier.fillMaxWidth(),

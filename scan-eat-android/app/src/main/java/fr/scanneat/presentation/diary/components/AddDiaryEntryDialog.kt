@@ -82,7 +82,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                         }
                     },
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
                 )
                 Spacer(Modifier.height(Spacing.S))

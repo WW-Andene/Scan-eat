@@ -87,7 +87,7 @@ fun FastingScreen(
 
             // Timer
             item {
-                ScanEatCard(shape = RoundedCornerShape(20.dp), contentPadding = PaddingValues(24.dp)) {
+                ScanEatCard(shape = RoundedCornerShape(CardRadius.PROMINENT), contentPadding = PaddingValues(24.dp)) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,

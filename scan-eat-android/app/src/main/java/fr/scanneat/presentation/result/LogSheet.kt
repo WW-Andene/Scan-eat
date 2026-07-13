@@ -92,7 +92,7 @@ fun LogSheet(
                     singleLine    = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier      = Modifier.weight(1f),
-                    shape         = RoundedCornerShape(12.dp),
+                    shape         = RoundedCornerShape(CardRadius.CONTROL),
                     colors        = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = AccentCoral,
                         unfocusedBorderColor = OnSurface.copy(0.2f),

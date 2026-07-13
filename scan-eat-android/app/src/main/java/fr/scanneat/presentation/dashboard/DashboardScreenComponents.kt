@@ -18,6 +18,7 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.CardRadius
 
 // Shared helper used repeatedly by the orchestrator's feature-tile rows.
 @Composable
@@ -25,7 +26,7 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
     Surface(
         onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant,
     ) {
         Column(

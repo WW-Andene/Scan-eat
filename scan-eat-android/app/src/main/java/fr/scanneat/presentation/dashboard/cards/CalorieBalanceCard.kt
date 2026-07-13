@@ -33,12 +33,12 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         else R.string.dashboard_calorie_balanced
     val sourceRes = if (balance.tdeeFromBiolism) R.string.dashboard_calorie_source_biolism else R.string.dashboard_calorie_source_profile
 
-    Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(20.dp))) {
+    Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.PROMINENT))) {
         // This is the Dashboard's one focal metric — the Part B6 atmosphere
         // fix: a soft radial light-pool in the balance color, at Haze-level
         // intensity (~10% alpha), rendered on top of the flat surface fill
         // rather than left flat. Reserved for this card alone, not every card.
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), color = Color.Transparent) {
+        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.PROMINENT), color = Color.Transparent) {
             Column(
                 modifier = Modifier
                     .background(SurfaceVariant)

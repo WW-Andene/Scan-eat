@@ -29,13 +29,14 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
 internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Unit, onRename: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(CardRadius.CONTROL))
             .background(SurfaceVariant)
             .padding(Spacing.M),
         verticalAlignment = Alignment.CenterVertically,

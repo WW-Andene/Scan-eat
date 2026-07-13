@@ -310,7 +310,7 @@ fun ScanScreen(
             if (images.value.isNotEmpty() && barcode.value == null && state.value !is ScanUiState.Scanning) {
                 Surface(
                     modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = 28.dp),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(CardRadius.PROMINENT),
                     color = SurfaceVariant.copy(0.9f),
                     onClick = { viewModel.identifyFromPhotos() },
                 ) {
@@ -337,7 +337,7 @@ fun ScanScreen(
                 val error = state.value as ScanUiState.Error
                 if (error.needsPhoto) {
                     Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp),
-                        color = SurfaceVariant, shape = RoundedCornerShape(12.dp)) {
+                        color = SurfaceVariant, shape = RoundedCornerShape(CardRadius.CONTROL)) {
                         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
                             Spacer(Modifier.width(8.dp))
