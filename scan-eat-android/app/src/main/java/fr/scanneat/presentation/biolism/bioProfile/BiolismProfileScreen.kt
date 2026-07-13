@@ -211,7 +211,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         }
 
         // ── Save ──────────────────────────────────────────────────────────────
-        Button(
+        ScanEatPrimaryButton(
             onClick = {
                 // Onboarding normalizes comma decimals (French-locale default)
                 // before parsing; this edit screen didn't, so a French user
@@ -230,8 +230,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                 ))
             },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Gold),
-            shape = RoundedCornerShape(CardRadius.CONTROL),
+            containerColor = Gold,
         ) {
             Text(stringResource(R.string.bioprofile_save_button), color = Color.Black, fontWeight = FontWeight.Bold)
         }

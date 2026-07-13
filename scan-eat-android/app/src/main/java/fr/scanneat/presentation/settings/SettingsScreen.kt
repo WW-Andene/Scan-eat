@@ -140,10 +140,9 @@ fun SettingsScreen(
             // ---- Profile — first thing in Réglages, not buried at the bottom ----
             SettingsSection(stringResource(R.string.settings_section_profile)) {
                 Text(stringResource(R.string.settings_profile_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                OutlinedButton(
+                ScanEatOutlinedButton(
                     onClick = onOpenProfile,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(CardRadius.CONTROL),
                 ) {
                     Icon(Icons.Default.Person, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(Spacing.S))
@@ -332,10 +331,9 @@ fun SettingsScreen(
                         Spacer(Modifier.width(6.dp))
                         Text(stringResource(R.string.settings_backup_export_button))
                     }
-                    OutlinedButton(
+                    ScanEatOutlinedButton(
                         onClick = { importLauncher.launch(arrayOf("application/json")) },
                         enabled = !working,
-                        shape = RoundedCornerShape(CardRadius.CONTROL),
                     ) {
                         Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
@@ -370,9 +368,8 @@ fun SettingsScreen(
                                 Text(stringResource(R.string.settings_healthconnect_connected), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
                             }
                         } else {
-                            OutlinedButton(
+                            ScanEatOutlinedButton(
                                 onClick = { healthConnectLauncher.launch(viewModel.healthConnectPermissions) },
-                                shape = RoundedCornerShape(CardRadius.CONTROL),
                             ) {
                                 Icon(Icons.Default.MonitorHeart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(6.dp))
