@@ -31,11 +31,14 @@ class ActivityViewModel @Inject constructor(
     val weightKg: StateFlow<Double?> = prefs.profile.map { it.weightKg }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    // Dates with at least one logged activity — drives the calendar marker dots
-    val markedDates: StateFlow<Set<LocalDate>> = flow {
+    // Dates with at least one logged activity — drives the calendar marker dots.
+    // Re-derived off `entries` (not a one-shot fetch) so logging an activity
+    // today updates today's dot immediately instead of only after the screen
+    // is left and reopened (WhileSubscribed would otherwise cache a stale set).
+    val markedDates: StateFlow<Set<LocalDate>> = entries.map {
         val from = LocalDate.now().minusDays(365)
         val to   = LocalDate.now()
-        emit(repo.getRange(from, to).map { it.date }.toSet())
+        repo.getRange(from, to).map { e -> e.date }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     // Refresh to today if the date has changed since last foreground (e.g. app kept alive overnight)

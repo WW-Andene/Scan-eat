@@ -10,7 +10,7 @@ import fr.scanneat.R
 
 /** Shared confirm/cancel dialog body — same layout used by every destructive-action prompt in the app. */
 @Composable
-fun ConfirmDialog(title: String, body: String, confirmLabel: String, confirmColor: Color = FlagRed, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun ConfirmDialog(title: String, body: String, confirmLabel: String, confirmColor: Color = semanticRed(), onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor   = SurfaceVariant,
