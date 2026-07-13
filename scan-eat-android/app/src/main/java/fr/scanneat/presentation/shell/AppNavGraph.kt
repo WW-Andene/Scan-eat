@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import fr.scanneat.presentation.biolism.BiolismScreen
+import fr.scanneat.presentation.calendar.CalendarScreen
 import fr.scanneat.presentation.customfood.CustomFoodScreen
 import fr.scanneat.presentation.dashboard.DashboardScreen
 import fr.scanneat.presentation.diary.DiaryScreen
@@ -110,6 +111,7 @@ fun AppNavGraph(
                 onOpenCustomFoods     = { navController.navigate(AppRoutes.CUSTOM_FOODS) },
                 onOpenFavorites      = { navController.navigate(AppRoutes.FAVORITES) },
                 onOpenResult         = { id -> navController.navigate(AppRoutes.result(id)) },
+                onOpenCalendar       = { navController.navigate(AppRoutes.CALENDAR) },
             )
         }
 
@@ -154,6 +156,7 @@ fun AppNavGraph(
         composable(AppRoutes.MEAL_PLAN)    { MealPlanScreen(onBack = { navController.popBackStack() }) }
         composable(AppRoutes.GROCERY)      { GroceryScreen(onBack = { navController.popBackStack() }) }
         composable(AppRoutes.CUSTOM_FOODS) { CustomFoodScreen(onBack = { navController.popBackStack() }) }
+        composable(AppRoutes.CALENDAR)     { CalendarScreen(onBack = { navController.popBackStack() }) }
         composable(AppRoutes.SCAN_HISTORY) {
             ScanHistoryScreen(
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },

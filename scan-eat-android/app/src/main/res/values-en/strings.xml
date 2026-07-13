@@ -849,6 +849,7 @@
     <string name="dashboard_tile_profile">My Profile</string>
     <string name="dashboard_tile_customfoods">My Foods</string>
     <string name="dashboard_tile_favorites">Favorites</string>
+    <string name="dashboard_tile_calendar">Calendar</string>
     <string name="dashboard_recent_scans_title">Recent Scans</string>
     <string name="dashboard_recent_scans_empty">No scans yet.</string>
     <string name="dashboard_view_all">View all</string>
@@ -1008,4 +1009,18 @@
     <string name="activity_calendar_day_empty">%1$s: no activity</string>
     <string name="activity_deleted_message">Activity deleted</string>
     <string name="activity_undo">Undo</string>
+
+    <!-- ── Unified Calendar screen ──────────────────────────────────────── -->
+    <string name="calendar_title">Calendar</string>
+    <string name="calendar_legend_meals">Meals</string>
+    <string name="calendar_legend_weight">Weight</string>
+    <string name="calendar_legend_activity">Activity</string>
+    <string name="calendar_legend_hydration">Water</string>
+    <string name="calendar_legend_fasting">Fasting</string>
+    <string name="calendar_day_empty">Nothing logged this day</string>
+    <string name="calendar_day_meals">%1$d meal(s) · %2$d kcal</string>
+    <string name="calendar_day_weight">%1$.1f kg</string>
+    <string name="calendar_day_activity">%1$d activity(ies) · %2$d min · %3$d kcal</string>
+    <string name="calendar_day_hydration">%1$d mL drunk</string>
+    <string name="calendar_day_fasting">Fasting: %1$.1f h / %2$d h target</string>
 </resources>

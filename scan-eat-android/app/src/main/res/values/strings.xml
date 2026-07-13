@@ -866,6 +866,7 @@
     <string name="dashboard_tile_profile">Mon Profil</string>
     <string name="dashboard_tile_customfoods">Mes aliments</string>
     <string name="dashboard_tile_favorites">Favoris</string>
+    <string name="dashboard_tile_calendar">Calendrier</string>
     <string name="dashboard_recent_scans_title">Scans récents</string>
     <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant.</string>
     <string name="dashboard_view_all">Voir tout</string>
@@ -1009,4 +1010,18 @@
     <string name="reminders_weight_preset_week">1 semaine</string>
     <string name="reminders_weight_preset_month">1 mois</string>
     <string name="reminders_weight_preset_year">1 an</string>
+
+    <!-- ── Unified Calendar screen ──────────────────────────────────────── -->
+    <string name="calendar_title">Calendrier</string>
+    <string name="calendar_legend_meals">Repas</string>
+    <string name="calendar_legend_weight">Poids</string>
+    <string name="calendar_legend_activity">Activité</string>
+    <string name="calendar_legend_hydration">Eau</string>
+    <string name="calendar_legend_fasting">Jeûne</string>
+    <string name="calendar_day_empty">Rien d\'enregistré ce jour-là</string>
+    <string name="calendar_day_meals">%1$d repas · %2$d kcal</string>
+    <string name="calendar_day_weight">%1$.1f kg</string>
+    <string name="calendar_day_activity">%1$d activité(s) · %2$d min · %3$d kcal</string>
+    <string name="calendar_day_hydration">%1$d mL bus</string>
+    <string name="calendar_day_fasting">Jeûne : %1$.1f h / %2$d h visé</string>
 </resources>

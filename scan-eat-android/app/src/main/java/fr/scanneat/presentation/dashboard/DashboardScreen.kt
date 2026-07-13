@@ -61,6 +61,7 @@ fun DashboardScreen(
     onOpenCustomFoods: () -> Unit = {},
     onOpenFavorites: () -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
+    onOpenCalendar: () -> Unit = {},
 ) {
     val state    = viewModel.state.collectAsStateWithLifecycle()
     val s        = state.value
@@ -148,6 +149,15 @@ fun DashboardScreen(
                     // CustomFoodScreen was completely unreachable from any UI gesture.
                     FeatureTile(Icons.Default.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
                     FeatureTile(Icons.Default.Star, stringResource(R.string.dashboard_tile_favorites), Modifier.weight(1f), onClick = onOpenFavorites)
+                }
+            }
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    // Previously no single place showed everything logged on a given
+                    // day - Diary/Weight/Activity/Hydration each embedded their own
+                    // siloed single-domain mini-calendar with no cross-tracker view.
+                    FeatureTile(Icons.Default.CalendarMonth, stringResource(R.string.dashboard_tile_calendar), Modifier.weight(1f), onClick = onOpenCalendar)
+                    Spacer(Modifier.weight(2f))
                 }
             }
 
