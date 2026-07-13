@@ -34,12 +34,15 @@ fun TemplatesScreen(
     val templates = viewModel.templates.collectAsStateWithLifecycle()
     var logTarget by remember { mutableStateOf<MealTemplate?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    var renameTarget by remember { mutableStateOf<MealTemplate?>(null) }
+    var showAdd by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.templates_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.templates_cd_new), tint = AccentCoral) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -65,6 +68,9 @@ fun TemplatesScreen(
                                 Row {
                                     IconButton(onClick = { logTarget = template }, modifier = Modifier.size(36.dp)) {
                                         Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral)
+                                    }
+                                    IconButton(onClick = { renameTarget = template }, modifier = Modifier.size(36.dp)) {
+                                        Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f))
                                     }
                                     IconButton(onClick = { deleteTarget = template.id }, modifier = Modifier.size(36.dp)) {
                                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
@@ -112,6 +118,43 @@ fun TemplatesScreen(
     deleteTarget?.let { id ->
         val name = templates.value.find { it.id == id }?.name
         DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+    }
+
+    renameTarget?.let { template ->
+        RenameDialog(
+            currentName = template.name,
+            onDismiss = { renameTarget = null },
+            onConfirm = { newName -> viewModel.rename(template, newName); renameTarget = null },
+        )
+    }
+
+    if (showAdd) {
+        var name by remember { mutableStateOf("") }
+        var meal by remember { mutableStateOf(MealSlot.LUNCH) }
+        AlertDialog(
+            onDismissRequest = { showAdd = false },
+            containerColor = SurfaceVariant,
+            title = { Text(stringResource(R.string.templates_add_dialog_title), color = OnBackground) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
+                    Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        MealSlot.values().forEach { s ->
+                            FilterChip(selected = meal == s, onClick = { meal = s },
+                                label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.create(name, meal); showAdd = false }, enabled = name.isNotBlank()) {
+                    Text(stringResource(R.string.common_create), color = AccentCoral)
+                }
+            },
+            dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        )
     }
 
 }

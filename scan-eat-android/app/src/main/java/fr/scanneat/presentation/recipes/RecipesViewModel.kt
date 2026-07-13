@@ -27,6 +27,11 @@ class RecipesViewModel @Inject constructor(
 
     fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
 
+    fun rename(recipe: Recipe, newName: String) {
+        if (newName.isBlank()) return
+        viewModelScope.launch { repo.save(newName, recipe.components, recipe.servings, id = recipe.id) }
+    }
+
     fun log(recipe: Recipe, mealSlot: MealSlot, portionFraction: Double = 1.0) {
         viewModelScope.launch {
             consumptionRepo.log(repo.collapse(recipe, LocalDate.now(), mealSlot, portionFraction))

@@ -37,6 +37,7 @@ fun RecipesScreen(
     var showAdd by remember { mutableStateOf(false) }
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    var renameTarget by remember { mutableStateOf<Recipe?>(null) }
 
     Scaffold(
         topBar = {
@@ -62,7 +63,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id })
+                RecipeCard(recipe, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe })
             }
             item { Spacer(Modifier.height(32.dp)) }
         }
@@ -70,6 +71,13 @@ fun RecipesScreen(
 
     if (showAdd) AddRecipeDialog(onDismiss = { showAdd = false }, onSave = { name, comps, servings -> viewModel.save(name, comps, servings); showAdd = false })
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
+    renameTarget?.let { recipe ->
+        RenameDialog(
+            currentName = recipe.name,
+            onDismiss = { renameTarget = null },
+            onConfirm = { newName -> viewModel.rename(recipe, newName); renameTarget = null },
+        )
+    }
 
     deleteTarget?.let { id ->
         val name = recipes.value.find { it.id == id }?.name
@@ -79,7 +87,7 @@ fun RecipesScreen(
 }
 
 @Composable
-private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit) {
+private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(12.dp))) {
         Surface(shape = RoundedCornerShape(12.dp), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -95,6 +103,7 @@ private fun RecipeCard(recipe: Recipe, onLog: () -> Unit, onDelete: () -> Unit) 
                         // larger hit target than every other delete affordance in the app,
                         // right next to the primary Log action.
                         IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                        IconButton(onClick = onRename, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
                     }
                 }
