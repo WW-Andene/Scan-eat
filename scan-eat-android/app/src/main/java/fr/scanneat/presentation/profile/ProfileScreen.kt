@@ -238,7 +238,7 @@ private fun ActivitySelector(current: ActivityLevel, onSelect: (ActivityLevel) -
                     colors = RadioButtonDefaults.colors(selectedColor = AccentCoral),
                 )
             }
-            if (lvl != ActivityLevel.EXTRA_ACTIVE) HorizontalDivider(thickness = 0.5.dp, color = OnBackground.copy(0.08f))
+            if (lvl != ActivityLevel.EXTRA_ACTIVE) HorizontalDivider(thickness = 0.5.dp, color = SeparatorLight)
         }
     }
 }
