@@ -82,9 +82,23 @@ object NetworkModule {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
 
+    // Cerebras free-tier alternative to Groq — same OpenAI-compatible schema,
+    // different vendor, so OCR scoring survives one provider being down/rate-limited.
+    @Provides @Singleton @Named("cerebras")
+    fun provideCerebrasRetrofit(okHttp: OkHttpClient, moshi: Moshi): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://api.cerebras.ai/")
+            .client(okHttp)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+
     @Provides @Singleton
     fun provideGroqApi(@Named("groq") retrofit: Retrofit): GroqApi =
         retrofit.create(GroqApi::class.java)
+
+    @Provides @Singleton
+    fun provideCerebrasApi(@Named("cerebras") retrofit: Retrofit): CerebrasApi =
+        retrofit.create(CerebrasApi::class.java)
 
     @Provides @Singleton
     fun provideOffApi(@Named("off") retrofit: Retrofit): OpenFoodFactsApi =

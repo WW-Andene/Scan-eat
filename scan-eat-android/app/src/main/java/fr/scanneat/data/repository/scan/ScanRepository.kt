@@ -99,8 +99,19 @@ class ScanRepository @Inject constructor(
             profileId      = profileId,
         )?.toDomain()
 
-    suspend fun persist(result: ScanResult, profileId: String = "default"): Long =
-        dao.insert(ScanHistoryEntity(
+    /**
+     * Upserts by barcode instead of always inserting — rescanning the same product
+     * (very common: same item scanned 50-100+ times over weeks) previously created a
+     * brand-new scan_history row every single time, since @Insert(REPLACE) only
+     * dedupes on the primary key, which was always 0/new. That bloated the table
+     * unbounded and was the direct cause of the "same product => tons of entries"
+     * report. Reusing the existing row's id (and its favorite flag) makes a rescan
+     * simply refresh the existing entry's score/timestamp instead of cloning it.
+     */
+    suspend fun persist(result: ScanResult, profileId: String = "default"): Long {
+        val existing = result.barcode?.let { dao.findByBarcode(it, profileId) }
+        return dao.insert(ScanHistoryEntity(
+            id          = existing?.id ?: 0,
             barcode     = result.barcode,
             productName = result.product.name,
             score       = result.audit.score,
@@ -111,7 +122,9 @@ class ScanRepository @Inject constructor(
             auditJson   = auditAdapter.toJson(result.audit),
             scannedAt   = System.currentTimeMillis(),
             profileId   = profileId,
+            favorite    = existing?.favorite ?: false,
         ))
+    }
 
     // ---- Score from barcode ----
 
@@ -123,8 +136,8 @@ class ScanRepository @Inject constructor(
     ): Result<Pair<ScanResult, Long>> = runCatching {
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
+        val cerebrasKey = prefs.cerebrasApiKey.first()
         val serverUrl = prefs.serverUrl.first()
-        val model     = prefs.groqModel.first().ifBlank { DEFAULT_MODEL }
 
         // A barcode already scanned before is served straight from the local
         // cache — only a genuinely new lookup needs a connection, so this check
@@ -142,28 +155,40 @@ class ScanRepository @Inject constructor(
         if (!online) error(offlineMessage(lang))
 
         val result = when (apiMode) {
-            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode, lang, model)
-            ApiMode.DIRECT -> scoreDirectBarcode(barcode, images, apiKey, lang, model)
+            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode, lang, DEFAULT_MODEL)
+            ApiMode.DIRECT -> scoreDirectBarcode(barcode, images, apiKey, cerebrasKey, lang)
         }
         Pair(result, persist(result))
     }
 
+    /**
+     * [identifyMode] routes to OcrParser.identifyFood instead of parseLabel — for
+     * fresh produce, plated dishes, or anything else with no printed nutrition
+     * label to OCR. identifyFood existed since the OcrParser port but had no
+     * caller anywhere in the app; this was the missing wiring (see ScanViewModel.
+     * identifyFromPhotos / ScanScreen's "identify without label" action).
+     */
     suspend fun scoreFromImages(
         images: List<ImagePayload>,
         lang: String = "fr",
         online: Boolean = true,
+        identifyMode: Boolean = false,
     ): Result<Pair<ScanResult, Long>> = runCatching {
         if (!online) error(offlineMessage(lang))
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
+        val cerebrasKey = prefs.cerebrasApiKey.first()
         val serverUrl = prefs.serverUrl.first()
-        val model     = prefs.groqModel.first().ifBlank { DEFAULT_MODEL }
 
         val result = when (apiMode) {
-            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode = null, lang = lang, model = model)
+            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode = null, lang = lang, model = DEFAULT_MODEL)
             ApiMode.DIRECT -> {
-                if (apiKey.isBlank()) error(missingApiKeyMessage(lang))
-                val parsed = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
+                if (apiKey.isBlank() && cerebrasKey.isBlank()) error(missingApiKeyMessage(lang))
+                val parsed = if (identifyMode) {
+                    ocrParser.identifyFood(images, apiKey, cerebrasKey)
+                } else {
+                    ocrParser.parseLabel(images, apiKey, cerebrasKey, lang = lang)
+                }
                 ScanResult(
                     product  = parsed.product,
                     audit    = scoreProduct(parsed.product, lang),
@@ -316,8 +341,8 @@ class ScanRepository @Inject constructor(
         barcode: String,
         images: List<ImagePayload>,
         apiKey: String,
+        cerebrasApiKey: String,
         lang: String,
-        model: String,
     ): ScanResult {
         val offResponse = fetchOffProduct(barcode)
         val offProduct  = offResponse?.product?.let { dto ->
@@ -343,17 +368,18 @@ class ScanRepository @Inject constructor(
             ))
         }
 
+        val hasAnyKey = apiKey.isNotBlank() || cerebrasApiKey.isNotBlank()
         val (finalProduct, source, warnings) = when {
-            offProduct != null && isOffSparse(offProduct) && images.isNotEmpty() && apiKey.isNotBlank() -> {
-                val parsed    = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
+            offProduct != null && isOffSparse(offProduct) && images.isNotEmpty() && hasAnyKey -> {
+                val parsed    = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
                 val merged    = mergeOffWithLlm(offProduct, parsed.product)
                 val conflicts = detectSourceConflicts(offProduct, parsed.product)
                 Triple(merged, ScanSource.MERGED,
                     parsed.warnings + conflicts.map { "Conflict: ${it.field} OFF=${it.offValue} LLM=${it.llmValue}" })
             }
             offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
-            images.isNotEmpty() && apiKey.isNotBlank() -> {
-                val parsed = ocrParser.parseLabel(images, apiKey, model = model, lang = lang)
+            images.isNotEmpty() && hasAnyKey -> {
+                val parsed = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
                 Triple(parsed.product, ScanSource.LLM, parsed.warnings)
             }
             else -> throw ProductNotFoundException("Produit introuvable dans Open Food Facts — ajoutez une photo pour continuer")

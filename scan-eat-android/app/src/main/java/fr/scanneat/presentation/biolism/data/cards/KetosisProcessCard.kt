@@ -44,7 +44,7 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult) {
         if (s.ketoHours >= 1440) {
             Spacer(Modifier.height(8.dp))
             Text(stringResource(R.string.biolism_ketoproc_warning),
-                style = MaterialTheme.typography.labelSmall, color = Severe, fontWeight = FontWeight.SemiBold)
+                style = MaterialTheme.typography.labelSmall, color = semanticRed(), fontWeight = FontWeight.SemiBold)
         }
     }
 }

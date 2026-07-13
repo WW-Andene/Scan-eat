@@ -241,6 +241,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     val isToday      = viewModel.isToday.collectAsStateWithLifecycle(initialValue = true)
     val dayNote      = viewModel.dayNote.collectAsStateWithLifecycle(initialValue = "")
     val language     = viewModel.language.collectAsStateWithLifecycle()
+    val targets      = viewModel.targets.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show the day name in the wrong language.
     val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
@@ -308,7 +309,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
             }
         }
 
-        item { MacroSummaryCard(totals = s.totals) }
+        item { MacroSummaryCard(totals = s.totals, targets = targets.value) }
         item {
             // Day note field
             OutlinedTextField(
@@ -373,16 +374,16 @@ private fun MealsTab(viewModel: DiaryViewModel) {
 }
 
 @Composable
-private fun MacroSummaryCard(totals: ConsumedNutrition) {
+private fun MacroSummaryCard(totals: ConsumedNutrition, targets: fr.scanneat.domain.engine.scoring.DailyTargets?) {
     Box(Modifier.fillMaxWidth().glassSheen()) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = SurfaceVariant) {
             Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Text(stringResource(R.string.diary_totals_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal")
-                    MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g")
-                    MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g")
-                    MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g")
+                    MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal", targets?.kcal?.toInt())
+                    MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g", targets?.proteinGTarget?.takeIf { it > 0 }?.toInt())
+                    MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g", targets?.carbsGDailyMax?.takeIf { it > 0 }?.toInt())
+                    MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g", null)
                 }
             }
         }
@@ -390,9 +391,11 @@ private fun MacroSummaryCard(totals: ConsumedNutrition) {
 }
 
 @Composable
-private fun MacroItem(label: String, value: String, unit: String) {
+private fun MacroItem(label: String, value: String, unit: String, target: Int?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.titleMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
+        // Previously only the raw total was shown, with no indication of the
+        // profile-derived daily target it should be measured against.
+        Text(if (target != null) "$value/$target" else value, style = MaterialTheme.typography.titleMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
         Text(unit, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f))
     }

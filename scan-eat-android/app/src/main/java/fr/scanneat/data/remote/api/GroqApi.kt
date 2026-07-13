@@ -17,6 +17,21 @@ interface GroqApi {
     ): ChatResponse
 }
 
+/**
+ * Cerebras (api.cerebras.ai) exposes the same OpenAI-compatible chat-completions
+ * shape as Groq (identical request/response JSON) — a free-tier alternative
+ * provider so OCR scoring doesn't depend on a single vendor being up/available.
+ * Kept as its own interface (rather than reusing GroqApi) only because Hilt
+ * binds each to a distinct @Named Retrofit instance with its own base URL.
+ */
+interface CerebrasApi {
+    @POST("v1/chat/completions")
+    suspend fun chatCompletions(
+        @Header("Authorization") auth: String,
+        @Body request: ChatRequest,
+    ): ChatResponse
+}
+
 @JsonClass(generateAdapter = true)
 data class ChatRequest(
     val model: String,

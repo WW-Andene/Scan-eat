@@ -9,6 +9,9 @@ import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.scoring.DailyTargets
+import fr.scanneat.domain.engine.scoring.dailyTargets
+import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.domain.model.DailySummary
 import fr.scanneat.domain.model.DiaryEntry
@@ -42,6 +45,13 @@ class DiaryViewModel @Inject constructor(
         .flatMapLatest { date -> consumptionRepo.observeDay(date) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
             DailySummary(LocalDate.now(), emptyList(), ConsumedNutrition.ZERO))
+
+    // Journal's macro summary previously showed only raw totals ("120g protein")
+    // with no reference to the profile's actual daily target, even though
+    // Dashboard's equivalent card computes and displays exactly that.
+    val targets: StateFlow<DailyTargets?> = prefs.profile
+        .map { profile -> if (hasMinimalProfile(profile)) dailyTargets(profile) else null }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun goToPreviousDay() { _selectedDate.value = _selectedDate.value.minusDays(1) }
     fun goToNextDay()     { _selectedDate.value = _selectedDate.value.plusDays(1) }

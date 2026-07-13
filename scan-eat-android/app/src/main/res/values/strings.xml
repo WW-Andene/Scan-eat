@@ -22,6 +22,7 @@
     <string name="scan_manual_entry_hint">Saisir le code-barres</string>
     <string name="scan_manual_entry_submit">Valider</string>
     <string name="scan_manual_entry_toggle">Saisir un code-barres manuellement</string>
+    <string name="scan_identify_food_button">Identifier sans étiquette</string>
     <plurals name="scan_photo_count">
         <item quantity="one">%1$d photo</item>
         <item quantity="other">%1$d photos</item>
@@ -779,9 +780,9 @@
     <string name="settings_mode_server_desc">Appelle votre backend Ktor à l\'URL ci-dessous.</string>
     <string name="settings_section_groq_key">Clé Groq</string>
     <string name="settings_groq_key_placeholder">gsk_…</string>
-    <string name="settings_section_groq_model">Modèle Groq</string>
-    <string name="settings_groq_model_hint">Laissez vide pour utiliser le modèle par défaut (%1$s). Si l\'analyse échoue avec une erreur de modèle, essayez-en un autre depuis console.groq.com/docs/models.</string>
-    <string name="settings_groq_model_id_placeholder">ID du modèle (optionnel)</string>
+    <string name="settings_section_cerebras_key">Clé Cerebras (secours)</string>
+    <string name="settings_cerebras_key_hint">Fournisseur de secours optionnel — utilisé automatiquement si Groq est indisponible. Le modèle est choisi automatiquement, plus besoin de le sélectionner.</string>
+    <string name="settings_cerebras_key_placeholder">Clé API Cerebras</string>
     <string name="settings_server_url_placeholder">https://…</string>
     <string name="settings_section_language">Langue</string>
     <string name="settings_lang_fr">Français</string>

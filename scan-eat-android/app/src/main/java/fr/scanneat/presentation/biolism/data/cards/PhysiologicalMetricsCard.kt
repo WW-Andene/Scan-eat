@@ -42,7 +42,7 @@ fun PhysiologicalMetricsCard(
             elapsedSec = s.elapsedMs / 1000.0,
         )
         InfoRow(stringResource(R.string.biolism_physio_glucose), "%.2f mmol/L".format(Locale.US, estGluc), stringResource(R.string.biolism_physio_glucose_sub),
-            if (estGluc < 3.0) Danger else if (estGluc < 3.9) Warm else Teal)
+            if (estGluc < 3.0) semanticRed() else if (estGluc < 3.9) semanticAmber() else semanticGreen())
         cum?.let { c ->
             Spacer(Modifier.height(8.dp))
             TintedPanel(Violet) {
@@ -70,7 +70,7 @@ fun PhysiologicalMetricsCard(
                     Column {
                         Text(stringResource(R.string.biolism_physio_hr_diff_value, diff, abs(diff) / met.hrEstimated * 100),
                             style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold,
-                            color = if (abs(diff) <= 10) Teal else if (abs(diff) <= 20) Gold else Danger)
+                            color = if (abs(diff) <= 10) semanticGreen() else if (abs(diff) <= 20) semanticAmber() else semanticRed())
                         Text(stringResource(R.string.biolism_physio_sv_implied, met.vo2PerMin * 1000 / (mhr * 0.05)),
                             style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                     }

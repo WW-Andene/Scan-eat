@@ -45,13 +45,14 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
         val totalOut = met.tdeeDay + todaySessKcal
         val netBal = todayIntakeKcal - totalOut
         Spacer(Modifier.height(8.dp))
-        TintedPanel(if (netBal > 200) Danger else if (netBal < -50) Teal else Gold) {
-            Label(stringResource(R.string.biolism_energy_balance_title), if (netBal > 200) Danger else if (netBal < -50) Teal else Gold)
+        val balanceColor = if (netBal > 200) semanticRed() else if (netBal < -50) semanticGreen() else semanticAmber()
+        TintedPanel(balanceColor) {
+            Label(stringResource(R.string.biolism_energy_balance_title), balanceColor)
             InfoRow(stringResource(R.string.biolism_energy_intake), "%.0f kcal".format(Locale.US, todayIntakeKcal), stringResource(R.string.biolism_energy_intake_sub), Teal)
             InfoRow(stringResource(R.string.biolism_energy_expenditure), "%.0f kcal".format(Locale.US, totalOut), stringResource(R.string.biolism_energy_expenditure_sub, met.tdeeDay, todaySessKcal), Gold)
             InfoRow(stringResource(R.string.biolism_energy_net_balance), "%+.0f kcal".format(Locale.US, netBal),
                 if (netBal > 200) stringResource(R.string.biolism_energy_status_surplus) else if (netBal < -50) stringResource(R.string.biolism_energy_status_deficit) else stringResource(R.string.biolism_energy_status_balanced),
-                if (netBal > 200) Danger else if (netBal < -50) Teal else Gold)
+                balanceColor)
             InfoRow(stringResource(R.string.biolism_energy_weight_impact), "%+.3f kg".format(Locale.US, netBal / 7700.0), stringResource(R.string.biolism_energy_weight_impact_sub), TextSecondary)
         }
     }

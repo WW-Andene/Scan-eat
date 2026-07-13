@@ -22,6 +22,7 @@
     <string name="scan_manual_entry_hint">Enter the barcode</string>
     <string name="scan_manual_entry_submit">Submit</string>
     <string name="scan_manual_entry_toggle">Enter a barcode manually</string>
+    <string name="scan_identify_food_button">Identify without a label</string>
     <plurals name="scan_photo_count">
         <item quantity="one">%1$d photo</item>
         <item quantity="other">%1$d photos</item>
@@ -766,9 +767,9 @@
     <string name="settings_mode_server_desc">Calls your Ktor backend at the URL below.</string>
     <string name="settings_section_groq_key">Groq Key</string>
     <string name="settings_groq_key_placeholder">gsk_…</string>
-    <string name="settings_section_groq_model">Groq Model</string>
-    <string name="settings_groq_model_hint">Leave blank to use the default model (%1$s). If analysis fails with a model error, try another one from console.groq.com/docs/models.</string>
-    <string name="settings_groq_model_id_placeholder">Model ID (optional)</string>
+    <string name="settings_section_cerebras_key">Cerebras key (backup)</string>
+    <string name="settings_cerebras_key_hint">Optional backup provider — used automatically if Groq is unavailable. The model is picked automatically, no need to select one.</string>
+    <string name="settings_cerebras_key_placeholder">Cerebras API key</string>
     <string name="settings_server_url_placeholder">https://…</string>
     <string name="settings_section_language">Language</string>
     <string name="settings_lang_fr">Français</string>

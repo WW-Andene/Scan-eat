@@ -24,8 +24,8 @@ import fr.scanneat.presentation.biolism.tracker.cards.*
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
-import fr.scanneat.presentation.ui.theme.Severe
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.Violet
 import fr.scanneat.presentation.ui.theme.Warm
@@ -67,7 +67,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     val phase        = lm.phase
     val phaseColor   = when (phase?.colorToken) {
         "Gold"   -> Gold;    "Teal"  -> Teal;    "Violet" -> Violet
-        "Warm"   -> Warm;    "Severe"-> Severe;  else -> Teal
+        "Warm"   -> Warm;    "Severe"-> semanticRed();  else -> Teal
     }
 
     val bgColor = MaterialTheme.colorScheme.background

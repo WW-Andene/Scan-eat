@@ -37,7 +37,14 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
         Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.dashboard_week_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                Text(stringResource(R.string.dashboard_week_avg_kcal, rollup.avg.kcal.roundToInt()), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                // Previously showed only the week's own average with no reference point —
+                // the bars below already color code over/under target, but the number
+                // that target actually corresponds to was never printed anywhere on the card.
+                Text(
+                    if (targets != null) "${rollup.avg.kcal.roundToInt()}/${targets.kcal.roundToInt()} kcal"
+                    else stringResource(R.string.dashboard_week_avg_kcal, rollup.avg.kcal.roundToInt()),
+                    style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f),
+                )
             }
             val peak = (listOf(targets?.kcal ?: 0.0) + rollup.days.map { it.kcal }).maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
             Row(

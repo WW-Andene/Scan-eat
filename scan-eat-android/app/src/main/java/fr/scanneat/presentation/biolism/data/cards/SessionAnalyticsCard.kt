@@ -31,7 +31,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
     val latestWeight = currentWeightKg - latestFatLost
     val prevFatLost = if (compHistory.size >= 2) compHistory[compHistory.size - 2] else null
     val sessionDelta = if (prevFatLost != null) latestFatLost - prevFatLost else latestFatLost
-    val deltaColor = if (sessionDelta > 0.0005) Teal else if (sessionDelta < -0.0005) Severe else TextSecondary
+    val deltaColor = if (sessionDelta > 0.0005) semanticGreen() else if (sessionDelta < -0.0005) semanticRed() else TextSecondary
     val trendLabel = if (sessionDelta > 0.0005) stringResource(R.string.biolism_sessan_trend_loss)
         else if (sessionDelta < -0.0005) stringResource(R.string.biolism_sessan_trend_gain)
         else stringResource(R.string.biolism_sessan_trend_stable)

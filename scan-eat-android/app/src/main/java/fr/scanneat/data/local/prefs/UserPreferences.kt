@@ -31,6 +31,7 @@ class UserPreferences @Inject constructor(
 
     companion object {
         val KEY_API_KEY              = stringPreferencesKey("groq_api_key")
+        val KEY_CEREBRAS_API_KEY     = stringPreferencesKey("cerebras_api_key")
         val KEY_GROQ_MODEL           = stringPreferencesKey("groq_model")
         val KEY_API_MODE             = stringPreferencesKey("api_mode")
         val KEY_SERVER_URL           = stringPreferencesKey("server_url")
@@ -75,6 +76,19 @@ class UserPreferences @Inject constructor(
     }.distinctUntilChanged()
     /** Empty string means "use the built-in default" (see OcrParser.DEFAULT_MODEL). */
     val groqModel: Flow<String>   = storeData.map { it[KEY_GROQ_MODEL] ?: "" }.distinctUntilChanged()
+    /**
+     * Second provider, same purpose as groqApiKey — OcrParser tries Groq's model
+     * list first and only falls through to Cerebras if every Groq attempt fails
+     * (missing/invalid key, rate-limited, or the pinned models retired), so a
+     * single vendor outage doesn't take scanning down entirely. Empty means
+     * "not configured", which OcrParser treats as "skip this provider".
+     */
+    val cerebrasApiKey: Flow<String> = storeData.map { prefs ->
+        val stored = prefs[KEY_CEREBRAS_API_KEY] ?: return@map ""
+        ApiKeyCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
+            store.edit { it[KEY_CEREBRAS_API_KEY] = ApiKeyCipher.encrypt(plaintext) }
+        }
+    }.distinctUntilChanged()
     val apiMode: Flow<ApiMode>    = storeData.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }.distinctUntilChanged()
     val serverUrl: Flow<String>   = storeData.map { it[KEY_SERVER_URL] ?: "" }.distinctUntilChanged()
     val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE]   ?: "fr" }.distinctUntilChanged()
@@ -85,6 +99,7 @@ class UserPreferences @Inject constructor(
     val colorblindMode: Flow<String>      = storeData.map { it[KEY_COLORBLIND_MODE] ?: "none" }.distinctUntilChanged()
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = ApiKeyCipher.encrypt(key) }
+    suspend fun setCerebrasApiKey(key: String) = store.edit { it[KEY_CEREBRAS_API_KEY] = ApiKeyCipher.encrypt(key) }
     suspend fun setGroqModel(model: String) = store.edit { it[KEY_GROQ_MODEL] = model }
     suspend fun setApiMode(mode: ApiMode)   = store.edit { it[KEY_API_MODE]   = mode.key }
     suspend fun setServerUrl(url: String)   = store.edit { it[KEY_SERVER_URL] = url }

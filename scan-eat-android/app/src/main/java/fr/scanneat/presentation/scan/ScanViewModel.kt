@@ -128,10 +128,40 @@ class ScanViewModel @Inject constructor(
     fun toggleInstantMode() { _instantMode.value = !_instantMode.value }
 
     fun onBarcodeDetected(barcode: String) {
-        if (_state.value is ScanUiState.Scanning) return
+        // Previously only guarded Scanning — while a MedicationFound/NonConsumableFound/
+        // Success dialog was still up (state hadn't been reset yet), instant mode kept
+        // calling score() for every frame underneath it, racing the visible dialog and
+        // eating the next real detection. Any non-Idle/Error state means a result is
+        // already being shown or produced, so new detections must wait.
+        if (_state.value !is ScanUiState.Idle && _state.value !is ScanUiState.Error) return
         if (_scannedBarcode.value == barcode) return
         _scannedBarcode.value = barcode
         if (_instantMode.value) score()
+    }
+
+    /**
+     * Called when the camera frame no longer contains any barcode (analyzeFrame's
+     * onBoundsCleared). Without this, _scannedBarcode stuck around forever after the
+     * first detection — leaving the frame and pointing at a *different* product just
+     * showed the old code's label/name until the new code happened to differ from it,
+     * and switching tabs and back kept the stale code alive too. Only clears the
+     * held code, never touches an in-flight/completed scan (Scanning/Success/error
+     * dialogs), so it can't interrupt an active lookup.
+     */
+    fun onBarcodeLost() {
+        if (_state.value is ScanUiState.Idle) _scannedBarcode.value = null
+    }
+
+    /**
+     * Called once ScanScreen has consumed a Success state (navigated to the result
+     * screen). Previously _state stayed Success forever — simply switching tabs away
+     * from Scan and back re-triggered ScanScreen's `LaunchedEffect(state.value)` with
+     * the same Success value still current, firing onResultReady again and stacking
+     * another result screen on the back stack every time.
+     */
+    fun resultConsumed() {
+        _scannedBarcode.value = null
+        _state.value = ScanUiState.Idle
     }
 
     fun addPhoto(bitmap: Bitmap) {
@@ -146,6 +176,36 @@ class ScanViewModel @Inject constructor(
         _images.value = emptyList()
         _scannedBarcode.value = null
         _state.value = ScanUiState.Idle
+    }
+
+    /**
+     * Identifies a food from photo(s) with no barcode/label to OCR (fresh
+     * produce, a plated dish) — routes to ScanRepository's identifyMode instead
+     * of the label-parsing path score() uses. Only makes sense with no barcode
+     * held, since a barcode already has a much more reliable lookup path.
+     */
+    fun identifyFromPhotos() {
+        val imgs = _images.value
+        if (imgs.isEmpty()) return
+        if (!scoreMutex.tryLock()) return
+        viewModelScope.launch {
+            try {
+                _state.value = ScanUiState.Scanning
+                val lang   = prefs.language.first()
+                val online = isOnline()
+                if (!online) {
+                    _state.value = ScanUiState.Error(noInputMessage(lang))
+                    return@launch
+                }
+                val result = scanRepo.scoreFromImages(imgs, lang, online, identifyMode = true)
+                result.fold(
+                    onSuccess = { (scanResult, id) -> _state.value = ScanUiState.Success(scanResult, id) },
+                    onFailure = { e -> _state.value = ScanUiState.Error(e.message ?: genericErrorMessage(lang)) },
+                )
+            } finally {
+                scoreMutex.unlock()
+            }
+        }
     }
 
     fun score() {

@@ -189,13 +189,18 @@ internal fun Badge(text: String, color: Color) {
     }
 }
 
+// Danger/Severe genuinely mean "bad" (organ strain, prolonged-ketosis risk, etc.) —
+// routed through the colorblind-safe semantic palette instead of the fixed red-family
+// literals, which previously stayed identical across every colorblind mode despite
+// being exactly the kind of red/orange hue those modes exist to disambiguate.
+@Composable
 internal fun colorFromToken(token: String): Color = when (token) {
     "Gold"        -> Gold
     "Teal"        -> Teal
     "Violet"      -> Violet
     "Warm"        -> Warm
-    "Danger"      -> Danger
-    "Severe"      -> Severe
+    "Danger"      -> semanticRed()
+    "Severe"      -> semanticRed()
     "IconInactive"-> IconInactive
     else          -> TextSecondary
 }

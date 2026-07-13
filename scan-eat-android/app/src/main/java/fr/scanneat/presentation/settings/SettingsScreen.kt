@@ -29,8 +29,6 @@ import fr.scanneat.BuildConfig
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.repository.health.HealthConnectAvailability
-import fr.scanneat.data.repository.scan.DEFAULT_MODEL
-import fr.scanneat.data.repository.scan.FALLBACK_MODEL
 import fr.scanneat.domain.engine.scoring.ENGINE_VERSION
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
@@ -48,7 +46,7 @@ fun SettingsScreen(
     onOpenProfile: () -> Unit = {},
 ) {
     val apiKey    = viewModel.apiKey.collectAsStateWithLifecycle()
-    val groqModel = viewModel.groqModel.collectAsStateWithLifecycle()
+    val cerebrasApiKey = viewModel.cerebrasApiKey.collectAsStateWithLifecycle()
     val mode      = viewModel.mode.collectAsStateWithLifecycle()
     val serverUrl = viewModel.serverUrl.collectAsStateWithLifecycle()
     val language  = viewModel.language.collectAsStateWithLifecycle()
@@ -63,7 +61,8 @@ fun SettingsScreen(
     var keyVisible  by remember { mutableStateOf(false) }
     var localKey    by remember(apiKey.value)    { mutableStateOf(apiKey.value) }
     var localUrl    by remember(serverUrl.value) { mutableStateOf(serverUrl.value) }
-    var localModel  by remember(groqModel.value) { mutableStateOf(groqModel.value) }
+    var cerebrasKeyVisible by remember { mutableStateOf(false) }
+    var localCerebrasKey   by remember(cerebrasApiKey.value) { mutableStateOf(cerebrasApiKey.value) }
 
     LaunchedEffect(savedField.value) {
         if (savedField.value != null) {
@@ -191,31 +190,29 @@ fun SettingsScreen(
                     SaveButtonRow(saved = savedField.value == "apiKey") { viewModel.saveApiKey(localKey) }
                 }
 
-                // ---- Groq model ----
-                SettingsSection(stringResource(R.string.settings_section_groq_model)) {
-                    Text(
-                        stringResource(R.string.settings_groq_model_hint, DEFAULT_MODEL),
-                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        listOf(DEFAULT_MODEL, FALLBACK_MODEL).forEach { m ->
-                            FilterChip(
-                                selected = localModel == m,
-                                onClick  = { localModel = m },
-                                label    = { Text(m.substringAfterLast('/'), maxLines = 1) },
-                                colors   = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                                ),
-                            )
-                        }
-                    }
+                // ---- Cerebras API key — second provider, automatic fallback ----
+                // Previously this section let the user pick a specific Groq model by
+                // name — but Groq model names get retired/renamed, and there was no
+                // way to recover except opening this screen and picking a new one.
+                // The app now cycles through models/providers automatically (see
+                // OcrParser); the only thing left to configure here is a second
+                // provider's key so scanning survives Groq being down entirely.
+                SettingsSection(stringResource(R.string.settings_section_cerebras_key)) {
+                    Text(stringResource(R.string.settings_cerebras_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                     OutlinedTextField(
-                        value = localModel, onValueChange = { localModel = it },
-                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_groq_model_id_placeholder)) },
+                        value = localCerebrasKey, onValueChange = { localCerebrasKey = it },
+                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_cerebras_key_placeholder)) },
+                        visualTransformation = if (cerebrasKeyVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { cerebrasKeyVisible = !cerebrasKeyVisible }) {
+                                Icon(if (cerebrasKeyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, stringResource(R.string.settings_toggle_key_visibility), tint = OnBackground.copy(0.6f))
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true, shape = RoundedCornerShape(12.dp),
                         colors = scanEatTextFieldColors(),
                     )
-                    SaveButtonRow(saved = savedField.value == "groqModel") { viewModel.saveGroqModel(localModel) }
+                    SaveButtonRow(saved = savedField.value == "cerebrasApiKey") { viewModel.saveCerebrasApiKey(localCerebrasKey) }
                 }
             }
 

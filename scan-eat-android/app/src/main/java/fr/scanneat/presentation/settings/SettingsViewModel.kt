@@ -35,7 +35,7 @@ class SettingsViewModel @Inject constructor(
     private val healthConnect: HealthConnectRepository,
 ) : ViewModel() {
     val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
-    val groqModel = prefs.groqModel.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val cerebrasApiKey = prefs.cerebrasApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val mode      = prefs.apiMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ApiMode.DIRECT)
     val serverUrl = prefs.serverUrl.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val language  = prefs.language.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
@@ -50,8 +50,8 @@ class SettingsViewModel @Inject constructor(
     fun saveApiKey(key: String) = viewModelScope.launch {
         prefs.setGroqApiKey(key.trim()); _savedField.value = "apiKey"
     }
-    fun saveGroqModel(model: String) = viewModelScope.launch {
-        prefs.setGroqModel(model.trim()); _savedField.value = "groqModel"
+    fun saveCerebrasApiKey(key: String) = viewModelScope.launch {
+        prefs.setCerebrasApiKey(key.trim()); _savedField.value = "cerebrasApiKey"
     }
     fun setMode(m: ApiMode)        = viewModelScope.launch { prefs.setApiMode(m) }
     fun saveServerUrl(url: String) = viewModelScope.launch {

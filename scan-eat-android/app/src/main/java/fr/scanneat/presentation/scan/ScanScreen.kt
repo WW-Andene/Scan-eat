@@ -124,8 +124,13 @@ fun ScanScreen(
     }
 
     LaunchedEffect(state.value) {
-        if (state.value is ScanUiState.Success) {
-            onResultReady((state.value as ScanUiState.Success).persistedId)
+        val s = state.value
+        if (s is ScanUiState.Success) {
+            onResultReady(s.persistedId)
+            // Without this, _state stayed Success forever — leaving the Scan tab and
+            // coming back re-ran this effect with the same Success value and fired
+            // onResultReady again, stacking another result screen on every tab switch.
+            viewModel.resultConsumed()
         }
     }
 
@@ -148,7 +153,7 @@ fun ScanScreen(
                 onPhotoCaptured   = { viewModel.addPhoto(it) },
                 onCameraError     = { cameraUnavailable = true },
                 onBarcodeBounds   = { rect, w, h -> barcodeBounds = Triple(rect, w, h) },
-                onBoundsCleared   = { barcodeBounds = null },
+                onBoundsCleared   = { barcodeBounds = null; viewModel.onBarcodeLost() },
             )
         } else if (!hasCameraHardware) {
             // Camera-less device (manifest declares both <uses-feature> entries
@@ -304,6 +309,25 @@ fun ScanScreen(
                     is ScanUiState.Scanning -> CircularProgressIndicator(
                         color = Color.Black, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                     else -> Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
+                }
+            }
+
+            // ── Identify-without-label action — only relevant with photos queued and
+            // no barcode held (fresh produce, a plated dish: nothing to OCR a label
+            // from). Routes to OcrParser.identifyFood, which previously had no caller
+            // anywhere in the app despite already being implemented. ──
+            if (images.value.isNotEmpty() && barcode.value == null && state.value !is ScanUiState.Scanning) {
+                Surface(
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = 28.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = SurfaceVariant.copy(0.9f),
+                    onClick = { viewModel.identifyFromPhotos() },
+                ) {
+                    Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
+                    }
                 }
             }
 

@@ -21,6 +21,12 @@ import java.io.IOException
 const val DEFAULT_MODEL   = "meta-llama/llama-4-scout-17b-16e-instruct"
 const val FALLBACK_MODEL  = "llama-3.3-70b-versatile"
 
+/** Free-tier Cerebras vision-capable model, tried only after every Groq attempt fails. */
+private const val CEREBRAS_MODEL = "llama-4-scout-17b-16e-instruct"
+
+private enum class Provider { GROQ, CEREBRAS }
+private data class ModelCandidate(val provider: Provider, val model: String)
+
 // Named thresholds shared by every call site in this file, so the per-100g
 // energy cap and the barcode-plausibility check are each defined once instead
 // of repeated as bare literals. Keep these numerically in sync with the
@@ -244,22 +250,32 @@ private fun extractJson(raw: String): String {
 // OcrParser class — injected into use-cases
 // ============================================================================
 
-class OcrParser(private val groqApi: GroqApi, moshi: Moshi) {
+class OcrParser(
+    private val groqApi: GroqApi,
+    private val cerebrasApi: CerebrasApi,
+    moshi: Moshi,
+) {
 
     private val dtoAdapter = moshi.adapter(LlmProductDto::class.java)
 
     /**
      * Parse one or more images of a food label.
-     * Calls Groq with vision model; falls back to text-only model on 429/5xx.
+     *
+     * Previously exposed a user-facing model-picker in Settings — but Groq
+     * model names get retired/renamed periodically, and asking a non-technical
+     * user to pick a working one from a list was just moving an outage onto
+     * them. This now tries a fixed, ordered list of models across two
+     * providers (Groq, then Cerebras as a free-tier fallback) automatically —
+     * a provider whose key is blank is simply skipped, not an error.
      */
     suspend fun parseLabel(
         images: List<ImagePayload>,
-        apiKey: String,
-        model: String = DEFAULT_MODEL,
+        groqApiKey: String,
+        cerebrasApiKey: String = "",
         lang: String = "fr",
     ): ParseLabelResult {
         val content = buildContentParts(images, buildLabelPrompt(lang))
-        val raw = callWithRetry(apiKey, model, content)
+        val raw = callWithRetry(groqApiKey, cerebrasApiKey, content)
         val json = extractJson(raw)
         val dto = runCatching { dtoAdapter.fromJson(json) }.getOrNull()
             ?: return ParseLabelResult(
@@ -279,8 +295,8 @@ class OcrParser(private val groqApi: GroqApi, moshi: Moshi) {
      */
     suspend fun identifyFood(
         images: List<ImagePayload>,
-        apiKey: String,
-        model: String = DEFAULT_MODEL,
+        groqApiKey: String,
+        cerebrasApiKey: String = "",
     ): ParseLabelResult {
         val prompt = """
 Identify the food in this image. Return a JSON object with the same schema as a food label:
@@ -300,7 +316,7 @@ pre-filled answer and identify only the actual food shown.
 Output ONLY the JSON. No explanation.
         """.trimIndent()
         val content = buildContentParts(images, prompt)
-        val raw     = callWithRetry(apiKey, model, content)
+        val raw     = callWithRetry(groqApiKey, cerebrasApiKey, content)
         val json    = extractJson(raw)
         val dto     = runCatching { dtoAdapter.fromJson(json) }.getOrNull() ?: return ParseLabelResult(
             product  = Product("(identification failed)", ProductCategory.OTHER,
@@ -324,53 +340,80 @@ Output ONLY the JSON. No explanation.
         else              -> false
     }
 
-    private suspend fun callWithRetry(
-        apiKey: String,
-        primaryModel: String,
-        content: List<ContentPart>,
-        maxRetries: Int = 3,
-    ): String {
-        // FALLBACK_MODEL is text-only — switching to it on the last attempt is
-        // only a genuine extra chance for a text-only request. Both current
-        // callers (parseLabel, identifyFood) always include image content, so
-        // falling back there would guarantee-fail the vision request instead
-        // of giving it a real last retry.
-        val hasImages = content.any { it.type == "image_url" }
-        var lastErr: Throwable? = null
-        // A long ingredients/micronutrient list (common on EU labels) can hit the
-        // 2000-token default before the JSON closes - finish_reason "length" says
-        // so explicitly, distinct from the model just returning garbage. One retry
-        // with a bigger budget recovers those instead of surfacing a generic
-        // "unparseable JSON" error for a response that was actually on track.
-        repeat(maxRetries) { attempt ->
-            val model = if (attempt == maxRetries - 1 && !hasImages) FALLBACK_MODEL else primaryModel
-            val maxTokens = if (attempt > 0) 4000 else 2000
-            val result = runCatching {
-                val resp = groqApi.chatCompletions(
-                    auth    = "Bearer $apiKey",
-                    request = ChatRequest(
-                        model     = model,
-                        messages  = listOf(ChatMessage(role = "user", content = content)),
-                        maxTokens = maxTokens,
-                    ),
-                )
-                val choice = resp.choices.firstOrNull()
-                choice to (choice?.finishReason == "length")
-            }
-            result.onSuccess { (choice, truncated) ->
-                if (truncated && attempt < maxRetries - 1) {
-                    lastErr = IOException("LLM response truncated at $maxTokens tokens")
-                    return@onSuccess
-                }
-                return choice?.message?.content ?: ""
-            }
-            result.onFailure { err ->
-                lastErr = err
-                if (!isRetryable(err)) throw err
-            }
-            if (attempt < maxRetries - 1) delay(500L * (attempt + 1))
+    /**
+     * Ordered candidate list: every Groq model first (only if a Groq key is
+     * configured), then Cerebras as a fallback provider (only if configured).
+     * A blank key means "not configured" — that provider is skipped entirely
+     * rather than attempted and failing on a 401.
+     */
+    private fun buildCandidates(groqApiKey: String, cerebrasApiKey: String): List<Pair<ModelCandidate, String>> {
+        val candidates = mutableListOf<Pair<ModelCandidate, String>>()
+        if (groqApiKey.isNotBlank()) {
+            candidates += ModelCandidate(Provider.GROQ, DEFAULT_MODEL) to groqApiKey
+            candidates += ModelCandidate(Provider.GROQ, FALLBACK_MODEL) to groqApiKey
         }
-        throw lastErr ?: RuntimeException("All LLM retries exhausted")
+        if (cerebrasApiKey.isNotBlank()) {
+            candidates += ModelCandidate(Provider.CEREBRAS, CEREBRAS_MODEL) to cerebrasApiKey
+        }
+        return candidates
+    }
+
+    private suspend fun callOnce(candidate: ModelCandidate, apiKey: String, content: List<ContentPart>, maxTokens: Int): Pair<Choice?, Boolean> {
+        val request = ChatRequest(
+            model     = candidate.model,
+            messages  = listOf(ChatMessage(role = "user", content = content)),
+            maxTokens = maxTokens,
+        )
+        val resp = when (candidate.provider) {
+            Provider.GROQ     -> groqApi.chatCompletions("Bearer $apiKey", request)
+            Provider.CEREBRAS -> cerebrasApi.chatCompletions("Bearer $apiKey", request)
+        }
+        val choice = resp.choices.firstOrNull()
+        return choice to (choice?.finishReason == "length")
+    }
+
+    /**
+     * Tries every configured (provider, model) candidate in order, each with its
+     * own short retry loop for transient errors (429/5xx/IO) — only moves on to
+     * the next candidate once the current one is exhausted or fails with a
+     * non-retryable error (e.g. 401/404, meaning that model/key genuinely
+     * doesn't work). A missing/invalid key on one provider no longer blocks
+     * scanning entirely as long as another provider is configured.
+     */
+    private suspend fun callWithRetry(
+        groqApiKey: String,
+        cerebrasApiKey: String,
+        content: List<ContentPart>,
+        maxRetriesPerCandidate: Int = 2,
+    ): String {
+        val candidates = buildCandidates(groqApiKey, cerebrasApiKey)
+        if (candidates.isEmpty()) throw IOException("No AI provider configured")
+        var lastErr: Throwable? = null
+        for ((candidate, apiKey) in candidates) {
+            var attempt = 0
+            while (attempt < maxRetriesPerCandidate) {
+                val maxTokens = if (attempt > 0) 4000 else 2000
+                val result = runCatching { callOnce(candidate, apiKey, content, maxTokens) }
+                val (choice, truncated) = result.getOrNull() ?: (null to false)
+                if (result.isSuccess) {
+                    if (truncated && attempt < maxRetriesPerCandidate - 1) {
+                        lastErr = IOException("LLM response truncated at $maxTokens tokens")
+                    } else {
+                        return choice?.message?.content ?: ""
+                    }
+                } else {
+                    val err = result.exceptionOrNull()!!
+                    lastErr = err
+                    // Non-retryable (401/403/404/etc.) means this whole candidate is
+                    // dead, not just this attempt — stop retrying it and move on to
+                    // the next candidate immediately instead of burning the retry budget.
+                    if (!isRetryable(err)) break
+                }
+                attempt++
+                if (attempt < maxRetriesPerCandidate) delay(500L * attempt)
+            }
+        }
+        throw lastErr ?: RuntimeException("All AI provider/model candidates exhausted")
     }
 
     private fun buildWarnings(product: Product, dto: LlmProductDto): List<String> {

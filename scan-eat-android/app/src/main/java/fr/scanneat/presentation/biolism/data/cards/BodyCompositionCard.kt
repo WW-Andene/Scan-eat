@@ -60,14 +60,14 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
             met.whtr?.let { v ->
                 InfoRow(stringResource(R.string.biolism_body_whtr_label), "%.3f".format(Locale.US, v),
                     if (v < 0.40) riskThin else if (v < 0.50) riskHealthy else if (v < 0.60) riskCentral else riskHigh,
-                    if (v < 0.50) Teal else if (v < 0.60) Gold else Danger)
+                    if (v < 0.50) semanticGreen() else if (v < 0.60) semanticAmber() else semanticRed())
             } ?: Text(stringResource(R.string.biolism_body_whtr_prompt),
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
             met.whr?.let { v ->
                 val thresh = if (profile.sex == BiolismSex.MALE) 0.90 else 0.85
                 InfoRow(stringResource(R.string.biolism_body_whr_label), "%.3f".format(Locale.US, v),
                     if (v < thresh) riskLow else riskHigh,
-                    if (v < thresh) Teal else Danger)
+                    if (v < thresh) semanticGreen() else semanticRed())
             }
             met.bai?.let { v ->
                 InfoRow(stringResource(R.string.biolism_body_bai_label), "%.1f%%".format(Locale.US, v), stringResource(R.string.biolism_body_bai_sub), Gold)
@@ -79,10 +79,10 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
 @Composable
 private fun BmiChip(m: MetabolicResult) {
     val color = when (m.bmiClass) {
-        BiolismBmiCategory.NORMAL      -> Teal
-        BiolismBmiCategory.UNDERWEIGHT -> Violet
-        BiolismBmiCategory.OVERWEIGHT  -> Gold
-        BiolismBmiCategory.OBESE       -> Danger
+        BiolismBmiCategory.NORMAL      -> semanticGreen()
+        BiolismBmiCategory.UNDERWEIGHT -> semanticAmber()
+        BiolismBmiCategory.OVERWEIGHT  -> semanticAmber()
+        BiolismBmiCategory.OBESE       -> semanticRed()
     }
     Surface(shape = RoundedCornerShape(4.dp), color = color.copy(0.15f), border = BorderStroke(1.dp, color.copy(0.3f))) {
         Text(m.bmiClass.name, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),

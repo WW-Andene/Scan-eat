@@ -40,10 +40,10 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
                 val carbsPct = carbsMax?.takeIf { it > 0 }?.let { (totals.carbsG / it).toFloat() }
                 val carbsColor = if (carbsPct != null && carbsPct > 1f) semanticRed() else AccentCoral
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor)
-                    MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral)
-                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", carbsPct, carbsColor)
-                    MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", null, AccentCoral)
+                    MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor, targets?.kcal?.roundToInt())
+                    MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral, targets?.proteinGTarget?.takeIf { it > 0 }?.roundToInt())
+                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", carbsPct, carbsColor, carbsMax?.takeIf { it > 0 }?.roundToInt())
+                    MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", null, AccentCoral, null)
                 }
             }
         }
@@ -51,7 +51,7 @@ internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
 }
 
 @Composable
-private fun MacroRing(label: String, value: Int, unit: String, pct: Float?, color: Color) {
+private fun MacroRing(label: String, value: Int, unit: String, pct: Float?, color: Color, target: Int?) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(modifier = Modifier.size(52.dp), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
@@ -64,7 +64,14 @@ private fun MacroRing(label: String, value: Int, unit: String, pct: Float?, colo
             Text(value.toString(), style = MaterialTheme.typography.labelMedium, color = OnBackground, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(5.dp))
-        Text(unit, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+        // Previously only the current total was shown ("120g") with no indication of
+        // the profile-derived target it's being measured against, even though the
+        // ring's own fill % was silently computed from that same target — the number
+        // that would explain *why* the ring looks the way it does was never printed.
+        Text(
+            if (target != null) "$unit · $value/$target" else unit,
+            style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+        )
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
     }
 }
