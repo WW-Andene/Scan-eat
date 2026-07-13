@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.planning.DayPlan
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.planning.MealPlanSlot
@@ -11,6 +12,7 @@ import fr.scanneat.data.repository.planning.MealTemplate
 import fr.scanneat.data.repository.planning.MealTemplateRepository
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeRepository
+import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -23,6 +25,7 @@ class MealPlanViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val recipeRepo: RecipeRepository,
     private val templateRepo: MealTemplateRepository,
+    private val consumptionRepo: ConsumptionRepository,
 ) : ViewModel() {
     // A fixed `val` captured LocalDate.now() once at construction - a ViewModel
     // that outlives midnight would keep the same 7 dates forever, so "today"
@@ -106,5 +109,26 @@ class MealPlanViewModel @Inject constructor(
 
     fun setTemplate(date: LocalDate, meal: String, template: MealTemplate) {
         viewModelScope.launch { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name)) }
+    }
+
+    // A planned RecipeSlot/TemplateSlot only ever persisted the plan itself -
+    // nothing connected it to ConsumptionRepository, so the day arrived and the
+    // plan stayed purely decorative: it never auto-filled or even offered to
+    // log the diary entry a user would expect from having "planned" a meal.
+    // Looks the slot's id up against the already-loaded recipes/templates lists
+    // rather than re-querying, since both are cheap StateFlows already held here.
+    fun logSlot(date: LocalDate, meal: String, slot: MealPlanSlot) {
+        val mealSlot = MealSlot.valueOf(meal.uppercase())
+        viewModelScope.launch {
+            when (slot) {
+                is MealPlanSlot.RecipeSlot -> recipes.value.find { it.id == slot.id }?.let {
+                    consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot))
+                }
+                is MealPlanSlot.TemplateSlot -> templates.value.find { it.id == slot.id }?.let {
+                    consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot))
+                }
+                is MealPlanSlot.NoteSlot -> Unit
+            }
+        }
     }
 }

@@ -80,6 +80,7 @@ fun MealPlanScreen(
                                 onEdit = { text -> viewModel.setNote(date, meal, text) },
                                 onClear = { viewModel.clear(date, meal) },
                                 onAssign = { assignTarget = date to meal },
+                                onLog = { s -> viewModel.logSlot(date, meal, s) },
                             )
                         }
                     }
@@ -111,7 +112,7 @@ private fun mealLabel(key: String): String = when (key) {
 }
 
 @Composable
-private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> Unit, onClear: () -> Unit, onAssign: () -> Unit) {
+private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> Unit, onClear: () -> Unit, onAssign: () -> Unit, onLog: (MealPlanSlot) -> Unit) {
     var editing by remember { mutableStateOf(false) }
     var text by remember(slot) { mutableStateOf((slot as? MealPlanSlot.NoteSlot)?.text ?: "") }
 
@@ -151,6 +152,15 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
             if (slot == null || slot is MealPlanSlot.NoteSlot) {
                 IconButton(onClick = { editing = true }, modifier = Modifier.size(32.dp)) {
                     Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                }
+            }
+            // A planned Recipe/Template slot previously only ever persisted the plan
+            // itself — nothing connected it to the diary, so the day arrived and the
+            // plan stayed purely decorative. Only meaningful once a real recipe/
+            // template is assigned; a note has no nutrition to log.
+            if (slot is MealPlanSlot.RecipeSlot || slot is MealPlanSlot.TemplateSlot) {
+                IconButton(onClick = { onLog(slot) }, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(18.dp))
                 }
             }
             // Lets a saved Recipe/Template actually be planned onto this slot — until
