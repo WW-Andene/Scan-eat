@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.domain.model.ActivityLevel
 import java.time.LocalDate
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -42,6 +43,35 @@ class HydrationViewModel @Inject constructor(
     val markedDates: StateFlow<Set<LocalDate>> = intake.map {
         repo.exportAll().filter { it.second > 0 }.map { it.first }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    // Improvement: consecutive-days streak — counts backwards from yesterday
+    // (today is still in progress, so excluding it avoids a misleading "1-day
+    // streak" that resets every morning before the first glass).
+    val streak: StateFlow<Int> = combine(intake, goal) { _, goalMl ->
+        val all = repo.exportAll().toMap()
+        var count = 0
+        var date = LocalDate.now().minusDays(1)
+        while (true) {
+            val dayMl = all[date] ?: 0
+            if (dayMl < goalMl) break
+            count++
+            date = date.minusDays(1)
+        }
+        count
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    // New: smart goal suggestion — base goal + weight-scaled bonus (10 mL per kg
+    // above 70 kg) + extra 300 mL for very-active/extra-active profile, shown as a
+    // non-binding nudge when it differs from the current goal by ≥ 200 mL.
+    val suggestedGoalMl: StateFlow<Int?> = combine(goal, prefs.profile) { currentGoal, profile ->
+        val weightBonus = ((profile.weightKg ?: 70.0) - 70.0).coerceAtLeast(0.0) * 10
+        val activityBonus = when (profile.activityLevel) {
+            ActivityLevel.VERY_ACTIVE, ActivityLevel.EXTRA_ACTIVE -> 300
+            else -> 0
+        }
+        val suggested = (currentGoal + weightBonus + activityBonus).toInt()
+        if (suggested - currentGoal >= 200) suggested else null
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun addGlass()    = viewModelScope.launch { repo.addGlass() }
     fun removeGlass() = viewModelScope.launch { repo.removeGlass() }

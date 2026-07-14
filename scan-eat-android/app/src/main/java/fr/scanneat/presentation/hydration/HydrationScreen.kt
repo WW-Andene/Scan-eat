@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -50,8 +51,10 @@ fun HydrationScreen(
     embedded: Boolean = false,
     onOpenCalendar: () -> Unit = {},
 ) {
-    val intake      = viewModel.intake.collectAsStateWithLifecycle()
-    val goal        = viewModel.goal.collectAsStateWithLifecycle()
+    val intake          = viewModel.intake.collectAsStateWithLifecycle()
+    val goal            = viewModel.goal.collectAsStateWithLifecycle()
+    val streak          = viewModel.streak.collectAsStateWithLifecycle()
+    val suggestedGoal   = viewModel.suggestedGoalMl.collectAsStateWithLifecycle()
     val glasses     = intake.value / HYD_GLASS_ML
     val goalGlasses = goal.value / HYD_GLASS_ML
     val pct         = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
@@ -68,9 +71,53 @@ fun HydrationScreen(
         // routes to the unified Calendar (Dashboard), which shows hydration
         // alongside every other tracker.
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                // Improvement: 7-day adherence streak badge
+                if (streak.value > 0) {
+                    Surface(shape = RoundedCornerShape(50), color = semanticBlue().copy(0.15f)) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                        ) {
+                            Icon(Icons.Default.LocalFireDepartment, null, tint = semanticBlue(), modifier = Modifier.size(16.dp))
+                            Text(
+                                "${streak.value}j",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = semanticBlue(),
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                } else {
+                    Spacer(Modifier.width(1.dp))
+                }
                 IconButton(onClick = onOpenCalendar) {
                     Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
+                }
+            }
+        }
+
+        // New: smart goal suggestion banner
+        suggestedGoal.value?.let { suggested ->
+            item {
+                Surface(
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    color = semanticBlue().copy(0.1f),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(Spacing.M),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                    ) {
+                        Icon(Icons.Default.TipsAndUpdates, null, tint = semanticBlue(), modifier = Modifier.size(18.dp))
+                        Text(
+                            "Basé sur votre profil, un objectif de ${suggested} mL pourrait mieux vous convenir.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = semanticBlue(),
+                        )
+                    }
                 }
             }
         }
