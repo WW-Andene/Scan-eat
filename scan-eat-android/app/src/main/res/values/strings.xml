@@ -620,10 +620,10 @@
     <string name="bioprofile_field_weight">Poids (kg)</string>
     <string name="bioprofile_field_weight_imperial">Poids (lb)</string>
     <string name="bioprofile_section_activity">Niveau d\'activité</string>
-    <string name="bioprofile_section_ethnicity">Origine ethnique (correction IMC/BF%)</string>
+    <string name="bioprofile_section_ethnicity">Origine ethnique (correction IMC/BF%%)</string>
     <string name="bioprofile_ethnicity_hint">Ajuste le calcul de la masse grasse selon Deurenberg et al. 1998 et les seuils OMS 2004.</string>
-    <string name="bioprofile_section_circumferences">Circonférences (déverrouille BF% Navy + indicateurs viscéraux)</string>
-    <string name="bioprofile_circumferences_hint">Optionnel — fournit Navy BF%, WHtR, WHR (méthode Hodgdon &amp; Beckett 1984).</string>
+    <string name="bioprofile_section_circumferences">Circonférences (déverrouille BF%% Navy + indicateurs viscéraux)</string>
+    <string name="bioprofile_circumferences_hint">Optionnel — fournit Navy BF%%, WHtR, WHR (méthode Hodgdon &amp; Beckett 1984).</string>
     <string name="bioprofile_field_waist">Tour de taille (cm)</string>
     <string name="bioprofile_field_waist_imperial">Tour de taille (in)</string>
     <string name="bioprofile_field_hip">Tour des hanches (cm) — femmes</string>
@@ -1042,7 +1042,7 @@
     <string name="hint_panel_empty">Aucune information particulière pour ce produit.</string>
     <string name="result_cd_unfavorite">Retirer des favoris</string>
     <string name="result_score_history_title">Historique du score</string>
-    <string name="result_macro_contribution_title">Apport pour 100 g (% VNR)</string>
+    <string name="result_macro_contribution_title">Apport pour 100 g (%% VNR)</string>
     <string name="result_macro_contribution_note">VNR = Valeurs nutritionnelles de référence UE (adulte)</string>
     <string name="result_macro_kcal">Énergie</string>
     <string name="result_macro_protein">Protéines</string>

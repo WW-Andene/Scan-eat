@@ -180,13 +180,6 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                                     Text(stringResource(R.string.biolism_tracker_goal_label, gw), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                                     Text(stringResource(R.string.biolism_tracker_goal_eta, etaHours), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                                 }
-                                val progress = (1f - (abs(p.weightKg - gw) / (abs(p.weightKg - gw) + fatKgRemaining)).toFloat()).coerceIn(0f, 1f)
-                                LinearProgressIndicator(
-                                    progress = { progress },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = AccentCoral,
-                                    trackColor = OnSurface.copy(0.1f),
-                                )
                             }
                         }
                     }

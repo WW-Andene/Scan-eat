@@ -107,7 +107,17 @@ class ScanHistoryViewModel @Inject constructor(
     val gradeDistribution: StateFlow<List<Pair<String, Int>>> = allScans
         .map { scans ->
             val bands = linkedMapOf("A" to 0, "B" to 0, "C" to 0, "D" to 0)
-            scans.forEach { bands[it.audit.grade.label] = (bands[it.audit.grade.label] ?: 0) + 1 }
+            scans.forEach {
+                // Grade has 6 values (A+, A, B, C, D, F) but the UI only has 4 color bands —
+                // A+ folds into A (still the best band) and F folds into D (still the worst),
+                // instead of both silently falling through to an "else" bucket the map never declared.
+                val band = when (it.audit.grade.label) {
+                    "A+" -> "A"
+                    "F"  -> "D"
+                    else -> it.audit.grade.label
+                }
+                bands[band] = (bands[band] ?: 0) + 1
+            }
             bands.entries.filter { it.value > 0 }.map { it.key to it.value }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

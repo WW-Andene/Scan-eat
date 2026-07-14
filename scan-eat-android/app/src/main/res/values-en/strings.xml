@@ -619,10 +619,10 @@
     <string name="bioprofile_field_weight">Weight (kg)</string>
     <string name="bioprofile_field_weight_imperial">Weight (lb)</string>
     <string name="bioprofile_section_activity">Activity level</string>
-    <string name="bioprofile_section_ethnicity">Ethnic background (BMI/BF% correction)</string>
+    <string name="bioprofile_section_ethnicity">Ethnic background (BMI/BF%% correction)</string>
     <string name="bioprofile_ethnicity_hint">Adjusts fat-mass calculation per Deurenberg et al. 1998 and WHO 2004 thresholds.</string>
-    <string name="bioprofile_section_circumferences">Circumferences (unlocks Navy BF% + visceral indicators)</string>
-    <string name="bioprofile_circumferences_hint">Optional — provides Navy BF%, WHtR, WHR (Hodgdon &amp; Beckett 1984 method).</string>
+    <string name="bioprofile_section_circumferences">Circumferences (unlocks Navy BF%% + visceral indicators)</string>
+    <string name="bioprofile_circumferences_hint">Optional — provides Navy BF%%, WHtR, WHR (Hodgdon &amp; Beckett 1984 method).</string>
     <string name="bioprofile_field_waist">Waist circumference (cm)</string>
     <string name="bioprofile_field_waist_imperial">Waist circumference (in)</string>
     <string name="bioprofile_field_hip">Hip circumference (cm) — women</string>
@@ -1016,7 +1016,7 @@
     <string name="hint_panel_empty">No particular information for this product.</string>
     <string name="result_cd_unfavorite">Remove from favorites</string>
     <string name="result_score_history_title">Score history</string>
-    <string name="result_macro_contribution_title">Per 100 g contribution (% DRV)</string>
+    <string name="result_macro_contribution_title">Per 100 g contribution (%% DRV)</string>
     <string name="result_macro_contribution_note">DRV = EU Daily Reference Values (adult)</string>
     <string name="result_macro_kcal">Energy</string>
     <string name="result_macro_protein">Protein</string>
