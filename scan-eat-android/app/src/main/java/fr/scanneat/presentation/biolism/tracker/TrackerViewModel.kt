@@ -37,6 +37,11 @@ class TrackerViewModel @Inject constructor(
         .map { it.healthConditions }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    /** Goal weight from the shared Profile — used to display a weight-goal ETA row in the tracker. */
+    val goalWeightKg: StateFlow<Double?> = prefs.profile
+        .map { it.goalWeightKg }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 

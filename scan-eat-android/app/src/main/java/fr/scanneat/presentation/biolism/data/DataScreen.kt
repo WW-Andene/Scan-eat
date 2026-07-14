@@ -68,6 +68,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        item { MetabolicHealthScoreCard(met, profile.value) }
         item { BodyCompositionCard(met, profile.value) }
         item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value) }
         item { BurnRateCard(met, s, cum.value) }

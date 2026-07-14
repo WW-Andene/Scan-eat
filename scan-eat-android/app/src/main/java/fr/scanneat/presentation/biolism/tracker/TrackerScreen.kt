@@ -19,16 +19,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.cards.*
+import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.Violet
 import fr.scanneat.presentation.ui.theme.Warm
+import fr.scanneat.presentation.ui.theme.glassSheen
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 // Orchestrator only — each screen section lives in cards/*.kt, shared
@@ -46,7 +56,8 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     val saved        = viewModel.saved.collectAsStateWithLifecycle()
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
     val language     = viewModel.language.collectAsStateWithLifecycle()
-    val realFastHours = viewModel.realFastHours.collectAsStateWithLifecycle()
+    val realFastHours  = viewModel.realFastHours.collectAsStateWithLifecycle()
+    val goalWeightKg   = viewModel.goalWeightKg.collectAsStateWithLifecycle()
 
     val s    = timer.value
     val p    = profile.value
@@ -152,6 +163,35 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                     glycoLostKg  = glycoLostKg,
                     ketosisOn    = s.ketosisOn,
                 )
+            }
+
+            // Improvement: goal weight ETA derived from session fat loss rate + TDEE deficit.
+            // Shows how many hours of equivalent fasting/activity remain to reach the goal,
+            // using the session's live fat oxidation rate as a proxy for sustained daily burn.
+            val gw = goalWeightKg.value
+            if (gw != null && p.weightKg > 0 && abs(gw - p.weightKg) >= 0.5 && lm.kcalSec > 0) {
+                val fatKgRemaining = abs(p.weightKg - gw) * 0.75  // ~75% of mass delta is fat
+                val fatKgPerHour = lm.fatFrac * lm.kcalSec * 3600 / 7700.0
+                val etaHours = if (fatKgPerHour > 0) (fatKgRemaining / fatKgPerHour).roundToInt() else null
+                if (etaHours != null && etaHours > 0) {
+                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
+                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Objectif → ${gw}kg", style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                                    Text("~${etaHours}h à ce rythme", style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                                }
+                                val progress = (1f - (abs(p.weightKg - gw) / (abs(p.weightKg - gw) + fatKgRemaining)).toFloat()).coerceIn(0f, 1f)
+                                LinearProgressIndicator(
+                                    progress = { progress },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = AccentCoral,
+                                    trackColor = OnSurface.copy(0.1f),
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // ── Session controls ───────────────────────────────────────────────
