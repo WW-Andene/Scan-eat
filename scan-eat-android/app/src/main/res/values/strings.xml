@@ -456,6 +456,10 @@
     <string name="biolism_liveweight_base">Base : %1$s kg</string>
     <string name="biolism_liveweight_fat_lost">%1$s g graisses</string>
     <string name="biolism_liveweight_glyco_lost">%1$s g glycogène+H₂O</string>
+    <string name="biolism_tracker_goal_label">Objectif → %1$.1f kg</string>
+    <string name="biolism_tracker_goal_eta">~%1$dh à ce rythme</string>
+    <string name="biolism_tracker_tdee_budget_title">Budget énergétique du jour</string>
+    <string name="biolism_tracker_tdee_budget_note">%1$d kcal brûlées / %2$d kcal TDEE</string>
     <string name="biolism_tracker_empty_title">Complète ton profil Métabolisme</string>
     <string name="biolism_tracker_empty_desc">Âge, sexe, taille et poids sont nécessaires pour calculer ton BMR et les flux de substrats.</string>
     <string name="biolism_goals_title">Objectifs quotidiens</string>

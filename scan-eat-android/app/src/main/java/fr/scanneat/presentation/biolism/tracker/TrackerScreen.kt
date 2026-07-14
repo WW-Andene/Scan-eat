@@ -178,8 +178,8 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Objectif → ${gw}kg", style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                                    Text("~${etaHours}h à ce rythme", style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                                    Text(stringResource(R.string.biolism_tracker_goal_label, gw), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                                    Text(stringResource(R.string.biolism_tracker_goal_eta, etaHours), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                                 }
                                 val progress = (1f - (abs(p.weightKg - gw) / (abs(p.weightKg - gw) + fatKgRemaining)).toFloat()).coerceIn(0f, 1f)
                                 LinearProgressIndicator(
@@ -189,6 +189,30 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                                     trackColor = OnSurface.copy(0.1f),
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            // New: daily TDEE budget bar — shows kcal burned this session vs today's TDEE
+            // so users see how much of their maintenance budget the current session covers.
+            if (kcalTotal > 0 && lm.tdeeDay > 0) {
+                val tdeeInt = lm.tdeeDay.roundToInt()
+                val burnInt = kcalTotal.roundToInt()
+                val budgetPct = (kcalTotal / lm.tdeeDay).coerceIn(0.0, 1.0).toFloat()
+                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.biolism_tracker_tdee_budget_title), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.biolism_tracker_tdee_budget_note, burnInt, tdeeInt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                            }
+                            LinearProgressIndicator(
+                                progress = { budgetPct },
+                                modifier = Modifier.fillMaxWidth(),
+                                color = if (budgetPct >= 1f) AccentCoral else Gold,
+                                trackColor = OnSurface.copy(0.1f),
+                            )
                         }
                     }
                 }
