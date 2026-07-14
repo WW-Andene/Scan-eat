@@ -162,14 +162,19 @@ class MealPlanViewModel @Inject constructor(
     fun logSlot(date: LocalDate, meal: String, slot: MealPlanSlot) {
         val mealSlot = MealSlot.valueOf(meal.uppercase())
         viewModelScope.launch {
-            when (slot) {
-                is MealPlanSlot.RecipeSlot -> recipes.value.find { it.id == slot.id }?.let {
-                    consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot))
+            // Guarded like DashboardViewModel.logGapSuggestion/ResultViewModel.log -
+            // a Room insert failure (disk-full, constraint violation) here previously
+            // crashed the app instead of just failing to log this one meal.
+            runCatching {
+                when (slot) {
+                    is MealPlanSlot.RecipeSlot -> recipes.value.find { it.id == slot.id }?.let {
+                        consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot))
+                    }
+                    is MealPlanSlot.TemplateSlot -> templates.value.find { it.id == slot.id }?.let {
+                        consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot))
+                    }
+                    is MealPlanSlot.NoteSlot -> Unit
                 }
-                is MealPlanSlot.TemplateSlot -> templates.value.find { it.id == slot.id }?.let {
-                    consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot))
-                }
-                is MealPlanSlot.NoteSlot -> Unit
             }
         }
     }

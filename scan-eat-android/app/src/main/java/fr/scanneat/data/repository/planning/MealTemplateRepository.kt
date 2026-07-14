@@ -15,6 +15,7 @@ import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.roundToInt
 
 // ============================================================================
 // MEAL TEMPLATE REPOSITORY — port of public/data/meal-templates.js
@@ -45,10 +46,13 @@ data class MealTemplate(
     val items: List<TemplateItem>,
     val createdAt: Long,
 ) {
-    val totalKcal: Int     get() = items.sumOf { it.kcal }.toInt()
-    val totalProteinG: Int get() = items.sumOf { it.proteinG }.toInt()
-    val totalCarbsG: Int   get() = items.sumOf { it.carbsG }.toInt()
-    val totalFatG: Int     get() = items.sumOf { it.fatG }.toInt()
+    // Round rather than truncate - .toInt() biased every total down (e.g. a
+    // template summing to 0.9g protein displayed "0g"), same fix already
+    // applied to GroceryList.kt's aggregateGroceryList for the same reason.
+    val totalKcal: Int     get() = items.sumOf { it.kcal }.roundToInt()
+    val totalProteinG: Int get() = items.sumOf { it.proteinG }.roundToInt()
+    val totalCarbsG: Int   get() = items.sumOf { it.carbsG }.roundToInt()
+    val totalFatG: Int     get() = items.sumOf { it.fatG }.roundToInt()
 }
 
 @Singleton
@@ -69,12 +73,17 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
         id: String? = null,
         profileId: String = "default",
     ): MealTemplate {
+        // Editing an existing template (rename/addItem/removeItem, called with its own
+        // id) previously re-stamped createdAt to now on every save - same bug already
+        // fixed in RecipeRepository/MedicationRepository/CustomFoodRepository - preserve
+        // the original row's createdAt when one exists, since observeAll() orders by it.
+        val createdAt = id?.let { dao.findById(it)?.createdAt } ?: System.currentTimeMillis()
         val template = MealTemplate(
             id        = id ?: UUID.randomUUID().toString(),
             name      = name.trim(),
             meal      = meal,
             items     = items,
-            createdAt = System.currentTimeMillis(),
+            createdAt = createdAt,
         )
         dao.upsert(template.toEntity(profileId))
         return template

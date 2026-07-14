@@ -121,8 +121,14 @@ class GroceryViewModel @Inject constructor(
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    /** Same list, annotated with persisted check-off state so the UI can tick items while shopping. */
-    val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(rawItems, checkedRepo.checkedKeys) { items, checked ->
+    /**
+     * Same list, annotated with persisted check-off state so the UI can tick items
+     * while shopping. Built from [groceryItems] (which already applies the Sort A-Z
+     * toggle), not raw [rawItems] directly - GroceryScreen renders this list, and it
+     * previously ignored [_sortAlpha] entirely, so toggling "Sort A-Z" changed the
+     * icon's tint but never actually reordered the on-screen checklist.
+     */
+    val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(groceryItems, checkedRepo.checkedKeys) { items, checked ->
         items.map { CheckableGroceryItem(it, checked = it.key in checked) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

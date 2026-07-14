@@ -98,6 +98,7 @@ class BackupRepository @Inject constructor(
                 diet = profile.diet.key,
                 allergens = profile.allergens.toList(),
                 isMenstruating = profile.isMenstruating,
+                healthConditions = profile.healthConditions.toList(),
             ),
             // Deliberately excludes the Groq API key — see BackupModels.kt.
             settings = SettingsBackup(
@@ -195,6 +196,7 @@ class BackupRepository @Inject constructor(
                 diet = DietKey.fromKey(p.diet),
                 allergens = p.allergens.toSet(),
                 isMenstruating = p.isMenstruating,
+                healthConditions = p.healthConditions.toSet(),
             ))
         }
         bundle.settings?.let { s ->

@@ -43,7 +43,10 @@ class TemplatesViewModel @Inject constructor(
             val entries = repo.expand(template, date, mealOverride)
             val scaled = if (portionScale == 1.0) entries
             else entries.map { it.copy(portionG = it.portionG * portionScale) }
-            consumptionRepo.logAll(scaled)
+            // Guarded like DashboardViewModel.logGapSuggestion/ResultViewModel.log -
+            // a Room insert failure (disk-full, constraint violation) here previously
+            // crashed the app instead of just failing to log this template.
+            runCatching { consumptionRepo.logAll(scaled) }
         }
     }
 

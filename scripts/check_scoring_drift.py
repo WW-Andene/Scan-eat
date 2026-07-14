@@ -45,6 +45,7 @@ PAIRS = [
     ("buildFlags", "ScoringEngine.kt", "ScoringEngine.kt"),
     ("collectWarnings", "ScoringEngine.kt", "ScoringEngine.kt"),
     ("scoreProduct", "ScoringEngine.kt", "ScoringEngine.kt"),
+    ("findAdditive", "AdditivesDb.kt", "AdditivesDb.kt"),
 ]
 
 SERVER_DIR = REPO / "scan-eat-server/src/main/kotlin/fr/scanneat/shared"

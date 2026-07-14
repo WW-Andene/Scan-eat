@@ -35,6 +35,10 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // Since v6, also medication_log — the "I took this" adherence events added
 // alongside Traitement's calendar entry (previously Traitement's active list
 // was backed up, but not whether/when a dose was actually taken).
+// Since v7, also the profile's healthConditions (diabetes/hypertension/
+// pregnancy/kidney_disease/etc) — real scoring/safety data that was silently
+// dropped on every backup/restore despite allergens and isMenstruating,
+// captured right alongside it on the same screen, always being included.
 //
 // Deliberately excludes the Groq API key from SettingsBackup — a backup file
 // shared for debugging or support must not leak a credential.
@@ -45,7 +49,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 6
+const val BACKUP_FORMAT_VERSION = 7
 
 data class ProfileBackup(
     val name: String,
@@ -59,6 +63,12 @@ data class ProfileBackup(
     val diet: String,
     val allergens: List<String>,
     val isMenstruating: Boolean,
+    // Since v7: diabetes/hypertension/pregnancy/kidney_disease/etc - a real Set<String>
+    // on Profile that drives real scoring/safety logic (PersonalScoreEngine's sugar/
+    // salt-cap adjustments, pregnancy alcohol veto, kidney-disease protein caution),
+    // previously missing here entirely - restoring a backup to a new device silently
+    // lost it, same class of gap allergens/isMenstruating above already cover.
+    val healthConditions: List<String> = emptyList(),
 )
 
 data class SettingsBackup(

@@ -28,6 +28,8 @@ enum class AdditiveCategory(val key: String) {
     SOLVENT("solvent"),
     FLOUR_TREATMENT("flour_treatment"),
     SEQUESTRANT("sequestrant"),
+    RAISING_AGENT("raising_agent"),
+    PACKAGING_GAS("packaging_gas"),
 }
 
 data class AdditiveInfo(
@@ -235,8 +237,6 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
         "Firming agent; no concern.", "EU Regulation 1333/2008 (quantum satis)."),
     AdditiveInfo("E575", listOf("glucono-delta-lactone", "glucono delta lactone", "gdl"), AdditiveTier.THREE, AdditiveCategory.ACIDULANT,
         "Slow-release acidulant used in baked goods.", "EU authorisation without ADI."),
-    AdditiveInfo("E422_glycerol", listOf("glycérol", "glycerol", "glycérine"), AdditiveTier.THREE, AdditiveCategory.HUMECTANT,
-        "Humectant; no ADI.", "EU authorisation without ADI."),
     AdditiveInfo("E965", listOf("maltitol", "sirop de maltitol"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,
         "Sugar alcohol; moderate glycemic impact; laxative above tolerance.", "EFSA 2011 polyol opinion."),
     AdditiveInfo("E967", listOf("xylitol"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,
@@ -282,6 +282,32 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
         "Acacia-tree exudate thickener/stabiliser; no concern.", "EFSA 2017;15(4):4741."),
     AdditiveInfo("E420", listOf("sorbitol", "sirop de sorbitol"), AdditiveTier.THREE, AdditiveCategory.SWEETENER,
         "Sugar alcohol; laxative effect above tolerance, moderate glycemic impact.", "EFSA 2011 polyol opinion."),
+
+    // Common bread/bakery + packaging-gas E-numbers - previously present in the
+    // Android copy only, missing here despite appearing on a large share of
+    // scanned bakery and packaged-meat products (mould-inhibitor propionates,
+    // raising-agent carbonates, inert packaging gases).
+    AdditiveInfo("E280", listOf("acide propionique", "propionic acid"), AdditiveTier.THREE, AdditiveCategory.PRESERVATIVE,
+        "Mould/rope-spoilage inhibitor, common in packaged bread; EFSA reaffirmed safety within group ADI.",
+        "EFSA 2019;17(1):5658 (propionic acid–propionates group)."),
+    AdditiveInfo("E281", listOf("propionate de sodium", "sodium propionate"), AdditiveTier.THREE, AdditiveCategory.PRESERVATIVE,
+        "Mould inhibitor, same group as E280.", "EFSA 2019;17(1):5658."),
+    AdditiveInfo("E282", listOf("propionate de calcium", "calcium propionate"), AdditiveTier.THREE, AdditiveCategory.PRESERVATIVE,
+        "Mould inhibitor, most common propionate in sliced bread.", "EFSA 2019;17(1):5658."),
+    AdditiveInfo("E283", listOf("propionate de potassium", "potassium propionate"), AdditiveTier.THREE, AdditiveCategory.PRESERVATIVE,
+        "Mould inhibitor, same group as E280.", "EFSA 2019;17(1):5658."),
+    AdditiveInfo("E503", listOf("carbonate d'ammonium", "ammonium carbonate", "bicarbonate d'ammonium", "ammonium bicarbonate"), AdditiveTier.THREE, AdditiveCategory.RAISING_AGENT,
+        "Raising agent (baker's ammonia); authorised without ADI.", "EU Regulation 1333/2008 (quantum satis)."),
+    AdditiveInfo("E304", listOf("palmitate d'ascorbyle", "ascorbyl palmitate"), AdditiveTier.THREE, AdditiveCategory.ANTIOXIDANT,
+        "Fat-soluble vitamin C ester antioxidant; no concern.", "EFSA 2015 (ascorbic acid family)."),
+    AdditiveInfo("E306", listOf("extrait riche en tocophérol", "tocopherol-rich extract", "vitamine e naturelle"), AdditiveTier.THREE, AdditiveCategory.ANTIOXIDANT,
+        "Natural-source vitamin E antioxidant; no concern.", "EFSA 2015;13(9):4247."),
+    AdditiveInfo("E938", listOf("argon"), AdditiveTier.THREE, AdditiveCategory.PACKAGING_GAS,
+        "Inert packaging gas; no concern.", "EU authorisation (quantum satis)."),
+    AdditiveInfo("E941", listOf("azote", "nitrogen"), AdditiveTier.THREE, AdditiveCategory.PACKAGING_GAS,
+        "Inert packaging gas, common in modified-atmosphere packaging; no concern.", "EU authorisation (quantum satis)."),
+    AdditiveInfo("E942", listOf("protoxyde d'azote", "nitrous oxide"), AdditiveTier.THREE, AdditiveCategory.PACKAGING_GAS,
+        "Propellant gas for whipped/aerosol products; no dietary concern at food-additive use.", "EFSA 2016;14(5):4491."),
 )
 
 // ============================================================================
