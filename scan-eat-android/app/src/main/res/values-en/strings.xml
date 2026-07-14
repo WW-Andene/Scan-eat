@@ -963,6 +963,10 @@
     <string name="recipes_cd_new">New recipe</string>
     <string name="templates_cd_new">New meal template</string>
     <string name="templates_add_dialog_title">New Meal Template</string>
+    <string name="templates_log_portion_label">Portion</string>
+    <string name="templates_log_portion_value">×%1$s → %2$d kcal</string>
+    <string name="templates_stats_count">%1$d template(s)</string>
+    <string name="templates_stats_total_kcal">%1$d kcal total</string>
     <string name="recipes_empty_body">No recipes yet. Create your first multi-ingredient recipe.</string>
     <string name="recipes_filter_all">All</string>
     <string name="recipes_filter_high_protein">High protein</string>

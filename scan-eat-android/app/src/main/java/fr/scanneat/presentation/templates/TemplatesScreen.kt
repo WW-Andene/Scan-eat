@@ -35,6 +35,7 @@ fun TemplatesScreen(
     onBack: () -> Unit,
 ) {
     val templates = viewModel.templates.collectAsStateWithLifecycle()
+    val libraryTotalKcal = viewModel.libraryTotalKcal.collectAsStateWithLifecycle()
     var logTarget by remember { mutableStateOf<MealTemplate?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<MealTemplate?>(null) }
@@ -56,7 +57,28 @@ fun TemplatesScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            if (templates.value.isEmpty()) {
+            if (templates.value.isNotEmpty()) {
+                item {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f)) {
+                            Text(
+                                stringResource(R.string.templates_stats_count, templates.value.size),
+                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+                            )
+                        }
+                        if (libraryTotalKcal.value > 0) {
+                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
+                                Text(
+                                    stringResource(R.string.templates_stats_total_kcal, libraryTotalKcal.value),
+                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                                    style = MaterialTheme.typography.labelSmall, color = AccentCoral,
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
                 item { EmptyListState(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_empty_body)) }
             }
             items(templates.value, key = { it.id }) { template ->
@@ -140,8 +162,8 @@ fun TemplatesScreen(
                     // 100% with no way to adjust for a half portion or a double serving.
                     HorizontalDivider(color = OnBackground.copy(0.08f))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Portion", style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                        Text("×${String.format("%.1f", portion)}  →  ${(t.totalKcal * portion).toInt()} kcal", style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                        Text(stringResource(R.string.templates_log_portion_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                        Text(stringResource(R.string.templates_log_portion_value, String.format("%.1f", portion), (t.totalKcal * portion).toInt()), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                     }
                     Slider(
                         value = portion, onValueChange = { portion = it },

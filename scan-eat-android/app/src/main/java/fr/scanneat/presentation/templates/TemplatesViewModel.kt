@@ -21,6 +21,11 @@ class TemplatesViewModel @Inject constructor(
     val templates: StateFlow<List<MealTemplate>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Sum of all items' kcal across every template — shown as a library-level stat. */
+    val libraryTotalKcal: StateFlow<Int> = templates.map { list ->
+        list.sumOf { it.totalKcal }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
 
     fun create(name: String, meal: MealSlot) {
