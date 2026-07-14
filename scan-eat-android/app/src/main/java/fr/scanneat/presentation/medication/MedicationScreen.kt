@@ -26,8 +26,10 @@ import fr.scanneat.presentation.ui.theme.*
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar - used when
  * hosted as a Journal sub-tab, same convention as Weight/Hydration/Activity/
- * Fasting. Manual entry only for now - barcode-scan medication lookup and a
- * curated medication database are a larger, separate effort.
+ * Fasting. Entry here is manual (name/dosage/schedule); scanning a box's
+ * barcode from the Scan tab is the other entry point — see ScanViewModel's
+ * MedicationFound state, which resolves against the real BDPM database and
+ * saves into the same repository this screen reads from.
  */
 @Composable
 fun MedicationScreen(

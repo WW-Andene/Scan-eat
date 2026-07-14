@@ -1,7 +1,6 @@
 package fr.scanneat.notifications
 
 import android.content.Context
-import android.content.res.Configuration
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ListenableWorker.Result
@@ -15,11 +14,11 @@ import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
+import fr.scanneat.util.localizedString
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
-import java.util.Locale
 
 @HiltWorker
 class ReminderWorker @AssistedInject constructor(
@@ -34,14 +33,10 @@ class ReminderWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     // Workers have no Compose stringResource() and applicationContext.getString()
-    // would follow the device locale, not this app's own in-app language setting
-    // (independent of device locale everywhere else this session) - a locale-
-    // overridden resources instance is the only way to respect it here too.
-    private fun localizedString(lang: String, resId: Int): String {
-        val config = Configuration(applicationContext.resources.configuration)
-        config.setLocale(Locale(lang))
-        return applicationContext.createConfigurationContext(config).resources.getString(resId)
-    }
+    // would follow the device locale, not this app's own in-app language setting -
+    // see fr.scanneat.util.localizedString for why this needs a locale override.
+    private fun localizedString(lang: String, resId: Int): String =
+        localizedString(applicationContext, lang, resId)
 
     override suspend fun doWork(): Result {
         val s = remindersRepo.settings.first()

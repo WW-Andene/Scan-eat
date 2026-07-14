@@ -192,6 +192,9 @@ dependencies {
     implementation(libs.health.connect.client)
     implementation(libs.guava)
 
+    // Glance (home-screen "Today" widget)
+    implementation(libs.glance.appwidget)
+
     // Tests
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

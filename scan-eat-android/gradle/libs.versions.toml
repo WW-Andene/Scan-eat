@@ -31,6 +31,7 @@ kotlinx-serialization = "1.7.3"
 # against release notes before bumping.
 health-connect        = "1.1.0-alpha07"
 guava                 = "33.3.1-android"
+glance-appwidget      = "1.1.1"
 
 [libraries]
 # Kotlin + Coroutines
@@ -95,6 +96,9 @@ camerax-view    = { group = "androidx.camera", name = "camera-view",    version.
 
 # ML Kit
 mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit-barcode" }
+
+# Glance (Compose-based home-screen widgets)
+glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance-appwidget" }
 
 # Health Connect
 health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "health-connect" }

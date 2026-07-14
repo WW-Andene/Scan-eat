@@ -77,6 +77,18 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <receiver
+            android:name=".presentation.widget.TodayWidgetReceiver"
+            android:exported="false"
+            android:label="@string/widget_today_kcal_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/today_widget_info" />
+        </receiver>
+
         <!-- ScanEatApp implements Configuration.Provider (Hilt-injected WorkManagerFactory,
              see onCreate()'s enqueueUniquePeriodicWork call) - the default androidx.startup
              auto-initializer must be removed or it races the app's own on-demand init. -->

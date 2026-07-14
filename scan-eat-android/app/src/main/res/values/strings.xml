@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Scan\'eat</string>
+    <string name="widget_today_description">Aujourd\'hui — kcal journalisées et série de suivi</string>
+    <string name="widget_today_loading">Chargement…</string>
+    <string name="widget_today_kcal_label">Kcal aujourd\'hui</string>
+    <string name="widget_today_no_target">Objectif non défini — complétez votre profil</string>
+    <plurals name="widget_today_streak">
+        <item quantity="one">%1$d jour de suivi consécutif</item>
+        <item quantity="other">%1$d jours de suivi consécutifs</item>
+    </plurals>
     <string name="scan_hint">Photographiez une étiquette → score 0–100</string>
     <string name="scan_analyzing">Analyse en cours…</string>
     <string name="scan_hint_photos_ready">Photo(s) prête(s) — appuyez sur le bouton pour analyser</string>

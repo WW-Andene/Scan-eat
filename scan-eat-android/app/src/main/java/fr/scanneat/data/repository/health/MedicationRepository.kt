@@ -12,11 +12,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 // ============================================================================
-// MEDICATION REPOSITORY — backs the "Traitement" tab. Barcode-scan lookup and
-// a curated medication database are a separate, larger effort (see roadmap
-// items on the medicament database + scanner integration); this repository
-// covers manual entry/tracking, which the tab needs regardless of where the
-// data comes from.
+// MEDICATION REPOSITORY — backs the "Traitement" tab. Barcode/name-scan lookup
+// against the real BDPM database now exists (see domain.engine.medication.
+// MedicationLookupDb, wired into ScanViewModel.saveDetectedMedication()); this
+// repository is the persistence layer both that flow and manual entry share.
 // ============================================================================
 
 data class Medication(
