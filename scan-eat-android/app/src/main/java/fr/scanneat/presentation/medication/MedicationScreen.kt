@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import fr.scanneat.presentation.ui.theme.semanticRed
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,8 +36,10 @@ fun MedicationScreen(
     embedded: Boolean = false,
     onOpenCalendar: () -> Unit = {},
 ) {
-    val medications = viewModel.medications.collectAsStateWithLifecycle()
-    val todayTaken = viewModel.todayTaken.collectAsStateWithLifecycle()
+    val medications          = viewModel.medications.collectAsStateWithLifecycle()
+    val todayTaken           = viewModel.todayTaken.collectAsStateWithLifecycle()
+    val interactionWarnings  = viewModel.interactionWarnings.collectAsStateWithLifecycle()
+    val adherenceStreak      = viewModel.adherenceStreak.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<Medication?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -53,12 +56,44 @@ fun MedicationScreen(
             // routes straight to the unified Calendar rather than embedding
             // another single-domain grid here.
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    // New: daily adherence streak badge
+                    if (adherenceStreak.value > 0) {
+                        Surface(shape = RoundedCornerShape(50), color = Teal.copy(0.15f)) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                            ) {
+                                Icon(Icons.Default.LocalFireDepartment, null, tint = Teal, modifier = Modifier.size(16.dp))
+                                Text("${adherenceStreak.value}j", style = MaterialTheme.typography.labelMedium, color = Teal, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        Spacer(Modifier.width(1.dp))
+                    }
                     IconButton(onClick = onOpenCalendar) {
                         Icon(Icons.Default.CalendarMonth, stringResource(R.string.medication_cd_calendar), tint = OnBackground.copy(0.6f))
                     }
                 }
             }
+
+            // Improvement: drug interaction warning banners
+            if (interactionWarnings.value.isNotEmpty()) {
+                items(interactionWarnings.value) { warning ->
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f), modifier = Modifier.fillMaxWidth()) {
+                        Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            Icon(Icons.Default.Warning, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+                            Column {
+                                Text("Interaction potentielle", style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
+                                Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
+                                Text("Consultez votre médecin ou pharmacien.", style = MaterialTheme.typography.labelSmall, color = semanticRed().copy(0.6f))
+                            }
+                        }
+                    }
+                }
+            }
+
             if (medications.value.isEmpty()) {
                 item {
                     EmptyListState(
