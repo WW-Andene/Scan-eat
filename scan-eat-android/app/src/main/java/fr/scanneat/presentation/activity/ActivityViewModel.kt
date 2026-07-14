@@ -70,6 +70,28 @@ class ActivityViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    // Improvement: 7-day burn chart data — kcal burned per day for the last 7 days
+    val weeklyBurn: StateFlow<List<Pair<LocalDate, Int>>> = yearRange
+        .map { all ->
+            val today = LocalDate.now()
+            (0..6).map { dayBack ->
+                val d = today.minusDays(dayBack.toLong())
+                val kcal = all.filter { it.date == d }.sumOf { it.kcalBurned }
+                d to kcal
+            }.reversed()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // New: weekly active minutes (current week, Mon–today) vs WHO 150 min goal
+    val weeklyMinutes: StateFlow<Int> = yearRange
+        .map { all ->
+            val today = LocalDate.now()
+            // ISO week starts Monday
+            val monday = today.minusDays(today.dayOfWeek.value.toLong() - 1)
+            all.filter { it.date >= monday && it.date <= today }.sumOf { it.minutes }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // Refresh to today if the date has changed since last foreground (e.g. app kept alive overnight)
     fun refreshDate() {
         val today = LocalDate.now()

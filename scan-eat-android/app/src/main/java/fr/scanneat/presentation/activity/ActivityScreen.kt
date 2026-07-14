@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.activity
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -82,8 +83,10 @@ fun ActivityScreen(
     // Refresh date when screen becomes active (handles midnight crossing)
     LaunchedEffect(Unit) { viewModel.refreshDate() }
 
-    val entries      = viewModel.entries.collectAsStateWithLifecycle()
-    val pastSubTypes = viewModel.pastSubTypes.collectAsStateWithLifecycle()
+    val entries        = viewModel.entries.collectAsStateWithLifecycle()
+    val pastSubTypes   = viewModel.pastSubTypes.collectAsStateWithLifecycle()
+    val weeklyBurn     = viewModel.weeklyBurn.collectAsStateWithLifecycle()
+    val weeklyMinutes  = viewModel.weeklyMinutes.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by remember { mutableStateOf("30") }
     var selectedSubType by remember { mutableStateOf<String?>(null) }
@@ -133,6 +136,59 @@ fun ActivityScreen(
                                 Text(stringResource(R.string.activity_minutes_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                             }
                         }
+                    }
+                }
+            }
+
+            // Improvement: 7-day kcal burn bar chart
+            if (weeklyBurn.value.any { it.second > 0 }) {
+                item {
+                    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+                        val peak = weeklyBurn.value.maxOf { it.second }.coerceAtLeast(1)
+                        val barColor = semanticRed()
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                            Text("7 derniers jours", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
+                                weeklyBurn.value.forEach { (date, kcal) ->
+                                    val frac = kcal.toFloat() / peak
+                                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
+                                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.02f)).background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)))
+                                    }
+                                }
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                weeklyBurn.value.forEach { (date, _) ->
+                                    Text(
+                                        date.dayOfWeek.name.take(1),
+                                        modifier = Modifier.weight(1f),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                                        color = OnSurface.copy(if (date == LocalDate.now()) 0.8f else 0.4f),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // New: weekly active minutes vs WHO 150 min/week goal
+            item {
+                val whoGoal = 150
+                val pct = (weeklyMinutes.value.toFloat() / whoGoal).coerceIn(0f, 1f)
+                ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text("Minutes actives cette semaine", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Text("${weeklyMinutes.value}/$whoGoal min", style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = if (pct >= 1f) semanticGreen() else AccentCoral, fontWeight = FontWeight.Bold)
+                        }
+                        LinearProgressIndicator(
+                            progress    = { pct },
+                            modifier    = Modifier.fillMaxWidth(),
+                            color       = if (pct >= 1f) semanticGreen() else AccentCoral,
+                            trackColor  = SurfaceVariant,
+                        )
+                        if (pct >= 1f) Text("Objectif OMS atteint ✓", style = MaterialTheme.typography.labelSmall, color = semanticGreen())
+                        else Text("Objectif OMS : 150 min/semaine d'activité modérée", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
                     }
                 }
             }
