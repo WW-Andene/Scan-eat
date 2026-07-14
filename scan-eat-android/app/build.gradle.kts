@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,26 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
+
+// Release signing — reads from a git-ignored keystore.properties (local dev) or
+// RELEASE_STORE_FILE/RELEASE_STORE_PASSWORD/RELEASE_KEY_ALIAS/RELEASE_KEY_PASSWORD
+// env vars (CI/Play publishing pipeline), never from a literal in this file. Neither
+// source exists on this repo's own CI runner, so releaseSigningConfig stays null and
+// `release` falls back to no signingConfig — same as before, an unsigned APK/AAB good
+// enough for the R8-minification smoke test that workflow runs, just not for upload.
+// A real release build supplies one of the two sources at build time.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
+}
+fun releaseSigningProp(propKey: String, envKey: String): String? =
+    keystoreProps.getProperty(propKey) ?: System.getenv(envKey)
+
+val releaseStoreFile     = releaseSigningProp("storeFile", "RELEASE_STORE_FILE")
+val releaseStorePassword = releaseSigningProp("storePassword", "RELEASE_STORE_PASSWORD")
+val releaseKeyAlias      = releaseSigningProp("keyAlias", "RELEASE_KEY_ALIAS")
+val releaseKeyPassword   = releaseSigningProp("keyPassword", "RELEASE_KEY_PASSWORD")
+val hasReleaseSigning = listOf(releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword).all { !it.isNullOrBlank() }
 
 android {
     namespace   = "fr.scanneat"
@@ -46,6 +68,14 @@ android {
             keyAlias      = "androiddebugkey"
             keyPassword   = "android"
         }
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile     = file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias      = releaseKeyAlias
+                keyPassword   = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -60,6 +90,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            if (hasReleaseSigning) signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

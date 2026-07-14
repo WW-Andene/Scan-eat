@@ -15,6 +15,11 @@ captures/
 .externalNativeBuild/
 .cxx/
 
+### Release signing — never commit the actual key/passwords ###
+keystore.properties
+scan-eat-android/app/keystore/release.keystore
+scan-eat-android/app/keystore/*.jks
+
 ### IDE ###
 .idea/
 *.iml

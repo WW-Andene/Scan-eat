@@ -12,6 +12,7 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import fr.scanneat.presentation.shell.MainShell
+import fr.scanneat.presentation.shell.TopTab
 import fr.scanneat.presentation.ui.theme.ScanEatTheme
 
 // AppCompatActivity (not plain ComponentActivity) is required here: AppCompatDelegate's
@@ -22,6 +23,15 @@ import fr.scanneat.presentation.ui.theme.ScanEatTheme
 class MainActivity : AppCompatActivity() {
 
     private val splashViewModel: SplashViewModel by viewModels()
+
+    // Health Connect's "See app's privacy policy" link (androidx.health.ACTION_SHOW_
+    // PERMISSIONS_RATIONALE on API 34+, VIEW_PERMISSION_USAGE on 26-33 via the
+    // manifest's activity-alias) launched the app with no regard for the intent at
+    // all, dropping the user on whatever tab they'd normally land on instead of
+    // anywhere near the privacy disclosures Settings > Mentions légales actually has.
+    private val isPrivacyRationaleIntent: Boolean
+        get() = intent?.action == "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" ||
+            intent?.action == android.content.Intent.ACTION_VIEW_PERMISSION_USAGE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -52,7 +62,10 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 ScanEatTheme(theme = theme, dyslexicFont = dyslexicFont, colorblindMode = colorblindMode) {
-                    MainShell(startOnboarding = splashViewModel.needsOnboarding)
+                    MainShell(
+                        startOnboarding = splashViewModel.needsOnboarding,
+                        startRoute      = if (isPrivacyRationaleIntent) TopTab.Settings.route else null,
+                    )
                 }
             }
         }

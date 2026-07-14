@@ -17,7 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-fun MainShell(startOnboarding: Boolean = false) {
+fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
     val navController   = rememberNavController()
     val backStack       = navController.currentBackStackEntryAsState()
     val currentRoute    = backStack.value?.destination?.route
@@ -67,7 +67,11 @@ fun MainShell(startOnboarding: Boolean = false) {
     ) { padding ->
         AppNavGraph(
             navController    = navController,
-            startDestination = if (startOnboarding) AppRoutes.ONBOARDING else TopTab.Dashboard.route,
+            startDestination = when {
+                startOnboarding    -> AppRoutes.ONBOARDING
+                startRoute != null -> startRoute
+                else               -> TopTab.Dashboard.route
+            },
             modifier         = Modifier.padding(padding),
         )
     }
