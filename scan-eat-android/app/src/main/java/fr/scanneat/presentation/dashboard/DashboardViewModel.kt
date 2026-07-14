@@ -127,7 +127,7 @@ class DashboardViewModel @Inject constructor(
                 // a plain kcal swap left TodayMacroCard's macro rings computed from the
                 // stale profile-only kcal, so they no longer summed to the balance above.
                 val targets = (if (hasMinimalProfile(profile)) dailyTargets(profile) else null)
-                    ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview) else it }
+                    ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal) else it }
                 val thisWeek  = weeklyRollup(allEntries, LocalDate.now())
                 val priorWeek = weeklyRollup(allEntries, LocalDate.now().minusDays(7))
                 val thisMonth = monthlyRollup(allEntries, LocalDate.now())

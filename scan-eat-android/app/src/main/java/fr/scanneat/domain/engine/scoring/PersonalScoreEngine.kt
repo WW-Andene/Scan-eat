@@ -194,16 +194,31 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
 }
 
 /**
- * Rescales every kcal-derived field in [targets] onto [newKcal] - satFat/
- * sugars/fat/carbs are all a fixed fraction of the day's calorie budget, so
- * swapping in a richer TDEE (e.g. Biolism's body-composition-aware estimate)
- * without also rescaling them left macros that no longer summed to the kcal
- * figure shown next to them. proteinGTarget (per-kg body weight, not kcal)
- * and the diet-driven carbsGDailyMax hard cap (a fixed clinical ceiling, not
- * a kcal fraction) are deliberately left untouched.
+ * Rescales every kcal-derived field in [targets] onto [rawKcal] (a raw TDEE/
+ * maintenance estimate, e.g. Biolism's body-composition-aware
+ * computeMetabolics().tdeeDay) - satFat/sugars/fat/carbs are all a fixed
+ * fraction of the day's calorie budget, so swapping in a richer TDEE without
+ * also rescaling them left macros that no longer summed to the kcal figure
+ * shown next to them. proteinGTarget (per-kg body weight, not kcal) and the
+ * diet-driven carbsGDailyMax hard cap (a fixed clinical ceiling, not a kcal
+ * fraction) are deliberately left untouched.
+ *
+ * [goal] re-applies the same ±500 kcal Lose/Gain adjustment dailyTargets()
+ * applies to its own TDEE estimate - [rawKcal] is a plain maintenance
+ * estimate with no notion of the user's goal, so passing it straight into
+ * `kcal` here previously discarded that adjustment entirely: a Lose-goal
+ * user with a valid Biolism profile (auto-populated from Profile as soon as
+ * sex/age/height/weight exist, no Biolism screen visit required) was shown
+ * maintenance calories as their "target", not the deficit dailyTargets()
+ * itself would have computed.
  */
-fun DailyTargets.withKcalOverride(newKcal: Double): DailyTargets {
-    if (newKcal <= 0.0 || kcal <= 0.0) return this
+fun DailyTargets.withKcalOverride(rawKcal: Double, goal: Goal): DailyTargets {
+    if (rawKcal <= 0.0 || kcal <= 0.0) return this
+    val newKcal = when (goal) {
+        Goal.LOSE     -> rawKcal - GOAL_KCAL_ADJUSTMENT
+        Goal.GAIN     -> rawKcal + GOAL_KCAL_ADJUSTMENT
+        Goal.MAINTAIN -> rawKcal
+    }
     val ratio = newKcal / kcal
     val newFatTarget = fatGTarget * ratio
     val newCarbsTarget = if (carbsGDailyMax != null) carbsGTarget
