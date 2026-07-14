@@ -369,6 +369,7 @@
     <string name="biolism_onboard_back">Back</string>
     <string name="biolism_onboard_next">Next</string>
     <string name="biolism_onboard_finish">Finish</string>
+    <string name="biolism_onboard_bmi_preview">BMI %1$s</string>
 
     <!-- ── Biolism: Session Analytics card ────────────────────────────────── -->
     <string name="biolism_sessan_trend_loss">↓ loss</string>

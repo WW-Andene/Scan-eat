@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
@@ -38,6 +39,7 @@ private fun rememberOnboardSteps(): List<OnboardStep> = listOf(
 
 @Composable
 fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
+    val language = viewModel.language.collectAsStateWithLifecycle()
     var step by remember { mutableStateOf(0) }
     var sex by remember { mutableStateOf(BiolismSex.NOT_SPECIFIED) }
     var age by remember { mutableStateOf("") }
@@ -101,6 +103,27 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                         OnboardField(stringResource(R.string.biolism_onboard_age_label), age, KeyboardType.Number) { age = it }
                         OnboardField(stringResource(R.string.biolism_onboard_height_label), height, KeyboardType.Decimal) { height = it }
                         OnboardField(stringResource(R.string.biolism_onboard_weight_label), weight, KeyboardType.Decimal) { weight = it }
+                        // Live BMI preview — previously a user had no feedback on
+                        // what their numbers meant until they finished onboarding
+                        // and opened the Biolism data screen.
+                        val h = height.replace(',', '.').toDoubleOrNull() ?: 0.0
+                        val w = weight.replace(',', '.').toDoubleOrNull() ?: 0.0
+                        if (h > 0 && w > 0) {
+                            val bmi = w / ((h / 100.0) * (h / 100.0))
+                            val bmiColor = when {
+                                bmi < 18.5 -> fr.scanneat.presentation.ui.theme.Teal
+                                bmi < 25.0 -> semanticGreen()
+                                bmi < 30.0 -> semanticAmber()
+                                else       -> semanticRed()
+                            }
+                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(1.dp, bmiColor.copy(0.3f))) {
+                                Text(
+                                    stringResource(R.string.biolism_onboard_bmi_preview, "%.1f".format(java.util.Locale.US, bmi)),
+                                    modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
+                                    style = MaterialTheme.typography.labelMedium, color = bmiColor, fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        }
                     }
                     2 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         OnboardField(stringResource(R.string.biolism_onboard_waist_label), waist, KeyboardType.Decimal) { waist = it }
@@ -117,8 +140,8 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Column(Modifier.weight(1f)) {
-                                    Text(lvl.label, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Medium)
-                                    Text(lvl.note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                                    Text(lvl.label(language.value), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Medium)
+                                    Text(lvl.note(language.value), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                                 }
                                 RadioButton(selected = activityId == lvl.id, onClick = null,
                                     colors = RadioButtonDefaults.colors(selectedColor = Gold))

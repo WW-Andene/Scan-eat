@@ -370,6 +370,7 @@
     <string name="biolism_onboard_back">Retour</string>
     <string name="biolism_onboard_next">Suivant</string>
     <string name="biolism_onboard_finish">Terminer</string>
+    <string name="biolism_onboard_bmi_preview">IMC %1$s</string>
 
     <!-- ── Biolism: Session Analytics card ────────────────────────────────── -->
     <string name="biolism_sessan_trend_loss">↓ perte</string>
