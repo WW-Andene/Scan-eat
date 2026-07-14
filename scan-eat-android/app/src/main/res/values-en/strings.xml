@@ -1110,4 +1110,13 @@
     <string name="calendar_day_hydration">%1$d mL drunk</string>
     <string name="calendar_day_fasting">Fasting: %1$.1f h / %2$d h target</string>
     <string name="calendar_day_medication">Taken: %1$s</string>
+    <string name="calendar_week_popup_title">Week of %1$s</string>
+    <string name="calendar_week_kcal">%1$d kcal consumed</string>
+    <string name="calendar_week_activity">%1$d min of activity</string>
+    <string name="calendar_week_hydration">%1$d mL hydration</string>
+    <string name="calendar_week_active_days">%1$d/7 active days</string>
+    <string name="calendar_month_kcal">%1$d kcal</string>
+    <string name="calendar_month_minutes">%1$d min</string>
+    <string name="calendar_month_hydration">%1$d mL</string>
+    <string name="calendar_month_days">%1$d active days</string>
 </resources>

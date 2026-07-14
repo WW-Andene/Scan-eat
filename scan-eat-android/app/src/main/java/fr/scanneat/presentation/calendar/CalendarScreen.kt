@@ -9,8 +9,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -61,6 +65,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
     val markers = viewModel.markers.collectAsStateWithLifecycle()
     val detail = viewModel.dayDetail.collectAsStateWithLifecycle()
     val weekSummaries = viewModel.weekSummaries.collectAsStateWithLifecycle()
+    val monthSummary = viewModel.monthSummary.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
     val locale = Locale(language.value)
     var weekPopup by remember { mutableStateOf<WeekSummary?>(null) }
@@ -103,6 +108,9 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
                 }
             }
 
+            monthSummary.value?.let { ms ->
+                MonthSummaryBar(ms)
+            }
             DayDetailCard(detail.value, locale)
             Spacer(Modifier.height(Spacing.XXL))
         }
@@ -112,13 +120,13 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
         AlertDialog(
             onDismissRequest = { weekPopup = null },
             containerColor = SurfaceVariant,
-            title = { Text("Semaine du ${ws.weekStart.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", locale))}", color = OnBackground) },
+            title = { Text(stringResource(R.string.calendar_week_popup_title, ws.weekStart.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", locale))), color = OnBackground) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    DetailRow(colorFor(CalendarSource.MEALS), "${ws.totalKcal} kcal ingérées")
-                    DetailRow(colorFor(CalendarSource.ACTIVITY), "${ws.activeMinutes} min d'activité")
-                    if (ws.hydrationMl > 0) DetailRow(colorFor(CalendarSource.HYDRATION), "${ws.hydrationMl} mL d'hydratation")
-                    Text("${ws.activeDays}/7 jours actifs", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    DetailRow(colorFor(CalendarSource.MEALS), stringResource(R.string.calendar_week_kcal, ws.totalKcal))
+                    DetailRow(colorFor(CalendarSource.ACTIVITY), stringResource(R.string.calendar_week_activity, ws.activeMinutes))
+                    if (ws.hydrationMl > 0) DetailRow(colorFor(CalendarSource.HYDRATION), stringResource(R.string.calendar_week_hydration, ws.hydrationMl))
+                    Text(stringResource(R.string.calendar_week_active_days, ws.activeDays), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                 }
             },
             confirmButton = {},
@@ -278,5 +286,35 @@ private fun DetailRow(color: Color, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Box(Modifier.size(8.dp).clip(CircleShape).background(color))
         Text(text, style = MaterialTheme.typography.bodySmall, color = OnSurface)
+    }
+}
+
+@Composable
+private fun MonthSummaryBar(ms: MonthSummary) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        listOf(
+            Triple(AccentCoral, Icons.Default.RestaurantMenu, stringResource(R.string.calendar_month_kcal, ms.totalKcal)),
+            Triple(Warm,        Icons.Default.DirectionsRun,  stringResource(R.string.calendar_month_minutes, ms.activeMinutes)),
+            Triple(Teal,        Icons.Default.WaterDrop,       stringResource(R.string.calendar_month_hydration, ms.hydrationMl)),
+            Triple(Gold,        Icons.Default.CalendarMonth,   stringResource(R.string.calendar_month_days, ms.activeDays)),
+        ).forEach { (color, icon, label) ->
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(CardRadius.CONTROL),
+                color = color.copy(0.08f),
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.S),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Icon(icon, null, tint = color, modifier = Modifier.size(14.dp))
+                    Text(label, style = MaterialTheme.typography.labelSmall, color = color, textAlign = TextAlign.Center)
+                }
+            }
+        }
     }
 }

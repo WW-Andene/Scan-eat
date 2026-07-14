@@ -20,6 +20,8 @@ import java.time.YearMonth
 import java.time.temporal.WeekFields
 import javax.inject.Inject
 
+data class MonthSummary(val totalKcal: Int, val activeMinutes: Int, val hydrationMl: Int, val activeDays: Int)
+
 data class WeekSummary(
     val weekStart: LocalDate,
     val totalKcal: Int,
@@ -142,6 +144,17 @@ class CalendarViewModel @Inject constructor(
             result
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Month-level totals derived from the already-computed week summaries — no extra query. */
+    val monthSummary: StateFlow<MonthSummary?> = weekSummaries.map { weeks ->
+        if (weeks.isEmpty()) null
+        else MonthSummary(
+            totalKcal     = weeks.values.sumOf { it.totalKcal },
+            activeMinutes = weeks.values.sumOf { it.activeMinutes },
+            hydrationMl   = weeks.values.sumOf { it.hydrationMl },
+            activeDays    = weeks.values.sumOf { it.activeDays },
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /** Aggregated detail for [selectedDate], reactive to any of the six sources changing. */
     val dayDetail: StateFlow<CalendarDayDetail> = _selectedDate.flatMapLatest { date ->

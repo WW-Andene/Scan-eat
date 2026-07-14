@@ -1111,4 +1111,13 @@
     <string name="calendar_day_hydration">%1$d mL bus</string>
     <string name="calendar_day_fasting">Jeûne : %1$.1f h / %2$d h visé</string>
     <string name="calendar_day_medication">Pris : %1$s</string>
+    <string name="calendar_week_popup_title">Semaine du %1$s</string>
+    <string name="calendar_week_kcal">%1$d kcal ingérées</string>
+    <string name="calendar_week_activity">%1$d min d\'activité</string>
+    <string name="calendar_week_hydration">%1$d mL d\'hydratation</string>
+    <string name="calendar_week_active_days">%1$d/7 jours actifs</string>
+    <string name="calendar_month_kcal">%1$d kcal</string>
+    <string name="calendar_month_minutes">%1$d min</string>
+    <string name="calendar_month_hydration">%1$d mL</string>
+    <string name="calendar_month_days">%1$d j actifs</string>
 </resources>
