@@ -701,6 +701,8 @@
     <string name="weight_deleted_message">Pesée supprimée</string>
     <string name="weight_undo">Annuler</string>
     <string name="weight_weekly_avg_title">Moyenne hebdomadaire</string>
+    <string name="weight_logging_streak_label">Série de pesées</string>
+    <string name="weight_logging_streak_value">%1$d j 🔥</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Journal</string>

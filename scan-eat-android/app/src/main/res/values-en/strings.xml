@@ -700,6 +700,8 @@
     <string name="weight_deleted_message">Weigh-in deleted</string>
     <string name="weight_undo">Undo</string>
     <string name="weight_weekly_avg_title">Weekly average</string>
+    <string name="weight_logging_streak_label">Logging streak</string>
+    <string name="weight_logging_streak_value">%1$d days 🔥</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Diary</string>

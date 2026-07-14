@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -58,6 +59,7 @@ fun WeightScreen(
     val language = viewModel.language.collectAsStateWithLifecycle()
     val useImperialState = viewModel.useImperial.collectAsStateWithLifecycle()
     val weeklyAvg = viewModel.weeklyAvg.collectAsStateWithLifecycle()
+    val loggingStreakDays = viewModel.loggingStreakDays.collectAsStateWithLifecycle()
     // In-app language (Settings) can differ from the device locale, so day/month
     // abbreviations must follow it explicitly - ofPattern() alone defaults to
     // Locale.getDefault(), which would silently mix languages in the date labels.
@@ -160,6 +162,22 @@ fun WeightScreen(
                                     style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
                                     color = if (kotlin.math.abs(toGoal) < 0.5) semanticGreen() else AccentCoral,
                                 )
+                            }
+                        }
+                        val streak = loggingStreakDays.value
+                        if (streak > 0) {
+                            HorizontalDivider(color = OnSurface.copy(0.08f))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.weight_logging_streak_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Surface(shape = RoundedCornerShape(50), color = Gold.copy(0.15f)) {
+                                    Text(
+                                        stringResource(R.string.weight_logging_streak_value, streak),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Gold,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+                                    )
+                                }
                             }
                         }
                     }
@@ -288,8 +306,10 @@ fun WeightScreen(
                 }
             }
 
-            // Entries
-            items(reversedEntries, key = { it.id }) { e ->
+            // Entries — improvement: per-row delta shows gain/loss vs previous weigh-in
+            itemsIndexed(reversedEntries, key = { _, e -> e.id }) { idx, e ->
+                val prev = if (idx > 0) reversedEntries[idx - 1] else null
+                val delta = prev?.let { e.weightKg - it.weightKg }
                 Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).background(SurfaceVariant).padding(Spacing.M),
@@ -301,6 +321,17 @@ fun WeightScreen(
                         if (e.notes.isNotBlank()) {
                             Text(e.notes, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
                         }
+                    }
+                    if (delta != null) {
+                        val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurface.copy(0.4f)
+                        val sign = if (delta >= 0) "+" else ""
+                        Text(
+                            "$sign${"%.1f".format(Locale.US, if (useImperial) delta * 2.20462 else delta)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = dColor,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(end = Spacing.XS),
+                        )
                     }
                     Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
                     IconButton(onClick = { deleteTarget = e.id }) {

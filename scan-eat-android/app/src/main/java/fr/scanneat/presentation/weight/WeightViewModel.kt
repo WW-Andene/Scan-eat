@@ -55,6 +55,16 @@ class WeightViewModel @Inject constructor(
     val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    /** Consecutive days ending today that have at least one log entry. */
+    val loggingStreakDays: StateFlow<Int> = entries.map { all ->
+        if (all.isEmpty()) return@map 0
+        val dates = all.map { it.date }.toSet()
+        var streak = 0
+        var day = LocalDate.now()
+        while (dates.contains(day)) { streak++; day = day.minusDays(1) }
+        streak
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // New: weekly average comparison (this week vs. last week) — individual weigh-ins
     // have a lot of noise; averaging by week shows the real trend more clearly.
     // Returns Pair(thisWeekAvg, lastWeekAvg) or null if either week has no data.
