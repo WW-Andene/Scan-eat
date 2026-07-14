@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,7 +39,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit) {
+internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -54,6 +55,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         // larger hit target than every other delete affordance in the app,
                         // right next to the primary Log action.
                         IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                        IconButton(onClick = onEditNotes, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Notes, stringResource(R.string.recipes_cd_notes), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onRename, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
                     }
@@ -96,6 +98,12 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         stringResource(R.string.recipes_pairs_well_with, pairings.joinToString(", ")),
                         style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
                     )
+                }
+                // Prep notes/instructions - the recipe model previously had nowhere to
+                // record how to actually make the dish, only its ingredient list.
+                if (recipe.notes.isNotBlank()) {
+                    HorizontalDivider(color = OnSurface.copy(0.08f))
+                    Text(recipe.notes, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
                 }
             }
         }

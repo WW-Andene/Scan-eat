@@ -33,10 +33,11 @@ import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
 @Composable
 internal fun AddRecipeDialog(
-    onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>, Int) -> Unit,
+    onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>, Int, String) -> Unit,
     searchResults: List<FoodEntry> = emptyList(), onQueryChange: (String) -> Unit = {},
 ) {
     var name by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
     var components by remember { mutableStateOf(listOf<RecipeComponent>()) }
     var newIngName by remember { mutableStateOf("") }
     var newIngGrams by remember { mutableStateOf("") }
@@ -127,13 +128,20 @@ internal fun AddRecipeDialog(
                     components = components + component
                     newIngName = ""; newIngGrams = ""; newIngKcal = ""; selectedFood = null; onQueryChange("")
                 }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentCoral) }
+                HorizontalDivider(color = OnBackground.copy(0.1f))
+                OutlinedTextField(
+                    value = notes, onValueChange = { notes = it },
+                    label = { Text(stringResource(R.string.recipes_field_notes)) },
+                    modifier = Modifier.fillMaxWidth(), singleLine = false, minLines = 2, maxLines = 5,
+                    colors = scanEatTextFieldColors(),
+                )
             }
         },
         confirmButton = {
             TextButton(onClick = {
                 if (name.isNotBlank() && components.isNotEmpty()) {
                     val servings = servingsText.toIntOrNull()?.coerceAtLeast(1) ?: 1
-                    onSave(name, components, servings)
+                    onSave(name, components, servings, notes.trim())
                 }
             }, enabled = name.isNotBlank() && components.isNotEmpty()) {
                 Text(stringResource(R.string.common_create), color = AccentCoral)

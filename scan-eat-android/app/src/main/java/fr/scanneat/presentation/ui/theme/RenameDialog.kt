@@ -34,3 +34,26 @@ fun RenameDialog(currentName: String, onConfirm: (String) -> Unit, onDismiss: ()
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )
 }
+
+/** Shared free-text notes editor — same shape as RenameDialog, multi-line and allowed to be blank (clears the note). */
+@Composable
+fun EditNotesDialog(title: String, currentNotes: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var notes by remember { mutableStateOf(currentNotes) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(title, color = OnBackground) },
+        text = {
+            OutlinedTextField(
+                value = notes, onValueChange = { notes = it }, singleLine = false, minLines = 3, maxLines = 8,
+                colors = scanEatTextFieldColors(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(notes.trim()) }) {
+                Text(stringResource(R.string.common_save), color = AccentCoral)
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
+}

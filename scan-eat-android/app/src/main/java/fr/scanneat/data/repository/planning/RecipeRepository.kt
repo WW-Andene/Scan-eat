@@ -43,6 +43,7 @@ data class Recipe(
     val servings: Int,
     val components: List<RecipeComponent>,
     val createdAt: Long,
+    val notes: String = "",
 ) {
     val totalKcal: Double get() = components.sumOf { it.kcal }
     val totalProteinG: Double get() = components.sumOf { it.proteinG }
@@ -102,13 +103,20 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
         servings: Int = 1,
         id: String? = null,
         profileId: String = "default",
+        notes: String = "",
     ): Recipe {
+        // Editing an existing recipe (rename/re-portion, called with its own id)
+        // previously re-stamped createdAt to now on every save - same bug already
+        // fixed in MedicationRepository/CustomFoodRepository - preserve the
+        // original row's createdAt when one exists.
+        val createdAt = id?.let { dao.findById(it)?.createdAt } ?: System.currentTimeMillis()
         val recipe = Recipe(
             id         = id ?: UUID.randomUUID().toString(),
             name       = name.trim(),
             servings   = servings.coerceAtLeast(1),
             components = components,
-            createdAt  = System.currentTimeMillis(),
+            createdAt  = createdAt,
+            notes      = notes,
         )
         dao.upsert(recipe.toEntity(profileId))
         return recipe
@@ -139,6 +147,7 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
         componentsJson = componentsAdapter.toJson(components),
         createdAt      = createdAt,
         profileId      = profileId,
+        notes          = notes,
     )
 
     private fun RecipeEntity.toDomain(): Recipe? = runCatching {
@@ -148,6 +157,7 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             servings   = servings,
             components = componentsAdapter.fromJson(componentsJson) ?: emptyList(),
             createdAt  = createdAt,
+            notes      = notes,
         )
     }.onFailure {
         // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository.

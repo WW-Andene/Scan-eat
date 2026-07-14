@@ -1025,6 +1025,8 @@
     <string name="recipes_log_dialog_title">Log “%1$s”</string>
     <string name="recipes_portion_label">Portion (1.0 = whole)</string>
     <string name="recipes_field_servings">Servings (count)</string>
+    <string name="recipes_field_notes">Instructions / notes</string>
+    <string name="recipes_cd_notes">Edit instructions</string>
     <string name="recipes_servings_to_log_label">Servings to log (of %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g per serving</string>
 

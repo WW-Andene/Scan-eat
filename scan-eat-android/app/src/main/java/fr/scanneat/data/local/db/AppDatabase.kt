@@ -37,7 +37,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationEntity::class,
         MedicationLogEntity::class,
     ],
-    version = 14,
+    version = 15,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -228,5 +228,15 @@ val MIGRATION_13_14 = object : Migration(13, 14) {
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_log_date_profileId` ON `medication_log` (`date`, `profileId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_medication_log_medicationId` ON `medication_log` (`medicationId`)")
+    }
+}
+val MIGRATION_14_15 = object : Migration(14, 15) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v14 → v15: recipes gain an optional free-text notes/instructions field -
+        // RecipeEntity previously stored only name/servings/ingredient components,
+        // with no way to record how to actually make the dish (prep steps, cook
+        // time, oven temp) - every other "recipe" concept in the app assumed that
+        // existed, but the data model never had anywhere to put it.
+        db.execSQL("ALTER TABLE `recipes` ADD COLUMN `notes` TEXT NOT NULL DEFAULT ''")
     }
 }

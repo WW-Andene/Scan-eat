@@ -97,12 +97,17 @@ android {
             )
             buildConfigField("String", "DEFAULT_GROQ_ENDPOINT", "\"https://api.groq.com/openai/v1/chat/completions\"")
             buildConfigField("String", "OFF_ENDPOINT",          "\"https://world.openfoodfacts.org/api/v2/product\"")
-            // Separate schema dir from debug: debug + release KSP tasks can run in parallel
-            // (e.g. `./gradlew test`), and both writing room.schemaLocation to the same path
-            // races and can throw "Empty schema file" (IllegalStateException) intermittently.
-            ksp {
-                arg("room.schemaLocation", "$projectDir/schemas/release")
-            }
+            // A per-variant room.schemaLocation override was attempted here previously (to
+            // give debug/release separate output dirs and avoid a same-path write race), but
+            // the com.google.devtools.ksp Gradle plugin doesn't actually scope the `ksp {}`
+            // DSL block per variant in this version - kspDebugKotlin and kspReleaseKotlin both
+            // resolve to whichever room.schemaLocation arg() call was evaluated last during
+            // configuration, regardless of which buildType block it's nested in (verified: both
+            // tasks wrote to the same directory even with distinct paths configured here and in
+            // defaultConfig). Since the schema JSON content is identical between build types
+            // anyway (debug/release don't differ in Room entities), a single shared location
+            // (defaultConfig's, above) is the honest reflection of what already happens, not a
+            // behavior change.
         }
     }
 

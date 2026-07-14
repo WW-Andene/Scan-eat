@@ -41,6 +41,7 @@ fun RecipesScreen(
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<Recipe?>(null) }
+    var notesTarget by remember { mutableStateOf<Recipe?>(null) }
     var logOfficialTarget by remember { mutableStateOf<OfficialRecipe?>(null) }
 
     Scaffold(
@@ -121,7 +122,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe })
+                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe })
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
@@ -131,7 +132,7 @@ fun RecipesScreen(
         val searchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
         AddRecipeDialog(
             onDismiss = { showAdd = false },
-            onSave = { name, comps, servings -> viewModel.save(name, comps, servings); showAdd = false },
+            onSave = { name, comps, servings, notes -> viewModel.save(name, comps, servings, notes); showAdd = false },
             searchResults = searchResults.value,
             onQueryChange = viewModel::setIngredientQuery,
         )
@@ -145,6 +146,15 @@ fun RecipesScreen(
             currentName = recipe.name,
             onDismiss = { renameTarget = null },
             onConfirm = { newName -> viewModel.rename(recipe, newName); renameTarget = null },
+        )
+    }
+
+    notesTarget?.let { recipe ->
+        EditNotesDialog(
+            title = stringResource(R.string.recipes_field_notes),
+            currentNotes = recipe.notes,
+            onDismiss = { notesTarget = null },
+            onConfirm = { notes -> viewModel.updateNotes(recipe, notes); notesTarget = null },
         )
     }
 

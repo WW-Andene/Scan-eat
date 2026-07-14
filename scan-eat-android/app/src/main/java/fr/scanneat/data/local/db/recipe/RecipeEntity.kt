@@ -12,4 +12,5 @@ data class RecipeEntity(
     val componentsJson: String,
     val createdAt: Long,
     val profileId: String = "default",
+    val notes: String = "",
 )

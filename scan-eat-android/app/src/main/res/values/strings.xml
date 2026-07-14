@@ -1059,6 +1059,8 @@
     <string name="recipes_log_dialog_title">Logger « %1$s »</string>
     <string name="recipes_portion_label">Portion (1.0 = entière)</string>
     <string name="recipes_field_servings">Portions (nombre)</string>
+    <string name="recipes_field_notes">Préparation / notes</string>
+    <string name="recipes_cd_notes">Modifier la préparation</string>
     <string name="recipes_servings_to_log_label">Portions à logger (sur %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g par portion</string>
 

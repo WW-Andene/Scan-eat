@@ -3,17 +3,20 @@ package fr.scanneat.presentation.widget
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.LinearProgressIndicator
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
@@ -63,6 +66,14 @@ import kotlin.math.roundToInt
 // ============================================================================
 
 class TodayWidget : GlanceAppWidget() {
+    // Widget host resizeMode allows shrinking below the full layout's natural height
+    // (see today_widget_info.xml) - without SizeMode.Responsive, a user shrinking the
+    // widget just clips whatever doesn't fit (the hydration row first) rather than
+    // getting a deliberately reflowed compact layout. The two sizes bracket the
+    // resizeMode range: COMPACT_SIZE matches the manifest's minWidth/minHeight floor,
+    // FULL_SIZE matches the current fixed layout's natural size.
+    override val sizeMode = SizeMode.Responsive(setOf(COMPACT_SIZE, FULL_SIZE))
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val entryPoint = widgetEntryPoint(context)
         val prefs = entryPoint.userPreferences()
@@ -92,6 +103,9 @@ class TodayWidget : GlanceAppWidget() {
 
         provideContent {
             GlanceTheme {
+                // LocalSize.current resolves to whichever of sizeMode's declared buckets
+                // best fits the space the host actually gave this instance.
+                val compact = LocalSize.current.height < FULL_SIZE.height
                 TodayWidgetContent(
                     kcal = kcal,
                     targetKcal = targetKcal,
@@ -101,9 +115,15 @@ class TodayWidget : GlanceAppWidget() {
                     noTargetLabel = noTargetLabel,
                     hydrationLabel = hydrationLabel,
                     addGlassLabel = addGlassLabel,
+                    compact = compact,
                 )
             }
         }
+    }
+
+    companion object {
+        val COMPACT_SIZE = DpSize(180.dp, 90.dp)
+        val FULL_SIZE = DpSize(180.dp, 130.dp)
     }
 }
 
@@ -117,6 +137,7 @@ private fun TodayWidgetContent(
     noTargetLabel: String,
     hydrationLabel: String,
     addGlassLabel: String,
+    compact: Boolean,
 ) {
     Column(
         modifier = GlanceModifier
@@ -144,28 +165,34 @@ private fun TodayWidgetContent(
         } else {
             Text(noTargetLabel, style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp))
         }
-        Spacer(modifier = GlanceModifier.height(6.dp))
-        Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoral), fontSize = 12.sp, fontWeight = FontWeight.Medium))
-        Spacer(modifier = GlanceModifier.height(10.dp))
-        Row(
-            modifier = GlanceModifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                hydrationLabel,
-                modifier = GlanceModifier.defaultWeight(),
-                style = TextStyle(color = ColorProvider(semanticBlue()), fontSize = 12.sp, fontWeight = FontWeight.Medium),
-            )
-            Box(
-                modifier = GlanceModifier
-                    .background(ColorProvider(semanticBlue()))
-                    .cornerRadius(12.dp)
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                    // Own clickable target inside the whole-widget-opens-app Column above -
-                    // this specific chip logs a glass in place instead of launching the app.
-                    .clickable(actionRunCallback<AddGlassAction>()),
+        // Compact bucket (widget shrunk to roughly its minimum size): kcal + progress
+        // only. Streak and the hydration quick-add row are the first things to go -
+        // both are secondary to "how am I doing on calories today", the widget's
+        // one-glance purpose - rather than letting them get silently clipped.
+        if (!compact) {
+            Spacer(modifier = GlanceModifier.height(6.dp))
+            Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoral), fontSize = 12.sp, fontWeight = FontWeight.Medium))
+            Spacer(modifier = GlanceModifier.height(10.dp))
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(addGlassLabel, style = TextStyle(color = ColorProvider(Color.White), fontSize = 11.sp, fontWeight = FontWeight.Bold))
+                Text(
+                    hydrationLabel,
+                    modifier = GlanceModifier.defaultWeight(),
+                    style = TextStyle(color = ColorProvider(semanticBlue()), fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                )
+                Box(
+                    modifier = GlanceModifier
+                        .background(ColorProvider(semanticBlue()))
+                        .cornerRadius(12.dp)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        // Own clickable target inside the whole-widget-opens-app Column above -
+                        // this specific chip logs a glass in place instead of launching the app.
+                        .clickable(actionRunCallback<AddGlassAction>()),
+                ) {
+                    Text(addGlassLabel, style = TextStyle(color = ColorProvider(Color.White), fontSize = 11.sp, fontWeight = FontWeight.Bold))
+                }
             }
         }
     }

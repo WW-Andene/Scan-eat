@@ -136,15 +136,23 @@ class RecipesViewModel @Inject constructor(
 
     fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
 
-    fun save(name: String, components: List<RecipeComponent>, servings: Int = 1) {
-        viewModelScope.launch { repo.save(name, components, servings) }
+    fun save(name: String, components: List<RecipeComponent>, servings: Int = 1, notes: String = "") {
+        viewModelScope.launch { repo.save(name, components, servings, notes = notes) }
     }
 
     fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
 
     fun rename(recipe: Recipe, newName: String) {
         if (newName.isBlank()) return
-        viewModelScope.launch { repo.save(newName, recipe.components, recipe.servings, id = recipe.id) }
+        // notes = recipe.notes - without this, renaming (a distinct UI action from
+        // editing notes) would silently wipe any notes already saved on the recipe,
+        // since save() otherwise defaults an unpassed notes to "".
+        viewModelScope.launch { repo.save(newName, recipe.components, recipe.servings, id = recipe.id, notes = recipe.notes) }
+    }
+
+    /** Edits a recipe's prep notes/instructions independently of rename. */
+    fun updateNotes(recipe: Recipe, notes: String) {
+        viewModelScope.launch { repo.save(recipe.name, recipe.components, recipe.servings, id = recipe.id, notes = notes) }
     }
 
     fun log(recipe: Recipe, mealSlot: MealSlot, portionFraction: Double = 1.0) {
