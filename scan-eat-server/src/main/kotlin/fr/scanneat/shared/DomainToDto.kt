@@ -56,6 +56,8 @@ fun Product.toDto() = ProductDto(
     ecoscoreGrade = ecoscoreGrade,
     ecoscoreValue = ecoscoreValue,
     nutriscoreGrade = nutriscoreGrade,
+    declaredMicronutrients = declaredMicronutrients,
+    declaredAllergenTags = declaredAllergenTags,
 )
 
 fun Deduction.toDto() = DeductionDto(

@@ -176,6 +176,11 @@ fun CameraPreview(
                         provider.unbindAll()
                         camera = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture, analysis)
                         hasFlash = camera?.cameraInfo?.hasFlashUnit() == true
+                        // A fresh Camera instance starts with its torch off regardless of what
+                        // torchOn last held - previously never re-applied here, so a rebind
+                        // (e.g. retrying after onCameraError) silently turned the torch off
+                        // while the FAB kept showing its "on" (coral) state until the next tap.
+                        if (torchOn && hasFlash) camera?.cameraControl?.enableTorch(true)
                     }.onFailure { onCameraError() }
                 }, ContextCompat.getMainExecutor(ctx))
                 previewView

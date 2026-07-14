@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -49,6 +50,28 @@ interface ScanHistoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ScanHistoryEntity): Long
+
+    /**
+     * Atomically finds the existing row for [barcode] (if any) and inserts
+     * [build]'s result keyed off that row's id/favorite - previously
+     * ScanRepository.persist() did the find and the insert as two separate
+     * suspend calls with no transaction, so two concurrent scans of the same
+     * barcode (e.g. instant-mode double-fire) could both read "no existing
+     * row" and both insert, producing a duplicate the upsert-by-barcode
+     * scheme was specifically meant to prevent (Room's own
+     * OnConflictStrategy.REPLACE only catches PK/unique-constraint conflicts,
+     * not this read-then-decide race, since a "new" row's id is always the
+     * autogenerate placeholder 0 until this insert actually runs).
+     */
+    @Transaction
+    suspend fun upsertByBarcode(
+        barcode: String?,
+        profileId: String,
+        build: (existingId: Long, existingFavorite: Boolean) -> ScanHistoryEntity,
+    ): Long {
+        val existing = barcode?.let { findByBarcode(it, profileId) }
+        return insert(build(existing?.id ?: 0, existing?.favorite ?: false))
+    }
 
     /** Full unfiltered read/write pair for backup export/import. */
     @Query("SELECT * FROM scan_history WHERE profileId = :profileId")

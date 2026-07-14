@@ -61,6 +61,14 @@ data class ServerProductDto(
     @Json(name = "ecoscore_grade") val ecoscoreGrade: String? = null,
     @Json(name = "ecoscore_value") val ecoscoreValue: Double? = null,
     @Json(name = "nutriscore_grade") val nutriscoreGrade: String? = null,
+    // Previously absent from this DTO entirely - the server started serializing
+    // both (see ApiModels.kt's ProductDto) but this client-side shape never had
+    // anywhere to receive them, so a server-mode scan's Product always came back
+    // with both fields at their empty-list default regardless of what the server
+    // actually knew, silently disabling AllergenDetector's OFF-tag augmentation
+    // and the iron-declared SEX personal-score bonus for every server-mode user.
+    @Json(name = "declared_micronutrients") val declaredMicronutrients: List<String> = emptyList(),
+    @Json(name = "declared_allergen_tags") val declaredAllergenTags: List<String> = emptyList(),
 )
 
 @JsonClass(generateAdapter = true)

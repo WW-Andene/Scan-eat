@@ -117,6 +117,13 @@ data class ProductDto(
     @SerialName("ecoscore_grade") val ecoscoreGrade: String? = null,
     @SerialName("ecoscore_value") val ecoscoreValue: Double? = null,
     @SerialName("nutriscore_grade") val nutriscoreGrade: String? = null,
+    // Previously never serialized here despite ServerOffMapper populating both on
+    // the domain Product - server-mode clients silently lost OFF's curated allergen
+    // tags (AllergenDetector's real safety-relevant augmentation to ingredient-text
+    // regex matching) and the iron-declared SEX personal-score bonus entirely, while
+    // direct-mode clients (which build Product locally) got them.
+    @SerialName("declared_micronutrients") val declaredMicronutrients: List<String> = emptyList(),
+    @SerialName("declared_allergen_tags") val declaredAllergenTags: List<String> = emptyList(),
 )
 
 @Serializable

@@ -40,6 +40,7 @@
     <string name="scan_manual_entry_hint">Saisir le code-barres</string>
     <string name="scan_manual_entry_submit">Valider</string>
     <string name="scan_manual_entry_toggle">Saisir un code-barres manuellement</string>
+    <string name="scan_manual_entry_invalid">Code-barres invalide — vérifiez les chiffres saisis</string>
     <string name="scan_identify_food_button">Identifier sans étiquette</string>
     <plurals name="scan_photo_count">
         <item quantity="one">%1$d photo</item>

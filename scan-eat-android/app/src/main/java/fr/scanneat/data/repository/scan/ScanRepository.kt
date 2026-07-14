@@ -14,6 +14,7 @@ import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -21,6 +22,7 @@ import okhttp3.OkHttpClient
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -114,24 +116,28 @@ class ScanRepository @Inject constructor(
      * unbounded and was the direct cause of the "same product => tons of entries"
      * report. Reusing the existing row's id (and its favorite flag) makes a rescan
      * simply refresh the existing entry's score/timestamp instead of cloning it.
+     *
+     * The find-then-insert itself runs inside ScanHistoryDao.upsertByBarcode's
+     * @Transaction so two concurrent scans of the same barcode can't both read
+     * "no existing row" and both insert a duplicate.
      */
-    suspend fun persist(result: ScanResult, profileId: String = "default"): Long {
-        val existing = result.barcode?.let { dao.findByBarcode(it, profileId) }
-        return dao.insert(ScanHistoryEntity(
-            id          = existing?.id ?: 0,
-            barcode     = result.barcode,
-            productName = result.product.name,
-            score       = result.audit.score,
-            grade       = result.audit.grade.label,
-            category    = result.product.category.key,
-            sourceJson  = result.source.name,
-            productJson = productAdapter.toJson(result.product),
-            auditJson   = auditAdapter.toJson(result.audit),
-            scannedAt   = System.currentTimeMillis(),
-            profileId   = profileId,
-            favorite    = existing?.favorite ?: false,
-        ))
-    }
+    suspend fun persist(result: ScanResult, profileId: String = "default"): Long =
+        dao.upsertByBarcode(result.barcode, profileId) { existingId, existingFavorite ->
+            ScanHistoryEntity(
+                id          = existingId,
+                barcode     = result.barcode,
+                productName = result.product.name,
+                score       = result.audit.score,
+                grade       = result.audit.grade.label,
+                category    = result.product.category.key,
+                sourceJson  = result.source.name,
+                productJson = productAdapter.toJson(result.product),
+                auditJson   = auditAdapter.toJson(result.audit),
+                scannedAt   = System.currentTimeMillis(),
+                profileId   = profileId,
+                favorite    = existingFavorite,
+            )
+        }
 
     // ---- Score from barcode ----
 
@@ -257,10 +263,26 @@ class ScanRepository @Inject constructor(
      * scanning as "not found" (see the Coke-can investigation).
      */
     private suspend fun fetchOffProduct(barcode: String): OffResponse? = coroutineScope {
-        suspend fun lookup(code: String): OffResponse? = try {
-            offApi.getProduct(code)
-        } catch (e: HttpException) {
-            if (e.code() == 404) null else throw e
+        // OFF is a public, sometimes-flaky API - a transient 5xx/429/network blip
+        // previously surfaced immediately as a hard failure here, unlike OcrParser's
+        // vision-LLM calls which already retry the same class of error with a short
+        // backoff (see OcrParser.callWithRetry/isRetryable). 404 still means "not
+        // this candidate encoding" and returns null without retrying, same as before.
+        suspend fun lookup(code: String): OffResponse? {
+            var lastErr: Throwable? = null
+            repeat(OFF_MAX_ATTEMPTS) { attempt ->
+                try {
+                    return offApi.getProduct(code)
+                } catch (e: HttpException) {
+                    if (e.code() == 404) return null
+                    if (e.code() != 429 && e.code() !in 500..599) throw e
+                    lastErr = e
+                } catch (e: IOException) {
+                    lastErr = e
+                }
+                if (attempt < OFF_MAX_ATTEMPTS - 1) delay(400L * (attempt + 1))
+            }
+            throw lastErr!!
         }
 
         // Candidates are independent reads, so they're fired off concurrently
@@ -455,6 +477,12 @@ class ScanRepository @Inject constructor(
             namedOils     = p.namedOils, origin = p.origin, weightG = p.weightG,
             ecoscoreGrade = p.ecoscoreGrade, ecoscoreValue = p.ecoscoreValue,
             nutriscoreGrade = p.nutriscoreGrade,
+            // Previously dropped here even after the server started sending them -
+            // this reconstruction is the only place a server-mode Product is ever
+            // built, so omitting them silently disabled AllergenDetector's OFF-tag
+            // augmentation and the iron-declared SEX bonus for every server-mode scan.
+            declaredMicronutrients = p.declaredMicronutrients,
+            declaredAllergenTags = p.declaredAllergenTags,
         )
         // Trust the locally recomputed audit wholesale — flags are derived from
         // the same pillars the UI renders, so overlaying the server's flags here
@@ -470,6 +498,11 @@ class ScanRepository @Inject constructor(
     }
 
     // ---- Entity → domain ----
+
+    private companion object {
+        /** Matches OcrParser.callWithRetry's per-candidate retry budget for the same class of transient error. */
+        const val OFF_MAX_ATTEMPTS = 3
+    }
 
     private fun ScanHistoryEntity.toDomain(): ScanResult? = runCatching {
         ScanResult(

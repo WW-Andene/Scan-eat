@@ -37,7 +37,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationEntity::class,
         MedicationLogEntity::class,
     ],
-    version = 15,
+    version = 16,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -238,5 +238,16 @@ val MIGRATION_14_15 = object : Migration(14, 15) {
         // time, oven temp) - every other "recipe" concept in the app assumed that
         // existed, but the data model never had anywhere to put it.
         db.execSQL("ALTER TABLE `recipes` ADD COLUMN `notes` TEXT NOT NULL DEFAULT ''")
+    }
+}
+val MIGRATION_15_16 = object : Migration(15, 16) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v15 → v16: findBetterInCategory (ScanHistoryDao) filters WHERE profileId = ?
+        // AND category = ? AND score > ?, called on every successful scan via
+        // ScanRepository.findBetterAlternative - none of scan_history's existing
+        // indices lead with `category`, so this hot-path query scanned every row for
+        // the profile. A composite index covering all three filter columns lets
+        // SQLite use it directly instead.
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_history_profileId_category_score` ON `scan_history` (`profileId`, `category`, `score`)")
     }
 }

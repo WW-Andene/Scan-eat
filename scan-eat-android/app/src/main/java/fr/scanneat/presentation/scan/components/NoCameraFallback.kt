@@ -66,15 +66,35 @@ internal fun NoCameraFallback(
 }
 
 /**
- * Same digit-count validation analyzeFrame applies to camera-detected barcodes
- * (8/12/13/14 digits, covering EAN-8/UPC-A/EAN-13/GTIN-14) so a manually typed
- * code reaches ScanRepository in exactly the shape it already expects.
+ * Standard GS1 mod-10 check digit, length-agnostic: the rightmost non-check
+ * digit always carries weight 3, alternating leftward - the same rule
+ * ScanRepository's ean13CheckDigit (12-digit payload, left-indexed 1,3,1,3,...)
+ * and upcCheckDigit (11-digit payload, left-indexed 3,1,3,1,...) already
+ * implement per-length; this is the general form so a single check covers
+ * EAN-8/UPC-A/EAN-13/GTIN-14 without duplicating one function per length here.
+ */
+private fun hasValidGs1CheckDigit(digits: String): Boolean {
+    val checkDigit = digits.last() - '0'
+    val sum = digits.dropLast(1).reversed().foldIndexed(0) { i, acc, c ->
+        acc + (c - '0') * if (i % 2 == 0) 3 else 1
+    }
+    return (10 - (sum % 10)) % 10 == checkDigit
+}
+
+/**
+ * Digit-count validation matches analyzeFrame's camera-detected barcodes
+ * (8/12/13/14 digits, covering EAN-8/UPC-A/EAN-13/GTIN-14), plus a checksum
+ * check the camera path never needed (ML Kit's own decode already guarantees
+ * a structurally valid code) - a manually typed code has no such guarantee,
+ * so a typo'd digit previously round-tripped all the way to OFF/the server
+ * before coming back a generic "not found" instead of being caught locally.
  */
 @Composable
 internal fun ManualBarcodeEntry(onSubmit: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
     val digits = remember(text) { text.filter { it.isDigit() } }
-    val isValid = digits.length in listOf(8, 12, 13, 14)
+    val hasLikelyLength = digits.length in listOf(8, 12, 13, 14)
+    val isValid = hasLikelyLength && hasValidGs1CheckDigit(digits)
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         OutlinedTextField(
             value = text,
@@ -83,6 +103,12 @@ internal fun ManualBarcodeEntry(onSubmit: (String) -> Unit) {
             placeholder = { Text(stringResource(R.string.scan_manual_entry_hint)) },
             singleLine = true,
             isError = text.isNotEmpty() && !isValid,
+            // Only shown once the length is otherwise plausible - a still-shorter
+            // in-progress entry shouldn't flash "invalid" before the user has even
+            // finished typing a full-length code.
+            supportingText = if (hasLikelyLength && !isValid) {
+                { Text(stringResource(R.string.scan_manual_entry_invalid)) }
+            } else null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.width(220.dp),
         )

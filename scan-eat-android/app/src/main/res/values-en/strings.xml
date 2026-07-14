@@ -40,6 +40,7 @@
     <string name="scan_manual_entry_hint">Enter the barcode</string>
     <string name="scan_manual_entry_submit">Submit</string>
     <string name="scan_manual_entry_toggle">Enter a barcode manually</string>
+    <string name="scan_manual_entry_invalid">Invalid barcode — check the digits you entered</string>
     <string name="scan_identify_food_button">Identify without a label</string>
     <plurals name="scan_photo_count">
         <item quantity="one">%1$d photo</item>
