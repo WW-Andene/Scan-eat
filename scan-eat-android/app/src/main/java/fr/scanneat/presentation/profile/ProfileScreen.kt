@@ -50,6 +50,7 @@ fun ProfileScreen(
     val tdeeGoal     = viewModel.tdeeAtGoalWeight.collectAsStateWithLifecycle()
     val saved   = viewModel.saved.collectAsStateWithLifecycle()
     val biolismProfile = viewModel.biolismProfile.collectAsStateWithLifecycle()
+    val bmiCat = viewModel.bmiCat.collectAsStateWithLifecycle()
 
     // Local mutable state mirrors the saved profile
     var name       by remember(profile.value.id) { mutableStateOf(profile.value.name) }
@@ -154,7 +155,24 @@ fun ProfileScreen(
                     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                                bmi.value?.let { MetricChip(stringResource(R.string.profile_bmi_label), "${it}") }
+                                bmi.value?.let { bmiVal ->
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        MetricChip(stringResource(R.string.profile_bmi_label), "$bmiVal")
+                                        bmiCat.value?.let { cat ->
+                                            val (catLabel, catColor) = when (cat) {
+                                                fr.scanneat.domain.engine.scoring.BmiCategory.UNDERWEIGHT -> stringResource(R.string.profile_bmi_cat_underweight) to semanticBlue()
+                                                fr.scanneat.domain.engine.scoring.BmiCategory.NORMAL      -> stringResource(R.string.profile_bmi_cat_normal)      to semanticGreen()
+                                                fr.scanneat.domain.engine.scoring.BmiCategory.OVERWEIGHT  -> stringResource(R.string.profile_bmi_cat_overweight)  to semanticAmber()
+                                                fr.scanneat.domain.engine.scoring.BmiCategory.OBESE_1     -> stringResource(R.string.profile_bmi_cat_obese1)      to semanticRed().copy(0.8f)
+                                                fr.scanneat.domain.engine.scoring.BmiCategory.OBESE_2     -> stringResource(R.string.profile_bmi_cat_obese2)      to semanticRed()
+                                                fr.scanneat.domain.engine.scoring.BmiCategory.OBESE_3     -> stringResource(R.string.profile_bmi_cat_obese3)      to semanticRed()
+                                            }
+                                            Surface(shape = RoundedCornerShape(50), color = catColor.copy(alpha = 0.15f)) {
+                                                Text(catLabel, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = catColor)
+                                            }
+                                        }
+                                    }
+                                }
                                 tdee.value?.let { MetricChip("TDEE", stringResource(R.string.profile_tdee_kcal, it.roundToInt())) }
                             }
                             tdeeGoal.value?.let {
@@ -166,7 +184,7 @@ fun ProfileScreen(
                             // Improvement: macro ratio bar showing recommended P/G/L distribution.
                             HorizontalDivider(color = OnSurface.copy(0.08f))
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text("Répartition macros conseillée", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Text(stringResource(R.string.profile_macro_ratio_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                 Row(
                                     modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(8.dp)),
                                 ) {
@@ -190,8 +208,8 @@ fun ProfileScreen(
                                 val progress = ((cw - startWeight) / (gw - startWeight)).toFloat().coerceIn(0f, 1f)
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text("Progression vers l'objectif", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                                        etaWeeks?.let { Text("~$it sem.", style = MaterialTheme.typography.labelSmall, color = AccentCoral) }
+                                        Text(stringResource(R.string.profile_goal_progress_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                        etaWeeks?.let { Text(stringResource(R.string.profile_goal_eta_weeks, it), style = MaterialTheme.typography.labelSmall, color = AccentCoral) }
                                     }
                                     LinearProgressIndicator(
                                         progress = { progress },

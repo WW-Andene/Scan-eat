@@ -515,6 +515,15 @@
     <!-- ── Profile screen ─────────────────────────────────────────────────── -->
     <string name="profile_title">Mon profil</string>
     <string name="profile_bmi_label">IMC</string>
+    <string name="profile_macro_ratio_label">Répartition macros conseillée</string>
+    <string name="profile_goal_progress_label">Progression vers l\'objectif</string>
+    <string name="profile_goal_eta_weeks">~%1$d sem.</string>
+    <string name="profile_bmi_cat_underweight">Insuffisance pondérale</string>
+    <string name="profile_bmi_cat_normal">Poids normal</string>
+    <string name="profile_bmi_cat_overweight">Surpoids</string>
+    <string name="profile_bmi_cat_obese1">Obésité modérée</string>
+    <string name="profile_bmi_cat_obese2">Obésité sévère</string>
+    <string name="profile_bmi_cat_obese3">Obésité morbide</string>
     <string name="profile_tdee_kcal">%1$d kcal</string>
     <string name="profile_tdee_goal_label">TDEE poids cible</string>
     <string name="profile_section_identity">Identité</string>
