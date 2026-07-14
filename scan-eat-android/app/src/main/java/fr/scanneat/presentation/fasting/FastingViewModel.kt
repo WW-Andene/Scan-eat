@@ -26,8 +26,8 @@ class FastingViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     /** Longest achieved fast in hours — used to surface a personal-record alert. */
-    val personalRecord: StateFlow<Int> = history.map { list -> list.maxOfOrNull { it.achievedHours } ?: 0 }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val personalRecord: StateFlow<Double> = history.map { list -> list.maxOfOrNull { it.achievedHours } ?: 0.0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     // Tick every second so the UI re-draws the elapsed counter
     val tick: StateFlow<Long> = flow {

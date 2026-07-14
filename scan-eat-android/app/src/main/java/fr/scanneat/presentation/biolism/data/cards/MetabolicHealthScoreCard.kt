@@ -66,7 +66,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
         }
 
         // npRQ sub-score: 0.707 = pure fat oxidation (ideal in fasted/keto state); 1.0 = pure carb
-        val rqScore = ((1.0 - met.npRq) / (1.0 - 0.707) * 100).toFloat().coerceIn(0f, 100f)
+        val rqScore = ((1.0 - met.sub.npRq) / (1.0 - 0.707) * 100).toFloat().coerceIn(0f, 100f)
         add("QR" to rqScore)
     }
 

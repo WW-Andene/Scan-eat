@@ -68,7 +68,7 @@ class MealPlanViewModel @Inject constructor(
             listOf("breakfast", "lunch", "dinner", "snack").sumOf { meal ->
                 when (val slot = dayPlan[meal]) {
                     is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }?.totalKcal?.toInt() ?: 0
-                    is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.components?.sumOf { it.kcal.toInt() } ?: 0
+                    is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.totalKcal ?: 0
                     else -> 0
                 }
             }

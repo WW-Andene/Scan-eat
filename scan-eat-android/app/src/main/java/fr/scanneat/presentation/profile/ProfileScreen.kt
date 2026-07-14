@@ -138,9 +138,9 @@ fun ProfileScreen(
                     DietKey.PALEO      -> Triple(30f, 25f, 45f)
                     DietKey.MEDITERRANEAN -> Triple(20f, 50f, 30f)
                     else -> when (currentProfile.goal) {
-                        Goal.LOSE_WEIGHT  -> Triple(35f, 35f, 30f)
-                        Goal.GAIN_MUSCLE  -> Triple(35f, 45f, 20f)
-                        else              -> Triple(25f, 45f, 30f)
+                        Goal.LOSE  -> Triple(35f, 35f, 30f)
+                        Goal.GAIN  -> Triple(35f, 45f, 20f)
+                        else       -> Triple(25f, 45f, 30f)
                     }
                 }
                 // Goal ETA: weeks to reach goal weight at a realistic 0.5 kg/week deficit/surplus.
