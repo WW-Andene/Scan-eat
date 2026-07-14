@@ -208,7 +208,6 @@ internal fun DualScoreRing(
                 }
             }
         }
-    }
     } // end Row
     if (scoreDelta != null) {
         Spacer(Modifier.height(Spacing.XS))
