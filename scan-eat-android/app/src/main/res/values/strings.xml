@@ -887,6 +887,16 @@
     <string name="settings_backup_error_unsupported_version">Ce fichier provient d\'une version plus récente de l\'app et ne peut pas être importé.</string>
     <string name="settings_backup_error_malformed">Fichier de sauvegarde invalide ou corrompu.</string>
     <string name="settings_backup_error_io">Erreur lors de la lecture ou l\'écriture du fichier.</string>
+    <string name="settings_csv_export_button">Exporter journal (CSV)</string>
+    <string name="settings_section_reset">Réinitialisation</string>
+    <string name="settings_reset_hint">Effacer sélectivement certaines données de l\'application.</string>
+    <string name="settings_reset_button">Options de réinitialisation</string>
+    <string name="settings_reset_dialog_title">Réinitialisation des données</string>
+    <string name="settings_reset_dialog_body">Choisissez ce que vous souhaitez effacer :</string>
+    <string name="settings_reset_clear_scans">Effacer l\'historique des scans</string>
+    <string name="settings_reset_clear_all_hint">Pour effacer toutes les données, utilisez Paramètres système → Application → Effacer les données.</string>
+    <string name="settings_data_stats_scans">%1$d scan(s) enregistré(s)</string>
+    <string name="settings_data_stats_diary">%1$d entrée(s) dans le journal</string>
     <string name="settings_section_health_connect">Health Connect</string>
     <string name="settings_healthconnect_hint">Synchronisez votre poids avec Health Connect pour le partager avec d\'autres apps santé.</string>
     <string name="settings_healthconnect_connect_button">Connecter</string>

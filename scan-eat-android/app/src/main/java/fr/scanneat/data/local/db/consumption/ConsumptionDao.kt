@@ -31,4 +31,7 @@ interface ConsumptionDao {
 
     @Query("DELETE FROM consumption_log WHERE id = :id")
     suspend fun delete(id: Long)
+
+    @Query("SELECT COUNT(*) FROM consumption_log WHERE profileId = :profileId")
+    fun observeTotalCount(profileId: String = "default"): Flow<Int>
 }

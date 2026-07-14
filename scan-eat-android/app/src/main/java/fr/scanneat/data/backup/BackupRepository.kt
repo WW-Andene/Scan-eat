@@ -253,6 +253,14 @@ class BackupRepository @Inject constructor(
     /** Clears the scan history table (keeps all other data intact). */
     suspend fun clearScanHistory() = scanHistoryDao.clearAll()
 
+    /** Reactive total row counts for the two most user-visible tables — shown in the
+     *  Settings backup section so users know what they'd be exporting or resetting. */
+    fun observeDataStats(): kotlinx.coroutines.flow.Flow<Pair<Int, Int>> =
+        kotlinx.coroutines.flow.combine(
+            scanHistoryDao.observeTotalCount(),
+            consumptionDao.observeTotalCount(),
+        ) { scans, diary -> scans to diary }
+
     private fun parseBundle(json: String): BackupBundle {
         val bundle = try {
             bundleAdapter.fromJson(json)

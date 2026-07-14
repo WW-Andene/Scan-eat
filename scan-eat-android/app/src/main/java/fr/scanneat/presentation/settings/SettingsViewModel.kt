@@ -115,6 +115,11 @@ class SettingsViewModel @Inject constructor(
     fun reportExportWriteFailed() { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) }
     fun clearBackupState() { _backupState.value = BackupUiState.Idle }
 
+    /** Total scan history + diary entry counts — shown in the backup section so users
+     *  know what's stored before they export or reset. Updates reactively after each new entry. */
+    val dataStats: StateFlow<Pair<Int, Int>> = backupRepository.observeDataStats()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0 to 0)
+
     // ─────────────────────────────────────────────────────────────────────────
     // Health Connect
     // ─────────────────────────────────────────────────────────────────────────

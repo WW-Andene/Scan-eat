@@ -65,4 +65,7 @@ interface ScanHistoryDao {
 
     @Query("SELECT COUNT(*) FROM scan_history WHERE profileId = :profileId AND scannedAt >= :fromMillis")
     fun observeCountSince(fromMillis: Long, profileId: String = "default"): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM scan_history WHERE profileId = :profileId")
+    fun observeTotalCount(profileId: String = "default"): Flow<Int>
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -36,6 +37,24 @@ import fr.scanneat.presentation.settings.components.SettingsSection
 import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalDate
 
+@Composable
+private fun DataStatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        color = OnBackground.copy(0.06f),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+        ) {
+            Icon(icon, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(14.dp))
+            Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+        }
+    }
+}
+
 /** Generous cap for a legitimate backup (thousands of scan/diary rows is still a few MB) — rejects an arbitrarily large/mis-picked file before it's fully loaded into memory. */
 private const val MAX_BACKUP_IMPORT_BYTES = 50L * 1024 * 1024
 
@@ -59,6 +78,7 @@ fun SettingsScreen(
     val backupState = viewModel.backupState.collectAsStateWithLifecycle()
     val healthConnectAvailability = viewModel.healthConnectAvailability.collectAsStateWithLifecycle()
     val healthConnectConnected = viewModel.healthConnectConnected.collectAsStateWithLifecycle()
+    val dataStats = viewModel.dataStats.collectAsStateWithLifecycle()
 
     var keyVisible  by remember { mutableStateOf(false) }
     var localKey    by remember(apiKey.value)    { mutableStateOf(apiKey.value) }
@@ -378,17 +398,37 @@ fun SettingsScreen(
                 ) {
                     Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Exporter journal (CSV)", color = OnBackground)
+                    Text(stringResource(R.string.settings_csv_export_button), color = OnBackground)
+                }
+                // Data stats — show what's stored so the user knows what they'd export or reset
+                val (scanCount, diaryCount) = dataStats.value
+                if (scanCount > 0 || diaryCount > 0) {
+                    HorizontalDivider(color = OnBackground.copy(0.08f))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                    ) {
+                        DataStatChip(
+                            icon = Icons.Default.QrCodeScanner,
+                            label = stringResource(R.string.settings_data_stats_scans, scanCount),
+                            modifier = Modifier.weight(1f),
+                        )
+                        DataStatChip(
+                            icon = Icons.AutoMirrored.Filled.MenuBook,
+                            label = stringResource(R.string.settings_data_stats_diary, diaryCount),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
 
             // Data reset section
-            SettingsSection("Réinitialisation") {
-                Text("Effacer sélectivement certaines données de l'application.", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            SettingsSection(stringResource(R.string.settings_section_reset)) {
+                Text(stringResource(R.string.settings_reset_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 ScanEatOutlinedButton(onClick = { showResetDialog = true }) {
                     Icon(Icons.Default.DeleteForever, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Options de réinitialisation", color = semanticRed())
+                    Text(stringResource(R.string.settings_reset_button), color = semanticRed())
                 }
             }
 
@@ -445,19 +485,19 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { showResetDialog = false; resetConfirmed = false },
             containerColor = SurfaceVariant,
-            title = { Text("Réinitialisation des données", color = OnBackground) },
+            title = { Text(stringResource(R.string.settings_reset_dialog_title), color = OnBackground) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text("Choisissez ce que vous souhaitez effacer :", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+                    Text(stringResource(R.string.settings_reset_dialog_body), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
                     TextButton(onClick = {
                         viewModel.clearScanHistory()
                         showResetDialog = false
                     }) {
                         Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(Spacing.XS))
-                        Text("Effacer l'historique des scans", color = semanticRed())
+                        Text(stringResource(R.string.settings_reset_clear_scans), color = semanticRed())
                     }
-                    Text("Pour effacer toutes les données, utilisez Paramètres système → Application → Effacer les données.", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.45f))
+                    Text(stringResource(R.string.settings_reset_clear_all_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.45f))
                 }
             },
             confirmButton = {},

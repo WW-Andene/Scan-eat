@@ -861,6 +861,16 @@
     <string name="settings_backup_error_unsupported_version">This file comes from a newer app version and can\'t be imported.</string>
     <string name="settings_backup_error_malformed">Invalid or corrupted backup file.</string>
     <string name="settings_backup_error_io">Error reading or writing the file.</string>
+    <string name="settings_csv_export_button">Export diary (CSV)</string>
+    <string name="settings_section_reset">Reset</string>
+    <string name="settings_reset_hint">Selectively clear some of the app\'s data.</string>
+    <string name="settings_reset_button">Reset options</string>
+    <string name="settings_reset_dialog_title">Reset data</string>
+    <string name="settings_reset_dialog_body">Choose what you want to clear:</string>
+    <string name="settings_reset_clear_scans">Clear scan history</string>
+    <string name="settings_reset_clear_all_hint">To clear all data, use System Settings → App → Clear Data.</string>
+    <string name="settings_data_stats_scans">%1$d scan(s) stored</string>
+    <string name="settings_data_stats_diary">%1$d diary entr(y/ies)</string>
     <string name="settings_section_health_connect">Health Connect</string>
     <string name="settings_healthconnect_hint">Sync your weight with Health Connect to share it with other health apps.</string>
     <string name="settings_healthconnect_connect_button">Connect</string>
