@@ -48,6 +48,7 @@
     <string name="hydration_calendar_day_empty">%1$s : aucune donnée</string>
     <string name="hydration_suggested_goal_hint">Selon votre profil, un objectif de %1$d mL pourrait mieux vous convenir.</string>
     <string name="hydration_7day_chart_title">7 derniers jours</string>
+    <string name="hydration_weekly_goal_met">%1$d/7 objectifs atteints</string>
     <string name="settings_groq_key">Clé Groq API</string>
     <string name="settings_server_url">URL du serveur</string>
     <string name="result_log_it">Journaliser</string>
@@ -619,10 +620,10 @@
     <string name="bioprofile_field_weight">Poids (kg)</string>
     <string name="bioprofile_field_weight_imperial">Poids (lb)</string>
     <string name="bioprofile_section_activity">Niveau d\'activité</string>
-    <string name="bioprofile_section_ethnicity">Origine ethnique (correction IMC/BF\%)</string>
+    <string name="bioprofile_section_ethnicity">Origine ethnique (correction IMC/BF%)</string>
     <string name="bioprofile_ethnicity_hint">Ajuste le calcul de la masse grasse selon Deurenberg et al. 1998 et les seuils OMS 2004.</string>
-    <string name="bioprofile_section_circumferences">Circonférences (déverrouille BF\% Navy + indicateurs viscéraux)</string>
-    <string name="bioprofile_circumferences_hint">Optionnel — fournit Navy BF\%, WHtR, WHR (méthode Hodgdon &amp; Beckett 1984).</string>
+    <string name="bioprofile_section_circumferences">Circonférences (déverrouille BF% Navy + indicateurs viscéraux)</string>
+    <string name="bioprofile_circumferences_hint">Optionnel — fournit Navy BF%, WHtR, WHR (méthode Hodgdon &amp; Beckett 1984).</string>
     <string name="bioprofile_field_waist">Tour de taille (cm)</string>
     <string name="bioprofile_field_waist_imperial">Tour de taille (in)</string>
     <string name="bioprofile_field_hip">Tour des hanches (cm) — femmes</string>

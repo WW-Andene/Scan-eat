@@ -83,6 +83,11 @@ class HydrationViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Number of days in the last 7 (including today) where intake met or exceeded the goal. */
+    val weeklyGoalMetDays: StateFlow<Int> = combine(weeklyIntake, goal) { week, goalMl ->
+        week.count { (_, ml) -> ml >= goalMl }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     fun addGlass()    = viewModelScope.launch { repo.addGlass() }
     fun removeGlass() = viewModelScope.launch { repo.removeGlass() }
 }

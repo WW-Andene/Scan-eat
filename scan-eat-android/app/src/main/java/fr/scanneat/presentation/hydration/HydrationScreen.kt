@@ -56,6 +56,7 @@ fun HydrationScreen(
     val streak          = viewModel.streak.collectAsStateWithLifecycle()
     val suggestedGoal   = viewModel.suggestedGoalMl.collectAsStateWithLifecycle()
     val weeklyIntake    = viewModel.weeklyIntake.collectAsStateWithLifecycle()
+    val weeklyGoalMetDays = viewModel.weeklyGoalMetDays.collectAsStateWithLifecycle()
     val glasses     = intake.value / HYD_GLASS_ML
     val goalGlasses = goal.value / HYD_GLASS_ML
     val pct         = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
@@ -188,11 +189,11 @@ fun HydrationScreen(
             // Controls
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 FloatingActionButton(
-                    onClick = { viewModel.removeGlass() },
-                    containerColor = SurfaceVariant,
+                    onClick = { if (intake.value > 0) viewModel.removeGlass() },
+                    containerColor = if (intake.value > 0) SurfaceVariant else SurfaceVariant.copy(alpha = 0.4f),
                     shape = CircleShape,
                     modifier = Modifier.size(56.dp),
-                ) { Icon(Icons.Default.Remove, stringResource(R.string.common_remove), tint = OnSurface) }
+                ) { Icon(Icons.Default.Remove, stringResource(R.string.common_remove), tint = if (intake.value > 0) OnSurface else OnSurface.copy(0.3f)) }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.hydration_glass_ml, HYD_GLASS_ML), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
@@ -223,7 +224,17 @@ fun HydrationScreen(
                 val peak = weeklyIntake.value.maxOfOrNull { it.second }?.coerceAtLeast(goalMl) ?: goalMl
                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Text(stringResource(R.string.hydration_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(stringResource(R.string.hydration_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                            if (weeklyGoalMetDays.value > 0) {
+                                Text(
+                                    stringResource(R.string.hydration_weekly_goal_met, weeklyGoalMetDays.value),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = semanticGreen(),
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        }
                         Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                             weeklyIntake.value.forEach { (date, ml) ->
                                 val frac = (ml.toFloat() / peak).coerceIn(0f, 1f)
