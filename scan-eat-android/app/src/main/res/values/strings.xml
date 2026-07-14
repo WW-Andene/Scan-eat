@@ -630,6 +630,9 @@
     <string name="bioprofile_phase_luteal_late">Lutéale tardive · E2 et progest. en baisse</string>
     <string name="bioprofile_cycle_day_summary">Jour %1$d : %2$s</string>
     <string name="bioprofile_save_button">Sauvegarder le profil</string>
+    <string name="bioprofile_unit_metric">cm/kg</string>
+    <string name="bioprofile_unit_imperial">ft/lb</string>
+    <string name="bioprofile_completeness_label">Profil complet à %1$d%%</string>
 
     <!-- ── Custom food screen ─────────────────────────────────────────────── -->
     <string name="customfood_title">Mes aliments</string>

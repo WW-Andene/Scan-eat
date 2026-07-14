@@ -629,6 +629,9 @@
     <string name="bioprofile_phase_luteal_late">Late luteal · E2 and progesterone falling</string>
     <string name="bioprofile_cycle_day_summary">Day %1$d: %2$s</string>
     <string name="bioprofile_save_button">Save profile</string>
+    <string name="bioprofile_unit_metric">cm/kg</string>
+    <string name="bioprofile_unit_imperial">ft/lb</string>
+    <string name="bioprofile_completeness_label">Profile %1$d%% complete</string>
 
     <!-- ── Custom food screen ─────────────────────────────────────────────── -->
     <string name="customfood_title">My Foods</string>

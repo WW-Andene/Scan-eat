@@ -17,6 +17,22 @@ class BiolismProfileViewModel @Inject constructor(private val repo: BiolismRepos
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
+    /** 0..1 fraction of profile fields that are filled — used to drive a completeness progress bar. */
+    val profileCompleteness: StateFlow<Float> = profile.map { p ->
+        val checks = listOf(
+            p.sex != fr.scanneat.domain.engine.biolism.BiolismSex.NOT_SPECIFIED,
+            p.ageYears > 0,
+            p.heightCm > 0,
+            p.weightKg > 0,
+            p.activityId.isNotBlank(),
+            p.waistCm > 0,
+            p.hipCm > 0,
+            p.neckCm > 0,
+            p.ethnicityId.isNotBlank() && p.ethnicityId != "other",
+        )
+        checks.count { it }.toFloat() / checks.size.toFloat()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)
+
     val onboarded: StateFlow<Boolean> = repo.onboarded
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 

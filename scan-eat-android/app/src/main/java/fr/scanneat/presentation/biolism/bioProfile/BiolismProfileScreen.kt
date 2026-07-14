@@ -6,6 +6,8 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +27,7 @@ import fr.scanneat.presentation.ui.theme.*
 fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
     val profile = viewModel.profile.collectAsStateWithLifecycle()
     val saved   = viewModel.saved.collectAsStateWithLifecycle()
+    val completeness = viewModel.profileCompleteness.collectAsStateWithLifecycle()
 
     val p = profile.value
 
@@ -71,7 +74,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf(false to "cm/kg", true to "ft/lb").forEach { (imperial, label) ->
+                listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
                     FilterChip(
                         selected = useImperial == imperial,
                         onClick = { useImperial = imperial },
@@ -106,6 +109,15 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                 if (p.sex == BiolismSex.FEMALE) {
                     OverviewRow(stringResource(R.string.bioprofile_field_cycle_day), "${p.cycleDay} / 28")
                 }
+                HorizontalDivider(color = OnBackground.copy(0.06f))
+                val pct = (completeness.value * 100).toInt()
+                Text(stringResource(R.string.bioprofile_completeness_label, pct), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                LinearProgressIndicator(
+                    progress = { completeness.value },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = if (completeness.value >= 1f) semanticGreen() else Gold,
+                    trackColor = OnBackground.copy(0.1f),
+                )
             }
         }
 
