@@ -13,6 +13,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -28,6 +29,7 @@ class ReminderWorker @AssistedInject constructor(
     private val weightRepo: WeightRepository,
     private val fastingRepo: FastingRepository,
     private val medicationRepo: MedicationRepository,
+    private val consumptionRepo: ConsumptionRepository,
     private val prefs: UserPreferences,
 ) : CoroutineWorker(context, params) {
 
@@ -47,60 +49,65 @@ class ReminderWorker @AssistedInject constructor(
         val now = LocalTime.now()
 
         checkMeal(s.breakfastOn, s.breakfastTime, RemindersRepository.K_LAST_BREAKFAST_DATE, now, 101,
-            localizedString(lang, R.string.reminders_notif_breakfast_title), localizedString(lang, R.string.reminders_notif_breakfast_body))
+            localizedString(lang, R.string.reminders_notif_breakfast_title), localizedString(lang, R.string.reminders_notif_breakfast_body), NotifChannel.MEALS)
         checkMeal(s.snackOn, s.snackTime, RemindersRepository.K_LAST_SNACK_DATE, now, 106,
-            localizedString(lang, R.string.reminders_notif_snack_title), localizedString(lang, R.string.reminders_notif_snack_body))
+            localizedString(lang, R.string.reminders_notif_snack_title), localizedString(lang, R.string.reminders_notif_snack_body), NotifChannel.MEALS)
         checkMeal(s.lunchOn, s.lunchTime, RemindersRepository.K_LAST_LUNCH_DATE, now, 102,
-            localizedString(lang, R.string.reminders_notif_lunch_title), localizedString(lang, R.string.reminders_notif_lunch_body))
+            localizedString(lang, R.string.reminders_notif_lunch_title), localizedString(lang, R.string.reminders_notif_lunch_body), NotifChannel.MEALS)
         checkMeal(s.dinnerOn, s.dinnerTime, RemindersRepository.K_LAST_DINNER_DATE, now, 103,
-            localizedString(lang, R.string.reminders_notif_dinner_title), localizedString(lang, R.string.reminders_notif_dinner_body))
+            localizedString(lang, R.string.reminders_notif_dinner_title), localizedString(lang, R.string.reminders_notif_dinner_body), NotifChannel.MEALS)
 
         if (s.hydrationOn && now.hour in 8..21) {
             if (remindersRepo.hydrationDueAndMark(s.hydrationIntervalHours)) {
                 NotificationHelper.show(applicationContext, 104,
-                    localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body))
+                    localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body), NotifChannel.HYDRATION)
             }
         }
         checkMeal(s.hydrationCustomOn, s.hydrationCustomTime, RemindersRepository.K_LAST_HYDRATION_CUSTOM_DATE, now, 107,
-            localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body))
+            localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body), NotifChannel.HYDRATION)
 
         if (s.weightOn) {
             val lastDate = weightRepo.observeAll().first().maxByOrNull { it.date }?.date
             val daysSince = lastDate?.let { ChronoUnit.DAYS.between(it, LocalDate.now()) } ?: Long.MAX_VALUE
             if (daysSince >= s.weightThresholdDays && !remindersRepo.wasFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)) {
                 NotificationHelper.show(applicationContext, 105,
-                    localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body))
+                    localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body), NotifChannel.WEIGHT)
                 remindersRepo.markFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)
             }
         }
         checkMeal(s.weightCustomOn, s.weightCustomTime, RemindersRepository.K_LAST_WEIGHT_CUSTOM_DATE, now, 108,
-            localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body))
+            localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body), NotifChannel.WEIGHT)
 
         s.customReminders.forEach { cr ->
-            checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label)
+            checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label, NotifChannel.CUSTOM)
         }
 
-        // Medication tracking previously had a "schedule" that was only ever a
-        // display-only free-text note — no way to actually be reminded to take
-        // it, unlike every other trackable thing in this app.
         medicationRepo.observeAll().first().filter { it.active && it.reminderOn }.forEach { med ->
             checkMeal(true, med.reminderTime, remindersRepo.medicationLastFiredKey(med.id), now, med.id.hashCode(),
                 localizedString(lang, R.string.reminders_notif_medication_title),
-                String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name))
+                String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name), NotifChannel.MEDICATION)
         }
 
-        // Hydration/weight/meals all fire a reminder — an active fast reaching
-        // its target hour previously had none at all, even though the app
-        // already has this exact worker/notification infrastructure. Not gated
-        // by a settings toggle (unlike the others): it only ever fires while
-        // the user has actually started a fast, so there's no "off by default,
-        // spamming a feature you don't use" risk the other reminders guard against.
         fastingRepo.state.first()?.let { fast ->
             if (fast.elapsedHours >= fast.targetHours && !remindersRepo.fastingTargetAlreadyNotified(fast.startMs)) {
                 NotificationHelper.show(applicationContext, 109,
-                    localizedString(lang, R.string.reminders_notif_fasting_title), localizedString(lang, R.string.reminders_notif_fasting_body))
+                    localizedString(lang, R.string.reminders_notif_fasting_title), localizedString(lang, R.string.reminders_notif_fasting_body), NotifChannel.FASTING)
                 remindersRepo.markFastingTargetNotified(fast.startMs)
             }
+        }
+
+        // New: daily digest — fires once after 21:00 if enabled, summarising today's
+        // logged kcal and meal count, so users get a passive end-of-day awareness
+        // nudge without having to open the app.
+        if (s.dailyDigestOn && now.hour >= 21 && !remindersRepo.wasFiredToday(K_LAST_DIGEST_DATE)) {
+            val today = LocalDate.now()
+            val dayData = consumptionRepo.observeDay(today).first()
+            val totalKcal = dayData.totals.energyKcal.toInt()
+            val mealCount = dayData.entries.size
+            val body = String.format(localizedString(lang, R.string.notif_summary_body), totalKcal, mealCount)
+            NotificationHelper.show(applicationContext, 110,
+                localizedString(lang, R.string.notif_summary_title), body, NotifChannel.SUMMARY)
+            remindersRepo.markFiredToday(K_LAST_DIGEST_DATE)
         }
 
         return Result.success()
@@ -108,22 +115,18 @@ class ReminderWorker @AssistedInject constructor(
 
     private suspend fun checkMeal(
         on: Boolean, timeStr: String, lastFiredKey: androidx.datastore.preferences.core.Preferences.Key<String>,
-        now: LocalTime, notifId: Int, title: String, text: String,
+        now: LocalTime, notifId: Int, title: String, text: String, channel: NotifChannel? = null,
     ) {
         if (!on) return
         val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return
-        // Fire once on the first run at-or-after the target time, rather than only within
-        // a ±15min band: WorkManager's periodic jobs routinely run late under Doze/App
-        // Standby/manufacturer battery optimization, and a symmetric window silently drops
-        // the reminder for the rest of the day the moment the worker is delayed past it.
-        // Capped at +3h so a reminder freshly enabled hours after its time (or a device
-        // left idle all evening) doesn't fire wildly stale hours later — RemindersRepository
-        // separately marks a reminder's own enable/time-change as fired-today when it's
-        // already past, so this cap is purely for a worker run that's unusually delayed.
         val dueNow = !now.isBefore(target) && now.isBefore(target.plusHours(3)) && !remindersRepo.wasFiredToday(lastFiredKey)
         if (dueNow) {
-            NotificationHelper.show(applicationContext, notifId, title, text)
+            NotificationHelper.show(applicationContext, notifId, title, text, channel)
             remindersRepo.markFiredToday(lastFiredKey)
         }
+    }
+
+    companion object {
+        val K_LAST_DIGEST_DATE = androidx.datastore.preferences.core.stringPreferencesKey("rem_last_digest_date")
     }
 }

@@ -975,6 +975,15 @@
 
     <!-- ── Reminders ──────────────────────────────────────────────────────── -->
     <string name="reminders_channel_name">Reminders</string>
+    <string name="notif_channel_meals">Meal reminders</string>
+    <string name="notif_channel_hydration">Hydration reminders</string>
+    <string name="notif_channel_weight">Weight reminders</string>
+    <string name="notif_channel_medication">Medication reminders</string>
+    <string name="notif_channel_fasting">Fasting reminders</string>
+    <string name="notif_channel_summary">Daily digest</string>
+    <string name="notif_channel_custom">Custom reminders</string>
+    <string name="notif_summary_title">Daily digest</string>
+    <string name="notif_summary_body">%1$d kcal logged · %2$d meals</string>
     <string name="reminders_title">Reminders</string>
     <string name="reminders_enable_notifications">Enable notifications</string>
     <string name="reminders_notif_breakfast_title">Breakfast</string>

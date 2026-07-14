@@ -994,6 +994,15 @@
 
     <!-- ── Reminders ──────────────────────────────────────────────────────── -->
     <string name="reminders_channel_name">Rappels</string>
+    <string name="notif_channel_meals">Rappels repas</string>
+    <string name="notif_channel_hydration">Rappels hydratation</string>
+    <string name="notif_channel_weight">Rappels pesée</string>
+    <string name="notif_channel_medication">Rappels médicaments</string>
+    <string name="notif_channel_fasting">Rappels jeûne</string>
+    <string name="notif_channel_summary">Bilan quotidien</string>
+    <string name="notif_channel_custom">Rappels personnalisés</string>
+    <string name="notif_summary_title">Bilan du jour</string>
+    <string name="notif_summary_body">%1$d kcal journalisées · %2$d repas</string>
     <string name="reminders_title">Rappels</string>
     <string name="reminders_enable_notifications">Activer les notifications</string>
     <string name="reminders_notif_breakfast_title">Petit-déjeuner</string>
