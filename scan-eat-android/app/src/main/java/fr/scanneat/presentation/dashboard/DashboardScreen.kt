@@ -106,6 +106,9 @@ fun DashboardScreen(
             // ---- Weekly bars ----
             s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets, language = language.value) } }
 
+            // ---- Best / Worst day of the week ----
+            s.weekly?.let { item { BestWorstDayCard(rollup = it, targets = s.targets, language = language.value) } }
+
             // ---- Monthly trend ----
             s.monthly?.let { item { MonthlyTrendCard(rollup = it, targets = s.targets) } }
 

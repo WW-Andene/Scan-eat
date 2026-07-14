@@ -484,6 +484,8 @@
     <string name="history_sort_oldest">Plus ancien</string>
     <string name="history_sort_name">Nom (A-Z)</string>
     <string name="history_sort_score">Meilleur score</string>
+    <string name="history_score_range_all">Tous les scores</string>
+    <string name="history_top_scanned_title">Scannés fréquemment</string>
 
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Liste de courses</string>
@@ -651,6 +653,11 @@
     <string name="weight_goal_label">Objectif</string>
     <string name="weight_goal_delta">%1$s vers %2$s</string>
     <string name="weight_trend_caption">Tendance — %1$d dernières pesées</string>
+    <string name="weight_bmi_label">IMC</string>
+    <string name="weight_bmi_underweight">Maigreur</string>
+    <string name="weight_bmi_normal">Normal</string>
+    <string name="weight_bmi_overweight">Surpoids</string>
+    <string name="weight_bmi_obese">Obésité</string>
     <string name="weight_trend_cd">Graphique de tendance : de %1$s à %2$s sur les %3$d dernières pesées</string>
     <string name="weight_deleted_message">Pesée supprimée</string>
     <string name="weight_undo">Annuler</string>
@@ -674,6 +681,9 @@
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Log it\'.</string>
+    <string name="diary_kcal_breakdown_title">Répartition par repas</string>
+    <string name="diary_filter_all">Tout</string>
+    <string name="diary_filter_empty">Aucune entrée pour ce repas.</string>
     <string name="diary_meal_breakfast">Petit-déjeuner</string>
     <string name="diary_delete_confirm_title">Supprimer cette entrée ?</string>
     <string name="diary_delete_confirm_body">Cette action est irréversible.</string>
@@ -880,6 +890,9 @@
     <string name="dashboard_macro_target">/ %1$d</string>
     <string name="dashboard_week_title">Cette semaine</string>
     <string name="dashboard_week_avg_kcal">%1$d kcal/j moy.</string>
+    <string name="dashboard_best_worst_title">Meilleur / Pire jour</string>
+    <string name="dashboard_best_day">Meilleur</string>
+    <string name="dashboard_worst_day">Pire</string>
     <string name="dashboard_month_title">30 derniers jours</string>
     <string name="dashboard_month_days_logged">%1$d/%2$d jours suivis</string>
     <string name="dashboard_week_delta">%1$s kcal vs semaine dernière</string>

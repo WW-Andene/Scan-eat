@@ -30,8 +30,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -63,12 +65,14 @@ fun ScanScreen(
 ) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val haptic      = LocalHapticFeedback.current
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val images      = viewModel.images.collectAsStateWithLifecycle()
     val barcode     = viewModel.scannedBarcode.collectAsStateWithLifecycle()
     val instantMode = viewModel.instantMode.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
+    val recentBarcodes = viewModel.recentBarcodes.collectAsStateWithLifecycle()
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
     // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
@@ -117,12 +121,15 @@ fun ScanScreen(
     LaunchedEffect(state.value) {
         val s = state.value
         if (s is ScanUiState.Success) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             onResultReady(s.persistedId)
-            // Without this, _state stayed Success forever — leaving the Scan tab and
-            // coming back re-ran this effect with the same Success value and fired
-            // onResultReady again, stacking another result screen on every tab switch.
             viewModel.resultConsumed()
         }
+    }
+
+    // Haptic tick when a barcode first appears in frame
+    LaunchedEffect(barcode.value) {
+        if (barcode.value != null) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
     }
 
     // No Scaffold here — MainShell provides the outer Scaffold + NavigationBar.
@@ -318,6 +325,28 @@ fun ScanScreen(
                         Icon(Icons.Default.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
                         Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
+                    }
+                }
+            }
+
+            // ── Recent barcodes quick-rescan chips — bottom-start, above instant FAB ──
+            if (recentBarcodes.value.isNotEmpty() && state.value is ScanUiState.Idle) {
+                Column(
+                    modifier = Modifier.align(Alignment.BottomStart)
+                        .padding(start = 20.dp, bottom = 84.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    recentBarcodes.value.takeLast(3).reversed().forEach { bc ->
+                        Surface(
+                            onClick = { viewModel.quickScan(bc) },
+                            shape = RoundedCornerShape(20.dp),
+                            color = SurfaceVariant.copy(0.85f),
+                        ) {
+                            Row(Modifier.padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Icon(Icons.Default.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
+                                Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
+                            }
+                        }
                     }
                 }
             }

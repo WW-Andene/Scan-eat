@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -53,8 +54,19 @@ fun ScanHistoryScreen(
     val favoritesOnly = viewModel.favoritesOnly.collectAsStateWithLifecycle()
     val sort = viewModel.sort.collectAsStateWithLifecycle()
     val canLoadMore = viewModel.canLoadMore.collectAsStateWithLifecycle()
+    val scoreRange = viewModel.scoreRange.collectAsStateWithLifecycle()
+    val topScanned = viewModel.topScanned.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
+
+    // Score range filter options: null = all, else (min, max) inclusive
+    val scoreRangeOptions = listOf(
+        null to stringResource(R.string.history_score_range_all),
+        (80 to 100) to "A (80-100)",
+        (60 to 79)  to "B (60-79)",
+        (40 to 59)  to "C (40-59)",
+        (0  to 39)  to "D (<40)",
+    )
 
     // Dashboard's "Favoris" shortcut opens History pre-filtered, rather than
     // needing a second favorites-only screen with its own list/delete/sort logic.
@@ -114,20 +126,86 @@ fun ScanHistoryScreen(
                 colors = scanEatTextFieldColors(),
             )
 
-            Row(Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
-                FilterChip(
-                    selected = favoritesOnly.value,
-                    onClick  = { viewModel.setFavoritesOnly(!favoritesOnly.value) },
-                    label    = { Text(stringResource(R.string.history_favorites_only)) },
-                    leadingIcon = { Icon(Icons.Default.Star, null, tint = if (favoritesOnly.value) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
-                    colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
-                )
+            // Improvement: score-range filter chips so users can drill into a grade band
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = Spacing.L, vertical = Spacing.XS),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+            ) {
+                item {
+                    FilterChip(
+                        selected = favoritesOnly.value,
+                        onClick  = { viewModel.setFavoritesOnly(!favoritesOnly.value) },
+                        label    = { Text(stringResource(R.string.history_favorites_only)) },
+                        leadingIcon = { Icon(Icons.Default.Star, null, tint = if (favoritesOnly.value) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
+                        colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
+                    )
+                }
+                items(scoreRangeOptions) { (range, label) ->
+                    val isSelected = scoreRange.value == range
+                    FilterChip(
+                        selected = isSelected,
+                        onClick  = { viewModel.setScoreRange(if (isSelected) null else range) },
+                        label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                        colors   = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AccentCoral.copy(0.15f),
+                            selectedLabelColor     = AccentCoral,
+                        ),
+                    )
+                }
             }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
                 verticalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
+                // New: frequently scanned section — top 3 products by scan count
+                if (topScanned.value.isNotEmpty()) {
+                    item {
+                        Text(
+                            stringResource(R.string.history_top_scanned_title),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = OnBackground.copy(0.5f),
+                            modifier = Modifier.padding(top = Spacing.S, bottom = Spacing.XS),
+                        )
+                    }
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                        ) {
+                            topScanned.value.forEach { (name, count) ->
+                                Surface(
+                                    modifier = Modifier.weight(1f),
+                                    shape    = RoundedCornerShape(CardRadius.CONTROL),
+                                    color    = SurfaceVariant,
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(Spacing.S),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Text(
+                                            count.toString(),
+                                            style      = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color      = AccentCoral,
+                                        )
+                                        Text(
+                                            name,
+                                            style    = MaterialTheme.typography.labelSmall,
+                                            color    = OnSurface.copy(0.7f),
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.S), color = OnBackground.copy(0.08f))
+                    }
+                }
+
                 items(scans.value, key = { it.dbId }) { scan ->
                     val gradeColor = gradeColor(scan.audit.grade)
                     val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)

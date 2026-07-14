@@ -1,7 +1,9 @@
 package fr.scanneat.presentation.diary
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -11,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -149,6 +152,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var editTarget by remember { mutableStateOf<DiaryEntry?>(null) }
+    var slotFilter by remember { mutableStateOf<MealSlot?>(null) }
     var showCalendar by remember { mutableStateOf(false) }
     var calendarMonth by remember(selectedDate.value) { mutableStateOf(java.time.YearMonth.from(selectedDate.value)) }
     // Fix 9: initialise to empty on date change; LaunchedEffect seeds the stored
@@ -170,9 +174,12 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     val saveNoteIfDirty = { if (noteText != dayNote.value) viewModel.saveNote(noteText) }
 
     val s = summary.value
-    // Group by meal slot once per entries change, not re-filtered 4x (once per
-    // MealSlot) on every recomposition (e.g. every note keystroke).
+    // Group by meal slot once per entries change; filter by selected slot chip.
     val bySlot = remember(s.entries) { s.entries.groupBy { it.mealSlot } }
+    val filteredBySlot = remember(s.entries, slotFilter) {
+        if (slotFilter == null) s.entries.groupBy { it.mealSlot }
+        else mapOf(slotFilter!! to (bySlot[slotFilter] ?: emptyList()))
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -219,6 +226,73 @@ private fun MealsTab(viewModel: DiaryViewModel) {
         }
 
         item { MacroSummaryCard(totals = s.totals, targets = targets.value, goalTargets = goalTargets.value, goalWeightKg = goalWeightKg.value) }
+
+        // Calorie intake breakdown bar — each meal slot's contribution as a colored segment
+        if (s.entries.isNotEmpty()) {
+            item {
+                val totalKcal = s.totals.energyKcal.coerceAtLeast(1.0)
+                val slotColors = mapOf(
+                    MealSlot.BREAKFAST to AccentCoral.copy(0.7f),
+                    MealSlot.LUNCH     to Gold.copy(0.8f),
+                    MealSlot.SNACK     to semanticAmber().copy(0.6f),
+                    MealSlot.DINNER    to semanticBlue().copy(0.6f),
+                )
+                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                        Text(stringResource(R.string.diary_kcal_breakdown_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                        Row(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))) {
+                            MealSlot.values().forEach { slot ->
+                                val slotKcal = bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0
+                                val frac = (slotKcal / totalKcal).toFloat().coerceAtLeast(0f)
+                                if (frac > 0f) {
+                                    Box(Modifier.weight(frac).fillMaxHeight().background(slotColors[slot] ?: OnSurface.copy(0.3f)))
+                                }
+                            }
+                            val loggedFrac = MealSlot.values().sumOf { slot -> bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0 } / totalKcal
+                            if (loggedFrac < 0.99f) {
+                                Box(Modifier.weight((1f - loggedFrac.toFloat()).coerceAtLeast(0f)).fillMaxHeight().background(OnSurface.copy(0.08f)))
+                            }
+                        }
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                            MealSlot.values().forEach { slot ->
+                                val slotKcal = (bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0)
+                                if (slotKcal > 0) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                        Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(3.dp)))
+                                        Text("${slotKcal.toInt()}", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Meal slot filter chips
+        if (s.entries.isNotEmpty()) {
+            item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    item {
+                        FilterChip(
+                            selected = slotFilter == null,
+                            onClick = { slotFilter = null },
+                            label = { Text(stringResource(R.string.diary_filter_all), style = MaterialTheme.typography.labelSmall) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                        )
+                    }
+                    items(MealSlot.values()) { slot ->
+                        FilterChip(
+                            selected = slotFilter == slot,
+                            onClick = { slotFilter = if (slotFilter == slot) null else slot },
+                            label = { Text(slot.diaryLabel(), style = MaterialTheme.typography.labelSmall) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                        )
+                    }
+                }
+            }
+        }
+
         item {
             // Day note field
             OutlinedTextField(
@@ -246,7 +320,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
             item { EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.diary_empty_body)) }
         } else {
             MealSlot.values().forEach { slot ->
-                val slotEntries = bySlot[slot].orEmpty()
+                val slotEntries = filteredBySlot[slot].orEmpty()
                 if (slotEntries.isNotEmpty()) {
                     item {
                         Text(
@@ -260,6 +334,9 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                         DiaryEntryCard(entry = entry, onDelete = { deleteTarget = entry.id }, onEdit = { editTarget = entry })
                     }
                 }
+            }
+            if (filteredBySlot.values.all { it.isEmpty() }) {
+                item { EmptyListState(Icons.Default.FilterList, stringResource(R.string.diary_filter_empty)) }
             }
         }
         item {

@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.weight
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,7 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -48,6 +53,7 @@ fun WeightScreen(
     val summary  = viewModel.summary.collectAsStateWithLifecycle()
     val forecast = viewModel.forecast.collectAsStateWithLifecycle()
     val goalWeightKg = viewModel.goalWeightKg.collectAsStateWithLifecycle()
+    val heightCm = viewModel.heightCm.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
     val useImperialState = viewModel.useImperial.collectAsStateWithLifecycle()
     // In-app language (Settings) can differ from the device locale, so day/month
@@ -121,6 +127,27 @@ fun WeightScreen(
                                 }
                             }
                         }
+                        // BMI row — only shown when profile height is set
+                        heightCm.value?.let { hcm ->
+                            val hm = hcm / 100.0
+                            val bmi = s.latestKg / (hm * hm)
+                            val (bmiLabel, bmiColor) = when {
+                                bmi < 18.5 -> stringResource(R.string.weight_bmi_underweight) to semanticBlue()
+                                bmi < 25.0 -> stringResource(R.string.weight_bmi_normal) to semanticGreen()
+                                bmi < 30.0 -> stringResource(R.string.weight_bmi_overweight) to semanticAmber()
+                                else       -> stringResource(R.string.weight_bmi_obese) to semanticRed()
+                            }
+                            HorizontalDivider(color = OnSurface.copy(0.08f))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.weight_bmi_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                                    Text("%.1f".format(Locale.US, bmi), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = bmiColor)
+                                    Surface(shape = RoundedCornerShape(4.dp), color = bmiColor.copy(0.15f)) {
+                                        Text(bmiLabel, style = MaterialTheme.typography.labelSmall, color = bmiColor, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                    }
+                                }
+                            }
+                        }
                         goalWeightKg.value?.let { goal ->
                             HorizontalDivider(color = OnSurface.copy(0.08f))
                             val toGoal = s.latestKg - goal
@@ -137,32 +164,74 @@ fun WeightScreen(
                 }
             }
 
-            // Sparkline — last 8 entries
+            // Line chart — up to 30 most-recent entries as a Canvas polyline
             if (entries.value.size > 1) {
                 item {
-                    val last8 = entries.value.takeLast(8)
-                    val minW = last8.minOf { it.weightKg }
-                    val maxW = (last8.maxOf { it.weightKg }).coerceAtLeast(minW + 0.1)
+                    val chartEntries = entries.value.takeLast(30)
+                    val minW = chartEntries.minOf { it.weightKg }
+                    val maxW = chartEntries.maxOf { it.weightKg }.coerceAtLeast(minW + 0.5)
+                    val lineColor = AccentCoral
+                    val dotColor  = AccentCoral
+                    val trendDescription = stringResource(
+                        R.string.weight_trend_cd,
+                        dispWeight(chartEntries.first().weightKg),
+                        dispWeight(chartEntries.last().weightKg),
+                        chartEntries.size,
+                    )
                     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
                     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(Spacing.M)) {
-                            Text(stringResource(R.string.weight_trend_caption, last8.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(stringResource(R.string.weight_trend_caption, chartEntries.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Text(dispWeight(chartEntries.last().weightKg), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = AccentCoral)
+                            }
                             Spacer(Modifier.height(Spacing.S))
-                            val trendDescription = stringResource(
-                                R.string.weight_trend_cd,
-                                dispWeight(last8.first().weightKg),
-                                dispWeight(last8.last().weightKg),
-                                last8.size,
-                            )
-                            Row(
-                                Modifier.fillMaxWidth().height(48.dp).clearAndSetSemantics { contentDescription = trendDescription },
-                                horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom,
+                            Canvas(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(64.dp)
+                                    .clearAndSetSemantics { contentDescription = trendDescription },
                             ) {
-                                last8.forEachIndexed { i, e ->
-                                    val isLast = i == last8.size - 1
-                                    val h = (((e.weightKg - minW) / (maxW - minW)) * 40.0 + 6.0).toInt()
-                                    Box(Modifier.weight(1f).height(h.dp).background(if (isLast) AccentCoral else AccentCoral.copy(alpha = 0.4f), RoundedCornerShape(2.dp)))
+                                val w = size.width
+                                val h = size.height
+                                val n = chartEntries.size
+                                if (n < 2) return@Canvas
+                                val xStep = w / (n - 1).toFloat()
+                                fun xAt(i: Int) = i * xStep
+                                fun yAt(kg: Double) = h * (1f - ((kg - minW) / (maxW - minW)).toFloat()).coerceIn(0f, 1f)
+
+                                // Fill area under the line
+                                val fillPath = Path().apply {
+                                    moveTo(xAt(0), h)
+                                    chartEntries.forEachIndexed { i, e -> lineTo(xAt(i), yAt(e.weightKg)) }
+                                    lineTo(xAt(n - 1), h)
+                                    close()
                                 }
+                                drawPath(fillPath, color = lineColor.copy(alpha = 0.12f))
+
+                                // Line
+                                val linePath = Path().apply {
+                                    chartEntries.forEachIndexed { i, e ->
+                                        val x = xAt(i); val y = yAt(e.weightKg)
+                                        if (i == 0) moveTo(x, y) else lineTo(x, y)
+                                    }
+                                }
+                                drawPath(linePath, color = lineColor, style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
+
+                                // Dots
+                                chartEntries.forEachIndexed { i, e ->
+                                    val isLast = i == n - 1
+                                    drawCircle(
+                                        color = if (isLast) dotColor else dotColor.copy(0.4f),
+                                        radius = if (isLast) 5.dp.toPx() else 3.dp.toPx(),
+                                        center = Offset(xAt(i), yAt(e.weightKg)),
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(Spacing.XS))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(chartEntries.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.35f))
+                                Text(chartEntries.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.35f))
                             }
                         }
                     }

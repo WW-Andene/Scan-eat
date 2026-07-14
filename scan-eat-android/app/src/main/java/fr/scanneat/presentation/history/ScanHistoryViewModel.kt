@@ -62,30 +62,46 @@ class ScanHistoryViewModel @Inject constructor(
     private val favoriteScans = repo.observeFavorites()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Score-range filter: null = all, else pair of (min, max) inclusive
+    private val _scoreRange = MutableStateFlow<Pair<Int, Int>?>(null)
+    val scoreRange: StateFlow<Pair<Int, Int>?> = _scoreRange.asStateFlow()
+
     // kotlinx.coroutines' typed combine() overloads stop at 5 flows, so _sort
     // and nameCollator are paired up-front to keep this at 5 arguments.
     private val sortAndCollator: Flow<Pair<HistorySort, Collator>> = combine(_sort, nameCollator) { sort, collator -> sort to collator }
 
-    // Debounced like CustomFoodViewModel's search — without it, every keystroke
-    // re-filters/re-sorts the whole scan list (including the Collator-based
-    // NAME_AZ sort, non-trivial cost as history grows) on every character typed
-    // instead of once after the user pauses.
     val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, _query.debounce(200), _favoritesOnly, sortAndCollator) { scans, favs, q, favOnly, (sort, collator) ->
         (if (favOnly) favs else scans)
             .filter { q.isBlank() || it.product.name.contains(q, ignoreCase = true) || it.barcode?.contains(q) == true }
             .let { list ->
                 when (sort) {
-                    HistorySort.RECENT      -> list // both sources are already scannedAt DESC
+                    HistorySort.RECENT      -> list
                     HistorySort.OLDEST      -> list.asReversed()
                     HistorySort.NAME_AZ     -> list.sortedWith(compareBy(collator) { it.product.name })
                     HistorySort.SCORE_DESC  -> list.sortedByDescending { it.audit.score }
                 }
             }
+    }.combine(_scoreRange) { list, range ->
+        if (range == null) list
+        else list.filter { it.audit.score in range.first..range.second }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Top 3 most-scanned products (by product name across full history)
+    val topScanned: StateFlow<List<Pair<String, Int>>> = allScans
+        .map { scans ->
+            scans.groupBy { it.product.name }
+                .mapValues { it.value.size }
+                .entries
+                .sortedByDescending { it.value }
+                .take(3)
+                .map { it.key to it.value }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setQuery(q: String) { _query.value = q }
     fun setFavoritesOnly(value: Boolean) { _favoritesOnly.value = value }
     fun setSort(value: HistorySort) { _sort.value = value }
+    fun setScoreRange(range: Pair<Int, Int>?) { _scoreRange.value = range }
 
     fun toggleFavorite(scan: ScanResult) {
         if (scan.dbId <= 0) return

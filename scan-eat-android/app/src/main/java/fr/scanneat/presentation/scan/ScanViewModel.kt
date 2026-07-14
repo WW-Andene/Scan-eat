@@ -122,6 +122,9 @@ class ScanViewModel @Inject constructor(
     private val _scannedBarcode = MutableStateFlow<String?>(null)
     val scannedBarcode: StateFlow<String?> = _scannedBarcode.asStateFlow()
 
+    private val _recentBarcodes = MutableStateFlow<List<String>>(emptyList())
+    val recentBarcodes: StateFlow<List<String>> = _recentBarcodes.asStateFlow()
+
     private val scoreMutex = Mutex()
 
     private val _instantMode = MutableStateFlow(false)
@@ -265,7 +268,13 @@ class ScanViewModel @Inject constructor(
                     scanRepo.scoreFromImages(imgs, lang, online)
                 }
                 result.fold(
-                    onSuccess = { (scanResult, id) -> _state.value = ScanUiState.Success(scanResult, id) },
+                    onSuccess = { (scanResult, id) ->
+                        _state.value = ScanUiState.Success(scanResult, id)
+                        if (barcode != null) {
+                            _recentBarcodes.value = (_recentBarcodes.value - barcode + barcode)
+                                .distinct().takeLast(5)
+                        }
+                    },
                     onFailure = { e ->
                         _state.value = when {
                             e is ProductNotFoundException ->
@@ -288,6 +297,12 @@ class ScanViewModel @Inject constructor(
                 scoreMutex.unlock()
             }
         }
+    }
+
+    fun quickScan(barcode: String) {
+        if (_state.value is ScanUiState.Scanning) return
+        _scannedBarcode.value = barcode
+        score()
     }
 
     fun dismissError() { _state.value = ScanUiState.Idle }
