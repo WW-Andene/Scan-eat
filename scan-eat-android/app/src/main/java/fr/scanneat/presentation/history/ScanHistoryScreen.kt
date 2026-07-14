@@ -57,16 +57,17 @@ fun ScanHistoryScreen(
     val scoreRange = viewModel.scoreRange.collectAsStateWithLifecycle()
     val topScanned = viewModel.topScanned.collectAsStateWithLifecycle()
     val gradeDistribution = viewModel.gradeDistribution.collectAsStateWithLifecycle()
+    val avgScore = viewModel.avgScore.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
 
     // Score range filter options: null = all, else (min, max) inclusive
     val scoreRangeOptions = listOf(
         null to stringResource(R.string.history_score_range_all),
-        (80 to 100) to "A (80-100)",
-        (60 to 79)  to "B (60-79)",
-        (40 to 59)  to "C (40-59)",
-        (0  to 39)  to "D (<40)",
+        (80 to 100) to stringResource(R.string.history_score_range_a),
+        (60 to 79)  to stringResource(R.string.history_score_range_b),
+        (40 to 59)  to stringResource(R.string.history_score_range_c),
+        (0  to 39)  to stringResource(R.string.history_score_range_d),
     )
 
     // Dashboard's "Favoris" shortcut opens History pre-filtered, rather than
@@ -152,6 +153,23 @@ fun ScanHistoryScreen(
                             selectedLabelColor     = AccentCoral,
                         ),
                     )
+                }
+            }
+
+            avgScore.value?.let { avg ->
+                Row(
+                    modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                ) {
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
+                        Text(
+                            stringResource(R.string.history_avg_score, avg),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AccentCoral,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                        )
+                    }
                 }
             }
 

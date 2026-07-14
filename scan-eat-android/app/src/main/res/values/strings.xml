@@ -498,6 +498,11 @@
     <string name="history_sort_name">Nom (A-Z)</string>
     <string name="history_sort_score">Meilleur score</string>
     <string name="history_score_range_all">Tous les scores</string>
+    <string name="history_score_range_a">A (80-100)</string>
+    <string name="history_score_range_b">B (60-79)</string>
+    <string name="history_score_range_c">C (40-59)</string>
+    <string name="history_score_range_d">D (&lt;40)</string>
+    <string name="history_avg_score">Score moyen : %1$d</string>
     <string name="history_top_scanned_title">Scannés fréquemment</string>
     <string name="history_grade_distribution_title">Répartition des notes</string>
 

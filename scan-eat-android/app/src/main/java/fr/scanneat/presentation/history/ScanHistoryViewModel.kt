@@ -98,6 +98,11 @@ class ScanHistoryViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Average audit score across all scans, null when history is empty. */
+    val avgScore: StateFlow<Int?> = allScans
+        .map { scans -> if (scans.isEmpty()) null else (scans.sumOf { it.audit.score } / scans.size) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     // Grade-band distribution — how many scans land in A/B/C/D.
     val gradeDistribution: StateFlow<List<Pair<String, Int>>> = allScans
         .map { scans ->
