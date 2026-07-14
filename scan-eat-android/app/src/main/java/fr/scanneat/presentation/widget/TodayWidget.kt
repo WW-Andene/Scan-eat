@@ -38,8 +38,12 @@ import androidx.glance.unit.ColorProvider
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.HYD_GLASS_ML
 import fr.scanneat.di.widgetEntryPoint
+import fr.scanneat.domain.engine.biolism.BiolismEngine
+import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.dashboard.logStreakDays
 import fr.scanneat.domain.engine.scoring.dailyTargets
+import fr.scanneat.domain.engine.scoring.hasMinimalProfile
+import fr.scanneat.domain.engine.scoring.withKcalOverride
 import fr.scanneat.presentation.MainActivity
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.semanticBlue
@@ -79,12 +83,20 @@ class TodayWidget : GlanceAppWidget() {
         val prefs = entryPoint.userPreferences()
         val consumptionRepo = entryPoint.consumptionRepository()
         val hydrationRepo = entryPoint.hydrationRepository()
+        val biolismRepo = entryPoint.biolismRepository()
 
         val lang = prefs.language.first()
         val profile = prefs.profile.first()
         val today = LocalDate.now()
         val summary = consumptionRepo.observeDay(today).first()
-        val targets = dailyTargets(profile)
+        // Same Biolism-override rule as Dashboard/Diary (see DiaryViewModel.targets) -
+        // without this, the widget silently showed a different kcal target than the
+        // in-app screens for the same day, for any user with a valid Biolism profile
+        // (the common case, since it auto-populates from the main Profile).
+        val bioProfile = biolismRepo.profile.first()
+        val baseTargets = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
+        val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
+        val targets = baseTargets?.let { if (bioTdee != null) it.withKcalOverride(bioTdee, profile.goal) else it }
         // 30 days is enough to establish "today extends yesterday's streak" without
         // an unbounded range query every time a widget host asks for a refresh.
         val recentEntries = consumptionRepo.observeRange(today.minusDays(30), today).first()

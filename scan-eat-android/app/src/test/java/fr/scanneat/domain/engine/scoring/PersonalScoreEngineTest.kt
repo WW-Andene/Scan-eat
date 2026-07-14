@@ -163,6 +163,71 @@ class PersonalScoreEngineTest {
         assertEquals(20.0, targets.vitDUgTarget, 0.01)
     }
 
+    // ---- dailyTargets: Goal kcal adjustment ----
+
+    @Test
+    fun `dailyTargets subtracts 500 kcal from TDEE for a weight-loss goal`() {
+        // Baseline TDEE (Goal.MAINTAIN) is 2492.0 - see the "derives macro budgets" test above.
+        val targets = dailyTargets(maleProfile().copy(goal = Goal.LOSE))!!
+        assertEquals(2492.0 - 500.0, targets.kcal, 0.01)
+    }
+
+    @Test
+    fun `dailyTargets adds 500 kcal to TDEE for a weight-gain goal`() {
+        val targets = dailyTargets(maleProfile().copy(goal = Goal.GAIN))!!
+        assertEquals(2492.0 + 500.0, targets.kcal, 0.01)
+    }
+
+    @Test
+    fun `dailyTargets fat and carbs targets are derived from the goal-adjusted kcal, not raw TDEE`() {
+        val lose = dailyTargets(maleProfile().copy(goal = Goal.LOSE))!!
+        // 30% of the goal-adjusted (not raw) kcal at 9 kcal/g
+        assertEquals(0.30 * lose.kcal / 9.0, lose.fatGTarget, 0.01)
+    }
+
+    // ---- withKcalOverride: must re-apply the same Goal adjustment ----
+    //
+    // Regression coverage for the bug where Dashboard/Diary/Widget swap in Biolism's
+    // richer *maintenance* TDEE estimate via withKcalOverride(), which previously set
+    // `kcal` to that raw value directly - silently discarding the +-500 kcal Lose/Gain
+    // adjustment dailyTargets() itself applies. A Lose-goal user with a valid Biolism
+    // profile (the common case - it auto-populates from the main Profile) was shown
+    // maintenance calories as their "target" instead of a deficit.
+
+    @Test
+    fun `withKcalOverride re-applies the weight-loss deficit onto the raw override kcal`() {
+        val base = dailyTargets(maleProfile().copy(goal = Goal.LOSE))!!
+        val rawMaintenanceTdee = 3000.0 // e.g. Biolism's computeMetabolics().tdeeDay - a plain maintenance estimate
+        val overridden = base.withKcalOverride(rawMaintenanceTdee, Goal.LOSE)
+        assertEquals(rawMaintenanceTdee - 500.0, overridden.kcal, 0.01)
+    }
+
+    @Test
+    fun `withKcalOverride re-applies the weight-gain surplus onto the raw override kcal`() {
+        val base = dailyTargets(maleProfile().copy(goal = Goal.GAIN))!!
+        val rawMaintenanceTdee = 3000.0
+        val overridden = base.withKcalOverride(rawMaintenanceTdee, Goal.GAIN)
+        assertEquals(rawMaintenanceTdee + 500.0, overridden.kcal, 0.01)
+    }
+
+    @Test
+    fun `withKcalOverride leaves maintenance kcal untouched`() {
+        val base = dailyTargets(maleProfile().copy(goal = Goal.MAINTAIN))!!
+        val rawMaintenanceTdee = 3000.0
+        val overridden = base.withKcalOverride(rawMaintenanceTdee, Goal.MAINTAIN)
+        assertEquals(rawMaintenanceTdee, overridden.kcal, 0.01)
+    }
+
+    @Test
+    fun `withKcalOverride rescales fat and carbs proportionally to the new goal-adjusted kcal`() {
+        val base = dailyTargets(maleProfile().copy(goal = Goal.LOSE))!!
+        val overridden = base.withKcalOverride(3000.0, Goal.LOSE)
+        val ratio = overridden.kcal / base.kcal
+        assertEquals(base.fatGTarget * ratio, overridden.fatGTarget, 0.01)
+        // Protein is per-kg body weight, not kcal-derived - must NOT be rescaled.
+        assertEquals(base.proteinGTarget, overridden.proteinGTarget, 0.01)
+    }
+
     // ---- computePersonalScore: SEX iron bonus gated on isMenstruating ----
 
     private fun productDeclaringIron(kcal: Double = 200.0, proteinG: Double = 5.0) = Product(
