@@ -95,6 +95,10 @@
     <string name="mealplan_assign_cd">Pick a recipe or template</string>
     <string name="mealplan_assign_title">Plan — %1$s</string>
     <string name="mealplan_assign_empty">No saved recipes or templates yet. Create one from Recipes or Templates.</string>
+    <string name="mealplan_day_kcal">%1$d kcal planned</string>
+    <string name="mealplan_gap_suggestion">Suggestion: %1$s (%2$d kcal, %3$dg protein)</string>
+    <string name="mealplan_weekly_kcal_title">Week total planned</string>
+    <string name="mealplan_weekly_kcal_value">%1$d kcal</string>
 
     <!-- ── Biolism shell ──────────────────────────────────────────────────── -->
     <string name="biolism_subtitle">Metabolism · Science · Precision</string>

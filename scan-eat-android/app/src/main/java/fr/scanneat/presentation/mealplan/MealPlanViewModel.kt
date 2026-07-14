@@ -75,6 +75,10 @@ class MealPlanViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    /** Sum of planned kcal across all days in the current week — derived from dayCalories, no extra query. */
+    val weeklyTotalKcal: StateFlow<Int> = dayCalories.map { it.values.sum() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // New: for each day that still has at least two empty meal slots, suggest the
     // highest-protein recipe not yet assigned anywhere on that day — so a user
     // building a weekly plan gets a concrete fill recommendation instead of a blank.

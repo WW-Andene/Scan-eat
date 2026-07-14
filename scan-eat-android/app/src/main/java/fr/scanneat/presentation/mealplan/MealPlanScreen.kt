@@ -43,6 +43,7 @@ fun MealPlanScreen(
     val templates = viewModel.templates.collectAsStateWithLifecycle()
     val dayCalories = viewModel.dayCalories.collectAsStateWithLifecycle()
     val gapSuggestions = viewModel.gapSuggestions.collectAsStateWithLifecycle()
+    val weeklyTotalKcal = viewModel.weeklyTotalKcal.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show day names in the wrong language.
     val dayFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d", Locale(language.value)) }
@@ -64,6 +65,24 @@ fun MealPlanScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
+            if (weeklyTotalKcal.value > 0) {
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        color = AccentCoral.copy(0.08f),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(stringResource(R.string.mealplan_weekly_kcal_title), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                            Text(stringResource(R.string.mealplan_weekly_kcal_value, weeklyTotalKcal.value), style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+            }
             items(weekDates.value, key = { it.toEpochDay() }) { date ->
                 val dayPlan = plan.value[date] ?: DayPlan(date)
                 val isToday = date == LocalDate.now()
@@ -79,7 +98,7 @@ fun MealPlanScreen(
                                     color = if (isToday) AccentCoral else OnSurface,
                                     fontWeight = FontWeight.SemiBold,
                                 )
-                                if (kcal > 0) Text("$kcal kcal planifiées", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                if (kcal > 0) Text(stringResource(R.string.mealplan_day_kcal, kcal), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             }
                             // MealPlanRepository.clearDay() previously had no UI entry
                             // point - clearing a fully-planned day took one tap per
@@ -110,7 +129,7 @@ fun MealPlanScreen(
                             ) {
                                 Icon(Icons.Default.Lightbulb, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
                                 Text(
-                                    "Suggestion : ${suggestion.name} (${suggestion.totalKcal.toInt()} kcal, ${suggestion.totalProteinG.toInt()}g prot.)",
+                                    stringResource(R.string.mealplan_gap_suggestion, suggestion.name, suggestion.totalKcal.toInt(), suggestion.totalProteinG.toInt()),
                                     style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f), modifier = Modifier.weight(1f),
                                 )
                             }
