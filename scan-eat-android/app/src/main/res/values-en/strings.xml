@@ -495,6 +495,8 @@
     </plurals>
     <string name="grocery_grams">%1$d g</string>
     <string name="grocery_copied">Grocery list copied to clipboard</string>
+    <string name="grocery_sort_alpha">Sort alphabetically</string>
+    <string name="grocery_checked_progress">%1$d / %2$d items checked</string>
     <string name="grocery_copy_plain">Copy (plain text)</string>
     <string name="grocery_copy_checklist">Copy (Markdown checklist)</string>
     <string name="grocery_clear_checked">Uncheck all</string>
@@ -681,6 +683,11 @@
     <string name="diary_cd_save_note">Save</string>
     <string name="diary_empty_body">Nothing logged yet. Scan a product and tap \'Log it\'.</string>
     <string name="diary_kcal_breakdown_title">Breakdown by meal</string>
+    <string name="diary_protein_per_slot_title">Protein per meal</string>
+    <string name="diary_slot_short_breakfast">Morn.</string>
+    <string name="diary_slot_short_lunch">Lunch</string>
+    <string name="diary_slot_short_snack">Snack</string>
+    <string name="diary_slot_short_dinner">Eve.</string>
     <string name="diary_filter_all">All</string>
     <string name="diary_filter_empty">No entries for this meal slot.</string>
     <string name="diary_meal_breakfast">Breakfast</string>
@@ -780,6 +787,11 @@
     <string name="fasting_custom_end_label">End</string>
     <string name="fasting_history_title">History</string>
     <string name="fasting_history_entry">%1$sh / %2$dh</string>
+    <string name="fasting_stat_total">Total</string>
+    <string name="fasting_stat_success">Achieved</string>
+    <string name="fasting_stat_avg">Avg</string>
+    <string name="fasting_stat_record">Best</string>
+    <string name="fasting_7day_chart_title">Last 7 days</string>
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Settings</string>
@@ -892,6 +904,12 @@
     <string name="dashboard_calorie_balanced">BALANCED</string>
     <string name="dashboard_calorie_source_biolism">Metabolism TDEE</string>
     <string name="dashboard_calorie_source_profile">Profile TDEE</string>
+    <string name="dashboard_micronutrients_title">Today's Micronutrients</string>
+    <string name="dashboard_micro_fiber">Fiber</string>
+    <string name="dashboard_micro_iron">Iron</string>
+    <string name="dashboard_micro_calcium">Calcium</string>
+    <string name="dashboard_micro_vitd">Vit. D</string>
+    <string name="dashboard_micro_b12">Vit. B12</string>
 
     <!-- ── Recipes screen ─────────────────────────────────────────────────── -->
     <string name="recipes_title">Recipes</string>

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -39,6 +40,8 @@ fun GroceryScreen(
     val manualItemKeys = viewModel.manualItemKeys.collectAsStateWithLifecycle()
     val itemWarnings = viewModel.itemWarnings.collectAsStateWithLifecycle()
     val scopeToPlanned = viewModel.scopeToPlanned.collectAsStateWithLifecycle()
+    val checkedProgress = viewModel.checkedProgress.collectAsStateWithLifecycle()
+    val sortAlpha = viewModel.sortAlpha.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     val haptics   = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -61,6 +64,13 @@ fun GroceryScreen(
                         }
                     }
                     if (items.value.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.toggleSortAlpha() }) {
+                            Icon(
+                                Icons.Default.SortByAlpha,
+                                stringResource(R.string.grocery_sort_alpha),
+                                tint = if (sortAlpha.value) AccentCoral else OnBackground.copy(0.6f),
+                            )
+                        }
                         Box {
                             IconButton(onClick = { copyMenuExpanded = true }) {
                                 Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
@@ -127,8 +137,23 @@ fun GroceryScreen(
             ) {
                 item { Spacer(Modifier.height(Spacing.XS)) }
                 item {
+                    val (checked, total) = checkedProgress.value
                     Text(pluralStringResource(R.plurals.grocery_item_count, items.value.size, items.value.size),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    if (total > 0 && checked > 0) {
+                        Spacer(Modifier.height(4.dp))
+                        androidx.compose.material3.LinearProgressIndicator(
+                            progress = { (checked.toFloat() / total).coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(4.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(2.dp)),
+                            color = semanticGreen(),
+                            trackColor = OnBackground.copy(0.08f),
+                        )
+                        Text(
+                            stringResource(R.string.grocery_checked_progress, checked, total),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = OnBackground.copy(0.4f),
+                        )
+                    }
                 }
                 items(checkable.value, key = { it.item.key }) { checkableItem ->
                     val item = checkableItem.item

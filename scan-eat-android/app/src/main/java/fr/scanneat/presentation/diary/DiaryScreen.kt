@@ -259,8 +259,42 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                                 if (slotKcal > 0) {
                                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                         Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(3.dp)))
-                                        Text("${slotKcal.toInt()}", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f))
+                                        Text(
+                                            "${slot.shortLabel()} ${slotKcal.toInt()}kcal",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = OnSurface.copy(0.55f),
+                                        )
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Per-slot protein distribution — shows how protein is spread across meals.
+        // Nothing in the current UI shows this; the totals card shows only the day sum.
+        if (s.entries.isNotEmpty()) {
+            item {
+                val maxSlotProt = MealSlot.values().maxOfOrNull { slot ->
+                    bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
+                }?.coerceAtLeast(1.0) ?: 1.0
+                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                        Text(stringResource(R.string.diary_protein_per_slot_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                        MealSlot.values().forEach { slot ->
+                            val prot = bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
+                            if (prot > 0.0) {
+                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                                    Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(36.dp))
+                                    androidx.compose.material3.LinearProgressIndicator(
+                                        progress = { (prot / maxSlotProt).toFloat().coerceIn(0f, 1f) },
+                                        modifier = Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)),
+                                        color = AccentCoral,
+                                        trackColor = OnSurface.copy(0.08f),
+                                    )
+                                    Text("${prot.toInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(30.dp))
                                 }
                             }
                         }
@@ -368,6 +402,14 @@ private fun MealsTab(viewModel: DiaryViewModel) {
             onDismiss = { editTarget = null },
         )
     }
+}
+
+@Composable
+private fun MealSlot.shortLabel(): String = when (this) {
+    MealSlot.BREAKFAST -> stringResource(R.string.diary_slot_short_breakfast)
+    MealSlot.LUNCH     -> stringResource(R.string.diary_slot_short_lunch)
+    MealSlot.SNACK     -> stringResource(R.string.diary_slot_short_snack)
+    MealSlot.DINNER    -> stringResource(R.string.diary_slot_short_dinner)
 }
 
 /** Diary keeps its own (fuller) wording for breakfast — distinct from the abbreviated shared label. */

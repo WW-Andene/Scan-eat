@@ -25,6 +25,60 @@ import fr.scanneat.domain.model.MS_PER_HOUR
 import fr.scanneat.domain.model.MS_PER_MINUTE
 import fr.scanneat.presentation.ui.theme.*
 
+import androidx.compose.foundation.background
+import androidx.compose.ui.unit.sp
+import java.time.LocalDate
+import java.time.format.TextStyle as JTextStyle
+import java.util.Locale
+
+@Composable
+private fun Fasting7DayChart(history: List<FastCompletion>) {
+    val today = LocalDate.now()
+    // Map date-string → FastCompletion for quick lookup (one entry per day)
+    val byDate = history.associateBy { it.date }
+    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            Text(stringResource(R.string.fasting_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+            Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+                (6 downTo 0).forEach { daysBack ->
+                    val date = today.minusDays(daysBack.toLong())
+                    val dateKey = date.toString()
+                    val entry = byDate[dateKey]
+                    val frac = if (entry != null && entry.targetHours > 0)
+                        (entry.achievedHours.toFloat() / entry.targetHours).coerceIn(0f, 1f)
+                    else 0f
+                    val color = when {
+                        entry == null -> OnSurface.copy(0.08f)
+                        entry.reached -> semanticGreen().copy(0.8f)
+                        frac > 0.5f   -> semanticAmber().copy(0.7f)
+                        else          -> semanticRed().copy(0.5f)
+                    }
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight(if (frac == 0f) 0.06f else frac.coerceAtLeast(0.06f))
+                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                            .background(color),
+                    )
+                }
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                (6 downTo 0).forEach { daysBack ->
+                    val date = today.minusDays(daysBack.toLong())
+                    Text(
+                        date.dayOfWeek.getDisplayName(JTextStyle.NARROW, Locale.getDefault()).replaceFirstChar { it.uppercaseChar() },
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (daysBack == 0) AccentCoral else OnSurface.copy(0.35f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        fontSize = 9.sp,
+                    )
+                }
+            }
+        }
+    }
+}
+
 private data class MetabolicPhase(val label: String, val description: String, val minHours: Int)
 private val METABOLIC_PHASES = listOf(
     MetabolicPhase("Glycogène",    "L'organisme consomme ses réserves de glucose",      0),
@@ -198,7 +252,7 @@ fun FastingScreen(
                 }
             }
 
-            // New: history stats summary card
+            // History stats summary card
             if (history.value.isNotEmpty()) {
                 item {
                     val completed = history.value
@@ -209,10 +263,10 @@ fun FastingScreen(
                     Spacer(Modifier.height(Spacing.S))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         listOf(
-                            "Total"     to "${completed.size}",
-                            "Réussis"   to "$successCount/${completed.size}",
-                            "Moy."      to "${String.format("%.1f", avgHours)}h",
-                            "Record"    to "${longestH}h",
+                            stringResource(R.string.fasting_stat_total)   to "${completed.size}",
+                            stringResource(R.string.fasting_stat_success) to "$successCount/${completed.size}",
+                            stringResource(R.string.fasting_stat_avg)     to "${String.format("%.1f", avgHours)}h",
+                            stringResource(R.string.fasting_stat_record)  to "${longestH}h",
                         ).forEach { (label, value) ->
                             Surface(modifier = Modifier.weight(1f), shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant) {
                                 Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -222,6 +276,9 @@ fun FastingScreen(
                             }
                         }
                     }
+                    Spacer(Modifier.height(Spacing.M))
+                    // 7-day consistency mini-chart: one bar per day, height = achieved/target
+                    Fasting7DayChart(completed)
                 }
             }
 

@@ -95,7 +95,13 @@ class GroceryViewModel @Inject constructor(
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val groceryItems: StateFlow<List<GroceryItem>> = rawItems
+    private val _sortAlpha = MutableStateFlow(false)
+    val sortAlpha: StateFlow<Boolean> = _sortAlpha.asStateFlow()
+    fun toggleSortAlpha() { _sortAlpha.value = !_sortAlpha.value }
+
+    val groceryItems: StateFlow<List<GroceryItem>> = combine(rawItems, _sortAlpha) { items, alpha ->
+        if (alpha) items.sortedBy { it.name.lowercase() } else items
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
      * item key -> short warning, same checkDiet()/checkUserAllergens() reused

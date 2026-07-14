@@ -54,10 +54,12 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                     rollup.days.forEach { day ->
                         val frac   = (day.kcal / peak).toFloat().coerceIn(0f, 1f)
                         val isToday = day.date == java.time.LocalDate.now()
-                        val isOver  = targets != null && day.kcal > targets.kcal
+                        val isOver  = targets != null && day.kcal > targets.kcal * 1.1
+                        val isOnTarget = targets != null && day.kcal >= targets.kcal * 0.9 && !isOver
                         val color   = when {
                             day.count == 0 -> OnSurface.copy(0.1f)
                             isOver         -> semanticRed().copy(0.7f)
+                            isOnTarget     -> semanticGreen().copy(if (isToday) 1f else 0.7f)
                             else           -> AccentCoral.copy(if (isToday) 1f else 0.6f)
                         }
                         Box(

@@ -103,6 +103,9 @@ fun DashboardScreen(
             // ---- Today's macros as rings ----
             item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }
 
+            // ---- Micronutrient progress (fiber, iron, calcium, vitD, B12) ----
+            item { MicronutrientCard(totals = s.todayTotals) }
+
             // ---- Weekly bars ----
             s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets, language = language.value) } }
 
