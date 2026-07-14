@@ -85,9 +85,52 @@ fun MedicationScreen(
                         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             Icon(Icons.Default.Warning, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
                             Column {
-                                Text("Interaction potentielle", style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.medication_interaction_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
                                 Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
-                                Text("Consultez votre médecin ou pharmacien.", style = MaterialTheme.typography.labelSmall, color = semanticRed().copy(0.6f))
+                                Text(stringResource(R.string.medication_interaction_cta), style = MaterialTheme.typography.labelSmall, color = semanticRed().copy(0.6f))
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Today's adherence summary: compact chip row showing taken/not-taken per medication.
+            // Previously you had to scroll through the full list to see overall adherence — no aggregate view existed.
+            if (medications.value.filter { it.active }.size >= 2) {
+                item {
+                    val active = medications.value.filter { it.active }
+                    val allTaken = active.all { m -> todayTaken.value.any { it.medicationId == m.id } }
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                            Text(
+                                stringResource(R.string.medication_today_summary_title),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = OnSurface.copy(0.5f),
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), modifier = Modifier.fillMaxWidth()) {
+                                active.forEach { m ->
+                                    val taken = todayTaken.value.any { it.medicationId == m.id }
+                                    Surface(shape = RoundedCornerShape(50), color = if (taken) Teal.copy(0.2f) else OnSurface.copy(0.08f)) {
+                                        Row(
+                                            Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                        ) {
+                                            Icon(
+                                                if (taken) Icons.Default.Check else Icons.Default.Close,
+                                                null,
+                                                tint = if (taken) Teal else OnSurface.copy(0.35f),
+                                                modifier = Modifier.size(10.dp),
+                                            )
+                                            Text(
+                                                m.name,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = if (taken) Teal else OnSurface.copy(0.5f),
+                                                maxLines = 1,
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

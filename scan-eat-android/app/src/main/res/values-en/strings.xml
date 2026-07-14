@@ -44,6 +44,8 @@
     <string name="hydration_calendar_day_intake">%1$s: %2$d mL consumed</string>
     <string name="hydration_calendar_day_logged">%1$s: hydration logged</string>
     <string name="hydration_calendar_day_empty">%1$s: no data</string>
+    <string name="hydration_suggested_goal_hint">Based on your profile, a goal of %1$d mL may suit you better.</string>
+    <string name="hydration_7day_chart_title">Last 7 days</string>
     <string name="settings_groq_key">Groq API Key</string>
     <string name="settings_server_url">Server URL</string>
     <string name="result_log_it">Log it</string>
@@ -485,6 +487,7 @@
     <string name="history_sort_score">Best score</string>
     <string name="history_score_range_all">All scores</string>
     <string name="history_top_scanned_title">Frequently scanned</string>
+    <string name="history_grade_distribution_title">Grade distribution</string>
 
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Grocery List</string>
@@ -1051,6 +1054,9 @@
     <string name="medication_reminder_dialog_title">Reminder — %1$s</string>
     <string name="medication_reminder_toggle">Enable daily reminder</string>
     <string name="medication_reminder_time_label">Time (HH:mm)</string>
+    <string name="medication_interaction_title">Potential interaction</string>
+    <string name="medication_interaction_cta">Consult your doctor or pharmacist.</string>
+    <string name="medication_today_summary_title">Today\'s doses</string>
     <string name="activity_calendar_day_logged">%1$s: activity logged</string>
     <string name="activity_calendar_day_empty">%1$s: no activity</string>
     <string name="activity_deleted_message">Activity deleted</string>

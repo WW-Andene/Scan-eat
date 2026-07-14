@@ -73,6 +73,16 @@ class HydrationViewModel @Inject constructor(
         if (suggested - currentGoal >= 200) suggested else null
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // 7 days of intake (date → ml) for the weekly bar chart
+    val weeklyIntake: StateFlow<List<Pair<LocalDate, Int>>> = intake.map {
+        val all = repo.exportAll().toMap()
+        val today = LocalDate.now()
+        (6 downTo 0).map { daysBack ->
+            val d = today.minusDays(daysBack.toLong())
+            d to (all[d] ?: 0)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun addGlass()    = viewModelScope.launch { repo.addGlass() }
     fun removeGlass() = viewModelScope.launch { repo.removeGlass() }
 }

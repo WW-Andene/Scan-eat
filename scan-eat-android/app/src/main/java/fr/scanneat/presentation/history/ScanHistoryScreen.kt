@@ -56,6 +56,7 @@ fun ScanHistoryScreen(
     val canLoadMore = viewModel.canLoadMore.collectAsStateWithLifecycle()
     val scoreRange = viewModel.scoreRange.collectAsStateWithLifecycle()
     val topScanned = viewModel.topScanned.collectAsStateWithLifecycle()
+    val gradeDistribution = viewModel.gradeDistribution.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
 
@@ -173,8 +174,9 @@ fun ScanHistoryScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                         ) {
-                            topScanned.value.forEach { (name, count) ->
+                            topScanned.value.forEach { (name, count, dbId) ->
                                 Surface(
+                                    onClick  = { if (dbId > 0) onOpenResult(dbId) },
                                     modifier = Modifier.weight(1f),
                                     shape    = RoundedCornerShape(CardRadius.CONTROL),
                                     color    = SurfaceVariant,
@@ -197,6 +199,45 @@ fun ScanHistoryScreen(
                                             overflow = TextOverflow.Ellipsis,
                                         )
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Grade distribution — A/B/C/D breakdown across full scan history
+                if (gradeDistribution.value.isNotEmpty()) {
+                    item {
+                        val total = gradeDistribution.value.sumOf { it.second }.coerceAtLeast(1)
+                        Text(
+                            stringResource(R.string.history_grade_distribution_title),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = OnBackground.copy(0.5f),
+                            modifier = Modifier.padding(top = Spacing.S, bottom = Spacing.XS),
+                        )
+                        Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
+                            gradeDistribution.value.forEach { (grade, count) ->
+                                val color = when (grade) {
+                                    "A" -> semanticGreen()
+                                    "B" -> semanticAmber()
+                                    "C" -> AccentCoral
+                                    else -> semanticRed()
+                                }
+                                Box(Modifier.weight(count.toFloat() / total).fillMaxHeight().background(color))
+                            }
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            gradeDistribution.value.forEach { (grade, count) ->
+                                val color = when (grade) {
+                                    "A" -> semanticGreen()
+                                    "B" -> semanticAmber()
+                                    "C" -> AccentCoral
+                                    else -> semanticRed()
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Box(Modifier.size(6.dp).background(color, RoundedCornerShape(3.dp)))
+                                    Text("$grade $count", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
                                 }
                             }
                         }

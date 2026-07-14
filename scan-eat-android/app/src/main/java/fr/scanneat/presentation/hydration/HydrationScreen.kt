@@ -55,6 +55,7 @@ fun HydrationScreen(
     val goal            = viewModel.goal.collectAsStateWithLifecycle()
     val streak          = viewModel.streak.collectAsStateWithLifecycle()
     val suggestedGoal   = viewModel.suggestedGoalMl.collectAsStateWithLifecycle()
+    val weeklyIntake    = viewModel.weeklyIntake.collectAsStateWithLifecycle()
     val glasses     = intake.value / HYD_GLASS_ML
     val goalGlasses = goal.value / HYD_GLASS_ML
     val pct         = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
@@ -113,7 +114,7 @@ fun HydrationScreen(
                     ) {
                         Icon(Icons.Default.TipsAndUpdates, null, tint = semanticBlue(), modifier = Modifier.size(18.dp))
                         Text(
-                            "Basé sur votre profil, un objectif de ${suggested} mL pourrait mieux vous convenir.",
+                            stringResource(R.string.hydration_suggested_goal_hint, suggested),
                             style = MaterialTheme.typography.bodySmall,
                             color = semanticBlue(),
                         )
@@ -214,6 +215,50 @@ fun HydrationScreen(
         }
 
         item { HydrationReminderCard() }
+
+        // 7-day intake chart
+        if (weeklyIntake.value.isNotEmpty()) {
+            item {
+                val goalMl = goal.value.coerceAtLeast(1)
+                val peak = weeklyIntake.value.maxOfOrNull { it.second }?.coerceAtLeast(goalMl) ?: goalMl
+                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                        Text(stringResource(R.string.hydration_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                        Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
+                            weeklyIntake.value.forEach { (date, ml) ->
+                                val frac = (ml.toFloat() / peak).coerceIn(0f, 1f)
+                                val isToday = date == java.time.LocalDate.now()
+                                val color = when {
+                                    ml == 0    -> OnBackground.copy(0.08f)
+                                    ml >= goalMl -> semanticGreen().copy(if (isToday) 1f else 0.7f)
+                                    else       -> semanticBlue().copy(if (isToday) 1f else 0.6f)
+                                }
+                                Box(
+                                    Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight(if (frac == 0f) 0.05f else frac.coerceAtLeast(0.05f))
+                                        .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                                        .background(color),
+                                )
+                            }
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                            weeklyIntake.value.forEach { (date, _) ->
+                                Text(
+                                    date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, Locale.getDefault()).replaceFirstChar { it.uppercaseChar() },
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (date == java.time.LocalDate.now()) semanticBlue() else OnBackground.copy(0.35f),
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    fontSize = androidx.compose.ui.unit.TextUnit(9f, androidx.compose.ui.unit.TextUnitType.Sp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }

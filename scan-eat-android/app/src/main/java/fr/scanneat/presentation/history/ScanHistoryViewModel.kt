@@ -86,15 +86,24 @@ class ScanHistoryViewModel @Inject constructor(
         else list.filter { it.audit.score in range.first..range.second }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Top 3 most-scanned products (by product name across full history)
-    val topScanned: StateFlow<List<Pair<String, Int>>> = allScans
+    // Top 3 most-scanned products: name, count, and latest dbId for tap-to-open.
+    // Previously clicking a top-scanned chip did nothing (no onClick handler existed).
+    val topScanned: StateFlow<List<Triple<String, Int, Long>>> = allScans
         .map { scans ->
             scans.groupBy { it.product.name }
-                .mapValues { it.value.size }
                 .entries
-                .sortedByDescending { it.value }
+                .sortedByDescending { it.value.size }
                 .take(3)
-                .map { it.key to it.value }
+                .map { (name, list) -> Triple(name, list.size, list.maxOf { it.dbId }) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Grade-band distribution — how many scans land in A/B/C/D.
+    val gradeDistribution: StateFlow<List<Pair<String, Int>>> = allScans
+        .map { scans ->
+            val bands = linkedMapOf("A" to 0, "B" to 0, "C" to 0, "D" to 0)
+            scans.forEach { bands[it.audit.grade.label] = (bands[it.audit.grade.label] ?: 0) + 1 }
+            bands.entries.filter { it.value > 0 }.map { it.key to it.value }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
