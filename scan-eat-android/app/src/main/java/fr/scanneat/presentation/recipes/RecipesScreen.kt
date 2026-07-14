@@ -2,6 +2,7 @@ package fr.scanneat.presentation.recipes
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -34,6 +35,7 @@ fun RecipesScreen(
     val warnings = viewModel.recipeWarnings.collectAsStateWithLifecycle()
     val officialWarnings = viewModel.officialRecipeWarnings.collectAsStateWithLifecycle()
     val pairings = viewModel.recipePairings.collectAsStateWithLifecycle()
+    val goalFilter = viewModel.goalFilter.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -78,6 +80,24 @@ fun RecipesScreen(
             item { Spacer(Modifier.height(Spacing.M)) }
             item {
                 Text(stringResource(R.string.recipes_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+            }
+            item {
+                val filterOptions = listOf(
+                    RecipesViewModel.GoalFilter.ALL to "Tous",
+                    RecipesViewModel.GoalFilter.HIGH_PROTEIN to "Riche protéines",
+                    RecipesViewModel.GoalFilter.LOW_CARB to "Low-carb",
+                    RecipesViewModel.GoalFilter.LOW_FAT to "Faible en gras",
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    items(filterOptions) { (filter, label) ->
+                        FilterChip(
+                            selected = goalFilter.value == filter,
+                            onClick = { viewModel.setGoalFilter(filter) },
+                            label = { Text(label) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                        )
+                    }
+                }
             }
 
             if (recipes.value.isEmpty()) {

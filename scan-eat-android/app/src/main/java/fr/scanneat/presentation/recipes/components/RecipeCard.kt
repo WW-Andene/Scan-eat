@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,8 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
@@ -60,6 +63,22 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
                 }
                 if (recipe.components.size > 3) Text(stringResource(R.string.templates_more_items, recipe.components.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
+                // Macro strip — protein/carbs/fat totals per serving were previously
+                // invisible on the card; a user judging whether a recipe fits their
+                // macros had to tap Log just to see the numbers.
+                HorizontalDivider(color = OnSurface.copy(0.08f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                    val servings = recipe.servings.coerceAtLeast(1)
+                    @Composable fun MacroChip(label: String, value: Double, color: androidx.compose.ui.graphics.Color) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("${(value / servings).toInt()}g", style = MaterialTheme.typography.labelMedium, color = color, fontWeight = FontWeight.SemiBold)
+                            Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f))
+                        }
+                    }
+                    MacroChip("P", recipe.totalProteinG, semanticGreen())
+                    MacroChip("G", recipe.totalCarbsG, AccentCoral)
+                    MacroChip("L", recipe.totalFatG, Gold)
+                }
                 // Diet/allergen check previously only ever ran on scanned products -
                 // a recipe built from ingredients the user's own profile forbids
                 // (allergen or diet violation) had no warning anywhere in this screen.

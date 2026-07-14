@@ -35,8 +35,24 @@ class RecipesViewModel @Inject constructor(
     private val customFoodRepo: CustomFoodRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
-    val recipes: StateFlow<List<Recipe>> = repo.observeAll()
+    enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
+
+    private val _goalFilter = MutableStateFlow(GoalFilter.ALL)
+    val goalFilter: StateFlow<GoalFilter> = _goalFilter.asStateFlow()
+
+    fun setGoalFilter(f: GoalFilter) { _goalFilter.value = f }
+
+    private val _allRecipes: StateFlow<List<Recipe>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val recipes: StateFlow<List<Recipe>> = combine(_allRecipes, _goalFilter) { list, filter ->
+        when (filter) {
+            GoalFilter.ALL         -> list
+            GoalFilter.HIGH_PROTEIN -> list.filter { r -> r.totalGrams > 0 && r.totalProteinG / r.totalGrams * 100 >= 15 }
+            GoalFilter.LOW_CARB    -> list.filter { r -> r.totalGrams > 0 && r.totalCarbsG / r.totalGrams * 100 <= 20 }
+            GoalFilter.LOW_FAT     -> list.filter { r -> r.totalGrams > 0 && r.totalFatG / r.totalGrams * 100 <= 10 }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
