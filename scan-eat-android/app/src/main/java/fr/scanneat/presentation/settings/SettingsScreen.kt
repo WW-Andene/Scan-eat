@@ -85,6 +85,17 @@ fun SettingsScreen(
             viewModel.clearBackupState()
         }
     }
+    val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        val state = backupState.value
+        if (uri != null && state is BackupUiState.CsvExportReady) {
+            val wrote = runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { it.write(state.csv.toByteArray()) }
+            }.isSuccess
+            if (wrote) viewModel.clearBackupState() else viewModel.reportExportWriteFailed()
+        } else {
+            viewModel.clearBackupState()
+        }
+    }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             // OpenDocument() lets the user pick ANY file, not just one this app
@@ -109,8 +120,12 @@ fun SettingsScreen(
         val state = backupState.value
         if (state is BackupUiState.ExportReady) {
             exportLauncher.launch("scaneat-backup-${LocalDate.now()}.json")
+        } else if (state is BackupUiState.CsvExportReady) {
+            csvExportLauncher.launch("scaneat-journal-${LocalDate.now()}.csv")
         }
     }
+    var showResetDialog by remember { mutableStateOf(false) }
+    var resetConfirmed  by remember { mutableStateOf(false) }
 
     val healthConnectLauncher = rememberLauncherForActivityResult(PermissionController.createRequestPermissionResultContract()) {
         viewModel.refreshHealthConnectStatus()
@@ -355,6 +370,26 @@ fun SettingsScreen(
                     )
                     else -> {}
                 }
+                // CSV diary export — spreadsheet-friendly complement to the JSON backup
+                HorizontalDivider(color = OnBackground.copy(0.08f))
+                ScanEatOutlinedButton(
+                    onClick = { viewModel.prepareCsvExport() },
+                    enabled = backupState.value !is BackupUiState.Working,
+                ) {
+                    Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Exporter journal (CSV)", color = OnBackground)
+                }
+            }
+
+            // Data reset section
+            SettingsSection("Réinitialisation") {
+                Text("Effacer sélectivement certaines données de l'application.", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                ScanEatOutlinedButton(onClick = { showResetDialog = true }) {
+                    Icon(Icons.Default.DeleteForever, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Options de réinitialisation", color = semanticRed())
+                }
             }
 
             // Health Connect — platform weight sync
@@ -406,5 +441,28 @@ fun SettingsScreen(
         }
     }
 
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false; resetConfirmed = false },
+            containerColor = SurfaceVariant,
+            title = { Text("Réinitialisation des données", color = OnBackground) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text("Choisissez ce que vous souhaitez effacer :", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+                    TextButton(onClick = {
+                        viewModel.clearScanHistory()
+                        showResetDialog = false
+                    }) {
+                        Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(Spacing.XS))
+                        Text("Effacer l'historique des scans", color = semanticRed())
+                    }
+                    Text("Pour effacer toutes les données, utilisez Paramètres système → Application → Effacer les données.", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.45f))
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { showResetDialog = false; resetConfirmed = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        )
+    }
 }
 

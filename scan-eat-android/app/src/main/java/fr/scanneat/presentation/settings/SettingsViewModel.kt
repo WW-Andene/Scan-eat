@@ -21,6 +21,8 @@ sealed class BackupUiState {
     data object Working : BackupUiState()
     /** JSON generated and ready — the screen still needs to write it to a user-picked URI. */
     data class ExportReady(val json: String) : BackupUiState()
+    /** CSV diary export ready — written via Storage Access Framework like JSON. */
+    data class CsvExportReady(val csv: String) : BackupUiState()
     data class ImportSuccess(val summary: BackupSummary) : BackupUiState()
     data class Error(val messageKey: BackupErrorKey) : BackupUiState()
 }
@@ -99,6 +101,16 @@ class SettingsViewModel @Inject constructor(
             )
         }
     }
+
+    fun prepareCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch {
+            val csv = backupRepository.exportDiaryCsv()
+            _backupState.value = BackupUiState.CsvExportReady(csv)
+        }
+    }
+
+    fun clearScanHistory() = viewModelScope.launch { backupRepository.clearScanHistory() }
 
     fun reportExportWriteFailed() { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) }
     fun clearBackupState() { _backupState.value = BackupUiState.Idle }

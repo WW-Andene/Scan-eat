@@ -234,6 +234,25 @@ class BackupRepository @Inject constructor(
         BackupMetadata.from(parseBundle(json))
     }
 
+    /** Exports diary (consumption log) entries as RFC 4180 CSV — a spreadsheet-friendly
+     * complement to the full JSON backup, covering date/meal/product/portion/kcal columns. */
+    suspend fun exportDiaryCsv(): String {
+        val rows = consumptionDao.getAllForBackup()
+        val sb = StringBuilder("date,meal,product,portionG,kcalPer100g,kcalTotal\n")
+        val nutritionAdapter = moshi.adapter(fr.scanneat.domain.model.NutritionPer100g::class.java)
+        rows.sortedWith(compareBy({ it.date }, { it.loggedAt })).forEach { e ->
+            val nutrition = runCatching { nutritionAdapter.fromJson(e.nutritionJson) }.getOrNull()
+            val kcalPer100 = nutrition?.energyKcal ?: 0.0
+            val kcalTotal  = kcalPer100 * e.portionG / 100.0
+            val name = e.productName.replace("\"", "\"\"")
+            sb.append("${e.date},${e.mealSlot},\"$name\",${e.portionG.toInt()},${kcalPer100.toInt()},${kcalTotal.toInt()}\n")
+        }
+        return sb.toString()
+    }
+
+    /** Clears the scan history table (keeps all other data intact). */
+    suspend fun clearScanHistory() = scanHistoryDao.clearAll()
+
     private fun parseBundle(json: String): BackupBundle {
         val bundle = try {
             bundleAdapter.fromJson(json)
