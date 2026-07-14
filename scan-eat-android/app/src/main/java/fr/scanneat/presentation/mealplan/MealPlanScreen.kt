@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,6 +41,8 @@ fun MealPlanScreen(
     val language = viewModel.language.collectAsStateWithLifecycle()
     val recipes = viewModel.recipes.collectAsStateWithLifecycle()
     val templates = viewModel.templates.collectAsStateWithLifecycle()
+    val dayCalories = viewModel.dayCalories.collectAsStateWithLifecycle()
+    val gapSuggestions = viewModel.gapSuggestions.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show day names in the wrong language.
     val dayFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d", Locale(language.value)) }
@@ -64,15 +67,20 @@ fun MealPlanScreen(
             items(weekDates.value, key = { it.toEpochDay() }) { date ->
                 val dayPlan = plan.value[date] ?: DayPlan(date)
                 val isToday = date == LocalDate.now()
+                val kcal = dayCalories.value[date] ?: 0
+                val suggestion = gapSuggestions.value[date]
                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(
-                                if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = if (isToday) AccentCoral else OnSurface,
-                                fontWeight = FontWeight.SemiBold,
-                            )
+                            Column {
+                                Text(
+                                    if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = if (isToday) AccentCoral else OnSurface,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                if (kcal > 0) Text("$kcal kcal planifiées", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            }
                             // MealPlanRepository.clearDay() previously had no UI entry
                             // point - clearing a fully-planned day took one tap per
                             // meal slot instead of one action for the whole day.
@@ -92,6 +100,20 @@ fun MealPlanScreen(
                                 onAssign = { assignTarget = date to meal },
                                 onLog = { s -> viewModel.logSlot(date, meal, s) },
                             )
+                        }
+                        if (suggestion != null) {
+                            HorizontalDivider(color = OnSurface.copy(0.07f))
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                            ) {
+                                Icon(Icons.Default.Lightbulb, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                                Text(
+                                    "Suggestion : ${suggestion.name} (${suggestion.totalKcal.toInt()} kcal, ${suggestion.totalProteinG.toInt()}g prot.)",
+                                    style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f), modifier = Modifier.weight(1f),
+                                )
+                            }
                         }
                     }
                 }

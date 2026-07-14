@@ -60,6 +60,35 @@ class MealPlanViewModel @Inject constructor(
     val templates: StateFlow<List<MealTemplate>> = templateRepo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Improvement: per-day calorie totals derived from assigned recipe/template slots.
+    // Previously the day header showed only the date — a user had no way to see at a
+    // glance whether a planned day meets their calorie target without opening the diary.
+    val dayCalories: StateFlow<Map<LocalDate, Int>> = combine(weekPlan, recipes, templates) { plan, recipeList, templateList ->
+        plan.mapValues { (_, dayPlan) ->
+            listOf("breakfast", "lunch", "dinner", "snack").sumOf { meal ->
+                when (val slot = dayPlan[meal]) {
+                    is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }?.totalKcal?.toInt() ?: 0
+                    is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.components?.sumOf { it.kcal.toInt() } ?: 0
+                    else -> 0
+                }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // New: for each day that still has at least two empty meal slots, suggest the
+    // highest-protein recipe not yet assigned anywhere on that day — so a user
+    // building a weekly plan gets a concrete fill recommendation instead of a blank.
+    val gapSuggestions: StateFlow<Map<LocalDate, Recipe?>> = combine(weekPlan, recipes) { plan, recipeList ->
+        if (recipeList.isEmpty()) return@combine emptyMap()
+        plan.mapValues { (_, dayPlan) ->
+            val assignedIds = listOf("breakfast", "lunch", "dinner", "snack")
+                .mapNotNull { (dayPlan[it] as? MealPlanSlot.RecipeSlot)?.id }.toSet()
+            val emptySlots = listOf("breakfast", "lunch", "dinner", "snack").count { dayPlan[it] == null }
+            if (emptySlots < 2) null
+            else recipeList.filter { it.id !in assignedIds }.maxByOrNull { it.totalProteinG }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     /**
      * Data-consistency safeguard: whenever the live recipe/template lists change
      * (an item is added, edited, or — the case this actually protects against —
