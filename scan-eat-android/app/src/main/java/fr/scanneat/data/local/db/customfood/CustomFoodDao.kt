@@ -26,7 +26,4 @@ interface CustomFoodDao {
 
     @Query("DELETE FROM custom_foods WHERE id = :id")
     suspend fun delete(id: String)
-
-    @Query("DELETE FROM custom_foods WHERE name = :name AND profileId = :profileId")
-    suspend fun deleteByName(name: String, profileId: String = "default")
 }

@@ -129,7 +129,11 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
             addedSugarsG  = numOrNull(nm["added-sugars_100g"]),
             fiberG        = numOf(nm["fiber_100g"]),
             proteinG      = numOf(nm["proteins_100g"]),
-            saltG         = numOf(nm["salt_100g"]),
+            // Some OFF records carry sodium_100g but not salt_100g - without a fallback
+            // those products silently scored saltG=0 for the negative-nutrients pillar
+            // even though a salt value is derivable from data already fetched. 2.5 is
+            // the standard sodium→salt conversion factor (NaCl molar mass ratio).
+            saltG         = numOrNull(nm["salt_100g"]) ?: (numOrNull(nm["sodium_100g"])?.times(2.5) ?: 0.0),
             transFatG     = numOrNull(nm["trans-fat_100g"]),
             ironMg        = numOrNull(nm["iron_100g"])?.times(1000),     // OFF in g → mg
             calciumMg     = numOrNull(nm["calcium_100g"])?.times(1000),

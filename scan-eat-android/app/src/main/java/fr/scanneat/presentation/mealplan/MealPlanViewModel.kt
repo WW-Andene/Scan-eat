@@ -63,8 +63,12 @@ class MealPlanViewModel @Inject constructor(
     // Improvement: per-day calorie totals derived from assigned recipe/template slots.
     // Previously the day header showed only the date — a user had no way to see at a
     // glance whether a planned day meets their calorie target without opening the diary.
-    val dayCalories: StateFlow<Map<LocalDate, Int>> = combine(weekPlan, recipes, templates) { plan, recipeList, templateList ->
-        plan.mapValues { (_, dayPlan) ->
+    // weekPlan holds up to ~13 days (MealPlanRepository only prunes entries older than
+    // KEEP_DAYS_PAST=7, it isn't limited to the displayed forward week), so this must be
+    // filtered to weekDates before aggregating - same guard GroceryViewModel already
+    // applies for the identical reason.
+    val dayCalories: StateFlow<Map<LocalDate, Int>> = combine(weekPlan, recipes, templates, weekDates) { plan, recipeList, templateList, dates ->
+        plan.filterKeys { it in dates }.mapValues { (_, dayPlan) ->
             listOf("breakfast", "lunch", "dinner", "snack").sumOf { meal ->
                 when (val slot = dayPlan[meal]) {
                     is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }?.totalKcal?.toInt() ?: 0

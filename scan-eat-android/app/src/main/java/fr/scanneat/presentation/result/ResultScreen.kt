@@ -119,30 +119,37 @@ fun ResultScreen(
     }
 
     // Log bottom sheet
-    if (showSheet && state.value.scanResult != null) {
-        LogSheet(
-            product    = state.value.scanResult!!.product,
-            sheetState = sheetState,
-            onConfirm  = { g, slot -> viewModel.log(g, slot) },
-            onDismiss  = { showSheet = false },
-        )
-    }
+    // Each block reads state.value.scanResult once into a local val instead of
+    // null-checking then re-reading + force-unwrapping a second snapshot-state read -
+    // harmless today only because Compose composition is single-threaded/synchronous,
+    // but a local val can't go null out from under it on any future refactor that
+    // moves the access across a suspension point or into a remembered callback.
+    state.value.scanResult?.let { scan ->
+        if (showSheet) {
+            LogSheet(
+                product    = scan.product,
+                sheetState = sheetState,
+                onConfirm  = { g, slot -> viewModel.log(g, slot) },
+                onDismiss  = { showSheet = false },
+            )
+        }
 
-    if (showHints && state.value.scanResult != null) {
-        HintPanel(
-            hints = generateProductHints(state.value.scanResult!!.product, profile.value, language.value),
-            onDismiss = { showHints = false },
-        )
-    }
+        if (showHints) {
+            HintPanel(
+                hints = generateProductHints(scan.product, profile.value, language.value),
+                onDismiss = { showHints = false },
+            )
+        }
 
-    if (showSaveMenu && state.value.scanResult != null) {
-        SaveDestinationsPopup(
-            alreadyFavorite = state.value.scanResult!!.favorite,
-            onSave = { destinations ->
-                viewModel.saveToDestinations(destinations)
-                showSaveMenu = false
-            },
-            onDismiss = { showSaveMenu = false },
-        )
+        if (showSaveMenu) {
+            SaveDestinationsPopup(
+                alreadyFavorite = scan.favorite,
+                onSave = { destinations ->
+                    viewModel.saveToDestinations(destinations)
+                    showSaveMenu = false
+                },
+                onDismiss = { showSaveMenu = false },
+            )
+        }
     }
 }

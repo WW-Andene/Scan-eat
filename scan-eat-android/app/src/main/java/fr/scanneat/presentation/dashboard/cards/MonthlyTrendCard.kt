@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,6 +21,7 @@ import fr.scanneat.domain.engine.dashboard.RollupResult
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.presentation.ui.theme.*
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
@@ -30,7 +32,7 @@ import kotlin.math.roundToInt
  * single week on the Dashboard.
  */
 @Composable
-internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?) {
+internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, language: String) {
   Box(Modifier.fillMaxWidth().glassSheen()) {
     Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
         Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -69,7 +71,9 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?) {
             // 30 individual date labels would never fit - only the window's
             // start/end are printed, same information WeeklyBarsCard conveys
             // per-bar but compressed to fit a month at a glance.
-            val fmt = DateTimeFormatter.ofPattern("d MMM")
+            // Locale(language) - same as WeeklyBarsCard/DiaryScreen/WeightScreen - so month
+            // abbreviations follow the in-app language setting, not the device default.
+            val fmt = remember(language) { DateTimeFormatter.ofPattern("d MMM", Locale(language)) }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(rollup.days.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp)
                 Text(

@@ -121,8 +121,8 @@ android {
         buildConfig = true
     }
 
-    // Nothing in this repo runs Android Lint today — CI only builds and runs unit
-    // tests. abortOnError keeps real lint errors (not just warnings) as a gate.
+    // android-build.yml runs `./gradlew lintDebug` in CI. abortOnError keeps real
+    // lint errors (not just warnings) failing that gate rather than only warning.
     lint {
         abortOnError      = true
         checkReleaseBuilds = true

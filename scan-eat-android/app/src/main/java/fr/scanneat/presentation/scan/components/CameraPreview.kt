@@ -120,6 +120,7 @@ fun CameraPreview(
     onBarcodeDetected: (String) -> Unit,
     onPhotoCaptured: (Bitmap) -> Unit,
     onCameraError: () -> Unit = {},
+    onCaptureError: () -> Unit = {},
     onBarcodeBounds: ((android.graphics.Rect, Int, Int) -> Unit)? = null,
     onBoundsCleared: (() -> Unit)? = null,
 ) {
@@ -203,6 +204,14 @@ fun CameraPreview(
                 imageCapture?.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         val bmp = image.toBitmap(); image.close(); onPhotoCaptured(bmp)
+                    }
+                    // Previously unoverridden (falls back to a no-op default) - a capture
+                    // failure (camera momentarily reclaimed by another process, buffer/driver
+                    // fault, storage pressure) made the shutter FAB visibly do nothing with
+                    // zero feedback, the same class of bug onCameraError above already fixed
+                    // for bindToLifecycle failures.
+                    override fun onError(exception: ImageCaptureException) {
+                        onCaptureError()
                     }
                 })
             },

@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,16 +30,29 @@ import fr.scanneat.presentation.reminders.components.permissionState
 import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalTime
 
+// Default meal labels and the connector word previously hardcoded French
+// regardless of the app's language setting — now sourced from the same
+// string resources ReminderRow already uses for these fields.
+@Composable
 private fun nextReminderLabel(s: ReminderSettings): String? {
     val now = LocalTime.now()
+    val breakfastLabel = s.breakfastLabel.ifBlank { stringResource(R.string.reminders_breakfast) }
+    val snackLabel = s.snackLabel.ifBlank { stringResource(R.string.reminders_snack) }
+    val lunchLabel = s.lunchLabel.ifBlank { stringResource(R.string.reminders_lunch) }
+    val dinnerLabel = s.dinnerLabel.ifBlank { stringResource(R.string.reminders_dinner) }
+    val digestLabel = stringResource(R.string.notif_summary_title)
     val upcoming = mutableListOf<Pair<LocalTime, String>>()
-    if (s.breakfastOn) runCatching { LocalTime.parse(s.breakfastTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to (s.breakfastLabel.ifBlank { "Petit-déjeuner" }) }
-    if (s.snackOn)     runCatching { LocalTime.parse(s.snackTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to (s.snackLabel.ifBlank { "Collation" }) }
-    if (s.lunchOn)     runCatching { LocalTime.parse(s.lunchTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to (s.lunchLabel.ifBlank { "Déjeuner" }) }
-    if (s.dinnerOn)    runCatching { LocalTime.parse(s.dinnerTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to (s.dinnerLabel.ifBlank { "Dîner" }) }
+    if (s.breakfastOn) runCatching { LocalTime.parse(s.breakfastTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to breakfastLabel }
+    if (s.snackOn)     runCatching { LocalTime.parse(s.snackTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to snackLabel }
+    if (s.lunchOn)     runCatching { LocalTime.parse(s.lunchTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to lunchLabel }
+    if (s.dinnerOn)    runCatching { LocalTime.parse(s.dinnerTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to dinnerLabel }
     s.customReminders.filter { it.on }.forEach { cr -> runCatching { LocalTime.parse(cr.time) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to cr.label } }
-    if (s.dailyDigestOn && LocalTime.of(21, 0).isAfter(now)) upcoming += LocalTime.of(21, 0) to "Bilan du jour"
-    return upcoming.minByOrNull { it.first }?.let { (t, label) -> "$label à ${t.hour}h${t.minute.toString().padStart(2,'0')}" }
+    if (s.dailyDigestOn && LocalTime.of(21, 0).isAfter(now)) upcoming += LocalTime.of(21, 0) to digestLabel
+    val isFrench = Locale.current.language == "fr"
+    return upcoming.minByOrNull { it.first }?.let { (t, label) ->
+        val timeStr = "%02d:%02d".format(t.hour, t.minute).let { if (isFrench) it.replace(':', 'h') else it }
+        if (isFrench) "$label à $timeStr" else "$label at $timeStr"
+    }
 }
 
 @Composable
@@ -91,8 +105,8 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
         HorizontalDivider(color = OnBackground.copy(0.08f))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Bilan quotidien (21h00)", style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-                Text("Résumé de vos scans, hydratation et repas du jour", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                Text(stringResource(R.string.reminders_daily_digest_title), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                Text(stringResource(R.string.reminders_daily_digest_subtitle), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
             }
             Switch(
                 checked = s.dailyDigestOn,

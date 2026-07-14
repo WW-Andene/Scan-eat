@@ -51,9 +51,8 @@ class CustomFoodRepository @Inject constructor(
         // A blank/whitespace-only name previously passed through untouched: name.trim()
         // still persisted an empty string, silently adding an unnamed row to the custom
         // foods list (and to every Quick Add / search-autocomplete surface built on
-        // observeAll()) with no way to identify or remove it afterward, since
-        // deleteByName() keys on the very name that's blank. Reject it up front instead,
-        // same guard style as WeightRepository.log()'s require().
+        // observeAll()) with no way to identify it afterward in the UI. Reject it up
+        // front instead, same guard style as WeightRepository.log()'s require().
         require(name.isNotBlank()) { "Custom food name must not be blank" }
         val entry = FoodEntry(
             name      = name.trim(),
@@ -65,8 +64,16 @@ class CustomFoodRepository @Inject constructor(
             saltG     = saltG.coerceAtLeast(0.0),
             aliases   = aliases.filter { it.isNotBlank() },
         )
+        // Two custom foods sharing a name break Compose's LazyColumn key uniqueness in
+        // CustomFoodScreen and make deleteByName() delete every row with that name
+        // instead of just one. When no explicit id is given (a fresh "Add", not a
+        // rename/update of a known row), reuse an existing same-name row's id instead
+        // of creating a silent duplicate — "Add" on an existing name updates it in place.
+        val resolvedId = id ?: dao.observeAll(profileId).first()
+            .firstOrNull { it.name.equals(entry.name, ignoreCase = true) }?.id
+            ?: UUID.randomUUID().toString()
         dao.insert(CustomFoodEntity(
-            id            = id ?: UUID.randomUUID().toString(),
+            id            = resolvedId,
             name          = entry.name,
             category      = "other",
             nutritionJson = jsonAdapter.toJson(CustomFoodJson(
@@ -82,9 +89,6 @@ class CustomFoodRepository @Inject constructor(
 
     suspend fun delete(id: String) = dao.delete(id)
 
-    suspend fun deleteByName(name: String, profileId: String = "default") =
-        dao.deleteByName(name, profileId)
-
     /**
      * CustomFoodScreen previously had delete as its only entry point — a typo
      * in a custom food's name could never be fixed without deleting and
@@ -96,7 +100,14 @@ class CustomFoodRepository @Inject constructor(
     suspend fun rename(id: String, newName: String) {
         require(newName.isNotBlank()) { "Custom food name must not be blank" }
         val existing = dao.findById(id) ?: return
-        dao.insert(existing.copy(name = newName.trim()))
+        val trimmed = newName.trim()
+        // Renaming onto another custom food's name would leave two rows sharing a
+        // name (the same crash/over-deletion hazard save() guards against) — skip
+        // silently rather than create the duplicate.
+        val collision = dao.observeAll(existing.profileId).first()
+            .any { it.id != id && it.name.equals(trimmed, ignoreCase = true) }
+        if (collision) return
+        dao.insert(existing.copy(name = trimmed))
     }
 
     /**

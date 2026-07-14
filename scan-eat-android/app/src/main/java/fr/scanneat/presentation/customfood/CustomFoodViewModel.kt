@@ -59,8 +59,9 @@ class CustomFoodViewModel @Inject constructor(
         }
     }
 
-    fun delete(name: String) {
-        viewModelScope.launch { repo.deleteByName(name) }
+    /** Deletes by stable row id (not name) so two custom foods sharing a name can't cause one delete to remove both. */
+    fun delete(id: String) {
+        viewModelScope.launch { repo.delete(id) }
     }
 
     fun rename(id: String, newName: String) {

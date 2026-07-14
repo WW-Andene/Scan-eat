@@ -78,14 +78,17 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
 
 @Composable
 private fun BmiChip(m: MetabolicResult) {
-    val color = when (m.bmiClass) {
-        BiolismBmiCategory.NORMAL      -> semanticGreen()
-        BiolismBmiCategory.UNDERWEIGHT -> semanticAmber()
-        BiolismBmiCategory.OVERWEIGHT  -> semanticAmber()
-        BiolismBmiCategory.OBESE       -> semanticRed()
+    // m.bmiClass.name previously rendered the raw Kotlin enum identifier (e.g. "NORMAL")
+    // verbatim in every language — WeightScreen already has the equivalent localized
+    // labels for these same 4 categories, reused here instead.
+    val (label, color) = when (m.bmiClass) {
+        BiolismBmiCategory.NORMAL      -> stringResource(R.string.weight_bmi_normal) to semanticGreen()
+        BiolismBmiCategory.UNDERWEIGHT -> stringResource(R.string.weight_bmi_underweight) to semanticAmber()
+        BiolismBmiCategory.OVERWEIGHT  -> stringResource(R.string.weight_bmi_overweight) to semanticAmber()
+        BiolismBmiCategory.OBESE       -> stringResource(R.string.weight_bmi_obese) to semanticRed()
     }
     Surface(shape = RoundedCornerShape(4.dp), color = color.copy(0.15f), border = BorderStroke(1.dp, color.copy(0.3f))) {
-        Text(m.bmiClass.name, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
+        Text(label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
     }
 }

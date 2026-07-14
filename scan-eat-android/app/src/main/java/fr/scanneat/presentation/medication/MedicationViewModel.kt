@@ -14,33 +14,45 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
-// Known high-risk keyword patterns: maps a label to a set of name substrings.
+/** Drug class used for keyword-based interaction detection — labelled/localized in MedicationScreen, not here (a ViewModel has no stringResource()). */
+enum class DrugGroup {
+    ANTICOAGULANTS, ANTIPLATELETS, NSAIDS, SSRI_SNRI, MAOI
+}
+
+/** A detected medication-interaction risk, safety-relevant so it must render in the user's own app language, not a hardcoded one. */
+sealed class InteractionWarning {
+    data class GroupDuplicate(val group: DrugGroup) : InteractionWarning()
+    data object AnticoagNsaid : InteractionWarning()
+    data object SsriMaoi : InteractionWarning()
+}
+
+// Known high-risk keyword patterns: maps a drug class to a set of name substrings.
 // If two or more medications from the same risk group are active simultaneously,
 // an interaction warning is surfaced.
 private val INTERACTION_GROUPS = mapOf(
-    "anticoagulants" to listOf("warfarine", "coumadine", "acenocoumarol", "rivaroxaban", "apixaban", "dabigatran", "héparine"),
-    "antiagrégants"  to listOf("aspirine", "clopidogrel", "prasugrel", "ticagrelor"),
-    "AINS"           to listOf("ibuprofène", "naproxène", "kétoprofène", "diclofénac", "indométacine", "méloxicam"),
-    "ISRS/IRSN"      to listOf("sertraline", "fluoxétine", "paroxétine", "venlafaxine", "duloxétine", "escitalopram"),
-    "IMAO"           to listOf("phénelzine", "tranylcypromine", "moclobémide", "sélégiline"),
+    DrugGroup.ANTICOAGULANTS to listOf("warfarine", "coumadine", "acenocoumarol", "rivaroxaban", "apixaban", "dabigatran", "héparine"),
+    DrugGroup.ANTIPLATELETS  to listOf("aspirine", "clopidogrel", "prasugrel", "ticagrelor"),
+    DrugGroup.NSAIDS         to listOf("ibuprofène", "naproxène", "kétoprofène", "diclofénac", "indométacine", "méloxicam"),
+    DrugGroup.SSRI_SNRI      to listOf("sertraline", "fluoxétine", "paroxétine", "venlafaxine", "duloxétine", "escitalopram"),
+    DrugGroup.MAOI           to listOf("phénelzine", "tranylcypromine", "moclobémide", "sélégiline"),
 )
 
-private fun detectInteractions(meds: List<Medication>): List<String> {
+private fun detectInteractions(meds: List<Medication>): List<InteractionWarning> {
     val activeNames = meds.filter { it.active }.map { it.name.lowercase() }
-    val warnings = mutableListOf<String>()
+    val warnings = mutableListOf<InteractionWarning>()
     // Same-group duplicates (e.g., two anticoagulants)
     for ((group, keywords) in INTERACTION_GROUPS) {
         val matches = activeNames.count { name -> keywords.any { name.contains(it) } }
-        if (matches >= 2) warnings += "Plusieurs $group actifs simultanément — risque hémorragique"
+        if (matches >= 2) warnings += InteractionWarning.GroupDuplicate(group)
     }
     // Anticoagulant + NSAID cross-group risk
-    val hasAnticoag = activeNames.any { name -> INTERACTION_GROUPS["anticoagulants"]!!.any { name.contains(it) } }
-    val hasAin      = activeNames.any { name -> INTERACTION_GROUPS["AINS"]!!.any { name.contains(it) } }
-    if (hasAnticoag && hasAin) warnings += "Anticoagulant + AINS — risque hémorragique élevé"
+    val hasAnticoag = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.ANTICOAGULANTS]!!.any { name.contains(it) } }
+    val hasAin      = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.NSAIDS]!!.any { name.contains(it) } }
+    if (hasAnticoag && hasAin) warnings += InteractionWarning.AnticoagNsaid
     // SSRI/SNRI + MAOI serotonin syndrome risk
-    val hasSsri = activeNames.any { name -> INTERACTION_GROUPS["ISRS/IRSN"]!!.any { name.contains(it) } }
-    val hasMaoi = activeNames.any { name -> INTERACTION_GROUPS["IMAO"]!!.any { name.contains(it) } }
-    if (hasSsri && hasMaoi) warnings += "ISRS/IRSN + IMAO — risque de syndrome sérotoninergique"
+    val hasSsri = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.SSRI_SNRI]!!.any { name.contains(it) } }
+    val hasMaoi = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.MAOI]!!.any { name.contains(it) } }
+    if (hasSsri && hasMaoi) warnings += InteractionWarning.SsriMaoi
     return warnings
 }
 
@@ -59,7 +71,7 @@ class MedicationViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Improvement: keyword-based interaction warnings for the active medication list.
-    val interactionWarnings: StateFlow<List<String>> = medications
+    val interactionWarnings: StateFlow<List<InteractionWarning>> = medications
         .map { detectInteractions(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

@@ -33,6 +33,7 @@
     <string name="scan_needs_photo">Produit non trouvé dans la base — photographiez l\'étiquette pour continuer</string>
     <string name="scan_flash_toggle">Activer/désactiver le flash</string>
     <string name="scan_capture">Capturer</string>
+    <string name="scan_capture_error">Échec de la capture photo — réessayez</string>
     <string name="scan_instant_toggle">Mode instantané</string>
 
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
@@ -483,6 +484,7 @@
     <string name="biolism_datascreen_empty_tab_hint">Onglet Profil</string>
     <string name="biolism_unit_week">s</string>
     <string name="biolism_unit_day">j</string>
+    <string name="biolism_unit_month">mois</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
@@ -548,8 +550,11 @@
     <string name="profile_section_body">Corps</string>
     <string name="profile_section_measurements">Mesures corporelles (Métabolisme)</string>
     <string name="profile_field_waist">Tour de taille (cm)</string>
+    <string name="profile_field_waist_imperial">Tour de taille (in)</string>
     <string name="profile_field_hip">Tour de hanches (cm)</string>
+    <string name="profile_field_hip_imperial">Tour de hanches (in)</string>
     <string name="profile_field_neck">Tour de cou (cm)</string>
+    <string name="profile_field_neck_imperial">Tour de cou (in)</string>
     <string name="profile_field_ethnicity">Origine ethnique</string>
     <string name="profile_section_activity">Activité</string>
     <string name="profile_section_diet">Alimentation</string>
@@ -559,7 +564,9 @@
     <string name="profile_field_height">Taille (cm)</string>
     <string name="profile_field_height_imperial">Taille (in)</string>
     <string name="profile_field_weight">Poids actuel (kg)</string>
+    <string name="profile_field_weight_imperial">Poids actuel (lb)</string>
     <string name="profile_field_goal_weight">Poids cible (kg)</string>
+    <string name="profile_field_goal_weight_imperial">Poids cible (lb)</string>
     <string name="profile_menstruating_checkbox">En âge menstruel (ajuste le besoin en fer)</string>
     <string name="profile_allergen_hint">Sélectionne les allergènes à surveiller</string>
     <string name="profile_section_conditions">Conditions de santé</string>
@@ -808,6 +815,14 @@
     <string name="medication_reminder_time_label">Heure (HH:mm)</string>
     <string name="medication_interaction_title">Interaction potentielle</string>
     <string name="medication_interaction_cta">Consultez votre médecin ou pharmacien.</string>
+    <string name="medication_interaction_group_dup">Plusieurs %1$s actifs simultanément — risque hémorragique</string>
+    <string name="medication_interaction_anticoag_nsaid">Anticoagulant + AINS — risque hémorragique élevé</string>
+    <string name="medication_interaction_ssri_maoi">ISRS/IRSN + IMAO — risque de syndrome sérotoninergique</string>
+    <string name="medication_group_anticoagulants">anticoagulants</string>
+    <string name="medication_group_antiplatelets">antiagrégants</string>
+    <string name="medication_group_nsaids">AINS</string>
+    <string name="medication_group_ssri_snri">ISRS/IRSN</string>
+    <string name="medication_group_maoi">IMAO</string>
     <string name="medication_today_summary_title">Prise du jour</string>
     <string name="activity_calendar_day_logged">%1$s : activité enregistrée</string>
     <string name="activity_calendar_day_empty">%1$s : aucune activité</string>
@@ -1107,6 +1122,8 @@
     <string name="notif_channel_custom">Rappels personnalisés</string>
     <string name="notif_summary_title">Bilan du jour</string>
     <string name="notif_summary_body">%1$d kcal journalisées · %2$d repas</string>
+    <string name="reminders_daily_digest_title">Bilan quotidien (21h00)</string>
+    <string name="reminders_daily_digest_subtitle">Résumé de vos scans, hydratation et repas du jour</string>
     <string name="reminders_title">Rappels</string>
     <string name="reminders_enable_notifications">Activer les notifications</string>
     <string name="reminders_notif_breakfast_title">Petit-déjeuner</string>

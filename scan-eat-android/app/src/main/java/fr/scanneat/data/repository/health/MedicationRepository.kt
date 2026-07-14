@@ -67,12 +67,17 @@ class MedicationRepository @Inject constructor(
             name = name.trim(), dosage = dosage.trim(), scheduleNote = scheduleNote.trim(),
             barcode = barcode, active = active, reminderOn = reminderOn, reminderTime = reminderTime,
         )
-        dao.upsert(medication.toEntity(System.currentTimeMillis(), profileId))
+        // Editing an existing medication (rename/dosage change, called with its own id)
+        // previously re-stamped createdAt to now on every save, same bug as setActive()
+        // below — preserve the original row's createdAt when one exists.
+        val createdAt = id?.let { dao.findById(it)?.createdAt } ?: System.currentTimeMillis()
+        dao.upsert(medication.toEntity(createdAt, profileId))
         return medication
     }
 
     suspend fun setActive(medication: Medication, active: Boolean, profileId: String = "default") {
-        dao.upsert(medication.copy(active = active).toEntity(System.currentTimeMillis(), profileId))
+        val createdAt = dao.findById(medication.id)?.createdAt ?: System.currentTimeMillis()
+        dao.upsert(medication.copy(active = active).toEntity(createdAt, profileId))
     }
 
     suspend fun delete(id: String) = dao.delete(id)

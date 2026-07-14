@@ -75,7 +75,7 @@ scan-eat-server/
 │   ├── shared/
 │   │   ├── DomainModels.kt     Domain types (copied from Android, same package)
 │   │   ├── AdditivesDb.kt      70+ EFSA/IARC-cited additive entries
-│   │   ├── ScoringEngine.kt    5-pillar scoring engine v2.2.0 (pure, no I/O)
+│   │   ├── ScoringEngine.kt    5-pillar scoring engine (pure, no I/O — see ENGINE_VERSION)
 │   │   ├── ServerOffMapper.kt  OFF API response → domain Product
 │   │   └── DomainToDto.kt      domain → @Serializable API response
 │   └── routing/

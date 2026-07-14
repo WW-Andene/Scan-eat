@@ -65,7 +65,13 @@ internal fun FastingRow(
             if (active) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.biolism_fasting_time_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
-                    listOf("6h" to 6.0, "12h" to 12.0, "24h" to 24.0, "1s" to 168.0, "1m" to 720.0).forEach { (label, h) ->
+                    // "1s"/"1m" (French abbreviations for "1 semaine"/"1 mois") previously
+                    // stayed hardcoded regardless of language - unlike fastFmt above, which
+                    // already localizes its week/day units. "1m" in particular reads as
+                    // "1 minute" to an English-locale user.
+                    val weekLabel = "1${stringResource(R.string.biolism_unit_week)}"
+                    val monthLabel = "1${stringResource(R.string.biolism_unit_month)}"
+                    listOf("6h" to 6.0, "12h" to 12.0, "24h" to 24.0, weekLabel to 168.0, monthLabel to 720.0).forEach { (label, h) ->
                         StepperChip(label = label, color = Violet, onMinus = { onAddHours(-h) }, onPlus = { onAddHours(h) })
                     }
                 }

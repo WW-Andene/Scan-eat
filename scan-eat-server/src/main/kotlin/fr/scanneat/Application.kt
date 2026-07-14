@@ -14,6 +14,7 @@ import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -53,6 +54,13 @@ fun Application.module() {
     // ---- Services (singleton pattern — no DI framework for simplicity) ----
     val groqService = GroqService()
     val offService  = OffService()
+    // Both services expose close() for their underlying CIO HttpClient, but nothing
+    // called it — harmless under normal process-exit (the OS reclaims the sockets),
+    // but wire it up properly so it's not dead cleanup code.
+    environment.monitor.subscribe(ApplicationStopping) {
+        groqService.close()
+        offService.close()
+    }
 
     // ---- Plugins ----
     install(ContentNegotiation) {
@@ -64,6 +72,16 @@ fun Application.module() {
     }
     install(CallLogging) { level = Level.INFO }
     install(DefaultHeaders)
+    // RateLimiter and fetchRecipeRoute's SSRF guard both key off request.origin.remoteHost.
+    // Without this plugin that's always the direct TCP peer - every deployment this README
+    // recommends (Docker behind a reverse proxy, Railway/Render/Fly.io) puts a proxy in
+    // front, so remoteHost is the proxy's own IP for every client and the whole client base
+    // collapses into one rate-limit bucket. XForwardedHeaders makes remoteHost follow
+    // X-Forwarded-For instead. This trusts whatever sits directly in front of the process;
+    // if this server is ever exposed with no reverse proxy at all, a caller could forge
+    // X-Forwarded-For to spoof a distinct client key per request and evade the limiter -
+    // acceptable here since every documented deployment path already terminates behind one.
+    install(XForwardedHeaders)
     // Some reverse proxies/orchestrators/uptime monitors send HEAD (not GET)
     // for liveness checks - without this, /health only answers GET and those
     // probes see a 404/405 instead of a clean liveness signal.

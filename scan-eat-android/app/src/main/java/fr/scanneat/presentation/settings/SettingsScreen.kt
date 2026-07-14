@@ -100,7 +100,7 @@ fun SettingsScreen(
             val wrote = runCatching {
                 context.contentResolver.openOutputStream(uri)?.use { it.write(state.json.toByteArray()) }
             }.isSuccess
-            if (wrote) viewModel.clearBackupState() else viewModel.reportExportWriteFailed()
+            if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
         } else {
             viewModel.clearBackupState()
         }
@@ -111,7 +111,7 @@ fun SettingsScreen(
             val wrote = runCatching {
                 context.contentResolver.openOutputStream(uri)?.use { it.write(state.csv.toByteArray()) }
             }.isSuccess
-            if (wrote) viewModel.clearBackupState() else viewModel.reportExportWriteFailed()
+            if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
         } else {
             viewModel.clearBackupState()
         }
@@ -124,12 +124,12 @@ fun SettingsScreen(
             // as malformed, risking an OOM on a huge or mis-picked file.
             val size = runCatching { context.contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize } }.getOrNull()
             if (size != null && size > MAX_BACKUP_IMPORT_BYTES) {
-                viewModel.reportExportWriteFailed()
+                viewModel.reportBackupIoFailed()
             } else {
                 val json = runCatching {
                     context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                 }.getOrNull()
-                if (json != null) viewModel.importFromJson(json) else viewModel.reportExportWriteFailed()
+                if (json != null) viewModel.importFromJson(json) else viewModel.reportBackupIoFailed()
             }
         }
     }

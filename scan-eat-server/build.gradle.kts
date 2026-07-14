@@ -34,6 +34,7 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-default-headers-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-forwarded-header-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-compression-jvm:$ktor_version")
     // Lets HEAD requests hit any GET route (notably /health) without a duplicate
     // handler - some reverse proxies, container platforms, and uptime monitors

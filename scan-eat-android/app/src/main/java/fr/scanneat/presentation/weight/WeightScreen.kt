@@ -119,7 +119,16 @@ fun WeightScreen(
                             Column {
                                 Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
                                 val sign = if (s.deltaKg >= 0) "+" else ""
-                                val dColor = if (s.deltaKg <= 0) semanticGreen() else semanticRed()
+                                // Previously hardcoded "down = green, up = red" regardless of the
+                                // user's actual goal — a user with a gain goal (goalWeightKg above
+                                // current weight, e.g. a bulk/recovery program) saw progress toward
+                                // their own goal colored red.
+                                val wantsGain = goalWeightKg.value?.let { it > s.latestKg } ?: false
+                                val dColor = if (wantsGain) {
+                                    if (s.deltaKg >= 0) semanticGreen() else semanticRed()
+                                } else {
+                                    if (s.deltaKg <= 0) semanticGreen() else semanticRed()
+                                }
                                 Text(stringResource(R.string.weight_delta_kg, "$sign${s.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = dColor)
                             }
                             Column(horizontalAlignment = Alignment.End) {

@@ -78,15 +78,32 @@ fun MedicationScreen(
                 }
             }
 
-            // Improvement: drug interaction warning banners
+            // Improvement: drug interaction warning banners. Safety-relevant text, so it
+            // must follow the app's own language setting rather than a hardcoded one —
+            // the ViewModel returns typed InteractionWarning values (it has no
+            // stringResource() access) and this is where they're localized.
             if (interactionWarnings.value.isNotEmpty()) {
                 items(interactionWarnings.value) { warning ->
+                    val message = when (warning) {
+                        is InteractionWarning.GroupDuplicate -> {
+                            val groupLabel = when (warning.group) {
+                                DrugGroup.ANTICOAGULANTS -> stringResource(R.string.medication_group_anticoagulants)
+                                DrugGroup.ANTIPLATELETS  -> stringResource(R.string.medication_group_antiplatelets)
+                                DrugGroup.NSAIDS         -> stringResource(R.string.medication_group_nsaids)
+                                DrugGroup.SSRI_SNRI      -> stringResource(R.string.medication_group_ssri_snri)
+                                DrugGroup.MAOI           -> stringResource(R.string.medication_group_maoi)
+                            }
+                            stringResource(R.string.medication_interaction_group_dup, groupLabel)
+                        }
+                        is InteractionWarning.AnticoagNsaid -> stringResource(R.string.medication_interaction_anticoag_nsaid)
+                        is InteractionWarning.SsriMaoi      -> stringResource(R.string.medication_interaction_ssri_maoi)
+                    }
                     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f), modifier = Modifier.fillMaxWidth()) {
                         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             Icon(Icons.Default.Warning, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
                             Column {
                                 Text(stringResource(R.string.medication_interaction_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
-                                Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
+                                Text(message, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
                                 Text(stringResource(R.string.medication_interaction_cta), style = MaterialTheme.typography.labelSmall, color = semanticRed().copy(0.6f))
                             }
                         }

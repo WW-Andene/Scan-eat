@@ -113,7 +113,7 @@ fun DashboardScreen(
             s.weekly?.let { item { BestWorstDayCard(rollup = it, targets = s.targets, language = language.value) } }
 
             // ---- Monthly trend ----
-            s.monthly?.let { item { MonthlyTrendCard(rollup = it, targets = s.targets) } }
+            s.monthly?.let { item { MonthlyTrendCard(rollup = it, targets = s.targets, language = language.value) } }
 
             // ---- Week-over-week delta ----
             s.weekDelta?.let { delta ->

@@ -50,6 +50,17 @@ class ProfileViewModel @Inject constructor(
     val biolismProfile: StateFlow<BiolismProfile> = biolismRepo.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BiolismProfile())
 
+    // Same app-wide, persisted metric/imperial preference WeightViewModel reads/writes —
+    // previously this screen ignored it entirely and always treated typed values as
+    // cm/kg, so a user in imperial mode elsewhere could type a pound value here and
+    // have it silently stored as kilograms.
+    val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setUseImperial(v: Boolean) {
+        viewModelScope.launch { prefs.setUseImperialWeight(v) }
+    }
+
     fun save(profile: Profile) {
         viewModelScope.launch {
             prefs.saveProfile(profile)

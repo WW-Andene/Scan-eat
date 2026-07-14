@@ -86,6 +86,13 @@ class OffService {
     private val cache = ConcurrentHashMap<String, CacheEntry>()
     private val cacheTtlMs = 10 * 60 * 1000L // 10 minutes
 
+    // /api/score accepts any 6-14 digit barcode string from anonymous callers, and a
+    // distinct barcode never hits the TTL-based reuse above - only a size cap actually
+    // bounds memory, the same way AdditivesDb.kt's lookup cache is capped (this one
+    // used to have no size limit at all, only a TTL that never fires for keys that
+    // are never looked up again).
+    private val maxCacheEntries = 20_000
+
     /**
      * Fetch a product from OFF by barcode, retrying against every plausible
      * alternate encoding of the same GTIN on a miss. Scanners hand back the
@@ -117,6 +124,7 @@ class OffService {
             val result = deferred.await()
             if (result != null) { found = result; break }
         }
+        if (cache.size >= maxCacheEntries) cache.clear()
         cache[digits] = CacheEntry(found, now + cacheTtlMs)
         found
     }

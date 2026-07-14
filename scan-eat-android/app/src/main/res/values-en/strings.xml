@@ -33,6 +33,7 @@
     <string name="scan_needs_photo">Product not found in the database — photograph the label to continue</string>
     <string name="scan_flash_toggle">Toggle flash</string>
     <string name="scan_capture">Capture</string>
+    <string name="scan_capture_error">Photo capture failed — try again</string>
     <string name="scan_instant_toggle">Instant mode</string>
 
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
@@ -482,6 +483,7 @@
     <string name="biolism_datascreen_empty_tab_hint">Profile tab</string>
     <string name="biolism_unit_week">w</string>
     <string name="biolism_unit_day">d</string>
+    <string name="biolism_unit_month">mo</string>
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
@@ -547,8 +549,11 @@
     <string name="profile_section_body">Body</string>
     <string name="profile_section_measurements">Body measurements (Metabolism)</string>
     <string name="profile_field_waist">Waist circumference (cm)</string>
+    <string name="profile_field_waist_imperial">Waist circumference (in)</string>
     <string name="profile_field_hip">Hip circumference (cm)</string>
+    <string name="profile_field_hip_imperial">Hip circumference (in)</string>
     <string name="profile_field_neck">Neck circumference (cm)</string>
+    <string name="profile_field_neck_imperial">Neck circumference (in)</string>
     <string name="profile_field_ethnicity">Ethnicity</string>
     <string name="profile_section_activity">Activity</string>
     <string name="profile_section_diet">Diet</string>
@@ -558,7 +563,9 @@
     <string name="profile_field_height">Height (cm)</string>
     <string name="profile_field_height_imperial">Height (in)</string>
     <string name="profile_field_weight">Current weight (kg)</string>
+    <string name="profile_field_weight_imperial">Current weight (lb)</string>
     <string name="profile_field_goal_weight">Goal weight (kg)</string>
+    <string name="profile_field_goal_weight_imperial">Goal weight (lb)</string>
     <string name="profile_menstruating_checkbox">Of menstruating age (adjusts iron needs)</string>
     <string name="profile_allergen_hint">Select the allergens to watch for</string>
     <string name="profile_section_conditions">Health conditions</string>
@@ -1081,6 +1088,8 @@
     <string name="notif_channel_custom">Custom reminders</string>
     <string name="notif_summary_title">Daily digest</string>
     <string name="notif_summary_body">%1$d kcal logged · %2$d meals</string>
+    <string name="reminders_daily_digest_title">Daily digest (9:00 PM)</string>
+    <string name="reminders_daily_digest_subtitle">Summary of today\'s scans, hydration, and meals</string>
     <string name="reminders_title">Reminders</string>
     <string name="reminders_enable_notifications">Enable notifications</string>
     <string name="reminders_notif_breakfast_title">Breakfast</string>
@@ -1132,6 +1141,14 @@
     <string name="medication_reminder_time_label">Time (HH:mm)</string>
     <string name="medication_interaction_title">Potential interaction</string>
     <string name="medication_interaction_cta">Consult your doctor or pharmacist.</string>
+    <string name="medication_interaction_group_dup">Several %1$s active at the same time — bleeding risk</string>
+    <string name="medication_interaction_anticoag_nsaid">Anticoagulant + NSAID — high bleeding risk</string>
+    <string name="medication_interaction_ssri_maoi">SSRI/SNRI + MAOI — risk of serotonin syndrome</string>
+    <string name="medication_group_anticoagulants">anticoagulants</string>
+    <string name="medication_group_antiplatelets">antiplatelets</string>
+    <string name="medication_group_nsaids">NSAIDs</string>
+    <string name="medication_group_ssri_snri">SSRIs/SNRIs</string>
+    <string name="medication_group_maoi">MAOIs</string>
     <string name="medication_today_summary_title">Today\'s doses</string>
     <string name="activity_calendar_day_logged">%1$s: activity logged</string>
     <string name="activity_calendar_day_empty">%1$s: no activity</string>

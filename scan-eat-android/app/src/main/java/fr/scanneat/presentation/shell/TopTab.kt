@@ -33,4 +33,7 @@ val HIDDEN_NAV_ROUTES = setOf(
     // not a tab root, so the bottom nav stayed visible underneath its own
     // TopAppBar back arrow, showing two "go back" affordances at once.
     AppRoutes.FAVORITES,
+    // Same gap, reintroduced for Calendar — it's also a full-screen nested route
+    // with its own TopAppBar back arrow (reachable from Dashboard/Diary).
+    AppRoutes.CALENDAR,
 )

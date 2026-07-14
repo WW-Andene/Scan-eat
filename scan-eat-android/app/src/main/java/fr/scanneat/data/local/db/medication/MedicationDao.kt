@@ -14,6 +14,9 @@ interface MedicationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: MedicationEntity)
 
+    @Query("SELECT * FROM medications WHERE id = :id")
+    suspend fun findById(id: String): MedicationEntity?
+
     @Query("DELETE FROM medications WHERE id = :id")
     suspend fun delete(id: String)
 

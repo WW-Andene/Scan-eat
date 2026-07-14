@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import fr.scanneat.presentation.activity.typeLabels
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -259,8 +260,12 @@ private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale) {
                         val totalMin = detail.activities.sumOf { it.minutes }
                         val totalKcal = detail.activities.sumOf { it.kcalBurned }
                         DetailRow(colorFor(CalendarSource.ACTIVITY), stringResource(R.string.calendar_day_activity, detail.activities.size, totalMin, totalKcal))
+                        // Was a.type.labelFr - always French regardless of the app's language
+                        // setting. ActivityScreen already has localized labels for these same
+                        // types, reused here instead.
+                        val activityTypeLabels = typeLabels()
                         detail.activities.forEach { a ->
-                            Text("· ${a.type.labelFr} (${a.minutes} min)", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Text("· ${activityTypeLabels[a.type] ?: a.type.name} (${a.minutes} min)", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                         }
                     }
                     if (detail.hydrationMl > 0) {

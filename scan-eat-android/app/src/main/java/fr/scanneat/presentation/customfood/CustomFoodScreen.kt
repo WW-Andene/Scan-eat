@@ -2,7 +2,7 @@ package fr.scanneat.presentation.customfood
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,7 +32,7 @@ fun CustomFoodScreen(
     val latestScan = viewModel.latestScan.collectAsStateWithLifecycle()
     val avgKcal = viewModel.avgKcal.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
-    var deleteTarget by remember { mutableStateOf<String?>(null) }
+    var deleteTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to name
     var renameTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to current name
 
     val displayList = if (query.value.isBlank()) foods.value else results.value
@@ -146,11 +146,18 @@ fun CustomFoodScreen(
                     }
                 }
 
-                items(displayList, key = { it.name }) { entry ->
+                // Indexed (rather than keyed purely on name) so two entries that happen to
+                // share a display name — e.g. a custom food named the same as a built-in
+                // FOOD_DB hit while searching — can never collide on a LazyColumn key and
+                // crash Compose.
+                itemsIndexed(displayList, key = { index, entry -> "$index:${entry.name}" }) { _, entry ->
                     FoodEntryRow(
                         entry    = entry,
                         isCustom = entry.name in customNames,
-                        onDelete = { deleteTarget = entry.name },
+                        onDelete = {
+                            foodsWithId.value.firstOrNull { it.second.name == entry.name }
+                                ?.let { (id, _) -> deleteTarget = id to entry.name }
+                        },
                         onRename = {
                             // Previously delete was the only entry point — a typo in a
                             // custom food's name could never be fixed without deleting
@@ -178,10 +185,10 @@ fun CustomFoodScreen(
     }
 
     // Delete confirmation — shared dialog, same as Weight/Templates/Recipes/Activity.
-    deleteTarget?.let { name ->
+    deleteTarget?.let { (id, name) ->
         DeleteConfirmDialog(
             itemName  = name,
-            onConfirm = { viewModel.delete(name); deleteTarget = null },
+            onConfirm = { viewModel.delete(id); deleteTarget = null },
             onDismiss = { deleteTarget = null },
         )
     }

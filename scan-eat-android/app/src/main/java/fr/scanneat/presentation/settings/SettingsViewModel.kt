@@ -112,7 +112,8 @@ class SettingsViewModel @Inject constructor(
 
     fun clearScanHistory() = viewModelScope.launch { backupRepository.clearScanHistory() }
 
-    fun reportExportWriteFailed() { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) }
+    /** Also used for import read/size failures, not just export writes — name says "IO" for that reason. */
+    fun reportBackupIoFailed() { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) }
     fun clearBackupState() { _backupState.value = BackupUiState.Idle }
 
     /** Total scan history + diary entry counts — shown in the backup section so users

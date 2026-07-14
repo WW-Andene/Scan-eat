@@ -119,7 +119,12 @@ class ReminderWorker @AssistedInject constructor(
     ) {
         if (!on) return
         val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return
-        val dueNow = !now.isBefore(target) && now.isBefore(target.plusHours(3)) && !remindersRepo.wasFiredToday(lastFiredKey)
+        // Wrap the day boundary explicitly: for targets in the evening (e.g. 22:00),
+        // target.plusHours(3) rolls over past midnight (01:00), and comparing raw
+        // LocalTime values via isBefore/isAfter breaks because "now" (still in the
+        // evening) is never isBefore an earlier-looking wrapped clock time.
+        val secondsSinceTarget = (now.toSecondOfDay() - target.toSecondOfDay()).let { if (it < 0) it + 86400 else it }
+        val dueNow = secondsSinceTarget < 3 * 3600 && !remindersRepo.wasFiredToday(lastFiredKey)
         if (dueNow) {
             NotificationHelper.show(applicationContext, notifId, title, text, channel)
             remindersRepo.markFiredToday(lastFiredKey)

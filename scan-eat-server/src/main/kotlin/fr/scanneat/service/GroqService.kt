@@ -34,6 +34,9 @@ const val DEFAULT_GROQ_MODEL    = "meta-llama/llama-4-scout-17b-16e-instruct"
 const val FALLBACK_GROQ_MODEL   = "llama-3.3-70b-versatile"
 const val GROQ_ENDPOINT         = "https://api.groq.com/openai/v1/chat/completions"
 
+/** Models /api/score's caller-supplied `model` field is allowed to select — see ScoreRoute.kt. */
+val ALLOWED_GROQ_MODELS = setOf(DEFAULT_GROQ_MODEL, FALLBACK_GROQ_MODEL)
+
 // ---- Wire types ----
 
 @Serializable

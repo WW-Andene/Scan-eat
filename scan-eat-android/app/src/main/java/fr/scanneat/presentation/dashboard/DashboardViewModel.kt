@@ -198,18 +198,22 @@ class DashboardViewModel @Inject constructor(
             // user's own custom food (now possible since closeTheGap/chronicNutrientGaps
             // are given FOOD_DB + custom foods) would silently no-op here otherwise.
             val food = (FOOD_DB + customFoodRepo.observeAll().first()).find { it.name == suggestion.name } ?: return@launch
-            consumptionRepo.log(
-                DiaryEntry(
-                    date        = LocalDate.now(),
-                    mealSlot    = defaultMealForHour(LocalTime.now().hour),
-                    productName = food.name,
-                    barcode     = null,
-                    portionG    = suggestion.grams.toDouble(),
-                    nutrition   = food.toProduct(suggestion.grams.toDouble()).nutrition,
-                    source      = ScanSource.MANUAL,
+            // Unguarded suspend DB write previously crashed the app on any Room insert
+            // failure (disk-full, constraint violation) — ResultViewModel.log() guards
+            // its equivalent call the same way.
+            runCatching {
+                consumptionRepo.log(
+                    DiaryEntry(
+                        date        = LocalDate.now(),
+                        mealSlot    = defaultMealForHour(LocalTime.now().hour),
+                        productName = food.name,
+                        barcode     = null,
+                        portionG    = suggestion.grams.toDouble(),
+                        nutrition   = food.toProduct(suggestion.grams.toDouble()).nutrition,
+                        source      = ScanSource.MANUAL,
+                    )
                 )
-            )
-            _gapLoggedName.value = food.name
+            }.onSuccess { _gapLoggedName.value = food.name }
         }
     }
 

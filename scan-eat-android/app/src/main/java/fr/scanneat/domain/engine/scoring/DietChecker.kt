@@ -260,8 +260,17 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
         }
     }
 
-    val certified              = preferredHits.isNotEmpty()
-    val certificationOverride  = certified && dietKey in CERTIFICATION_OVERRIDE_DIETS
+    // Only diets whose `preferred` list is actual certification marks (halal/kosher/
+    // vegan seals) should report certified=true. MEDITERRANEAN's `preferred` list is
+    // diet-friendly ingredient words ("poisson", "tomate"...), not certifications - it
+    // isn't in CERTIFICATION_OVERRIDE_DIETS, so without this guard `certified` was
+    // defined identically to `preferredHits.isNotEmpty()` for every diet, making
+    // PersonalScoreEngine's separate "certification detected" (+5) vs "diet-friendly
+    // ingredients" (+3) branches collapse into always taking the former — the
+    // preferredHits-only branch below could never actually run, and Mediterranean
+    // matches (e.g. "poisson") were mislabeled as a nonexistent "certification".
+    val certified              = preferredHits.isNotEmpty() && dietKey in CERTIFICATION_OVERRIDE_DIETS
+    val certificationOverride  = certified
     val compliant              = certificationOverride || violations.isEmpty()
     val effectiveViolations    = if (certificationOverride) emptyList() else violations
 

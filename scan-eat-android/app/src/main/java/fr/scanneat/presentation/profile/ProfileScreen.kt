@@ -25,6 +25,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.ETHNICITY_OPTIONS
 import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.model.*
+import fr.scanneat.presentation.biolism.bioProfile.BioInputUnit
 import fr.scanneat.presentation.profile.components.ActivitySelector
 import fr.scanneat.presentation.profile.components.AllergenSelector
 import fr.scanneat.presentation.profile.components.ConditionsSelector
@@ -51,6 +52,7 @@ fun ProfileScreen(
     val saved   = viewModel.saved.collectAsStateWithLifecycle()
     val biolismProfile = viewModel.biolismProfile.collectAsStateWithLifecycle()
     val bmiCat = viewModel.bmiCat.collectAsStateWithLifecycle()
+    val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
 
     // Local mutable state mirrors the saved profile
     var name       by remember(profile.value.id) { mutableStateOf(profile.value.name) }
@@ -236,10 +238,34 @@ fun ProfileScreen(
             }
 
             // ---- Body ----
+            // Same app-wide metric/imperial preference as the Weight tab (prefs.useImperialWeight)
+            // - these fields previously always treated typed input as cm/kg regardless of that
+            // setting, so a user in imperial mode could silently save a pound value as kilograms.
             ProfileSection(stringResource(R.string.profile_section_body)) {
-                OutlinedInput(stringResource(R.string.profile_field_height), heightCm, KeyboardType.Decimal) { heightCm = it }
-                OutlinedInput(stringResource(R.string.profile_field_weight), weightKg, KeyboardType.Decimal) { weightKg = it }
-                OutlinedInput(stringResource(R.string.profile_field_goal_weight), goalWeightKg, KeyboardType.Decimal) { goalWeightKg = it }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
+                            FilterChip(
+                                selected = useImperial.value == imperial,
+                                onClick = { viewModel.setUseImperial(imperial) },
+                                label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                            )
+                        }
+                    }
+                }
+                BioInputUnit(
+                    stringResource(R.string.profile_field_height), stringResource(R.string.profile_field_height_imperial),
+                    heightCm, useImperial.value, { it / 2.54 }, { it * 2.54 },
+                ) { heightCm = it }
+                BioInputUnit(
+                    stringResource(R.string.profile_field_weight), stringResource(R.string.profile_field_weight_imperial),
+                    weightKg, useImperial.value, { it * 2.20462 }, { it / 2.20462 },
+                ) { weightKg = it }
+                BioInputUnit(
+                    stringResource(R.string.profile_field_goal_weight), stringResource(R.string.profile_field_goal_weight_imperial),
+                    goalWeightKg, useImperial.value, { it * 2.20462 }, { it / 2.20462 },
+                ) { goalWeightKg = it }
                 if (sex == Sex.FEMALE) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
@@ -258,9 +284,18 @@ fun ProfileScreen(
             // user who never opens Métabolisme can still benefit from Navy BF%/WHtR
             // calculations that need these.
             ProfileSection(stringResource(R.string.profile_section_measurements)) {
-                OutlinedInput(stringResource(R.string.profile_field_waist), waistCm, KeyboardType.Decimal) { waistCm = it }
-                OutlinedInput(stringResource(R.string.profile_field_hip), hipCm, KeyboardType.Decimal) { hipCm = it }
-                OutlinedInput(stringResource(R.string.profile_field_neck), neckCm, KeyboardType.Decimal) { neckCm = it }
+                BioInputUnit(
+                    stringResource(R.string.profile_field_waist), stringResource(R.string.profile_field_waist_imperial),
+                    waistCm, useImperial.value, { it / 2.54 }, { it * 2.54 },
+                ) { waistCm = it }
+                BioInputUnit(
+                    stringResource(R.string.profile_field_hip), stringResource(R.string.profile_field_hip_imperial),
+                    hipCm, useImperial.value, { it / 2.54 }, { it * 2.54 },
+                ) { hipCm = it }
+                BioInputUnit(
+                    stringResource(R.string.profile_field_neck), stringResource(R.string.profile_field_neck_imperial),
+                    neckCm, useImperial.value, { it / 2.54 }, { it * 2.54 },
+                ) { neckCm = it }
                 Text(stringResource(R.string.profile_field_ethnicity), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                 val isFrench = Locale.current.language == "fr"
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

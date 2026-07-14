@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -74,6 +75,7 @@ fun ScanScreen(
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
     val recentBarcodes = viewModel.recentBarcodes.collectAsStateWithLifecycle()
     val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
+    val captureErrorMessage = stringResource(R.string.scan_capture_error)
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
     // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
@@ -151,6 +153,10 @@ fun ScanScreen(
                 onBarcodeDetected = { viewModel.onBarcodeDetected(it) },
                 onPhotoCaptured   = { viewModel.addPhoto(it) },
                 onCameraError     = { cameraUnavailable = true },
+                // A capture failure is transient (unlike a bind failure) - don't drop into
+                // the full manual-entry fallback, just surface it so the shutter button
+                // doesn't look silently broken.
+                onCaptureError    = { Toast.makeText(context, captureErrorMessage, Toast.LENGTH_SHORT).show() },
                 onBarcodeBounds   = { rect, w, h -> barcodeBounds = Triple(rect, w, h) },
                 onBoundsCleared   = { barcodeBounds = null; viewModel.onBarcodeLost() },
             )

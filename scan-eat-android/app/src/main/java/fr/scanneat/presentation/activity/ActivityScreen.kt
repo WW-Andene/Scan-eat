@@ -37,8 +37,10 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
+// internal (not private) so CalendarScreen's day-detail panel can reuse the same
+// localized labels instead of falling back to ActivityType.labelFr.
 @Composable
-private fun typeLabels(): Map<ActivityType, String> = mapOf(
+internal fun typeLabels(): Map<ActivityType, String> = mapOf(
     ActivityType.WALKING_BRISK to stringResource(R.string.activity_type_walking),
     ActivityType.RUNNING to stringResource(R.string.activity_type_running),
     ActivityType.CYCLING to stringResource(R.string.activity_type_cycling),
