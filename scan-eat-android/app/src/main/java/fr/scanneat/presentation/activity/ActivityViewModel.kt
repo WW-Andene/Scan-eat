@@ -86,11 +86,34 @@ class ActivityViewModel @Inject constructor(
     val weeklyMinutes: StateFlow<Int> = yearRange
         .map { all ->
             val today = LocalDate.now()
-            // ISO week starts Monday
             val monday = today.minusDays(today.dayOfWeek.value.toLong() - 1)
             all.filter { it.date >= monday && it.date <= today }.sumOf { it.minutes }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    /** New: week-over-week trend — positive = more active this week than last.
+     *  Computed from same yearRange read, no extra query. */
+    val weekTrendPct: StateFlow<Int?> = yearRange
+        .map { all ->
+            val today = LocalDate.now()
+            val thisMonday  = today.minusDays(today.dayOfWeek.value.toLong() - 1)
+            val lastMonday  = thisMonday.minusDays(7)
+            val lastSunday  = thisMonday.minusDays(1)
+            val thisMin  = all.filter { it.date >= thisMonday && it.date <= today }.sumOf { it.minutes }
+            val lastMin  = all.filter { it.date >= lastMonday && it.date <= lastSunday }.sumOf { it.minutes }
+            if (lastMin == 0) null else ((thisMin - lastMin).toDouble() / lastMin * 100).toInt()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /** Improvement: activity types sorted by most-recently-used first, so the
+     *  most common workout type appears at the top of the add-entry chip row. */
+    val sortedActivityTypes: StateFlow<List<ActivityType>> = yearRange
+        .map { all ->
+            val lastUsed = all.groupBy { it.type }
+                .mapValues { (_, entries) -> entries.maxOf { it.date } }
+            ActivityType.entries.sortedByDescending { lastUsed[it] }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ActivityType.entries)
 
     // Refresh to today if the date has changed since last foreground (e.g. app kept alive overnight)
     fun refreshDate() {
