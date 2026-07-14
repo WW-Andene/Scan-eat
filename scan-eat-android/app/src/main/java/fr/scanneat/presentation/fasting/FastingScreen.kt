@@ -79,14 +79,23 @@ private fun Fasting7DayChart(history: List<FastCompletion>) {
     }
 }
 
-private data class MetabolicPhase(val label: String, val description: String, val minHours: Int)
+private data class MetabolicPhase(val label: String, val description: String, val minHours: Int, val labelEn: String = label, val descriptionEn: String = description) {
+    fun label(lang: String) = if (lang == "en") labelEn else label
+    fun description(lang: String) = if (lang == "en") descriptionEn else description
+}
 private val METABOLIC_PHASES = listOf(
-    MetabolicPhase("Glycogène",    "L'organisme consomme ses réserves de glucose",      0),
-    MetabolicPhase("Transition",   "Début de la gluconéogenèse, glycogène en baisse",   8),
-    MetabolicPhase("Combustion",   "Les graisses deviennent la source d'énergie principale", 12),
-    MetabolicPhase("Cétose",       "Production de corps cétoniques, clarté mentale",    16),
-    MetabolicPhase("Cétose prof.", "Cétose profonde, énergie stable et soutenue",       20),
-    MetabolicPhase("Autophagie",   "Recyclage cellulaire (autophagie) activé",          24),
+    MetabolicPhase("Glycogène",    "L'organisme consomme ses réserves de glucose",      0,
+        "Glycogen",    "Body is burning stored glucose reserves"),
+    MetabolicPhase("Transition",   "Début de la gluconéogenèse, glycogène en baisse",   8,
+        "Transition",  "Gluconeogenesis begins, glycogen falling"),
+    MetabolicPhase("Combustion",   "Les graisses deviennent la source d'énergie principale", 12,
+        "Fat Burn",    "Fat becomes the primary energy source"),
+    MetabolicPhase("Cétose",       "Production de corps cétoniques, clarté mentale",    16,
+        "Ketosis",     "Ketone bodies produced, mental clarity"),
+    MetabolicPhase("Cétose prof.", "Cétose profonde, énergie stable et soutenue",       20,
+        "Deep Ketosis","Deep ketosis, stable sustained energy"),
+    MetabolicPhase("Autophagie",   "Recyclage cellulaire (autophagie) activé",          24,
+        "Autophagy",   "Cellular recycling (autophagy) activated"),
 )
 private fun metabolicPhase(elapsedHours: Int): MetabolicPhase =
     METABOLIC_PHASES.lastOrNull { elapsedHours >= it.minHours } ?: METABOLIC_PHASES.first()
@@ -104,9 +113,11 @@ fun FastingScreen(
     embedded: Boolean = false,
     onOpenCalendar: () -> Unit = {},
 ) {
-    val state   = viewModel.fastingState.collectAsStateWithLifecycle()
-    val history = viewModel.history.collectAsStateWithLifecycle()
-    val streak  = viewModel.streak.collectAsStateWithLifecycle()
+    val state          = viewModel.fastingState.collectAsStateWithLifecycle()
+    val history        = viewModel.history.collectAsStateWithLifecycle()
+    val streak         = viewModel.streak.collectAsStateWithLifecycle()
+    val language       = viewModel.language.collectAsStateWithLifecycle()
+    val personalRecord = viewModel.personalRecord.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle() // force recomposition every second
 
     var targetHours by remember { mutableIntStateOf(16) }
@@ -174,16 +185,25 @@ fun FastingScreen(
                             Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
 
-                            // Improvement: metabolic phase indicator
+                            // Metabolic phase indicator (now bilingual)
                             val phase = metabolicPhase(h)
                             val nextPhase = METABOLIC_PHASES.firstOrNull { it.minHours > h }
+                            val lang = language.value
                             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.1f)) {
                                 Column(modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text("Phase · ${phase.label}", style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
-                                    Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
+                                    Text(stringResource(R.string.fasting_phase_label, phase.label(lang)), style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
+                                    Text(phase.description(lang), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
                                     if (nextPhase != null) {
-                                        Text("Prochaine : ${nextPhase.label} à ${nextPhase.minHours}h", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                                        Text(stringResource(R.string.fasting_phase_next, nextPhase.label(lang), nextPhase.minHours), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
                                     }
+                                }
+                            }
+                            // Personal-record chip — shown when the current fast already
+                            // beats the user's longest historically completed fast.
+                            val pr = personalRecord.value
+                            if (pr > 0 && h >= pr) {
+                                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Gold.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Gold.copy(0.4f))) {
+                                    Text(stringResource(R.string.fasting_new_record), modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS), style = MaterialTheme.typography.labelMedium, color = Gold, fontWeight = FontWeight.Bold)
                                 }
                             }
 

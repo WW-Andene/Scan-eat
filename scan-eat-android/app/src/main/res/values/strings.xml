@@ -859,6 +859,9 @@
     <string name="fasting_stat_avg">Moy.</string>
     <string name="fasting_stat_record">Record</string>
     <string name="fasting_7day_chart_title">7 derniers jours</string>
+    <string name="fasting_phase_label">Phase · %1$s</string>
+    <string name="fasting_phase_next">Prochain : %1$s à %2$dh</string>
+    <string name="fasting_new_record">🏆 Nouveau record !</string>
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Paramètres</string>

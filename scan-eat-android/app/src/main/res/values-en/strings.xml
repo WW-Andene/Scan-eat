@@ -833,6 +833,9 @@
     <string name="fasting_stat_avg">Avg</string>
     <string name="fasting_stat_record">Best</string>
     <string name="fasting_7day_chart_title">Last 7 days</string>
+    <string name="fasting_phase_label">Phase · %1$s</string>
+    <string name="fasting_phase_next">Next: %1$s at %2$dh</string>
+    <string name="fasting_new_record">🏆 New personal record!</string>
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Settings</string>
