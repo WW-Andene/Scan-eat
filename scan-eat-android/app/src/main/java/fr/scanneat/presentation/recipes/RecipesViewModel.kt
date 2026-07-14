@@ -57,6 +57,11 @@ class RecipesViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    /** Total custom-recipe count regardless of the active goal filter — used to
+     *  show "X/Y résultats" in the filter row when a filter is active. */
+    val totalRecipesCount: StateFlow<Int> = _allRecipes.map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     /**
      * recipe id -> short warning, e.g. "Contains gluten (your allergen)" or
      * "Not vegan: chicken". checkDiet()/checkUserAllergens() previously only

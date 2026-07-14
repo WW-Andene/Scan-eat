@@ -983,6 +983,11 @@
     <string name="templates_cd_new">Nouveau modèle de repas</string>
     <string name="templates_add_dialog_title">Nouveau modèle de repas</string>
     <string name="recipes_empty_body">Aucune recette. Créez votre première recette multi-ingrédients.</string>
+    <string name="recipes_filter_all">Tous</string>
+    <string name="recipes_filter_high_protein">Riche protéines</string>
+    <string name="recipes_filter_low_carb">Low-carb</string>
+    <string name="recipes_filter_low_fat">Faible en gras</string>
+    <string name="recipes_filter_results">%1$d/%2$d résultats</string>
     <string name="recipes_summary">%1$d kcal · %2$d ingrédients · %3$d g</string>
     <string name="recipes_pairs_well_with">Se marie bien avec : %1$s</string>
     <string name="recipes_add_dialog_title">Nouvelle recette</string>

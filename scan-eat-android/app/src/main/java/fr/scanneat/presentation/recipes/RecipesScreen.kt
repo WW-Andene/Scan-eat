@@ -36,6 +36,7 @@ fun RecipesScreen(
     val officialWarnings = viewModel.officialRecipeWarnings.collectAsStateWithLifecycle()
     val pairings = viewModel.recipePairings.collectAsStateWithLifecycle()
     val goalFilter = viewModel.goalFilter.collectAsStateWithLifecycle()
+    val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -83,18 +84,29 @@ fun RecipesScreen(
             }
             item {
                 val filterOptions = listOf(
-                    RecipesViewModel.GoalFilter.ALL to "Tous",
-                    RecipesViewModel.GoalFilter.HIGH_PROTEIN to "Riche protéines",
-                    RecipesViewModel.GoalFilter.LOW_CARB to "Low-carb",
-                    RecipesViewModel.GoalFilter.LOW_FAT to "Faible en gras",
+                    RecipesViewModel.GoalFilter.ALL         to stringResource(R.string.recipes_filter_all),
+                    RecipesViewModel.GoalFilter.HIGH_PROTEIN to stringResource(R.string.recipes_filter_high_protein),
+                    RecipesViewModel.GoalFilter.LOW_CARB    to stringResource(R.string.recipes_filter_low_carb),
+                    RecipesViewModel.GoalFilter.LOW_FAT     to stringResource(R.string.recipes_filter_low_fat),
                 )
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    items(filterOptions) { (filter, label) ->
-                        FilterChip(
-                            selected = goalFilter.value == filter,
-                            onClick = { viewModel.setGoalFilter(filter) },
-                            label = { Text(label) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                val total = totalRecipesCount.value
+                val filtered = recipes.value.size
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                        items(filterOptions) { (filter, label) ->
+                            FilterChip(
+                                selected = goalFilter.value == filter,
+                                onClick = { viewModel.setGoalFilter(filter) },
+                                label = { Text(label) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                            )
+                        }
+                    }
+                    if (goalFilter.value != RecipesViewModel.GoalFilter.ALL && total > 0) {
+                        Text(
+                            stringResource(R.string.recipes_filter_results, filtered, total),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = OnBackground.copy(0.5f),
                         )
                     }
                 }

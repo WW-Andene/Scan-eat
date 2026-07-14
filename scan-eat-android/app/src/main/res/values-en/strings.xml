@@ -957,6 +957,11 @@
     <string name="templates_cd_new">New meal template</string>
     <string name="templates_add_dialog_title">New Meal Template</string>
     <string name="recipes_empty_body">No recipes yet. Create your first multi-ingredient recipe.</string>
+    <string name="recipes_filter_all">All</string>
+    <string name="recipes_filter_high_protein">High protein</string>
+    <string name="recipes_filter_low_carb">Low-carb</string>
+    <string name="recipes_filter_low_fat">Low fat</string>
+    <string name="recipes_filter_results">%1$d/%2$d results</string>
     <string name="recipes_summary">%1$d kcal · %2$d ingredients · %3$d g</string>
     <string name="recipes_pairs_well_with">Pairs well with: %1$s</string>
     <string name="recipes_add_dialog_title">New Recipe</string>
