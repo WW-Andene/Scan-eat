@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ fun CustomFoodScreen(
     val foodsWithId = viewModel.foodsWithId.collectAsStateWithLifecycle()
     val query   = viewModel.query.collectAsStateWithLifecycle()
     val results = viewModel.searchResults.collectAsStateWithLifecycle()
+    val latestScan = viewModel.latestScan.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to current name
@@ -54,7 +56,6 @@ fun CustomFoodScreen(
         containerColor = Background,
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            val customNames = remember(foods.value) { foods.value.mapTo(hashSetOf()) { it.name } }
             // Search bar
             OutlinedTextField(
                 value = query.value,
@@ -75,6 +76,35 @@ fun CustomFoodScreen(
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 colors = scanEatTextFieldColors(),
             )
+
+            // Import from last scan banner — surfaces when the most recent scan isn't
+            // already saved as a custom food, offering a one-tap import.
+            val scan = latestScan.value
+            val customNames = remember(foods.value) { foods.value.mapTo(hashSetOf()) { it.name } }
+            if (scan != null && scan.product.name !in customNames) {
+                Surface(
+                    color = AccentCoral.copy(0.1f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
+                ) {
+                    Row(
+                        Modifier.padding(Spacing.S),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                    ) {
+                        Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                        Text(
+                            "Importer « ${scan.product.name} » depuis le dernier scan",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = AccentCoral,
+                            modifier = Modifier.weight(1f),
+                        )
+                        IconButton(onClick = { viewModel.importFromScan(scan) }, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Add, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                        }
+                    }
+                }
+            }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),

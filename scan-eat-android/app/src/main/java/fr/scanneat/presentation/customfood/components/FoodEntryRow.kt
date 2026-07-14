@@ -26,9 +26,12 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
@@ -68,11 +71,27 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> U
                     }
                 }
             }
-            Text(
-                stringResource(R.string.customfood_macro_summary, entry.kcal.toInt(), entry.proteinG.toInt(), entry.carbsG.toInt(), entry.fatG.toInt()),
-                style = MaterialTheme.typography.bodySmall,
-                color = OnSurface.copy(0.55f),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Text(
+                    stringResource(R.string.customfood_macro_summary, entry.kcal.toInt(), entry.proteinG.toInt(), entry.carbsG.toInt(), entry.fatG.toInt()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = OnSurface.copy(0.55f),
+                )
+                // Nutrient density score: protein (4 kcal/g) + fiber (2 kcal/g) vs total kcal.
+                // Surfaces how "nutrient-dense" vs calorie-dense a food is at a glance.
+                if (entry.kcal > 0) {
+                    val score = ((entry.proteinG * 4 + entry.fiberG * 2) / entry.kcal * 100).toInt().coerceIn(0, 100)
+                    val (scoreColor, scoreLabel) = when {
+                        score >= 40 -> semanticGreen() to "D+$score"
+                        score >= 20 -> Gold to "D$score"
+                        else        -> semanticRed() to "D$score"
+                    }
+                    Surface(shape = RoundedCornerShape(4.dp), color = scoreColor.copy(0.15f)) {
+                        Text(scoreLabel, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                            style = MaterialTheme.typography.labelSmall, color = scoreColor)
+                    }
+                }
+            }
         }
         if (isCustom) {
             IconButton(onClick = onRename, modifier = Modifier.size(32.dp)) {

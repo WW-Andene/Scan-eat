@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -16,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CustomFoodViewModel @Inject constructor(
     private val repo: CustomFoodRepository,
+    private val scanRepo: ScanRepository,
 ) : ViewModel() {
 
     val foods: StateFlow<List<FoodEntry>> = repo.observeAll()
@@ -63,5 +66,27 @@ class CustomFoodViewModel @Inject constructor(
     fun rename(id: String, newName: String) {
         if (newName.isBlank()) return
         viewModelScope.launch { repo.rename(id, newName) }
+    }
+
+    // New: expose the most recent scan so the user can import its nutrition directly
+    // as a custom food — previously every custom food had to be entered from scratch
+    // even when the user had just scanned the exact same product.
+    val latestScan: StateFlow<ScanResult?> = scanRepo.observeHistory(limit = 1)
+        .map { it.firstOrNull() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun importFromScan(scan: ScanResult) {
+        val n = scan.product.nutrition
+        viewModelScope.launch {
+            repo.save(
+                name     = scan.product.name,
+                kcal     = n.energyKcal,
+                proteinG = n.proteinG,
+                carbsG   = n.carbsG,
+                fatG     = n.fatG,
+                fiberG   = n.fiberG,
+                saltG    = n.saltG,
+            )
+        }
     }
 }
