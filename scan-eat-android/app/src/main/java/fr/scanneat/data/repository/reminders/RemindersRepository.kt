@@ -41,6 +41,8 @@ data class ReminderSettings(
     val weightOn: Boolean = false, val weightThresholdDays: Int = 1,
     val weightCustomOn: Boolean = false, val weightCustomTime: String = "12:00",
     val customReminders: List<CustomReminder> = emptyList(),
+    /** New: daily 21:00 digest notification summarising today's progress. */
+    val dailyDigestOn: Boolean = false,
 )
 
 private val Context.remindersDataStore by preferencesDataStore(name = "reminders")
@@ -97,6 +99,7 @@ class RemindersRepository @Inject constructor(
         // same calendar day, and a still-running fast that already notified
         // doesn't repeat every worker run.
         val K_LAST_FASTING_NOTIFIED_START = longPreferencesKey("rem_last_fasting_notified_start")
+        val K_DAILY_DIGEST_ON = booleanPreferencesKey("rem_daily_digest_on")
     }
 
     val settings: Flow<ReminderSettings> = storeData.map { p ->
@@ -115,6 +118,7 @@ class RemindersRepository @Inject constructor(
             weightCustomOn   = p[K_WEIGHT_CUSTOM_ON] ?: false,
             weightCustomTime = p[K_WEIGHT_CUSTOM_TIME] ?: "12:00",
             customReminders = customs,
+            dailyDigestOn   = p[K_DAILY_DIGEST_ON] ?: false,
         )
     }.distinctUntilChanged()
 
@@ -177,6 +181,7 @@ class RemindersRepository @Inject constructor(
         if (on) markStaleIfPast(it, time, K_LAST_HYDRATION_CUSTOM_DATE)
     }
     suspend fun setWeight(on: Boolean, thresholdDays: Int)    = store.edit { it[K_WEIGHT_ON] = on; it[K_WEIGHT_THRESHOLD] = thresholdDays }
+    suspend fun setDailyDigest(on: Boolean) = store.edit { it[K_DAILY_DIGEST_ON] = on }
     suspend fun setWeightCustom(on: Boolean, time: String) = store.edit {
         it[K_WEIGHT_CUSTOM_ON] = on; it[K_WEIGHT_CUSTOM_TIME] = time
         if (on) markStaleIfPast(it, time, K_LAST_WEIGHT_CUSTOM_DATE)

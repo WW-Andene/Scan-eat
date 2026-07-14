@@ -1,9 +1,11 @@
 package fr.scanneat.presentation.reminders
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.data.repository.reminders.ReminderSettings
 import fr.scanneat.notifications.NotificationHelper
 import fr.scanneat.presentation.reminders.components.AddCustomReminderDialog
 import fr.scanneat.presentation.reminders.components.CustomReminderRow
@@ -24,6 +27,19 @@ import fr.scanneat.presentation.reminders.components.PermissionBanner
 import fr.scanneat.presentation.reminders.components.ReminderRow
 import fr.scanneat.presentation.reminders.components.permissionState
 import fr.scanneat.presentation.ui.theme.*
+import java.time.LocalTime
+
+private fun nextReminderLabel(s: ReminderSettings): String? {
+    val now = LocalTime.now()
+    val upcoming = mutableListOf<Pair<LocalTime, String>>()
+    if (s.breakfastOn) runCatching { LocalTime.parse(s.breakfastTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to (s.breakfastLabel.ifBlank { "Petit-déjeuner" }) }
+    if (s.snackOn)     runCatching { LocalTime.parse(s.snackTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to (s.snackLabel.ifBlank { "Collation" }) }
+    if (s.lunchOn)     runCatching { LocalTime.parse(s.lunchTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to (s.lunchLabel.ifBlank { "Déjeuner" }) }
+    if (s.dinnerOn)    runCatching { LocalTime.parse(s.dinnerTime) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to (s.dinnerLabel.ifBlank { "Dîner" }) }
+    s.customReminders.filter { it.on }.forEach { cr -> runCatching { LocalTime.parse(cr.time) }.getOrNull()?.let { if (it.isAfter(now)) upcoming += it to cr.label } }
+    if (s.dailyDigestOn && LocalTime.of(21, 0).isAfter(now)) upcoming += LocalTime.of(21, 0) to "Bilan du jour"
+    return upcoming.minByOrNull { it.first }?.let { (t, label) -> "$label à ${t.hour}h${t.minute.toString().padStart(2,'0')}" }
+}
 
 @Composable
 fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
@@ -31,7 +47,19 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
     val s = viewModel.settings.collectAsStateWithLifecycle().value
     val (permGranted, permDenied, onRequest) = permissionState()
     ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+        // Improvement: show next upcoming reminder time
+        val nextLabel = nextReminderLabel(s)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+            if (nextLabel != null) {
+                Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.12f)) {
+                    Row(modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(Icons.Default.Schedule, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
+                        Text(nextLabel, style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                    }
+                }
+            }
+        }
         PermissionBanner(permGranted, permDenied, onRequest)
         ReminderRow(defaultLabel = stringResource(R.string.reminders_breakfast), customLabel = s.breakfastLabel, on = s.breakfastOn, time = s.breakfastTime,
             onToggle = { viewModel.setBreakfast(it, s.breakfastTime) }, onTimeChange = { viewModel.setBreakfast(s.breakfastOn, it) }, onLabelChange = { viewModel.setBreakfastLabel(it) },
@@ -57,6 +85,20 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
         }
         if (showAddDialog) {
             AddCustomReminderDialog(onConfirm = { label, time -> viewModel.addCustomReminder(label, time); showAddDialog = false }, onDismiss = { showAddDialog = false })
+        }
+
+        // New: daily digest toggle — a 21:00 notification summarising the day's progress
+        HorizontalDivider(color = OnBackground.copy(0.08f))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Bilan quotidien (21h00)", style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                Text("Résumé de vos scans, hydratation et repas du jour", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            }
+            Switch(
+                checked = s.dailyDigestOn,
+                onCheckedChange = { viewModel.setDailyDigest(it) },
+                colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
+            )
         }
     }
 }

@@ -36,4 +36,5 @@ class RemindersViewModel @Inject constructor(
     fun addCustomReminder(label: String, time: String) = viewModelScope.launch { repo.addCustomReminder(label, time) }
     fun updateCustomReminder(r: CustomReminder)        = viewModelScope.launch { repo.updateCustomReminder(r) }
     fun deleteCustomReminder(id: Int)                  = viewModelScope.launch { repo.deleteCustomReminder(id) }
+    fun setDailyDigest(on: Boolean)                    = viewModelScope.launch { repo.setDailyDigest(on) }
 }
