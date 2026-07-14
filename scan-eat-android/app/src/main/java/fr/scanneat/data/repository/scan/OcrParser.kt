@@ -2,6 +2,7 @@ package fr.scanneat.data.repository.scan
 
 import com.squareup.moshi.Moshi
 import fr.scanneat.data.remote.api.*
+import fr.scanneat.domain.engine.nutrition.declaredMicronutrientsOf
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.delay
 import retrofit2.HttpException
@@ -182,6 +183,29 @@ private fun coerceDouble(v: Any?, max: Double = 100.0): Double {
 
 private fun mapLlmToProduct(dto: LlmProductDto): Product {
     val n = dto.nutrition
+    val nutrition = NutritionPer100g(
+        energyKcal    = coerceDouble(n?.energy_kcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
+        fatG          = coerceDouble(n?.fat_g),
+        saturatedFatG = coerceDouble(n?.saturated_fat_g),
+        carbsG        = coerceDouble(n?.carbs_g),
+        sugarsG       = coerceDouble(n?.sugars_g),
+        addedSugarsG  = n?.added_sugars_g,
+        fiberG        = coerceDouble(n?.fiber_g),
+        proteinG      = coerceDouble(n?.protein_g),
+        saltG         = coerceDouble(n?.salt_g),
+        transFatG     = n?.trans_fat_g,
+        ironMg        = n?.iron_mg,
+        calciumMg     = n?.calcium_mg,
+        magnesiumMg   = n?.magnesium_mg,
+        potassiumMg   = n?.potassium_mg,
+        zincMg        = n?.zinc_mg,
+        vitAUg        = n?.vit_a_ug,
+        vitCMg        = n?.vit_c_mg,
+        vitDUg        = n?.vit_d_ug,
+        vitEMg        = n?.vit_e_mg,
+        vitKUg        = n?.vit_k_ug,
+        b12Ug         = n?.b12_ug,
+    )
     return Product(
         name      = dto.name?.trim() ?: "(produit sans nom)",
         category  = ProductCategory.fromKey(dto.category ?: "other"),
@@ -200,29 +224,7 @@ private fun mapLlmToProduct(dto: LlmProductDto): Product {
                 isWholeFood = ing.is_whole_food,
             )
         } ?: emptyList(),
-        nutrition = NutritionPer100g(
-            energyKcal    = coerceDouble(n?.energy_kcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
-            fatG          = coerceDouble(n?.fat_g),
-            saturatedFatG = coerceDouble(n?.saturated_fat_g),
-            carbsG        = coerceDouble(n?.carbs_g),
-            sugarsG       = coerceDouble(n?.sugars_g),
-            addedSugarsG  = n?.added_sugars_g,
-            fiberG        = coerceDouble(n?.fiber_g),
-            proteinG      = coerceDouble(n?.protein_g),
-            saltG         = coerceDouble(n?.salt_g),
-            transFatG     = n?.trans_fat_g,
-            ironMg        = n?.iron_mg,
-            calciumMg     = n?.calcium_mg,
-            magnesiumMg   = n?.magnesium_mg,
-            potassiumMg   = n?.potassium_mg,
-            zincMg        = n?.zinc_mg,
-            vitAUg        = n?.vit_a_ug,
-            vitCMg        = n?.vit_c_mg,
-            vitDUg        = n?.vit_d_ug,
-            vitEMg        = n?.vit_e_mg,
-            vitKUg        = n?.vit_k_ug,
-            b12Ug         = n?.b12_ug,
-        ),
+        nutrition = nutrition,
         organic               = dto.organic ?: false,
         wholeGrainPrimary     = dto.whole_grain_primary ?: false,
         fermented             = dto.fermented ?: false,
@@ -231,6 +233,10 @@ private fun mapLlmToProduct(dto: LlmProductDto): Product {
         namedOils             = dto.named_oils,
         origin                = dto.origin?.takeIf { it.isNotBlank() },
         weightG               = dto.weight_g,
+        // See OffMapper.mapOffProduct's identical fix - previously always empty
+        // for every real scan (barcode or photo), making the SEX/iron personal-
+        // score bonus and ProductHints' "Declared micronutrients" line dead code.
+        declaredMicronutrients = declaredMicronutrientsOf(nutrition),
     )
 }
 

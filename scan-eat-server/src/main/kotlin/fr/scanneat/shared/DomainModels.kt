@@ -92,6 +92,29 @@ data class NutritionPer100g(
     }
 }
 
+/**
+ * Which of [n]'s micronutrient fields OFF/LLM actually declared a value for -
+ * a non-null field means the source's own nutriments table explicitly carried
+ * that micronutrient for this product, i.e. it really is declared on the
+ * label. Mirrors the Android app's identical helper (OffMapper.kt) - used by
+ * both ServerOffMapper.mapOffProduct and LlmLabelParser.mapToProduct, which
+ * previously left Product.declaredMicronutrients permanently empty.
+ */
+fun declaredMicronutrientsOf(n: NutritionPer100g): List<String> = buildList {
+    if (n.ironMg != null) add("iron")
+    if (n.calciumMg != null) add("calcium")
+    if (n.magnesiumMg != null) add("magnesium")
+    if (n.potassiumMg != null) add("potassium")
+    if (n.zincMg != null) add("zinc")
+    if (n.vitAUg != null) add("vitaminA")
+    if (n.vitCMg != null) add("vitaminC")
+    if (n.vitDUg != null) add("vitaminD")
+    if (n.vitEMg != null) add("vitaminE")
+    if (n.vitKUg != null) add("vitaminK")
+    if (n.b12Ug != null) add("vitaminB12")
+    if (n.b6Mg != null) add("vitaminB6")
+}
+
 data class Ingredient(
     val name: String,
     val percentage: Double? = null,

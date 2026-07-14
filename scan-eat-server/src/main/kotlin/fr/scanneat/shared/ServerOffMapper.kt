@@ -114,42 +114,44 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
         if (it == ProductCategory.OTHER) inferCategoryFromName(name) else it
     }
 
+    val nutrition = NutritionPer100g(
+        // OFF's energy_100g fallback is in kJ, not kcal — convert
+        energyKcal    = numOrNull(nm["energy-kcal_100g"]) ?: (numOf(nm["energy_100g"]) / 4.184),
+        fatG          = numOf(nm["fat_100g"]),
+        saturatedFatG = numOf(nm["saturated-fat_100g"]),
+        carbsG        = numOf(nm["carbohydrates_100g"]),
+        sugarsG       = numOf(nm["sugars_100g"]),
+        addedSugarsG  = numOrNull(nm["added-sugars_100g"]),
+        fiberG        = numOf(nm["fiber_100g"]),
+        proteinG      = numOf(nm["proteins_100g"]),
+        // Some OFF records carry sodium_100g but not salt_100g - without a fallback
+        // those products silently scored saltG=0 for the negative-nutrients pillar
+        // even though a salt value is derivable from data already fetched. 2.5 is
+        // the standard sodium→salt conversion factor (NaCl molar mass ratio).
+        saltG         = numOrNull(nm["salt_100g"]) ?: (numOrNull(nm["sodium_100g"])?.times(2.5) ?: 0.0),
+        transFatG     = numOrNull(nm["trans-fat_100g"]),
+        ironMg        = numOrNull(nm["iron_100g"])?.times(1000),     // OFF in g → mg
+        calciumMg     = numOrNull(nm["calcium_100g"])?.times(1000),
+        magnesiumMg   = numOrNull(nm["magnesium_100g"])?.times(1000),
+        potassiumMg   = numOrNull(nm["potassium_100g"])?.times(1000),
+        zincMg        = numOrNull(nm["zinc_100g"])?.times(1000),
+        sodiumMg      = numOrNull(nm["sodium_100g"])?.times(1000),
+        vitAUg        = numOrNull(nm["vitamin-a_100g"])?.times(1_000_000),
+        vitCMg        = numOrNull(nm["vitamin-c_100g"])?.times(1000),
+        vitDUg        = numOrNull(nm["vitamin-d_100g"])?.times(1_000_000),
+        vitEMg        = numOrNull(nm["vitamin-e_100g"])?.times(1000),
+        vitKUg        = numOrNull(nm["vitamin-k_100g"])?.times(1_000_000),
+        b12Ug         = numOrNull(nm["vitamin-b12_100g"])?.times(1_000_000),
+        b6Mg          = numOrNull(nm["vitamin-b6_100g"])?.times(1000),
+        omega3G       = numOrNull(nm["omega-3-fat_100g"]),
+    )
+
     return Product(
         name        = name,
         category    = category,
         novaClass   = NovaClass.fromInt(raw.novaGroup ?: 4),
         ingredients = ingredients,
-        nutrition   = NutritionPer100g(
-            // OFF's energy_100g fallback is in kJ, not kcal — convert
-            energyKcal    = numOrNull(nm["energy-kcal_100g"]) ?: (numOf(nm["energy_100g"]) / 4.184),
-            fatG          = numOf(nm["fat_100g"]),
-            saturatedFatG = numOf(nm["saturated-fat_100g"]),
-            carbsG        = numOf(nm["carbohydrates_100g"]),
-            sugarsG       = numOf(nm["sugars_100g"]),
-            addedSugarsG  = numOrNull(nm["added-sugars_100g"]),
-            fiberG        = numOf(nm["fiber_100g"]),
-            proteinG      = numOf(nm["proteins_100g"]),
-            // Some OFF records carry sodium_100g but not salt_100g - without a fallback
-            // those products silently scored saltG=0 for the negative-nutrients pillar
-            // even though a salt value is derivable from data already fetched. 2.5 is
-            // the standard sodium→salt conversion factor (NaCl molar mass ratio).
-            saltG         = numOrNull(nm["salt_100g"]) ?: (numOrNull(nm["sodium_100g"])?.times(2.5) ?: 0.0),
-            transFatG     = numOrNull(nm["trans-fat_100g"]),
-            ironMg        = numOrNull(nm["iron_100g"])?.times(1000),     // OFF in g → mg
-            calciumMg     = numOrNull(nm["calcium_100g"])?.times(1000),
-            magnesiumMg   = numOrNull(nm["magnesium_100g"])?.times(1000),
-            potassiumMg   = numOrNull(nm["potassium_100g"])?.times(1000),
-            zincMg        = numOrNull(nm["zinc_100g"])?.times(1000),
-            sodiumMg      = numOrNull(nm["sodium_100g"])?.times(1000),
-            vitAUg        = numOrNull(nm["vitamin-a_100g"])?.times(1_000_000),
-            vitCMg        = numOrNull(nm["vitamin-c_100g"])?.times(1000),
-            vitDUg        = numOrNull(nm["vitamin-d_100g"])?.times(1_000_000),
-            vitEMg        = numOrNull(nm["vitamin-e_100g"])?.times(1000),
-            vitKUg        = numOrNull(nm["vitamin-k_100g"])?.times(1_000_000),
-            b12Ug         = numOrNull(nm["vitamin-b12_100g"])?.times(1_000_000),
-            b6Mg          = numOrNull(nm["vitamin-b6_100g"])?.times(1000),
-            omega3G       = numOrNull(nm["omega-3-fat_100g"]),
-        ),
+        nutrition   = nutrition,
         weightG         = parseWeightG(raw.quantity),
         origin          = raw.origins?.takeIf { it.isNotBlank() },
         organic         = organic,
@@ -157,6 +159,7 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
         ecoscoreValue   = raw.ecoscoreScore?.toDouble(),
         nutriscoreGrade = raw.nutritionGrades?.lowercase()?.firstOrNull()?.toString()?.takeIf { it.matches(Regex("[a-e]")) },
         declaredAllergenTags = raw.allergensTags.orEmpty(),
+        declaredMicronutrients = declaredMicronutrientsOf(nutrition),
     )
 }
 

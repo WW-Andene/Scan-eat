@@ -158,6 +158,28 @@ private object NutritionLimits {
 
 private fun mapToProduct(dto: LlmProductDto): Product {
     val n = dto.nutrition
+    val nutrition = NutritionPer100g(
+        energyKcal    = coerceNutrient(n?.energy_kcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
+        fatG          = coerceNutrient(n?.fat_g),
+        saturatedFatG = coerceNutrient(n?.saturated_fat_g),
+        carbsG        = coerceNutrient(n?.carbs_g),
+        sugarsG       = coerceNutrient(n?.sugars_g),
+        addedSugarsG  = n?.added_sugars_g,
+        fiberG        = coerceNutrient(n?.fiber_g),
+        proteinG      = coerceNutrient(n?.protein_g),
+        saltG         = coerceNutrient(n?.salt_g),
+        transFatG     = n?.trans_fat_g,
+        ironMg        = n?.iron_mg,
+        calciumMg     = n?.calcium_mg,
+        magnesiumMg   = n?.magnesium_mg,
+        potassiumMg   = n?.potassium_mg,
+        zincMg        = n?.zinc_mg,
+        vitAUg        = n?.vit_a_ug,
+        vitCMg        = n?.vit_c_mg,
+        vitDUg        = n?.vit_d_ug,
+        vitEMg        = n?.vit_e_mg,
+        b12Ug         = n?.b12_ug,
+    )
     return Product(
         name      = dto.name?.trim() ?: "(produit sans nom)",
         category  = ProductCategory.fromKey(dto.category ?: "other"),
@@ -176,28 +198,7 @@ private fun mapToProduct(dto: LlmProductDto): Product {
                 isWholeFood = ing.is_whole_food,
             )
         } ?: emptyList(),
-        nutrition = NutritionPer100g(
-            energyKcal    = coerceNutrient(n?.energy_kcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
-            fatG          = coerceNutrient(n?.fat_g),
-            saturatedFatG = coerceNutrient(n?.saturated_fat_g),
-            carbsG        = coerceNutrient(n?.carbs_g),
-            sugarsG       = coerceNutrient(n?.sugars_g),
-            addedSugarsG  = n?.added_sugars_g,
-            fiberG        = coerceNutrient(n?.fiber_g),
-            proteinG      = coerceNutrient(n?.protein_g),
-            saltG         = coerceNutrient(n?.salt_g),
-            transFatG     = n?.trans_fat_g,
-            ironMg        = n?.iron_mg,
-            calciumMg     = n?.calcium_mg,
-            magnesiumMg   = n?.magnesium_mg,
-            potassiumMg   = n?.potassium_mg,
-            zincMg        = n?.zinc_mg,
-            vitAUg        = n?.vit_a_ug,
-            vitCMg        = n?.vit_c_mg,
-            vitDUg        = n?.vit_d_ug,
-            vitEMg        = n?.vit_e_mg,
-            b12Ug         = n?.b12_ug,
-        ),
+        nutrition = nutrition,
         organic               = dto.organic ?: false,
         wholeGrainPrimary     = dto.whole_grain_primary ?: false,
         fermented             = dto.fermented ?: false,
@@ -206,6 +207,7 @@ private fun mapToProduct(dto: LlmProductDto): Product {
         namedOils             = dto.named_oils,
         origin                = dto.origin?.takeIf { it.isNotBlank() },
         weightG               = dto.weight_g,
+        declaredMicronutrients = declaredMicronutrientsOf(nutrition),
     )
 }
 
