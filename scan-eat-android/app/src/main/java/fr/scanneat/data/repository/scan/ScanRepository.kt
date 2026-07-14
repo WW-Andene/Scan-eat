@@ -88,6 +88,13 @@ class ScanRepository @Inject constructor(
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeFavorites(profileId).map { entities -> entities.mapNotNull { it.toDomain() } }
 
+    /**
+     * Searches the full history by product name/barcode, not just whatever
+     * window the caller happens to have loaded - see ScanHistoryDao.searchByName.
+     */
+    fun searchHistory(query: String, profileId: String = "default"): Flow<List<ScanResult>> =
+        dao.searchByName(query, profileId).map { entities -> entities.mapNotNull { it.toDomain() } }
+
     suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
 
     fun observeTodayScanCount(profileId: String = "default"): Flow<Int> {
@@ -121,8 +128,8 @@ class ScanRepository @Inject constructor(
      * @Transaction so two concurrent scans of the same barcode can't both read
      * "no existing row" and both insert a duplicate.
      */
-    suspend fun persist(result: ScanResult, profileId: String = "default"): Long =
-        dao.upsertByBarcode(result.barcode, profileId) { existingId, existingFavorite ->
+    suspend fun persist(result: ScanResult, profileId: String = "default"): Long {
+        val id = dao.upsertByBarcode(result.barcode, profileId) { existingId, existingFavorite ->
             ScanHistoryEntity(
                 id          = existingId,
                 barcode     = result.barcode,
@@ -138,6 +145,16 @@ class ScanRepository @Inject constructor(
                 favorite    = existingFavorite,
             )
         }
+        // Opportunistic retention trim - scan_history otherwise grows unbounded
+        // forever for distinct products (repeat scans of the *same* product
+        // already upsert in place above, so this only ever matters for a heavy
+        // user who scans thousands of distinct items). A no-op most of the time:
+        // the DELETE's NOT IN subquery returns every row once the table is under
+        // MAX_HISTORY_ROWS, so nothing matches and nothing is deleted. Favorites
+        // are never trimmed - see ScanHistoryDao.trimNonFavorites.
+        dao.trimNonFavorites(MAX_HISTORY_ROWS, profileId)
+        return id
+    }
 
     // ---- Score from barcode ----
 
@@ -187,13 +204,35 @@ class ScanRepository @Inject constructor(
         online: Boolean = true,
         identifyMode: Boolean = false,
     ): Result<Pair<ScanResult, Long>> = runCatching {
+        val result = identifyOrScoreFromImages(images, lang, online, identifyMode).getOrThrow()
+        Pair(result, persist(result))
+    }
+
+    /**
+     * Same identify/score logic scoreFromImages uses, without persisting - lets a
+     * caller inspect the result (e.g. check its product name against the
+     * medication/non-consumable lookup DBs) before deciding whether it's worth a
+     * scan_history row at all. Previously ScanViewModel.identifyFromPhotos() made
+     * a *separate* identifyProductName vision-LLM call just to get a name to check
+     * first, then this same identification work ran a second time via
+     * scoreFromImages(identifyMode = true) whenever the name didn't match either
+     * DB (the common case: fresh produce, plated dishes) - a second full image
+     * upload + model call for the exact same photos. Exposing the un-persisted
+     * result here lets the caller reuse one call for both purposes.
+     */
+    suspend fun identifyOrScoreFromImages(
+        images: List<ImagePayload>,
+        lang: String = "fr",
+        online: Boolean = true,
+        identifyMode: Boolean = false,
+    ): Result<ScanResult> = runCatching {
         if (!online) error(offlineMessage(lang))
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
         val cerebrasKey = prefs.cerebrasApiKey.first()
         val serverUrl = prefs.serverUrl.first()
 
-        val result = when (apiMode) {
+        when (apiMode) {
             ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode = null, lang = lang, model = DEFAULT_MODEL)
             ApiMode.DIRECT -> {
                 if (apiKey.isBlank() && cerebrasKey.isBlank()) error(missingApiKeyMessage(lang))
@@ -211,20 +250,6 @@ class ScanRepository @Inject constructor(
                 )
             }
         }
-        Pair(result, persist(result))
-    }
-
-    /**
-     * Reads just the printed product/brand name off a photo — the first step
-     * of "identify without a label", so a medication or non-consumable with
-     * no barcode at all can still be matched by name before falling back to
-     * scoring it as food (see ScanViewModel.identifyFromPhotos).
-     */
-    suspend fun identifyProductName(images: List<ImagePayload>): String? {
-        val apiKey = prefs.groqApiKey.first()
-        val cerebrasKey = prefs.cerebrasApiKey.first()
-        if (apiKey.isBlank() && cerebrasKey.isBlank()) return null
-        return ocrParser.identifyProductName(images, apiKey, cerebrasKey)
     }
 
     // ---- Server mode ----
@@ -502,6 +527,8 @@ class ScanRepository @Inject constructor(
     private companion object {
         /** Matches OcrParser.callWithRetry's per-candidate retry budget for the same class of transient error. */
         const val OFF_MAX_ATTEMPTS = 3
+        /** Generous cap on non-favorite scan_history rows per profile - see persist()/ScanHistoryDao.trimNonFavorites. */
+        const val MAX_HISTORY_ROWS = 5000
     }
 
     private fun ScanHistoryEntity.toDomain(): ScanResult? = runCatching {

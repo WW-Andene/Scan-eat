@@ -107,8 +107,9 @@ private fun normalizeForMatch(s: String): String =
 
 /**
  * Fallback for when there's no barcode/DataMatrix/QR to scan at all — OCR
- * reads the drug name off the box (see OcrParser.identifyProductName), and
- * this matches it against BDPM's ~12,300 entries by name instead. A linear
+ * reads the drug/product name off the box (see OcrParser.identifyFood, via
+ * ScanRepository.identifyOrScoreFromImages), and this matches it against
+ * BDPM's ~12,300 entries by name instead. A linear
  * scan is fine here: this only runs once per explicit user action ("identify
  * without a label"), never per camera frame. Accent/case-insensitive, and
  * matches on whichever direction (OCR text found within the BDPM name, or

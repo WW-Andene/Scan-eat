@@ -70,10 +70,20 @@ class ScanHistoryViewModel @Inject constructor(
     // and nameCollator are paired up-front to keep this at 5 arguments.
     private val sortAndCollator: Flow<Pair<HistorySort, Collator>> = combine(_sort, nameCollator) { sort, collator -> sort to collator }
 
-    val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, _query.debounce(200), _favoritesOnly, sortAndCollator) { scans, favs, q, favOnly, (sort, collator) ->
-        (if (favOnly) favs else scans)
-            .filter { q.isBlank() || it.product.name.contains(q, ignoreCase = true) || it.barcode?.contains(q) == true }
-            .let { list ->
+    // Previously "search" only ever filtered allScans/favoriteScans - the loaded
+    // window (default 200, expandable via loadMore), or the unbounded-but-
+    // favorites-only favoriteScans - client-side. A query for a genuinely old,
+    // non-favorite scan not yet loaded found nothing until loadMore() was tapped
+    // enough times to reach it. null means "no active search" (query blank),
+    // distinct from an empty result list, so filtered below knows whether to
+    // fall back to the loaded window or use these DB-searched results directly.
+    private val searchResults: Flow<List<ScanResult>?> = _query.debounce(200).flatMapLatest { q ->
+        if (q.isBlank()) flowOf(null) else repo.searchHistory(q)
+    }
+
+    val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, searchResults, _favoritesOnly, sortAndCollator) { scans, favs, searched, favOnly, (sort, collator) ->
+        val base = searched?.let { if (favOnly) it.filter { s -> s.favorite } else it } ?: (if (favOnly) favs else scans)
+        base.let { list ->
                 when (sort) {
                     HistorySort.RECENT      -> list
                     HistorySort.OLDEST      -> list.asReversed()

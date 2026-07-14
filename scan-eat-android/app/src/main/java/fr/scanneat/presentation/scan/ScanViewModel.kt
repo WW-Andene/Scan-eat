@@ -194,10 +194,13 @@ class ScanViewModel @Inject constructor(
      * scan — a medication or household product without any machine-readable
      * code, or fresh produce / a plated dish. Previously this always assumed
      * food (scoreFromImages' identifyMode), which would score a medication box
-     * as if it were something to eat. Now reads just the printed name first
-     * and checks it against the medication/non-consumable name-lookup DBs —
-     * only falling back to the food nutrition-estimate path when neither
-     * matches, same priority order as the barcode path in score() below.
+     * as if it were something to eat. Checks the identified product's name
+     * against the medication/non-consumable name-lookup DBs before treating
+     * it as food, same priority order as the barcode path in score() below -
+     * but via a single vision-LLM call (identifyOrScoreFromImages), not a
+     * separate identifyProductName call followed by a second, near-identical
+     * identifyFood call for the same photos whenever neither DB matched (the
+     * common case: fresh produce, plated dishes never match either lookup).
      */
     fun identifyFromPhotos() {
         val imgs = _images.value
@@ -212,20 +215,23 @@ class ScanViewModel @Inject constructor(
                     _state.value = ScanUiState.Error(noInputMessage(lang))
                     return@launch
                 }
-                val name = runCatching { scanRepo.identifyProductName(imgs) }.getOrNull()
-                if (name != null) {
-                    withContext(Dispatchers.IO) { findMedicationByName(appContext, name) }?.let { entry ->
-                        _state.value = ScanUiState.MedicationFound(entry)
-                        return@launch
-                    }
-                    withContext(Dispatchers.IO) { findNonConsumableByName(appContext, name) }?.let { entry ->
-                        _state.value = ScanUiState.NonConsumableFound(entry)
-                        return@launch
-                    }
-                }
-                val result = scanRepo.scoreFromImages(imgs, lang, online, identifyMode = true)
-                result.fold(
-                    onSuccess = { (scanResult, id) -> _state.value = ScanUiState.Success(scanResult, id) },
+                val identified = scanRepo.identifyOrScoreFromImages(imgs, lang, online, identifyMode = true)
+                identified.fold(
+                    onSuccess = { scanResult ->
+                        val name = scanResult.product.name
+                        val medication = withContext(Dispatchers.IO) { findMedicationByName(appContext, name) }
+                        val nonConsumable = if (medication == null) {
+                            withContext(Dispatchers.IO) { findNonConsumableByName(appContext, name) }
+                        } else null
+                        when {
+                            medication != null -> _state.value = ScanUiState.MedicationFound(medication)
+                            nonConsumable != null -> _state.value = ScanUiState.NonConsumableFound(nonConsumable)
+                            else -> {
+                                val id = scanRepo.persist(scanResult)
+                                _state.value = ScanUiState.Success(scanResult, id)
+                            }
+                        }
+                    },
                     onFailure = { e -> _state.value = ScanUiState.Error(e.message ?: genericErrorMessage(lang)) },
                 )
             } finally {

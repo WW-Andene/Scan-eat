@@ -81,9 +81,14 @@ private fun analyzeFrame(
                 var foundAny = false
                 for (bc in barcodes) {
                     val raw = bc.rawValue ?: continue
+                    // CODABAR: older/still-common on some pharmacy and blood-bank packaging
+                    // (e.g. some pre-DataMatrix French medication boxes) - like CODE_128/ITF
+                    // it's a symbology, not a fixed-length GTIN encoding, so the digit-length
+                    // filter below (unchanged) is what actually decides whether a decoded
+                    // value looks like a real product/medication barcode.
                     if (bc.format in listOf(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
                             Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E, Barcode.FORMAT_CODE_128,
-                            Barcode.FORMAT_ITF)) {
+                            Barcode.FORMAT_ITF, Barcode.FORMAT_CODABAR)) {
                         val digits = raw.filter { it.isDigit() }
                         if (digits.length in listOf(8, 12, 13, 14)) {
                             onBarcodeDetected(digits)

@@ -91,4 +91,37 @@ interface ScanHistoryDao {
 
     @Query("SELECT COUNT(*) FROM scan_history WHERE profileId = :profileId")
     fun observeTotalCount(profileId: String = "default"): Flow<Int>
+
+    /**
+     * Name/barcode search over the *entire* history, not just whatever window
+     * ScanHistoryViewModel happens to have loaded via observeRecent's LIMIT -
+     * previously "search" only ever filtered the already-loaded 200-row (or
+     * loadMore-expanded) window client-side, so searching for a genuinely old
+     * scan not yet loaded found nothing until the user kept hitting "load more"
+     * enough times to reach it. Bounded at 300 since this is a user-triggered
+     * lookup, not the main feed - generous for a search result list.
+     */
+    @Query("""
+        SELECT * FROM scan_history
+        WHERE profileId = :profileId AND (productName LIKE '%' || :query || '%' OR barcode LIKE '%' || :query || '%')
+        ORDER BY scannedAt DESC LIMIT 300
+    """)
+    fun searchByName(query: String, profileId: String = "default"): Flow<List<ScanHistoryEntity>>
+
+    /**
+     * Trims non-favorite rows for [profileId] down to the most recent [keepCount],
+     * oldest first - scan_history grows unbounded forever otherwise (persist()
+     * upserts by barcode so *repeat* scans of the same product don't grow the
+     * table, but distinct products do, with no age/count-based maintenance
+     * previously available besides the full per-profile clearAll wipe).
+     * Favorites are never trimmed - they're a user's deliberately curated subset.
+     */
+    @Query("""
+        DELETE FROM scan_history
+        WHERE profileId = :profileId AND favorite = 0 AND id NOT IN (
+            SELECT id FROM scan_history WHERE profileId = :profileId AND favorite = 0
+            ORDER BY scannedAt DESC LIMIT :keepCount
+        )
+    """)
+    suspend fun trimNonFavorites(keepCount: Int, profileId: String = "default")
 }
