@@ -35,6 +35,7 @@ fun GroceryScreen(
     viewModel: GroceryViewModel = hiltViewModel(),
     onBack: () -> Unit,
 ) {
+    var quickAddText by remember { mutableStateOf("") }
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
     val checkable = viewModel.checkableItems.collectAsStateWithLifecycle()
     val manualItemKeys = viewModel.manualItemKeys.collectAsStateWithLifecycle()
@@ -137,6 +138,28 @@ fun GroceryScreen(
             ) {
                 item { Spacer(Modifier.height(Spacing.XS)) }
                 item {
+                    // Inline quick-add — previously the only way to add a manual
+                    // item was via a "Save to grocery" button in an unrelated screen.
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        OutlinedTextField(
+                            value = quickAddText,
+                            onValueChange = { quickAddText = it },
+                            modifier = Modifier.weight(1f),
+                            placeholder = { Text(stringResource(R.string.grocery_quick_add_placeholder), color = OnBackground.copy(0.4f)) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
+                            colors = scanEatTextFieldColors(),
+                        )
+                        IconButton(
+                            onClick = { viewModel.quickAdd(quickAddText); quickAddText = "" },
+                            enabled = quickAddText.isNotBlank(),
+                            modifier = Modifier.size(40.dp),
+                        ) {
+                            Icon(Icons.Default.Add, stringResource(R.string.grocery_quick_add_cd), tint = if (quickAddText.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
+                        }
+                    }
+                }
+                item {
                     val (checked, total) = checkedProgress.value
                     Text(pluralStringResource(R.plurals.grocery_item_count, items.value.size, items.value.size),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
@@ -148,11 +171,20 @@ fun GroceryScreen(
                             color = semanticGreen(),
                             trackColor = OnBackground.copy(0.08f),
                         )
-                        Text(
-                            stringResource(R.string.grocery_checked_progress, checked, total),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = OnBackground.copy(0.4f),
-                        )
+                        if (checked == total) {
+                            Text(
+                                stringResource(R.string.grocery_all_done),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = semanticGreen(),
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                            )
+                        } else {
+                            Text(
+                                stringResource(R.string.grocery_checked_progress, checked, total),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = OnBackground.copy(0.4f),
+                            )
+                        }
                     }
                 }
                 items(checkable.value, key = { it.item.key }) { checkableItem ->

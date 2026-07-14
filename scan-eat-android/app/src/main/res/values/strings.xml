@@ -520,6 +520,9 @@
     <string name="grocery_cleared_confirmation">Articles décochés</string>
     <string name="grocery_scope_planned">Uniquement les repas planifiés cette semaine</string>
     <string name="grocery_empty_planned_body">Aucune recette planifiée cette semaine. Ajoutez des recettes à votre planning ou désactivez ce filtre.</string>
+    <string name="grocery_all_done">Tous les articles sont cochés !</string>
+    <string name="grocery_quick_add_placeholder">Ajouter un article…</string>
+    <string name="grocery_quick_add_cd">Ajouter à la liste</string>
 
     <!-- ── Profile screen ─────────────────────────────────────────────────── -->
     <string name="profile_title">Mon profil</string>

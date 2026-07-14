@@ -519,6 +519,9 @@
     <string name="grocery_cleared_confirmation">Items unchecked</string>
     <string name="grocery_scope_planned">Only meals planned this week</string>
     <string name="grocery_empty_planned_body">No recipes planned this week yet. Add recipes to your meal plan or turn this filter off.</string>
+    <string name="grocery_all_done">All items checked!</string>
+    <string name="grocery_quick_add_placeholder">Add an item…</string>
+    <string name="grocery_quick_add_cd">Add to list</string>
 
     <!-- ── Profile screen ─────────────────────────────────────────────────── -->
     <string name="profile_title">My Profile</string>

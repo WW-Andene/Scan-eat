@@ -182,6 +182,12 @@ class GroceryViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     /** Removes every manual entry that contributed to the aggregated row keyed [groceryKey] — a recipe-sourced contribution to the same row, if any, is untouched. */
+    /** Add a free-text item directly from the grocery screen's inline input row. */
+    fun quickAdd(name: String) {
+        if (name.isBlank()) return
+        viewModelScope.launch { manualGroceryRepo.add(name.trim(), 0.0) }
+    }
+
     fun deleteManualContribution(groceryKey: String) {
         viewModelScope.launch {
             val existingKeys = rawItems.value.map { it.key }.toSet()
