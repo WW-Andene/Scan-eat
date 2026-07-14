@@ -20,9 +20,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.data.repository.health.FastCompletion
 import fr.scanneat.domain.model.MS_PER_HOUR
 import fr.scanneat.domain.model.MS_PER_MINUTE
 import fr.scanneat.presentation.ui.theme.*
+
+private data class MetabolicPhase(val label: String, val description: String, val minHours: Int)
+private val METABOLIC_PHASES = listOf(
+    MetabolicPhase("Glycogène",    "L'organisme consomme ses réserves de glucose",      0),
+    MetabolicPhase("Transition",   "Début de la gluconéogenèse, glycogène en baisse",   8),
+    MetabolicPhase("Combustion",   "Les graisses deviennent la source d'énergie principale", 12),
+    MetabolicPhase("Cétose",       "Production de corps cétoniques, clarté mentale",    16),
+    MetabolicPhase("Cétose prof.", "Cétose profonde, énergie stable et soutenue",       20),
+    MetabolicPhase("Autophagie",   "Recyclage cellulaire (autophagie) activé",          24),
+)
+private fun metabolicPhase(elapsedHours: Int): MetabolicPhase =
+    METABOLIC_PHASES.lastOrNull { elapsedHours >= it.minHours } ?: METABOLIC_PHASES.first()
 
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar — used when
@@ -106,6 +119,20 @@ fun FastingScreen(
                             val m = ((fs.elapsedMs % MS_PER_HOUR) / MS_PER_MINUTE).toInt()
                             Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+
+                            // Improvement: metabolic phase indicator
+                            val phase = metabolicPhase(h)
+                            val nextPhase = METABOLIC_PHASES.firstOrNull { it.minHours > h }
+                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.1f)) {
+                                Column(modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("Phase · ${phase.label}", style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
+                                    Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
+                                    if (nextPhase != null) {
+                                        Text("Prochaine : ${nextPhase.label} à ${nextPhase.minHours}h", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                                    }
+                                }
+                            }
+
                             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                                 ScanEatOutlinedButton(onClick = { viewModel.cancel() }) {
                                     Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.7f))
@@ -171,9 +198,35 @@ fun FastingScreen(
                 }
             }
 
-            // History
+            // New: history stats summary card
             if (history.value.isNotEmpty()) {
-                item { Text(stringResource(R.string.fasting_history_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold) }
+                item {
+                    val completed = history.value
+                    val successCount = completed.count { it.reached }
+                    val avgHours = completed.map { it.achievedHours }.average()
+                    val longestH = completed.maxOf { it.achievedHours }
+                    Text(stringResource(R.string.fasting_history_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(Spacing.S))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        listOf(
+                            "Total"     to "${completed.size}",
+                            "Réussis"   to "$successCount/${completed.size}",
+                            "Moy."      to "${String.format("%.1f", avgHours)}h",
+                            "Record"    to "${longestH}h",
+                        ).forEach { (label, value) ->
+                            Surface(modifier = Modifier.weight(1f), shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant) {
+                                Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(value, style = MaterialTheme.typography.titleSmall, color = AccentCoral, fontWeight = FontWeight.Bold)
+                                    Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // History list
+            if (history.value.isNotEmpty()) {
                 items(history.value.take(20), key = { it.endMs }) { c ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
