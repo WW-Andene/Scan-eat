@@ -55,6 +55,20 @@ class WeightViewModel @Inject constructor(
     val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    // New: weekly average comparison (this week vs. last week) — individual weigh-ins
+    // have a lot of noise; averaging by week shows the real trend more clearly.
+    // Returns Pair(thisWeekAvg, lastWeekAvg) or null if either week has no data.
+    val weeklyAvg: StateFlow<Pair<Double, Double>?> = entries.map { all ->
+        val today = LocalDate.now()
+        val thisWeekStart = today.minusDays(6)
+        val lastWeekStart = today.minusDays(13)
+        val lastWeekEnd   = today.minusDays(7)
+        val thisWeek = all.filter { !it.date.isBefore(thisWeekStart) }.map { it.weightKg }
+        val lastWeek = all.filter { !it.date.isBefore(lastWeekStart) && !it.date.isAfter(lastWeekEnd) }.map { it.weightKg }
+        if (thisWeek.isEmpty() || lastWeek.isEmpty()) null
+        else thisWeek.average() to lastWeek.average()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun setUseImperial(v: Boolean) {
         viewModelScope.launch { prefs.setUseImperialWeight(v) }
     }

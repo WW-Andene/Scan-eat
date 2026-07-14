@@ -7,21 +7,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.PersonalScoreResult
 import fr.scanneat.domain.engine.scoring.personalGrade
 import fr.scanneat.domain.model.Grade
+import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.result.cards.*
 import fr.scanneat.presentation.ui.theme.*
@@ -115,6 +120,12 @@ internal fun ResultContent(
         // Nutrition table
         NutritionTable(nutrition = scan.product.nutrition)
 
+        // New: macro contribution row — shows how much of the daily reference values
+        // (per 100g serving) this product covers. Previously the nutrition table showed
+        // raw grams with no daily-context anchor, so users had no quick intuition of
+        // whether 12g of fat is a lot or a little relative to their day.
+        MacroContributionCard(nutrition = scan.product.nutrition)
+
         // Warnings — ScanResult.warnings (OCR-parse issues, and OFF-vs-LLM source-
         // conflict warnings like "Conflict: energy_kcal OFF=120 LLM=340") was
         // populated by ScanRepository but never read anywhere in the UI, so the
@@ -128,6 +139,47 @@ internal fun ResultContent(
         }
 
         Spacer(Modifier.height(Spacing.XXL))
+    }
+}
+
+/** Compact card showing how much of the EU daily reference values (per 100 g) this product covers. */
+@Composable
+private fun MacroContributionCard(nutrition: NutritionPer100g) {
+    val rows = listOf(
+        Triple(stringResource(R.string.result_macro_kcal),   nutrition.energyKcal, 2000.0),
+        Triple(stringResource(R.string.result_macro_protein), nutrition.proteinG,    50.0),
+        Triple(stringResource(R.string.result_macro_carbs),  nutrition.carbsG,     260.0),
+        Triple(stringResource(R.string.result_macro_fat),    nutrition.fatG,        70.0),
+        Triple(stringResource(R.string.result_macro_fiber),  nutrition.fiberG, 25.0),
+    ).filter { (_, value, _) -> value > 0.0 }
+    if (rows.isEmpty()) return
+    Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            Text(stringResource(R.string.result_macro_contribution_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+            rows.forEach { (label, value, ref) ->
+                val pct = (value / ref).coerceIn(0.0, 1.0).toFloat()
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(56.dp))
+                    LinearProgressIndicator(
+                        progress = { pct },
+                        modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
+                        color = when {
+                            pct >= 0.5f -> semanticAmber()
+                            else -> AccentCoral.copy(0.7f)
+                        },
+                        trackColor = OnSurface.copy(0.08f),
+                    )
+                    Text(
+                        "${(pct * 100).toInt()}%",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = OnSurface.copy(0.5f),
+                        modifier = Modifier.width(32.dp),
+                        textAlign = TextAlign.End,
+                    )
+                }
+            }
+            Text(stringResource(R.string.result_macro_contribution_note), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.35f))
+        }
     }
 }
 
@@ -147,7 +199,7 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
     ) {
         Column(modifier = Modifier.padding(Spacing.M)) {
             Text(
-                "Historique du score",
+                stringResource(R.string.result_score_history_title),
                 style = MaterialTheme.typography.labelSmall,
                 color = OnSurface.copy(0.5f),
             )

@@ -62,4 +62,7 @@ interface ScanHistoryDao {
 
     @Query("DELETE FROM scan_history WHERE profileId = :profileId")
     suspend fun clearAll(profileId: String = "default")
+
+    @Query("SELECT COUNT(*) FROM scan_history WHERE profileId = :profileId AND scannedAt >= :fromMillis")
+    fun observeCountSince(fromMillis: Long, profileId: String = "default"): Flow<Int>
 }

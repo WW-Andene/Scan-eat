@@ -127,6 +127,12 @@ class ScanViewModel @Inject constructor(
 
     private val scoreMutex = Mutex()
 
+    // New: how many products scanned today — drives the session counter badge in the
+    // scan header. Backed by a live Room query so it updates immediately after each
+    // successful scan without any manual increment in the ViewModel.
+    val todayScanCount: StateFlow<Int> = scanRepo.observeTodayScanCount()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     private val _instantMode = MutableStateFlow(false)
     val instantMode: StateFlow<Boolean> = _instantMode.asStateFlow()
 

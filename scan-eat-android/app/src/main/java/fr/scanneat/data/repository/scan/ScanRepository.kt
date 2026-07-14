@@ -88,6 +88,13 @@ class ScanRepository @Inject constructor(
 
     suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
 
+    fun observeTodayScanCount(profileId: String = "default"): Flow<Int> {
+        val startOfDay = java.time.LocalDate.now()
+            .atStartOfDay(java.time.ZoneId.systemDefault())
+            .toInstant().toEpochMilli()
+        return dao.observeCountSince(startOfDay, profileId)
+    }
+
     suspend fun delete(id: Long) = dao.delete(id)
 
     /** A better-scoring product from the user's own history, same category — or null if none beats [scan]. */

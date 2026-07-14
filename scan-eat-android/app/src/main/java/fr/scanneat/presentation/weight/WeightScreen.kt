@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
@@ -56,6 +57,7 @@ fun WeightScreen(
     val heightCm = viewModel.heightCm.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
     val useImperialState = viewModel.useImperial.collectAsStateWithLifecycle()
+    val weeklyAvg = viewModel.weeklyAvg.collectAsStateWithLifecycle()
     // In-app language (Settings) can differ from the device locale, so day/month
     // abbreviations must follow it explicitly - ofPattern() alone defaults to
     // Locale.getDefault(), which would silently mix languages in the date labels.
@@ -168,10 +170,14 @@ fun WeightScreen(
             if (entries.value.size > 1) {
                 item {
                     val chartEntries = entries.value.takeLast(30)
-                    val minW = chartEntries.minOf { it.weightKg }
-                    val maxW = chartEntries.maxOf { it.weightKg }.coerceAtLeast(minW + 0.5)
+                    val goalKg = goalWeightKg.value
+                    // Improvement: include goal weight in range so the dashed goal line is always visible
+                    val allWeights = chartEntries.map { it.weightKg } + listOfNotNull(goalKg)
+                    val minW = allWeights.min()
+                    val maxW = allWeights.max().coerceAtLeast(minW + 0.5)
                     val lineColor = AccentCoral
                     val dotColor  = AccentCoral
+                    val goalLineColor = semanticGreen()
                     val trendDescription = stringResource(
                         R.string.weight_trend_cd,
                         dispWeight(chartEntries.first().weightKg),
@@ -227,6 +233,18 @@ fun WeightScreen(
                                         center = Offset(xAt(i), yAt(e.weightKg)),
                                     )
                                 }
+
+                                // Goal line — dashed horizontal at the target weight
+                                goalKg?.let { gk ->
+                                    val gy = yAt(gk)
+                                    drawLine(
+                                        color = goalLineColor.copy(0.7f),
+                                        start = Offset(0f, gy),
+                                        end   = Offset(w, gy),
+                                        strokeWidth = 1.5.dp.toPx(),
+                                        pathEffect  = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)),
+                                    )
+                                }
                             }
                             Spacer(Modifier.height(Spacing.XS))
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -235,6 +253,37 @@ fun WeightScreen(
                             }
                         }
                     }
+                    }
+                }
+            }
+
+            // New: weekly average comparison card — daily weigh-ins are noisy;
+            // comparing this week's average to last week's gives a clearer trend.
+            weeklyAvg.value?.let { (thisWeek, lastWeek) ->
+                item {
+                    val delta = thisWeek - lastWeek
+                    val better = delta < 0 // losing weight = better for most goals
+                    val dColor = if (delta < -0.1) semanticGreen() else if (delta > 0.1) semanticRed() else OnSurface.copy(0.6f)
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(Spacing.M), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Column {
+                                Text(stringResource(R.string.weight_weekly_avg_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(dispWeight(thisWeek), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                                    Text("vs ${dispWeight(lastWeek)}", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                }
+                            }
+                            Surface(shape = RoundedCornerShape(50), color = dColor.copy(0.15f)) {
+                                val sign = if (delta >= 0) "+" else ""
+                                Text(
+                                    "$sign${"%.1f".format(Locale.US, if (useImperial) delta * 2.20462 else delta)} ${if (useImperial) "lb" else "kg"}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = dColor,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
+                                )
+                            }
+                        }
                     }
                 }
             }

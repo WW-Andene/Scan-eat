@@ -73,6 +73,7 @@ fun ScanScreen(
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
     val recentBarcodes = viewModel.recentBarcodes.collectAsStateWithLifecycle()
+    val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
     // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
@@ -217,9 +218,32 @@ fun ScanScreen(
                     .background(Brush.verticalGradient(listOf(Color.Black.copy(0.55f), Color.Transparent)))
                     .padding(horizontal = 20.dp).padding(top = Spacing.L, bottom = 28.dp),
             ) {
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                    // New: today's scan count badge — previously there was no way to know how
+                    // many products you'd already scanned today without leaving the scan tab.
+                    if (todayScanCount.value > 0) {
+                        Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.85f)) {
+                            Text(
+                                "${todayScanCount.value}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                            )
+                        }
+                    }
+                }
+                // Improvement: state-aware subtitle instead of static hint — previously the
+                // text never changed between Idle, Scanning, and photos-queued-no-barcode states,
+                // so users had no text feedback that analysis was happening or what to do next.
                 Text(
-                    barcode.value?.let { stringResource(R.string.scan_barcode_prefix, it) } ?: stringResource(R.string.scan_hint),
+                    when {
+                        state.value is ScanUiState.Scanning -> stringResource(R.string.scan_analyzing)
+                        barcode.value != null -> stringResource(R.string.scan_barcode_prefix, barcode.value!!)
+                        images.value.isNotEmpty() && barcode.value == null -> stringResource(R.string.scan_hint_photos_ready)
+                        else -> stringResource(R.string.scan_hint)
+                    },
                     style = MaterialTheme.typography.bodySmall, color = Color.White.copy(0.8f),
                 )
             }

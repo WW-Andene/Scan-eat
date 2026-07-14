@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Scan\'eat</string>
     <string name="scan_hint">Photograph a label → score 0–100</string>
+    <string name="scan_analyzing">Analyzing…</string>
+    <string name="scan_hint_photos_ready">Photo(s) ready — tap the button to analyze</string>
     <string name="scan_barcode_prefix">Code: %1$s</string>
     <string name="camera_permission_rationale">Scan\'eat uses the camera to read barcodes and photograph food labels.</string>
     <string name="scan_camera_permission_title">Camera access required</string>
@@ -665,6 +667,7 @@
     <string name="weight_trend_cd">Trend chart: from %1$s to %2$s over the last %3$d weigh-ins</string>
     <string name="weight_deleted_message">Weigh-in deleted</string>
     <string name="weight_undo">Undo</string>
+    <string name="weight_weekly_avg_title">Weekly average</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Diary</string>
@@ -730,6 +733,14 @@
     <string name="onboarding_profile_body">Fill in your profile (sex, age, weight, diet, allergens) to get a personal score tailored to your nutritional needs. You can do this later from the Profile tab.</string>
     <string name="onboarding_profile_cta">Set up my profile now</string>
     <string name="onboarding_profile_skip">Skip, set up later</string>
+    <string name="onboarding_domains_title">What you\'ll track</string>
+    <string name="onboarding_domain_scan">Scan</string>
+    <string name="onboarding_domain_diet">Journal</string>
+    <string name="onboarding_domain_hydration">Hydration</string>
+    <string name="onboarding_domain_fasting">Fasting</string>
+    <string name="onboarding_domain_weight">Weight</string>
+    <string name="onboarding_domain_activity">Activity</string>
+    <string name="onboarding_domain_medication">Medication</string>
 
     <!-- ── Activity screen ────────────────────────────────────────────────── -->
     <string name="activity_title">Activity</string>
@@ -947,6 +958,14 @@
     <string name="hint_section_facts">Facts</string>
     <string name="hint_panel_empty">No particular information for this product.</string>
     <string name="result_cd_unfavorite">Remove from favorites</string>
+    <string name="result_score_history_title">Score history</string>
+    <string name="result_macro_contribution_title">Per 100 g contribution (% DRV)</string>
+    <string name="result_macro_contribution_note">DRV = EU Daily Reference Values (adult)</string>
+    <string name="result_macro_kcal">Energy</string>
+    <string name="result_macro_protein">Protein</string>
+    <string name="result_macro_carbs">Carbs</string>
+    <string name="result_macro_fat">Fat</string>
+    <string name="result_macro_fiber">Fiber</string>
     <string name="save_destinations_title">Save to...</string>
     <string name="save_destinations_courses">Grocery list</string>
     <string name="save_destinations_mes_aliments">My foods</string>

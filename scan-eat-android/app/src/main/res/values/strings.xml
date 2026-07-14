@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Scan\'eat</string>
     <string name="scan_hint">Photographiez une étiquette → score 0–100</string>
+    <string name="scan_analyzing">Analyse en cours…</string>
+    <string name="scan_hint_photos_ready">Photo(s) prête(s) — appuyez sur le bouton pour analyser</string>
     <string name="scan_barcode_prefix">Code : %1$s</string>
     <string name="camera_permission_rationale">Scan\'eat utilise la caméra pour lire les codes-barres et photographier les étiquettes.</string>
     <string name="scan_camera_permission_title">Accès à la caméra requis</string>
@@ -666,6 +668,7 @@
     <string name="weight_trend_cd">Graphique de tendance : de %1$s à %2$s sur les %3$d dernières pesées</string>
     <string name="weight_deleted_message">Pesée supprimée</string>
     <string name="weight_undo">Annuler</string>
+    <string name="weight_weekly_avg_title">Moyenne hebdomadaire</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Journal</string>
@@ -731,6 +734,14 @@
     <string name="onboarding_profile_body">Complétez votre profil (sexe, âge, poids, régime, allergènes) pour obtenir un score personnel adapté à vos besoins nutritionnels. Vous pouvez le faire plus tard dans l\'onglet Profil.</string>
     <string name="onboarding_profile_cta">Configurer mon profil maintenant</string>
     <string name="onboarding_profile_skip">Passer, configurer plus tard</string>
+    <string name="onboarding_domains_title">Ce que vous suivrez</string>
+    <string name="onboarding_domain_scan">Scan</string>
+    <string name="onboarding_domain_diet">Journal</string>
+    <string name="onboarding_domain_hydration">Hydratation</string>
+    <string name="onboarding_domain_fasting">Jeûne</string>
+    <string name="onboarding_domain_weight">Poids</string>
+    <string name="onboarding_domain_activity">Activité</string>
+    <string name="onboarding_domain_medication">Traitement</string>
 
     <!-- ── Activity screen ────────────────────────────────────────────────── -->
     <string name="activity_title">Activité</string>
@@ -969,6 +980,14 @@
     <string name="hint_section_facts">Informations</string>
     <string name="hint_panel_empty">Aucune information particulière pour ce produit.</string>
     <string name="result_cd_unfavorite">Retirer des favoris</string>
+    <string name="result_score_history_title">Historique du score</string>
+    <string name="result_macro_contribution_title">Apport pour 100 g (% VNR)</string>
+    <string name="result_macro_contribution_note">VNR = Valeurs nutritionnelles de référence UE (adulte)</string>
+    <string name="result_macro_kcal">Énergie</string>
+    <string name="result_macro_protein">Protéines</string>
+    <string name="result_macro_carbs">Glucides</string>
+    <string name="result_macro_fat">Lipides</string>
+    <string name="result_macro_fiber">Fibres</string>
     <string name="save_destinations_title">Enregistrer dans...</string>
     <string name="save_destinations_courses">Courses</string>
     <string name="save_destinations_mes_aliments">Mes aliments</string>

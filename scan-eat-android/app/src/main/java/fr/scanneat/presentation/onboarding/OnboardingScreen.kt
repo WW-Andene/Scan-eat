@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.onboarding
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -8,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,6 +49,22 @@ fun OnboardingScreen(
         ) {
             Spacer(Modifier.height(40.dp))
 
+            // Improvement: step-progress dots — previously no visual indicator of how many
+            // pages exist or which one you're on; users had no way to gauge remaining effort.
+            if (page > 0) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    (1..3).forEach { step ->
+                        val active = step == page
+                        Box(
+                            Modifier
+                                .size(if (active) 20.dp else 8.dp, 8.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
+                        )
+                    }
+                }
+            }
+
             when (page) {
                 // ---- Page 0: Welcome ----
                 0 -> {
@@ -79,6 +99,11 @@ fun OnboardingScreen(
                             body    = stringResource(R.string.onboarding_value_biolism_body),
                         )
                     }
+
+                    // New: feature-domain preview — previously page 1 only showed 2 abstract
+                    // value cards with no concrete preview of what the app actually tracks;
+                    // users arrived at profile setup with no idea what domains were covered.
+                    FeatureDomainChips()
 
                     Spacer(Modifier.weight(1f))
                     ScanEatPrimaryButton(
@@ -184,7 +209,43 @@ fun OnboardingScreen(
 }
 
 @Composable
-private fun ValueCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, body: String) {
+private fun FeatureDomainChips() {
+    val domains = listOf(
+        Icons.Default.QrCodeScanner to R.string.onboarding_domain_scan,
+        Icons.Default.RestaurantMenu to R.string.onboarding_domain_diet,
+        Icons.Default.WaterDrop to R.string.onboarding_domain_hydration,
+        Icons.Default.Timer to R.string.onboarding_domain_fasting,
+        Icons.Default.Scale to R.string.onboarding_domain_weight,
+        Icons.Default.DirectionsRun to R.string.onboarding_domain_activity,
+        Icons.Default.Medication to R.string.onboarding_domain_medication,
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        Text(
+            stringResource(R.string.onboarding_domains_title),
+            style = MaterialTheme.typography.labelSmall,
+            color = OnBackground.copy(0.5f),
+        )
+        domains.chunked(4).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                row.forEach { (icon, label) ->
+                    Surface(shape = RoundedCornerShape(50), color = SurfaceVariant) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                            Text(stringResource(label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ValueCard(icon: ImageVector, title: String, body: String) {
     ScanEatCard {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
             Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(28.dp))
