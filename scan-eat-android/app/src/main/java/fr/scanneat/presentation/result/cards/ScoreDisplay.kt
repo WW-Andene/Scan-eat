@@ -6,11 +6,16 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,30 +60,75 @@ private fun rememberScoreReveal(target: Float): Pair<Float, Float> {
     return animatedProgress to completion
 }
 
+/** Small +N / -N / = chip shown below the score ring when a prior scan exists. */
 @Composable
-internal fun ScoreRing(score: Int, grade: Grade) {
+internal fun ScoreDeltaChip(delta: Int) {
+    val positive = delta > 0
+    val neutral  = delta == 0
+    val chipColor = when {
+        neutral  -> OnBackground.copy(0.15f)
+        positive -> semanticGreen().copy(0.18f)
+        else     -> semanticRed().copy(0.18f)
+    }
+    val textColor = when {
+        neutral  -> OnBackground.copy(0.5f)
+        positive -> semanticGreen()
+        else     -> semanticRed()
+    }
+    Surface(shape = RoundedCornerShape(50), color = chipColor) {
+        Row(
+            modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Icon(
+                imageVector = when {
+                    neutral  -> Icons.Default.Remove
+                    positive -> Icons.Default.ArrowDropUp
+                    else     -> Icons.Default.ArrowDropDown
+                },
+                contentDescription = null,
+                tint     = textColor,
+                modifier = Modifier.size(14.dp),
+            )
+            Text(
+                text  = if (neutral) "=" else "${if (positive) "+" else ""}$delta",
+                style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                color = textColor,
+            )
+        }
+    }
+}
+
+@Composable
+internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
     val color = gradeColor(grade)
     val (animatedProgress, completion) = rememberScoreReveal(score / 100f)
-    Box(modifier = Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
-                .size(210.dp)
-                .background(
-                    Brush.radialGradient(listOf(color.copy(alpha = 0.24f * completion), Color.Transparent)),
-                    CircleShape,
-                ),
-        )
-        CircularProgressIndicator(
-            progress    = { animatedProgress },
-            modifier    = Modifier.size(178.dp),
-            color       = color,
-            strokeWidth = 14.dp,
-            trackColor  = SurfaceVariant,
-        )
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(grade.label, style = HeroNumberStyle.copy(fontSize = 56.sp), color = color)
-            Text(stringResource(R.string.result_score_out_of_100, score),
-                style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .size(210.dp)
+                    .background(
+                        Brush.radialGradient(listOf(color.copy(alpha = 0.24f * completion), Color.Transparent)),
+                        CircleShape,
+                    ),
+            )
+            CircularProgressIndicator(
+                progress    = { animatedProgress },
+                modifier    = Modifier.size(178.dp),
+                color       = color,
+                strokeWidth = 14.dp,
+                trackColor  = SurfaceVariant,
+            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(grade.label, style = HeroNumberStyle.copy(fontSize = 56.sp), color = color)
+                Text(stringResource(R.string.result_score_out_of_100, score),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
+            }
+        }
+        if (scoreDelta != null) {
+            ScoreDeltaChip(scoreDelta)
         }
     }
 }
@@ -88,8 +138,10 @@ internal fun DualScoreRing(
     classicScore: Int, classicGrade: Grade,
     personalScore: Int, personalGrade: Grade,
     veto: Boolean,
+    scoreDelta: Int? = null,
 ) {
     val vetoDescription = stringResource(R.string.result_veto_description)
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
     Row(
         modifier              = Modifier.fillMaxWidth().padding(vertical = Spacing.S),
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -157,4 +209,10 @@ internal fun DualScoreRing(
             }
         }
     }
+    } // end Row
+    if (scoreDelta != null) {
+        Spacer(Modifier.height(Spacing.XS))
+        ScoreDeltaChip(scoreDelta)
+    }
+    } // end Column
 }

@@ -105,13 +105,15 @@ fun ResultScreen(
             }
         } else {
             ResultContent(
-                scan             = s.scanResult,
-                personalScore    = s.personalScore,
-                comparisonResult = s.comparisonResult,
-                pairings         = s.pairings,
+                scan              = s.scanResult,
+                personalScore     = s.personalScore,
+                comparisonResult  = s.comparisonResult,
+                pairings          = s.pairings,
                 betterAlternative = s.betterAlternative,
-                language         = language.value,
-                modifier         = Modifier.padding(padding),
+                language          = language.value,
+                scoreDelta        = s.scoreDelta,
+                scoreHistory      = s.scoreHistory,
+                modifier          = Modifier.padding(padding),
             )
         }
     }

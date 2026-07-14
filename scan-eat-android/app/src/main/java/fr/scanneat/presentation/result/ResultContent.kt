@@ -1,22 +1,30 @@
 package fr.scanneat.presentation.result
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.scanneat.domain.engine.scoring.PersonalScoreResult
 import fr.scanneat.domain.engine.scoring.personalGrade
+import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.result.cards.*
-import fr.scanneat.presentation.ui.theme.OnBackground
-import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.*
 
 // Assembles the sections that make up a scan result. Each section lives in
 // cards/*.kt (one file per independent card/banner). Was previously inlined
@@ -29,6 +37,8 @@ internal fun ResultContent(
     pairings: List<String> = emptyList(),
     betterAlternative: ScanResult? = null,
     language: String = "fr",
+    scoreDelta: Int? = null,
+    scoreHistory: List<Int> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val audit = scan.audit
@@ -57,9 +67,15 @@ internal fun ResultContent(
                 personalScore = personalScore.personalScore,
                 personalGrade = personalGrade(personalScore.personalScore),
                 veto          = personalScore.veto,
+                scoreDelta    = scoreDelta,
             )
         } else {
-            ScoreRing(score = audit.score, grade = audit.grade)
+            ScoreRing(score = audit.score, grade = audit.grade, scoreDelta = scoreDelta)
+        }
+
+        // New: product score history mini-sparkline (when ≥ 2 prior scans exist)
+        if (scoreHistory.size >= 2) {
+            ProductScoreHistoryRow(scores = scoreHistory, currentScore = audit.score)
         }
 
         // Verdict
@@ -112,5 +128,55 @@ internal fun ResultContent(
         }
 
         Spacer(Modifier.height(Spacing.XXL))
+    }
+}
+
+/** Mini sparkline showing the last N scores for this product + the current score as the rightmost dot. */
+@Composable
+private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
+    val allScores = scores + currentScore
+    val minScore  = allScores.min().toFloat()
+    val maxScore  = allScores.max().toFloat()
+    val range     = (maxScore - minScore).coerceAtLeast(1f)
+    val lineColor = AccentCoral
+
+    Surface(
+        shape = RoundedCornerShape(CardRadius.CARD),
+        color = SurfaceVariant,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(Spacing.M)) {
+            Text(
+                "Historique du score",
+                style = MaterialTheme.typography.labelSmall,
+                color = OnSurface.copy(0.5f),
+            )
+            Spacer(Modifier.height(Spacing.XS))
+            Canvas(modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                val pts = allScores.mapIndexed { i, s ->
+                    val x = if (allScores.size == 1) size.width / 2f
+                            else i / (allScores.size - 1f) * size.width
+                    val y = size.height - (s - minScore) / range * size.height
+                    Offset(x, y)
+                }
+                val path = Path().apply {
+                    pts.forEachIndexed { i, pt -> if (i == 0) moveTo(pt.x, pt.y) else lineTo(pt.x, pt.y) }
+                }
+                drawPath(path, color = lineColor.copy(0.4f), style = Stroke(width = 2.dp.toPx()))
+                pts.forEachIndexed { i, pt ->
+                    val isLast = i == pts.lastIndex
+                    drawCircle(
+                        color  = if (isLast) lineColor else lineColor.copy(0.5f),
+                        radius = if (isLast) 5.dp.toPx() else 3.dp.toPx(),
+                        center = pt,
+                    )
+                }
+            }
+            Spacer(Modifier.height(Spacing.XS))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("${scores.first()}", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnSurface.copy(0.4f))
+                Text("$currentScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = lineColor, fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }

@@ -31,6 +31,10 @@ data class ResultUiState(
     val pairings: List<String> = emptyList(),
     val betterAlternative: ScanResult? = null,
     val logState: LogState = LogState.Idle,
+    /** Score delta vs most recent prior scan of the same product (null = no prior scan). */
+    val scoreDelta: Int? = null,
+    /** Up to 5 most-recent prior scores for this product, oldest first (excludes current scan). */
+    val scoreHistory: List<Int> = emptyList(),
 )
 
 // Only worth suggesting an alternative below this grade — A/B/A+ are already a
@@ -60,6 +64,8 @@ private sealed class ScanLoad {
         val comparison: ComparisonResult?,
         val pairings: List<String>,
         val alternative: ScanResult?,
+        val scoreDelta: Int?,
+        val scoreHistory: List<Int>,
     ) : ScanLoad()
 }
 
@@ -129,7 +135,19 @@ class ResultViewModel @Inject constructor(
             val alternative = if (scan.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES)
                 scanRepo.findBetterAlternative(scan) else null
 
-            emit(ScanLoad.Loaded(scan, personal, cachedComparison, pairs, alternative))
+            // Prior scans of the same product (matched by barcode when present, else
+            // by name) — used for the score delta badge and history mini-sparkline.
+            val allHistory = scanRepo.observeHistory(limit = 200).first()
+            val priorScores = allHistory
+                .filter { it.dbId != scan.dbId && (
+                    (scan.barcode != null && it.barcode == scan.barcode) ||
+                    it.product.name.equals(scan.product.name, ignoreCase = true)
+                ) }
+                .map { it.audit.score }  // already sorted recent-first by observeHistory
+            val scoreDelta   = priorScores.firstOrNull()?.let { scan.audit.score - it }
+            val scoreHistory = priorScores.take(5).reversed()  // oldest → newest for the timeline
+
+            emit(ScanLoad.Loaded(scan, personal, cachedComparison, pairs, alternative, scoreDelta, scoreHistory))
         }
     }
 
@@ -137,12 +155,14 @@ class ResultViewModel @Inject constructor(
         when (load) {
             is ScanLoad.Empty  -> ResultUiState(logState = logState)
             is ScanLoad.Loaded -> ResultUiState(
-                scanResult       = favOverride?.let { load.scan.copy(favorite = it) } ?: load.scan,
-                personalScore    = load.personal,
-                comparisonResult = load.comparison,
-                pairings         = load.pairings,
+                scanResult        = favOverride?.let { load.scan.copy(favorite = it) } ?: load.scan,
+                personalScore     = load.personal,
+                comparisonResult  = load.comparison,
+                pairings          = load.pairings,
                 betterAlternative = load.alternative,
-                logState         = logState,
+                logState          = logState,
+                scoreDelta        = load.scoreDelta,
+                scoreHistory      = load.scoreHistory,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ResultUiState())
