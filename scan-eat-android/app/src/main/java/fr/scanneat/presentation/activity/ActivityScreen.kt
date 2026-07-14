@@ -89,6 +89,7 @@ fun ActivityScreen(
     val weeklyMinutes    = viewModel.weeklyMinutes.collectAsStateWithLifecycle()
     val weekTrendPct     = viewModel.weekTrendPct.collectAsStateWithLifecycle()
     val sortedTypes      = viewModel.sortedActivityTypes.collectAsStateWithLifecycle()
+    val streak           = viewModel.streak.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by remember { mutableStateOf("30") }
     var selectedSubType by remember { mutableStateOf<String?>(null) }
@@ -115,7 +116,22 @@ fun ActivityScreen(
             // now routes to the unified Calendar (Dashboard), which shows
             // activity alongside every other tracker.
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    // New: consecutive-days activity streak badge
+                    if (streak.value > 0) {
+                        Surface(shape = RoundedCornerShape(50), color = semanticRed().copy(0.15f)) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                            ) {
+                                Icon(Icons.Default.LocalFireDepartment, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                                Text("${streak.value}j", style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        Spacer(Modifier.width(1.dp))
+                    }
                     IconButton(onClick = onOpenCalendar) {
                         Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
                     }
@@ -149,7 +165,7 @@ fun ActivityScreen(
                         val peak = weeklyBurn.value.maxOf { it.second }.coerceAtLeast(1)
                         val barColor = semanticRed()
                         Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                            Text("7 derniers jours", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Text(stringResource(R.string.activity_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
                                 weeklyBurn.value.forEach { (date, kcal) ->
                                     val frac = kcal.toFloat() / peak
@@ -180,7 +196,7 @@ fun ActivityScreen(
                 ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Minutes actives cette semaine", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Text(stringResource(R.string.activity_weekly_minutes_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
                                 weekTrendPct.value?.let { trend ->
                                     val (trendColor, trendIcon) = when {
@@ -199,8 +215,8 @@ fun ActivityScreen(
                             color       = if (pct >= 1f) semanticGreen() else AccentCoral,
                             trackColor  = SurfaceVariant,
                         )
-                        if (pct >= 1f) Text("Objectif OMS atteint ✓", style = MaterialTheme.typography.labelSmall, color = semanticGreen())
-                        else Text("Objectif OMS : 150 min/semaine d'activité modérée", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                        if (pct >= 1f) Text(stringResource(R.string.activity_who_goal_reached), style = MaterialTheme.typography.labelSmall, color = semanticGreen())
+                        else Text(stringResource(R.string.activity_who_goal_hint), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
                     }
                 }
             }

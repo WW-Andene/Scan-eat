@@ -115,6 +115,20 @@ class ActivityViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ActivityType.entries)
 
+    // New: consecutive-days activity streak — counts backwards from yesterday
+    // (today is in progress, so it's excluded to avoid "1-day streak" resetting
+    // every morning before the first workout, same logic as HydrationViewModel.streak).
+    val streak: StateFlow<Int> = yearRange.map { all ->
+        val activityDates = all.map { it.date }.toSet()
+        var count = 0
+        var date = LocalDate.now().minusDays(1)
+        while (activityDates.contains(date)) {
+            count++
+            date = date.minusDays(1)
+        }
+        count
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // Refresh to today if the date has changed since last foreground (e.g. app kept alive overnight)
     fun refreshDate() {
         val today = LocalDate.now()
