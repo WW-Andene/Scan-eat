@@ -5,6 +5,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 
 /**
@@ -18,6 +19,7 @@ import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 interface WidgetEntryPoint {
     fun consumptionRepository(): ConsumptionRepository
     fun userPreferences(): UserPreferences
+    fun hydrationRepository(): HydrationRepository
 }
 
 fun widgetEntryPoint(context: android.content.Context): WidgetEntryPoint =

@@ -1,9 +1,11 @@
 package fr.scanneat.presentation.result
 
+import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -55,6 +58,8 @@ fun ResultScreen(
     var showSheet   by remember { mutableStateOf(false) }
     var showSaveMenu by remember { mutableStateOf(false) }
     var showHints    by remember { mutableStateOf(false) }
+    val context      = LocalContext.current
+    val shareTemplate = stringResource(R.string.result_share_text)
 
     // Navigate to diary after successful log
     LaunchedEffect(state.value.logState) {
@@ -75,6 +80,16 @@ fun ResultScreen(
                 },
                 actions = {
                     state.value.scanResult?.let { scan ->
+                        IconButton(onClick = {
+                            val text = String.format(shareTemplate, scan.product.name, scan.audit.score, scan.audit.grade.label)
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, text)
+                            }
+                            context.startActivity(Intent.createChooser(sendIntent, null))
+                        }) {
+                            Icon(Icons.Default.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
+                        }
                         IconButton(onClick = { showHints = true }) {
                             Icon(Icons.Default.Lightbulb, stringResource(R.string.hint_cd_open), tint = semanticAmber())
                         }

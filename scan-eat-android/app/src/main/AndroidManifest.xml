@@ -52,6 +52,23 @@
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
             </intent-filter>
+            <!-- Static launcher shortcuts (@xml/shortcuts) target these by bare action
+                 rather than an explicit component - see shortcuts.xml for why. -->
+            <intent-filter>
+                <action android:name="fr.scanneat.action.SHORTCUT_SCAN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="fr.scanneat.action.SHORTCUT_DIARY" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="fr.scanneat.action.SHORTCUT_DASHBOARD" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
         <!-- Health Connect on API 26-33 (the standalone Health Connect app) looks for

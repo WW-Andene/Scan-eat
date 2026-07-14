@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Scan\'eat</string>
-    <string name="widget_today_description">Aujourd\'hui — kcal journalisées et série de suivi</string>
+    <string name="widget_today_description">Aujourd\'hui — kcal journalisées, hydratation et série de suivi</string>
     <string name="widget_today_loading">Chargement…</string>
     <string name="widget_today_kcal_label">Kcal aujourd\'hui</string>
     <string name="widget_today_no_target">Objectif non défini — complétez votre profil</string>
+    <string name="widget_today_hydration_ml">%1$d mL bus</string>
+    <string name="widget_today_add_glass">+%1$d mL</string>
+    <string name="shortcut_scan_short">Scanner</string>
+    <string name="shortcut_scan_long">Scanner un produit</string>
+    <string name="shortcut_diary_short">Journal</string>
+    <string name="shortcut_diary_long">Ouvrir le journal</string>
+    <string name="shortcut_dashboard_short">Tableau</string>
+    <string name="shortcut_dashboard_long">Ouvrir le tableau de bord</string>
     <plurals name="widget_today_streak">
         <item quantity="one">%1$d jour de suivi consécutif</item>
         <item quantity="other">%1$d jours de suivi consécutifs</item>
@@ -1056,6 +1064,8 @@
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>
+    <string name="result_cd_share">Partager le score</string>
+    <string name="result_share_text">%1$s a obtenu %2$d/100 (%3$s) sur Scan\'eat</string>
     <string name="result_cd_favorite">Ajouter aux favoris</string>
     <string name="hint_cd_open">Voir les informations</string>
     <string name="hint_panel_title">Bon à savoir</string>

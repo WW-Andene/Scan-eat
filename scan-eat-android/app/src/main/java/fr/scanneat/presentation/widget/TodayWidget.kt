@@ -2,19 +2,25 @@ package fr.scanneat.presentation.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.LinearProgressIndicator
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
@@ -27,11 +33,13 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import fr.scanneat.R
+import fr.scanneat.data.repository.health.HYD_GLASS_ML
 import fr.scanneat.di.widgetEntryPoint
 import fr.scanneat.domain.engine.dashboard.logStreakDays
 import fr.scanneat.domain.engine.scoring.dailyTargets
 import fr.scanneat.presentation.MainActivity
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.semanticBlue
 import fr.scanneat.util.localizedQuantityString
 import fr.scanneat.util.localizedString
 import kotlinx.coroutines.flow.first
@@ -40,13 +48,18 @@ import kotlin.math.roundToInt
 
 // ============================================================================
 // TODAY WIDGET — home-screen glance at today's kcal progress + logging streak,
-// the app's first presence outside its own UI. Read-only: tapping it opens
-// the app rather than trying to squeeze logging into a widget's constrained
-// interaction surface. Refreshes on the platform's own updatePeriodMillis
+// the app's first presence outside its own UI. Mostly read-only (tapping the
+// widget body opens the app) except the hydration row's "+250 mL" chip, which
+// runs an ActionCallback to log a glass without opening the app at all - the
+// one piece of today's data that's genuinely a single undifferentiated tap
+// (see HydrationRepository.addGlass), unlike kcal logging which always needs
+// picking a product/portion/meal slot and can't be meaningfully collapsed
+// into one widget tap. Refreshes on the platform's own updatePeriodMillis
 // cadence (see today_widget_info.xml) plus once whenever it's added/resized
-// (GlanceAppWidgetReceiver's default onUpdate behavior) - no separate
-// WorkManager job needed, unlike ReminderWorker's notification checks, which
-// run on their own schedule independent of any widget host.
+// (GlanceAppWidgetReceiver's default onUpdate behavior) or a glass is logged
+// (explicit update() call in AddGlassAction) - no separate WorkManager job
+// needed, unlike ReminderWorker's notification checks, which run on their
+// own schedule independent of any widget host.
 // ============================================================================
 
 class TodayWidget : GlanceAppWidget() {
@@ -54,6 +67,7 @@ class TodayWidget : GlanceAppWidget() {
         val entryPoint = widgetEntryPoint(context)
         val prefs = entryPoint.userPreferences()
         val consumptionRepo = entryPoint.consumptionRepository()
+        val hydrationRepo = entryPoint.hydrationRepository()
 
         val lang = prefs.language.first()
         val profile = prefs.profile.first()
@@ -64,6 +78,7 @@ class TodayWidget : GlanceAppWidget() {
         // an unbounded range query every time a widget host asks for a refresh.
         val recentEntries = consumptionRepo.observeRange(today.minusDays(30), today).first()
         val streak = logStreakDays(recentEntries, today)
+        val hydrationMl = hydrationRepo.observe(today).first()
 
         val kcal = summary.totals.energyKcal.roundToInt()
         val targetKcal = targets?.kcal?.roundToInt()
@@ -72,6 +87,8 @@ class TodayWidget : GlanceAppWidget() {
         val kcalLabel = localizedString(context, lang, R.string.widget_today_kcal_label)
         val streakLabel = localizedQuantityString(context, lang, R.plurals.widget_today_streak, streak, streak)
         val noTargetLabel = localizedString(context, lang, R.string.widget_today_no_target)
+        val hydrationLabel = localizedString(context, lang, R.string.widget_today_hydration_ml, hydrationMl)
+        val addGlassLabel = localizedString(context, lang, R.string.widget_today_add_glass, HYD_GLASS_ML)
 
         provideContent {
             GlanceTheme {
@@ -82,6 +99,8 @@ class TodayWidget : GlanceAppWidget() {
                     kcalLabel = kcalLabel,
                     streakLabel = streakLabel,
                     noTargetLabel = noTargetLabel,
+                    hydrationLabel = hydrationLabel,
+                    addGlassLabel = addGlassLabel,
                 )
             }
         }
@@ -96,6 +115,8 @@ private fun TodayWidgetContent(
     kcalLabel: String,
     streakLabel: String,
     noTargetLabel: String,
+    hydrationLabel: String,
+    addGlassLabel: String,
 ) {
     Column(
         modifier = GlanceModifier
@@ -125,6 +146,37 @@ private fun TodayWidgetContent(
         }
         Spacer(modifier = GlanceModifier.height(6.dp))
         Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoral), fontSize = 12.sp, fontWeight = FontWeight.Medium))
+        Spacer(modifier = GlanceModifier.height(10.dp))
+        Row(
+            modifier = GlanceModifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                hydrationLabel,
+                modifier = GlanceModifier.defaultWeight(),
+                style = TextStyle(color = ColorProvider(semanticBlue()), fontSize = 12.sp, fontWeight = FontWeight.Medium),
+            )
+            Box(
+                modifier = GlanceModifier
+                    .background(ColorProvider(semanticBlue()))
+                    .cornerRadius(12.dp)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                    // Own clickable target inside the whole-widget-opens-app Column above -
+                    // this specific chip logs a glass in place instead of launching the app.
+                    .clickable(actionRunCallback<AddGlassAction>()),
+            ) {
+                Text(addGlassLabel, style = TextStyle(color = ColorProvider(Color.White), fontSize = 11.sp, fontWeight = FontWeight.Bold))
+            }
+        }
+    }
+}
+
+class AddGlassAction : ActionCallback {
+    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+        widgetEntryPoint(context).hydrationRepository().addGlass()
+        // update() is a member fun on GlanceAppWidget itself (no top-level import
+        // exists for it, unlike updateAll()) - refreshes just this widget instance.
+        TodayWidget().update(context, glanceId)
     }
 }
 

@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Scan\'eat</string>
-    <string name="widget_today_description">Today — logged kcal and tracking streak</string>
+    <string name="widget_today_description">Today — logged kcal, hydration, and tracking streak</string>
     <string name="widget_today_loading">Loading…</string>
     <string name="widget_today_kcal_label">Kcal today</string>
     <string name="widget_today_no_target">No target set — complete your profile</string>
+    <string name="widget_today_hydration_ml">%1$d mL drunk</string>
+    <string name="widget_today_add_glass">+%1$d mL</string>
+    <string name="shortcut_scan_short">Scan</string>
+    <string name="shortcut_scan_long">Scan a product</string>
+    <string name="shortcut_diary_short">Diary</string>
+    <string name="shortcut_diary_long">Open diary</string>
+    <string name="shortcut_dashboard_short">Dashboard</string>
+    <string name="shortcut_dashboard_long">Open dashboard</string>
     <plurals name="widget_today_streak">
         <item quantity="one">%1$d consecutive tracking day</item>
         <item quantity="other">%1$d consecutive tracking days</item>
@@ -1022,6 +1030,8 @@
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>
+    <string name="result_cd_share">Share score</string>
+    <string name="result_share_text">%1$s scored %2$d/100 (%3$s) on Scan\'eat</string>
     <string name="result_cd_favorite">Add to favorites</string>
     <string name="hint_cd_open">View information</string>
     <string name="hint_panel_title">Good to know</string>

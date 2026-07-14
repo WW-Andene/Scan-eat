@@ -33,6 +33,19 @@ class MainActivity : AppCompatActivity() {
         get() = intent?.action == "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" ||
             intent?.action == android.content.Intent.ACTION_VIEW_PERMISSION_USAGE
 
+    // Static launcher shortcuts (res/xml/shortcuts.xml) each carry a distinct custom
+    // action matched against the intent-filters added to this activity's manifest
+    // entry - same "route by action" mechanism the privacy-rationale intent above
+    // already uses, extended to jump straight to a tab instead of always landing on
+    // whichever one the user last had open.
+    private val shortcutStartRoute: String?
+        get() = when (intent?.action) {
+            "fr.scanneat.action.SHORTCUT_SCAN"      -> TopTab.Scan.route
+            "fr.scanneat.action.SHORTCUT_DIARY"     -> TopTab.Diary.route
+            "fr.scanneat.action.SHORTCUT_DASHBOARD" -> TopTab.Dashboard.route
+            else -> null
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -64,7 +77,7 @@ class MainActivity : AppCompatActivity() {
                 ScanEatTheme(theme = theme, dyslexicFont = dyslexicFont, colorblindMode = colorblindMode) {
                     MainShell(
                         startOnboarding = splashViewModel.needsOnboarding,
-                        startRoute      = if (isPrivacyRationaleIntent) TopTab.Settings.route else null,
+                        startRoute      = if (isPrivacyRationaleIntent) TopTab.Settings.route else shortcutStartRoute,
                     )
                 }
             }

@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    minWidth/minHeight sized for a 2x1 home-screen cell (roughly 110dp per cell
+    minWidth/minHeight sized for a 3x2 home-screen cell (roughly 110dp per cell
     on a typical 4/5-column launcher grid) - small enough to fit alongside other
-    widgets, large enough for "kcal / target" plus the progress bar and streak
-    line not to feel cramped. targetCellWidth/Height (API 31+) let launchers that
-    support it size the widget precisely instead of falling back to min*/resizing.
+    widgets, large enough for "kcal / target", the progress bar, streak line,
+    and the hydration quick-add row not to feel cramped. targetCellWidth/Height
+    (API 31+) let launchers that support it size the widget precisely instead
+    of falling back to min*/resizing.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="180dp"
-    android:minHeight="90dp"
+    android:minHeight="130dp"
     android:targetCellWidth="3"
-    android:targetCellHeight="1"
+    android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/today_widget_loading"
     android:previewImage="@mipmap/ic_launcher"

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Static (long-press launcher icon) shortcuts. Deliberately no android:targetPackage/
+    targetClass on the <intent> elements below - applicationId is suffixed with
+    ".debug" for debug builds (see app/build.gradle.kts), so a hardcoded targetPackage
+    here would resolve correctly in exactly one build variant and silently do nothing
+    in the other. A bare custom action instead matches against the <intent-filter>
+    entries added to MainActivity in AndroidManifest.xml, which use the namespace
+    (fr.scanneat, never suffixed) rather than applicationId.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="scan"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_scan_short"
+        android:shortcutLongLabel="@string/shortcut_scan_long">
+        <intent android:action="fr.scanneat.action.SHORTCUT_SCAN" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="diary"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_diary_short"
+        android:shortcutLongLabel="@string/shortcut_diary_long">
+        <intent android:action="fr.scanneat.action.SHORTCUT_DIARY" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="dashboard"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_dashboard_short"
+        android:shortcutLongLabel="@string/shortcut_dashboard_long">
+        <intent android:action="fr.scanneat.action.SHORTCUT_DASHBOARD" />
+    </shortcut>
+</shortcuts>
