@@ -13,6 +13,10 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,6 +32,7 @@ import fr.scanneat.data.repository.health.ActivityType
 import fr.scanneat.presentation.ui.theme.*
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
+import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -55,8 +60,10 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
     val selected = viewModel.selectedDate.collectAsStateWithLifecycle()
     val markers = viewModel.markers.collectAsStateWithLifecycle()
     val detail = viewModel.dayDetail.collectAsStateWithLifecycle()
+    val weekSummaries = viewModel.weekSummaries.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
     val locale = Locale(language.value)
+    var weekPopup by remember { mutableStateOf<WeekSummary?>(null) }
 
     Scaffold(
         topBar = {
@@ -78,7 +85,9 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
                     Column(Modifier.padding(Spacing.M)) {
                         MultiMarkerMonthGrid(
                             month = month.value, selected = selected.value, markers = markers.value, locale = locale,
+                            weekSummaries = weekSummaries.value,
                             onMonthChange = viewModel::setMonth, onDayClick = viewModel::selectDate,
+                            onWeekClick = { weekPopup = it },
                         )
                         // Legend - which color means which tracker, since a bare dot alone
                         // (unlike the existing single-domain MonthCalendar) is now ambiguous.
@@ -98,6 +107,24 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             Spacer(Modifier.height(Spacing.XXL))
         }
     }
+
+    weekPopup?.let { ws ->
+        AlertDialog(
+            onDismissRequest = { weekPopup = null },
+            containerColor = SurfaceVariant,
+            title = { Text("Semaine du ${ws.weekStart.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", locale))}", color = OnBackground) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    DetailRow(colorFor(CalendarSource.MEALS), "${ws.totalKcal} kcal ingérées")
+                    DetailRow(colorFor(CalendarSource.ACTIVITY), "${ws.activeMinutes} min d'activité")
+                    if (ws.hydrationMl > 0) DetailRow(colorFor(CalendarSource.HYDRATION), "${ws.hydrationMl} mL d'hydratation")
+                    Text("${ws.activeDays}/7 jours actifs", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { weekPopup = null }) { Text(stringResource(R.string.common_close), color = OnBackground.copy(0.6f)) } },
+        )
+    }
 }
 
 @Composable
@@ -114,8 +141,10 @@ private fun MultiMarkerMonthGrid(
     selected: java.time.LocalDate,
     markers: Map<java.time.LocalDate, Set<CalendarSource>>,
     locale: Locale,
+    weekSummaries: Map<java.time.LocalDate, WeekSummary> = emptyMap(),
     onMonthChange: (java.time.YearMonth) -> Unit,
     onDayClick: (java.time.LocalDate) -> Unit,
+    onWeekClick: (WeekSummary) -> Unit = {},
 ) {
     val firstOfMonth = month.atDay(1)
     val leadingBlanks = firstOfMonth.dayOfWeek.value - 1
@@ -141,7 +170,23 @@ private fun MultiMarkerMonthGrid(
         val totalCells = leadingBlanks + daysInMonth
         val rows = (totalCells + 6) / 7
         for (row in 0 until rows) {
-            Row(Modifier.fillMaxWidth()) {
+            // Week row — tappable area on the far left shows week number and triggers summary popup
+            val firstDayInRow = month.atDay((row * 7 - leadingBlanks + 1).coerceIn(1, daysInMonth))
+            val weekStart = firstDayInRow.minusDays(firstDayInRow.dayOfWeek.value.toLong() - 1)
+            val ws = weekSummaries[weekStart]
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                // Week-number column — tappable when a summary is available
+                Box(
+                    Modifier.size(20.dp).clip(CircleShape)
+                        .background(if (ws != null && ws.totalKcal > 0) AccentCoral.copy(0.1f) else Color.Transparent)
+                        .then(if (ws != null) Modifier.clickable { onWeekClick(ws) } else Modifier),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        "${firstDayInRow.get(java.time.temporal.WeekFields.ISO.weekOfYear())}",
+                        style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f),
+                    )
+                }
                 for (col in 0 until 7) {
                     val cellIndex = row * 7 + col
                     val dayNum = cellIndex - leadingBlanks + 1
@@ -151,9 +196,12 @@ private fun MultiMarkerMonthGrid(
                             val isSelected = date == selected
                             val isToday = date == java.time.LocalDate.now()
                             val sources = markers[date].orEmpty()
+                            // Adherence color-coding: shade day by how many sources logged data.
+                            val adherenceAlpha = when (sources.size) { 0 -> 0f; 1, 2 -> 0.07f; 3, 4 -> 0.13f; else -> 0.22f }
+                            val adherenceColor = semanticGreen().copy(adherenceAlpha)
                             Box(
                                 modifier = Modifier.fillMaxSize().padding(2.dp).clip(CircleShape)
-                                    .background(if (isSelected) AccentCoral.copy(0.2f) else Color.Transparent)
+                                    .background(if (isSelected) AccentCoral.copy(0.2f) else adherenceColor)
                                     .clickable { onDayClick(date) },
                                 contentAlignment = Alignment.Center,
                             ) {

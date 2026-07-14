@@ -17,7 +17,16 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.temporal.WeekFields
 import javax.inject.Inject
+
+data class WeekSummary(
+    val weekStart: LocalDate,
+    val totalKcal: Int,
+    val activeMinutes: Int,
+    val hydrationMl: Int,
+    val activeDays: Int,
+)
 
 /** Which tracker(s) have data on a given day - drives the small per-source dots under each date. */
 enum class CalendarSource { MEALS, WEIGHT, ACTIVITY, HYDRATION, FASTING, MEDICATION }
@@ -100,6 +109,37 @@ class CalendarViewModel @Inject constructor(
             fastHistory.forEach { f -> runCatching { LocalDate.parse(f.date) }.getOrNull()?.let { mark(it, CalendarSource.FASTING) } }
             medicationLog.forEach { mark(it.date, CalendarSource.MEDICATION) }
             out
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // New: per-week summaries for the visible month — aggregated kcal, active minutes,
+    // hydration, and active days. Previously the calendar showed only per-day dots with
+    // no way to see a week-level roll-up without mentally summing seven day panels.
+    val weekSummaries: StateFlow<Map<LocalDate, WeekSummary>> = _month.flatMapLatest { m ->
+        val start = m.atDay(1)
+        val end = m.atEndOfMonth()
+        combine(
+            consumptionRepo.observeRange(start, end),
+            flow { emit(activityRepo.getRange(start, end)) },
+            flow { emit(hydrationRepo.exportAll().toMap()) },
+        ) { diaryEntries, activities, hydrationMap ->
+            val isoWeek = WeekFields.ISO
+            val result = mutableMapOf<LocalDate, WeekSummary>()
+            // Group days in the month by ISO week start (Monday)
+            val weekStarts = (0 until m.lengthOfMonth())
+                .map { m.atDay(it + 1) }
+                .groupBy { date ->
+                    val dow = date.dayOfWeek.value // Mon=1
+                    date.minusDays(dow.toLong() - 1)
+                }
+            weekStarts.forEach { (weekStart, days) ->
+                val kcal = diaryEntries.filter { it.date in days }.sumOf { it.nutrition.energyKcal * it.portionG / 100 }.toInt()
+                val activeMin = activities.filter { it.date in days }.sumOf { it.minutes }
+                val hydration = days.sumOf { hydrationMap[it] ?: 0 }
+                val activeDays = days.count { d -> diaryEntries.any { it.date == d } || activities.any { it.date == d } }
+                result[weekStart] = WeekSummary(weekStart, kcal, activeMin, hydration, activeDays)
+            }
+            result
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
