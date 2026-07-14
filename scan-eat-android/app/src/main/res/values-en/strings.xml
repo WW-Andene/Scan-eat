@@ -966,7 +966,7 @@
     <string name="dashboard_calorie_balanced">BALANCED</string>
     <string name="dashboard_calorie_source_biolism">Metabolism TDEE</string>
     <string name="dashboard_calorie_source_profile">Profile TDEE</string>
-    <string name="dashboard_micronutrients_title">Today's Micronutrients</string>
+    <string name="dashboard_micronutrients_title">Today\'s Micronutrients</string>
     <string name="dashboard_micro_fiber">Fiber</string>
     <string name="dashboard_micro_iron">Iron</string>
     <string name="dashboard_micro_calcium">Calcium</string>
