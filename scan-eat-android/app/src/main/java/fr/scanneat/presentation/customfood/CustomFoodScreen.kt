@@ -30,6 +30,7 @@ fun CustomFoodScreen(
     val query   = viewModel.query.collectAsStateWithLifecycle()
     val results = viewModel.searchResults.collectAsStateWithLifecycle()
     val latestScan = viewModel.latestScan.collectAsStateWithLifecycle()
+    val avgKcal = viewModel.avgKcal.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to current name
@@ -77,6 +78,31 @@ fun CustomFoodScreen(
                 colors = scanEatTextFieldColors(),
             )
 
+            // Library stat chips — count + avg kcal, shown once there's at least one custom food.
+            if (foods.value.isNotEmpty() && query.value.isBlank()) {
+                Row(
+                    modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                ) {
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f)) {
+                        Text(
+                            stringResource(R.string.customfood_stats_count, foods.value.size),
+                            modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+                        )
+                    }
+                    avgKcal.value?.let { avg ->
+                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
+                            Text(
+                                stringResource(R.string.customfood_stats_avg_kcal, avg),
+                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                                style = MaterialTheme.typography.labelSmall, color = AccentCoral,
+                            )
+                        }
+                    }
+                }
+            }
+
             // Import from last scan banner — surfaces when the most recent scan isn't
             // already saved as a custom food, offering a one-tap import.
             val scan = latestScan.value
@@ -94,7 +120,7 @@ fun CustomFoodScreen(
                     ) {
                         Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                         Text(
-                            "Importer « ${scan.product.name} » depuis le dernier scan",
+                            stringResource(R.string.customfood_import_from_scan, scan.product.name),
                             style = MaterialTheme.typography.bodySmall,
                             color = AccentCoral,
                             modifier = Modifier.weight(1f),

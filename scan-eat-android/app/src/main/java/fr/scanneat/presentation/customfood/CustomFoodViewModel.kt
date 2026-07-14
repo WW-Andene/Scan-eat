@@ -75,6 +75,11 @@ class CustomFoodViewModel @Inject constructor(
         .map { it.firstOrNull() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    /** Average kcal/100g across all saved custom foods — shown as a quick library stat. */
+    val avgKcal: StateFlow<Int?> = foods.map { list ->
+        if (list.isEmpty()) null else (list.sumOf { it.kcal } / list.size).toInt()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     fun importFromScan(scan: ScanResult) {
         val n = scan.product.nutrition
         viewModelScope.launch {

@@ -648,6 +648,9 @@
     <string name="customfood_field_fat">Lipides g</string>
     <string name="customfood_field_fiber">Fibres g</string>
     <string name="customfood_field_salt">Sel g</string>
+    <string name="customfood_import_from_scan">Importer « %1$s » depuis le dernier scan</string>
+    <string name="customfood_stats_count">%1$d aliment(s)</string>
+    <string name="customfood_stats_avg_kcal">~%1$d kcal moy.</string>
 
     <!-- ── Templates screen ───────────────────────────────────────────────── -->
     <string name="templates_title">Modèles de repas</string>

@@ -647,6 +647,9 @@
     <string name="customfood_field_fat">Fat g</string>
     <string name="customfood_field_fiber">Fiber g</string>
     <string name="customfood_field_salt">Salt g</string>
+    <string name="customfood_import_from_scan">Import "%1$s" from last scan</string>
+    <string name="customfood_stats_count">%1$d food(s)</string>
+    <string name="customfood_stats_avg_kcal">~%1$d kcal avg.</string>
 
     <!-- ── Templates screen ───────────────────────────────────────────────── -->
     <string name="templates_title">Meal Templates</string>
