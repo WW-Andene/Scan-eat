@@ -33,9 +33,12 @@ class TemplatesViewModel @Inject constructor(
         viewModelScope.launch { repo.save(newName, template.meal, template.items, id = template.id) }
     }
 
-    fun logTemplate(template: MealTemplate, date: LocalDate = LocalDate.now(), mealOverride: MealSlot? = null) {
+    fun logTemplate(template: MealTemplate, date: LocalDate = LocalDate.now(), mealOverride: MealSlot? = null, portionScale: Double = 1.0) {
         viewModelScope.launch {
-            consumptionRepo.logAll(repo.expand(template, date, mealOverride))
+            val entries = repo.expand(template, date, mealOverride)
+            val scaled = if (portionScale == 1.0) entries
+            else entries.map { it.copy(portionG = it.portionG * portionScale) }
+            consumptionRepo.logAll(scaled)
         }
     }
 

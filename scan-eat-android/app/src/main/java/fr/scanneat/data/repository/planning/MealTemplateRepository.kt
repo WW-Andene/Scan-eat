@@ -45,7 +45,10 @@ data class MealTemplate(
     val items: List<TemplateItem>,
     val createdAt: Long,
 ) {
-    val totalKcal: Int get() = items.sumOf { it.kcal }.toInt()
+    val totalKcal: Int     get() = items.sumOf { it.kcal }.toInt()
+    val totalProteinG: Int get() = items.sumOf { it.proteinG }.toInt()
+    val totalCarbsG: Int   get() = items.sumOf { it.carbsG }.toInt()
+    val totalFatG: Int     get() = items.sumOf { it.fatG }.toInt()
 }
 
 @Singleton

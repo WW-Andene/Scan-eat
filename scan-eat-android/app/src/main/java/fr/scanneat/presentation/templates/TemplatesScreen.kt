@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,6 +94,23 @@ fun TemplatesScreen(
                             if (template.items.size > 3) {
                                 Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
                             }
+                            // Macro summary — protein/carbs/fat totals were only available
+                            // in the log dialog; here on the card a user had no quick read
+                            // on whether the template fits their current macro targets.
+                            if (template.items.isNotEmpty()) {
+                                HorizontalDivider(color = OnSurface.copy(0.07f))
+                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                                    @Composable fun M(label: String, v: Int, color: androidx.compose.ui.graphics.Color) {
+                                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f))
+                                            Text("${v}g", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
+                                        }
+                                    }
+                                    M("P", template.totalProteinG, semanticGreen())
+                                    M("G", template.totalCarbsG, AccentCoral)
+                                    M("L", template.totalFatG, Gold)
+                                }
+                            }
                         }
                     }
                 }
@@ -103,6 +121,7 @@ fun TemplatesScreen(
 
     logTarget?.let { t ->
         var slot by remember { mutableStateOf(t.meal) }
+        var portion by remember { mutableFloatStateOf(1f) }
         AlertDialog(
             onDismissRequest = { logTarget = null },
             containerColor = SurfaceVariant,
@@ -117,9 +136,21 @@ fun TemplatesScreen(
                                 colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
                         }
                     }
+                    // Portion scale slider — previously the template was always logged at
+                    // 100% with no way to adjust for a half portion or a double serving.
+                    HorizontalDivider(color = OnBackground.copy(0.08f))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text("Portion", style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                        Text("×${String.format("%.1f", portion)}  →  ${(t.totalKcal * portion).toInt()} kcal", style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                    }
+                    Slider(
+                        value = portion, onValueChange = { portion = it },
+                        valueRange = 0.25f..3f, steps = 10,
+                        colors = SliderDefaults.colors(thumbColor = AccentCoral, activeTrackColor = AccentCoral),
+                    )
                 }
             },
-            confirmButton = { TextButton(onClick = { viewModel.logTemplate(t, mealOverride = slot); logTarget = null }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
+            confirmButton = { TextButton(onClick = { viewModel.logTemplate(t, mealOverride = slot, portionScale = portion.toDouble()); logTarget = null }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
             dismissButton = { TextButton(onClick = { logTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )
     }
