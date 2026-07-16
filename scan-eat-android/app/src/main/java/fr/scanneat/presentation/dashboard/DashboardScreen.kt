@@ -115,6 +115,10 @@ fun DashboardScreen(
             // ---- Micronutrient progress (fiber, iron, calcium, vitD, B12) ----
             item { MicronutrientCard(totals = s.todayTotals, targets = s.targets) }
 
+            // ---- Daily "don't exceed" budgets (sat-fat/sugars/salt) - DailyTargets already
+            // computes all three but nothing on Dashboard/Diary ever showed them ----
+            s.targets?.let { t -> item { NutrientBudgetCard(totals = s.todayTotals, targets = t) } }
+
             // ---- Weekly bars ----
             s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets, language = language.value) } }
 

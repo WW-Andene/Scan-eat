@@ -29,6 +29,10 @@ private object NRV {
     const val CALCIUM_MG = 800.0
     const val VIT_D_UG   = 5.0
     const val B12_UG     = 2.5
+    const val MAGNESIUM_MG = 375.0
+    const val POTASSIUM_MG = 2000.0
+    const val ZINC_MG      = 10.0
+    const val VIT_C_MG     = 80.0
 }
 
 @Composable
@@ -49,6 +53,14 @@ internal fun MicronutrientCard(totals: ConsumedNutrition, targets: DailyTargets?
     val calciumTarget = targets?.calciumMgTarget ?: NRV.CALCIUM_MG
     val vitDTarget    = targets?.vitDUgTarget   ?: NRV.VIT_D_UG
     val b12Target     = targets?.b12UgTarget    ?: NRV.B12_UG
+    // DailyTargets already computed these four (PersonalScoreEngine.kt) but
+    // ConsumedNutrition had nowhere to accumulate the consumed side until now
+    // (see DiaryEntry.kt) - a personalized target with nothing to compare it
+    // against never reached this card.
+    val magnesiumTarget = targets?.magnesiumMgTarget ?: NRV.MAGNESIUM_MG
+    val potassiumTarget = targets?.potassiumMgTarget ?: NRV.POTASSIUM_MG
+    val zincTarget       = targets?.zincMgTarget      ?: NRV.ZINC_MG
+    val vitCTarget       = targets?.vitCMgTarget      ?: NRV.VIT_C_MG
 
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
@@ -65,6 +77,10 @@ internal fun MicronutrientCard(totals: ConsumedNutrition, targets: DailyTargets?
                 MicroRow(stringResource(R.string.dashboard_micro_calcium), totals.calciumMg, calciumTarget, "mg", AccentCoral)
                 MicroRow(stringResource(R.string.dashboard_micro_vitd),    totals.vitDUg,    vitDTarget,    "µg", Violet)
                 MicroRow(stringResource(R.string.dashboard_micro_b12),     totals.b12Ug,     b12Target,     "µg", Warm)
+                MicroRow(stringResource(R.string.dashboard_micro_magnesium), totals.magnesiumMg, magnesiumTarget, "mg", MetaGreen)
+                MicroRow(stringResource(R.string.dashboard_micro_potassium), totals.potassiumMg, potassiumTarget, "mg", HydrationBlue)
+                MicroRow(stringResource(R.string.dashboard_micro_zinc),     totals.zincMg,      zincTarget,      "mg", CalorieOrange)
+                MicroRow(stringResource(R.string.dashboard_micro_vitc),     totals.vitCMg,       vitCTarget,      "mg", Teal)
             }
         }
     }

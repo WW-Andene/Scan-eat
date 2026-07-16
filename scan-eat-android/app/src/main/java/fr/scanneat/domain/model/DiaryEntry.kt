@@ -37,6 +37,14 @@ data class DiaryEntry(
             calciumMg     = (nutrition.calciumMg    ?: 0.0) * factor,
             vitDUg        = (nutrition.vitDUg       ?: 0.0) * factor,
             b12Ug         = (nutrition.b12Ug        ?: 0.0) * factor,
+            // DailyTargets already computes personalized magnesium/potassium/zinc/vitC
+            // targets (PersonalScoreEngine.kt), but this daily accumulator never tracked
+            // the consumed side of any of them - the targets were calculated every day
+            // and never had anything to compare against.
+            magnesiumMg   = (nutrition.magnesiumMg  ?: 0.0) * factor,
+            potassiumMg   = (nutrition.potassiumMg  ?: 0.0) * factor,
+            zincMg        = (nutrition.zincMg       ?: 0.0) * factor,
+            vitCMg        = (nutrition.vitCMg       ?: 0.0) * factor,
         )
     }
 }
@@ -54,6 +62,10 @@ data class ConsumedNutrition(
     val calciumMg: Double,
     val vitDUg: Double,
     val b12Ug: Double,
+    val magnesiumMg: Double = 0.0,
+    val potassiumMg: Double = 0.0,
+    val zincMg: Double = 0.0,
+    val vitCMg: Double = 0.0,
 ) {
     operator fun plus(other: ConsumedNutrition) = ConsumedNutrition(
         energyKcal    = energyKcal    + other.energyKcal,
@@ -68,6 +80,10 @@ data class ConsumedNutrition(
         calciumMg     = calciumMg     + other.calciumMg,
         vitDUg        = vitDUg        + other.vitDUg,
         b12Ug         = b12Ug         + other.b12Ug,
+        magnesiumMg   = magnesiumMg   + other.magnesiumMg,
+        potassiumMg   = potassiumMg   + other.potassiumMg,
+        zincMg        = zincMg        + other.zincMg,
+        vitCMg        = vitCMg        + other.vitCMg,
     )
 
     companion object {

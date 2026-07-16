@@ -1031,6 +1031,14 @@
     <string name="dashboard_micro_calcium">Calcium</string>
     <string name="dashboard_micro_vitd">Vit. D</string>
     <string name="dashboard_micro_b12">Vit. B12</string>
+    <string name="dashboard_micro_magnesium">Magnesium</string>
+    <string name="dashboard_micro_potassium">Potassium</string>
+    <string name="dashboard_micro_zinc">Zinc</string>
+    <string name="dashboard_micro_vitc">Vit. C</string>
+    <string name="dashboard_budget_title">Today\'s Budgets</string>
+    <string name="dashboard_budget_satfat">Sat. fat</string>
+    <string name="dashboard_budget_sugars">Sugars</string>
+    <string name="dashboard_budget_salt">Salt</string>
 
     <!-- ── Recipes screen ─────────────────────────────────────────────────── -->
     <string name="recipes_title">Recipes</string>

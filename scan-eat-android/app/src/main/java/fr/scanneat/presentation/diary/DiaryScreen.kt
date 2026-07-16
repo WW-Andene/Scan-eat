@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.activity.ActivityScreen
+import fr.scanneat.presentation.dashboard.cards.NutrientBudgetCard
 import fr.scanneat.presentation.diary.components.AddDiaryEntryDialog
 import fr.scanneat.presentation.diary.components.DiaryEntryCard
 import fr.scanneat.presentation.diary.components.EditPortionDialog
@@ -226,6 +227,10 @@ private fun MealsTab(viewModel: DiaryViewModel) {
         }
 
         item { MacroSummaryCard(totals = s.totals, targets = targets.value, goalTargets = goalTargets.value, goalWeightKg = goalWeightKg.value) }
+
+        // "Don't exceed" budgets (sat-fat/sugars/salt) - same card as Dashboard, so the
+        // Journal's per-day view has the same feedback loop the Dashboard's today view does.
+        targets.value?.let { t -> item { NutrientBudgetCard(totals = s.totals, targets = t) } }
 
         // Calorie intake breakdown bar — each meal slot's contribution as a colored segment
         if (s.entries.isNotEmpty()) {
