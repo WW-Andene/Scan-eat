@@ -199,6 +199,7 @@ data class ScanResult(
     val barcode: String? = null,
     val dbId: Long = 0,   // Row id from scan_history; 0 when not yet persisted
     val favorite: Boolean = false,
+    val scannedAt: Long = 0,   // epoch millis from scan_history; 0 when not yet persisted
 )
 
 enum class ScanSource { OPEN_FOOD_FACTS, LLM, MERGED, MANUAL }

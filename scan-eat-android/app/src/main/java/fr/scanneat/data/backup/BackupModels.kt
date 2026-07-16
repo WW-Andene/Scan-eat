@@ -7,6 +7,7 @@ import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
+import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
 import fr.scanneat.data.local.db.template.MealTemplateEntity
 import fr.scanneat.data.local.db.weight.WeightEntity
 import fr.scanneat.data.repository.biolism.BiolismRepository
@@ -39,6 +40,13 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // pregnancy/kidney_disease/etc) — real scoring/safety data that was silently
 // dropped on every backup/restore despite allergens and isMenstruating,
 // captured right alongside it on the same screen, always being included.
+// Since v8, also scan_score_history — a 9th @Database entity (an append-only
+// score log decoupled from scan_history's own upsert-by-barcode dedup, see
+// ScanScoreHistoryEntity) backing the Result screen's score-delta/history
+// sparkline. Genuine, non-derivable data (scan_history's own rows get
+// REPLACEd in place on a rescan, so this is the only place a barcoded
+// product's score-over-time actually survives) that would otherwise be
+// silently lost on restore-to-a-new-device like every other entity above.
 //
 // Deliberately excludes the Groq API key from SettingsBackup — a backup file
 // shared for debugging or support must not leak a credential.
@@ -49,7 +57,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 7
+const val BACKUP_FORMAT_VERSION = 8
 
 data class ProfileBackup(
     val name: String,
@@ -113,6 +121,7 @@ data class BackupBundle(
     val medications: List<MedicationEntity> = emptyList(),
     val manualGroceryItems: List<ManualGroceryItem> = emptyList(),
     val medicationLog: List<MedicationLogEntity> = emptyList(),
+    val scanScoreHistory: List<ScanScoreHistoryEntity> = emptyList(),
 )
 
 data class BackupSummary(
@@ -125,8 +134,9 @@ data class BackupSummary(
     val recipes: Int,
     val medications: Int = 0,
     val medicationLog: Int = 0,
+    val scanScoreHistory: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -137,6 +147,7 @@ data class BackupSummary(
             activities    = bundle.activities.size,
             mealTemplates = bundle.mealTemplates.size,
             recipes       = bundle.recipes.size,
+            scanScoreHistory = bundle.scanScoreHistory.size,
             medications   = bundle.medications.size,
             medicationLog = bundle.medicationLog.size,
         )

@@ -136,14 +136,17 @@ class ResultViewModel @Inject constructor(
                 scanRepo.findBetterAlternative(scan) else null
 
             // Prior scans of the same product (matched by barcode when present, else
-            // by name) — used for the score delta badge and history mini-sparkline.
-            val allHistory = scanRepo.observeHistory(limit = 200).first()
-            val priorScores = allHistory
-                .filter { it.dbId != scan.dbId && (
-                    (scan.barcode != null && it.barcode == scan.barcode) ||
-                    it.product.name.equals(scan.product.name, ignoreCase = true)
-                ) }
-                .map { it.audit.score }  // already sorted recent-first by observeHistory
+            // case-insensitive name) — used for the score delta badge and history
+            // mini-sparkline. Previously filtered the last 200 (all-product) scan_
+            // history rows client-side, which was both wasteful (deserializing 200
+            // full product/audit JSON blobs on every reload) and, for any barcoded
+            // product, entirely broken: scan_history upserts by barcode (a rescan
+            // REPLACEs the existing row in place, see ScanRepository.persist), so
+            // there is never more than one row per barcode to find a "prior" one
+            // among - the barcode branch of that filter could never match anything.
+            // scan_score_history is a separate append-only log written on every
+            // persist() specifically so this feature has real data to query.
+            val priorScores  = scanRepo.priorScores(scan.barcode, scan.product.name, beforeMillis = scan.scannedAt)
             val scoreDelta   = priorScores.firstOrNull()?.let { scan.audit.score - it }
             val scoreHistory = priorScores.take(5).reversed()  // oldest → newest for the timeline
 

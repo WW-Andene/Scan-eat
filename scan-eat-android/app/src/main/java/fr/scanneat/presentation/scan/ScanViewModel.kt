@@ -319,6 +319,18 @@ class ScanViewModel @Inject constructor(
 
     fun dismissError() { _state.value = ScanUiState.Idle }
 
+    /**
+     * Dismisses a MedicationFound/NonConsumableFound dialog without saving it -
+     * distinct from dismissError() because it also clears the photo queue and any
+     * held barcode, matching saveDetectedMedication()'s confirm path below.
+     * dismissError() deliberately leaves the queue alone (needsPhoto errors rely
+     * on the queued photos surviving so the user can add one and retry), but a
+     * rejected medication/non-consumable match means "this isn't the thing to
+     * score as food" - without this, the queued photos/barcode from that match
+     * silently carried over into the user's next, unrelated scan attempt.
+     */
+    fun dismissFound() { clearQueue() }
+
     /** Confirms saving a detected medication (ScanUiState.MedicationFound) into Traitement. */
     fun saveDetectedMedication(entry: MedicationDbEntry) {
         viewModelScope.launch {

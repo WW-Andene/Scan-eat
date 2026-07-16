@@ -4,6 +4,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
+import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
+import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.*
@@ -48,6 +50,7 @@ private fun serverUrlMissingMessage(lang: String) =
 class ScanRepository @Inject constructor(
     private val offApi: OpenFoodFactsApi,
     private val dao: ScanHistoryDao,
+    private val scoreHistoryDao: ScanScoreHistoryDao,
     private val prefs: UserPreferences,
     private val ocrParser: OcrParser,
     private val okHttpClient: OkHttpClient,   // injected directly — no unsafe cast
@@ -129,6 +132,7 @@ class ScanRepository @Inject constructor(
      * "no existing row" and both insert a duplicate.
      */
     suspend fun persist(result: ScanResult, profileId: String = "default"): Long {
+        val now = System.currentTimeMillis()
         val id = dao.upsertByBarcode(result.barcode, profileId) { existingId, existingFavorite ->
             ScanHistoryEntity(
                 id          = existingId,
@@ -140,7 +144,7 @@ class ScanRepository @Inject constructor(
                 sourceJson  = result.source.name,
                 productJson = productAdapter.toJson(result.product),
                 auditJson   = auditAdapter.toJson(result.audit),
-                scannedAt   = System.currentTimeMillis(),
+                scannedAt   = now,
                 profileId   = profileId,
                 favorite    = existingFavorite,
             )
@@ -153,8 +157,30 @@ class ScanRepository @Inject constructor(
         // MAX_HISTORY_ROWS, so nothing matches and nothing is deleted. Favorites
         // are never trimmed - see ScanHistoryDao.trimNonFavorites.
         dao.trimNonFavorites(MAX_HISTORY_ROWS, profileId)
+
+        // Written on every persist(), including a rescan that upserts scan_history's
+        // row in place - see ScanScoreHistoryEntity's doc comment for why that upsert
+        // would otherwise silently destroy the very history the score-delta/sparkline
+        // feature needs.
+        scoreHistoryDao.insert(ScanScoreHistoryEntity(
+            matchKey  = matchKeyFor(result.barcode, result.product.name),
+            score     = result.audit.score,
+            scannedAt = now,
+            profileId = profileId,
+        ))
+        scoreHistoryDao.trim(MAX_HISTORY_ROWS, profileId)
         return id
     }
+
+    /**
+     * Prior scores for the same product (matched by barcode when present, else
+     * case-insensitive name), most-recent-first, strictly before [beforeMillis] -
+     * used for ResultViewModel's score-delta badge and history sparkline.
+     */
+    suspend fun priorScores(barcode: String?, productName: String, beforeMillis: Long, profileId: String = "default", limit: Int = 6): List<Int> =
+        scoreHistoryDao.recentScoresBefore(matchKeyFor(barcode, productName), beforeMillis, limit, profileId)
+
+    private fun matchKeyFor(barcode: String?, productName: String): String = barcode ?: productName.lowercase()
 
     // ---- Score from barcode ----
 
@@ -537,9 +563,10 @@ class ScanRepository @Inject constructor(
             audit    = auditAdapter.fromJson(auditJson)!!,
             warnings = emptyList(),
             source   = ScanSource.valueOf(sourceJson),
-            barcode  = barcode,
-            dbId     = id,
-            favorite = favorite,
+            barcode   = barcode,
+            dbId      = id,
+            favorite  = favorite,
+            scannedAt = scannedAt,
         )
     }.onFailure {
         // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -

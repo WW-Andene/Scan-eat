@@ -20,6 +20,8 @@ import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
+import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
+import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.template.MealTemplateEntity
 import fr.scanneat.data.local.db.weight.WeightDao
@@ -36,8 +38,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         RecipeEntity::class,
         MedicationEntity::class,
         MedicationLogEntity::class,
+        ScanScoreHistoryEntity::class,
     ],
-    version = 16,
+    version = 17,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -51,6 +54,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recipeDao(): RecipeDao
     abstract fun medicationDao(): MedicationDao
     abstract fun medicationLogDao(): MedicationLogDao
+    abstract fun scanScoreHistoryDao(): ScanScoreHistoryDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -249,5 +253,28 @@ val MIGRATION_15_16 = object : Migration(15, 16) {
         // the profile. A composite index covering all three filter columns lets
         // SQLite use it directly instead.
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_history_profileId_category_score` ON `scan_history` (`profileId`, `category`, `score`)")
+    }
+}
+val MIGRATION_16_17 = object : Migration(16, 17) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v16 → v17: new scan_score_history table - see ScanScoreHistoryEntity's doc
+        // comment. scan_history upserts by barcode (one row per barcode, REPLACEd on
+        // every rescan) specifically to avoid unbounded row growth from re-scanning
+        // the same product - but that meant a barcoded product's previous score was
+        // silently overwritten and lost on every rescan, with nothing left for
+        // ResultViewModel's scoreDelta/scoreHistory feature to compare against. That
+        // feature was therefore structurally dead for every barcoded scan (the vast
+        // majority of real scans) and only ever worked for the rarer no-barcode/
+        // LLM-identified path. This table is an append-only log written alongside
+        // (not instead of) scan_history, purely to give that feature real data.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `scan_score_history` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`matchKey` TEXT NOT NULL, " +
+                "`score` INTEGER NOT NULL, " +
+                "`scannedAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL)"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_score_history_profileId_matchKey_scannedAt` ON `scan_score_history` (`profileId`, `matchKey`, `scannedAt`)")
     }
 }

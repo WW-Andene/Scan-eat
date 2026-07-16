@@ -11,6 +11,7 @@ import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationLogDao
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
+import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.data.local.prefs.ApiMode
@@ -56,6 +57,7 @@ class BackupRepository @Inject constructor(
     private val recipeDao: RecipeDao,
     private val medicationDao: MedicationDao,
     private val medicationLogDao: MedicationLogDao,
+    private val scanScoreHistoryDao: ScanScoreHistoryDao,
     private val prefs: UserPreferences,
     private val hydrationRepo: HydrationRepository,
     private val fastingRepo: FastingRepository,
@@ -86,6 +88,7 @@ class BackupRepository @Inject constructor(
             recipes       = recipeDao.getAllForBackup(),
             medications   = medicationDao.getAllForBackup(),
             medicationLog = medicationLogDao.getAllForBackup(),
+            scanScoreHistory = scanScoreHistoryDao.getAllForBackup(),
             profile = ProfileBackup(
                 name = profile.name,
                 sex = profile.sex.name,
@@ -173,6 +176,15 @@ class BackupRepository @Inject constructor(
             recipeDao.insertAll(bundle.recipes)
             medicationDao.insertAll(bundle.medications)
             medicationLogDao.insertAll(bundle.medicationLog)
+
+            // scan_score_history uses an autoGenerate Long id like scan_history/
+            // consumption_log above, for the same reason - reset id=0 and dedup by
+            // natural key (matchKey+scannedAt already uniquely identifies a real
+            // persist() call) before inserting.
+            val existingScoreKeys = scanScoreHistoryDao.getAllForBackup()
+                .map { it.matchKey to it.scannedAt }.toSet()
+            val newScores = bundle.scanScoreHistory.filter { it.matchKey to it.scannedAt !in existingScoreKeys }
+            scanScoreHistoryDao.insertAll(newScores.map { it.copy(id = 0) })
         }
 
         restoreDataStoreData(bundle)
@@ -252,8 +264,16 @@ class BackupRepository @Inject constructor(
         return sb.toString()
     }
 
-    /** Clears the scan history table (keeps all other data intact). */
-    suspend fun clearScanHistory() = scanHistoryDao.clearAll()
+    /**
+     * Clears the scan history table (keeps all other data intact) - also clears
+     * scan_score_history, since leaving it behind would resurface pre-clear
+     * scores as "prior scans" the next time a previously-scanned product is
+     * rescanned, contradicting what a user asking to erase their history expects.
+     */
+    suspend fun clearScanHistory() {
+        scanHistoryDao.clearAll()
+        scanScoreHistoryDao.clearAll()
+    }
 
     /** Reactive total row counts for the two most user-visible tables — shown in the
      *  Settings backup section so users know what they'd be exporting or resetting. */

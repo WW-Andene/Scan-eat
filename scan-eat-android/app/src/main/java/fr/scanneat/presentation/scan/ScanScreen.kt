@@ -439,7 +439,7 @@ fun ScanScreen(
             generateMedicationHints(found.entry, healthConditions.value, language.value)
         }
         AlertDialog(
-            onDismissRequest = { viewModel.dismissError() },
+            onDismissRequest = { viewModel.dismissFound() },
             containerColor = SurfaceVariant,
             title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
             text = {
@@ -453,14 +453,14 @@ fun ScanScreen(
                     Text(stringResource(R.string.scan_medication_found_add), color = Teal)
                 }
             },
-            dismissButton = { TextButton(onClick = { viewModel.dismissError() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+            dismissButton = { TextButton(onClick = { viewModel.dismissFound() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )
     }
 
     (state.value as? ScanUiState.NonConsumableFound)?.let { found ->
         val hints = remember(found.entry, language.value) { generateNonConsumableHints(found.entry.category, language.value) }
         AlertDialog(
-            onDismissRequest = { viewModel.dismissError() },
+            onDismissRequest = { viewModel.dismissFound() },
             containerColor = SurfaceVariant,
             title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
             text = {
@@ -470,7 +470,7 @@ fun ScanScreen(
                     FactsCautionsColumn(hints.facts, hints.cautions)
                 }
             },
-            confirmButton = { TextButton(onClick = { viewModel.dismissError() }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
+            confirmButton = { TextButton(onClick = { viewModel.dismissFound() }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
         )
     }
 }
