@@ -5,7 +5,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
 import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.activity.ActivityEntity
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
@@ -43,7 +42,6 @@ import fr.scanneat.data.local.db.weight.WeightEntity
     version = 17,
     exportSchema = true,
 )
-@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun scanHistoryDao(): ScanHistoryDao
     abstract fun consumptionDao(): ConsumptionDao
