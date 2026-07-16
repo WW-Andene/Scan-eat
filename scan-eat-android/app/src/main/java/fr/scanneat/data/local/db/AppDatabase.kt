@@ -39,7 +39,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationLogEntity::class,
         ScanScoreHistoryEntity::class,
     ],
-    version = 17,
+    version = 18,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -274,5 +274,17 @@ val MIGRATION_16_17 = object : Migration(16, 17) {
                 "`profileId` TEXT NOT NULL)"
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_scan_score_history_profileId_matchKey_scannedAt` ON `scan_score_history` (`profileId`, `matchKey`, `scannedAt`)")
+    }
+}
+val MIGRATION_17_18 = object : Migration(17, 18) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v17 → v18: custom_foods gains an optional barcode - "Save to Mes Aliments"
+        // on a scanned barcoded product previously dropped the barcode entirely, so
+        // the only dedup key left was the display name, which two genuinely
+        // different barcoded products can share (e.g. two brands both "Yaourt
+        // nature") - silently overwriting one's nutrition values with the other's.
+        // See CustomFoodDao.upsertFood, which now prefers a barcode match when given.
+        db.execSQL("ALTER TABLE `custom_foods` ADD COLUMN `barcode` TEXT")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_foods_barcode_profileId` ON `custom_foods` (`barcode`, `profileId`)")
     }
 }

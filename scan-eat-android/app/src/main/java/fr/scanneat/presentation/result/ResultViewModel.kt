@@ -243,6 +243,11 @@ class ResultViewModel @Inject constructor(
                     fatG     = n.fatG,
                     fiberG   = n.fiberG,
                     saltG    = n.saltG,
+                    // Previously dropped here - the only dedup key left was the
+                    // display name, which two differently-barcoded products can
+                    // share (e.g. two brands both "Yaourt nature"), silently
+                    // overwriting one with the other's nutrition values.
+                    barcode  = scan.barcode,
                 )
             }
             if (SaveDestination.COURSES in destinations) {

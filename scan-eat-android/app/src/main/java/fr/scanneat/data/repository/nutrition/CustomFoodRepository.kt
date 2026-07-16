@@ -46,6 +46,13 @@ class CustomFoodRepository @Inject constructor(
         aliases: List<String> = emptyList(),
         id: String? = null,
         profileId: String = "default",
+        // Set when this save originates from a scanned barcoded product (see
+        // ResultViewModel.saveToDestinations) - a real, unambiguous identity
+        // that CustomFoodDao.upsertFood prefers over the name-based match, so
+        // two differently-barcoded products sharing a generic name don't
+        // silently overwrite each other. Null for a manually-typed custom food,
+        // which falls back to the existing name-only dedup.
+        barcode: String? = null,
     ): FoodEntry {
         // A blank/whitespace-only name previously passed through untouched: name.trim()
         // still persisted an empty string, silently adding an unnamed row to the custom
@@ -66,12 +73,13 @@ class CustomFoodRepository @Inject constructor(
         // Two custom foods sharing a name break Compose's LazyColumn key uniqueness in
         // CustomFoodScreen and make deleteByName() delete every row with that name
         // instead of just one. When no explicit id is given (a fresh "Add", not a
-        // rename/update of a known row), reuse an existing same-name row's id instead
-        // of creating a silent duplicate — "Add" on an existing name updates it in place.
-        // The name-resolution read and the insert both run inside upsertByName's own
-        // @Transaction, so two concurrent same-name save() calls can't both read "no
-        // existing row" and both insert a duplicate.
-        dao.upsertByName(entry.name, profileId, id) { resolvedId ->
+        // rename/update of a known row), reuse an existing matching row's id instead
+        // of creating a silent duplicate — "Add" on an existing product updates it in
+        // place (matched by barcode first when given, else by name; see upsertFood).
+        // The match-resolution read and the insert both run inside upsertFood's own
+        // @Transaction, so two concurrent save() calls for the same product can't
+        // both read "no existing row" and both insert a duplicate.
+        dao.upsertFood(entry.name, barcode, profileId, id) { resolvedId ->
             CustomFoodEntity(
                 id            = resolvedId,
                 name          = entry.name,
@@ -83,6 +91,7 @@ class CustomFoodRepository @Inject constructor(
                 )),
                 createdAt     = System.currentTimeMillis(),
                 profileId     = profileId,
+                barcode       = barcode,
             )
         }
         return entry

@@ -28,26 +28,41 @@ interface CustomFoodDao {
     @Query("DELETE FROM custom_foods WHERE id = :id")
     suspend fun delete(id: String)
 
+    @Query("SELECT * FROM custom_foods WHERE profileId = :profileId AND barcode = :barcode LIMIT 1")
+    suspend fun findByBarcode(barcode: String, profileId: String = "default"): CustomFoodEntity?
+
     /**
-     * Atomically resolves [explicitId] (a known rename/update target) or an
-     * existing same-name row's id (case-insensitive, matching CustomFoodRepository's
-     * prior Kotlin-side check exactly - not SQLite's COLLATE NOCASE, which only
-     * folds ASCII and would silently stop recognizing accented-name collisions
-     * like "Pâté" vs "pâté"), else a fresh UUID, then inserts [build]'s result.
-     * Closes the same TOCTOU race ScanHistoryDao.upsertByBarcode was fixed for:
-     * two concurrent calls with the same name and no explicit id previously
-     * could both read "no existing row" and both insert, creating the exact
-     * duplicate-name row CustomFoodRepository.save()'s own doc comment warns
-     * breaks LazyColumn key uniqueness.
+     * Atomically resolves [explicitId] (a known rename/update target), else an
+     * existing row's id - preferring a [barcode] match when one is given (a real,
+     * unambiguous product identity, same "one row per barcode" preference
+     * ScanHistoryDao.upsertByBarcode uses), falling back to a same-name match
+     * (case-insensitive, matching CustomFoodRepository's prior Kotlin-side check
+     * exactly - not SQLite's COLLATE NOCASE, which only folds ASCII and would
+     * silently stop recognizing accented-name collisions like "Pâté" vs "pâté"),
+     * else a fresh UUID, then inserts [build]'s result.
+     *
+     * The barcode preference matters: two genuinely different barcoded products
+     * that happen to share a generic display name (e.g. two brands both named
+     * "Yaourt nature") previously collided on the name-only check and silently
+     * overwrote each other's nutrition values - a real product identity, when
+     * the caller has one, disambiguates that the way a name alone can't.
+     *
+     * Also closes the same TOCTOU race ScanHistoryDao.upsertByBarcode was fixed
+     * for: two concurrent calls for the same product and no explicit id
+     * previously could both read "no existing row" and both insert, creating
+     * the exact duplicate row CustomFoodRepository.save()'s own doc comment
+     * warns breaks LazyColumn key uniqueness.
      */
     @Transaction
-    suspend fun upsertByName(
+    suspend fun upsertFood(
         name: String,
+        barcode: String?,
         profileId: String,
         explicitId: String?,
         build: (resolvedId: String) -> CustomFoodEntity,
     ): CustomFoodEntity {
         val resolvedId = explicitId
+            ?: barcode?.let { findByBarcode(it, profileId)?.id }
             ?: getAllForBackup(profileId).firstOrNull { it.name.equals(name, ignoreCase = true) }?.id
             ?: java.util.UUID.randomUUID().toString()
         val entity = build(resolvedId)
