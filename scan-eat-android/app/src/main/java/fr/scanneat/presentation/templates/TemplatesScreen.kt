@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.templates
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,6 +37,8 @@ fun TemplatesScreen(
 ) {
     val templates = viewModel.templates.collectAsStateWithLifecycle()
     val libraryTotalKcal = viewModel.libraryTotalKcal.collectAsStateWithLifecycle()
+    val ingredientSearchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
+    val templateWarnings = viewModel.templateWarnings.collectAsStateWithLifecycle()
     var logTarget by remember { mutableStateOf<MealTemplate?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<MealTemplate?>(null) }
@@ -115,6 +118,16 @@ fun TemplatesScreen(
                             }
                             if (template.items.size > 3) {
                                 Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
+                            }
+                            // Diet/allergen check previously only ever ran on Recipes/Grocery -
+                            // a template built from ingredients the user's own profile forbids
+                            // had no warning anywhere in this screen, despite being logged
+                            // repeatedly.
+                            templateWarnings.value[template.id]?.let { warning ->
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                                    Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                                    Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+                                }
                             }
                             // Macro summary — protein/carbs/fat totals were only available
                             // in the log dialog; here on the card a user had no quick read
@@ -199,7 +212,9 @@ fun TemplatesScreen(
             template = live,
             onAdd    = { item -> viewModel.addItem(live, item) },
             onRemove = { index -> viewModel.removeItem(live, index) },
-            onDismiss = { itemsTarget = null },
+            onDismiss = { viewModel.setIngredientQuery(""); itemsTarget = null },
+            searchResults = ingredientSearchResults.value,
+            onQueryChange = viewModel::setIngredientQuery,
         )
     }
 
@@ -241,10 +256,17 @@ private fun EditTemplateItemsDialog(
     onAdd: (TemplateItem) -> Unit,
     onRemove: (Int) -> Unit,
     onDismiss: () -> Unit,
+    searchResults: List<fr.scanneat.domain.engine.nutrition.FoodEntry> = emptyList(),
+    onQueryChange: (String) -> Unit = {},
 ) {
     var newName by remember { mutableStateOf("") }
     var newGrams by remember { mutableStateOf("") }
     var newKcal by remember { mutableStateOf("") }
+    // Set once a FOOD_DB/custom-food search result is picked - carries full
+    // macros (protein/carbs/fat/fiber/salt), not just the kcal the manual field
+    // below ever captured. Cleared whenever the name is edited by hand again, same
+    // pattern AddRecipeDialog already uses for the identical situation.
+    var selectedFood by remember { mutableStateOf<fr.scanneat.domain.engine.nutrition.FoodEntry?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -266,20 +288,59 @@ private fun EditTemplateItemsDialog(
                 }
                 HorizontalDivider(color = OnBackground.copy(0.1f))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    OutlinedTextField(value = newName, onValueChange = { newName = it }, label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
-                        colors = scanEatTextFieldColors())
+                    OutlinedTextField(
+                        value = newName,
+                        onValueChange = { newName = it; selectedFood = null; onQueryChange(it) },
+                        label = { Text(stringResource(R.string.recipes_field_ingredient)) }, modifier = Modifier.weight(2f), singleLine = true,
+                        colors = scanEatTextFieldColors(),
+                    )
                     OutlinedTextField(value = newGrams, onValueChange = { newGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = scanEatTextFieldColors())
-                    OutlinedTextField(value = newKcal, onValueChange = { newKcal = it }, label = { Text("kcal") }, modifier = Modifier.weight(1f), singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = scanEatTextFieldColors())
+                    // Manual kcal entry only matters as a fallback once no database match
+                    // is picked - hidden once one is, since its full macros are used instead.
+                    if (selectedFood == null) {
+                        OutlinedTextField(value = newKcal, onValueChange = { newKcal = it }, label = { Text("kcal") }, modifier = Modifier.weight(1f), singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = scanEatTextFieldColors())
+                    }
+                }
+                // FOOD_DB + custom-food search results - previously this dialog had no
+                // lookup at all, so every item's protein/carbs/fat/fiber defaulted to 0
+                // even when the food was already known, leaving TemplatesScreen's macro
+                // summary chips permanently 0g/0g/0g.
+                if (selectedFood == null && searchResults.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        searchResults.take(5).forEach { food ->
+                            Text(
+                                food.name, style = MaterialTheme.typography.bodySmall, color = AccentCoral,
+                                modifier = Modifier.fillMaxWidth().clickable {
+                                    selectedFood = food
+                                    newName = food.name
+                                    onQueryChange("")
+                                }.padding(vertical = 4.dp),
+                            )
+                        }
+                    }
                 }
                 TextButton(onClick = {
                     val g = newGrams.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return@TextButton
-                    val k = newKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0
-                    if (newName.isNotBlank()) {
-                        onAdd(TemplateItem(productName = newName.trim(), grams = g, meal = template.meal.name.lowercase(), kcal = k))
-                        newName = ""; newGrams = ""; newKcal = ""
+                    if (newName.isBlank()) return@TextButton
+                    val food = selectedFood
+                    val item = if (food != null) {
+                        TemplateItem(
+                            productName = food.name, grams = g, meal = template.meal.name.lowercase(),
+                            kcal     = food.kcal * g / 100.0,
+                            proteinG = food.proteinG * g / 100.0,
+                            carbsG   = food.carbsG * g / 100.0,
+                            fatG     = food.fatG * g / 100.0,
+                            fiberG   = food.fiberG * g / 100.0,
+                            saltG    = food.saltG * g / 100.0,
+                        )
+                    } else {
+                        val k = newKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0
+                        TemplateItem(productName = newName.trim(), grams = g, meal = template.meal.name.lowercase(), kcal = k)
                     }
+                    onAdd(item)
+                    newName = ""; newGrams = ""; newKcal = ""; selectedFood = null; onQueryChange("")
                 }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentCoral) }
             }
         },

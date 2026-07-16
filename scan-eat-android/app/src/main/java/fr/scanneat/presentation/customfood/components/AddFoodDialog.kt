@@ -30,7 +30,7 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 @Composable
 internal fun AddFoodDialog(
     onDismiss: () -> Unit,
-    onSave: (String, Double, Double, Double, Double, Double, Double) -> Unit,
+    onSave: (String, Double, Double, Double, Double, Double, Double, List<String>) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
     var kcal by remember { mutableStateOf("") }
@@ -39,6 +39,11 @@ internal fun AddFoodDialog(
     var fat  by remember { mutableStateOf("") }
     var fib  by remember { mutableStateOf("") }
     var salt by remember { mutableStateOf("") }
+    // CustomFoodRepository.save() already accepted/persisted aliases (built-in
+    // FOOD_DB entries carry them so a bilingual search finds them either way),
+    // but this dialog never collected any - every custom food a user created
+    // was permanently unreachable by an alternate spelling/translation.
+    var aliases by remember { mutableStateOf("") }
 
     // Blank macro fields default to 0.0 at save time - only reject a field that's
     // actually filled in with something negative (kcal itself must always parse).
@@ -66,6 +71,7 @@ internal fun AddFoodDialog(
                     FoodField(stringResource(R.string.customfood_field_fiber), fib, KeyboardType.Decimal, Modifier.weight(1f)) { fib = it }
                     FoodField(stringResource(R.string.customfood_field_salt), salt, KeyboardType.Decimal, Modifier.weight(1f)) { salt = it }
                 }
+                FoodField(stringResource(R.string.customfood_field_aliases), aliases, KeyboardType.Text) { aliases = it }
             }
         },
         confirmButton = {
@@ -79,6 +85,7 @@ internal fun AddFoodDialog(
                         fat.replace(',', '.').toDoubleOrNull()  ?: 0.0,
                         fib.replace(',', '.').toDoubleOrNull()  ?: 0.0,
                         salt.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                        aliases.split(',').map { it.trim() }.filter { it.isNotBlank() },
                     )
                 },
                 enabled = valid,

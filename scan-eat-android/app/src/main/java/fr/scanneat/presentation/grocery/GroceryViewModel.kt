@@ -9,6 +9,8 @@ import fr.scanneat.data.repository.planning.ManualGroceryItem
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.planning.MealPlanSlot
+import fr.scanneat.data.repository.planning.MealTemplate
+import fr.scanneat.data.repository.planning.MealTemplateRepository
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.planning.*
@@ -24,11 +26,19 @@ data class CheckableGroceryItem(val item: GroceryItem, val checked: Boolean)
 private fun Recipe.toGroceryInput(): GroceryRecipeInput =
     GroceryRecipeInput(name = name, components = components.map { c -> GroceryComponent(c.productName, c.grams) })
 
+// Meal Templates were fully symmetric with Recipes everywhere else (AssignSlotDialog,
+// dayCalories/weeklyTotalKcal, logging) but never contributed to the grocery list at
+// all - a user who plans mainly via Templates got a shopping list silently missing
+// everything from those meals. Same GroceryRecipeInput shape a Recipe already maps to.
+private fun MealTemplate.toGroceryInput(): GroceryRecipeInput =
+    GroceryRecipeInput(name = name, components = items.map { i -> GroceryComponent(i.productName, i.grams) })
+
 private val PLAN_MEALS = listOf("breakfast", "lunch", "dinner", "snack")
 
 @HiltViewModel
 class GroceryViewModel @Inject constructor(
     private val recipeRepo: RecipeRepository,
+    private val templateRepo: MealTemplateRepository,
     private val checkedRepo: GroceryCheckedRepository,
     private val mealPlanRepo: MealPlanRepository,
     private val manualGroceryRepo: ManualGroceryRepository,
@@ -49,6 +59,7 @@ class GroceryViewModel @Inject constructor(
     }
 
     private val recipes: Flow<List<Recipe>> = recipeRepo.observeAll()
+    private val templates: Flow<List<MealTemplate>> = templateRepo.observeAll()
 
     /** recipeId -> number of slots it occupies within the current week's plan. */
     private val plannedRecipeCounts: Flow<Map<String, Int>> = mealPlanRepo.weekPlan.map { plan ->
@@ -64,27 +75,47 @@ class GroceryViewModel @Inject constructor(
         counts
     }
 
-    // Unscoped aggregation over every saved recipe — kept around purely as the
-    // superset used to validate persisted checked-item keys (see init below), so
+    /** Same as [plannedRecipeCounts] but for MealPlanSlot.TemplateSlot. */
+    private val plannedTemplateCounts: Flow<Map<String, Int>> = mealPlanRepo.weekPlan.map { plan ->
+        val weekDates = mealPlanRepo.weekDates().toSet()
+        val counts = mutableMapOf<String, Int>()
+        for ((date, day) in plan) {
+            if (date !in weekDates) continue
+            for (meal in PLAN_MEALS) {
+                val slot = day[meal]
+                if (slot is MealPlanSlot.TemplateSlot) counts[slot.id] = (counts[slot.id] ?: 0) + 1
+            }
+        }
+        counts
+    }
+
+    // Unscoped aggregation over every saved recipe/template — kept around purely as
+    // the superset used to validate persisted checked-item keys (see init below), so
     // toggling scopeToPlanned on/off never discards check-off state for an
     // ingredient that's just temporarily out of view, only for one that's truly
-    // gone (recipe deleted/edited).
-    private val allRecipeItems: StateFlow<List<GroceryItem>> = combine(recipes, manualGroceryRepo.asRecipeInputs) { list, manual ->
-        aggregateGroceryList(list.map { it.toGroceryInput() } + manual)
+    // gone (recipe/template deleted/edited).
+    private val allRecipeItems: StateFlow<List<GroceryItem>> = combine(recipes, templates, manualGroceryRepo.asRecipeInputs) { recipeList, templateList, manual ->
+        aggregateGroceryList(recipeList.map { it.toGroceryInput() } + templateList.map { it.toGroceryInput() } + manual)
     }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // A shared StateFlow so groceryItems and checkableItems don't each trigger their
-    // own Room query + aggregateGroceryList() run for the same recipe change. Manual
-    // items (added ad-hoc, e.g. from a scanned product's "Save to..." popup) always
-    // show regardless of the planned-week scope - they were never tied to a recipe
-    // or meal-plan slot in the first place.
-    private val rawItems: StateFlow<List<GroceryItem>> = combine(recipes, plannedRecipeCounts, _scopeToPlanned, manualGroceryRepo.asRecipeInputs) { list, counts, scoped, manual ->
+    // own Room query + aggregateGroceryList() run for the same recipe/template change.
+    // Manual items (added ad-hoc, e.g. from a scanned product's "Save to..." popup)
+    // always show regardless of the planned-week scope - they were never tied to a
+    // recipe/template or meal-plan slot in the first place.
+    private val rawItems: StateFlow<List<GroceryItem>> = combine(
+        combine(recipes, plannedRecipeCounts, ::Pair),
+        combine(templates, plannedTemplateCounts, ::Pair),
+        _scopeToPlanned,
+        manualGroceryRepo.asRecipeInputs,
+    ) { (recipeList, recipeCounts), (templateList, templateCounts), scoped, manual ->
         val inputs = if (!scoped) {
-            list.map { it.toGroceryInput() }
+            recipeList.map { it.toGroceryInput() } + templateList.map { it.toGroceryInput() }
         } else {
-            list.flatMap { r -> List(counts[r.id] ?: 0) { r.toGroceryInput() } }
+            recipeList.flatMap { r -> List(recipeCounts[r.id] ?: 0) { r.toGroceryInput() } } +
+                templateList.flatMap { t -> List(templateCounts[t.id] ?: 0) { t.toGroceryInput() } }
         }
         aggregateGroceryList(inputs + manual)
     }

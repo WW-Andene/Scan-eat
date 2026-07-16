@@ -120,6 +120,12 @@ internal fun AddRecipeDialog(
                             carbsG   = food.carbsG * g / 100.0,
                             fatG     = food.fatG * g / 100.0,
                             fiberG   = food.fiberG * g / 100.0,
+                            // RecipeComponent.saltG feeds Recipe.nutritionPer100g.saltG
+                            // (used by toCheckProduct()'s diet checks and any diary
+                            // entry logged from this recipe) - previously never
+                            // copied from the picked food, silently zeroing sodium
+                            // for every ingredient added via search.
+                            saltG    = food.saltG * g / 100.0,
                         )
                     } else {
                         val k = newIngKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0

@@ -52,10 +52,15 @@ class CustomFoodViewModel @Inject constructor(
         fatG: Double,
         fiberG: Double = 0.0,
         saltG: Double = 0.0,
+        // CustomFoodRepository.save() already accepted/persisted this - built-in
+        // FOOD_DB entries carry aliases so a bilingual search finds them either
+        // way (searchFoodDB is alias-aware), but nothing here ever forwarded a
+        // value, so every custom food a user creates was permanently alias-less.
+        aliases: List<String> = emptyList(),
     ) {
         viewModelScope.launch {
             repo.save(name = name, kcal = kcal, proteinG = proteinG,
-                      carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG)
+                      carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases)
         }
     }
 

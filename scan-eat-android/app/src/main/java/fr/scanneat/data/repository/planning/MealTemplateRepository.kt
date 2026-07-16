@@ -5,10 +5,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.template.MealTemplateEntity
-import fr.scanneat.domain.model.MealSlot
-import fr.scanneat.domain.model.NutritionPer100g
-import fr.scanneat.domain.model.DiaryEntry
-import fr.scanneat.domain.model.ScanSource
+import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -36,6 +33,7 @@ data class TemplateItem(
     val sugarsG: Double = 0.0,
     val saltG: Double = 0.0,
     val proteinG: Double = 0.0,
+    val fiberG: Double = 0.0,
     val quickAdd: Boolean = false,
 )
 
@@ -53,6 +51,22 @@ data class MealTemplate(
     val totalProteinG: Int get() = items.sumOf { it.proteinG }.roundToInt()
     val totalCarbsG: Int   get() = items.sumOf { it.carbsG }.roundToInt()
     val totalFatG: Int     get() = items.sumOf { it.fatG }.roundToInt()
+
+    /**
+     * Synthetic Product so a saved template can be run through the same
+     * checkDiet()/checkUserAllergens() Recipe.toCheckProduct() already uses -
+     * a "Saved Meal" template is logged repeatedly, exactly as likely to
+     * contain a forbidden ingredient as a Recipe, but previously had no
+     * equivalent check anywhere, so a vegan or allergic user got zero warning
+     * for the one meal type they'd actually re-log most often.
+     */
+    fun toCheckProduct(): Product = Product(
+        name        = name,
+        category    = ProductCategory.OTHER,
+        novaClass   = NovaClass.UNPROCESSED,
+        ingredients = items.map { i -> Ingredient(name = i.productName, category = IngredientCategory.FOOD) },
+        nutrition   = NutritionPer100g.EMPTY,
+    )
 }
 
 @Singleton
@@ -124,7 +138,10 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
                     saturatedFatG = if (item.grams > 0) item.satFatG * 100 / item.grams else 0.0,
                     carbsG        = if (item.grams > 0) item.carbsG * 100 / item.grams else 0.0,
                     sugarsG       = if (item.grams > 0) item.sugarsG * 100 / item.grams else 0.0,
-                    fiberG        = 0.0,
+                    // TemplateItem carried no fiberG field at all until now - every
+                    // template-logged entry silently reported zero fiber regardless
+                    // of what was actually added, unlike Recipe's identical shape.
+                    fiberG        = if (item.grams > 0) item.fiberG * 100 / item.grams else 0.0,
                     proteinG      = if (item.grams > 0) item.proteinG * 100 / item.grams else 0.0,
                     saltG         = if (item.grams > 0) item.saltG * 100 / item.grams else 0.0,
                 ),

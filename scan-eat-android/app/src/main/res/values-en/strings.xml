@@ -684,6 +684,7 @@
     <string name="customfood_field_fat">Fat g</string>
     <string name="customfood_field_fiber">Fiber g</string>
     <string name="customfood_field_salt">Salt g</string>
+    <string name="customfood_field_aliases">Also known as (comma-separated)</string>
     <string name="customfood_import_from_scan">Import "%1$s" from last scan</string>
     <string name="customfood_stats_count">%1$d food(s)</string>
     <string name="customfood_stats_avg_kcal">~%1$d kcal avg.</string>
@@ -1030,6 +1031,7 @@
     <string name="recipes_cd_notes">Edit instructions</string>
     <string name="recipes_servings_to_log_label">Servings to log (of %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g per serving</string>
+    <string name="recipes_macro_per_serving_label">Per serving</string>
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>

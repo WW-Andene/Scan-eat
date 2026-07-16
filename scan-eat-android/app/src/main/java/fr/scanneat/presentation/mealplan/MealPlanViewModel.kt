@@ -71,7 +71,14 @@ class MealPlanViewModel @Inject constructor(
         plan.filterKeys { it in dates }.mapValues { (_, dayPlan) ->
             listOf("breakfast", "lunch", "dinner", "snack").sumOf { meal ->
                 when (val slot = dayPlan[meal]) {
-                    is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }?.totalKcal?.toInt() ?: 0
+                    // A recipe's totalKcal is the whole multi-serving batch, not
+                    // what a single planned meal represents - logSlot() below
+                    // logs exactly one serving (portionFraction = 1/servings), so
+                    // this summary must divide the same way or it silently
+                    // overstates a day's/week's planned intake by the servings
+                    // factor for any recipe that isn't single-serving.
+                    is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }
+                        ?.let { (it.totalKcal / it.servings.coerceAtLeast(1)).toInt() } ?: 0
                     is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.totalKcal ?: 0
                     else -> 0
                 }
@@ -93,7 +100,11 @@ class MealPlanViewModel @Inject constructor(
                 .mapNotNull { (dayPlan[it] as? MealPlanSlot.RecipeSlot)?.id }.toSet()
             val emptySlots = listOf("breakfast", "lunch", "dinner", "snack").count { dayPlan[it] == null }
             if (emptySlots < 2) null
-            else recipeList.filter { it.id !in assignedIds }.maxByOrNull { it.totalProteinG }
+            // Per-serving, not batch-total protein - ranking by the raw total
+            // biased this toward whichever recipe happens to have the largest
+            // servings count, not the one that's actually highest-protein per
+            // meal (the only unit a single planned slot ever represents).
+            else recipeList.filter { it.id !in assignedIds }.maxByOrNull { it.totalProteinG / it.servings.coerceAtLeast(1) }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
@@ -168,7 +179,13 @@ class MealPlanViewModel @Inject constructor(
             runCatching {
                 when (slot) {
                     is MealPlanSlot.RecipeSlot -> recipes.value.find { it.id == slot.id }?.let {
-                        consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot))
+                        // collapse()'s default portionFraction=1.0 logs the entire
+                        // multi-serving batch, not the one meal a planned slot
+                        // represents - RecipesViewModel.log() already divides by
+                        // servings for its own log action; this was the one
+                        // caller that didn't, silently overcounting kcal/macros
+                        // by the servings factor for any recipe with servings > 1.
+                        consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot, portionFraction = 1.0 / it.servings.coerceAtLeast(1)))
                     }
                     is MealPlanSlot.TemplateSlot -> templates.value.find { it.id == slot.id }?.let {
                         consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot))

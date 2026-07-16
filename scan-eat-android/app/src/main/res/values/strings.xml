@@ -685,6 +685,7 @@
     <string name="customfood_field_fat">Lipides g</string>
     <string name="customfood_field_fiber">Fibres g</string>
     <string name="customfood_field_salt">Sel g</string>
+    <string name="customfood_field_aliases">Autres noms (séparés par des virgules)</string>
     <string name="customfood_import_from_scan">Importer « %1$s » depuis le dernier scan</string>
     <string name="customfood_stats_count">%1$d aliment(s)</string>
     <string name="customfood_stats_avg_kcal">~%1$d kcal moy.</string>
@@ -1064,6 +1065,7 @@
     <string name="recipes_cd_notes">Modifier la préparation</string>
     <string name="recipes_servings_to_log_label">Portions à logger (sur %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g par portion</string>
+    <string name="recipes_macro_per_serving_label">Par portion</string>
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>

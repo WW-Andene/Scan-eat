@@ -3,10 +3,16 @@ package fr.scanneat.presentation.templates
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.MealTemplate
 import fr.scanneat.data.repository.planning.MealTemplateRepository
 import fr.scanneat.data.repository.planning.TemplateItem
+import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -17,6 +23,8 @@ import javax.inject.Inject
 class TemplatesViewModel @Inject constructor(
     private val repo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
+    private val customFoodRepo: CustomFoodRepository,
+    private val prefs: UserPreferences,
 ) : ViewModel() {
     val templates: StateFlow<List<MealTemplate>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -25,6 +33,44 @@ class TemplatesViewModel @Inject constructor(
     val libraryTotalKcal: StateFlow<Int> = templates.map { list ->
         list.sumOf { it.totalKcal }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    /**
+     * template id -> short warning, same checkDiet()/checkUserAllergens() reused
+     * from Recipes'/Grocery's identical fix - a "Saved Meal" template is exactly
+     * as likely to contain a forbidden ingredient as a Recipe, but previously ran
+     * no check at all, so a vegan or allergic user got no warning for the one
+     * meal type they log repeatedly.
+     */
+    val templateWarnings: StateFlow<Map<String, String>> = combine(templates, prefs.profile, language) { list, profile, lang ->
+        list.mapNotNull { template ->
+            val product = template.toCheckProduct()
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(product, profile.diet, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            if (parts.isEmpty()) null else template.id to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // ── Ingredient search for "manage items" ─────────────────────────────────
+    // Same FOOD_DB/custom-food search RecipesViewModel already wires for its own
+    // "add ingredient" dialog - EditTemplateItemsDialog previously had no lookup
+    // at all, so every item's protein/carbs/fat/fiber defaulted to 0 even when
+    // the food was already known, and TemplatesScreen's macro summary chips
+    // (added specifically to show a template's P/G/L) were permanently 0g/0g/0g.
+    private val _ingredientQuery = MutableStateFlow("")
+    val ingredientQuery: StateFlow<String> = _ingredientQuery.asStateFlow()
+
+    val ingredientSearchResults: StateFlow<List<FoodEntry>> =
+        combine(_ingredientQuery.debounce(200), customFoodRepo.observeAll()) { q, customs -> q to customs }
+            .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 6, customs) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
 
     fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
 

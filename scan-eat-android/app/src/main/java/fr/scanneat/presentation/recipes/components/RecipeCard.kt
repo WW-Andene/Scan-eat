@@ -69,6 +69,15 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 // invisible on the card; a user judging whether a recipe fits their
                 // macros had to tap Log just to see the numbers.
                 HorizontalDivider(color = OnSurface.copy(0.08f))
+                // The header above shows whole-recipe totals (all servings) while this
+                // strip divides by servings - previously nothing on the card indicated
+                // that difference, so a multi-serving recipe read as internally
+                // inconsistent (e.g. "1200 kcal" next to "15g protein" that's actually
+                // 1/4 of the dish). Only shown when there's more than one serving to
+                // avoid a redundant label on the common single-serving case.
+                if (recipe.servings > 1) {
+                    Text(stringResource(R.string.recipes_macro_per_serving_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                     val servings = recipe.servings.coerceAtLeast(1)
                     @Composable fun MacroChip(label: String, value: Double, color: androidx.compose.ui.graphics.Color) {
