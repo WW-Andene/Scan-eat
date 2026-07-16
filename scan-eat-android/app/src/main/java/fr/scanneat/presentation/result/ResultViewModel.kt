@@ -84,6 +84,18 @@ class ResultViewModel @Inject constructor(
 
     private val scanId: Long = savedStateHandle.get<Long>("scanId") ?: 0L
 
+    // True only when navigated here straight from a just-completed scan
+    // (ScanScreen.onResultReady, see AppRoutes.result's fresh param) - every
+    // other entry point (History/Favorites/Dashboard's "top scanned" tile)
+    // routes to this same screen to view an old entry, defaulting to false.
+    // Gates the comparisonRepo arm()/compare() side effect below: previously
+    // it ran unconditionally for whatever scan this screen loaded, so idly
+    // browsing two unrelated History entries back-to-back could silently
+    // consume the arm slot meant for "scan A then scan B" (eating the real
+    // comparison) or pop a misleading score-delta/flag-diff banner between
+    // two products the user was never actually comparing.
+    private val isFreshScan: Boolean = savedStateHandle.get<Boolean>("fresh") ?: false
+
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
@@ -120,7 +132,7 @@ class ResultViewModel @Inject constructor(
             // English-language user still got all personal-score adjustment
             // reasons (diet/allergen/health-condition call-outs) in French.
             val personal   = computePersonalScore(scan.audit, scan.product, profile, lang)
-            if (!comparisonResolved) {
+            if (!comparisonResolved && isFreshScan) {
                 comparisonResolved = true
                 cachedComparison = if (comparisonRepo.isArmed.first()) comparisonRepo.compare(scan)
                                    else { comparisonRepo.arm(scan); null }

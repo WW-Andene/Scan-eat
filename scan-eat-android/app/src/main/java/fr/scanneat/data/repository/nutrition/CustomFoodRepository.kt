@@ -10,7 +10,6 @@ import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -69,21 +68,23 @@ class CustomFoodRepository @Inject constructor(
         // instead of just one. When no explicit id is given (a fresh "Add", not a
         // rename/update of a known row), reuse an existing same-name row's id instead
         // of creating a silent duplicate — "Add" on an existing name updates it in place.
-        val resolvedId = id ?: dao.observeAll(profileId).first()
-            .firstOrNull { it.name.equals(entry.name, ignoreCase = true) }?.id
-            ?: UUID.randomUUID().toString()
-        dao.insert(CustomFoodEntity(
-            id            = resolvedId,
-            name          = entry.name,
-            category      = "other",
-            nutritionJson = jsonAdapter.toJson(CustomFoodJson(
-                kcal = entry.kcal, proteinG = entry.proteinG, carbsG = entry.carbsG,
-                fatG = entry.fatG, fiberG = entry.fiberG, saltG = entry.saltG,
-                aliases = entry.aliases,
-            )),
-            createdAt     = System.currentTimeMillis(),
-            profileId     = profileId,
-        ))
+        // The name-resolution read and the insert both run inside upsertByName's own
+        // @Transaction, so two concurrent same-name save() calls can't both read "no
+        // existing row" and both insert a duplicate.
+        dao.upsertByName(entry.name, profileId, id) { resolvedId ->
+            CustomFoodEntity(
+                id            = resolvedId,
+                name          = entry.name,
+                category      = "other",
+                nutritionJson = jsonAdapter.toJson(CustomFoodJson(
+                    kcal = entry.kcal, proteinG = entry.proteinG, carbsG = entry.carbsG,
+                    fatG = entry.fatG, fiberG = entry.fiberG, saltG = entry.saltG,
+                    aliases = entry.aliases,
+                )),
+                createdAt     = System.currentTimeMillis(),
+                profileId     = profileId,
+            )
+        }
         return entry
     }
 
@@ -99,15 +100,13 @@ class CustomFoodRepository @Inject constructor(
      */
     suspend fun rename(id: String, newName: String) {
         require(newName.isNotBlank()) { "Custom food name must not be blank" }
-        val existing = dao.findById(id) ?: return
-        val trimmed = newName.trim()
         // Renaming onto another custom food's name would leave two rows sharing a
-        // name (the same crash/over-deletion hazard save() guards against) — skip
-        // silently rather than create the duplicate.
-        val collision = dao.observeAll(existing.profileId).first()
-            .any { it.id != id && it.name.equals(trimmed, ignoreCase = true) }
-        if (collision) return
-        dao.insert(existing.copy(name = trimmed))
+        // name (the same crash/over-deletion hazard save() guards against) — the
+        // collision check and the insert both run inside renameIfNoCollision's own
+        // @Transaction, so two concurrent renames can't both pass the check and
+        // both write, and skips silently (rather than create the duplicate) if a
+        // real collision exists.
+        dao.renameIfNoCollision(id, newName.trim())
     }
 
     /**

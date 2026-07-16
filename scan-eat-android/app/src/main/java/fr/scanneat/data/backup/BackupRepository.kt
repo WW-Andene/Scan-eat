@@ -155,9 +155,27 @@ class BackupRepository @Inject constructor(
             // same file imported twice would otherwise insert every row a second
             // time — dedup against what's already in the DB by a natural key
             // before inserting, inside the same transaction as the rest of the import.
-            val existingScanKeys = scanHistoryDao.getAllForBackup()
-                .map { (it.barcode ?: it.productName) to it.scannedAt }.toSet()
-            val newScans = bundle.scanHistory.filter { (it.barcode ?: it.productName) to it.scannedAt !in existingScanKeys }
+            //
+            // A barcoded row can't be deduped by (barcode, scannedAt) the way a
+            // no-barcode row can: persist()/ScanHistoryDao.upsertByBarcode mutates
+            // scannedAt in place on every rescan (one row per barcode, by design -
+            // see upsertByBarcode's own doc comment), so a barcode rescanned locally
+            // since the backup was taken has a different scannedAt than the file's
+            // copy, and the old (barcode, scannedAt) key failed to recognize it as
+            // the same row - inserting a duplicate and silently reintroducing the
+            // exact "same product -> duplicate entries" bug that upsert scheme
+            // exists to prevent. Dedupe barcoded rows by barcode alone instead,
+            // matching upsertByBarcode's own "one row per barcode" invariant; a
+            // running mutable set (not just the pre-existing rows) also guards
+            // against two barcode-sharing rows within the same import batch.
+            val existingScans = scanHistoryDao.getAllForBackup()
+            val seenBarcodes = existingScans.mapNotNullTo(mutableSetOf()) { it.barcode }
+            val existingNoBarcodeKeys = existingScans.filter { it.barcode == null }
+                .mapTo(mutableSetOf()) { it.productName to it.scannedAt }
+            val newScans = bundle.scanHistory.filter { row ->
+                if (row.barcode != null) seenBarcodes.add(row.barcode)
+                else (row.productName to row.scannedAt) !in existingNoBarcodeKeys
+            }
             scanHistoryDao.insertAll(newScans.map { it.copy(id = 0) })
             importedScans = newScans.size
 

@@ -92,7 +92,7 @@ fun AppNavGraph(
 
         // ── Tab roots ─────────────────────────────────────────────────────
         composable(TopTab.Scan.route) {
-            ScanScreen(onResultReady = { id -> navController.navigate(AppRoutes.result(id)) })
+            ScanScreen(onResultReady = { id -> navController.navigate(AppRoutes.result(id, fresh = true)) })
         }
 
         composable(TopTab.Diary.route) {
@@ -128,7 +128,10 @@ fun AppNavGraph(
         // ── Full-screen nested routes ──────────────────────────────────────
         composable(
             route     = AppRoutes.RESULT,
-            arguments = listOf(navArgument("scanId") { type = NavType.LongType; defaultValue = 0L }),
+            arguments = listOf(
+                navArgument("scanId") { type = NavType.LongType; defaultValue = 0L },
+                navArgument("fresh") { type = NavType.BoolType; defaultValue = false },
+            ),
         ) {
             ResultScreen(
                 onBack = { navController.popBackStack() },

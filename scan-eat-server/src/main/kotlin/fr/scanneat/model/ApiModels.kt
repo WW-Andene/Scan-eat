@@ -86,6 +86,7 @@ data class NutritionDto(
     @SerialName("vit_c_mg")        val vitCMg: Double? = null,
     @SerialName("vit_d_ug")        val vitDUg: Double? = null,
     @SerialName("vit_e_mg")        val vitEMg: Double? = null,
+    @SerialName("vit_k_ug")        val vitKUg: Double? = null,
     @SerialName("b12_ug")          val b12Ug: Double? = null,
     @SerialName("omega_3_g")       val omega3G: Double? = null,
 )

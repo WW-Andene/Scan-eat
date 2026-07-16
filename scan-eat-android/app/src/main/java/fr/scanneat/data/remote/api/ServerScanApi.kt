@@ -101,6 +101,7 @@ data class ServerNutritionDto(
     @Json(name = "vit_d_ug")        val vitDUg: Double? = null,
     @Json(name = "vit_a_ug")        val vitAUg: Double? = null,
     @Json(name = "vit_e_mg")        val vitEMg: Double? = null,
+    @Json(name = "vit_k_ug")        val vitKUg: Double? = null,
     @Json(name = "b12_ug")          val b12Ug: Double? = null,
     @Json(name = "omega_3_g")       val omega3G: Double? = null,
 )

@@ -8,7 +8,11 @@ object AppRoutes {
     const val DASHBOARD     = "dashboard"
     const val BIOLISM       = "biolism"
     const val SETTINGS      = "settings"
-    const val RESULT        = "result/{scanId}"
+    // fresh=true only from a just-completed scan (ScanScreen.onResultReady) - see
+    // ResultViewModel's use of it to gate ComparisonRepository.arm()/compare().
+    // Every other entry point (History/Favorites/Dashboard's "top scanned" tile)
+    // routes here too, to view an old entry, and defaults to fresh=false.
+    const val RESULT        = "result/{scanId}?fresh={fresh}"
     const val SCAN_PROFILE  = "scan_profile"
     const val RECIPES       = "recipes"
     const val TEMPLATES     = "templates"
@@ -19,5 +23,5 @@ object AppRoutes {
     const val FAVORITES     = "favorites"
     const val CALENDAR      = "calendar"
 
-    fun result(scanId: Long) = "result/$scanId"
+    fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }

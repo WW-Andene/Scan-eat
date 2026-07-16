@@ -280,6 +280,14 @@ class ScanRepository @Inject constructor(
 
     // ---- Server mode ----
 
+    /**
+     * Retries transient failures (429/5xx/IO) the same way fetchOffProduct/
+     * OcrParser.callWithRetry already do for their own network calls - previously
+     * a single unguarded call, so the server's own rate limit (30 req/min/IP,
+     * see scan-eat-server's RateLimiter) or a momentary 5xx failed the whole
+     * scan for SERVER-mode users with no retry, unlike every other network path
+     * in this repository.
+     */
     private suspend fun scoreViaServer(
         serverUrl: String,
         apiKey: String,
@@ -289,16 +297,26 @@ class ScanRepository @Inject constructor(
         model: String,
     ): ScanResult {
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
-        val resp = serverApi(serverUrl).score(
-            groqKey = apiKey.takeIf { it.isNotBlank() },
-            request = ServerScoreRequest(
-                images  = images.map { ServerImageDto(it.base64, it.mime) },
-                barcode = barcode,
-                lang    = lang,
-                model   = model,
-            ),
+        val request = ServerScoreRequest(
+            images  = images.map { ServerImageDto(it.base64, it.mime) },
+            barcode = barcode,
+            lang    = lang,
+            model   = model,
         )
-        return resp.toDomain(lang)
+        var lastErr: Throwable? = null
+        repeat(SERVER_MAX_ATTEMPTS) { attempt ->
+            try {
+                val resp = serverApi(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
+                return resp.toDomain(lang)
+            } catch (e: HttpException) {
+                if (e.code() != 429 && e.code() !in 500..599) throw e
+                lastErr = e
+            } catch (e: IOException) {
+                lastErr = e
+            }
+            if (attempt < SERVER_MAX_ATTEMPTS - 1) delay(400L * (attempt + 1))
+        }
+        throw lastErr!!
     }
 
     // ---- Direct mode ----
@@ -506,6 +524,7 @@ class ScanRepository @Inject constructor(
             vitDUg        = p.nutrition.vitDUg,
             vitAUg        = p.nutrition.vitAUg,
             vitEMg        = p.nutrition.vitEMg,
+            vitKUg        = p.nutrition.vitKUg,
             b12Ug         = p.nutrition.b12Ug,
             omega3G       = p.nutrition.omega3G,
         )
@@ -553,6 +572,8 @@ class ScanRepository @Inject constructor(
     private companion object {
         /** Matches OcrParser.callWithRetry's per-candidate retry budget for the same class of transient error. */
         const val OFF_MAX_ATTEMPTS = 3
+        /** Same retry budget as OFF_MAX_ATTEMPTS, for scoreViaServer's own transient-error retry. */
+        const val SERVER_MAX_ATTEMPTS = 3
         /** Generous cap on non-favorite scan_history rows per profile - see persist()/ScanHistoryDao.trimNonFavorites. */
         const val MAX_HISTORY_ROWS = 5000
     }
