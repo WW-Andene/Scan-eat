@@ -122,6 +122,15 @@ private val OFF_ALLERGEN_TAG_MAP: Map<String, String> = mapOf(
 )
 
 /**
+ * Reverse of [OFF_ALLERGEN_TAG_MAP] — ANNEX_II short key → OFF-style tag.
+ * Lets a non-OFF source (the vision LLM's own label reading — see OcrParser.
+ * buildLabelPrompt's allergen_declarations field) populate
+ * Product.declaredAllergenTags in the same "en:xxx" vocabulary OFF itself
+ * uses, so [detectAllergens] needs no separate code path per source.
+ */
+val ANNEX_II_KEY_TO_OFF_TAG: Map<String, String> = OFF_ALLERGEN_TAG_MAP.entries.associate { (tag, key) -> key to tag }
+
+/**
  * Detect EU-mandatory allergens from product ingredient names, augmented with
  * OFF's own curated allergens_tags when the product came from that source.
  * Returns one entry per allergen found, with the triggering ingredient names.

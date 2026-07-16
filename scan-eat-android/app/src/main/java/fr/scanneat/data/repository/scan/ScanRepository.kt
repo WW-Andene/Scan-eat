@@ -263,7 +263,11 @@ class ScanRepository @Inject constructor(
         val serverUrl = prefs.serverUrl.first()
 
         when (apiMode) {
-            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode = null, lang = lang, model = DEFAULT_MODEL)
+            ApiMode.SERVER -> if (identifyMode) {
+                identifyViaServer(serverUrl, apiKey, images, lang)
+            } else {
+                scoreViaServer(serverUrl, apiKey, images, barcode = null, lang = lang, model = DEFAULT_MODEL)
+            }
             ApiMode.DIRECT -> {
                 if (apiKey.isBlank() && cerebrasKey.isBlank()) error(missingApiKeyMessage(lang))
                 val parsed = if (identifyMode) {
@@ -311,6 +315,40 @@ class ScanRepository @Inject constructor(
         repeat(SERVER_MAX_ATTEMPTS) { attempt ->
             try {
                 val resp = serverApi(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
+                return resp.toDomain(lang)
+            } catch (e: HttpException) {
+                if (e.code() != 429 && e.code() !in 500..599) throw e
+                lastErr = e
+            } catch (e: IOException) {
+                lastErr = e
+            }
+            if (attempt < SERVER_MAX_ATTEMPTS - 1) delay(400L * (attempt + 1))
+        }
+        throw lastErr!!
+    }
+
+    /**
+     * SERVER-mode counterpart to DIRECT mode's ocrParser.identifyFood() - calls
+     * the server's own POST /api/identify (see scan-eat-server's IdentifyRoute),
+     * which already existed but was never called from here: identifyOrScoreFromImages
+     * previously ignored identifyMode entirely for SERVER mode and always fell
+     * through to scoreViaServer's label-OCR path, so a SERVER-mode user tapping
+     * "Identifier sans étiquette" on fresh produce or a plated dish silently got
+     * whatever that path returned for a non-label photo. Same retry/backoff
+     * policy as scoreViaServer.
+     */
+    private suspend fun identifyViaServer(
+        serverUrl: String,
+        apiKey: String,
+        images: List<ImagePayload>,
+        lang: String,
+    ): ScanResult {
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) })
+        var lastErr: Throwable? = null
+        repeat(SERVER_MAX_ATTEMPTS) { attempt ->
+            try {
+                val resp = serverApi(serverUrl).identify(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
                 return resp.toDomain(lang)
             } catch (e: HttpException) {
                 if (e.code() != 429 && e.code() !in 500..599) throw e
@@ -506,45 +544,48 @@ class ScanRepository @Inject constructor(
 
     // ---- Server response → domain ----
 
+    private fun ServerNutritionDto.toDomain() = NutritionPer100g(
+        energyKcal    = energyKcal,
+        fatG          = fatG,
+        saturatedFatG = saturatedFatG,
+        carbsG        = carbsG,
+        sugarsG       = sugarsG,
+        addedSugarsG  = addedSugarsG,
+        fiberG        = fiberG,
+        proteinG      = proteinG,
+        saltG         = saltG,
+        transFatG     = transFatG,
+        ironMg        = ironMg,
+        calciumMg     = calciumMg,
+        magnesiumMg   = magnesiumMg,
+        potassiumMg   = potassiumMg,
+        zincMg        = zincMg,
+        vitCMg        = vitCMg,
+        vitDUg        = vitDUg,
+        vitAUg        = vitAUg,
+        vitEMg        = vitEMg,
+        vitKUg        = vitKUg,
+        b12Ug         = b12Ug,
+        omega3G       = omega3G,
+    )
+
+    private fun List<ServerIngredientDto>.toDomainIngredients() = map { i ->
+        Ingredient(name = i.name, percentage = i.percentage, eNumber = i.eNumber,
+            category = when (i.category?.lowercase()) {
+                "additive"       -> IngredientCategory.ADDITIVE
+                "processing_aid" -> IngredientCategory.PROCESSING_AID
+                else             -> IngredientCategory.FOOD
+            })
+    }
+
     private fun ServerScoreResponse.toDomain(lang: String = "fr"): ScanResult {
         val p = product
-        val nutrition = NutritionPer100g(
-            energyKcal    = p.nutrition.energyKcal,
-            fatG          = p.nutrition.fatG,
-            saturatedFatG = p.nutrition.saturatedFatG,
-            carbsG        = p.nutrition.carbsG,
-            sugarsG       = p.nutrition.sugarsG,
-            addedSugarsG  = p.nutrition.addedSugarsG,
-            fiberG        = p.nutrition.fiberG,
-            proteinG      = p.nutrition.proteinG,
-            saltG         = p.nutrition.saltG,
-            transFatG     = p.nutrition.transFatG,
-            ironMg        = p.nutrition.ironMg,
-            calciumMg     = p.nutrition.calciumMg,
-            magnesiumMg   = p.nutrition.magnesiumMg,
-            potassiumMg   = p.nutrition.potassiumMg,
-            zincMg        = p.nutrition.zincMg,
-            vitCMg        = p.nutrition.vitCMg,
-            vitDUg        = p.nutrition.vitDUg,
-            vitAUg        = p.nutrition.vitAUg,
-            vitEMg        = p.nutrition.vitEMg,
-            vitKUg        = p.nutrition.vitKUg,
-            b12Ug         = p.nutrition.b12Ug,
-            omega3G       = p.nutrition.omega3G,
-        )
         val product = Product(
             name          = p.name,
             category      = ProductCategory.fromKey(p.category),
             novaClass     = NovaClass.fromInt(p.novaClass),
-            ingredients   = p.ingredients.map { i ->
-                Ingredient(name = i.name, percentage = i.percentage, eNumber = i.eNumber,
-                    category = when (i.category?.lowercase()) {
-                        "additive"       -> IngredientCategory.ADDITIVE
-                        "processing_aid" -> IngredientCategory.PROCESSING_AID
-                        else             -> IngredientCategory.FOOD
-                    })
-            },
-            nutrition     = nutrition,
+            ingredients   = p.ingredients.toDomainIngredients(),
+            nutrition     = p.nutrition.toDomain(),
             organic       = p.organic, wholeGrainPrimary = p.wholeGrainPrimary,
             fermented     = p.fermented, hasHealthClaims = p.hasHealthClaims,
             hasMisleadingMarketing = p.hasMisleadingMarketing,
@@ -569,6 +610,18 @@ class ScanRepository @Inject constructor(
                 "merged"        -> ScanSource.MERGED
                 else            -> ScanSource.LLM
             }, barcode = barcode)
+    }
+
+    /** Same recompute-locally approach as ServerScoreResponse.toDomain() - see identifyViaServer(). */
+    private fun ServerIdentifyResponse.toDomain(lang: String = "fr"): ScanResult {
+        val product = Product(
+            name        = name,
+            category    = ProductCategory.fromKey(category),
+            novaClass   = NovaClass.fromInt(novaClass),
+            ingredients = ingredients.toDomainIngredients(),
+            nutrition   = nutrition.toDomain(),
+        )
+        return ScanResult(product = product, audit = scoreProduct(product, lang), warnings = warnings, source = ScanSource.LLM)
     }
 
     // ---- Entity → domain ----

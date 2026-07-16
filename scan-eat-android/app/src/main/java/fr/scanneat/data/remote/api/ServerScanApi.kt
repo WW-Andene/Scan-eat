@@ -17,7 +17,36 @@ interface ServerScanApi {
         @Header("X-Groq-Key") groqKey: String?,
         @Body request: ServerScoreRequest,
     ): ServerScoreResponse
+
+    /**
+     * Label-free identification (fresh produce, plated dishes) - the server has
+     * carried this route since IdentifyRoute.kt was added, but nothing on the
+     * Android side ever called it: ScanRepository.identifyOrScoreFromImages()'s
+     * identifyMode flag only ever routed DIRECT mode to OcrParser.identifyFood,
+     * SERVER mode always fell through to score()'s label-OCR path regardless.
+     */
+    @POST("api/identify")
+    suspend fun identify(
+        @Header("X-Groq-Key") groqKey: String?,
+        @Body request: ServerImagesRequest,
+    ): ServerIdentifyResponse
 }
+
+@JsonClass(generateAdapter = true)
+data class ServerImagesRequest(
+    val images: List<ServerImageDto> = emptyList(),
+)
+
+/** Mirrors IdentifiedFoodResponse from the server - no score/audit, scored locally after mapping. */
+@JsonClass(generateAdapter = true)
+data class ServerIdentifyResponse(
+    val name: String,
+    val category: String,
+    @Json(name = "nova_class") val novaClass: Int,
+    val ingredients: List<ServerIngredientDto> = emptyList(),
+    val nutrition: ServerNutritionDto,
+    val warnings: List<String> = emptyList(),
+)
 
 @JsonClass(generateAdapter = true)
 data class ServerScoreRequest(
