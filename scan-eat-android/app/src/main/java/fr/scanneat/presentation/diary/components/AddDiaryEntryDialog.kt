@@ -32,9 +32,11 @@ import fr.scanneat.presentation.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Unit) {
-    val query   = viewModel.searchQuery.collectAsStateWithLifecycle()
-    val results = viewModel.searchResults.collectAsStateWithLifecycle()
+    val query      = viewModel.searchQuery.collectAsStateWithLifecycle()
+    val results    = viewModel.searchResults.collectAsStateWithLifecycle()
+    val scanResults = viewModel.scanSearchResults.collectAsStateWithLifecycle()
     var selected by remember { mutableStateOf<FoodEntry?>(null) }
+    var selectedScan by remember { mutableStateOf<ScanResult?>(null) }
 
     val picked = selected
     if (picked != null) {
@@ -58,6 +60,24 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                 onDismiss()
             },
             onDismiss  = { selected = null },
+        )
+        return
+    }
+
+    // Picking a scan-history result logs its real product directly (full
+    // OFF/LLM-sourced nutrition, barcode, source) instead of going through the
+    // lossy FoodEntry-shaped reconstruction above.
+    val pickedScan = selectedScan
+    if (pickedScan != null) {
+        LogSheet(
+            product    = pickedScan.product,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onConfirm  = { portionG, mealSlot ->
+                viewModel.addEntryFromScan(pickedScan, portionG, mealSlot)
+                selectedScan = null
+                onDismiss()
+            },
+            onDismiss  = { selectedScan = null },
         )
         return
     }
@@ -87,11 +107,33 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                 )
                 Spacer(Modifier.height(Spacing.S))
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    if (query.value.isNotBlank() && results.value.isEmpty()) {
+                    if (query.value.isNotBlank() && results.value.isEmpty() && scanResults.value.isEmpty()) {
                         item {
                             Text(stringResource(R.string.diary_add_entry_no_results, query.value),
                                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
                                 modifier = Modifier.padding(vertical = Spacing.M))
+                        }
+                    }
+                    // Scan-history hits first - a barcoded product with real OFF/LLM-
+                    // sourced nutrition is a more precise match than a FOOD_DB
+                    // approximation of the same food.
+                    items(scanResults.value, key = { "scan-${it.dbId}" }) { scan ->
+                        Surface(
+                            onClick = { selectedScan = scan },
+                            shape = RoundedCornerShape(10.dp),
+                            color = SurfaceVariant,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                Text(stringResource(R.string.diary_add_entry_kcal_per_100g, scan.product.nutrition.energyKcal.toInt()),
+                                    style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                            }
                         }
                     }
                     items(results.value, key = { it.name }) { entry ->

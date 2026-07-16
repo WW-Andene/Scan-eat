@@ -8,6 +8,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
+import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
 import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.nutrition.FoodEntry
@@ -20,6 +21,7 @@ import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.domain.model.DailySummary
 import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
+import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.domain.model.ScanSource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -34,6 +36,7 @@ class DiaryViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
     private val notesRepo: DayNotesRepository,
     private val customFoodRepo: CustomFoodRepository,
+    private val scanRepo: ScanRepository,
     private val prefs: UserPreferences,
     private val biolismRepo: BiolismRepository,
 ) : ViewModel() {
@@ -130,6 +133,18 @@ class DiaryViewModel @Inject constructor(
             .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 10, customs) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Previously the FOOD_DB/custom-food search above was the only source Quick
+    // Add could ever find - ScanHistoryDao.searchByName already exists, already
+    // indexed, and already powers ScanHistoryScreen, but a barcoded product
+    // scanned last week (with real OFF/LLM-sourced nutrition, not a FOOD_DB
+    // approximation) was completely unreachable from this "+" flow: the user
+    // had to leave Diary, go to History, and there was no logging affordance
+    // there either.
+    val scanSearchResults: StateFlow<List<ScanResult>> =
+        _searchQuery.debounce(200)
+            .flatMapLatest { q -> if (q.isBlank()) flowOf(emptyList()) else scanRepo.searchHistory(q) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun setSearchQuery(q: String) { _searchQuery.value = q }
     fun clearSearch() { _searchQuery.value = "" }
 
@@ -145,6 +160,30 @@ class DiaryViewModel @Inject constructor(
                     portionG    = portionG,
                     nutrition   = customFoodRepo.toProduct(entry).nutrition,
                     source      = ScanSource.MANUAL,
+                )
+            )
+            _searchQuery.value = ""
+        }
+    }
+
+    /**
+     * Same as [addEntry] but for a picked scan-history item — logs directly from
+     * [scan]'s real product/barcode/source instead of reconstructing a lossy
+     * FoodEntry-shaped Product (which has no barcode, no saturated fat/sugars,
+     * and previously dropped iron/calcium/vitD/B12 too - see
+     * CustomFoodRepository.toProduct()'s identical fix).
+     */
+    fun addEntryFromScan(scan: ScanResult, portionG: Double, mealSlot: MealSlot) {
+        viewModelScope.launch {
+            consumptionRepo.log(
+                DiaryEntry(
+                    date        = _selectedDate.value,
+                    mealSlot    = mealSlot,
+                    productName = scan.product.name,
+                    barcode     = scan.barcode,
+                    portionG    = portionG,
+                    nutrition   = scan.product.nutrition,
+                    source      = scan.source,
                 )
             )
             _searchQuery.value = ""

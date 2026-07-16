@@ -21,8 +21,10 @@ import fr.scanneat.presentation.result.defaultMealForHour
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import javax.inject.Inject
 
 /**
@@ -66,6 +68,14 @@ data class DashboardUiState(
     val gapSuggestions: List<GapEntry> = emptyList(),
     val chronicGaps: List<ChronicGap> = emptyList(),
     val recentScans: List<ScanResult> = emptyList(),
+    /** Today's diary entries - kept around purely to derive [neverLoggedScans] below. */
+    val todayEntries: List<DiaryEntry> = emptyList(),
+    // DashboardViewModel already injected both ConsumptionRepository and
+    // ScanRepository but never cross-referenced them - the app's core loop
+    // (scan -> decide -> log) had no follow-through nudge, so a user who scans
+    // several products at the store and only logs some of them got no signal
+    // that the rest were never actually recorded to their diary.
+    val neverLoggedScans: List<ScanResult> = emptyList(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -167,6 +177,7 @@ class DashboardViewModel @Inject constructor(
                     weightForecast = forecast,
                     gapSuggestions = gaps,
                     chronicGaps    = chronic,
+                    todayEntries   = today.entries,
                 ))
             }
         }
@@ -174,7 +185,25 @@ class DashboardViewModel @Inject constructor(
 
     val state: StateFlow<DashboardUiState> = combine(
         heavyState, scanRepo.observeHistory(limit = 20), activityRepo.observeByDate(LocalDate.now()),
-    ) { s, scans, activity -> s.copy(recentScans = scans, calorieBalance = s.calorieBalance?.copy(exerciseKcal = activity.sumOf { it.kcalBurned })) }
+    ) { s, scans, activity ->
+        // In-memory only, both lists already loaded for other purposes above - no
+        // new DB query. Matched by the same "barcode when present, else lowercased
+        // name" identity ScanRepository.matchKeyFor uses internally for its own
+        // score-history dedup.
+        fun DiaryEntry.matchKey() = barcode ?: productName.lowercase()
+        fun ScanResult.matchKey() = barcode ?: product.name.lowercase()
+        val loggedToday = s.todayEntries.mapTo(mutableSetOf()) { it.matchKey() }
+        val today = LocalDate.now()
+        val neverLogged = scans.filter { scan ->
+            Instant.ofEpochMilli(scan.scannedAt).atZone(ZoneId.systemDefault()).toLocalDate() == today &&
+                scan.matchKey() !in loggedToday
+        }
+        s.copy(
+            recentScans      = scans,
+            neverLoggedScans = neverLogged,
+            calorieBalance   = s.calorieBalance?.copy(exerciseKcal = activity.sumOf { it.kcalBurned }),
+        )
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
     // In-app language can differ from the device locale — WeeklyBarsCard's day-of-week
@@ -218,6 +247,25 @@ class DashboardViewModel @Inject constructor(
     }
 
     fun clearGapLoggedMessage() { _gapLoggedName.value = null }
+
+    /** Logs a never-logged scan straight from its real product/barcode/source — see [DashboardUiState.neverLoggedScans]. */
+    fun logNeverLoggedScan(scan: ScanResult, portionG: Double, mealSlot: MealSlot) {
+        viewModelScope.launch {
+            runCatching {
+                consumptionRepo.log(
+                    DiaryEntry(
+                        date        = LocalDate.now(),
+                        mealSlot    = mealSlot,
+                        productName = scan.product.name,
+                        barcode     = scan.barcode,
+                        portionG    = portionG,
+                        nutrition   = scan.product.nutrition,
+                        source      = scan.source,
+                    )
+                )
+            }
+        }
+    }
 
     // Local tuple to carry 4 values cleanly through flatMapLatest
     private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)

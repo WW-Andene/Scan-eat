@@ -979,6 +979,8 @@
     <string name="dashboard_gap_title">Close the Gaps</string>
     <string name="dashboard_gap_entry">%1$s: −%2$s missing</string>
     <string name="dashboard_gap_suggestion">%1$s · %2$d g</string>
+    <string name="dashboard_never_logged_title">Scanned but not logged</string>
+    <string name="dashboard_never_logged_action">Log it</string>
     <string name="dashboard_gap_logged">%1$s logged to the diary</string>
     <string name="dashboard_chronic_gap_title">Recurring Gaps</string>
     <string name="dashboard_chronic_gap_entry">%1$s: low %2$d/%3$d days (avg %4$d%% of target)</string>

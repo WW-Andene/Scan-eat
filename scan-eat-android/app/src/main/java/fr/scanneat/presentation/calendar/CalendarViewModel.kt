@@ -124,7 +124,16 @@ class CalendarViewModel @Inject constructor(
             consumptionRepo.observeRange(start, end),
             flow { emit(activityRepo.getRange(start, end)) },
             flow { emit(hydrationRepo.exportAll().toMap()) },
-        ) { diaryEntries, activities, hydrationMap ->
+            // markers already correctly tracks all six sources (meals, weight,
+            // activity, hydration, fasting, medication) - activeDays below
+            // previously recomputed a narrower 2-source subset from scratch
+            // (diary entries + activities only), so a user who reliably logged
+            // weight/hydration but not every meal/workout saw colored dots on
+            // the month grid above for days this week-summary counted as
+            // inactive - two parts of the same screen visibly disagreeing about
+            // the same data.
+            markers,
+        ) { diaryEntries, activities, hydrationMap, markerMap ->
             val isoWeek = WeekFields.ISO
             val result = mutableMapOf<LocalDate, WeekSummary>()
             // Group days in the month by ISO week start (Monday)
@@ -138,7 +147,7 @@ class CalendarViewModel @Inject constructor(
                 val kcal = diaryEntries.filter { it.date in days }.sumOf { it.nutrition.energyKcal * it.portionG / 100 }.toInt()
                 val activeMin = activities.filter { it.date in days }.sumOf { it.minutes }
                 val hydration = days.sumOf { hydrationMap[it] ?: 0 }
-                val activeDays = days.count { d -> diaryEntries.any { it.date == d } || activities.any { it.date == d } }
+                val activeDays = days.count { d -> markerMap[d]?.isNotEmpty() == true }
                 result[weekStart] = WeekSummary(weekStart, kcal, activeMin, hydration, activeDays)
             }
             result

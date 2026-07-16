@@ -1013,6 +1013,8 @@
     <string name="dashboard_gap_title">Combler les écarts</string>
     <string name="dashboard_gap_entry">%1$s : −%2$s manquant</string>
     <string name="dashboard_gap_suggestion">%1$s · %2$d g</string>
+    <string name="dashboard_never_logged_title">Scanné mais pas journalisé</string>
+    <string name="dashboard_never_logged_action">Journaliser</string>
     <string name="dashboard_gap_logged">%1$s ajouté au journal</string>
     <string name="dashboard_chronic_gap_title">Écarts récurrents</string>
     <string name="dashboard_chronic_gap_entry">%1$s : bas %2$d/%3$d jours (%4$d %% de l\'objectif en moyenne)</string>

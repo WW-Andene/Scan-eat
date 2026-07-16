@@ -398,7 +398,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     editTarget?.let { entry ->
         EditPortionDialog(
             entry = entry,
-            onConfirm = { newPortionG -> viewModel.updateEntry(entry.copy(portionG = newPortionG)); editTarget = null },
+            onConfirm = { newPortionG, newMealSlot -> viewModel.updateEntry(entry.copy(portionG = newPortionG, mealSlot = newMealSlot)); editTarget = null },
             onDismiss = { editTarget = null },
         )
     }

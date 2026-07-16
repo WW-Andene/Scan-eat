@@ -173,6 +173,19 @@ class CustomFoodRepository @Inject constructor(
             fiberG        = entry.fiberG,
             proteinG      = entry.proteinG,
             saltG         = entry.saltG,
+            // Previously omitted here even though FoodEntry carries them (FOOD_DB
+            // entries used as gap-closer suggestions genuinely have these values -
+            // épinard/saumon/oeuf etc.) and the sibling FoodEntry.toProduct(portionG)
+            // extension already copies them correctly. This is the converter Diary's
+            // Quick Add and ScanRepository.customFoodByBarcode actually use, so every
+            // manually-logged custom food silently reported zero iron/calcium/vitD/
+            // B12 contribution regardless of what the food really contains -
+            // corrupting MicronutrientCard's bars and chronic-gap detection for
+            // exactly the foods most likely to close those gaps.
+            ironMg        = entry.ironMg,
+            calciumMg     = entry.calciumMg,
+            vitDUg        = entry.vitDUg,
+            b12Ug         = entry.b12Ug,
         ),
         weightG = 100.0,
     )

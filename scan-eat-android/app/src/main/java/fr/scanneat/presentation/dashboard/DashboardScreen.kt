@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,9 +29,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -39,7 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.dashboard.cards.*
+import fr.scanneat.presentation.result.LogSheet
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.EmptyListState
@@ -49,6 +56,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 // Orchestrator only — each dashboard section lives in cards/*.kt, the
 // shared FeatureTile helper in DashboardScreenComponents.kt. Was previously
 // a single 453-line file with every section + FeatureTile inline.
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
@@ -68,6 +76,7 @@ fun DashboardScreen(
     val language = viewModel.language.collectAsStateWithLifecycle()
     val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var loggingScan by remember { mutableStateOf<ScanResult?>(null) }
     val gapLoggedMessage = gapLoggedName.value?.let { stringResource(R.string.dashboard_gap_logged, it) }
     LaunchedEffect(gapLoggedName.value) {
         gapLoggedMessage?.let {
@@ -104,7 +113,7 @@ fun DashboardScreen(
             item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }
 
             // ---- Micronutrient progress (fiber, iron, calcium, vitD, B12) ----
-            item { MicronutrientCard(totals = s.todayTotals) }
+            item { MicronutrientCard(totals = s.todayTotals, targets = s.targets) }
 
             // ---- Weekly bars ----
             s.weekly?.let { item { WeeklyBarsCard(rollup = it, targets = s.targets, language = language.value) } }
@@ -133,6 +142,11 @@ fun DashboardScreen(
             // ---- Chronic (recurring, multi-day) nutrient gaps ----
             if (s.chronicGaps.isNotEmpty()) {
                 item { ChronicGapCard(gaps = s.chronicGaps, onSuggestionClick = viewModel::logGapSuggestion) }
+            }
+
+            // ---- Scanned today but never logged ----
+            if (s.neverLoggedScans.isNotEmpty()) {
+                item { NeverLoggedScansCard(scans = s.neverLoggedScans, onLogClick = { loggingScan = it }) }
             }
 
             // ---- Feature tiles — meal-planning tools only; daily logging tasks
@@ -200,5 +214,19 @@ fun DashboardScreen(
 
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
+    }
+
+    // Portion/meal-slot picker for NeverLoggedScansCard's "Log it" action - same
+    // LogSheet every other log action in the app reuses.
+    loggingScan?.let { scan ->
+        LogSheet(
+            product    = scan.product,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            onConfirm  = { portionG, mealSlot ->
+                viewModel.logNeverLoggedScan(scan, portionG, mealSlot)
+                loggingScan = null
+            },
+            onDismiss  = { loggingScan = null },
+        )
     }
 }

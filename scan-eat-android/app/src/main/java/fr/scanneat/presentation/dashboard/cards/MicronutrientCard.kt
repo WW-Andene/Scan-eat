@@ -15,11 +15,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
+import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
 
-// EU Nutrient Reference Values (NRV, Regulation 1169/2011)
+// EU generic Nutrient Reference Values (NRV, Regulation 1169/2011) - fallback
+// only, used when no profile-derived DailyTargets exist yet (see targets param
+// below).
 private object NRV {
     const val FIBER_G    = 25.0
     const val IRON_MG    = 14.0
@@ -29,9 +32,23 @@ private object NRV {
 }
 
 @Composable
-internal fun MicronutrientCard(totals: ConsumedNutrition) {
+internal fun MicronutrientCard(totals: ConsumedNutrition, targets: DailyTargets? = null) {
     // Only show when there's at least some logged food
     if (totals.energyKcal < 1.0) return
+
+    // Previously always compared against the flat NRV constants above regardless
+    // of the personalized DailyTargets already computed for this same dashboard
+    // (GapCloserCard/ChronicGapCard use them) - on the same day, with the same
+    // logged food, this card could show e.g. a vitD bar as "complete" against the
+    // generic 5µg reference while GapCloserCard simultaneously flagged a deficit
+    // against the real 15-20µg target, and ignored the app's own sex/age
+    // personalization (an elderly user's real vitD need is 4x understated by the
+    // flat NRV value). Falls back to NRV only when no profile exists yet.
+    val fiberTarget   = targets?.fiberGTarget   ?: NRV.FIBER_G
+    val ironTarget    = targets?.ironMgTarget   ?: NRV.IRON_MG
+    val calciumTarget = targets?.calciumMgTarget ?: NRV.CALCIUM_MG
+    val vitDTarget    = targets?.vitDUgTarget   ?: NRV.VIT_D_UG
+    val b12Target     = targets?.b12UgTarget    ?: NRV.B12_UG
 
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
@@ -43,11 +60,11 @@ internal fun MicronutrientCard(totals: ConsumedNutrition) {
                     fontWeight = FontWeight.SemiBold,
                 )
 
-                MicroRow(stringResource(R.string.dashboard_micro_fiber),   totals.fiberG,    NRV.FIBER_G,    "g",  Teal)
-                MicroRow(stringResource(R.string.dashboard_micro_iron),    totals.ironMg,    NRV.IRON_MG,    "mg", Gold)
-                MicroRow(stringResource(R.string.dashboard_micro_calcium), totals.calciumMg, NRV.CALCIUM_MG, "mg", AccentCoral)
-                MicroRow(stringResource(R.string.dashboard_micro_vitd),    totals.vitDUg,    NRV.VIT_D_UG,   "µg", Violet)
-                MicroRow(stringResource(R.string.dashboard_micro_b12),     totals.b12Ug,     NRV.B12_UG,     "µg", Warm)
+                MicroRow(stringResource(R.string.dashboard_micro_fiber),   totals.fiberG,    fiberTarget,   "g",  Teal)
+                MicroRow(stringResource(R.string.dashboard_micro_iron),    totals.ironMg,    ironTarget,    "mg", Gold)
+                MicroRow(stringResource(R.string.dashboard_micro_calcium), totals.calciumMg, calciumTarget, "mg", AccentCoral)
+                MicroRow(stringResource(R.string.dashboard_micro_vitd),    totals.vitDUg,    vitDTarget,    "µg", Violet)
+                MicroRow(stringResource(R.string.dashboard_micro_b12),     totals.b12Ug,     b12Target,     "µg", Warm)
             }
         }
     }
