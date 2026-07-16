@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.result.cards
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -67,8 +68,13 @@ internal fun PairingsCard(pairings: List<String>) {
 // better yourself." §X R&D pass: Yuka's most-cited feature was a same-category
 // better-score suggestion, which Scan'eat had no equivalent of at all.
 @Composable
-internal fun AlternativeCard(alternative: ScanResult) {
+internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = null) {
+    // findBetterAlternative only ever returns an already-persisted scan_history
+    // row (see ScanRepository.findBetterAlternative), so dbId is always valid
+    // here - but the card is reused defensively with onOpen omitted rather than
+    // assuming every future caller can guarantee that.
     ScanEatCard(
+        modifier = if (onOpen != null && alternative.dbId > 0) Modifier.clickable(onClick = onOpen) else Modifier,
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
         contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {

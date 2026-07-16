@@ -75,6 +75,7 @@ fun ScanScreen(
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
     val recentBarcodes = viewModel.recentBarcodes.collectAsStateWithLifecycle()
     val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
+    val cachedPreview  = viewModel.cachedPreview.collectAsStateWithLifecycle()
     val captureErrorMessage = stringResource(R.string.scan_capture_error)
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
@@ -264,6 +265,23 @@ fun ScanScreen(
                         Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(Spacing.S))
                         Text(bc, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
+                        // "Already scanned this" cue — the local-cache lookup
+                        // scoreBarcode() already does to skip the network on a
+                        // rescan, surfaced here for the first time so the user
+                        // sees it's a known product before even tapping the score
+                        // FAB, instead of only finding out after the round-trip.
+                        cachedPreview.value?.takeIf { it.barcode == bc }?.let { cached ->
+                            Spacer(Modifier.width(Spacing.S))
+                            Surface(shape = RoundedCornerShape(12.dp), color = gradeColor(cached.audit.grade).copy(alpha = 0.2f)) {
+                                Text(
+                                    "${cached.audit.score} ${cached.audit.grade.label}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = gradeColor(cached.audit.grade),
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+                                )
+                            }
+                        }
                     }
                 }
             }

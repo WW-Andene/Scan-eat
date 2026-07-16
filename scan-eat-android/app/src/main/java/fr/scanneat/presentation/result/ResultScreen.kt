@@ -50,6 +50,7 @@ fun ResultScreen(
     viewModel: ResultViewModel = hiltViewModel(),
     onBack: () -> Unit,
     onLog: () -> Unit,
+    onOpenResult: (Long) -> Unit = {},
 ) {
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
@@ -128,6 +129,7 @@ fun ResultScreen(
                 language          = language.value,
                 scoreDelta        = s.scoreDelta,
                 scoreHistory      = s.scoreHistory,
+                onOpenResult      = onOpenResult,
                 modifier          = Modifier.padding(padding),
             )
         }

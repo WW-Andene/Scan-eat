@@ -22,11 +22,14 @@ import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByName
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -91,6 +94,7 @@ sealed class ScanUiState {
     data class  NonConsumableFound(val entry: NonConsumableDbEntry) : ScanUiState()
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ScanViewModel @Inject constructor(
     private val scanRepo: ScanRepository,
@@ -121,6 +125,18 @@ class ScanViewModel @Inject constructor(
 
     private val _scannedBarcode = MutableStateFlow<String?>(null)
     val scannedBarcode: StateFlow<String?> = _scannedBarcode.asStateFlow()
+
+    /**
+     * "Already scanned this" preview — ScanRepository.getCachedByBarcode already
+     * exists and is indexed (scoreBarcode() uses it internally to skip the
+     * network on a rescan), but nothing surfaced that "already known" fact to
+     * the user before this. Lets ScanScreen show a grade/score badge the
+     * instant a familiar barcode enters frame, ahead of the user tapping the
+     * score FAB at all.
+     */
+    val cachedPreview: StateFlow<ScanResult?> = _scannedBarcode
+        .flatMapLatest { barcode -> flow { emit(barcode?.let { scanRepo.getCachedByBarcode(it) }) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _recentBarcodes = MutableStateFlow<List<String>>(emptyList())
     val recentBarcodes: StateFlow<List<String>> = _recentBarcodes.asStateFlow()

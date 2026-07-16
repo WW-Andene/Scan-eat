@@ -1065,6 +1065,9 @@
     <string name="result_pairing_item">· %1$s</string>
     <string name="result_alternative_title">You\'ve already found better</string>
     <string name="result_alternative_item">%1$s — score %2$d (%3$s)</string>
+    <string name="result_badge_nutriscore">Nutri-Score</string>
+    <string name="result_badge_ecoscore">Eco-Score</string>
+    <string name="result_badge_nova">NOVA %1$d</string>
     <string name="result_allergens_title">Allergens Detected</string>
     <string name="result_allergen_hit">• %1$s (%2$s)</string>
     <string name="result_adjustments_title">Personal Adjustments</string>

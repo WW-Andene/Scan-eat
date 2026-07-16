@@ -44,6 +44,7 @@ internal fun ResultContent(
     language: String = "fr",
     scoreDelta: Int? = null,
     scoreHistory: List<Int> = emptyList(),
+    onOpenResult: (Long) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val audit = scan.audit
@@ -63,6 +64,10 @@ internal fun ResultContent(
             Text(scan.source.name.lowercase().replace('_', ' '),
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
         }
+
+        // NutriScore / Eco-Score / NOVA — fully computed by the scoring engine
+        // for every scan but previously never surfaced anywhere in this screen.
+        ScoreBadgesRow(audit = audit, novaClass = scan.product.novaClass)
 
         // Score ring(s)
         if (personalScore != null && personalScore.applicable) {
@@ -89,7 +94,7 @@ internal fun ResultContent(
 
         comparisonResult?.let { ComparisonCard(it) }
 
-        betterAlternative?.let { AlternativeCard(it) }
+        betterAlternative?.let { AlternativeCard(it, onOpen = { onOpenResult(it.dbId) }) }
 
         if (pairings.isNotEmpty()) {
             PairingsCard(pairings)

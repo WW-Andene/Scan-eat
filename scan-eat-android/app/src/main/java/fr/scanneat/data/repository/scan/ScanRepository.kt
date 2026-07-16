@@ -9,6 +9,7 @@ import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.*
+import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -55,6 +56,7 @@ class ScanRepository @Inject constructor(
     private val ocrParser: OcrParser,
     private val okHttpClient: OkHttpClient,   // injected directly — no unsafe cast
     private val moshi: Moshi,                  // singleton from AppModule
+    private val customFoodRepo: CustomFoodRepository,
 ) {
     private val productAdapter = moshi.adapter(Product::class.java)
     private val auditAdapter   = moshi.adapter(ScoreAudit::class.java)
@@ -214,11 +216,31 @@ class ScanRepository @Inject constructor(
         }
         if (!online) error(offlineMessage(lang))
 
-        val result = when (apiMode) {
-            ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode, lang, DEFAULT_MODEL)
-            ApiMode.DIRECT -> scoreDirectBarcode(barcode, images, apiKey, cerebrasKey, lang)
+        val result = try {
+            when (apiMode) {
+                ApiMode.SERVER -> scoreViaServer(serverUrl, apiKey, images, barcode, lang, DEFAULT_MODEL)
+                ApiMode.DIRECT -> scoreDirectBarcode(barcode, images, apiKey, cerebrasKey, lang)
+            }
+        } catch (e: Exception) {
+            // Last-resort fallback: neither OFF nor the vision LLM could identify
+            // this barcode (or the lookup itself failed after exhausting its own
+            // retries) — but the user may have already manually taught the app
+            // this exact product (CustomFoodRepository.save()'s barcode param,
+            // wired from ResultViewModel.saveToDestinations). Without this, an
+            // obscure/local/homemade item hit the identical "not found" wall on
+            // every single rescan even after the user already resolved it once.
+            customFoodByBarcode(barcode, lang) ?: throw e
         }
         Pair(result, persist(result))
+    }
+
+    private suspend fun customFoodByBarcode(barcode: String, lang: String): ScanResult? {
+        val entry = customFoodRepo.findByBarcode(barcode) ?: return null
+        val product = customFoodRepo.toProduct(entry)
+        val fallbackNote = if (lang == "en") "Local match from Mes Aliments — live lookup failed or found nothing"
+            else "Correspondance locale (Mes Aliments) — recherche en ligne indisponible ou infructueuse"
+        return ScanResult(product = product, audit = scoreProduct(product, lang),
+            warnings = listOf(fallbackNote), source = ScanSource.MANUAL, barcode = barcode)
     }
 
     /**

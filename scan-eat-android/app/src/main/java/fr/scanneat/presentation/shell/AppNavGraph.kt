@@ -135,6 +135,10 @@ fun AppNavGraph(
         ) {
             ResultScreen(
                 onBack = { navController.popBackStack() },
+                // AlternativeCard's "here's something better you already found"
+                // previously had no way to actually open it - same nav pattern
+                // ScanHistoryScreen/DashboardScreen already use below.
+                onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onLog  = {
                     // Match MainShell's tab-switch options exactly — a bare
                     // navigate{launchSingleTop} pushed Diary on top of Scan→Result

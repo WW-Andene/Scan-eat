@@ -36,6 +36,18 @@ class CustomFoodRepository @Inject constructor(
     fun observeAllWithId(profileId: String = "default"): Flow<List<Pair<String, FoodEntry>>> =
         dao.observeAll(profileId).map { list -> list.mapNotNull { e -> e.toFoodEntry()?.let { e.id to it } } }
 
+    /**
+     * Looks up a custom food by its real, unambiguous barcode identity — the
+     * same one CustomFoodDao.upsertFood already prefers on save. Used by
+     * ScanRepository.scoreBarcode() as a last-resort fallback when neither OFF
+     * nor the vision LLM can identify a barcode: a user who already manually
+     * taught the app an obscure/local/homemade product (see save()'s barcode
+     * param) previously hit the exact same "product not found" wall on every
+     * single rescan, with no way for the app to recall what it already knows.
+     */
+    suspend fun findByBarcode(barcode: String, profileId: String = "default"): FoodEntry? =
+        dao.findByBarcode(barcode, profileId)?.toFoodEntry()
+
     suspend fun save(
         name: String,
         kcal: Double,
