@@ -141,9 +141,9 @@ fun TemplatesScreen(
                                             Text("${v}g", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
                                         }
                                     }
-                                    M("P", template.totalProteinG, semanticGreen())
-                                    M("G", template.totalCarbsG, AccentCoral)
-                                    M("L", template.totalFatG, Gold)
+                                    M(stringResource(R.string.macro_protein_abbr), template.totalProteinG, semanticGreen())
+                                    M(stringResource(R.string.macro_carbs_abbr), template.totalCarbsG, AccentCoral)
+                                    M(stringResource(R.string.macro_fat_abbr), template.totalFatG, Gold)
                                 }
                             }
                         }

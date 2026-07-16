@@ -32,8 +32,14 @@ fun OnboardingScreen(
     onDone: () -> Unit,
     onGoToProfile: () -> Unit = {},
 ) {
-    val done = viewModel.done.collectAsStateWithLifecycle()
-    LaunchedEffect(done.value) { if (done.value) onDone() }
+    val exit = viewModel.exit.collectAsStateWithLifecycle()
+    LaunchedEffect(exit.value) {
+        when (exit.value) {
+            OnboardingViewModel.Exit.SCAN    -> onDone()
+            OnboardingViewModel.Exit.PROFILE -> onGoToProfile()
+            null -> {}
+        }
+    }
 
     var page by remember { mutableIntStateOf(0) }
     var selectedMode by remember { mutableStateOf(ApiMode.DIRECT) }
@@ -193,7 +199,7 @@ fun OnboardingScreen(
                     Spacer(Modifier.weight(1f))
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                         ScanEatPrimaryButton(
-                            onClick = { viewModel.finish(); onGoToProfile() },
+                            onClick = { viewModel.finish(goToProfile = true) },
                             modifier = Modifier.fillMaxWidth(),
                         ) { Text(stringResource(R.string.onboarding_profile_cta)) }
                         TextButton(

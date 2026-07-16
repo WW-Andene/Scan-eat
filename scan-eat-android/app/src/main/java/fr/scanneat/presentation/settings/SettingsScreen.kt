@@ -35,7 +35,10 @@ import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.settings.components.SaveButtonRow
 import fr.scanneat.presentation.settings.components.SettingsSection
 import fr.scanneat.presentation.ui.theme.*
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 private fun DataStatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier = Modifier) {
@@ -129,7 +132,7 @@ fun SettingsScreen(
                 val json = runCatching {
                     context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                 }.getOrNull()
-                if (json != null) viewModel.importFromJson(json) else viewModel.reportBackupIoFailed()
+                if (json != null) viewModel.previewImport(json) else viewModel.reportBackupIoFailed()
             }
         }
     }
@@ -388,6 +391,31 @@ fun SettingsScreen(
                         ),
                         onDismiss = { viewModel.clearBackupState() },
                     )
+                    is BackupUiState.ImportPreview -> {
+                        val dateFmt = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
+                        val exportedDate = Instant.ofEpochMilli(s.metadata.exportedAtMs).atZone(ZoneId.systemDefault()).toLocalDate().format(dateFmt)
+                        AlertDialog(
+                            onDismissRequest = { viewModel.clearBackupState() },
+                            title = { Text(stringResource(R.string.settings_backup_import_confirm_title), color = OnBackground) },
+                            text = {
+                                Text(
+                                    stringResource(R.string.settings_backup_import_confirm_body, exportedDate, s.metadata.appVersionName, s.metadata.summary.total),
+                                    color = OnBackground.copy(0.8f),
+                                )
+                            },
+                            confirmButton = {
+                                TextButton(onClick = { viewModel.confirmImport(s.json) }) {
+                                    Text(stringResource(R.string.settings_backup_import_confirm_button), color = AccentCoral)
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { viewModel.clearBackupState() }) {
+                                    Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
+                                }
+                            },
+                            containerColor = SurfaceVariant,
+                        )
+                    }
                     else -> {}
                 }
                 // CSV diary export — spreadsheet-friendly complement to the JSON backup
@@ -488,16 +516,30 @@ fun SettingsScreen(
             title = { Text(stringResource(R.string.settings_reset_dialog_title), color = OnBackground) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text(stringResource(R.string.settings_reset_dialog_body), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
-                    TextButton(onClick = {
-                        viewModel.clearScanHistory()
-                        showResetDialog = false
-                    }) {
-                        Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(Spacing.XS))
-                        Text(stringResource(R.string.settings_reset_clear_scans), color = semanticRed())
+                    if (resetConfirmed) {
+                        // Second step - resetConfirmed previously existed as state but was
+                        // never actually read anywhere, so the first tap on "Clear scan
+                        // history" already ran the irreversible delete with no real
+                        // second-confirmation step at all.
+                        Text(stringResource(R.string.settings_reset_confirm_body), style = MaterialTheme.typography.bodySmall, color = semanticRed())
+                        TextButton(onClick = {
+                            viewModel.clearScanHistory()
+                            showResetDialog = false
+                            resetConfirmed = false
+                        }) {
+                            Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(Spacing.XS))
+                            Text(stringResource(R.string.settings_reset_confirm_button), color = semanticRed(), fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        Text(stringResource(R.string.settings_reset_dialog_body), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+                        TextButton(onClick = { resetConfirmed = true }) {
+                            Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(Spacing.XS))
+                            Text(stringResource(R.string.settings_reset_clear_scans), color = semanticRed())
+                        }
+                        Text(stringResource(R.string.settings_reset_clear_all_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.45f))
                     }
-                    Text(stringResource(R.string.settings_reset_clear_all_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.45f))
                 }
             },
             confirmButton = {},

@@ -86,9 +86,9 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                             Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f))
                         }
                     }
-                    MacroChip("P", recipe.totalProteinG, semanticGreen())
-                    MacroChip("G", recipe.totalCarbsG, AccentCoral)
-                    MacroChip("L", recipe.totalFatG, Gold)
+                    MacroChip(stringResource(R.string.macro_protein_abbr), recipe.totalProteinG, semanticGreen())
+                    MacroChip(stringResource(R.string.macro_carbs_abbr), recipe.totalCarbsG, AccentCoral)
+                    MacroChip(stringResource(R.string.macro_fat_abbr), recipe.totalFatG, Gold)
                 }
                 // Diet/allergen check previously only ever ran on scanned products -
                 // a recipe built from ingredients the user's own profile forbids

@@ -61,18 +61,22 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch { prefs.setUseImperialWeight(v) }
     }
 
-    fun save(profile: Profile) {
+    /**
+     * Saves the shared profile fields plus the circumference/ethnicity fields
+     * (which live in BiolismRepository, disjoint DataStore keys — see
+     * saveBodyMeasurements's own doc) in one coroutine. Previously these were
+     * two independent viewModelScope.launch calls: _saved.value = true fired
+     * as soon as the first (save's own prefs.saveProfile + clearProfileOverride)
+     * finished, driving ProfileScreen's LaunchedEffect to pop the screen and
+     * clear this ViewModel's scope — which could cancel the still-in-flight
+     * body-measurements write, silently dropping waist/hip/neck/ethnicity edits.
+     */
+    fun save(profile: Profile, waistCm: Double, hipCm: Double, neckCm: Double, ethnicityId: String) {
         viewModelScope.launch {
             prefs.saveProfile(profile)
             biolismRepo.clearProfileOverride()
-            _saved.value = true
-        }
-    }
-
-    /** Saves only the circumference/ethnicity fields — sex/age/height/weight/activity keep following [profile] via the shared BiolismRepository sync. */
-    fun saveBodyMeasurements(waistCm: Double, hipCm: Double, neckCm: Double, ethnicityId: String) {
-        viewModelScope.launch {
             biolismRepo.saveBodyMeasurements(waistCm, hipCm, neckCm, ethnicityId)
+            _saved.value = true
         }
     }
 

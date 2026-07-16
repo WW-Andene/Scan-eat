@@ -57,7 +57,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 8
+const val BACKUP_FORMAT_VERSION = 9
 
 data class ProfileBackup(
     val name: String,
@@ -86,6 +86,10 @@ data class SettingsBackup(
     val theme: String,
     val dyslexicFont: Boolean,
     val colorblindMode: String,
+    // Since v9: WeightViewModel/ProfileViewModel/AddWeightDialog's persisted metric/imperial
+    // toggle - previously absent here, so restoring a backup to a new device silently reset
+    // an imperial-unit user back to kg and required a manual re-toggle.
+    val useImperialWeight: Boolean = false,
 )
 
 data class HydrationEntryBackup(val date: String, val ml: Int)

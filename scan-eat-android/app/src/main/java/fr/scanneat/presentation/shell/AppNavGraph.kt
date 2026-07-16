@@ -86,7 +86,17 @@ fun AppNavGraph(
                         popUpTo(AppRoutes.ONBOARDING) { inclusive = true }
                     }
                 },
-                onGoToProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+                // Previously navigated without popUpTo, leaving ONBOARDING under
+                // SCAN_PROFILE on the back stack - pressing back from the profile
+                // screen re-entered onboarding even though it was already complete.
+                // Mirrors onDone's popUpTo so either post-onboarding path leaves the
+                // Scan tab as the actual back-stack root.
+                onGoToProfile = {
+                    navController.navigate(TopTab.Scan.route) {
+                        popUpTo(AppRoutes.ONBOARDING) { inclusive = true }
+                    }
+                    navController.navigate(AppRoutes.SCAN_PROFILE)
+                },
             )
         }
 

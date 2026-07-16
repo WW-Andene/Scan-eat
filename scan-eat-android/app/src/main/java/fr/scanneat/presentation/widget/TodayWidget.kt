@@ -2,6 +2,7 @@ package fr.scanneat.presentation.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,7 @@ import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.domain.engine.scoring.withKcalOverride
 import fr.scanneat.presentation.MainActivity
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.LocalColorblindMode
 import fr.scanneat.presentation.ui.theme.semanticBlue
 import fr.scanneat.util.localizedQuantityString
 import fr.scanneat.util.localizedString
@@ -86,6 +88,7 @@ class TodayWidget : GlanceAppWidget() {
         val biolismRepo = entryPoint.biolismRepository()
 
         val lang = prefs.language.first()
+        val colorblindMode = prefs.colorblindMode.first()
         val profile = prefs.profile.first()
         val today = LocalDate.now()
         val summary = consumptionRepo.observeDay(today).first()
@@ -114,21 +117,28 @@ class TodayWidget : GlanceAppWidget() {
         val addGlassLabel = localizedString(context, lang, R.string.widget_today_add_glass, HYD_GLASS_ML)
 
         provideContent {
-            GlanceTheme {
-                // LocalSize.current resolves to whichever of sizeMode's declared buckets
-                // best fits the space the host actually gave this instance.
-                val compact = LocalSize.current.height < FULL_SIZE.height
-                TodayWidgetContent(
-                    kcal = kcal,
-                    targetKcal = targetKcal,
-                    progress = progress,
-                    kcalLabel = kcalLabel,
-                    streakLabel = streakLabel,
-                    noTargetLabel = noTargetLabel,
-                    hydrationLabel = hydrationLabel,
-                    addGlassLabel = addGlassLabel,
-                    compact = compact,
-                )
+            // semanticBlue() (used by the hydration row below) reads LocalColorblindMode,
+            // which otherwise silently defaults to "none" here — the in-app screens all
+            // pick it up via ScanEatTheme's own CompositionLocalProvider, but the widget's
+            // GlanceTheme never provided it, so a colorblind-mode user got the widget's
+            // hydration chip in the un-adjusted blue regardless of their in-app setting.
+            CompositionLocalProvider(LocalColorblindMode provides colorblindMode) {
+                GlanceTheme {
+                    // LocalSize.current resolves to whichever of sizeMode's declared buckets
+                    // best fits the space the host actually gave this instance.
+                    val compact = LocalSize.current.height < FULL_SIZE.height
+                    TodayWidgetContent(
+                        kcal = kcal,
+                        targetKcal = targetKcal,
+                        progress = progress,
+                        kcalLabel = kcalLabel,
+                        streakLabel = streakLabel,
+                        noTargetLabel = noTargetLabel,
+                        hydrationLabel = hydrationLabel,
+                        addGlassLabel = addGlassLabel,
+                        compact = compact,
+                    )
+                }
             }
         }
     }

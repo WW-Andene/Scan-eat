@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.backup.BackupImportError
+import fr.scanneat.data.backup.BackupMetadata
 import fr.scanneat.data.backup.BackupRepository
 import fr.scanneat.data.backup.BackupSummary
 import fr.scanneat.data.local.prefs.ApiMode
@@ -23,6 +24,9 @@ sealed class BackupUiState {
     data class ExportReady(val json: String) : BackupUiState()
     /** CSV diary export ready — written via Storage Access Framework like JSON. */
     data class CsvExportReady(val csv: String) : BackupUiState()
+    /** peekMetadata() succeeded — the screen shows a confirm dialog ("taken on X, N items")
+     *  before confirmImport() actually overwrites local data with this file's contents. */
+    data class ImportPreview(val json: String, val metadata: BackupMetadata) : BackupUiState()
     data class ImportSuccess(val summary: BackupSummary) : BackupUiState()
     data class Error(val messageKey: BackupErrorKey) : BackupUiState()
 }
@@ -84,22 +88,33 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun importFromJson(json: String) {
+    /** Reads just the file's header/summary via peekMetadata() — the screen shows a confirm
+     *  dialog before [confirmImport] actually overwrites local data. Previously importFromJson
+     *  applied the file immediately with no way to see what's in it or back out first. */
+    fun previewImport(json: String) {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch {
+            backupRepository.peekMetadata(json).fold(
+                onSuccess = { _backupState.value = BackupUiState.ImportPreview(json, it) },
+                onFailure = { e -> _backupState.value = BackupUiState.Error(e.toBackupErrorKey()) },
+            )
+        }
+    }
+
+    fun confirmImport(json: String) {
         _backupState.value = BackupUiState.Working
         viewModelScope.launch {
             backupRepository.importFromJson(json).fold(
                 onSuccess = { _backupState.value = BackupUiState.ImportSuccess(it) },
-                onFailure = { e ->
-                    _backupState.value = BackupUiState.Error(
-                        when (e) {
-                            is BackupImportError.UnsupportedVersion -> BackupErrorKey.UNSUPPORTED_VERSION
-                            is BackupImportError.Malformed          -> BackupErrorKey.MALFORMED
-                            else                                    -> BackupErrorKey.IO
-                        },
-                    )
-                },
+                onFailure = { e -> _backupState.value = BackupUiState.Error(e.toBackupErrorKey()) },
             )
         }
+    }
+
+    private fun Throwable.toBackupErrorKey() = when (this) {
+        is BackupImportError.UnsupportedVersion -> BackupErrorKey.UNSUPPORTED_VERSION
+        is BackupImportError.Malformed          -> BackupErrorKey.MALFORMED
+        else                                    -> BackupErrorKey.IO
     }
 
     fun prepareCsvExport() {

@@ -79,6 +79,12 @@
     <string name="common_rename">Renommer</string>
     <string name="common_stepper_decrease">Diminuer %1$s</string>
     <string name="common_stepper_increase">Augmenter %1$s</string>
+    <!-- Single-letter macro abbreviations (Protéines/Glucides/Lipides) - previously
+         hardcoded "P"/"G"/"L" regardless of language in ProfileScreen/RecipeCard/
+         TemplatesScreen's macro-ratio legends. -->
+    <string name="macro_protein_abbr">P</string>
+    <string name="macro_carbs_abbr">G</string>
+    <string name="macro_fat_abbr">L</string>
     <string name="common_add">Ajouter</string>
     <string name="common_remove">Retirer</string>
     <string name="common_cancel">Annuler</string>
@@ -976,6 +982,9 @@
     <string name="settings_backup_error_unsupported_version">Ce fichier provient d\'une version plus récente de l\'app et ne peut pas être importé.</string>
     <string name="settings_backup_error_malformed">Fichier de sauvegarde invalide ou corrompu.</string>
     <string name="settings_backup_error_io">Erreur lors de la lecture ou l\'écriture du fichier.</string>
+    <string name="settings_backup_import_confirm_title">Restaurer cette sauvegarde ?</string>
+    <string name="settings_backup_import_confirm_body">Sauvegarde du %1$s (app v%2$s), %3$d éléments. Cela remplacera vos données actuelles.</string>
+    <string name="settings_backup_import_confirm_button">Restaurer</string>
     <string name="settings_csv_export_button">Exporter journal (CSV)</string>
     <string name="settings_section_reset">Réinitialisation</string>
     <string name="settings_reset_hint">Effacer sélectivement certaines données de l\'application.</string>
@@ -984,6 +993,8 @@
     <string name="settings_reset_dialog_body">Choisissez ce que vous souhaitez effacer :</string>
     <string name="settings_reset_clear_scans">Effacer l\'historique des scans</string>
     <string name="settings_reset_clear_all_hint">Pour effacer toutes les données, utilisez Paramètres système → Application → Effacer les données.</string>
+    <string name="settings_reset_confirm_body">Cette action est irréversible et supprimera tout l\'historique de vos scans. Confirmer ?</string>
+    <string name="settings_reset_confirm_button">Oui, tout effacer</string>
     <string name="settings_data_stats_scans">%1$d scan(s) enregistré(s)</string>
     <string name="settings_data_stats_diary">%1$d entrée(s) dans le journal</string>
     <string name="settings_section_health_connect">Health Connect</string>

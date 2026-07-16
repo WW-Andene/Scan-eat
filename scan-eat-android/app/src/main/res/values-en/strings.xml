@@ -79,6 +79,12 @@
     <string name="common_rename">Rename</string>
     <string name="common_stepper_decrease">Decrease %1$s</string>
     <string name="common_stepper_increase">Increase %1$s</string>
+    <!-- Single-letter macro abbreviations (Protein/Carbs/Fat) - previously hardcoded
+         "P"/"G"/"L" (French letters) regardless of language in ProfileScreen/RecipeCard/
+         TemplatesScreen's macro-ratio legends. -->
+    <string name="macro_protein_abbr">P</string>
+    <string name="macro_carbs_abbr">C</string>
+    <string name="macro_fat_abbr">F</string>
     <string name="common_add">Add</string>
     <string name="common_remove">Remove</string>
     <string name="common_cancel">Cancel</string>
@@ -942,6 +948,9 @@
     <string name="settings_backup_error_unsupported_version">This file comes from a newer app version and can\'t be imported.</string>
     <string name="settings_backup_error_malformed">Invalid or corrupted backup file.</string>
     <string name="settings_backup_error_io">Error reading or writing the file.</string>
+    <string name="settings_backup_import_confirm_title">Restore this backup?</string>
+    <string name="settings_backup_import_confirm_body">Backup from %1$s (app v%2$s), %3$d items. This will overwrite your current data.</string>
+    <string name="settings_backup_import_confirm_button">Restore</string>
     <string name="settings_csv_export_button">Export diary (CSV)</string>
     <string name="settings_section_reset">Reset</string>
     <string name="settings_reset_hint">Selectively clear some of the app\'s data.</string>
@@ -950,6 +959,8 @@
     <string name="settings_reset_dialog_body">Choose what you want to clear:</string>
     <string name="settings_reset_clear_scans">Clear scan history</string>
     <string name="settings_reset_clear_all_hint">To clear all data, use System Settings → App → Clear Data.</string>
+    <string name="settings_reset_confirm_body">This action is irreversible and will delete your entire scan history. Confirm?</string>
+    <string name="settings_reset_confirm_button">Yes, clear it</string>
     <string name="settings_data_stats_scans">%1$d scan(s) stored</string>
     <string name="settings_data_stats_diary">%1$d diary entr(y/ies)</string>
     <string name="settings_section_health_connect">Health Connect</string>

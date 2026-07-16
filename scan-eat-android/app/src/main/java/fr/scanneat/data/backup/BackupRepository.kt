@@ -111,6 +111,7 @@ class BackupRepository @Inject constructor(
                 theme = prefs.theme.first(),
                 dyslexicFont = prefs.dyslexicFont.first(),
                 colorblindMode = prefs.colorblindMode.first(),
+                useImperialWeight = prefs.useImperialWeight.first(),
             ),
             reminderSettings = remindersRepo.settings.first(),
             fastingActiveStartMs = fastingStartMs,
@@ -257,6 +258,7 @@ class BackupRepository @Inject constructor(
             prefs.setTheme(s.theme)
             prefs.setDyslexicFont(s.dyslexicFont)
             prefs.setColorblindMode(s.colorblindMode)
+            prefs.setUseImperialWeight(s.useImperialWeight)
         }
         // restoreAll writes every ReminderSettings field in one transaction — the
         // previous piecemeal setBreakfast/setLunch/setDinner/setHydration/setWeight

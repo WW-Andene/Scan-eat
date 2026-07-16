@@ -91,21 +91,21 @@ fun ProfileScreen(
                         // calc and ProfileViewModel's BMI/TDEE. Clamp to sane human ranges
                         // instead of rejecting outright, since a slightly-off real value
                         // (e.g. a very tall/heavy user) should still save, just not corrupt math.
-                        viewModel.save(Profile(
-                            name          = name.trim(),
-                            sex           = sex,
-                            ageYears      = age.toIntOrNull()?.coerceIn(1, 120),
-                            heightCm      = heightCm.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0),
-                            weightKg      = weightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
-                            goalWeightKg  = goalWeightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
-                            activityLevel = activity,
-                            goal          = goal,
-                            diet          = diet,
-                            allergens     = allergens,
-                            healthConditions = conditions,
-                            isMenstruating = isMenstruating,
-                        ))
-                        viewModel.saveBodyMeasurements(
+                        viewModel.save(
+                            profile = Profile(
+                                name          = name.trim(),
+                                sex           = sex,
+                                ageYears      = age.toIntOrNull()?.coerceIn(1, 120),
+                                heightCm      = heightCm.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0),
+                                weightKg      = weightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
+                                goalWeightKg  = goalWeightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
+                                activityLevel = activity,
+                                goal          = goal,
+                                diet          = diet,
+                                allergens     = allergens,
+                                healthConditions = conditions,
+                                isMenstruating = isMenstruating,
+                            ),
                             waistCm     = waistCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
                             hipCm       = hipCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
                             neckCm      = neckCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
@@ -195,7 +195,10 @@ fun ProfileScreen(
                                     Box(Modifier.weight(fPct).fillMaxHeight().background(Gold))
                                 }
                                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                                    listOf("P ${pPct.toInt()}%" to semanticGreen(), "G ${cPct.toInt()}%" to AccentCoral, "L ${fPct.toInt()}%" to Gold).forEach { (label, color) ->
+                                    val proteinAbbr = stringResource(R.string.macro_protein_abbr)
+                                    val carbsAbbr   = stringResource(R.string.macro_carbs_abbr)
+                                    val fatAbbr     = stringResource(R.string.macro_fat_abbr)
+                                    listOf("$proteinAbbr ${pPct.toInt()}%" to semanticGreen(), "$carbsAbbr ${cPct.toInt()}%" to AccentCoral, "$fatAbbr ${fPct.toInt()}%" to Gold).forEach { (label, color) ->
                                         Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = color)
                                     }
                                 }
