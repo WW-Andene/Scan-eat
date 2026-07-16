@@ -83,8 +83,8 @@ class WeightViewModel @Inject constructor(
         viewModelScope.launch { prefs.setUseImperialWeight(v) }
     }
 
-    fun log(kg: Double, notes: String = "") {
-        viewModelScope.launch { repo.log(LocalDate.now(), kg, notes) }
+    fun log(kg: Double, notes: String = "", date: LocalDate = LocalDate.now()) {
+        viewModelScope.launch { repo.log(date, kg, notes) }
     }
 
     fun delete(id: String) {

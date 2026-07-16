@@ -69,10 +69,13 @@ internal fun formatElapsed(sec: Double): String {
     else "${s}s"
 }
 
-internal fun formatFastingTime(fh: Double, weekUnit: String, dayUnit: String): String? {
+internal fun formatFastingTime(fh: Double, weekUnit: String, dayUnit: String, monthUnit: String): String? {
     if (fh <= 0) return null
     return when {
-        fh >= 720  -> "${"%.1f".format(Locale.US, fh / 720)}mo"
+        // Previously hardcoded the English abbreviation "mo" here even though
+        // weekUnit/dayUnit were already correctly localized parameters - reachable
+        // in practice via FastingRow's own "+1 month" (720h) stepper button.
+        fh >= 720  -> "${"%.1f".format(Locale.US, fh / 720)}$monthUnit"
         fh >= 168  -> "${(fh / 168).toInt()}$weekUnit ${((fh % 168) / 24).toInt()}$dayUnit"
         fh >= 48   -> "${(fh / 24).toInt()}$dayUnit ${(fh % 24).toInt()}h"
         fh >= 1    -> "${fh.toInt()}h ${((fh % 1) * 60).toInt()}m"

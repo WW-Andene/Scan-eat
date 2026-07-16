@@ -1,7 +1,9 @@
 package fr.scanneat.presentation.weight
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,6 +37,9 @@ import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.presentation.reminders.WeightReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -68,6 +73,12 @@ fun WeightScreen(
     var kgText by remember { mutableStateOf("") }
     var notesText by remember { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
+    // Log dialog previously always wrote LocalDate.now() — WeightRepository.log()/
+    // WeightDao.upsertForDate already fully support an arbitrary date (used by
+    // restore() for the Undo snackbar), but there was no way to enter a missed
+    // weigh-in for a past day from the UI itself.
+    var entryDate by remember { mutableStateOf(LocalDate.now()) }
+    var showDatePicker by remember { mutableStateOf(false) }
     // Previously plain remember state with no backing store — reset to kg on
     // every screen reopen/process recreation. Local var still used as the
     // read/write surface everywhere below (unchanged call sites), just backed
@@ -402,14 +413,32 @@ fun WeightScreen(
                         label = { Text(stringResource(R.string.weight_field_notes)) }, singleLine = true,
                         colors = scanEatTextFieldColors(),
                     )
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)).clickable { showDatePicker = true },
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color.Transparent,
+                        border = BorderStroke(1.dp, OnBackground.copy(0.2f)),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column {
+                                Text(stringResource(R.string.weight_field_date), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+                                Text(entryDate.format(fmt), style = MaterialTheme.typography.bodyLarge, color = OnBackground)
+                            }
+                            Icon(Icons.Default.DateRange, null, tint = OnBackground.copy(0.6f))
+                        }
+                    }
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         val kg = if (useImperial) kgValue!! / 2.20462 else kgValue!!
-                        viewModel.log(kg, notesText)
-                        kgText = ""; notesText = ""; showAdd = false
+                        viewModel.log(kg, notesText, entryDate)
+                        kgText = ""; notesText = ""; entryDate = LocalDate.now(); showAdd = false
                     },
                     enabled = isValidWeight,
                 ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
@@ -417,6 +446,28 @@ fun WeightScreen(
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
             containerColor = SurfaceVariant,
         )
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = entryDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                    utcTimeMillis <= System.currentTimeMillis()
+            },
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        entryDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+                    }
+                    showDatePicker = false
+                }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
+            },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        ) { DatePicker(state = datePickerState) }
     }
 
     deleteTarget?.let { id ->

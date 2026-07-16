@@ -205,6 +205,22 @@ internal fun colorFromToken(token: String): Color = when (token) {
     else          -> TextSecondary
 }
 
+// OrganPct.name (computeOrganPcts) is a stable English key also used to look
+// up eliaBase deltas in OrganHeatCard - it can't be localized at the source
+// without breaking that lookup, so the raw literal was rendered directly with
+// no stringResource() at all, unlike every other label in this card. Same
+// "token -> localized label" indirection as colorFromToken above.
+@Composable
+internal fun organLabel(name: String): String = when (name) {
+    "Liver"           -> stringResource(R.string.biolism_organ_liver)
+    "Skeletal Muscle" -> stringResource(R.string.biolism_organ_muscle)
+    "Brain"           -> stringResource(R.string.biolism_organ_brain)
+    "Residual"        -> stringResource(R.string.biolism_organ_residual)
+    "Kidneys"         -> stringResource(R.string.biolism_organ_kidneys)
+    "Heart"           -> stringResource(R.string.biolism_organ_heart)
+    else              -> name
+}
+
 internal fun formatDuration(ms: Long): String {
     val (h, m, sec) = hmsFromSeconds(ms / 1000)
     return if (h > 0) "%dh %02dm".format(Locale.US, h, m) else "%dm %02ds".format(Locale.US, m, sec)

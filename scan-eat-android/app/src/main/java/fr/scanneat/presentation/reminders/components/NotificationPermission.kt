@@ -31,16 +31,26 @@ internal fun permissionState(): Triple<Boolean, Boolean, () -> Unit> {
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED,
         )
     }
-    var requestedOnce by remember { mutableStateOf(false) }
     var permanentlyDenied by remember { mutableStateOf(false) }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         permissionGranted = granted
         if (!granted) {
             val activity = context as? Activity
+            // shouldShowRequestPermissionRationale() already correctly distinguishes
+            // "never asked yet" (true right after a first honest denial) from
+            // "permanently denied" (false) - the previous extra `requestedOnce &&`
+            // gate assumed the first callback in *this* session could never reflect
+            // a permanent denial from an *earlier* session, which is wrong: a user
+            // who already permanently denied notifications before, then reopens the
+            // app and taps "Enable Notifications" for the first time this session,
+            // gets canShowRationale=false immediately (Android silently denies with
+            // no dialog) - but requestedOnce was still false at that point, so this
+            // legitimate signal was discarded and the button silently no-opped,
+            // requiring a second, seemingly-identical tap before "Open Settings"
+            // ever appeared.
             val canShowRationale = activity?.let { ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.POST_NOTIFICATIONS) } ?: true
-            if (requestedOnce && !canShowRationale) permanentlyDenied = true
+            if (!canShowRationale) permanentlyDenied = true
         }
-        requestedOnce = true
     }
     return Triple(permissionGranted, permanentlyDenied) { launcher.launch(Manifest.permission.POST_NOTIFICATIONS) }
 }

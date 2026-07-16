@@ -22,7 +22,7 @@ internal fun FastingRow(
     active: Boolean, fastingHours: Double, onToggle: () -> Unit, onLogMeal: () -> Unit, onAddHours: (Double) -> Unit,
     realFastHours: Double? = null, onImportRealFast: () -> Unit = {},
 ) {
-    val fastFmt = formatFastingTime(fastingHours, stringResource(R.string.biolism_unit_week), stringResource(R.string.biolism_unit_day))
+    val fastFmt = formatFastingTime(fastingHours, stringResource(R.string.biolism_unit_week), stringResource(R.string.biolism_unit_day), stringResource(R.string.biolism_unit_month))
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(CardRadius.CONTROL),

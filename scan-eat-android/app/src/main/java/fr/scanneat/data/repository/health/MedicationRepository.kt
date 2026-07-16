@@ -32,6 +32,11 @@ data class Medication(
     // with no way to actually be reminded to take it.
     val reminderOn: Boolean = false,
     val reminderTime: String = "08:00",
+    // Exists on the entity but was previously dropped in toDomain() - see
+    // MedicationViewModel.adherenceStreak, which needs to know a medication's
+    // own start date to avoid punishing the streak for the ordinary act of
+    // adding a new active medication.
+    val createdAt: Long = 0,
 )
 
 /** One "I took this" event on a given day - see MedicationLogEntity for why this needed its own table. */
@@ -92,7 +97,7 @@ class MedicationRepository @Inject constructor(
 
     private fun MedicationEntity.toDomain() = Medication(
         id = id, name = name, dosage = dosage, scheduleNote = scheduleNote, barcode = barcode, active = active,
-        reminderOn = reminderOn, reminderTime = reminderTime,
+        reminderOn = reminderOn, reminderTime = reminderTime, createdAt = createdAt,
     )
 
     // ── Adherence log ("I took this") ────────────────────────────────────────
@@ -104,14 +109,16 @@ class MedicationRepository @Inject constructor(
         logDao.getRange(from.toIsoString(), to.toIsoString(), profileId).map { it.toLogDomain() }
 
     suspend fun logTaken(medication: Medication, date: LocalDate = LocalDate.now(), profileId: String = "default") {
-        logDao.insert(MedicationLogEntity(
-            id             = UUID.randomUUID().toString(),
-            medicationId   = medication.id,
-            medicationName = medication.name,
-            date           = date.toIsoString(),
-            takenAt        = System.currentTimeMillis(),
-            profileId      = profileId,
-        ))
+        logDao.insertIfAbsent(medication.id, date.toIsoString(), profileId) {
+            MedicationLogEntity(
+                id             = UUID.randomUUID().toString(),
+                medicationId   = medication.id,
+                medicationName = medication.name,
+                date           = date.toIsoString(),
+                takenAt        = System.currentTimeMillis(),
+                profileId      = profileId,
+            )
+        }
     }
 
     suspend fun deleteLogEntry(id: String) = logDao.delete(id)

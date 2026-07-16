@@ -7,9 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.domain.engine.biolism.MetabolicResult
 import fr.scanneat.presentation.biolism.data.BioCard
@@ -35,7 +37,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
             met.bmi < 18.5        -> ((met.bmi - 16.0) / 2.5 * 100).toFloat().coerceIn(0f, 100f)
             else                  -> ((35.0 - met.bmi) / 10.0 * 100).toFloat().coerceIn(0f, 100f)
         }
-        add("IMC" to bmiScore)
+        add(stringResource(R.string.biolism_health_score_bmi) to bmiScore)
 
         // BF% sub-score: ideal ranges vary by sex; score 100 at midpoint, 0 at extremes
         val bf = met.navyBfPct ?: met.bfPct
@@ -53,7 +55,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
                 else             -> ((38.0 - bf) / 18.0 * 100).toFloat().coerceIn(0f, 100f)
             }
         }
-        add("MG%" to bfScore)
+        add(stringResource(R.string.biolism_health_score_bodyfat) to bfScore)
 
         // WHtR sub-score: <0.4 = excellent, >0.6 = high risk (Ashwell 2012)
         met.whtr?.let { w ->
@@ -62,12 +64,12 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
                 w <= 0.50 -> ((0.60 - w) / 0.20 * 100).toFloat().coerceIn(0f, 100f)
                 else      -> ((0.60 - w) / 0.10 * 100).toFloat().coerceIn(0f, 100f)
             }
-            add("T/T" to whtrScore)
+            add(stringResource(R.string.biolism_health_score_whtr) to whtrScore)
         }
 
         // npRQ sub-score: 0.707 = pure fat oxidation (ideal in fasted/keto state); 1.0 = pure carb
         val rqScore = ((1.0 - met.sub.npRq) / (1.0 - 0.707) * 100).toFloat().coerceIn(0f, 100f)
-        add("QR" to rqScore)
+        add(stringResource(R.string.biolism_health_score_rq) to rqScore)
     }
 
     val overallScore = subScores.map { it.second }.average().roundToInt()
@@ -77,13 +79,13 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
         else               -> semanticRed()
     }
     val scoreLabel = when {
-        overallScore >= 75 -> "Excellent"
-        overallScore >= 60 -> "Bon"
-        overallScore >= 45 -> "Moyen"
-        else               -> "À améliorer"
+        overallScore >= 75 -> stringResource(R.string.biolism_health_score_tier_excellent)
+        overallScore >= 60 -> stringResource(R.string.biolism_health_score_tier_good)
+        overallScore >= 45 -> stringResource(R.string.biolism_health_score_tier_average)
+        else               -> stringResource(R.string.biolism_health_score_tier_needs_work)
     }
 
-    BioCard("Score santé métabolique", defaultOpen = true, badge = {
+    BioCard(stringResource(R.string.biolism_health_score_title), defaultOpen = true, badge = {
         Surface(shape = RoundedCornerShape(12.dp), color = scoreColor.copy(0.15f)) {
             Text(
                 "$overallScore / 100",
@@ -109,7 +111,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
         }
         Spacer(Modifier.height(Spacing.XS))
         Text(
-            "Indicateurs: IMC · masse grasse · tour de taille/taille · quotient respiratoire",
+            stringResource(R.string.biolism_health_score_footer),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             color = OnSurface.copy(0.4f),
         )

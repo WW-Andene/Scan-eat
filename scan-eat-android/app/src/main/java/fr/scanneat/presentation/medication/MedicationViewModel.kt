@@ -6,12 +6,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.data.repository.health.MedicationLogEntry
 import fr.scanneat.data.repository.health.MedicationRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 /** Drug class used for keyword-based interaction detection — labelled/localized in MedicationScreen, not here (a ViewModel has no stringResource()). */
@@ -29,12 +37,26 @@ sealed class InteractionWarning {
 // Known high-risk keyword patterns: maps a drug class to a set of name substrings.
 // If two or more medications from the same risk group are active simultaneously,
 // an interaction warning is surfaced.
+//
+// French spellings only until now - the app is bilingual FR/EN (see
+// DrugGroup's own doc comment: labels render in the user's app language), but
+// an English-locale user typing "Warfarin"/"Aspirin"/"Ibuprofen" got zero
+// interaction warning, silently defeating this safety feature for exactly the
+// population most likely to type English drug names. English generic-name
+// variants added alongside the French ones (case-insensitive match already
+// applied by detectInteractions() via .lowercase()).
 private val INTERACTION_GROUPS = mapOf(
-    DrugGroup.ANTICOAGULANTS to listOf("warfarine", "coumadine", "acenocoumarol", "rivaroxaban", "apixaban", "dabigatran", "héparine"),
-    DrugGroup.ANTIPLATELETS  to listOf("aspirine", "clopidogrel", "prasugrel", "ticagrelor"),
-    DrugGroup.NSAIDS         to listOf("ibuprofène", "naproxène", "kétoprofène", "diclofénac", "indométacine", "méloxicam"),
-    DrugGroup.SSRI_SNRI      to listOf("sertraline", "fluoxétine", "paroxétine", "venlafaxine", "duloxétine", "escitalopram"),
-    DrugGroup.MAOI           to listOf("phénelzine", "tranylcypromine", "moclobémide", "sélégiline"),
+    DrugGroup.ANTICOAGULANTS to listOf(
+        "warfarine", "warfarin", "coumadine", "coumadin", "acenocoumarol", "rivaroxaban", "apixaban", "dabigatran", "héparine", "heparin",
+    ),
+    DrugGroup.ANTIPLATELETS  to listOf("aspirine", "aspirin", "clopidogrel", "prasugrel", "ticagrelor"),
+    DrugGroup.NSAIDS         to listOf(
+        "ibuprofène", "ibuprofen", "naproxène", "naproxen", "kétoprofène", "ketoprofen", "diclofénac", "diclofenac", "indométacine", "indomethacin", "méloxicam", "meloxicam",
+    ),
+    DrugGroup.SSRI_SNRI      to listOf(
+        "sertraline", "fluoxétine", "fluoxetine", "paroxétine", "paroxetine", "venlafaxine", "duloxétine", "duloxetine", "escitalopram",
+    ),
+    DrugGroup.MAOI           to listOf("phénelzine", "phenelzine", "tranylcypromine", "moclobémide", "moclobemide", "sélégiline", "selegiline"),
 )
 
 private fun detectInteractions(meds: List<Medication>): List<InteractionWarning> {
@@ -56,6 +78,7 @@ private fun detectInteractions(meds: List<Medication>): List<InteractionWarning>
     return warnings
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MedicationViewModel @Inject constructor(
     private val repo: MedicationRepository,
@@ -63,11 +86,26 @@ class MedicationViewModel @Inject constructor(
     val medications: StateFlow<List<Medication>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // LocalDate.now() captured once at construction would keep observing
+    // today's bucket forever if this ViewModel outlives midnight - same fix
+    // HydrationViewModel/DiaryViewModel already apply. Without this, todayTaken
+    // kept pointing at yesterday's log past midnight: MedicationScreen's toggle
+    // does `if (takenToday != null) undoTaken(takenToday) else markTaken(m)`, so
+    // a user marking today's dose taken instead found yesterday's stale entry
+    // non-null and tapped into undoTaken - deleting yesterday's legitimate log
+    // while today's dose never got recorded.
+    private val today: Flow<LocalDate> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+
     // Traitement previously had no dated "I took this" record at all - only
     // an active list + reminder schedule, unlike every other tracker Journal
     // combines. Today's taken log lets the tab itself show adherence, and
     // feeds the same event into the unified Calendar.
-    val todayTaken: StateFlow<List<MedicationLogEntry>> = repo.observeLogByDate(LocalDate.now())
+    val todayTaken: StateFlow<List<MedicationLogEntry>> = today.flatMapLatest { date -> repo.observeLogByDate(date) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Improvement: keyword-based interaction warnings for the active medication list.
@@ -89,7 +127,16 @@ class MedicationViewModel @Inject constructor(
             var date = today.minusDays(1)
             repeat(30) {
                 val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
-                if (activeMeds.all { it.id in takenIds }) { streak++; date = date.minusDays(1) }
+                // Only require a log for medications that actually existed on
+                // [date] - the domain Medication previously dropped createdAt
+                // entirely (see MedicationRepository.toDomain()'s matching fix),
+                // so adding any new active medication made yesterday's takenIds
+                // unable to contain it (it didn't exist yesterday), dropping the
+                // whole combined streak to 0 even with a flawless prior history.
+                val relevantMeds = activeMeds.filter { med ->
+                    Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate() <= date
+                }
+                if (relevantMeds.all { it.id in takenIds }) { streak++; date = date.minusDays(1) }
                 else return@map streak
             }
             streak
