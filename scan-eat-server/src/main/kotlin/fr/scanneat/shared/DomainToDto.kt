@@ -61,6 +61,29 @@ fun Product.toDto() = ProductDto(
     declaredAllergenTags = declaredAllergenTags,
 )
 
+/** Same field set as Product.toDto(), plus the identify-only warnings list - see IdentifyRoute.kt. */
+fun Product.toIdentifiedDto(warnings: List<String> = emptyList()) = IdentifiedFoodResponse(
+    name          = name,
+    category      = category.key,
+    novaClass     = novaClass.value,
+    ingredients   = ingredients.map { it.toDto() },
+    nutrition     = nutrition.toDto(),
+    organic       = organic,
+    wholeGrainPrimary = wholeGrainPrimary,
+    fermented     = fermented,
+    hasHealthClaims = hasHealthClaims,
+    hasMisleadingMarketing = hasMisleadingMarketing,
+    namedOils     = namedOils,
+    origin        = origin,
+    weightG       = weightG,
+    ecoscoreGrade = ecoscoreGrade,
+    ecoscoreValue = ecoscoreValue,
+    nutriscoreGrade = nutriscoreGrade,
+    declaredMicronutrients = declaredMicronutrients,
+    declaredAllergenTags = declaredAllergenTags,
+    warnings      = warnings,
+)
+
 fun Deduction.toDto() = DeductionDto(
     pillar   = pillar,
     reason   = reason,

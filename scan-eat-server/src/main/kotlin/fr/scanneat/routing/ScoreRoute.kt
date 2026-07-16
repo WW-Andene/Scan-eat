@@ -39,7 +39,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
         }
 
         val images = normalizeImages(req.images, req.imageBase64, req.mime)
-        val lang = req.lang ?: "fr"
+        val lang = resolveLang(req.lang)
         // req.model is caller-supplied and, in Server mode (no X-Groq-Key required),
         // reachable anonymously — without an allowlist any caller could force the
         // operator's own GROQ_API_KEY to invoke an arbitrary, possibly costlier Groq

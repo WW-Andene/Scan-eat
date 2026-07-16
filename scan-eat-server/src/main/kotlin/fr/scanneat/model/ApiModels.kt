@@ -42,6 +42,7 @@ data class ScoreResponse(
 @Serializable
 data class ImagesRequest(
     val images: List<ImageDto> = emptyList(),
+    val lang: String? = null,
 )
 
 // ---- /api/suggest-recipes ----
@@ -188,6 +189,24 @@ data class IdentifiedFoodResponse(
     @SerialName("nova_class") val novaClass: Int,
     val ingredients: List<IngredientDto> = emptyList(),
     val nutrition: NutritionDto,
+    // Previously dropped by IdentifyRoute.kt despite mapToProduct() (LlmLabelParser.kt)
+    // fully populating all of these on the domain Product - unlike /api/score, the
+    // client rescores an identify result locally (see ScanRepository.toDomain()), so
+    // every one of these flags feeding IngredientIntegrityPillar/scoring silently read
+    // as its zero-value default for every photo-identify scan.
+    val organic: Boolean = false,
+    @SerialName("whole_grain_primary") val wholeGrainPrimary: Boolean = false,
+    val fermented: Boolean = false,
+    @SerialName("has_health_claims") val hasHealthClaims: Boolean = false,
+    @SerialName("has_misleading_marketing") val hasMisleadingMarketing: Boolean = false,
+    @SerialName("named_oils") val namedOils: Boolean? = null,
+    val origin: String? = null,
+    @SerialName("weight_g") val weightG: Double? = null,
+    @SerialName("ecoscore_grade") val ecoscoreGrade: String? = null,
+    @SerialName("ecoscore_value") val ecoscoreValue: Double? = null,
+    @SerialName("nutriscore_grade") val nutriscoreGrade: String? = null,
+    @SerialName("declared_micronutrients") val declaredMicronutrients: List<String> = emptyList(),
+    @SerialName("declared_allergen_tags") val declaredAllergenTags: List<String> = emptyList(),
     val warnings: List<String> = emptyList(),
 )
 

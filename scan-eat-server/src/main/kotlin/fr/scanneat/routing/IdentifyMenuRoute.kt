@@ -34,7 +34,7 @@ fun Route.identifyMenuRoute(groqService: GroqService) {
             return@post
         }
         try {
-            val result = groqService.identifyMenu(images, key)
+            val result = groqService.identifyMenu(images, key, resolveLang(req.lang))
             call.respond(IdentifiedMenuResponse(
                 dishes   = result.dishes.map { d ->
                     MenuDishDto(
@@ -77,7 +77,7 @@ fun Route.identifyRecipeRoute(groqService: GroqService) {
             return@post
         }
         try {
-            val result = groqService.identifyRecipe(images, key)
+            val result = groqService.identifyRecipe(images, key, resolveLang(req.lang))
             call.respond(IdentifiedRecipeResponse(
                 name        = result.name,
                 servings    = result.servings,

@@ -109,8 +109,8 @@ private fun parseWeightG(quantity: String?): Double? {
     // centiliters ("33 cl" cans, "75cl" wine) rather than ml/l; without them this
     // silently returned null for most beverages, falling back to a generic 100g
     // portion-size default instead of the real pack size.
-    val m = Regex("""(\d+(?:[.,]\d+)?)\s*(kg|cl|dl|ml|g|l)\b""", RegexOption.IGNORE_CASE).find(quantity)
-    val v = m?.groupValues?.get(1)?.replace(",", ".")?.toDoubleOrNull() ?: return null
+    val m = Regex("""(\d+(?:[.,]\d+)?)\s*(kg|cl|dl|ml|g|l)\b""", RegexOption.IGNORE_CASE).find(quantity) ?: return null
+    val v = m.groupValues[1].replace(",", ".").toDoubleOrNull() ?: return null
     return when (m.groupValues[2].lowercase()) {
         "kg", "l" -> v * 1000
         "cl"      -> v * 10
@@ -249,9 +249,8 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
     fun <T> prefer(offVal: T, llmVal: T, isEmpty: (T) -> Boolean): T =
         if (isEmpty(offVal)) llmVal else offVal
 
-    val emptyStr: (Any?) -> Boolean = { it == null || (it is String && it.isBlank()) }
+    val emptyStr: (String) -> Boolean = { it.isBlank() }
     val emptyNum: (Double) -> Boolean = { it == 0.0 }
-    val emptyList: (List<*>) -> Boolean = { it.isEmpty() }
 
     fun mergeNutrition(o: NutritionPer100g, l: NutritionPer100g) = NutritionPer100g(
         energyKcal    = prefer(o.energyKcal,    l.energyKcal,    emptyNum),
@@ -262,7 +261,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         addedSugarsG  = o.addedSugarsG  ?: l.addedSugarsG,
         fiberG        = prefer(o.fiberG,        l.fiberG,        emptyNum),
         proteinG      = prefer(o.proteinG,      l.proteinG,      emptyNum),
-        saltG         = prefer(o.saltG,         l.saltG,        emptyNum),
+        saltG         = prefer(o.saltG,         l.saltG,         emptyNum),
         transFatG     = o.transFatG     ?: l.transFatG,
         ironMg        = o.ironMg        ?: l.ironMg,
         calciumMg     = o.calciumMg     ?: l.calciumMg,
@@ -286,7 +285,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
     )
 
     return Product(
-        name        = prefer(off.name, llm.name) { emptyStr(it) },
+        name        = prefer(off.name, llm.name, emptyStr),
         category    = if (off.category != ProductCategory.OTHER) off.category else llm.category,
         novaClass   = if (off.novaClass.value > 0) off.novaClass else llm.novaClass,
         // Threshold matches isOffSparse's own documented rule above: a genuine
@@ -296,7 +295,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         // (triggered by isOffSparse being true for some unrelated field, e.g.
         // missing category) silently threw away a short-but-correct OFF
         // ingredient list and substituted the LLM's guess instead.
-        ingredients = prefer(off.ingredients, llm.ingredients, emptyList),
+        ingredients = prefer(off.ingredients, llm.ingredients) { it.isEmpty() },
         nutrition   = mergeNutrition(off.nutrition, llm.nutrition),
         weightG             = off.weightG     ?: llm.weightG,
         origin              = off.origin      ?: llm.origin,
@@ -308,8 +307,8 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         wholeGrainPrimary   = off.wholeGrainPrimary || llm.wholeGrainPrimary,
         fermented           = off.fermented || llm.fermented,
         declaredMicronutrients = (off.declaredMicronutrients + llm.declaredMicronutrients).distinct(),
-        ecoscoreGrade  = off.ecoscoreGrade,
-        ecoscoreValue  = off.ecoscoreValue,
+        ecoscoreGrade   = off.ecoscoreGrade,
+        ecoscoreValue   = off.ecoscoreValue,
         nutriscoreGrade = off.nutriscoreGrade,
         declaredAllergenTags = off.declaredAllergenTags,
     )
@@ -319,15 +318,13 @@ data class SourceConflict(val field: String, val offValue: String, val llmValue:
 
 fun detectSourceConflicts(off: Product, llm: Product): List<SourceConflict> {
     val conflicts = mutableListOf<SourceConflict>()
-    val n = off.nutrition
-    val l = llm.nutrition
-    fun check(field: String, o: Double, lv: Double) {
-        if (o > 0 && lv > 0 && kotlin.math.abs(o - lv) / maxOf(o, lv) > 0.3)
-            conflicts += SourceConflict(field, "${o}g", "${lv}g")
+    fun check(field: String, o: Double, l: Double) {
+        if (o > 0 && l > 0 && kotlin.math.abs(o - l) / maxOf(o, l) > 0.3)
+            conflicts += SourceConflict(field, "${o}g", "${l}g")
     }
-    check("protein_g", n.proteinG, l.proteinG)
-    check("fat_g", n.fatG, l.fatG)
-    check("carbs_g", n.carbsG, l.carbsG)
-    check("sugars_g", n.sugarsG, l.sugarsG)
+    check("protein_g", off.nutrition.proteinG, llm.nutrition.proteinG)
+    check("fat_g",     off.nutrition.fatG,     llm.nutrition.fatG)
+    check("carbs_g",   off.nutrition.carbsG,   llm.nutrition.carbsG)
+    check("sugars_g",  off.nutrition.sugarsG,  llm.nutrition.sugarsG)
     return conflicts
 }

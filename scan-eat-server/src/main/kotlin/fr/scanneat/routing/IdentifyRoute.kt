@@ -35,15 +35,8 @@ fun Route.identifyRoute(groqService: GroqService) {
             return@post
         }
         try {
-            val result = groqService.identifyFood(images, key)
-            call.respond(IdentifiedFoodResponse(
-                name        = result.product.name,
-                category    = result.product.category.key,
-                novaClass   = result.product.novaClass.value,
-                ingredients = result.product.ingredients.map { it.toDto() },
-                nutrition   = result.product.nutrition.toDto(),
-                warnings    = result.warnings,
-            ))
+            val result = groqService.identifyFood(images, key, resolveLang(req.lang))
+            call.respond(result.product.toIdentifiedDto(result.warnings))
         } catch (e: Exception) {
             log.error("[/api/identify]", e)
             val (status, body) = mapError(e)
@@ -75,17 +68,9 @@ fun Route.identifyMultiRoute(groqService: GroqService) {
             return@post
         }
         try {
-            val result = groqService.identifyMultiFood(images, key)
+            val result = groqService.identifyMultiFood(images, key, resolveLang(req.lang))
             call.respond(IdentifiedMultiFoodResponse(
-                items    = result.items.map { p ->
-                    IdentifiedFoodResponse(
-                        name        = p.name,
-                        category    = p.category.key,
-                        novaClass   = p.novaClass.value,
-                        ingredients = p.ingredients.map { it.toDto() },
-                        nutrition   = p.nutrition.toDto(),
-                    )
-                },
+                items    = result.items.map { it.toIdentifiedDto() },
                 warnings = result.warnings,
             ))
         } catch (e: Exception) {

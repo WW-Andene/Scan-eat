@@ -56,8 +56,8 @@ private fun parseIngredients(text: String?): List<Ingredient> {
         .mapNotNull { raw ->
             val name = raw.trim().trim('*', ' ')
             if (name.isBlank()) return@mapNotNull null
-            val eNum = Regex("""[Ee](\d{3}[a-zA-Z]?)""").find(name)?.let { "E${it.groupValues[1]}" }
-            Ingredient(name = name, eNumber = eNum)
+            val eNumber = Regex("""[Ee](\d{3}[a-zA-Z]?)""").find(name)?.let { "E${it.groupValues[1]}" }
+            Ingredient(name = name, eNumber = eNumber)
         }
         .filter { it.name.length > 1 }
 }

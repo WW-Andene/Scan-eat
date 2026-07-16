@@ -21,35 +21,51 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 
-# (function name, server file, android file) — pure-logic functions that
-# must stay identical between the two hand-maintained copies.
-PAIRS = [
-    ("getThresholds", "ScoringEngine.kt", "CategoryThresholds.kt"),
-    ("inferCategoryFromName", "ScoringEngine.kt", "CategoryThresholds.kt"),
-    ("detectUPFMarkers", "ScoringEngine.kt", "ProcessingPillar.kt"),
-    ("inferNovaClassWithConfidence", "ScoringEngine.kt", "ProcessingPillar.kt"),
-    ("scoreProcessing", "ScoringEngine.kt", "ProcessingPillar.kt"),
-    ("getNutrientValue", "ScoringEngine.kt", "NutritionalDensityPillar.kt"),
-    ("scoreNutritionalDensity", "ScoringEngine.kt", "NutritionalDensityPillar.kt"),
-    ("scoreNegativeNutrients", "ScoringEngine.kt", "NegativeNutrientsPillar.kt"),
-    ("scoreAdditiveRisk", "ScoringEngine.kt", "AdditiveRiskPillar.kt"),
-    ("countTier1Additives", "ScoringEngine.kt", "AdditiveRiskPillar.kt"),
-    ("containsWord", "ScoringEngine.kt", "IngredientIntegrityPillar.kt"),
-    ("isWholeFood", "ScoringEngine.kt", "IngredientIntegrityPillar.kt"),
-    ("scoreIngredientIntegrity", "ScoringEngine.kt", "IngredientIntegrityPillar.kt"),
-    ("scoreToGrade", "ScoringEngine.kt", "ScoringEngine.kt"),
-    ("gradeVerdict", "ScoringEngine.kt", "ScoringEngine.kt"),
-    ("computeGlobalBonuses", "ScoringEngine.kt", "ScoringEngine.kt"),
-    ("computeGlobalPenalties", "ScoringEngine.kt", "ScoringEngine.kt"),
-    ("checkVeto", "ScoringEngine.kt", "ScoringEngine.kt"),
-    ("buildFlags", "ScoringEngine.kt", "ScoringEngine.kt"),
-    ("collectWarnings", "ScoringEngine.kt", "ScoringEngine.kt"),
-    ("scoreProduct", "ScoringEngine.kt", "ScoringEngine.kt"),
-    ("findAdditive", "AdditivesDb.kt", "AdditivesDb.kt"),
-]
-
 SERVER_DIR = REPO / "scan-eat-server/src/main/kotlin/fr/scanneat/shared"
-ANDROID_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/domain/engine/scoring"
+ANDROID_SCORING_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/domain/engine/scoring"
+# OffMapper.kt's OFF-normalization functions live under domain/engine/nutrition/
+# on the Android side, not domain/engine/scoring/ - the scoring pillars and the
+# OFF-mapping logic are different packages there, unlike the server which keeps
+# both under the single `shared` package (ScoringEngine.kt/ServerOffMapper.kt).
+ANDROID_NUTRITION_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/domain/engine/nutrition"
+
+# (function name, server path, android path) — pure-logic functions that must
+# stay identical between the two hand-maintained copies.
+PAIRS = [
+    ("getThresholds", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "CategoryThresholds.kt"),
+    ("inferCategoryFromName", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "CategoryThresholds.kt"),
+    ("detectUPFMarkers", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ProcessingPillar.kt"),
+    ("inferNovaClassWithConfidence", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ProcessingPillar.kt"),
+    ("scoreProcessing", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ProcessingPillar.kt"),
+    ("getNutrientValue", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "NutritionalDensityPillar.kt"),
+    ("scoreNutritionalDensity", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "NutritionalDensityPillar.kt"),
+    ("scoreNegativeNutrients", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "NegativeNutrientsPillar.kt"),
+    ("scoreAdditiveRisk", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "AdditiveRiskPillar.kt"),
+    ("countTier1Additives", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "AdditiveRiskPillar.kt"),
+    ("containsWord", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "IngredientIntegrityPillar.kt"),
+    ("isWholeFood", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "IngredientIntegrityPillar.kt"),
+    ("scoreIngredientIntegrity", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "IngredientIntegrityPillar.kt"),
+    ("scoreToGrade", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    ("gradeVerdict", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    ("computeGlobalBonuses", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    ("computeGlobalPenalties", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    ("checkVeto", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    ("buildFlags", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    ("collectWarnings", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    ("scoreProduct", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    ("findAdditive", SERVER_DIR / "AdditivesDb.kt", ANDROID_SCORING_DIR / "AdditivesDb.kt"),
+    # OFF-mapping/merge logic — same drift risk as the scoring pillars above,
+    # previously unchecked despite ServerOffMapper.kt/OffMapper.kt being two
+    # hand-maintained copies of the exact same barcode-lookup normalization.
+    ("mapCategory", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    ("parseIngredients", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    ("additiveTagsToIngredients", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    ("parseWeightG", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    ("isOffSparse", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    ("mergeOffWithLlm", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    ("detectSourceConflicts", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    ("declaredMicronutrientsOf", SERVER_DIR / "DomainModels.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+]
 
 FUNC_START_RE_TMPL = r"^(?:private |internal |public )?fun {name}\b"
 
@@ -111,6 +127,12 @@ def normalize(body: str) -> str:
         # strip fully-qualified package prefixes so `fr.scanneat.shared.Foo`
         # and a bare `Foo` (imported) compare equal
         line = re.sub(r"\bfr\.scanneat\.[a-zA-Z0-9_.]*\.", "", line)
+        # strip a leading visibility modifier on the function signature line -
+        # e.g. declaredMicronutrientsOf is `internal` on Android (module-visibility
+        # need, since other domain/engine/* files call it) but plain top-level `fun`
+        # on the server (no module boundary there); that's a packaging difference,
+        # not logic drift, so it shouldn't fail the comparison.
+        line = re.sub(r"^(private |internal |public )(?=fun )", "", line)
         line = line.rstrip()
         if line.strip() == "":
             continue
@@ -120,9 +142,7 @@ def normalize(body: str) -> str:
 
 def main() -> int:
     failures = []
-    for name, server_file, android_file in PAIRS:
-        server_path = SERVER_DIR / server_file
-        android_path = ANDROID_DIR / android_file
+    for name, server_path, android_path in PAIRS:
         try:
             server_body = extract_function(server_path, name)
         except ValueError as e:

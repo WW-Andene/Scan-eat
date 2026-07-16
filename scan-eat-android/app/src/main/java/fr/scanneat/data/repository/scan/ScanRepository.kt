@@ -366,7 +366,7 @@ class ScanRepository @Inject constructor(
         lang: String,
     ): ScanResult {
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
-        val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) })
+        val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
         var lastErr: Throwable? = null
         repeat(SERVER_MAX_ATTEMPTS) { attempt ->
             try {
@@ -642,6 +642,14 @@ class ScanRepository @Inject constructor(
             novaClass   = NovaClass.fromInt(novaClass),
             ingredients = ingredients.toDomainIngredients(),
             nutrition   = nutrition.toDomain(),
+            organic       = organic, wholeGrainPrimary = wholeGrainPrimary,
+            fermented     = fermented, hasHealthClaims = hasHealthClaims,
+            hasMisleadingMarketing = hasMisleadingMarketing,
+            namedOils     = namedOils, origin = origin, weightG = weightG,
+            ecoscoreGrade = ecoscoreGrade, ecoscoreValue = ecoscoreValue,
+            nutriscoreGrade = nutriscoreGrade,
+            declaredMicronutrients = declaredMicronutrients,
+            declaredAllergenTags = declaredAllergenTags,
         )
         return ScanResult(product = product, audit = scoreProduct(product, lang), warnings = warnings, source = ScanSource.LLM)
     }

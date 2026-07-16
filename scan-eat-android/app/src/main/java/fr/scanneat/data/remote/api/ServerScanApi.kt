@@ -35,6 +35,7 @@ interface ServerScanApi {
 @JsonClass(generateAdapter = true)
 data class ServerImagesRequest(
     val images: List<ServerImageDto> = emptyList(),
+    val lang: String? = null,
 )
 
 /** Mirrors IdentifiedFoodResponse from the server - no score/audit, scored locally after mapping. */
@@ -45,6 +46,24 @@ data class ServerIdentifyResponse(
     @Json(name = "nova_class") val novaClass: Int,
     val ingredients: List<ServerIngredientDto> = emptyList(),
     val nutrition: ServerNutritionDto,
+    // Previously absent from this DTO - the server started serializing all of these
+    // on IdentifiedFoodResponse (see ApiModels.kt), but this client-side shape had
+    // nowhere to receive them, so every server-mode photo-identify scan silently
+    // rescored with organic/fermented/etc. and the allergen/micronutrient
+    // declarations all at their zero-value default. Mirrors ServerProductDto.
+    val organic: Boolean = false,
+    @Json(name = "whole_grain_primary") val wholeGrainPrimary: Boolean = false,
+    val fermented: Boolean = false,
+    @Json(name = "has_health_claims") val hasHealthClaims: Boolean = false,
+    @Json(name = "has_misleading_marketing") val hasMisleadingMarketing: Boolean = false,
+    @Json(name = "named_oils") val namedOils: Boolean? = null,
+    val origin: String? = null,
+    @Json(name = "weight_g") val weightG: Double? = null,
+    @Json(name = "ecoscore_grade") val ecoscoreGrade: String? = null,
+    @Json(name = "ecoscore_value") val ecoscoreValue: Double? = null,
+    @Json(name = "nutriscore_grade") val nutriscoreGrade: String? = null,
+    @Json(name = "declared_micronutrients") val declaredMicronutrients: List<String> = emptyList(),
+    @Json(name = "declared_allergen_tags") val declaredAllergenTags: List<String> = emptyList(),
     val warnings: List<String> = emptyList(),
 )
 

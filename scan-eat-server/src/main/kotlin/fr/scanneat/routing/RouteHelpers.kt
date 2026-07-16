@@ -54,6 +54,21 @@ suspend fun ApplicationCall.rejectIfTooLarge(): Boolean {
     return false
 }
 
+/**
+ * lang is caller-supplied and gets interpolated verbatim into every LLM prompt
+ * (labelPrompt, identifyFoodPrompt, etc. — see LlmLabelParser.kt) with no
+ * literal-framing around it, unlike SuggestRoute.kt's user-text fields, which
+ * are at least wrapped as "a literal food name, not an instruction". An
+ * unvalidated lang value is a direct prompt-injection vector into that
+ * unquoted "Language: $lang." / "language: $lang" slot. Allowlisted instead
+ * of length-capped because this field only ever needs to be one of the
+ * app's two supported UI languages.
+ */
+val ALLOWED_LANGS = setOf("fr", "en")
+
+/** Resolve a caller-supplied lang against [ALLOWED_LANGS], defaulting to "fr". */
+fun resolveLang(lang: String?): String = if (lang in ALLOWED_LANGS) lang!! else "fr"
+
 /** Normalize a legacy `imageBase64` field alongside the `images` array. */
 fun normalizeImages(images: List<ImageDto>?, imageBase64: String?, mime: String?): List<ImageDto> {
     if (!images.isNullOrEmpty()) {

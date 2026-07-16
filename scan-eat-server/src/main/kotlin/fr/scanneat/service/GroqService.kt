@@ -108,6 +108,10 @@ class GroqService {
      * @param images  Optional vision images.
      * @param prompt  Text prompt appended after any images.
      * @param model   Primary model; final retry switches to FALLBACK_GROQ_MODEL.
+     * @param maxTokens Response token budget — raise for prompts whose JSON output
+     *   (multiple items/recipes) routinely runs long; the Groq default of 2000 was
+     *   silently truncating those mid-JSON with no signal beyond a downstream parse
+     *   failure that looked identical to a genuinely malformed LLM response.
      * @param maxRetries Number of attempts before throwing.
      */
     suspend fun complete(
@@ -115,6 +119,7 @@ class GroqService {
         images: List<ImageDto> = emptyList(),
         apiKey: String? = null,
         model: String = DEFAULT_GROQ_MODEL,
+        maxTokens: Int = 2000,
         maxRetries: Int = 3,
     ): String {
         val key = resolveKey(apiKey)
@@ -136,9 +141,16 @@ class GroqService {
                 val resp: ChatResponse = client.post(GROQ_ENDPOINT) {
                     header("Authorization", "Bearer $key")
                     contentType(ContentType.Application.Json)
-                    setBody(ChatRequest(model = useModel, messages = listOf(Message("user", content))))
+                    setBody(ChatRequest(model = useModel, messages = listOf(Message("user", content)), maxTokens = maxTokens))
                 }.body()
-                return resp.choices.firstOrNull()?.message?.content
+                val choice = resp.choices.firstOrNull()
+                    ?: throw RuntimeException("Empty response from Groq")
+                // finish_reason was parsed but never read - a response cut off mid-JSON
+                // by hitting maxTokens surfaced downstream only as an opaque JSON-parse
+                // failure, indistinguishable from the model genuinely returning garbage.
+                if (choice.finishReason == "length")
+                    log.warn("Groq response truncated at maxTokens=$maxTokens (model=$useModel)")
+                return choice.message.content
                     ?: throw RuntimeException("Empty response from Groq")
             }.onFailure { e ->
                 // A 4xx other than 429 (bad key, malformed request) will fail
