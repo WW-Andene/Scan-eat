@@ -1,5 +1,7 @@
 package fr.scanneat.data.repository.health
 
+import fr.scanneat.data.local.db.toIsoString
+import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.data.local.db.weight.WeightEntity
 import fr.scanneat.domain.model.roundTo1Decimal
@@ -59,11 +61,11 @@ class WeightRepository @Inject constructor(
      */
     suspend fun log(date: LocalDate, weightKg: Double, notes: String = "", profileId: String = "default") {
         require(weightKg > 0 && weightKg <= 400) { "Invalid weight: $weightKg" }
-        val existing = dao.findByDate(date.toString(), profileId)
+        val existing = dao.findByDate(date.toIsoString(), profileId)
         val rounded = weightKg.roundTo1Decimal()
         dao.upsert(WeightEntity(
             id        = existing?.id ?: UUID.randomUUID().toString(),
-            date      = date.toString(),
+            date      = date.toIsoString(),
             weightKg  = rounded,
             notes     = notes,
             loggedAt  = System.currentTimeMillis(),
@@ -83,7 +85,7 @@ class WeightRepository @Inject constructor(
     suspend fun delete(id: String) {
         val entry = dao.findById(id)
         dao.delete(id)
-        entry?.let { runCatching { healthConnect.deleteWeight(LocalDate.parse(it.date)) } }
+        entry?.let { runCatching { healthConnect.deleteWeight(it.date.toLocalDate()) } }
     }
 
     /**
@@ -108,11 +110,11 @@ class WeightRepository @Inject constructor(
         // "one entry per day" convention log() already uses.
         val byDate = external.groupBy { it.time.atZone(zone).toLocalDate() }
         for ((date, records) in byDate) {
-            if (date.toString() in existingDates) continue
+            if (date.toIsoString() in existingDates) continue
             val latest = records.maxByOrNull { it.time } ?: continue
             dao.upsert(WeightEntity(
                 id        = UUID.randomUUID().toString(),
-                date      = date.toString(),
+                date      = date.toIsoString(),
                 weightKg  = latest.weight.inKilograms.roundTo1Decimal(),
                 notes     = "",
                 loggedAt  = System.currentTimeMillis(),
@@ -175,5 +177,5 @@ class WeightRepository @Inject constructor(
         return ((num / den) * 7.0).roundTo1Decimal()
     }
 
-    private fun WeightEntity.toDomain() = WeightEntry(id, LocalDate.parse(date), weightKg, notes)
+    private fun WeightEntity.toDomain() = WeightEntry(id, date.toLocalDate(), weightKg, notes)
 }

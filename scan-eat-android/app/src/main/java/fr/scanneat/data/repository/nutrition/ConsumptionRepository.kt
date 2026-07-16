@@ -4,12 +4,14 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.consumption.ConsumptionEntity
+import fr.scanneat.data.local.db.toEpochMillisUtc
+import fr.scanneat.data.local.db.toIsoString
+import fr.scanneat.data.local.db.toLocalDate
+import fr.scanneat.data.local.db.toLocalDateTimeUtc
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,9 +55,9 @@ class ConsumptionRepository @Inject constructor(
 
     private fun DiaryEntry.toEntity() = ConsumptionEntity(
         id          = id,
-        date        = date.toString(),
+        date        = date.toIsoString(),
         mealSlot    = mealSlot.name,
-        loggedAt    = loggedAt.toEpochSecond(ZoneOffset.UTC) * 1000,
+        loggedAt    = loggedAt.toEpochMillisUtc(),
         productName = productName,
         barcode     = barcode,
         portionG    = portionG,
@@ -67,9 +69,9 @@ class ConsumptionRepository @Inject constructor(
     private fun ConsumptionEntity.toDomain(): DiaryEntry? = runCatching {
         DiaryEntry(
             id          = id,
-            date        = LocalDate.parse(date),
+            date        = date.toLocalDate(),
             mealSlot    = MealSlot.valueOf(mealSlot),
-            loggedAt    = LocalDateTime.ofEpochSecond(loggedAt / 1000, 0, ZoneOffset.UTC),
+            loggedAt    = loggedAt.toLocalDateTimeUtc(),
             productName = productName,
             barcode     = barcode,
             portionG    = portionG,

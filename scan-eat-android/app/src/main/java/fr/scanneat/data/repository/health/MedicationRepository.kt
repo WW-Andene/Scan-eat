@@ -4,6 +4,8 @@ import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogDao
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.toIsoString
+import fr.scanneat.data.local.db.toLocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -95,17 +97,17 @@ class MedicationRepository @Inject constructor(
     // ── Adherence log ("I took this") ────────────────────────────────────────
 
     fun observeLogByDate(date: LocalDate, profileId: String = "default"): Flow<List<MedicationLogEntry>> =
-        logDao.observeByDate(date.toString(), profileId).map { list -> list.map { it.toLogDomain() } }
+        logDao.observeByDate(date.toIsoString(), profileId).map { list -> list.map { it.toLogDomain() } }
 
     suspend fun getLogRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<MedicationLogEntry> =
-        logDao.getRange(from.toString(), to.toString(), profileId).map { it.toLogDomain() }
+        logDao.getRange(from.toIsoString(), to.toIsoString(), profileId).map { it.toLogDomain() }
 
     suspend fun logTaken(medication: Medication, date: LocalDate = LocalDate.now(), profileId: String = "default") {
         logDao.insert(MedicationLogEntity(
             id             = UUID.randomUUID().toString(),
             medicationId   = medication.id,
             medicationName = medication.name,
-            date           = date.toString(),
+            date           = date.toIsoString(),
             takenAt        = System.currentTimeMillis(),
             profileId      = profileId,
         ))
@@ -115,6 +117,6 @@ class MedicationRepository @Inject constructor(
 
     private fun MedicationLogEntity.toLogDomain() = MedicationLogEntry(
         id = id, medicationId = medicationId, medicationName = medicationName,
-        date = LocalDate.parse(date), takenAt = takenAt,
+        date = date.toLocalDate(), takenAt = takenAt,
     )
 }

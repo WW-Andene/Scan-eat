@@ -2,6 +2,8 @@ package fr.scanneat.data.repository.health
 
 import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.activity.ActivityEntity
+import fr.scanneat.data.local.db.toIsoString
+import fr.scanneat.data.local.db.toLocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.Instant
@@ -108,7 +110,7 @@ class ActivityRepository @Inject constructor(
 ) {
 
     fun observeByDate(date: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
-        dao.observeByDate(date.toString(), profileId).map { list -> list.map { it.toDomain() } }
+        dao.observeByDate(date.toIsoString(), profileId).map { list -> list.map { it.toDomain() } }
 
     suspend fun log(
         type: ActivityType,
@@ -129,7 +131,7 @@ class ActivityRepository @Inject constructor(
         val loggedAt = System.currentTimeMillis()
         dao.insert(ActivityEntity(
             id           = UUID.randomUUID().toString(),
-            date         = date.toString(),
+            date         = date.toIsoString(),
             type         = type.key,
             minutes      = minutes.coerceAtLeast(0),
             kcalBurned   = kcal,
@@ -151,7 +153,7 @@ class ActivityRepository @Inject constructor(
     suspend fun delete(id: String) = dao.delete(id)
 
     suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =
-        dao.getRange(from.toString(), to.toString(), profileId).map { it.toDomain() }
+        dao.getRange(from.toIsoString(), to.toIsoString(), profileId).map { it.toDomain() }
 
     /**
      * Pulls in workouts Health Connect has from an *external* source (a
@@ -178,7 +180,7 @@ class ActivityRepository @Inject constructor(
             val minutes = java.time.Duration.between(session.startTime, session.endTime).toMinutes().toInt().coerceAtLeast(1)
             dao.insert(ActivityEntity(
                 id               = UUID.randomUUID().toString(),
-                date             = session.endTime.atZone(zone).toLocalDate().toString(),
+                date             = session.endTime.atZone(zone).toLocalDate().toIsoString(),
                 type             = session.type.key,
                 minutes          = minutes,
                 kcalBurned       = session.kcal,
@@ -191,7 +193,7 @@ class ActivityRepository @Inject constructor(
 
     private fun ActivityEntity.toDomain() = ActivityEntry(
         id           = id,
-        date         = LocalDate.parse(date),
+        date         = date.toLocalDate(),
         type         = ActivityType.fromKey(type),
         minutes      = minutes,
         kcalBurned   = kcalBurned,
