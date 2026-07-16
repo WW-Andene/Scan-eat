@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes.components
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notes
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -23,11 +25,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.Recipe
+import fr.scanneat.data.repository.planning.formatShareText
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -40,6 +44,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
 internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit) {
+    val context = LocalContext.current
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -55,6 +60,18 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         // larger hit target than every other delete affordance in the app,
                         // right next to the primary Log action.
                         IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                        // Previously a recipe could only leave the app via the whole-database
+                        // backup - no way to send just this one recipe to someone else.
+                        IconButton(
+                            onClick = {
+                                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, recipe.formatShareText())
+                                }
+                                context.startActivity(Intent.createChooser(sendIntent, null))
+                            },
+                            modifier = Modifier.size(36.dp),
+                        ) { Icon(Icons.Default.Share, stringResource(R.string.recipes_cd_share), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onEditNotes, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Notes, stringResource(R.string.recipes_cd_notes), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onRename, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }

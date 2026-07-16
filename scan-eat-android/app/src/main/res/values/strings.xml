@@ -561,6 +561,7 @@
     <string name="grocery_checked_progress">%1$d / %2$d articles cochés</string>
     <string name="grocery_copy_plain">Copier (texte)</string>
     <string name="grocery_copy_checklist">Copier (liste à cocher Markdown)</string>
+    <string name="grocery_cd_share">Partager la liste</string>
     <string name="grocery_clear_checked">Décocher tout</string>
     <string name="grocery_clear_confirm_title">Décocher tous les articles ?</string>
     <string name="grocery_clear_confirm_body">Toutes les cases cochées seront réinitialisées. Cette action est irréversible.</string>
@@ -992,8 +993,10 @@
     <string name="settings_reset_dialog_title">Réinitialisation des données</string>
     <string name="settings_reset_dialog_body">Choisissez ce que vous souhaitez effacer :</string>
     <string name="settings_reset_clear_scans">Effacer l\'historique des scans</string>
+    <string name="settings_reset_clear_fasting">Effacer l\'historique de jeûne</string>
     <string name="settings_reset_clear_all_hint">Pour effacer toutes les données, utilisez Paramètres système → Application → Effacer les données.</string>
     <string name="settings_reset_confirm_body">Cette action est irréversible et supprimera tout l\'historique de vos scans. Confirmer ?</string>
+    <string name="settings_reset_confirm_body_fasting">Cette action est irréversible et supprimera tout l\'historique de vos jeûnes. Confirmer ?</string>
     <string name="settings_reset_confirm_button">Oui, tout effacer</string>
     <string name="settings_data_stats_scans">%1$d scan(s) enregistré(s)</string>
     <string name="settings_data_stats_diary">%1$d entrée(s) dans le journal</string>
@@ -1094,6 +1097,7 @@
     <string name="recipes_field_servings">Portions (nombre)</string>
     <string name="recipes_field_notes">Préparation / notes</string>
     <string name="recipes_cd_notes">Modifier la préparation</string>
+    <string name="recipes_cd_share">Partager la recette</string>
     <string name="recipes_servings_to_log_label">Portions à logger (sur %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g par portion</string>
     <string name="recipes_macro_per_serving_label">Par portion</string>
@@ -1153,6 +1157,7 @@
     <string name="result_nutri_protein">Protéines</string>
     <string name="result_nutri_salt">Sel</string>
     <string name="result_nutri_transfat">Acides gras trans</string>
+    <string name="result_nutri_sodium">Sodium</string>
     <string name="result_nutri_iron">Fer</string>
     <string name="result_nutri_calcium">Calcium</string>
     <string name="result_nutri_vitd">Vitamine D</string>
@@ -1225,6 +1230,7 @@
     <string name="calendar_legend_hydration">Eau</string>
     <string name="calendar_legend_fasting">Jeûne</string>
     <string name="calendar_legend_medication">Traitement</string>
+    <string name="calendar_legend_note">Note</string>
     <string name="calendar_day_empty">Rien d\'enregistré ce jour-là</string>
     <string name="calendar_day_meals">%1$d repas · %2$d kcal</string>
     <string name="calendar_day_weight">%1$.1f kg</string>

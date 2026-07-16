@@ -11,6 +11,7 @@ import fr.scanneat.data.backup.BackupRepository
 import fr.scanneat.data.backup.BackupSummary
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.health.HealthConnectRepository
 import kotlinx.coroutines.flow.*
@@ -39,6 +40,7 @@ class SettingsViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val backupRepository: BackupRepository,
     private val healthConnect: HealthConnectRepository,
+    private val fastingRepo: FastingRepository,
 ) : ViewModel() {
     val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val cerebrasApiKey = prefs.cerebrasApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -126,6 +128,10 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearScanHistory() = viewModelScope.launch { backupRepository.clearScanHistory() }
+
+    /** clearHistory() was fully implemented with zero callers — FastingScreen shows the full
+     *  history/streak but had no way to reset it. Mirrors clearScanHistory()'s reset entry point. */
+    fun clearFastingHistory() = viewModelScope.launch { fastingRepo.clearHistory() }
 
     /** Also used for import read/size failures, not just export writes — name says "IO" for that reason. */
     fun reportBackupIoFailed() { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) }

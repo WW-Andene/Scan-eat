@@ -560,6 +560,7 @@
     <string name="grocery_checked_progress">%1$d / %2$d items checked</string>
     <string name="grocery_copy_plain">Copy (plain text)</string>
     <string name="grocery_copy_checklist">Copy (Markdown checklist)</string>
+    <string name="grocery_cd_share">Share list</string>
     <string name="grocery_clear_checked">Uncheck all</string>
     <string name="grocery_clear_confirm_title">Uncheck all items?</string>
     <string name="grocery_clear_confirm_body">Every checked item will be reset. This action can\'t be undone.</string>
@@ -958,8 +959,10 @@
     <string name="settings_reset_dialog_title">Reset data</string>
     <string name="settings_reset_dialog_body">Choose what you want to clear:</string>
     <string name="settings_reset_clear_scans">Clear scan history</string>
+    <string name="settings_reset_clear_fasting">Clear fasting history</string>
     <string name="settings_reset_clear_all_hint">To clear all data, use System Settings → App → Clear Data.</string>
     <string name="settings_reset_confirm_body">This action is irreversible and will delete your entire scan history. Confirm?</string>
+    <string name="settings_reset_confirm_body_fasting">This action is irreversible and will delete your entire fasting history. Confirm?</string>
     <string name="settings_reset_confirm_button">Yes, clear it</string>
     <string name="settings_data_stats_scans">%1$d scan(s) stored</string>
     <string name="settings_data_stats_diary">%1$d diary entr(y/ies)</string>
@@ -1060,6 +1063,7 @@
     <string name="recipes_field_servings">Servings (count)</string>
     <string name="recipes_field_notes">Instructions / notes</string>
     <string name="recipes_cd_notes">Edit instructions</string>
+    <string name="recipes_cd_share">Share recipe</string>
     <string name="recipes_servings_to_log_label">Servings to log (of %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g per serving</string>
     <string name="recipes_macro_per_serving_label">Per serving</string>
@@ -1119,6 +1123,7 @@
     <string name="result_nutri_protein">Protein</string>
     <string name="result_nutri_salt">Salt</string>
     <string name="result_nutri_transfat">Trans fats</string>
+    <string name="result_nutri_sodium">Sodium</string>
     <string name="result_nutri_iron">Iron</string>
     <string name="result_nutri_calcium">Calcium</string>
     <string name="result_nutri_vitd">Vitamin D</string>
@@ -1224,6 +1229,7 @@
     <string name="calendar_legend_hydration">Water</string>
     <string name="calendar_legend_fasting">Fasting</string>
     <string name="calendar_legend_medication">Medication</string>
+    <string name="calendar_legend_note">Note</string>
     <string name="calendar_day_empty">Nothing logged this day</string>
     <string name="calendar_day_meals">%1$d meal(s) · %2$d kcal</string>
     <string name="calendar_day_weight">%1$.1f kg</string>

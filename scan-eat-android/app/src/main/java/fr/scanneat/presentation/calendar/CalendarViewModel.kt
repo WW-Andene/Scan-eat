@@ -13,6 +13,7 @@ import fr.scanneat.data.repository.health.MedicationLogEntry
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
+import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
@@ -31,7 +32,7 @@ data class WeekSummary(
 )
 
 /** Which tracker(s) have data on a given day - drives the small per-source dots under each date. */
-enum class CalendarSource { MEALS, WEIGHT, ACTIVITY, HYDRATION, FASTING, MEDICATION }
+enum class CalendarSource { MEALS, WEIGHT, ACTIVITY, HYDRATION, FASTING, MEDICATION, NOTE }
 
 data class CalendarDayDetail(
     val date: LocalDate,
@@ -68,6 +69,7 @@ class CalendarViewModel @Inject constructor(
     private val hydrationRepo: HydrationRepository,
     private val fastingRepo: FastingRepository,
     private val medicationRepo: MedicationRepository,
+    private val dayNotesRepo: DayNotesRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
 
@@ -110,6 +112,14 @@ class CalendarViewModel @Inject constructor(
             activities.forEach { mark(it.date, CalendarSource.ACTIVITY) }
             fastHistory.forEach { f -> runCatching { LocalDate.parse(f.date) }.getOrNull()?.let { mark(it, CalendarSource.FASTING) } }
             medicationLog.forEach { mark(it.date, CalendarSource.MEDICATION) }
+            out
+        // DayNotesRepository.listDates() was fully implemented (a real "list all dates
+        // with a note" query) with zero callers - there was no visual signal anywhere
+        // that a given day even had a note, so finding one meant opening Diary and
+        // paging through days by hand. Nested rather than folded into the 5-arg
+        // combine above since kotlinx.coroutines' typed combine() overloads stop at 5.
+        }.combine(flow { emit(dayNotesRepo.listDates()) }) { out, noteDates ->
+            noteDates.filter { it in start..end }.forEach { d -> out.getOrPut(d) { mutableSetOf() } += CalendarSource.NOTE }
             out
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())

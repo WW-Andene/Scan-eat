@@ -83,6 +83,23 @@ data class Recipe(
     }
 }
 
+/**
+ * Plain-text rendering for the Android share sheet - previously a recipe could
+ * only leave the app via the whole-database JSON backup, with no way to send
+ * just this one recipe to someone else. Mirrors formatGroceryList()'s role
+ * for the grocery list (domain/engine/planning/GroceryList.kt).
+ */
+fun Recipe.formatShareText(): String = buildString {
+    appendLine(name)
+    appendLine("${servings} portion${if (servings > 1) "s" else ""} · ${totalKcal.toInt()} kcal")
+    appendLine()
+    components.forEach { c -> appendLine("- ${c.productName} (${c.grams.toInt()} g)") }
+    if (notes.isNotBlank()) {
+        appendLine()
+        appendLine(notes)
+    }
+}.trim()
+
 // ---- Repository ----
 
 @Singleton

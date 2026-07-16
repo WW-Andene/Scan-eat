@@ -58,6 +58,9 @@ private fun DataStatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, 
     }
 }
 
+/** Which "Reset data" destructive action is currently mid-confirmation. */
+private enum class ResetTarget { SCANS, FASTING }
+
 /** Generous cap for a legitimate backup (thousands of scan/diary rows is still a few MB) — rejects an arbitrarily large/mis-picked file before it's fully loaded into memory. */
 private const val MAX_BACKUP_IMPORT_BYTES = 50L * 1024 * 1024
 
@@ -148,7 +151,10 @@ fun SettingsScreen(
         }
     }
     var showResetDialog by remember { mutableStateOf(false) }
-    var resetConfirmed  by remember { mutableStateOf(false) }
+    // Which destructive action (if any) is on its second-confirmation step - a
+    // plain Boolean couldn't distinguish "confirming scans" from "confirming
+    // fasting history" once a second reset target was added alongside scans.
+    var pendingReset by remember { mutableStateOf<ResetTarget?>(null) }
 
     val healthConnectLauncher = rememberLauncherForActivityResult(PermissionController.createRequestPermissionResultContract()) {
         viewModel.refreshHealthConnectStatus()
@@ -511,39 +517,62 @@ fun SettingsScreen(
 
     if (showResetDialog) {
         AlertDialog(
-            onDismissRequest = { showResetDialog = false; resetConfirmed = false },
+            onDismissRequest = { showResetDialog = false; pendingReset = null },
             containerColor = SurfaceVariant,
             title = { Text(stringResource(R.string.settings_reset_dialog_title), color = OnBackground) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    if (resetConfirmed) {
-                        // Second step - resetConfirmed previously existed as state but was
-                        // never actually read anywhere, so the first tap on "Clear scan
-                        // history" already ran the irreversible delete with no real
+                    when (pendingReset) {
+                        // Second step - resetConfirmed previously existed as a plain Boolean
+                        // that was never actually read anywhere, so the first tap on "Clear
+                        // scan history" already ran the irreversible delete with no real
                         // second-confirmation step at all.
-                        Text(stringResource(R.string.settings_reset_confirm_body), style = MaterialTheme.typography.bodySmall, color = semanticRed())
-                        TextButton(onClick = {
-                            viewModel.clearScanHistory()
-                            showResetDialog = false
-                            resetConfirmed = false
-                        }) {
-                            Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(Spacing.XS))
-                            Text(stringResource(R.string.settings_reset_confirm_button), color = semanticRed(), fontWeight = FontWeight.Bold)
+                        ResetTarget.SCANS -> {
+                            Text(stringResource(R.string.settings_reset_confirm_body), style = MaterialTheme.typography.bodySmall, color = semanticRed())
+                            TextButton(onClick = {
+                                viewModel.clearScanHistory()
+                                showResetDialog = false
+                                pendingReset = null
+                            }) {
+                                Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(Spacing.XS))
+                                Text(stringResource(R.string.settings_reset_confirm_button), color = semanticRed(), fontWeight = FontWeight.Bold)
+                            }
                         }
-                    } else {
-                        Text(stringResource(R.string.settings_reset_dialog_body), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
-                        TextButton(onClick = { resetConfirmed = true }) {
-                            Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(Spacing.XS))
-                            Text(stringResource(R.string.settings_reset_clear_scans), color = semanticRed())
+                        ResetTarget.FASTING -> {
+                            // clearFastingHistory() was fully implemented (FastingRepository.
+                            // clearHistory()) with zero callers - FastingScreen shows the full
+                            // history/streak but had no reset control anywhere.
+                            Text(stringResource(R.string.settings_reset_confirm_body_fasting), style = MaterialTheme.typography.bodySmall, color = semanticRed())
+                            TextButton(onClick = {
+                                viewModel.clearFastingHistory()
+                                showResetDialog = false
+                                pendingReset = null
+                            }) {
+                                Icon(Icons.Default.Timer, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(Spacing.XS))
+                                Text(stringResource(R.string.settings_reset_confirm_button), color = semanticRed(), fontWeight = FontWeight.Bold)
+                            }
                         }
-                        Text(stringResource(R.string.settings_reset_clear_all_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.45f))
+                        null -> {
+                            Text(stringResource(R.string.settings_reset_dialog_body), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+                            TextButton(onClick = { pendingReset = ResetTarget.SCANS }) {
+                                Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(Spacing.XS))
+                                Text(stringResource(R.string.settings_reset_clear_scans), color = semanticRed())
+                            }
+                            TextButton(onClick = { pendingReset = ResetTarget.FASTING }) {
+                                Icon(Icons.Default.Timer, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(Spacing.XS))
+                                Text(stringResource(R.string.settings_reset_clear_fasting), color = semanticRed())
+                            }
+                            Text(stringResource(R.string.settings_reset_clear_all_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.45f))
+                        }
                     }
                 }
             },
             confirmButton = {},
-            dismissButton = { TextButton(onClick = { showResetDialog = false; resetConfirmed = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+            dismissButton = { TextButton(onClick = { showResetDialog = false; pendingReset = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )
     }
 }

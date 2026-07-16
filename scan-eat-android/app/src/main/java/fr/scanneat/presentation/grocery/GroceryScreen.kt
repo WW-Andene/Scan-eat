@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.grocery
 
+import android.content.Intent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.draw.clip
@@ -45,6 +47,7 @@ fun GroceryScreen(
     val sortAlpha = viewModel.sortAlpha.collectAsStateWithLifecycle()
     val clipboard = LocalClipboardManager.current
     val haptics   = LocalHapticFeedback.current
+    val context   = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val copiedMessage = stringResource(R.string.grocery_copied)
@@ -71,6 +74,17 @@ fun GroceryScreen(
                                 stringResource(R.string.grocery_sort_alpha),
                                 tint = if (sortAlpha.value) AccentCoral else OnBackground.copy(0.6f),
                             )
+                        }
+                        // Previously the only way out of the app was clipboard copy-then-paste -
+                        // mirrors ResultScreen's existing ACTION_SEND share pattern.
+                        IconButton(onClick = {
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, formatGroceryList(items.value))
+                            }
+                            context.startActivity(Intent.createChooser(sendIntent, null))
+                        }) {
+                            Icon(Icons.Default.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
                         }
                         Box {
                             IconButton(onClick = { copyMenuExpanded = true }) {

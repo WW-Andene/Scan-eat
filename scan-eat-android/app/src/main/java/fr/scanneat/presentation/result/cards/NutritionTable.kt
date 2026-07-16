@@ -39,6 +39,9 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
         NRow(stringResource(R.string.result_nutri_salt), "${fmt1(nutrition.saltG)} g")
         if (expanded) {
             nutrition.transFatG?.let { NRow(stringResource(R.string.result_nutri_transfat), "${fmt1(it)} g") }
+            // Fully parsed/merged from OFF (OffMapper.kt) but previously never displayed
+            // anywhere - the always-visible row above only ever showed saltG.
+            nutrition.sodiumMg?.let { NRow(stringResource(R.string.result_nutri_sodium), "${fmt1(it)} mg") }
             nutrition.ironMg?.let { NRow(stringResource(R.string.result_nutri_iron), "${fmt1(it)} mg") }
             nutrition.calciumMg?.let { NRow(stringResource(R.string.result_nutri_calcium), "${fmt1(it)} mg") }
             nutrition.vitDUg?.let { NRow(stringResource(R.string.result_nutri_vitd), "${fmt1(it)} µg") }

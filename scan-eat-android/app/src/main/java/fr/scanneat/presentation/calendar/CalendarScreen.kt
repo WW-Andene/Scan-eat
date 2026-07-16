@@ -2,6 +2,7 @@ package fr.scanneat.presentation.calendar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -49,6 +50,7 @@ private fun colorFor(source: CalendarSource): Color = when (source) {
     CalendarSource.HYDRATION  -> Teal
     CalendarSource.FASTING    -> Violet
     CalendarSource.MEDICATION -> semanticGreen()
+    CalendarSource.NOTE       -> OnBackground.copy(0.5f)
 }
 
 /**
@@ -97,13 +99,20 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
                         )
                         // Legend - which color means which tracker, since a bare dot alone
                         // (unlike the existing single-domain MonthCalendar) is now ambiguous.
-                        Row(Modifier.fillMaxWidth().padding(top = Spacing.S), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        // Horizontally scrollable rather than SpaceEvenly-only - a 7th entry
+                        // (NOTE) pushed this past what reliably fits on a narrow phone width
+                        // without wrapping or clipping.
+                        Row(
+                            Modifier.fillMaxWidth().padding(top = Spacing.S).horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                        ) {
                             LegendDot(colorFor(CalendarSource.MEALS), stringResource(R.string.calendar_legend_meals))
                             LegendDot(colorFor(CalendarSource.WEIGHT), stringResource(R.string.calendar_legend_weight))
                             LegendDot(colorFor(CalendarSource.ACTIVITY), stringResource(R.string.calendar_legend_activity))
                             LegendDot(colorFor(CalendarSource.HYDRATION), stringResource(R.string.calendar_legend_hydration))
                             LegendDot(colorFor(CalendarSource.FASTING), stringResource(R.string.calendar_legend_fasting))
                             LegendDot(colorFor(CalendarSource.MEDICATION), stringResource(R.string.calendar_legend_medication))
+                            LegendDot(colorFor(CalendarSource.NOTE), stringResource(R.string.calendar_legend_note))
                         }
                     }
                 }
