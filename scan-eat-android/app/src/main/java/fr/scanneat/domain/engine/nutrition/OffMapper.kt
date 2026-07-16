@@ -289,7 +289,14 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         name        = prefer(off.name, llm.name) { emptyStr(it) },
         category    = if (off.category != ProductCategory.OTHER) off.category else llm.category,
         novaClass   = if (off.novaClass.value > 0) off.novaClass else llm.novaClass,
-        ingredients = prefer(off.ingredients, llm.ingredients) { emptyList(it) || it.size < 3 },
+        // Threshold matches isOffSparse's own documented rule above: a genuine
+        // 1-2 ingredient product (water, salt, single-origin oil) is real,
+        // correct OFF data, not a gap to paper over with an LLM guess. This
+        // used to require >= 3 ingredients to count as "present", so merge
+        // (triggered by isOffSparse being true for some unrelated field, e.g.
+        // missing category) silently threw away a short-but-correct OFF
+        // ingredient list and substituted the LLM's guess instead.
+        ingredients = prefer(off.ingredients, llm.ingredients, emptyList),
         nutrition   = mergeNutrition(off.nutrition, llm.nutrition),
         weightG             = off.weightG     ?: llm.weightG,
         origin              = off.origin      ?: llm.origin,

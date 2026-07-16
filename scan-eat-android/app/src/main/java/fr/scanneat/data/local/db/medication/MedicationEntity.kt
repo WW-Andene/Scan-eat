@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "medications", indices = [Index("profileId")])
+@Entity(tableName = "medications", indices = [Index("profileId"), Index("barcode", "profileId")])
 data class MedicationEntity(
     @PrimaryKey val id: String,
     val name: String,

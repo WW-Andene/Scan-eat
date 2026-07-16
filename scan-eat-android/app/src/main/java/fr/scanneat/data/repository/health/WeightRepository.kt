@@ -61,16 +61,17 @@ class WeightRepository @Inject constructor(
      */
     suspend fun log(date: LocalDate, weightKg: Double, notes: String = "", profileId: String = "default") {
         require(weightKg > 0 && weightKg <= 400) { "Invalid weight: $weightKg" }
-        val existing = dao.findByDate(date.toIsoString(), profileId)
         val rounded = weightKg.roundTo1Decimal()
-        dao.upsert(WeightEntity(
-            id        = existing?.id ?: UUID.randomUUID().toString(),
-            date      = date.toIsoString(),
-            weightKg  = rounded,
-            notes     = notes,
-            loggedAt  = System.currentTimeMillis(),
-            profileId = profileId,
-        ))
+        val existing = dao.upsertForDate(date.toIsoString(), profileId) { existing ->
+            WeightEntity(
+                id        = existing?.id ?: UUID.randomUUID().toString(),
+                date      = date.toIsoString(),
+                weightKg  = rounded,
+                notes     = notes,
+                loggedAt  = System.currentTimeMillis(),
+                profileId = profileId,
+            )
+        }
         if (existing?.weightKg != rounded) healthConnect.writeWeight(date, rounded)
     }
 
@@ -112,14 +113,16 @@ class WeightRepository @Inject constructor(
         for ((date, records) in byDate) {
             if (date.toIsoString() in existingDates) continue
             val latest = records.maxByOrNull { it.time } ?: continue
-            dao.upsert(WeightEntity(
-                id        = UUID.randomUUID().toString(),
-                date      = date.toIsoString(),
-                weightKg  = latest.weight.inKilograms.roundTo1Decimal(),
-                notes     = "",
-                loggedAt  = System.currentTimeMillis(),
-                profileId = profileId,
-            ))
+            dao.insertIfAbsent(date.toIsoString(), profileId) {
+                WeightEntity(
+                    id        = UUID.randomUUID().toString(),
+                    date      = date.toIsoString(),
+                    weightKg  = latest.weight.inKilograms.roundTo1Decimal(),
+                    notes     = "",
+                    loggedAt  = System.currentTimeMillis(),
+                    profileId = profileId,
+                )
+            }
         }
     }
 

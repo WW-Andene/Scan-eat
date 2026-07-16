@@ -58,6 +58,9 @@ class ScanRepository @Inject constructor(
 ) {
     private val productAdapter = moshi.adapter(Product::class.java)
     private val auditAdapter   = moshi.adapter(ScoreAudit::class.java)
+    private val warningsAdapter = moshi.adapter<List<String>>(
+        com.squareup.moshi.Types.newParameterizedType(List::class.java, String::class.java)
+    )
 
     @Volatile private var _serverApi: ServerScanApi? = null
     @Volatile private var _serverUrl: String = ""
@@ -147,6 +150,7 @@ class ScanRepository @Inject constructor(
                 scannedAt   = now,
                 profileId   = profileId,
                 favorite    = existingFavorite,
+                warningsJson = warningsAdapter.toJson(result.warnings),
             )
         }
         // Opportunistic retention trim - scan_history otherwise grows unbounded
@@ -582,7 +586,7 @@ class ScanRepository @Inject constructor(
         ScanResult(
             product  = productAdapter.fromJson(productJson)!!,
             audit    = auditAdapter.fromJson(auditJson)!!,
-            warnings = emptyList(),
+            warnings = warningsAdapter.fromJson(warningsJson) ?: emptyList(),
             source   = ScanSource.valueOf(sourceJson),
             barcode   = barcode,
             dbId      = id,

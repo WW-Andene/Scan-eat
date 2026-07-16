@@ -29,4 +29,9 @@ data class ScanHistoryEntity(
     val scannedAt: Long,             // epoch millis
     val profileId: String = "default",
     val favorite: Boolean = false,
+    // serialised List<String> - OcrParser.buildWarnings()/source-conflict messages
+    // computed for the scan but previously never persisted, so ResultContent's
+    // WarningsSection could never render scan.warnings for any scan, fresh or
+    // historical (only audit.warnings, a separate field, ever showed up).
+    val warningsJson: String = "[]",
 )

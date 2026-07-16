@@ -39,7 +39,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationLogEntity::class,
         ScanScoreHistoryEntity::class,
     ],
-    version = 18,
+    version = 20,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -286,5 +286,27 @@ val MIGRATION_17_18 = object : Migration(17, 18) {
         // See CustomFoodDao.upsertFood, which now prefers a barcode match when given.
         db.execSQL("ALTER TABLE `custom_foods` ADD COLUMN `barcode` TEXT")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_custom_foods_barcode_profileId` ON `custom_foods` (`barcode`, `profileId`)")
+    }
+}
+val MIGRATION_18_19 = object : Migration(18, 19) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v18 → v19: scan_history gains warningsJson - OcrParser.buildWarnings()/
+        // detectSourceConflicts() produce real per-scan warning messages
+        // (unreadable nutrition values, barcode-vs-label mismatches, OFF/LLM
+        // conflicts) that ResultContent's WarningsSection was already built to
+        // render, but scan_history had nowhere to store them - every persisted
+        // scan silently lost this half of ScanResult.warnings, so the section
+        // never showed anything for it. See ScanRepository.persist()/toDomain().
+        db.execSQL("ALTER TABLE `scan_history` ADD COLUMN `warningsJson` TEXT NOT NULL DEFAULT '[]'")
+    }
+}
+val MIGRATION_19_20 = object : Migration(19, 20) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v19 → v20: index medications(barcode, profileId) - MedicationRepository.
+        // save() never deduped by barcode (unlike CustomFoodDao.upsertFood/
+        // ScanHistoryDao.upsertByBarcode), so rescanning an already-added
+        // medication's box created a duplicate row every time, each with its own
+        // ReminderWorker schedule. See MedicationDao.upsertMedication.
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_medications_barcode_profileId` ON `medications` (`barcode`, `profileId`)")
     }
 }

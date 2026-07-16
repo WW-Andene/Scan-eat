@@ -187,12 +187,33 @@ class BackupRepository @Inject constructor(
             consumptionDao.insertAll(newConsumption.map { it.copy(id = 0) })
             importedConsumption = newConsumption.size
 
-            customFoodDao.insertAll(bundle.customFoods)
+            // custom_foods/medications have no unique constraint on barcode (only
+            // on id, which insertAll's REPLACE conflicts on) - restoring a backup
+            // taken before this device re-saved the same barcoded item under a
+            // fresh id would otherwise reintroduce the exact "two rows sharing a
+            // barcode" duplicate CustomFoodDao.upsertFood/MedicationDao.
+            // upsertMedication exist to prevent on the live save path. Skip any
+            // backup row whose barcode already has a local row - the existing
+            // local state (possibly edited/rescanned since the backup was taken)
+            // wins, matching scan_history's dedup-favors-existing approach above.
+            val existingCustomFoodBarcodes = customFoodDao.getAllForBackup()
+                .mapNotNullTo(mutableSetOf()) { it.barcode }
+            val newCustomFoods = bundle.customFoods.filter { row ->
+                row.barcode == null || existingCustomFoodBarcodes.add(row.barcode)
+            }
+            customFoodDao.insertAll(newCustomFoods)
+
             weightDao.insertAll(bundle.weights)
             activityDao.insertAll(bundle.activities)
             mealTemplateDao.insertAll(bundle.mealTemplates)
             recipeDao.insertAll(bundle.recipes)
-            medicationDao.insertAll(bundle.medications)
+
+            val existingMedicationBarcodes = medicationDao.getAllForBackup()
+                .mapNotNullTo(mutableSetOf()) { it.barcode }
+            val newMedications = bundle.medications.filter { row ->
+                row.barcode == null || existingMedicationBarcodes.add(row.barcode)
+            }
+            medicationDao.insertAll(newMedications)
             medicationLogDao.insertAll(bundle.medicationLog)
 
             // scan_score_history uses an autoGenerate Long id like scan_history/

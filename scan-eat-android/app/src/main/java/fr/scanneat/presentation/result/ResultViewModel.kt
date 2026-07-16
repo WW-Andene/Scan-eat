@@ -248,6 +248,10 @@ class ResultViewModel @Inject constructor(
                     // share (e.g. two brands both "Yaourt nature"), silently
                     // overwriting one with the other's nutrition values.
                     barcode  = scan.barcode,
+                    // Also previously dropped - the scanned product's real,
+                    // already-known category was discarded in favour of a
+                    // hardcoded "other" on the saved custom food.
+                    category = scan.product.category,
                 )
             }
             if (SaveDestination.COURSES in destinations) {

@@ -6,6 +6,7 @@ import fr.scanneat.data.local.db.customfood.CustomFoodDao
 import fr.scanneat.data.local.db.customfood.CustomFoodEntity
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.scoring.inferCategoryFromName
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -53,6 +54,15 @@ class CustomFoodRepository @Inject constructor(
         // silently overwrite each other. Null for a manually-typed custom food,
         // which falls back to the existing name-only dedup.
         barcode: String? = null,
+        // Set from the scanned product's real category when this save originates
+        // from a scan (see ResultViewModel.saveToDestinations); null for a
+        // manually-typed custom food, which falls back to the same name-based
+        // inference OffMapper/ScoringEngine already use elsewhere. Previously
+        // always hardcoded to "other" regardless of what was actually scanned -
+        // harmless today (custom foods are never run through scoreProduct()),
+        // but a real gap if that ever changes, and the entity column existed
+        // and was persisted/backed-up while never holding a meaningful value.
+        category: ProductCategory? = null,
     ): FoodEntry {
         // A blank/whitespace-only name previously passed through untouched: name.trim()
         // still persisted an empty string, silently adding an unnamed row to the custom
@@ -79,11 +89,12 @@ class CustomFoodRepository @Inject constructor(
         // The match-resolution read and the insert both run inside upsertFood's own
         // @Transaction, so two concurrent save() calls for the same product can't
         // both read "no existing row" and both insert a duplicate.
+        val resolvedCategory = category ?: inferCategoryFromName(entry.name)
         dao.upsertFood(entry.name, barcode, profileId, id) { resolvedId ->
             CustomFoodEntity(
                 id            = resolvedId,
                 name          = entry.name,
-                category      = "other",
+                category      = resolvedCategory.key,
                 nutritionJson = jsonAdapter.toJson(CustomFoodJson(
                     kcal = entry.kcal, proteinG = entry.proteinG, carbsG = entry.carbsG,
                     fatG = entry.fatG, fiberG = entry.fiberG, saltG = entry.saltG,
@@ -133,7 +144,11 @@ class CustomFoodRepository @Inject constructor(
      */
     fun toProduct(entry: FoodEntry): Product = Product(
         name        = entry.name,
-        category    = ProductCategory.OTHER,
+        // FoodEntry (shared with built-in FOOD_DB search results) carries no
+        // category of its own to read back here — infer from name the same way
+        // OffMapper/ScoringEngine already do for exactly this situation, rather
+        // than the previous hardcoded OTHER regardless of what the food is.
+        category    = inferCategoryFromName(entry.name),
         novaClass   = NovaClass.UNPROCESSED,
         ingredients = listOf(Ingredient(name = entry.name, percentage = 100.0,
             category = IngredientCategory.FOOD, isWholeFood = true)),
