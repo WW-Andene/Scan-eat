@@ -17,6 +17,9 @@ interface RecipeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: RecipeEntity)
 
+    @Query("UPDATE recipes SET favorite = :favorite WHERE id = :id")
+    suspend fun setFavorite(id: String, favorite: Boolean)
+
     /** Full unfiltered read/write pair for backup export/import. */
     @Query("SELECT * FROM recipes WHERE profileId = :profileId")
     suspend fun getAllForBackup(profileId: String = "default"): List<RecipeEntity>

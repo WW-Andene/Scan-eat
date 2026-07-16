@@ -9,6 +9,7 @@ import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.RecipeRepository
+import fr.scanneat.data.repository.planning.scaledComponents
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
@@ -46,13 +47,21 @@ class RecipesViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recipes: StateFlow<List<Recipe>> = combine(_allRecipes, _goalFilter) { list, filter ->
-        when (filter) {
+        val filtered = when (filter) {
             GoalFilter.ALL         -> list
             GoalFilter.HIGH_PROTEIN -> list.filter { r -> r.totalGrams > 0 && r.totalProteinG / r.totalGrams * 100 >= 15 }
             GoalFilter.LOW_CARB    -> list.filter { r -> r.totalGrams > 0 && r.totalCarbsG / r.totalGrams * 100 <= 20 }
             GoalFilter.LOW_FAT     -> list.filter { r -> r.totalGrams > 0 && r.totalFatG / r.totalGrams * 100 <= 10 }
         }
+        // Favorites first (Recipe had no equivalent to ScanResult's favorite field
+        // at all) - sortedByDescending is stable, so createdAt-DESC ordering
+        // (already applied by RecipeDao.observeAll) is preserved within each group.
+        filtered.sortedByDescending { it.favorite }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun toggleFavorite(recipe: Recipe) = viewModelScope.launch {
+        repo.setFavorite(recipe.id, !recipe.favorite)
+    }
 
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
@@ -153,6 +162,14 @@ class RecipesViewModel @Inject constructor(
     /** Edits a recipe's prep notes/instructions independently of rename. */
     fun updateNotes(recipe: Recipe, notes: String) {
         viewModelScope.launch { repo.save(recipe.name, recipe.components, recipe.servings, id = recipe.id, notes = notes) }
+    }
+
+    /** Permanently rescales every component's stored quantity (grams/kcal/macros) for a new serving count. */
+    fun scale(recipe: Recipe, newServings: Int) {
+        if (newServings <= 0) return
+        viewModelScope.launch {
+            repo.save(recipe.name, recipe.scaledComponents(newServings), newServings, id = recipe.id, notes = recipe.notes)
+        }
     }
 
     fun log(recipe: Recipe, mealSlot: MealSlot, portionFraction: Double = 1.0) {

@@ -39,7 +39,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationLogEntity::class,
         ScanScoreHistoryEntity::class,
     ],
-    version = 20,
+    version = 21,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -308,5 +308,13 @@ val MIGRATION_19_20 = object : Migration(19, 20) {
         // medication's box created a duplicate row every time, each with its own
         // ReminderWorker schedule. See MedicationDao.upsertMedication.
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_medications_barcode_profileId` ON `medications` (`barcode`, `profileId`)")
+    }
+}
+val MIGRATION_20_21 = object : Migration(20, 21) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v20 → v21: recipes gains favorite - Recipe had no equivalent to
+        // ScanResult's favorite field at all, so a saved recipe could never be
+        // pinned to the top of the list the way a favorited scan can.
+        db.execSQL("ALTER TABLE `recipes` ADD COLUMN `favorite` INTEGER NOT NULL DEFAULT 0")
     }
 }

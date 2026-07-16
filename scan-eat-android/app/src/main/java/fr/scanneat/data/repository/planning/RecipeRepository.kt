@@ -44,6 +44,7 @@ data class Recipe(
     val components: List<RecipeComponent>,
     val createdAt: Long,
     val notes: String = "",
+    val favorite: Boolean = false,
 ) {
     val totalKcal: Double get() = components.sumOf { it.kcal }
     val totalProteinG: Double get() = components.sumOf { it.proteinG }
@@ -79,6 +80,29 @@ data class Recipe(
             fiberG        = scale(components.sumOf { it.fiberG }),
             proteinG      = scale(totalProteinG),
             saltG         = scale(components.sumOf { it.saltG }),
+        )
+    }
+}
+
+/**
+ * Recomputes every component's grams/kcal/macros for a permanently different
+ * batch size - previously `servings` was purely informational for anything
+ * except a one-off logged portion (LogRecipeDialog divides by it, but never
+ * writes a rescaled value back to the stored recipe), so doubling a recipe
+ * for a dinner party meant manually re-entering every ingredient's quantity.
+ */
+fun Recipe.scaledComponents(newServings: Int): List<RecipeComponent> {
+    if (servings <= 0 || newServings <= 0 || newServings == servings) return components
+    val ratio = newServings.toDouble() / servings
+    return components.map { c ->
+        c.copy(
+            grams    = c.grams    * ratio,
+            kcal     = c.kcal     * ratio,
+            proteinG = c.proteinG * ratio,
+            carbsG   = c.carbsG   * ratio,
+            fatG     = c.fatG     * ratio,
+            saltG    = c.saltG    * ratio,
+            fiberG   = c.fiberG   * ratio,
         )
     }
 }
@@ -126,7 +150,8 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
         // previously re-stamped createdAt to now on every save - same bug already
         // fixed in MedicationRepository/CustomFoodRepository - preserve the
         // original row's createdAt when one exists.
-        val createdAt = id?.let { dao.findById(it)?.createdAt } ?: System.currentTimeMillis()
+        val existing = id?.let { dao.findById(it) }
+        val createdAt = existing?.createdAt ?: System.currentTimeMillis()
         val recipe = Recipe(
             id         = id ?: UUID.randomUUID().toString(),
             name       = name.trim(),
@@ -134,12 +159,18 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             components = components,
             createdAt  = createdAt,
             notes      = notes,
+            // Same reconstruct-from-scratch shape as createdAt above - without
+            // this, editing/renaming a favorited recipe would silently drop
+            // favorite back to its false default on every save.
+            favorite   = existing?.favorite ?: false,
         )
         dao.upsert(recipe.toEntity(profileId))
         return recipe
     }
 
     suspend fun delete(id: String) = dao.delete(id)
+
+    suspend fun setFavorite(id: String, favorite: Boolean) = dao.setFavorite(id, favorite)
 
     /**
      * Collapse a recipe into a single DiaryEntry for a given date + portion.
@@ -165,6 +196,7 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
         createdAt      = createdAt,
         profileId      = profileId,
         notes          = notes,
+        favorite       = favorite,
     )
 
     private fun RecipeEntity.toDomain(): Recipe? = runCatching {
@@ -175,6 +207,7 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             components = componentsAdapter.fromJson(componentsJson) ?: emptyList(),
             createdAt  = createdAt,
             notes      = notes,
+            favorite   = favorite,
         )
     }.onFailure {
         // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository.

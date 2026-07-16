@@ -130,6 +130,13 @@ class GroceryViewModel @Inject constructor(
     val sortAlpha: StateFlow<Boolean> = _sortAlpha.asStateFlow()
     fun toggleSortAlpha() { _sortAlpha.value = !_sortAlpha.value }
 
+    // aggregateGroceryList() only ever produced one flat list with no aisle
+    // sectioning at all - groceryCategoryFor() is a pure classifier the screen
+    // applies client-side when this is on, so no new query/state shape needed.
+    private val _groupByAisle = MutableStateFlow(false)
+    val groupByAisle: StateFlow<Boolean> = _groupByAisle.asStateFlow()
+    fun toggleGroupByAisle() { _groupByAisle.value = !_groupByAisle.value }
+
     val groceryItems: StateFlow<List<GroceryItem>> = combine(rawItems, _sortAlpha) { items, alpha ->
         if (alpha) items.sortedBy { it.name.lowercase() } else items
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

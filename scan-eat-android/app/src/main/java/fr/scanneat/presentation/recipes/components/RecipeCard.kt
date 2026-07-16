@@ -16,6 +16,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -43,7 +46,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit) {
+internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit) {
     val context = LocalContext.current
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
@@ -53,6 +56,15 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         Text(recipe.name, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                         Text(stringResource(R.string.recipes_summary, recipe.totalKcal.toInt(), recipe.components.size, recipe.totalGrams.toInt()),
                             style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                    }
+                    // Recipe had no equivalent to ScanResult's favorite field at all -
+                    // mirrors ScanHistoryScreen's identical star toggle placement.
+                    IconButton(onClick = onToggleFavorite, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            if (recipe.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                            stringResource(if (recipe.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                            tint = if (recipe.favorite) Gold else OnSurface.copy(0.3f),
+                        )
                     }
                     Row {
                         // Sized to match TemplatesScreen's identical Log+Delete row pattern —
@@ -73,6 +85,9 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                             modifier = Modifier.size(36.dp),
                         ) { Icon(Icons.Default.Share, stringResource(R.string.recipes_cd_share), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onEditNotes, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Notes, stringResource(R.string.recipes_cd_notes), tint = OnSurface.copy(0.5f)) }
+                        // Previously servings only ever affected a one-off logged portion
+                        // (LogRecipeDialog) - no way to permanently rescale the recipe itself.
+                        IconButton(onClick = onScale, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Tune, stringResource(R.string.recipes_cd_scale), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onRename, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
                     }

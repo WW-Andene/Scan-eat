@@ -23,6 +23,7 @@ import fr.scanneat.presentation.recipes.components.LogOfficialRecipeDialog
 import fr.scanneat.presentation.recipes.components.LogRecipeDialog
 import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
 import fr.scanneat.presentation.recipes.components.RecipeCard
+import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -42,6 +43,7 @@ fun RecipesScreen(
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<Recipe?>(null) }
     var notesTarget by remember { mutableStateOf<Recipe?>(null) }
+    var scaleTarget by remember { mutableStateOf<Recipe?>(null) }
     var logOfficialTarget by remember { mutableStateOf<OfficialRecipe?>(null) }
 
     Scaffold(
@@ -122,7 +124,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe })
+                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe })
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
@@ -155,6 +157,14 @@ fun RecipesScreen(
             currentNotes = recipe.notes,
             onDismiss = { notesTarget = null },
             onConfirm = { notes -> viewModel.updateNotes(recipe, notes); notesTarget = null },
+        )
+    }
+
+    scaleTarget?.let { recipe ->
+        ScaleRecipeDialog(
+            currentServings = recipe.servings,
+            onDismiss = { scaleTarget = null },
+            onConfirm = { newServings -> viewModel.scale(recipe, newServings); scaleTarget = null },
         )
     }
 

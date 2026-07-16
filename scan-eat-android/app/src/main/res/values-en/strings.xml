@@ -561,6 +561,15 @@
     <string name="grocery_copy_plain">Copy (plain text)</string>
     <string name="grocery_copy_checklist">Copy (Markdown checklist)</string>
     <string name="grocery_cd_share">Share list</string>
+    <string name="grocery_group_by_aisle">Group by aisle</string>
+    <string name="grocery_category_produce">Produce</string>
+    <string name="grocery_category_dairy">Dairy</string>
+    <string name="grocery_category_meat_fish">Meat &amp; fish</string>
+    <string name="grocery_category_bakery">Bakery</string>
+    <string name="grocery_category_frozen">Frozen</string>
+    <string name="grocery_category_beverages">Beverages</string>
+    <string name="grocery_category_pantry">Pantry</string>
+    <string name="grocery_category_other">Other</string>
     <string name="grocery_clear_checked">Uncheck all</string>
     <string name="grocery_clear_confirm_title">Uncheck all items?</string>
     <string name="grocery_clear_confirm_body">Every checked item will be reset. This action can\'t be undone.</string>
@@ -1072,6 +1081,9 @@
     <string name="recipes_field_notes">Instructions / notes</string>
     <string name="recipes_cd_notes">Edit instructions</string>
     <string name="recipes_cd_share">Share recipe</string>
+    <string name="recipes_cd_scale">Adjust servings</string>
+    <string name="recipes_scale_title">Adjust servings</string>
+    <string name="recipes_scale_servings_label">Number of servings</string>
     <string name="recipes_servings_to_log_label">Servings to log (of %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g per serving</string>
     <string name="recipes_macro_per_serving_label">Per serving</string>

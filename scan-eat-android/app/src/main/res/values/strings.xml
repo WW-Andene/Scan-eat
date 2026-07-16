@@ -562,6 +562,15 @@
     <string name="grocery_copy_plain">Copier (texte)</string>
     <string name="grocery_copy_checklist">Copier (liste à cocher Markdown)</string>
     <string name="grocery_cd_share">Partager la liste</string>
+    <string name="grocery_group_by_aisle">Grouper par rayon</string>
+    <string name="grocery_category_produce">Fruits &amp; légumes</string>
+    <string name="grocery_category_dairy">Produits laitiers</string>
+    <string name="grocery_category_meat_fish">Viandes &amp; poissons</string>
+    <string name="grocery_category_bakery">Boulangerie</string>
+    <string name="grocery_category_frozen">Surgelés</string>
+    <string name="grocery_category_beverages">Boissons</string>
+    <string name="grocery_category_pantry">Épicerie</string>
+    <string name="grocery_category_other">Autres</string>
     <string name="grocery_clear_checked">Décocher tout</string>
     <string name="grocery_clear_confirm_title">Décocher tous les articles ?</string>
     <string name="grocery_clear_confirm_body">Toutes les cases cochées seront réinitialisées. Cette action est irréversible.</string>
@@ -1106,6 +1115,9 @@
     <string name="recipes_field_notes">Préparation / notes</string>
     <string name="recipes_cd_notes">Modifier la préparation</string>
     <string name="recipes_cd_share">Partager la recette</string>
+    <string name="recipes_cd_scale">Ajuster les portions</string>
+    <string name="recipes_scale_title">Ajuster les portions</string>
+    <string name="recipes_scale_servings_label">Nombre de portions</string>
     <string name="recipes_servings_to_log_label">Portions à logger (sur %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g par portion</string>
     <string name="recipes_macro_per_serving_label">Par portion</string>
