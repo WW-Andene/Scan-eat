@@ -10,6 +10,7 @@ import dagger.assisted.AssistedInject
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.FastingRepository
+import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
@@ -29,6 +30,7 @@ class ReminderWorker @AssistedInject constructor(
     private val fastingRepo: FastingRepository,
     private val medicationRepo: MedicationRepository,
     private val consumptionRepo: ConsumptionRepository,
+    private val hydrationRepo: HydrationRepository,
     private val prefs: UserPreferences,
 ) : CoroutineWorker(context, params) {
 
@@ -54,8 +56,15 @@ class ReminderWorker @AssistedInject constructor(
 
         if (s.hydrationOn && now.hour in 8..21) {
             if (remindersRepo.hydrationDueAndMark(s.hydrationIntervalHours)) {
-                NotificationHelper.show(applicationContext, 104,
-                    localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body), NotifChannel.HYDRATION)
+                // Previously fired on the fixed interval regardless of intake — a user
+                // who already hit today's water goal kept getting nudged anyway.
+                val profile = prefs.profile.first()
+                val goalMl = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions)
+                val todayMl = hydrationRepo.observe(LocalDate.now()).first()
+                if (todayMl < goalMl) {
+                    NotificationHelper.show(applicationContext, 104,
+                        localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body), NotifChannel.HYDRATION)
+                }
             }
         }
         checkMeal(s.hydrationCustomOn, s.hydrationCustomTime, RemindersRepository.K_LAST_HYDRATION_CUSTOM_DATE, now, 107,
@@ -77,10 +86,21 @@ class ReminderWorker @AssistedInject constructor(
             checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label, NotifChannel.CUSTOM)
         }
 
+        val takenMedIds = medicationRepo.observeLogByDate(LocalDate.now()).first().map { it.medicationId }.toSet()
         medicationRepo.observeAll().first().filter { it.active && it.reminderOn }.forEach { med ->
-            checkMeal(true, med.reminderTime, remindersRepo.medicationLastFiredKey(med.id), now, med.id.hashCode(),
-                localizedString(lang, R.string.reminders_notif_medication_title),
-                String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name), NotifChannel.MEDICATION)
+            val title = localizedString(lang, R.string.reminders_notif_medication_title)
+            val body = String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name)
+            val justFired = checkMeal(true, med.reminderTime, remindersRepo.medicationLastFiredKey(med.id), now, med.id.hashCode(), title, body, NotifChannel.MEDICATION)
+
+            // Dose reminders used to fire once at the scheduled time and go silent
+            // regardless of whether the dose was ever logged. MedicationLogEntry
+            // already records real per-dose "taken" timestamps, so re-notify every
+            // hour until it's logged, instead of only reminding once.
+            val alreadyFiredToday = justFired || remindersRepo.wasFiredToday(remindersRepo.medicationLastFiredKey(med.id))
+            if (!justFired && alreadyFiredToday && med.id !in takenMedIds &&
+                remindersRepo.medicationRenotifyDueAndMark(med.id, MEDICATION_RENOTIFY_MINUTES)) {
+                NotificationHelper.show(applicationContext, med.id.hashCode(), title, body, NotifChannel.MEDICATION)
+            }
         }
 
         fastingRepo.state.first()?.let { fast ->
@@ -108,12 +128,13 @@ class ReminderWorker @AssistedInject constructor(
         return Result.success()
     }
 
+    /** Returns true if this call actually fired the notification (used by medication re-notify to avoid double-firing on the same tick). */
     private suspend fun checkMeal(
         on: Boolean, timeStr: String, lastFiredKey: androidx.datastore.preferences.core.Preferences.Key<String>,
         now: LocalTime, notifId: Int, title: String, text: String, channel: NotifChannel? = null,
-    ) {
-        if (!on) return
-        val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return
+    ): Boolean {
+        if (!on) return false
+        val target = runCatching { LocalTime.parse(timeStr) }.getOrNull() ?: return false
         // Wrap the day boundary explicitly: for targets in the evening (e.g. 22:00),
         // target.plusHours(3) rolls over past midnight (01:00), and comparing raw
         // LocalTime values via isBefore/isAfter breaks because "now" (still in the
@@ -124,9 +145,11 @@ class ReminderWorker @AssistedInject constructor(
             NotificationHelper.show(applicationContext, notifId, title, text, channel)
             remindersRepo.markFiredToday(lastFiredKey)
         }
+        return dueNow
     }
 
     companion object {
         val K_LAST_DIGEST_DATE = androidx.datastore.preferences.core.stringPreferencesKey("rem_last_digest_date")
+        private const val MEDICATION_RENOTIFY_MINUTES = 60L
     }
 }

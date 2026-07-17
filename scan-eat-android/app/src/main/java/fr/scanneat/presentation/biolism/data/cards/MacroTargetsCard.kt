@@ -24,11 +24,11 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
             stringResource(R.string.biolism_macro_tdee_value, met.tdeeDay, met.bmrDay, profile.activityMeta.mult, met.ffm), "", Gold)
         Spacer(Modifier.height(Spacing.XS))
         MacroTargetRow(stringResource(R.string.biolism_macro_protein), met.macroProtMinG, "g",
-            stringResource(R.string.biolism_macro_protein_sub, met.protGPerKgFfm, met.ffm), Violet)
+            stringResource(R.string.biolism_macro_protein_sub, met.protGPerKgFfm, met.ffm), Violet, kcal = met.macroProtKcal)
         MacroTargetRow(stringResource(R.string.biolism_macro_carbs), met.macroCarbMinG, "g",
-            if (met.macroCarbMinG < 50) stringResource(R.string.biolism_macro_carbs_sub_keto) else stringResource(R.string.biolism_macro_carbs_sub_brain), Teal)
+            if (met.macroCarbMinG < 50) stringResource(R.string.biolism_macro_carbs_sub_keto) else stringResource(R.string.biolism_macro_carbs_sub_brain), Teal, kcal = met.macroCarbKcal)
         MacroTargetRow(stringResource(R.string.biolism_macro_fat), met.macroFatMinG, "g",
-            stringResource(R.string.biolism_macro_fat_sub, met.essentialFatMinG), Warm)
+            stringResource(R.string.biolism_macro_fat_sub, met.essentialFatMinG), Warm, kcal = met.macroFatKcal)
 
         Spacer(Modifier.height(Spacing.S))
         Surface(shape = RoundedCornerShape(10.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldBorder), modifier = Modifier.fillMaxWidth()) {

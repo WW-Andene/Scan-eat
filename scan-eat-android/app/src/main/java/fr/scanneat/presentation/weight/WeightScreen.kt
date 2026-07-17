@@ -327,6 +327,14 @@ fun WeightScreen(
             }
 
             // Entries — improvement: per-row delta shows gain/loss vs previous weigh-in
+            if (reversedEntries.isEmpty()) {
+                item {
+                    EmptyListState(
+                        Icons.Default.Scale, stringResource(R.string.weight_empty_body),
+                        ctaLabel = stringResource(R.string.weight_cd_add), onCta = { showAdd = true },
+                    )
+                }
+            }
             itemsIndexed(reversedEntries, key = { _, e -> e.id }) { idx, e ->
                 val prev = if (idx > 0) reversedEntries[idx - 1] else null
                 val delta = prev?.let { e.weightKg - it.weightKg }

@@ -161,7 +161,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
 }
 
 @Composable
-internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: String, color: Color) {
+internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: String, color: Color, kcal: Double? = null) {
     Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.bodyMedium, color = color, fontWeight = FontWeight.SemiBold)
@@ -169,6 +169,9 @@ internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: St
         }
         Column(horizontalAlignment = Alignment.End) {
             Text("%.1f $unit".format(Locale.US, grams), style = MaterialTheme.typography.titleSmall, color = color, fontWeight = FontWeight.Bold)
+            if (kcal != null) {
+                Text("%.0f kcal".format(Locale.US, kcal), style = MaterialTheme.typography.labelSmall, color = color.copy(0.6f))
+            }
         }
     }
     HorizontalDivider(color = OnBackground.copy(0.06f))

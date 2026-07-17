@@ -159,6 +159,9 @@ class RemindersRepository @Inject constructor(
     /** Per-medication daily-reminder fired-today key, keyed by the medication's own stable id. */
     val medicationLastFiredKey: (String) -> Preferences.Key<String> = { id -> stringPreferencesKey("rem_medication_${id}_last") }
 
+    /** Per-medication re-notify timestamp — see medicationRenotifyDueAndMark. */
+    private val medicationLastNotifiedMsKey: (String) -> Preferences.Key<Long> = { id -> longPreferencesKey("rem_medication_${id}_last_notified_ms") }
+
     suspend fun setBreakfast(on: Boolean, time: String) = store.edit {
         it[K_BREAKFAST_ON] = on; it[K_BREAKFAST_TIME] = time
         if (on) markStaleIfPast(it, time, K_LAST_BREAKFAST_DATE)
@@ -217,17 +220,28 @@ class RemindersRepository @Inject constructor(
 
     suspend fun markFiredToday(key: Preferences.Key<String>) = store.edit { it[key] = LocalDate.now().toString() }
 
-    /** Returns true (and marks) if at least [intervalHours] have elapsed since the last hydration fire. */
-    suspend fun hydrationDueAndMark(intervalHours: Int): Boolean {
+    private suspend fun dueAndMarkMs(key: Preferences.Key<Long>, minElapsedMs: Long): Boolean {
         var due = false
         store.edit { p ->
             val now = System.currentTimeMillis()
-            val last = p[K_LAST_HYDRATION_MS] ?: 0L
-            if (now - last >= intervalHours * MS_PER_HOUR) {
+            val last = p[key] ?: 0L
+            if (now - last >= minElapsedMs) {
                 due = true
-                p[K_LAST_HYDRATION_MS] = now
+                p[key] = now
             }
         }
         return due
     }
+
+    /** Returns true (and marks) if at least [intervalHours] have elapsed since the last hydration fire. */
+    suspend fun hydrationDueAndMark(intervalHours: Int): Boolean =
+        dueAndMarkMs(K_LAST_HYDRATION_MS, intervalHours * MS_PER_HOUR)
+
+    /**
+     * Returns true (and marks) if at least [intervalMinutes] have elapsed since this medication's
+     * last re-notify — used to keep nudging about an unlogged dose after the initial scheduled
+     * reminder, instead of firing once and going silent regardless of whether it was taken.
+     */
+    suspend fun medicationRenotifyDueAndMark(medicationId: String, intervalMinutes: Long): Boolean =
+        dueAndMarkMs(medicationLastNotifiedMsKey(medicationId), intervalMinutes * 60_000L)
 }

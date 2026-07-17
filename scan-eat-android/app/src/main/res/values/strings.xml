@@ -763,6 +763,8 @@
     <string name="weight_weekly_avg_title">Moyenne hebdomadaire</string>
     <string name="weight_logging_streak_label">Série de pesées</string>
     <string name="weight_logging_streak_value">%1$d j 🔥</string>
+    <string name="weight_empty_body">Aucune pesée enregistrée. Ajoutez votre premier poids pour suivre votre évolution.</string>
+    <string name="weight_cd_add">Ajouter un poids</string>
 
     <!-- ── Diary screen ───────────────────────────────────────────────────── -->
     <string name="diary_header">Journal</string>
