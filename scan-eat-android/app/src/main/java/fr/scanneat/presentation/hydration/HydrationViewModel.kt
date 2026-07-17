@@ -32,9 +32,17 @@ class HydrationViewModel @Inject constructor(
     val intake: StateFlow<Int> = today.flatMapLatest { date -> repo.observe(date) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    val goal: StateFlow<Int> = prefs.profile
+    private val formulaGoal: Flow<Int> = prefs.profile
         .map { repo.goalMl(it.sex, it.activityLevel, it.healthConditions) }
+
+    /** Null when no override is set - screen shows this to offer "reset to formula". */
+    val customGoalMl: StateFlow<Int?> = repo.customGoalMl
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val goal: StateFlow<Int> = combine(formulaGoal, repo.customGoalMl) { formula, custom -> custom ?: formula }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
+
+    fun setCustomGoal(ml: Int?) = viewModelScope.launch { repo.setCustomGoalMl(ml) }
 
     // Dates with at least one glass logged — drives the calendar marker dots.
     // Re-derived off `intake` (not a one-shot fetch) so logging a glass today

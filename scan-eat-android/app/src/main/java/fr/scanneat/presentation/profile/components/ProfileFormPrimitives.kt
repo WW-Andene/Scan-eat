@@ -44,13 +44,14 @@ internal fun OutlinedInput(
     label: String,
     value: String,
     keyboardType: KeyboardType = KeyboardType.Text,
+    modifier: Modifier = Modifier.fillMaxWidth(),
     onValue: (String) -> Unit,
 ) {
     OutlinedTextField(
         value         = value,
         onValueChange = onValue,
         label         = { Text(label, style = MaterialTheme.typography.bodyMedium) },
-        modifier      = Modifier.fillMaxWidth(),
+        modifier      = modifier,
         singleLine    = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape  = RoundedCornerShape(CardRadius.CONTROL),

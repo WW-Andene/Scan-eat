@@ -2,8 +2,10 @@ package fr.scanneat.presentation.onboarding
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -24,7 +26,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
+import fr.scanneat.domain.model.ActivityLevel
+import fr.scanneat.domain.model.Goal
+import fr.scanneat.domain.model.Sex
+import fr.scanneat.presentation.profile.components.ActivitySelector
+import fr.scanneat.presentation.profile.components.GoalSelector
+import fr.scanneat.presentation.profile.components.OutlinedInput
+import fr.scanneat.presentation.profile.components.SexSelector
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
@@ -46,6 +56,12 @@ fun OnboardingScreen(
     var apiKey by remember { mutableStateOf("") }
     var apiKeyVisible by remember { mutableStateOf(false) }
     var serverUrl by remember { mutableStateOf("") }
+    var sex by remember { mutableStateOf(Sex.NOT_SPECIFIED) }
+    var ageText by remember { mutableStateOf("") }
+    var heightText by remember { mutableStateOf("") }
+    var weightText by remember { mutableStateOf("") }
+    var activity by remember { mutableStateOf(ActivityLevel.MODERATELY_ACTIVE) }
+    var goal by remember { mutableStateOf(Goal.MAINTAIN) }
 
     Scaffold(containerColor = Background) { padding ->
         Column(
@@ -189,19 +205,57 @@ fun OnboardingScreen(
                     ) { Text(stringResource(R.string.onboarding_api_skip), color = OnBackground.copy(0.5f)) }
                 }
 
-                // ---- Page 3: Profile prompt ----
+                // ---- Page 3: Profile capture — previously just a prompt pointing at a
+                // separate, skippable screen. hasMinimalProfile() (PersonalScoreEngine)
+                // requires sex+age+height+weight before dailyTargets()/PersonalScoreEngine
+                // compute anything at all, so a "Skip" tap here meant zero personalized
+                // score/targets indefinitely - the fields are now captured inline instead,
+                // still skippable, reusing the exact selectors ProfileScreen itself uses. ----
                 3 -> {
                     Text(stringResource(R.string.onboarding_profile_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
                     Text(
                         stringResource(R.string.onboarding_profile_body),
                         style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.7f), textAlign = TextAlign.Center,
                     )
-                    Spacer(Modifier.weight(1f))
+                    Column(
+                        modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.M),
+                    ) {
+                        SexSelector(sex) { sex = it }
+                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            OutlinedInput(stringResource(R.string.profile_field_age), ageText, KeyboardType.Number, Modifier.weight(1f)) { ageText = it.filter(Char::isDigit) }
+                            OutlinedInput(stringResource(R.string.profile_field_height), heightText, KeyboardType.Number, Modifier.weight(1f)) { heightText = it.filter { c -> c.isDigit() || c == '.' } }
+                            OutlinedInput(stringResource(R.string.profile_field_weight), weightText, KeyboardType.Number, Modifier.weight(1f)) { weightText = it.filter { c -> c.isDigit() || c == '.' } }
+                        }
+                        ActivitySelector(activity) { activity = it }
+                        GoalSelector(goal) { goal = it }
+                    }
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                        val scope = rememberCoroutineScope()
+                        val canSave = sex != Sex.NOT_SPECIFIED && ageText.toIntOrNull() != null && heightText.toDoubleOrNull() != null && weightText.toDoubleOrNull() != null
                         ScanEatPrimaryButton(
-                            onClick = { viewModel.finish(goToProfile = true) },
+                            onClick = {
+                                scope.launch {
+                                    viewModel.saveMinimalProfile(sex, ageText.toIntOrNull(), heightText.toDoubleOrNull(), weightText.toDoubleOrNull(), activity, goal)
+                                    viewModel.finish()
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text(stringResource(R.string.onboarding_profile_cta)) }
+                            enabled = canSave,
+                        ) { Text(stringResource(R.string.onboarding_continue_button), style = MaterialTheme.typography.titleMedium) }
+                        TextButton(
+                            // "More options" still routes to the full Profile screen (diet,
+                            // allergens, health conditions, goal weight aren't captured here) -
+                            // whatever was already filled in above is saved first so it isn't
+                            // silently discarded by following this link instead of "Continue".
+                            onClick = {
+                                scope.launch {
+                                    if (canSave) viewModel.saveMinimalProfile(sex, ageText.toIntOrNull(), heightText.toDoubleOrNull(), weightText.toDoubleOrNull(), activity, goal)
+                                    viewModel.finish(goToProfile = true)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(stringResource(R.string.onboarding_profile_cta), color = OnBackground.copy(0.7f)) }
                         TextButton(
                             onClick = { viewModel.finish() },
                             modifier = Modifier.fillMaxWidth(),

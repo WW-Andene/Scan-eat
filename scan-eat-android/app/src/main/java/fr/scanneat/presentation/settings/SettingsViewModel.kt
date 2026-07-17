@@ -136,6 +136,30 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    // Diary/Biolism previously were the only two trackers with a CSV export -
+    // Weight/Activity/Hydration/Medication/Fasting each already expose an
+    // equivalent JSON-backup dataset with no lightweight spreadsheet path.
+    fun prepareWeightCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportWeightCsv(), filenamePrefix = "poids") }
+    }
+    fun prepareActivityCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportActivityCsv(), filenamePrefix = "activite") }
+    }
+    fun prepareHydrationCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportHydrationCsv(), filenamePrefix = "hydratation") }
+    }
+    fun prepareMedicationCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportMedicationCsv(), filenamePrefix = "traitement") }
+    }
+    fun prepareFastingCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportFastingCsv(), filenamePrefix = "jeune") }
+    }
+
     fun clearScanHistory() = viewModelScope.launch { backupRepository.clearScanHistory() }
 
     /** clearHistory() was fully implemented with zero callers — FastingScreen shows the full

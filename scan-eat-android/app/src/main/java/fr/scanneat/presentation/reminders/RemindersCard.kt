@@ -194,10 +194,40 @@ fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
 }
 
 @Composable
+fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val s = viewModel.settings.collectAsStateWithLifecycle().value
+    val (permGranted, permDenied, onRequest) = permissionState()
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+        PermissionBanner(permGranted, permDenied, onRequest)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.reminders_activity), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { NotificationHelper.show(context, 911, context.getString(R.string.reminders_activity), context.getString(R.string.reminders_test_body)) }) {
+                    Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_activity)), tint = semanticGreen())
+                }
+                val lbl = stringResource(R.string.reminders_activity)
+                Switch(checked = s.activityOn, onCheckedChange = { viewModel.setActivity(it, s.activityThresholdDays) },
+                    colors = SwitchDefaults.colors(checkedTrackColor = semanticGreen()), modifier = Modifier.semantics { contentDescription = lbl })
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(1, 3, 7).forEach { d ->
+                FilterChip(selected = s.activityThresholdDays == d, onClick = { viewModel.setActivity(s.activityOn, d) },
+                    label = { Text(stringResource(R.string.reminders_activity_preset_n_days, d)) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = semanticGreen().copy(0.2f), selectedLabelColor = semanticGreen()))
+            }
+        }
+    }
+}
+
+@Composable
 fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         MealRemindersCard(viewModel)
         HydrationReminderCard(viewModel)
         WeightReminderCard(viewModel)
+        ActivityReminderCard(viewModel)
     }
 }

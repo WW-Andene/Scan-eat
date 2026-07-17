@@ -324,6 +324,62 @@ class BackupRepository @Inject constructor(
     }
 
     /**
+     * Exports weight log entries as CSV - Diary and Biolism sessions already had a
+     * lightweight spreadsheet export, but Weight/Activity/Hydration/Medication/
+     * Fasting had none despite each already exposing an equivalent JSON-backup
+     * dataset (weightDao.getAllForBackup(), etc.) this can trivially wrap.
+     */
+    suspend fun exportWeightCsv(): String {
+        val rows = weightDao.getAllForBackup()
+        val sb = StringBuilder("date,weightKg,notes\n")
+        rows.sortedBy { it.date }.forEach { e ->
+            val notes = e.notes.replace("\"", "\"\"")
+            sb.append("${e.date},${e.weightKg},\"$notes\"\n")
+        }
+        return sb.toString()
+    }
+
+    /** Exports Activité log entries as CSV - see [exportWeightCsv]'s own doc comment. */
+    suspend fun exportActivityCsv(): String {
+        val rows = activityDao.getAllForBackup()
+        val sb = StringBuilder("date,type,minutes,kcalBurned,subType,sets,reps,distanceKm,weightUsedKg\n")
+        rows.sortedBy { it.date }.forEach { e ->
+            sb.append("${e.date},${e.type},${e.minutes},${e.kcalBurned}," +
+                "${e.subType ?: ""},${e.sets ?: ""},${e.reps ?: ""},${e.distanceKm ?: ""},${e.weightUsedKg ?: ""}\n")
+        }
+        return sb.toString()
+    }
+
+    /** Exports daily water intake as CSV - see [exportWeightCsv]'s own doc comment. */
+    suspend fun exportHydrationCsv(): String {
+        val rows = hydrationRepo.exportAll()
+        val sb = StringBuilder("date,ml\n")
+        rows.sortedBy { it.first }.forEach { (date, ml) -> sb.append("$date,$ml\n") }
+        return sb.toString()
+    }
+
+    /** Exports the "dose taken" adherence log as CSV - see [exportWeightCsv]'s own doc comment. */
+    suspend fun exportMedicationCsv(): String {
+        val rows = medicationLogDao.getAllForBackup()
+        val sb = StringBuilder("date,medication,takenAt\n")
+        rows.sortedBy { it.date }.forEach { e ->
+            val name = e.medicationName.replace("\"", "\"\"")
+            sb.append("${e.date},\"$name\",${e.takenAt}\n")
+        }
+        return sb.toString()
+    }
+
+    /** Exports completed fasts as CSV - see [exportWeightCsv]'s own doc comment. */
+    suspend fun exportFastingCsv(): String {
+        val rows = fastingRepo.history.first()
+        val sb = StringBuilder("date,targetHours,achievedHours,reached\n")
+        rows.sortedBy { it.date }.forEach { c ->
+            sb.append("${c.date},${c.targetHours},${c.achievedHours},${c.reached}\n")
+        }
+        return sb.toString()
+    }
+
+    /**
      * Clears the scan history table (keeps all other data intact) - also clears
      * scan_score_history, since leaving it behind would resurface pre-clear
      * scores as "prior scans" the next time a previously-scanned product is

@@ -31,6 +31,7 @@ import fr.scanneat.data.repository.health.ACTIVITY_SUB_TYPES
 import fr.scanneat.data.repository.health.ActivityEntry
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.ActivityType
+import fr.scanneat.presentation.reminders.ActivityReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -268,6 +269,7 @@ fun ActivityScreen(
                 }
             }
 
+            item { ActivityReminderCard() }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }

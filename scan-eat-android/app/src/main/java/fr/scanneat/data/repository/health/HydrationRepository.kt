@@ -52,6 +52,20 @@ class HydrationRepository @Inject constructor(
     private val KEY_PREFIX = "hyd_"
     private val PRUNE_KEEP_DAYS = 90L
 
+    // Weight already has an explicit user-set goalWeightKg driving its own goal
+    // line - Hydration's goal was purely formula-derived (sex/activity/health
+    // conditions) with no way to override it, e.g. for a doctor-recommended
+    // target that doesn't match the EFSA formula.
+    private val KEY_CUSTOM_GOAL = intPreferencesKey("hyd_custom_goal_ml")
+
+    /** User-set override for the formula-derived goal, if any. Null means "use the formula". */
+    val customGoalMl: Flow<Int?> = storeData.map { it[KEY_CUSTOM_GOAL] }.distinctUntilChanged()
+
+    /** Sets (or clears, when [ml] is null) the custom goal override. */
+    suspend fun setCustomGoalMl(ml: Int?) {
+        store.edit { prefs -> if (ml == null) prefs.remove(KEY_CUSTOM_GOAL) else prefs[KEY_CUSTOM_GOAL] = ml.coerceAtLeast(1) }
+    }
+
     /**
      * Drop keys older than [PRUNE_KEEP_DAYS] — every day of use otherwise adds a
      * permanent "hyd_<date>" key that's never removed, and DataStore loads the

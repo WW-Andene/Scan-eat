@@ -444,6 +444,33 @@ fun SettingsScreen(
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.settings_biolism_csv_export_button), color = OnBackground)
                 }
+                // Weight/Activity/Hydration/Medication/Fasting previously had no CSV export at
+                // all (only Diary and Biolism did) - grouped behind one overflow menu rather
+                // than 5 more stacked full-width buttons, same MoreVert/DropdownMenu pattern
+                // already used to consolidate a long action list elsewhere (RecipeCard etc.).
+                var moreCsvExpanded by remember { mutableStateOf(false) }
+                Box {
+                    ScanEatOutlinedButton(
+                        onClick = { moreCsvExpanded = true },
+                        enabled = backupState.value !is BackupUiState.Working,
+                    ) {
+                        Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
+                    }
+                    DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
+                            onClick = { moreCsvExpanded = false; viewModel.prepareWeightCsvExport() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },
+                            onClick = { moreCsvExpanded = false; viewModel.prepareActivityCsvExport() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_hydration_csv_export_button)) },
+                            onClick = { moreCsvExpanded = false; viewModel.prepareHydrationCsvExport() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_medication_csv_export_button)) },
+                            onClick = { moreCsvExpanded = false; viewModel.prepareMedicationCsvExport() })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_fasting_csv_export_button)) },
+                            onClick = { moreCsvExpanded = false; viewModel.prepareFastingCsvExport() })
+                    }
+                }
                 // Data stats — show what's stored so the user knows what they'd export or reset
                 val (scanCount, diaryCount) = dataStats.value
                 if (scanCount > 0 || diaryCount > 0) {

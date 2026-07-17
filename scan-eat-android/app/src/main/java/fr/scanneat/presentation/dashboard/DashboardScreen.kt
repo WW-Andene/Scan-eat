@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.domain.engine.dashboard.CrossTrackerInsight
+import fr.scanneat.domain.engine.dashboard.InsightAgreement
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.dashboard.cards.*
 import fr.scanneat.presentation.result.LogSheet
@@ -74,6 +76,7 @@ fun DashboardScreen(
     val state    = viewModel.state.collectAsStateWithLifecycle()
     val s        = state.value
     val language = viewModel.language.collectAsStateWithLifecycle()
+    val otherTrackers = viewModel.otherTrackers.collectAsStateWithLifecycle()
     val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -122,6 +125,11 @@ fun DashboardScreen(
             // ---- Today's macros as rings ----
             item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }
 
+            // ---- Water/Fasting/Treatment glance row - Dashboard previously showed
+            // nutrition + weight only, with zero signal for the other three trackers
+            // Journal already tracks (see DashboardViewModel.otherTrackers) ----
+            item { OtherTrackersCard(otherTrackers.value) }
+
             // ---- Micronutrient progress (fiber, iron, calcium, vitD, B12) ----
             item { MicronutrientCard(totals = s.todayTotals, targets = s.targets) }
 
@@ -141,6 +149,15 @@ fun DashboardScreen(
             // ---- Week-over-week delta ----
             s.weekDelta?.let { delta ->
                 if (delta.kcal != 0.0) item { WeekDeltaCard(delta = delta) }
+            }
+
+            // ---- Cross-tracker insight: does this week's intake actually agree
+            // with the real weight-trend direction? INCONCLUSIVE means neither
+            // signal is strong enough yet to say anything useful. ----
+            (s.crossInsight as? CrossTrackerInsight.WeightVsIntake)?.let { insight ->
+                if (insight.agreement != InsightAgreement.INCONCLUSIVE) {
+                    item { WeeklyInsightCard(insight) }
+                }
             }
 
             // ---- Weight summary ----

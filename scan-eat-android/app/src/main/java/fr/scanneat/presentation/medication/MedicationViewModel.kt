@@ -143,6 +143,36 @@ class MedicationViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    /** One day's adherence — pct is null when no active medication had been added yet by that date (excluded, not counted as a miss). */
+    data class DayAdherence(val date: LocalDate, val pct: Int?)
+
+    // adherenceStreak above only reports the current unbroken run and resets
+    // to 0 on the very first miss - Weight/Activity/Hydration all have a 7-day
+    // chart showing the actual week, not just a single streak counter, and
+    // Medication had none. Reuses the same createdAt/relevantMeds guard as
+    // adherenceStreak (see its own comment) so a medication added mid-week
+    // doesn't count the days before it existed as missed doses.
+    val weeklyAdherence: StateFlow<List<DayAdherence>> = medications
+        .map { allMeds ->
+            val activeMeds = allMeds.filter { it.active }
+            val today = LocalDate.now()
+            val logs = repo.getLogRange(today.minusDays(6), today)
+            val logsByDate = logs.groupBy { it.date }
+            (6 downTo 0).map { i ->
+                val date = today.minusDays(i.toLong())
+                val relevantMeds = activeMeds.filter { med ->
+                    Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate() <= date
+                }
+                if (relevantMeds.isEmpty()) {
+                    DayAdherence(date, null)
+                } else {
+                    val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
+                    DayAdherence(date, relevantMeds.count { it.id in takenIds } * 100 / relevantMeds.size)
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun markTaken(medication: Medication) {
         viewModelScope.launch { repo.logTaken(medication) }
     }

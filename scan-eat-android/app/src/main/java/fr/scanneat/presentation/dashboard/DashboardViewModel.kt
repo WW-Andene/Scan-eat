@@ -8,6 +8,11 @@ import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.data.repository.health.ActivityRepository
+import fr.scanneat.data.repository.health.FastingRepository
+import fr.scanneat.data.repository.health.FastingState
+import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
+import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
@@ -70,12 +75,25 @@ data class DashboardUiState(
     val recentScans: List<ScanResult> = emptyList(),
     /** Today's diary entries - kept around purely to derive [neverLoggedScans] below. */
     val todayEntries: List<DiaryEntry> = emptyList(),
+    // Cross-references this week's calorie deficit/surplus against the real
+    // weight-trend direction - see weeklyCrossTrackerInsight()'s own doc
+    // comment for why this didn't exist anywhere before.
+    val crossInsight: CrossTrackerInsight = CrossTrackerInsight.InsufficientData,
     // DashboardViewModel already injected both ConsumptionRepository and
     // ScanRepository but never cross-referenced them - the app's core loop
     // (scan -> decide -> log) had no follow-through nudge, so a user who scans
     // several products at the store and only logs some of them got no signal
     // that the rest were never actually recorded to their diary.
     val neverLoggedScans: List<ScanResult> = emptyList(),
+)
+
+/** Today-only glance snapshot of the trackers Dashboard otherwise never surfaces - see [DashboardViewModel.otherTrackers]. */
+data class OtherTrackersSnapshot(
+    val hydrationMl: Int = 0,
+    val hydrationGoalMl: Int = HYD_DEFAULT_GOAL_ML,
+    val fastingActive: FastingState? = null,
+    val medsTakenCount: Int = 0,
+    val medsActiveCount: Int = 0,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -88,6 +106,9 @@ class DashboardViewModel @Inject constructor(
     private val biolismRepo: BiolismRepository,
     private val activityRepo: ActivityRepository,
     private val customFoodRepo: CustomFoodRepository,
+    private val hydrationRepo: HydrationRepository,
+    private val fastingRepo: FastingRepository,
+    private val medicationRepo: MedicationRepository,
 ) : ViewModel() {
 
     // Combine 4 flows with the type-safe 4-parameter lambda (not the array form).
@@ -155,6 +176,18 @@ class DashboardViewModel @Inject constructor(
                 // happened to be true today.
                 val chronic = if (targets != null) chronicNutrientGaps(allEntries, targets, foodDb) else emptyList()
 
+                // Weekly active minutes for the cross-tracker insight below - a
+                // fresh range query (not the single-day observeByDate used elsewhere
+                // on Dashboard) since no 7-day activity window was already loaded here.
+                val weeklyActiveMinutes = activityRepo.getRange(LocalDate.now().minusDays(6), LocalDate.now()).sumOf { it.minutes }
+                val crossInsight = weeklyCrossTrackerInsight(
+                    weeklyAvgKcal         = thisWeek.avg.kcal,
+                    kcalTarget            = targets?.kcal ?: 0.0,
+                    daysLogged            = thisWeek.daysLogged,
+                    weightTrendKgPerWeek  = wSummary?.trendKgPerWeek,
+                    weeklyActiveMinutes   = weeklyActiveMinutes,
+                )
+
                 val calorieBalance = targets?.kcal?.let {
                     CalorieBalance(
                         kcalIn          = today.totals.energyKcal,
@@ -178,6 +211,7 @@ class DashboardViewModel @Inject constructor(
                     gapSuggestions = gaps,
                     chronicGaps    = chronic,
                     todayEntries   = today.entries,
+                    crossInsight   = crossInsight,
                 ))
             }
         }
@@ -210,6 +244,30 @@ class DashboardViewModel @Inject constructor(
     // labels must follow it explicitly, same as DiaryScreen/WeightScreen/MealPlanScreen.
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // Dashboard previously showed nutrition + weight only - a user relying on it as
+    // their single daily view had no idea they were behind on water, mid-fast, or had
+    // an unlogged dose due, despite all three already being tracked elsewhere (behind
+    // Journal's Water/Fasting/Treatment tabs). Kept as its own StateFlow rather than
+    // folded into the heavy combine above - these are all today-only cheap reads with
+    // no dependency on the 30-day window that combine recomputes on every diary edit.
+    val otherTrackers: StateFlow<OtherTrackersSnapshot> = combine(
+        hydrationRepo.observe(LocalDate.now()),
+        fastingRepo.state,
+        medicationRepo.observeAll(),
+        medicationRepo.observeLogByDate(LocalDate.now()),
+        prefs.profile,
+    ) { hydrationMl, fasting, meds, todayLogs, profile ->
+        val activeMeds = meds.filter { it.active }
+        val takenIds = todayLogs.map { it.medicationId }.toSet()
+        OtherTrackersSnapshot(
+            hydrationMl     = hydrationMl,
+            hydrationGoalMl = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions),
+            fastingActive   = fasting?.takeIf { it.isActive },
+            medsTakenCount  = activeMeds.count { it.id in takenIds },
+            medsActiveCount = activeMeds.size,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OtherTrackersSnapshot())
 
     // ── Gap-closer suggestions: previously a dead end ────────────────────────
     // GapCloserCard rendered suggestion chips (e.g. "Lentilles, 80 g") with no

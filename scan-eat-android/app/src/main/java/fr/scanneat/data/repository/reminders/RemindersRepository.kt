@@ -40,6 +40,10 @@ data class ReminderSettings(
     val hydrationCustomOn: Boolean = false, val hydrationCustomTime: String = "12:00",
     val weightOn: Boolean = false, val weightThresholdDays: Int = 1,
     val weightCustomOn: Boolean = false, val weightCustomTime: String = "12:00",
+    // Weight/Hydration/Fasting/Medication all have a "you've gone quiet" or
+    // target-reached nudge - Activité was the one tracker with a visible streak
+    // (ActivityViewModel.streak) and zero reminder to protect it.
+    val activityOn: Boolean = false, val activityThresholdDays: Int = 3,
     val customReminders: List<CustomReminder> = emptyList(),
     /** New: daily 21:00 digest notification summarising today's progress. */
     val dailyDigestOn: Boolean = false,
@@ -76,6 +80,8 @@ class RemindersRepository @Inject constructor(
         val K_WEIGHT_THRESHOLD = intPreferencesKey("rem_weight_threshold_days")
         val K_WEIGHT_CUSTOM_ON   = booleanPreferencesKey("rem_weight_custom_on")
         val K_WEIGHT_CUSTOM_TIME = stringPreferencesKey("rem_weight_custom_time")
+        val K_ACTIVITY_ON        = booleanPreferencesKey("rem_activity_on")
+        val K_ACTIVITY_THRESHOLD = intPreferencesKey("rem_activity_threshold_days")
 
         val K_BREAKFAST_LABEL = stringPreferencesKey("rem_breakfast_label")
         val K_SNACK_LABEL     = stringPreferencesKey("rem_snack_label")
@@ -91,6 +97,7 @@ class RemindersRepository @Inject constructor(
         val K_LAST_HYDRATION_CUSTOM_DATE = stringPreferencesKey("rem_last_hydration_custom_date")
         val K_LAST_WEIGHT_NUDGE_DATE = stringPreferencesKey("rem_last_weight_nudge_date")
         val K_LAST_WEIGHT_CUSTOM_DATE     = stringPreferencesKey("rem_last_weight_custom_date")
+        val K_LAST_ACTIVITY_NUDGE_DATE = stringPreferencesKey("rem_last_activity_nudge_date")
         // Hydration/weight/meals all have a dedicated reminder card wired through
         // this repository + ReminderWorker; an active fast reaching its target
         // hour previously had none at all, despite the ring on FastingScreen
@@ -117,6 +124,8 @@ class RemindersRepository @Inject constructor(
             weightThresholdDays = p[K_WEIGHT_THRESHOLD] ?: 1,
             weightCustomOn   = p[K_WEIGHT_CUSTOM_ON] ?: false,
             weightCustomTime = p[K_WEIGHT_CUSTOM_TIME] ?: "12:00",
+            activityOn        = p[K_ACTIVITY_ON] ?: false,
+            activityThresholdDays = p[K_ACTIVITY_THRESHOLD] ?: 3,
             customReminders = customs,
             dailyDigestOn   = p[K_DAILY_DIGEST_ON] ?: false,
         )
@@ -184,6 +193,7 @@ class RemindersRepository @Inject constructor(
         if (on) markStaleIfPast(it, time, K_LAST_HYDRATION_CUSTOM_DATE)
     }
     suspend fun setWeight(on: Boolean, thresholdDays: Int)    = store.edit { it[K_WEIGHT_ON] = on; it[K_WEIGHT_THRESHOLD] = thresholdDays }
+    suspend fun setActivity(on: Boolean, thresholdDays: Int)  = store.edit { it[K_ACTIVITY_ON] = on; it[K_ACTIVITY_THRESHOLD] = thresholdDays }
     suspend fun setDailyDigest(on: Boolean) = store.edit { it[K_DAILY_DIGEST_ON] = on }
     suspend fun setWeightCustom(on: Boolean, time: String) = store.edit {
         it[K_WEIGHT_CUSTOM_ON] = on; it[K_WEIGHT_CUSTOM_TIME] = time
@@ -207,6 +217,7 @@ class RemindersRepository @Inject constructor(
         p[K_HYDRATION_CUSTOM_ON] = settings.hydrationCustomOn; p[K_HYDRATION_CUSTOM_TIME] = settings.hydrationCustomTime
         p[K_WEIGHT_ON] = settings.weightOn; p[K_WEIGHT_THRESHOLD] = settings.weightThresholdDays
         p[K_WEIGHT_CUSTOM_ON] = settings.weightCustomOn; p[K_WEIGHT_CUSTOM_TIME] = settings.weightCustomTime
+        p[K_ACTIVITY_ON] = settings.activityOn; p[K_ACTIVITY_THRESHOLD] = settings.activityThresholdDays
         p[K_CUSTOM_REMINDERS] = Json.encodeToString(settings.customReminders)
     }
 

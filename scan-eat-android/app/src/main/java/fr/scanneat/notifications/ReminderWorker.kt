@@ -9,6 +9,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import fr.scanneat.R
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.MedicationRepository
@@ -27,6 +28,7 @@ class ReminderWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val remindersRepo: RemindersRepository,
     private val weightRepo: WeightRepository,
+    private val activityRepo: ActivityRepository,
     private val fastingRepo: FastingRepository,
     private val medicationRepo: MedicationRepository,
     private val consumptionRepo: ConsumptionRepository,
@@ -81,6 +83,16 @@ class ReminderWorker @AssistedInject constructor(
         }
         checkMeal(s.weightCustomOn, s.weightCustomTime, RemindersRepository.K_LAST_WEIGHT_CUSTOM_DATE, now, 108,
             localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body), NotifChannel.WEIGHT)
+
+        if (s.activityOn) {
+            val lastDate = activityRepo.getRange(LocalDate.now().minusDays(90), LocalDate.now()).maxByOrNull { it.date }?.date
+            val daysSince = lastDate?.let { ChronoUnit.DAYS.between(it, LocalDate.now()) } ?: Long.MAX_VALUE
+            if (daysSince >= s.activityThresholdDays && !remindersRepo.wasFiredToday(RemindersRepository.K_LAST_ACTIVITY_NUDGE_DATE)) {
+                NotificationHelper.show(applicationContext, 111,
+                    localizedString(lang, R.string.reminders_notif_activity_title), localizedString(lang, R.string.reminders_notif_activity_body), NotifChannel.ACTIVITY)
+                remindersRepo.markFiredToday(RemindersRepository.K_LAST_ACTIVITY_NUDGE_DATE)
+            }
+        }
 
         s.customReminders.forEach { cr ->
             checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label, NotifChannel.CUSTOM)

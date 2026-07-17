@@ -1,10 +1,12 @@
 package fr.scanneat.presentation.hydration
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Surface
 import androidx.compose.material.icons.Icons
@@ -17,7 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -58,6 +63,8 @@ fun HydrationScreen(
     val suggestedGoal   = viewModel.suggestedGoalMl.collectAsStateWithLifecycle()
     val weeklyIntake    = viewModel.weeklyIntake.collectAsStateWithLifecycle()
     val weeklyGoalMetDays = viewModel.weeklyGoalMetDays.collectAsStateWithLifecycle()
+    val customGoal      = viewModel.customGoalMl.collectAsStateWithLifecycle()
+    var showGoalEditor by remember { mutableStateOf(false) }
     val glasses     = intake.value / HYD_GLASS_ML
     val goalGlasses = goal.value / HYD_GLASS_ML
     val pct         = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
@@ -144,9 +151,17 @@ fun HydrationScreen(
                     trackColor = SurfaceVariant,
                     strokeWidth = 14.dp,
                 )
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                val editGoalCd = stringResource(R.string.hydration_edit_goal_title)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable { showGoalEditor = true }
+                        .semantics(mergeDescendants = true) { contentDescription = editGoalCd },
+                ) {
                     Text("${intake.value}", style = MaterialTheme.typography.headlineLarge, color = semanticBlue(), fontWeight = FontWeight.Bold)
-                    Text(stringResource(R.string.hydration_goal_ml, goal.value), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(stringResource(R.string.hydration_goal_ml, goal.value), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                        Icon(Icons.Default.Edit, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(12.dp))
+                    }
                     Text(stringResource(R.string.hydration_glasses_count, glasses, goalGlasses), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                 }
             }
@@ -288,5 +303,43 @@ fun HydrationScreen(
             },
             containerColor = Background,
         ) { padding -> content(padding) }
+    }
+
+    // Goal was previously purely formula-derived (sex/activity/health conditions)
+    // with no way to override it - e.g. a doctor-recommended target that doesn't
+    // match the EFSA formula. Weight already has this exact capability via its
+    // own explicit goalWeightKg profile field.
+    if (showGoalEditor) {
+        var goalText by remember { mutableStateOf((customGoal.value ?: goal.value).toString()) }
+        AlertDialog(
+            onDismissRequest = { showGoalEditor = false },
+            containerColor = SurfaceVariant,
+            title = { Text(stringResource(R.string.hydration_edit_goal_title), color = OnBackground) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    OutlinedTextField(
+                        value = goalText,
+                        onValueChange = { goalText = it.filter(Char::isDigit) },
+                        label = { Text(stringResource(R.string.hydration_goal_ml_hint)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                    )
+                    if (customGoal.value != null) {
+                        TextButton(onClick = { viewModel.setCustomGoal(null); showGoalEditor = false }) {
+                            Text(stringResource(R.string.hydration_reset_goal), color = AccentCoral)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    goalText.toIntOrNull()?.takeIf { it > 0 }?.let { viewModel.setCustomGoal(it) }
+                    showGoalEditor = false
+                }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showGoalEditor = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
+            },
+        )
     }
 }

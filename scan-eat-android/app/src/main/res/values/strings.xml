@@ -61,6 +61,9 @@
     <string name="hydration_glass_ml">%1$d mL</string>
     <string name="hydration_per_glass_label">par verre</string>
     <string name="hydration_goal_footer">Objectif : %1$d mL/j (2,5 L homme / 2 L femme + 0,5 L si actif — EFSA)</string>
+    <string name="hydration_edit_goal_title">Modifier l\'objectif</string>
+    <string name="hydration_goal_ml_hint">Objectif (mL)</string>
+    <string name="hydration_reset_goal">Revenir au calcul automatique</string>
     <string name="hydration_calendar_day_intake">%1$s : %2$d mL consommés</string>
     <string name="hydration_calendar_day_logged">%1$s : journée hydratée</string>
     <string name="hydration_calendar_day_empty">%1$s : aucune donnée</string>
@@ -834,8 +837,8 @@
     <string name="onboarding_continue_button">Continuer</string>
     <string name="onboarding_api_skip">Passer, scanner sans IA pour l\'instant</string>
     <string name="onboarding_profile_title">Personnalisation</string>
-    <string name="onboarding_profile_body">Complétez votre profil (sexe, âge, poids, régime, allergènes) pour obtenir un score personnel adapté à vos besoins nutritionnels. Vous pouvez le faire plus tard dans l\'onglet Profil.</string>
-    <string name="onboarding_profile_cta">Configurer mon profil maintenant</string>
+    <string name="onboarding_profile_body">Ces quelques infos permettent un score et des objectifs personnalisés. Régime, allergènes et autres détails se règlent plus tard dans l\'onglet Profil.</string>
+    <string name="onboarding_profile_cta">Plus d\'options (régime, allergènes…)</string>
     <string name="onboarding_profile_skip">Passer, configurer plus tard</string>
     <string name="onboarding_domains_title">Ce que vous suivrez</string>
     <string name="onboarding_domain_scan">Scan</string>
@@ -885,6 +888,7 @@
     <string name="medication_group_ssri_snri">ISRS/IRSN</string>
     <string name="medication_group_maoi">IMAO</string>
     <string name="medication_today_summary_title">Prise du jour</string>
+    <string name="medication_7day_chart_title">Adhérence — 7 derniers jours</string>
     <string name="activity_calendar_day_logged">%1$s : activité enregistrée</string>
     <string name="activity_calendar_day_empty">%1$s : aucune activité</string>
     <string name="activity_deleted_message">Activité supprimée</string>
@@ -1006,6 +1010,12 @@
     <string name="settings_backup_import_confirm_button">Restaurer</string>
     <string name="settings_csv_export_button">Exporter journal (CSV)</string>
     <string name="settings_biolism_csv_export_button">Exporter séances Biolism (CSV)</string>
+    <string name="settings_more_csv_export_button">Autres exports (CSV)</string>
+    <string name="settings_weight_csv_export_button">Poids (CSV)</string>
+    <string name="settings_activity_csv_export_button">Activité (CSV)</string>
+    <string name="settings_hydration_csv_export_button">Hydratation (CSV)</string>
+    <string name="settings_medication_csv_export_button">Traitement (CSV)</string>
+    <string name="settings_fasting_csv_export_button">Jeûne (CSV)</string>
     <string name="settings_section_reset">Réinitialisation</string>
     <string name="settings_reset_hint">Effacer sélectivement certaines données de l\'application.</string>
     <string name="settings_reset_button">Options de réinitialisation</string>
@@ -1070,6 +1080,19 @@
     <string name="dashboard_gap_logged">%1$s ajouté au journal</string>
     <string name="dashboard_chronic_gap_title">Écarts récurrents</string>
     <string name="dashboard_chronic_gap_entry">%1$s : bas %2$d/%3$d jours (%4$d %% de l\'objectif en moyenne)</string>
+    <string name="dashboard_insight_title">Cohérence hebdo</string>
+    <string name="dashboard_insight_deficit_losing">Cette semaine : déficit moyen de %1$d kcal/j, et le poids baisse (%2$+.1f kg/sem) — cohérent.</string>
+    <string name="dashboard_insight_surplus_gaining">Cette semaine : surplus moyen de %1$d kcal/j, et le poids monte (%2$+.1f kg/sem) — cohérent.</string>
+    <string name="dashboard_insight_deficit_not_losing">Cette semaine : déficit moyen de %1$d kcal/j, mais le poids ne baisse pas (%2$+.1f kg/sem) — à surveiller.</string>
+    <string name="dashboard_insight_surplus_not_gaining">Cette semaine : surplus moyen de %1$d kcal/j, mais le poids ne monte pas (%2$+.1f kg/sem) — à surveiller.</string>
+    <string name="dashboard_insight_active_minutes">%1$d min actives cette semaine</string>
+    <string name="dashboard_other_trackers_hydration_value">%1$d %%</string>
+    <string name="dashboard_other_trackers_hydration_label">Eau</string>
+    <string name="dashboard_other_trackers_fasting_active_value">%1$dh</string>
+    <string name="dashboard_other_trackers_fasting_idle_value">—</string>
+    <string name="dashboard_other_trackers_fasting_label">Jeûne</string>
+    <string name="dashboard_other_trackers_meds_value">%1$d/%2$d</string>
+    <string name="dashboard_other_trackers_meds_label">Traitement</string>
     <string name="dashboard_calorie_balance_title">Bilan calorique</string>
     <string name="dashboard_calorie_in_out">%1$d / %2$d kcal</string>
     <string name="dashboard_calorie_exercise">+%1$d kcal brûlées (Activité)</string>
@@ -1215,6 +1238,7 @@
     <string name="notif_channel_weight">Rappels pesée</string>
     <string name="notif_channel_medication">Rappels médicaments</string>
     <string name="notif_channel_fasting">Rappels jeûne</string>
+    <string name="notif_channel_activity">Rappels activité</string>
     <string name="notif_channel_summary">Bilan quotidien</string>
     <string name="notif_channel_custom">Rappels personnalisés</string>
     <string name="notif_summary_title">Bilan du jour</string>
@@ -1239,12 +1263,15 @@
     <string name="reminders_notif_fasting_body">Tu as atteint ton objectif de jeûne — bravo !</string>
     <string name="reminders_notif_medication_title">Traitement</string>
     <string name="reminders_notif_medication_body">C\'est l\'heure de prendre : %1$s</string>
+    <string name="reminders_notif_activity_title">Activité</string>
+    <string name="reminders_notif_activity_body">Ça fait un moment sans séance enregistrée — bouge un peu !</string>
     <string name="reminders_breakfast">Petit-déjeuner</string>
     <string name="reminders_snack">Collation</string>
     <string name="reminders_lunch">Déjeuner</string>
     <string name="reminders_dinner">Dîner</string>
     <string name="reminders_hydration">Hydratation</string>
     <string name="reminders_weight">Pesée</string>
+    <string name="reminders_activity">Activité</string>
     <string name="reminders_test_body">Ceci est un rappel de test.</string>
     <string name="reminders_cd_test">Tester le rappel : %1$s</string>
     <string name="reminders_every_n_hours">%1$dh</string>
@@ -1256,6 +1283,7 @@
     <string name="reminders_weight_preset_week">1 semaine</string>
     <string name="reminders_weight_preset_month">1 mois</string>
     <string name="reminders_weight_preset_year">1 an</string>
+    <string name="reminders_activity_preset_n_days">%1$d jours</string>
 
     <!-- ── Unified Calendar screen ──────────────────────────────────────── -->
     <string name="calendar_title">Calendrier</string>

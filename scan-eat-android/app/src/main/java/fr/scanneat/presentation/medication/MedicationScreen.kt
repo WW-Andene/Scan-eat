@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.presentation.ui.theme.*
+import java.time.LocalDate
 
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar - used when
@@ -42,6 +43,7 @@ fun MedicationScreen(
     val todayTaken           = viewModel.todayTaken.collectAsStateWithLifecycle()
     val interactionWarnings  = viewModel.interactionWarnings.collectAsStateWithLifecycle()
     val adherenceStreak      = viewModel.adherenceStreak.collectAsStateWithLifecycle()
+    val weeklyAdherence      = viewModel.weeklyAdherence.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<Medication?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -149,6 +151,46 @@ fun MedicationScreen(
                                             )
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Weekly adherence chart - adherenceStreak above only reports the current
+            // unbroken run, which resets to 0 on the very first miss. Weight/Activity/
+            // Hydration all have a 7-day chart showing the actual week's shape; this was
+            // the one tracker where a single bad day made the week look identical to
+            // one with zero activity at all (both just "streak: 0").
+            if (medications.value.any { it.active }) {
+                item {
+                    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                            Text(stringResource(R.string.medication_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
+                                weeklyAdherence.value.forEach { day ->
+                                    val frac = (day.pct ?: 0) / 100f
+                                    val barColor = when {
+                                        day.pct == null -> OnSurface.copy(0.12f)
+                                        day.pct >= 100   -> Teal
+                                        day.pct > 0      -> semanticAmber()
+                                        else             -> semanticRed()
+                                    }
+                                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
+                                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.04f)).background(barColor, RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)))
+                                    }
+                                }
+                            }
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                weeklyAdherence.value.forEach { day ->
+                                    Text(
+                                        day.date.dayOfWeek.name.take(1),
+                                        modifier = Modifier.weight(1f),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                                        color = OnSurface.copy(if (day.date == LocalDate.now()) 0.8f else 0.4f),
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    )
                                 }
                             }
                         }

@@ -22,6 +22,7 @@ enum class NotifChannel(val id: String, val nameRes: Int) {
     WEIGHT     ("reminders_weight",     R.string.notif_channel_weight),
     MEDICATION ("reminders_medication", R.string.notif_channel_medication),
     FASTING    ("reminders_fasting",    R.string.notif_channel_fasting),
+    ACTIVITY   ("reminders_activity",   R.string.notif_channel_activity),
     SUMMARY    ("daily_summary",        R.string.notif_channel_summary),
     CUSTOM     ("reminders_custom",     R.string.notif_channel_custom),
 }

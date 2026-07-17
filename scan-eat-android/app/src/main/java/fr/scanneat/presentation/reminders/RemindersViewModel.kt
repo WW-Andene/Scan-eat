@@ -26,6 +26,7 @@ class RemindersViewModel @Inject constructor(
     fun setHydration(on: Boolean, intervalHours: Int) = viewModelScope.launch { repo.setHydration(on, intervalHours) }
     fun setHydrationCustom(on: Boolean, time: String) = viewModelScope.launch { repo.setHydrationCustom(on, time) }
     fun setWeight(on: Boolean, thresholdDays: Int)    = viewModelScope.launch { repo.setWeight(on, thresholdDays) }
+    fun setActivity(on: Boolean, thresholdDays: Int)  = viewModelScope.launch { repo.setActivity(on, thresholdDays) }
     fun setWeightCustom(on: Boolean, time: String)    = viewModelScope.launch { repo.setWeightCustom(on, time) }
 
     fun setBreakfastLabel(label: String) = viewModelScope.launch { repo.setBreakfastLabel(label) }
