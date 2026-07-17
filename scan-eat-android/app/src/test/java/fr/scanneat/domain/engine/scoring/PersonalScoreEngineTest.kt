@@ -378,6 +378,124 @@ class PersonalScoreEngineTest {
         assertTrue("All new BMI signals here should be penalties, not bonuses", bmiAdjustments.all { it.points < 0 })
     }
 
+    // ---- computePersonalScore: sugar-sweetened beverages (SSB) ----
+    //
+    // Regression coverage for a second reported gap: soda was never flagged by
+    // any condition/BMI check (a regular cola is ~10.6g sugar/100g, under every
+    // flat/category "major" bar those checks used), and a regular vs zero-sugar
+    // variant were indistinguishable to the personalization layer as a result -
+    // both "passed" since neither crossed 15g. isSugarSweetenedBeverage fixes
+    // this by reusing checkVeto's own already-established SSB definition.
+
+    private fun regularSoda() = Product(
+        name = "Soda cola", category = ProductCategory.BEVERAGE_SOFT, novaClass = NovaClass.ULTRA_PROCESSED,
+        ingredients = listOf(Ingredient(name = "eau gazéifiée", category = IngredientCategory.FOOD), Ingredient(name = "sucre", category = IngredientCategory.FOOD)),
+        nutrition = NutritionPer100g(
+            energyKcal = 42.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 10.6,
+            sugarsG = 10.6, fiberG = 0.0, proteinG = 0.0, saltG = 0.0,
+        ),
+    )
+
+    private fun zeroSoda() = Product(
+        name = "Soda cola zero", category = ProductCategory.BEVERAGE_SOFT, novaClass = NovaClass.ULTRA_PROCESSED,
+        ingredients = listOf(
+            Ingredient(name = "eau gazéifiée", category = IngredientCategory.FOOD),
+            Ingredient(name = "édulcorant : aspartame", eNumber = "E951", category = IngredientCategory.ADDITIVE),
+        ),
+        nutrition = NutritionPer100g(
+            energyKcal = 1.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 0.1,
+            sugarsG = 0.1, fiberG = 0.0, proteinG = 0.0, saltG = 0.0,
+        ),
+    )
+
+    @Test
+    fun `Regular soda gets a diabetes SSB penalty a flat 15g bar would have missed`() {
+        val soda = regularSoda()
+        val audit = scoreProduct(soda)
+        val result = computePersonalScore(audit, soda, maleProfile().copy(healthConditions = setOf("diabetes")), lang = "en")
+        assertTrue(result.adjustments.any { it.reason.contains("Sugar-sweetened beverage", ignoreCase = true) && it.category == AdjustmentCategory.CONDITION })
+    }
+
+    @Test
+    fun `Zero-sugar soda does not get the SSB penalty - regular and zero are now distinguishable`() {
+        val soda = zeroSoda()
+        val audit = scoreProduct(soda)
+        val diabetic = maleProfile().copy(healthConditions = setOf("diabetes"))
+        val result = computePersonalScore(audit, soda, diabetic, lang = "en")
+        assertTrue("Zero-sugar soda should not trigger the SSB-specific diabetes penalty",
+            result.adjustments.none { it.reason.contains("Sugar-sweetened beverage", ignoreCase = true) })
+    }
+
+    @Test
+    fun `Regular soda gets the SSB penalty amplified for an obese BMI`() {
+        val soda = regularSoda()
+        val audit = scoreProduct(soda)
+        val result = computePersonalScore(audit, soda, obeseProfile(), lang = "en")
+        assertTrue(result.adjustments.any { it.reason.contains("Sugar-sweetened beverage", ignoreCase = true) && it.category == AdjustmentCategory.BMI })
+    }
+
+    @Test
+    fun `Regular soda gets the under-18 sugar penalty a flat 15g bar would have missed`() {
+        val soda = regularSoda()
+        val audit = scoreProduct(soda)
+        val minor = maleProfile().copy(ageYears = 15)
+        val result = computePersonalScore(audit, soda, minor, lang = "en")
+        assertTrue(result.adjustments.any { it.category == AdjustmentCategory.AGE && it.reason.contains("under-18", ignoreCase = true) })
+    }
+
+    @Test
+    fun `Regular soda gets the depression sugar penalty a flat 15g bar would have missed`() {
+        val soda = regularSoda()
+        val audit = scoreProduct(soda)
+        val result = computePersonalScore(audit, soda, maleProfile().copy(healthConditions = setOf("depression")), lang = "en")
+        assertTrue(result.adjustments.any { it.category == AdjustmentCategory.CONDITION && it.reason.contains("Knüppel", ignoreCase = true) })
+    }
+
+    @Test
+    fun `A non-SSB beverage like water is unaffected by the SSB checks`() {
+        val water = Product(
+            name = "Eau minérale", category = ProductCategory.BEVERAGE_WATER, novaClass = NovaClass.UNPROCESSED,
+            ingredients = listOf(Ingredient(name = "eau minérale naturelle", isWholeFood = true, category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(energyKcal = 0.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 0.0, sugarsG = 0.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.0),
+        )
+        val audit = scoreProduct(water)
+        val result = computePersonalScore(audit, water, obeseProfile(), lang = "en")
+        assertTrue(result.adjustments.none { it.reason.contains("Sugar-sweetened beverage", ignoreCase = true) })
+    }
+
+    // ---- computePersonalScore: pregnancy caffeine ----
+    //
+    // Regression coverage for a third gap: ANSES's pregnancy caffeine limit was
+    // already cited in the hint panel but never actually affected the score -
+    // a caffeinated product scored identically to a decaf one for a pregnant
+    // profile.
+
+    private fun pregnantProfile() = femaleProfile().copy(healthConditions = setOf("pregnancy"))
+
+    @Test
+    fun `Caffeinated product gets a pregnancy-specific penalty`() {
+        val cola = Product(
+            name = "Soda cola", category = ProductCategory.BEVERAGE_SOFT, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(Ingredient(name = "eau gazéifiée", category = IngredientCategory.FOOD), Ingredient(name = "caféine", category = IngredientCategory.ADDITIVE)),
+            nutrition = NutritionPer100g(energyKcal = 42.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 10.6, sugarsG = 10.6, fiberG = 0.0, proteinG = 0.0, saltG = 0.0),
+        )
+        val audit = scoreProduct(cola)
+        val result = computePersonalScore(audit, cola, pregnantProfile(), lang = "en")
+        assertTrue(result.adjustments.any { it.category == AdjustmentCategory.CONDITION && it.reason.contains("caffeine", ignoreCase = true) })
+    }
+
+    @Test
+    fun `Decaf product gets no pregnancy caffeine penalty`() {
+        val decaf = Product(
+            name = "Limonade", category = ProductCategory.BEVERAGE_SOFT, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(Ingredient(name = "eau gazéifiée", category = IngredientCategory.FOOD), Ingredient(name = "sucre", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(energyKcal = 42.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 10.6, sugarsG = 10.6, fiberG = 0.0, proteinG = 0.0, saltG = 0.0),
+        )
+        val audit = scoreProduct(decaf)
+        val result = computePersonalScore(audit, decaf, pregnantProfile(), lang = "en")
+        assertTrue(result.adjustments.none { it.reason.contains("caffeine", ignoreCase = true) })
+    }
+
     // ---- personalGrade ----
 
     @Test

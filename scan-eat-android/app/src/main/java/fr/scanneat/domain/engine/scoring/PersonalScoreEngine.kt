@@ -353,14 +353,39 @@ fun computePersonalScore(
     // age/BMI all need them) fixes the false positive; the new refined-carb/
     // energy-density check below fixes the false negative.
     val catThresholds = getThresholds(product.category)
+    // Sugar-sweetened beverages (SSB) need their own, much lower bar - not the
+    // ~15g/100g that would flag a solid snack. Matches checkVeto's own already-
+    // established SSB definition exactly (BEVERAGE_SOFT, sugar>5g, protein<1g,
+    // fiber<1g), so the veto and every condition/BMI check below agree on what
+    // counts as one, instead of the veto silently using a different (and much
+    // stricter) bar than diabetes/age/depression/BMI ever did. Liquid sugar has
+    // a well-established distinctly higher obesity/diabetes-risk profile than
+    // the same sugar in solid food - no fiber, no satiety signal, faster
+    // absorption (WHO Sugars Intake Guideline 2015; Malik et al., Circulation
+    // 2010; Hu FB, Obes Rev 2013) - and a typical can/bottle is drunk in one
+    // sitting at several times a 100g reference amount, so a per-100g figure
+    // that looks moderate (a regular cola is ~10.6g/100g, under every one of
+    // the flat/category "major" bars below) still means a real sugar dose.
+    // Without this, a regular soda and its zero-sugar variant were previously
+    // indistinguishable to every condition/BMI check in this function even
+    // though only one of them actually contains sugar.
+    val isSugarSweetenedBeverage = product.category == ProductCategory.BEVERAGE_SOFT &&
+        product.nutrition.sugarsG > 5.0 && product.nutrition.proteinG < 1.0 && product.nutrition.fiberG < 1.0
     if ("diabetes" in conditions) {
         val sugars = product.nutrition.sugarsG
+        if (isSugarSweetenedBeverage) {
+            adjustments += PersonalAdjustment(
+                points = -5.0,
+                reason = if (lang == "en") "Sugar-sweetened beverage — liquid sugar causes a faster glycemic spike than the same amount in solid food, a particular concern for diabetes (WHO Sugars Intake Guideline 2015)"
+                         else "Boisson sucrée — le sucre liquide provoque un pic glycémique plus rapide que la même quantité dans un aliment solide, une préoccupation particulière en cas de diabète (recommandation OMS sur les sucres, 2015)",
+                category = AdjustmentCategory.CONDITION,
+            )
         // .third/.first = the "major"/"minor" tiers of Quadruple(minor, moderate,
         // major, critical) - for the DEFAULT category these are exactly 15.0/5.0,
         // so this is behavior-identical to the old flat cutoff for any product
         // whose category has no override, and only loosens for categories (e.g.
         // condiments) whose own base-pillar thresholds are already higher.
-        if (sugars >= catThresholds.sugarThresholds.third) {
+        } else if (sugars >= catThresholds.sugarThresholds.third) {
             adjustments += PersonalAdjustment(
                 points = -4.0,
                 reason = if (lang == "en") "High sugar (${sugars} g/100 g) — caution advised for diabetes"
@@ -414,6 +439,25 @@ fun computePersonalScore(
             dietReason = dietReason ?: reason
             adjustments += PersonalAdjustment(0.0, reason, AdjustmentCategory.CONDITION, veto = true)
         }
+        // ANSES's 200mg/day pregnancy caffeine cap was already cited in the hint
+        // panel (ProductHints.kt's containsCaffeineSource) but never actually
+        // affected the *score* for a pregnant profile - a caffeinated soda or
+        // coffee-flavored product scored identically to a decaf one here. Same
+        // ingredient-name heuristic as the hint panel (kept duplicated rather
+        // than shared, same rationale as this file's other small helpers).
+        val containsCaffeineSource = product.ingredients.any { ing ->
+            val norm = normalizeForMatching(ing.name)
+            listOf("cafeine", "guarana", "mate", "yerba mate", "cafe", "the vert", "the noir", "coffee", "tea", "cocoa", "cacao")
+                .any { syn -> norm.contains(normalizeForMatching(syn)) }
+        }
+        if (containsCaffeineSource) {
+            adjustments += PersonalAdjustment(
+                points = -3.0,
+                reason = if (lang == "en") "May contain caffeine — ANSES recommends pregnant women keep total daily caffeine intake under 200 mg"
+                         else "Peut contenir de la caféine — l'ANSES recommande de limiter l'apport total en caféine à 200 mg/jour pendant la grossesse",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
     }
     // WCRF/AICR (World Cancer Research Fund) Cancer Prevention Recommendations:
     // alcohol intake is a well-established risk factor for several cancer types —
@@ -439,9 +483,11 @@ fun computePersonalScore(
         )
     }
     // Knüppel et al., Scientific Reports 2017 (Whitehall II cohort): higher sweet
-    // food/beverage sugar intake prospectively associated with incident common
-    // mental disorder and depression in men over ~5 years follow-up.
-    if ("depression" in conditions && product.nutrition.sugarsG >= 15.0) {
+    // food/*beverage* sugar intake prospectively associated with incident common
+    // mental disorder and depression in men over ~5 years follow-up - sweet
+    // beverages are literally half of what that cohort measured, so the SSB
+    // bar applies here too, not just the flat 15g solid-food bar.
+    if ("depression" in conditions && (isSugarSweetenedBeverage || product.nutrition.sugarsG >= 15.0)) {
         adjustments += PersonalAdjustment(
             points = -2.0,
             reason = if (lang == "en") "High sugar (${product.nutrition.sugarsG} g/100 g) — prospectively associated with depression risk (Knüppel et al., Whitehall II cohort, Sci Rep 2017)"
@@ -482,7 +528,11 @@ fun computePersonalScore(
             )
         }
         if (age < 18) {
-            if (product.nutrition.sugarsG > catThresholds.sugarThresholds.third) {
+            // WHO's stricter sugar guidance for children is largely *about*
+            // sugar-sweetened beverages specifically (dental caries, childhood
+            // obesity) - the SSB bar applies on top of the category-relative one,
+            // same reasoning as the diabetes/depression checks above.
+            if (isSugarSweetenedBeverage || product.nutrition.sugarsG > catThresholds.sugarThresholds.third) {
                 adjustments += PersonalAdjustment(
                     points   = -4.0,
                     reason   = if (lang == "en") "Sugar penalty amplified for under-18 (WHO stricter in children)"
@@ -652,6 +702,14 @@ fun computePersonalScore(
     val bmiValue = bmi(profile)
     val bmiCat   = bmiCategory(bmiValue)
     if (bmiCat == BmiCategory.OVERWEIGHT || bmiCat?.name?.startsWith("OBESE") == true) {
+        if (isSugarSweetenedBeverage) {
+            adjustments += PersonalAdjustment(
+                points   = -5.0,
+                reason   = if (lang == "en")
+                    "Sugar-sweetened beverage — one of the most consistently established dietary risk factors for weight gain and obesity (Malik et al., Circulation 2010; Hu FB, Obes Rev 2013), amplified for BMI $bmiValue"
+                else "Boisson sucrée — l'un des facteurs alimentaires les plus solidement établis de prise de poids et d'obésité (Malik et al., Circulation 2010 ; Hu FB, Obes Rev 2013), amplifié pour IMC $bmiValue",
+                category = AdjustmentCategory.BMI,
+            )
         // .first = the "moderate" tier of Triple(moderate, major, critical) - for
         // the DEFAULT category this is exactly 5.0, so behavior-identical to the
         // old flat cutoff for any uncategorized product, and only loosens for
@@ -659,7 +717,7 @@ fun computePersonalScore(
         // higher - see catThresholds' own comment above for why a flat 5g bar
         // flagged literally every cheese regardless of whether it was unusually
         // fatty for a cheese.
-        if (product.nutrition.saturatedFatG > catThresholds.satFatThresholds.first || product.nutrition.sugarsG > catThresholds.sugarThresholds.third) {
+        } else if (product.nutrition.saturatedFatG > catThresholds.satFatThresholds.first || product.nutrition.sugarsG > catThresholds.sugarThresholds.third) {
             adjustments += PersonalAdjustment(
                 points   = -4.0,
                 reason   = if (lang == "en")
