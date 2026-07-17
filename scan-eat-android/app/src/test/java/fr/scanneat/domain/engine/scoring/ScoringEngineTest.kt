@@ -282,6 +282,30 @@ class ScoringEngineTest {
         assertFalse("No veto expected at exactly 0.1g (threshold is strictly > 0.1)", audit.veto.triggered)
     }
 
+    // Regression: checkVeto() used to return the FIRST triggered condition in
+    // declaration order, not the most restrictive one. A product that's both a
+    // sugar-sweetened beverage (cap 30) and contains industrial trans fat (cap
+    // 40) used to get capped at the looser 40, since the trans-fat check runs
+    // first, even though the SSB cap is stricter. It must pick the tightest
+    // cap regardless of which condition happens to be checked first.
+    @Test fun `Product triggering two veto conditions gets the stricter (lower) cap`() {
+        val audit = scoreProduct(product(
+            name = "Soda trans-gras (test)",
+            category = ProductCategory.BEVERAGE_SOFT,
+            novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(ingredient("huiles partiellement hydrogénées"), ingredient("sucre")),
+            // Trans fat >0.1g triggers the cap-40 veto; sugar>5g + protein<1g +
+            // fiber<1g on a BEVERAGE_SOFT triggers the stricter cap-30 SSB veto.
+            nutrition = nutrition(150.0, 5.0, 1.0, 10.0, 10.0, 0.0, 0.0, 0.0, transFat = 2.5),
+        ))
+        assertTrue("Veto should be triggered", audit.veto.triggered)
+        assertEquals("Most restrictive cap (30, SSB) should win over the looser trans-fat cap (40)",
+            30, audit.veto.cap)
+        assertTrue("Score should respect the stricter 30 cap, got ${audit.score}", audit.score <= 30)
+        assertTrue("Veto reason should mention the beverage (the stricter condition), not trans fat",
+            audit.veto.reason.contains("beverage", ignoreCase = true) || audit.veto.reason.contains("boisson", ignoreCase = true))
+    }
+
     // ============================================================
     // NOVA fresh-produce exception
     // ============================================================
@@ -359,6 +383,63 @@ class ScoringEngineTest {
 
     @Test fun `Unknown additive returns null`() {
         assertNull(findAdditive(null, "eau minérale", IngredientCategory.FOOD))
+    }
+
+    // ============================================================
+    // Additive name-matching — longest-synonym-wins (not first-match-wins)
+    // ============================================================
+    // Regression for a real Tier-classification bug: E150's own synonym
+    // "caramel" is a substring of E150a's "caramel ordinaire" and E150b's
+    // "caramel caustique" - a first-match-wins scan over ADDITIVES_DB (in
+    // declaration order) silently resolved both of those genuinely Tier-3
+    // ("no 4-MEI concern") colorants to generic E150 (Tier 2, "commercial
+    // caramel in dark sodas... 4-MEI concern"), applying the harsher
+    // deduction to a plain/caustic caramel that doesn't carry that concern.
+
+    @Test fun `Plain caramel resolves to E150a Tier 3, not generic E150 Tier 2`() {
+        val result = findAdditive(null, "caramel ordinaire", IngredientCategory.ADDITIVE)
+        assertNotNull(result)
+        assertEquals("E150a", result!!.eNumber)
+        assertEquals(AdditiveTier.THREE, result.tier)
+    }
+
+    @Test fun `Caustic caramel resolves to E150b Tier 3, not generic E150 Tier 2`() {
+        val result = findAdditive(null, "caramel caustique", IngredientCategory.ADDITIVE)
+        assertNotNull(result)
+        assertEquals("E150b", result!!.eNumber)
+        assertEquals(AdditiveTier.THREE, result.tier)
+    }
+
+    @Test fun `Ammonia caramel still resolves to E150c Tier 2 by name alone`() {
+        val result = findAdditive(null, "caramel ammoniacal", IngredientCategory.ADDITIVE)
+        assertNotNull(result)
+        assertEquals("E150c", result!!.eNumber)
+        assertEquals(AdditiveTier.TWO, result.tier)
+    }
+
+    @Test fun `Unqualified caramel still resolves to generic E150`() {
+        val result = findAdditive(null, "colorant caramel", IngredientCategory.ADDITIVE)
+        assertNotNull(result)
+        assertEquals("E150", result!!.eNumber)
+        assertEquals(AdditiveTier.TWO, result.tier)
+    }
+
+    @Test fun `Sodium metabisulfite resolves to E223, not the shorter E221 substring match`() {
+        // "sulfite de sodium" (E221's own synonym) is a literal substring of
+        // "métabisulfite de sodium" (E223's name) once accents are stripped -
+        // same shadowing pattern as the caramel family, verified across the
+        // whole additive DB when the longest-match-wins fix was made.
+        val result = findAdditive(null, "métabisulfite de sodium", IngredientCategory.ADDITIVE)
+        assertNotNull(result)
+        assertEquals("E223", result!!.eNumber)
+    }
+
+    @Test fun `Nitrous oxide resolves to E942, not the shorter E941 substring match`() {
+        // "azote" (E941's synonym) is a literal substring of "protoxyde d'azote"
+        // (E942's name) - same shadowing pattern as the caramel/sulfite families.
+        val result = findAdditive(null, "protoxyde d'azote", IngredientCategory.ADDITIVE)
+        assertNotNull(result)
+        assertEquals("E942", result!!.eNumber)
     }
 
     // ============================================================

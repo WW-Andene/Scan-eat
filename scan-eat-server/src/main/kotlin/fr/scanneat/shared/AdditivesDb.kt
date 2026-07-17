@@ -376,13 +376,31 @@ private fun computeFindAdditive(eNumber: String?, name: String, category: Ingred
         ADDITIVES_DB.find { it.eNumber == norm }?.let { return it }
     }
 
-    // Name-based match
+    // Name-based match — longest matching synonym wins, not simply the first
+    // ADDITIVES_DB entry (in declaration order) with any substring hit. E150's
+    // own synonym "caramel" is itself a substring of E150a's "caramel
+    // ordinaire"/"plain caramel" and E150b's "caramel caustique" - both
+    // genuinely Tier 3 ("no 4-MEI concern") - so a first-match scan silently
+    // shadowed them behind generic E150 (Tier 2, "commercial caramel in dark
+    // sodas... 4-MEI concern"), applying the harsher deduction to a plain
+    // caramel colorant that doesn't carry that concern at all. A longest-
+    // synonym-wins rule picks the most specific match regardless of where
+    // either entry sits in the list, and generalizes to any future additive
+    // with the same kind of generic-name-is-a-substring-of-specific-name
+    // collision (verified against the whole DB: also fixes E223 vs E221 and
+    // E942 vs E941 the same way).
     val normName = normalizeForMatching(name)
+    var bestMatch: AdditiveInfo? = null
+    var bestSynonymLength = 0
     for ((additive, normSynonyms) in NORMALIZED_ADDITIVES) {
         for (normSynonym in normSynonyms) {
-            if (normName.contains(normSynonym)) return additive
+            if (normSynonym.isNotEmpty() && normName.contains(normSynonym) && normSynonym.length > bestSynonymLength) {
+                bestMatch = additive
+                bestSynonymLength = normSynonym.length
+            }
         }
     }
+    if (bestMatch != null) return bestMatch
 
     // Context-aware match for natural colorants
     if (category == IngredientCategory.ADDITIVE) {

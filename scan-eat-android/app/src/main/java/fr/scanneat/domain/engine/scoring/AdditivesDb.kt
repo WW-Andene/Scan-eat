@@ -347,6 +347,22 @@ private val additiveLookupCache = ConcurrentHashMap<Triple<String?, String, fr.s
 // valve: once the cache would grow past a bound, drop it and start fresh.
 private const val MAX_ADDITIVE_CACHE_ENTRIES = 20_000
 
+/**
+ * ADDITIVES_DB's synonyms, pre-normalized once at class-init time instead of on
+ * every computeFindAdditive() call. normalizeForMatching() runs a lowercase +
+ * Normalizer.normalize() + 3 regex passes, and computeFindAdditive() used to
+ * call it on every synonym of every one of the ~90 additives (roughly 200
+ * synonym strings) each time it ran a name-based scan - all on data that never
+ * changes at runtime. The outer additiveLookupCache above already dedupes
+ * repeat lookups for the *same* ingredient, but distinct ingredient names each
+ * still paid the full re-normalization cost of the entire synonym table.
+ * Mirrors the server's identical optimization (scan-eat-server's
+ * AdditivesDb.kt) - present there but never ported back to this copy, the
+ * same gap MAX_ADDITIVE_CACHE_ENTRIES above already had before its own fix.
+ */
+private val NORMALIZED_ADDITIVES: List<Pair<AdditiveInfo, List<String>>> =
+    ADDITIVES_DB.map { it to it.names.map(::normalizeForMatching) }
+
 fun findAdditive(eNumber: String?, name: String, category: fr.scanneat.domain.model.IngredientCategory?): AdditiveInfo? {
     val key = Triple(eNumber, name, category)
     additiveLookupCache[key]?.let { return if (it === NOT_FOUND) null else it }
@@ -363,13 +379,31 @@ private fun computeFindAdditive(eNumber: String?, name: String, category: fr.sca
         ADDITIVES_DB.find { it.eNumber == norm }?.let { return it }
     }
 
-    // Name-based match
+    // Name-based match — longest matching synonym wins, not simply the first
+    // ADDITIVES_DB entry (in declaration order) with any substring hit. E150's
+    // own synonym "caramel" is itself a substring of E150a's "caramel
+    // ordinaire"/"plain caramel" and E150b's "caramel caustique" - both
+    // genuinely Tier 3 ("no 4-MEI concern") - so a first-match scan silently
+    // shadowed them behind generic E150 (Tier 2, "commercial caramel in dark
+    // sodas... 4-MEI concern"), applying the harsher deduction to a plain
+    // caramel colorant that doesn't carry that concern at all. A longest-
+    // synonym-wins rule picks the most specific match regardless of where
+    // either entry sits in the list, and generalizes to any future additive
+    // with the same kind of generic-name-is-a-substring-of-specific-name
+    // collision (verified against the whole DB: also fixes E223 vs E221 and
+    // E942 vs E941 the same way).
     val normName = normalizeForMatching(name)
-    for (additive in ADDITIVES_DB) {
-        for (synonym in additive.names) {
-            if (normName.contains(normalizeForMatching(synonym))) return additive
+    var bestMatch: AdditiveInfo? = null
+    var bestSynonymLength = 0
+    for ((additive, normSynonyms) in NORMALIZED_ADDITIVES) {
+        for (normSynonym in normSynonyms) {
+            if (normSynonym.isNotEmpty() && normName.contains(normSynonym) && normSynonym.length > bestSynonymLength) {
+                bestMatch = additive
+                bestSynonymLength = normSynonym.length
+            }
         }
     }
+    if (bestMatch != null) return bestMatch
 
     // Context-aware match for natural colorants
     if (category == fr.scanneat.domain.model.IngredientCategory.ADDITIVE) {

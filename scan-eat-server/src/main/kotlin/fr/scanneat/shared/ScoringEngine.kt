@@ -622,11 +622,22 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     val en = lang == "en"
     val n = product.nutrition
 
+    // Collect every triggered condition and return the most restrictive (lowest
+    // cap) one, instead of the first one that happens to match. These 6 checks
+    // aren't mutually exclusive - e.g. a sugar-sweetened beverage (cap 30) can
+    // also contain >3 Tier-1 additives (cap 40) - and a first-match-wins scan
+    // silently applied whichever check happened to run first regardless of
+    // which cap was actually stricter. That used to require a one-off manual
+    // reordering of just the beverage-vs-generic-sugar pair to work around one
+    // specific collision; it didn't generalize to any other pair (e.g. trans
+    // fat's 40 vs a trans-fat-containing SSB's 30).
+    val candidates = mutableListOf<VetoCondition>()
+
     if ((n.transFatG ?: 0.0) > 0.1)
-        return VetoCondition(true, if (en) "Contains industrial trans fats — no safe level" else "Contient des graisses trans industrielles — aucun seuil sûr", 40)
+        candidates += VetoCondition(true, if (en) "Contains industrial trans fats — no safe level" else "Contient des graisses trans industrielles — aucun seuil sûr", 40)
 
     if (countTier1Additives(product) > 3)
-        return VetoCondition(true, (if (en) "${countTier1Additives(product)} Tier-1 additives — cumulative risk too high" else "${countTier1Additives(product)} additifs de niveau 1 — risque cumulé trop élevé"), 40)
+        candidates += VetoCondition(true, (if (en) "${countTier1Additives(product)} Tier-1 additives — cumulative risk too high" else "${countTier1Additives(product)} additifs de niveau 1 — risque cumulé trop élevé"), 40)
 
     val hasNitrites = product.ingredients.any { ing ->
         val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
@@ -635,23 +646,20 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     val highSalt = n.saltG > 1.5
     val refined = product.ingredients.any { Regex("""farine de blé|farine raffinée|amidon|dextrose""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
-        return VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", 40)
+        candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", 40)
 
-    // Beverage-specific rule checked first and it's the stricter cap (30 vs 40) —
-    // otherwise a very sugary soda hit the generic >30g rule first and got the
-    // looser cap, while a merely moderately sugary one got the stricter one.
     val sugars = n.addedSugarsG ?: n.sugarsG
     if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
-        return VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", 30)
+        candidates += VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", 30)
 
     if (product.category != ProductCategory.SNACK_SWEET && sugars > 30)
-        return VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", 40)
+        candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", 40)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
-        return VetoCondition(true, if (en) "Mechanically separated meat in NOVA 4 product" else "Viande séparée mécaniquement dans un produit NOVA 4", 45)
+        candidates += VetoCondition(true, if (en) "Mechanically separated meat in NOVA 4 product" else "Viande séparée mécaniquement dans un produit NOVA 4", 45)
 
-    return VetoCondition(false, "", 100)
+    return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }
 
 private fun buildFlags(audit: ScoreAudit, lang: String = "en"): Pair<List<String>, List<String>> {

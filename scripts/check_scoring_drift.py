@@ -63,7 +63,25 @@ PAIRS = [
     ("buildFlags", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
     ("collectWarnings", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
     ("scoreProduct", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringEngine.kt"),
+    # ADDITIVES_DB itself (the ~90-entry Tier/category/concern-text dataset) was
+    # never checked here, only the matching logic *around* it (findAdditive/
+    # computeFindAdditive/NORMALIZED_ADDITIVES) - a wrong Tier or diverging
+    # concern text on just one side, for an entry that exists identically on
+    # both, would pass every one of those checks undetected since none of them
+    # inspect the data the matching logic returns.
+    ("ADDITIVES_DB", SERVER_DIR / "AdditivesDb.kt", ANDROID_SCORING_DIR / "AdditivesDb.kt"),
+    ("COSMETIC_ADDITIVE_CATEGORIES", SERVER_DIR / "AdditivesDb.kt", ANDROID_SCORING_DIR / "AdditivesDb.kt"),
+    ("normalizeForMatching", SERVER_DIR / "AdditivesDb.kt", ANDROID_SCORING_DIR / "AdditivesDb.kt"),
     ("findAdditive", SERVER_DIR / "AdditivesDb.kt", ANDROID_SCORING_DIR / "AdditivesDb.kt"),
+    # findAdditive() is just a cache-lookup wrapper - the actual E-number/name/
+    # natural-colorant matching logic (and the real drift risk) lives in
+    # computeFindAdditive(), which was never itself checked. A real bug (E150's
+    # own "caramel" synonym silently shadowing its more specific E150a-d
+    # children via first-match-wins scanning) went undetected here for exactly
+    # that reason - fixing the drift check's blind spot alongside the bug fix,
+    # not just the bug.
+    ("computeFindAdditive", SERVER_DIR / "AdditivesDb.kt", ANDROID_SCORING_DIR / "AdditivesDb.kt"),
+    ("NORMALIZED_ADDITIVES", SERVER_DIR / "AdditivesDb.kt", ANDROID_SCORING_DIR / "AdditivesDb.kt"),
     # OFF-mapping/merge logic — same drift risk as the scoring pillars above,
     # previously unchecked despite ServerOffMapper.kt/OffMapper.kt being two
     # hand-maintained copies of the exact same barcode-lookup normalization.
@@ -141,11 +159,31 @@ def extract_function(path: Path, name: str) -> str:
     if start_idx is None:
         raise ValueError(f"function `{name}` not found in {path}")
 
-    # Expression-bodied function with no braces at all, e.g. `fun f(x: Int): Int = x + 1`
+    # Collect lines belonging to this declaration only. A brace-bodied function
+    # (`fun f() { ... }`) is terminated by brace-depth returning to 0 after
+    # having opened at least one `{`, tracked below. An expression-bodied one
+    # (`fun f() = ...`, possibly spanning several chained-call lines, e.g.
+    # normalizeForMatching's `.replace(...).replace(...).trim()`) never opens a
+    # brace at all - for those, stop as soon as we reach the next top-level
+    # declaration (`fun`/`val`/`const`/`class`/`object`, optional visibility
+    # modifier) or a comment block that precedes one, while still at depth 0
+    # and no brace has been seen. Without that second stop condition, a
+    # brace-less function was scanned all the way to wherever *some* later,
+    # unrelated declaration happened to contain a self-contained `{ ... }`
+    # (e.g. a lambda literal several declarations down) - silently sweeping
+    # every doc comment and declaration in between into this function's
+    # "body" and comparing that unrelated text as if it were drift. This is
+    # exactly how expanding PAIRS to cover normalizeForMatching produced a
+    # DRIFT report whose diff was actually NORMALIZED_ADDITIVES' own doc
+    # comment, several declarations past normalizeForMatching's real body.
     body_lines = []
     depth = 0
     started_brace = False
+    top_level_re = re.compile(r"^(private |internal |public )?(fun|val|const|class|object) ")
+    comment_re = re.compile(r"^\s*(/\*|//)")
     for line in lines[start_idx:]:
+        if body_lines and depth == 0 and not started_brace and (top_level_re.match(line) or comment_re.match(line)):
+            break
         body_lines.append(line)
         for ch in line:
             if ch == "{":
@@ -157,23 +195,9 @@ def extract_function(path: Path, name: str) -> str:
             break
         if not started_brace and line.rstrip().endswith(";"):
             break
-    else:
-        pass
 
-    # If it's a one-line expression body (no `{` ever seen), stop at first
-    # line that looks "complete": ends without a trailing operator and the
-    # next line starts a new top-level declaration. Simplify: if no brace
-    # was ever opened, just keep collecting until we hit a blank line
-    # followed by another top-level `fun`/`val`/`private` or EOF.
-    if not started_brace:
-        body_lines = []
-        for line in lines[start_idx:]:
-            if body_lines and re.match(r"^(private |internal |public )?(fun|val|const|class|object) ", line):
-                break
-            body_lines.append(line)
-        # trim trailing blank lines
-        while body_lines and body_lines[-1].strip() == "":
-            body_lines.pop()
+    while body_lines and body_lines[-1].strip() == "":
+        body_lines.pop()
 
     return "\n".join(body_lines)
 
@@ -184,8 +208,16 @@ def normalize(body: str) -> str:
         # strip line comments
         line = re.sub(r"//.*$", "", line)
         # strip fully-qualified package prefixes so `fr.scanneat.shared.Foo`
-        # and a bare `Foo` (imported) compare equal
-        line = re.sub(r"\bfr\.scanneat\.[a-zA-Z0-9_.]*\.", "", line)
+        # and a bare `Foo` (imported) compare equal. Package segments are
+        # lowercase by Kotlin convention and class/enum names start uppercase,
+        # so this only consumes the lowercase run - `[a-zA-Z0-9_.]*` here
+        # (any-case) used to also swallow a following `ClassName.` segment,
+        # e.g. `fr.scanneat.domain.model.IngredientCategory.ADDITIVE` collapsed
+        # all the way to bare `ADDITIVE`, discarding the `IngredientCategory.`
+        # qualifier a same-package server reference (`IngredientCategory.
+        # ADDITIVE`, nothing to strip) keeps - a real divergence in the two
+        # sides' computeFindAdditive() bodies this masked until this fix.
+        line = re.sub(r"\bfr\.scanneat\.(?:[a-z][a-zA-Z0-9_]*\.)*", "", line)
         # strip a leading visibility modifier on the declaration signature line -
         # e.g. declaredMicronutrientsOf is `internal` on Android (module-visibility
         # need, since other domain/engine/* files call it) but plain top-level `fun`
