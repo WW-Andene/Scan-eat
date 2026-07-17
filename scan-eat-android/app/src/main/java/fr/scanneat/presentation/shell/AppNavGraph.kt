@@ -149,6 +149,7 @@ fun AppNavGraph(
                 // previously had no way to actually open it - same nav pattern
                 // ScanHistoryScreen/DashboardScreen already use below.
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
+                onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onLog  = {
                     // Match MainShell's tab-switch options exactly — a bare
                     // navigate{launchSingleTop} pushed Diary on top of Scan→Result

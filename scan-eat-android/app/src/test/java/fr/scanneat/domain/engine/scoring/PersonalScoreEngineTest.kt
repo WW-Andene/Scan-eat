@@ -496,6 +496,70 @@ class PersonalScoreEngineTest {
         assertTrue(result.adjustments.none { it.reason.contains("caffeine", ignoreCase = true) })
     }
 
+    // Regression: a plain substring check on the normalized ingredient name let
+    // bare "mate" match inside "tomate" (tomato) and bare "tea" match inside
+    // "steak" - firing a false pregnancy caffeine warning on completely
+    // unrelated, extremely common ingredients. Word-boundary matching must not
+    // trigger on either.
+    @Test
+    fun `Tomato-containing product does not trigger the pregnancy caffeine check`() {
+        val ketchup = Product(
+            name = "Ketchup", category = ProductCategory.CONDIMENT, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(Ingredient(name = "tomate", category = IngredientCategory.FOOD), Ingredient(name = "sucre", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(energyKcal = 100.0, fatG = 0.2, saturatedFatG = 0.0, carbsG = 24.0, sugarsG = 20.0, fiberG = 1.0, proteinG = 1.2, saltG = 1.0),
+        )
+        val audit = scoreProduct(ketchup)
+        val result = computePersonalScore(audit, ketchup, pregnantProfile(), lang = "en")
+        assertTrue(result.adjustments.none { it.reason.contains("caffeine", ignoreCase = true) })
+    }
+
+    @Test
+    fun `Steak does not trigger the pregnancy caffeine check`() {
+        val steak = Product(
+            name = "Steak haché", category = ProductCategory.FRESH_MEAT, novaClass = NovaClass.UNPROCESSED,
+            ingredients = listOf(Ingredient(name = "steak haché de boeuf", isWholeFood = true, category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(energyKcal = 215.0, fatG = 15.0, saturatedFatG = 6.0, carbsG = 0.0, sugarsG = 0.0, fiberG = 0.0, proteinG = 20.0, saltG = 0.1),
+        )
+        val audit = scoreProduct(steak)
+        val result = computePersonalScore(audit, steak, pregnantProfile(), lang = "en")
+        assertTrue(result.adjustments.none { it.reason.contains("caffeine", ignoreCase = true) })
+    }
+
+    // Regression: "vin " (space-suffixed to avoid matching "vinaigre") missed
+    // the case where "vin" is the ingredient's exact/final name with nothing
+    // following it - e.g. an OFF ingredient list ending in ",vin" parses to a
+    // lone Ingredient(name="vin"). The pregnancy alcohol veto must still fire.
+    @Test
+    fun `Product whose sole ingredient is exactly 'vin' still triggers the pregnancy alcohol veto`() {
+        val coqAuVinSauce = Product(
+            name = "Sauce coq au vin", category = ProductCategory.CONDIMENT, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(Ingredient(name = "vin", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(energyKcal = 80.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 3.0, sugarsG = 1.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.3),
+        )
+        val audit = scoreProduct(coqAuVinSauce)
+        val result = computePersonalScore(audit, coqAuVinSauce, pregnantProfile(), lang = "en")
+        assertTrue("Pregnancy veto should trigger for a bare 'vin' ingredient", result.veto)
+        assertEquals(0, result.personalScore)
+    }
+
+    @Test
+    fun `Vinaigrette (vinegar) does not falsely trigger the pregnancy alcohol veto`() {
+        // Plain "vinaigre" (not "vinaigre de vin") - the latter genuinely
+        // contains "vin" as its own word (wine vinegar's own name), which is a
+        // separate, real ambiguity this fix doesn't attempt to resolve. This
+        // test is only about the substring-vs-word-boundary distinction:
+        // "vinaigre" must not match "vin" the way a naive prefix-substring
+        // check would.
+        val vinaigrette = Product(
+            name = "Vinaigrette", category = ProductCategory.CONDIMENT, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(Ingredient(name = "vinaigre", category = IngredientCategory.FOOD), Ingredient(name = "huile de tournesol", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(energyKcal = 300.0, fatG = 30.0, saturatedFatG = 3.0, carbsG = 2.0, sugarsG = 1.0, fiberG = 0.0, proteinG = 0.0, saltG = 1.0),
+        )
+        val audit = scoreProduct(vinaigrette)
+        val result = computePersonalScore(audit, vinaigrette, pregnantProfile(), lang = "en")
+        assertFalse("Vinaigre (vinegar) must not match the alcohol word-boundary pattern", result.veto)
+    }
+
     // ---- personalGrade ----
 
     @Test

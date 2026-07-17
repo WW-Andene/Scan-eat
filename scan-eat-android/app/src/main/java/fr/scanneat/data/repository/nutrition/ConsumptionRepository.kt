@@ -24,6 +24,9 @@ class ConsumptionRepository @Inject constructor(
     private val healthConnect: HealthConnectRepository,
 ) {
     private val nutritionAdapter = moshi.adapter(NutritionPer100g::class.java)
+    private val ingredientsAdapter = moshi.adapter<List<Ingredient>>(
+        com.squareup.moshi.Types.newParameterizedType(List::class.java, Ingredient::class.java)
+    )
 
     fun observeDay(date: LocalDate, profileId: String = "default"): Flow<DailySummary> =
         dao.observeByDate(date.toString(), profileId).map { entities ->
@@ -86,6 +89,7 @@ class ConsumptionRepository @Inject constructor(
         nutritionJson = nutritionAdapter.toJson(nutrition),
         source      = source.name,
         profileId   = profileId,
+        ingredientsJson = ingredientsAdapter.toJson(ingredients),
     )
 
     private fun ConsumptionEntity.toDomain(): DiaryEntry? = runCatching {
@@ -100,6 +104,7 @@ class ConsumptionRepository @Inject constructor(
             nutrition   = nutritionAdapter.fromJson(nutritionJson)!!,
             source      = ScanSource.valueOf(source),
             profileId   = profileId,
+            ingredients = ingredientsAdapter.fromJson(ingredientsJson) ?: emptyList(),
         )
     }.onFailure {
         // A parse failure here silently drops this row from every diary/dashboard

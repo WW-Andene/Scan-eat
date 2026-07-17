@@ -39,7 +39,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationLogEntity::class,
         ScanScoreHistoryEntity::class,
     ],
-    version = 22,
+    version = 23,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -324,5 +324,18 @@ val MIGRATION_21_22 = object : Migration(21, 22) {
         // before MIGRATION_20_21: a saved meal template could never be pinned
         // to the top of the Templates library.
         db.execSQL("ALTER TABLE `meal_templates` ADD COLUMN `favorite` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+val MIGRATION_22_23 = object : Migration(22, 23) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v22 → v23: consumption_log gains ingredientsJson - a logged diary
+        // entry only ever stored nutrition, never the ingredient list, so
+        // checkUserAllergens()/checkDiet() (already run live against Recipes,
+        // Grocery lists and Meal Templates) could never run against a Diary
+        // entry at all. Old rows default to "[]" (empty ingredients), which
+        // is honest - we don't have the original scan's ingredient list to
+        // backfill and can't fabricate one; they just won't show a warning
+        // until re-logged.
+        db.execSQL("ALTER TABLE `consumption_log` ADD COLUMN `ingredientsJson` TEXT NOT NULL DEFAULT '[]'")
     }
 }

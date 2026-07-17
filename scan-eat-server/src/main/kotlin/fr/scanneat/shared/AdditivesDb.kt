@@ -120,7 +120,7 @@ val ADDITIVES_DB: List<AdditiveInfo> = listOf(
         "Iodine-containing dye; thyroid concerns at high intakes.", "EFSA Re-evaluation 2011;9(1):1854."),
     AdditiveInfo("E173", listOf("aluminium"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
         "Aluminium metallic colorant; neurotoxicity TWI.", "EFSA 2008;754 (TWI 1 mg/kg bw/week)."),
-    AdditiveInfo("E150", listOf("caramel", "colorant caramel"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
+    AdditiveInfo("E150", listOf("colorant caramel"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
         "Caramel, sub-class unspecified; most commercial caramel in dark sodas is E150c/d (4-MEI, IARC 2B).",
         "IARC Vol 101 (2013); EFSA 2011;9(3):2004."),
     AdditiveInfo("E150c", listOf("e150c", "caramel ammoniacal", "ammonia caramel"), AdditiveTier.TWO, AdditiveCategory.COLORANT,

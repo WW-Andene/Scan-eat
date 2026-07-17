@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -82,6 +83,30 @@ internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = nu
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
         Text(stringResource(R.string.result_alternative_item, alternative.product.name, alternative.audit.score, alternative.audit.grade.label),
             style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+    }
+}
+
+// A user who skipped onboarding's profile setup (or never opened Profile
+// since) got the plain classic ScoreRing with zero indication anywhere that
+// completing their profile would unlock a personalized score - and if they
+// later did fill it in, the dual-score ring would just start appearing on
+// their next visit with no explanation either. Shown whenever
+// PersonalScoreResult.applicable is false, tappable straight to Profile.
+@Composable
+internal fun PersonalizationPromptCard(onOpenProfile: () -> Unit) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenProfile),
+            shape    = RoundedCornerShape(CardRadius.CONTROL),
+            color    = AccentCoral.copy(alpha = 0.1f),
+        ) {
+            Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Icon(Icons.Default.Person, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
+                Text(stringResource(R.string.result_personalization_prompt), style = MaterialTheme.typography.bodySmall,
+                    color = OnBackground, modifier = Modifier.weight(1f))
+            }
+        }
     }
 }
 

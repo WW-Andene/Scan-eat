@@ -424,6 +424,23 @@ class ScoringEngineTest {
         assertEquals(AdditiveTier.TWO, result.tier)
     }
 
+    // Regression: E150's synonym list used to include bare "caramel" (with no
+    // category gate on the name-match loop), so a plain dessert ingredient
+    // like "crème caramel" - parsed as ordinary FOOD, no eNumber - was
+    // misclassified as containing a Tier-2 colorant additive. Bare "caramel"
+    // is only a real colorant signal when the ingredient is already tagged
+    // ADDITIVE (the natural-colorants fallback still covers that case below).
+    @Test fun `Plain dessert ingredient containing 'caramel' is not misclassified as an additive`() {
+        assertNull(findAdditive(null, "crème caramel", IngredientCategory.FOOD))
+        assertNull(findAdditive(null, "caramel", null))
+    }
+
+    @Test fun `Bare caramel tagged as an additive still resolves to E150 via the natural-colorant fallback`() {
+        val result = findAdditive(null, "caramel", IngredientCategory.ADDITIVE)
+        assertNotNull(result)
+        assertEquals("E150", result!!.eNumber)
+    }
+
     @Test fun `Sodium metabisulfite resolves to E223, not the shorter E221 substring match`() {
         // "sulfite de sodium" (E221's own synonym) is a literal substring of
         // "métabisulfite de sodium" (E223's name) once accents are stripped -

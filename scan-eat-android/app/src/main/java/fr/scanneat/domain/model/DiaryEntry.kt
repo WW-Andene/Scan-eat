@@ -20,6 +20,13 @@ data class DiaryEntry(
     val nutrition: NutritionPer100g,     // per-100g values; scale by portionG/100
     val source: ScanSource,
     val profileId: String = "default",
+    // Previously dropped at logging time even though the source Product always
+    // has them available (ScanResult.product.ingredients / CustomFood) - meant
+    // checkUserAllergens()/checkDiet() (already run live against Recipes,
+    // Grocery lists and Meal Templates via an identical toCheckProduct()
+    // pattern) could never run against a logged Diary entry at all, so a
+    // user's declared allergen/diet profile was silently never checked here.
+    val ingredients: List<Ingredient> = emptyList(),
 ) {
     /** Actual consumed macros for this entry. */
     val consumed: ConsumedNutrition get() {
@@ -47,6 +54,21 @@ data class DiaryEntry(
             vitCMg        = (nutrition.vitCMg       ?: 0.0) * factor,
         )
     }
+    /**
+     * Synthetic Product so a logged diary entry can be run through the same
+     * checkDiet()/checkUserAllergens() the barcode-scan, Recipes, Grocery, and
+     * Meal Template flows already use (see Recipe.toCheckProduct() etc.) -
+     * previously nothing in the Diary ever ran either check, so a user could
+     * log a product containing one of their declared allergens with no
+     * in-context reminder once it left the Result screen.
+     */
+    fun toCheckProduct(): Product = Product(
+        name        = productName,
+        category    = ProductCategory.OTHER,
+        novaClass   = NovaClass.PROCESSED,
+        ingredients = ingredients,
+        nutrition   = nutrition,
+    )
 }
 
 data class ConsumedNutrition(

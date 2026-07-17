@@ -171,10 +171,15 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
                  else "Protéines élevées (${n.proteinG} g/100 g) — prudence recommandée en cas de maladie rénale"
     }
     risks += findHealthConditionGuidance(product.ingredients, profile.healthConditions, lang)
+    // \b-bounded, not `.contains()` on the normalized name - a plain substring
+    // check let bare "mate" match inside "tomate" (tomato) and bare "tea"
+    // match inside "steak", firing a false caffeine hint on completely
+    // unrelated, extremely common ingredients. Bare "cafe" similarly matched
+    // inside "décaféiné"/"decafeine" (decaf).
     val containsCaffeineSource = product.ingredients.any {
         val norm = fr.scanneat.domain.engine.scoring.normalizeForMatching(it.name)
-        listOf("cafeine", "guarana", "mate", "yerba mate", "cafe", "the vert", "the noir", "coffee", "tea", "cocoa", "cacao")
-            .any { syn -> norm.contains(fr.scanneat.domain.engine.scoring.normalizeForMatching(syn)) }
+        Regex("""\b(?:cafeine|guarana|yerba mate|mate|the vert|the noir|coffee|tea|cocoa|cacao|cafe)\b""")
+            .containsMatchIn(norm)
     }
     if ("pregnancy" in conditions && containsCaffeineSource) {
         // ANSES: pregnant women should keep total caffeine intake under 200 mg/day —
@@ -188,9 +193,11 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     // Same alcohol-content check PersonalScoreEngine already runs for its own
     // cancer/depression adjustments — kept in sync so the hint panel never
     // disagrees with the score adjustments section.
+    // \b-bounded, not `.contains()` - a plain substring check on "vin " (space-
+    // suffixed to avoid matching "vinaigre") missed the case where "vin" is the
+    // ingredient's exact/final name with nothing following it.
     val containsAlcohol = product.ingredients.any {
-        val norm = it.name.lowercase()
-        "alcool" in norm || "alcohol" in norm || "vin " in norm || "wine" in norm || "bière" in norm || "beer" in norm
+        Regex("""\b(?:alcool|alcohol|vin|wine|bi[eè]re|beer)\b""", RegexOption.IGNORE_CASE).containsMatchIn(it.name)
     }
     if ("cancer" in conditions && containsAlcohol) {
         risks += if (en) "Contains alcohol — WCRF cancer prevention guidance recommends limiting alcohol intake"

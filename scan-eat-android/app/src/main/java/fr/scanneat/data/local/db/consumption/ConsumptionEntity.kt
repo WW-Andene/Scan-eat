@@ -19,4 +19,5 @@ data class ConsumptionEntity(
     val nutritionJson: String,       // serialised NutritionPer100g
     val source: String,              // ScanSource key
     val profileId: String = "default",
+    val ingredientsJson: String = "[]", // serialised List<Ingredient>
 )

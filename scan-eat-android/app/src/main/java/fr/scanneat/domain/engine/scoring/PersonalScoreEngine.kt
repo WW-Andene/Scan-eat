@@ -24,6 +24,33 @@ import kotlin.math.roundToInt
 // ============================================================================
 
 // ============================================================================
+// Ingredient-name matching helpers — word-boundary safe, not plain substring
+// ============================================================================
+
+// \b-bounded, not `.contains()` - a plain substring check on "vin " (space-
+// suffixed to avoid matching "vinaigre"/"vinaigrette") missed the case where
+// "vin" is the ingredient's exact/final name with nothing following it (e.g.
+// an OFF ingredient list ending in ",vin" parses to a lone Ingredient(name=
+// "vin"), no trailing space to match against) - silently skipping the hard
+// pregnancy alcohol veto for a real wine ingredient. \b correctly bounds "vin"
+// as a whole word regardless of what follows or doesn't follow it, while
+// still not matching "vinaigre"/"vinaigrette".
+private val ALCOHOL_INGREDIENT_PATTERN = Regex(
+    """\b(?:alcool|alcohol|vin|wine|bi[eè]re|beer)\b""",
+    RegexOption.IGNORE_CASE,
+)
+
+// \b-bounded, not `.contains()` on the normalized name - a plain substring
+// check let bare "mate" match inside "tomate" (tomato) and bare "tea" match
+// inside "steak", firing a false pregnancy caffeine warning on completely
+// unrelated, extremely common ingredients. Bare "cafe" similarly matched
+// inside "décaféiné"/"decafeine" (decaf), warning about caffeine in a product
+// that explicitly doesn't have it.
+private val CAFFEINE_SOURCE_PATTERN = Regex(
+    """\b(?:cafeine|guarana|yerba mate|mate|the vert|the noir|coffee|tea|cocoa|cacao|cafe)\b""",
+)
+
+// ============================================================================
 // Profile helper functions (port of profile.js)
 // ============================================================================
 
@@ -427,10 +454,7 @@ fun computePersonalScore(
             category = AdjustmentCategory.CONDITION,
         )
     }
-    val alcoholHit = product.ingredients.any { ing ->
-        val n = ing.name.lowercase()
-        "alcool" in n || "alcohol" in n || "vin " in n || "wine" in n || "bière" in n || "beer" in n
-    }
+    val alcoholHit = product.ingredients.any { ing -> ALCOHOL_INGREDIENT_PATTERN.containsMatchIn(ing.name) }
     if ("pregnancy" in conditions) {
         if (alcoholHit) {
             veto = true
@@ -446,9 +470,7 @@ fun computePersonalScore(
         // ingredient-name heuristic as the hint panel (kept duplicated rather
         // than shared, same rationale as this file's other small helpers).
         val containsCaffeineSource = product.ingredients.any { ing ->
-            val norm = normalizeForMatching(ing.name)
-            listOf("cafeine", "guarana", "mate", "yerba mate", "cafe", "the vert", "the noir", "coffee", "tea", "cocoa", "cacao")
-                .any { syn -> norm.contains(normalizeForMatching(syn)) }
+            CAFFEINE_SOURCE_PATTERN.containsMatchIn(normalizeForMatching(ing.name))
         }
         if (containsCaffeineSource) {
             adjustments += PersonalAdjustment(

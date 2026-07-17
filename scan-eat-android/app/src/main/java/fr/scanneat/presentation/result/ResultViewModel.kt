@@ -197,11 +197,17 @@ class ResultViewModel @Inject constructor(
                         portionG    = portionG,
                         nutrition   = scan.product.nutrition,
                         source      = scan.source,
+                        ingredients = scan.product.ingredients,
                     )
                 )
             }.fold(
                 onSuccess = { _logState.value = LogState.Done },
-                onFailure = { e -> _logState.value = LogState.Error(e.message ?: "Erreur") },
+                // e.message ?: "Erreur" ignored `lang` and always fell back to
+                // French even for an English-language user, unlike every other
+                // error string in this file.
+                onFailure = { e -> _logState.value = LogState.Error(
+                    e.message ?: if (language.value == "en") "Error" else "Erreur"
+                ) },
             )
         }
     }

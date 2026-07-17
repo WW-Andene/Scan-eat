@@ -148,6 +148,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     val targets      = viewModel.targets.collectAsStateWithLifecycle()
     val goalTargets  = viewModel.goalTargets.collectAsStateWithLifecycle()
     val goalWeightKg = viewModel.goalWeightKg.collectAsStateWithLifecycle()
+    val diaryWarnings = viewModel.diaryWarnings.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show the day name in the wrong language.
     val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
@@ -370,7 +371,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                         )
                     }
                     items(slotEntries, key = { it.id }) { entry ->
-                        DiaryEntryCard(entry = entry, onDelete = { deleteTarget = entry.id }, onEdit = { editTarget = entry })
+                        DiaryEntryCard(entry = entry, warning = diaryWarnings.value[entry.id], onDelete = { deleteTarget = entry.id }, onEdit = { editTarget = entry })
                     }
                 }
             }

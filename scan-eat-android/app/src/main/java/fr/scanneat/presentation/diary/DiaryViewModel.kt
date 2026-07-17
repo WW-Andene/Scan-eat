@@ -14,6 +14,8 @@ import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.DailyTargets
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.engine.scoring.dailyTargets
 import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.domain.engine.scoring.withKcalOverride
@@ -92,6 +94,26 @@ class DiaryViewModel @Inject constructor(
         profile.goalWeightKg.takeIf { goal != null }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    /**
+     * entry id -> short warning, e.g. "Allergen: gluten" or a diet-compliance
+     * reason - same checkUserAllergens()/checkDiet() pattern already used live
+     * by RecipesViewModel.recipeWarnings/GroceryViewModel/TemplatesViewModel.
+     * Previously nothing in the Diary ever ran either check: a user could log
+     * a product containing one of their declared allergens and see the
+     * warning on Result once, then never again anywhere in the Journal.
+     */
+    val diaryWarnings: StateFlow<Map<Long, String>> = combine(summary, prefs.profile, language) { s, profile, lang ->
+        s.entries.mapNotNull { entry ->
+            val product = entry.toCheckProduct()
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(product, profile.diet, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            if (parts.isEmpty()) null else entry.id to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     fun goToPreviousDay() { _selectedDate.value = _selectedDate.value.minusDays(1) }
     fun goToNextDay()     { _selectedDate.value = _selectedDate.value.plusDays(1) }
     fun goToToday()       { _selectedDate.value = LocalDate.now() }
@@ -151,6 +173,7 @@ class DiaryViewModel @Inject constructor(
     /** Logs [entry] to the currently selected day (not always "today" — the user may be browsing a past date). */
     fun addEntry(entry: FoodEntry, portionG: Double, mealSlot: MealSlot) {
         viewModelScope.launch {
+            val product = customFoodRepo.toProduct(entry)
             consumptionRepo.log(
                 DiaryEntry(
                     date        = _selectedDate.value,
@@ -158,8 +181,9 @@ class DiaryViewModel @Inject constructor(
                     productName = entry.name,
                     barcode     = null,
                     portionG    = portionG,
-                    nutrition   = customFoodRepo.toProduct(entry).nutrition,
+                    nutrition   = product.nutrition,
                     source      = ScanSource.MANUAL,
+                    ingredients = product.ingredients,
                 )
             )
             _searchQuery.value = ""
@@ -184,6 +208,7 @@ class DiaryViewModel @Inject constructor(
                     portionG    = portionG,
                     nutrition   = scan.product.nutrition,
                     source      = scan.source,
+                    ingredients = scan.product.ingredients,
                 )
             )
             _searchQuery.value = ""

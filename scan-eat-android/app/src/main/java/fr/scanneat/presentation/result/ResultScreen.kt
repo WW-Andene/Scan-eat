@@ -53,6 +53,7 @@ fun ResultScreen(
     onBack: () -> Unit,
     onLog: () -> Unit,
     onOpenResult: (Long) -> Unit = {},
+    onOpenProfile: () -> Unit = {},
 ) {
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
@@ -139,6 +140,7 @@ fun ResultScreen(
                 scoreDelta        = s.scoreDelta,
                 scoreHistory      = s.scoreHistory,
                 onOpenResult      = onOpenResult,
+                onOpenProfile     = onOpenProfile,
                 modifier          = Modifier.padding(padding),
             )
         }

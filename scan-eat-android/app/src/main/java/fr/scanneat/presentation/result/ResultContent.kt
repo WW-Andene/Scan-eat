@@ -45,6 +45,7 @@ internal fun ResultContent(
     scoreDelta: Int? = null,
     scoreHistory: List<Int> = emptyList(),
     onOpenResult: (Long) -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val audit = scan.audit
@@ -81,6 +82,7 @@ internal fun ResultContent(
             )
         } else {
             ScoreRing(score = audit.score, grade = audit.grade, scoreDelta = scoreDelta)
+            PersonalizationPromptCard(onOpenProfile = onOpenProfile)
         }
 
         // New: product score history mini-sparkline (when ≥ 2 prior scans exist)
