@@ -55,8 +55,11 @@ internal fun SessionControls(
                     }
                 }
             }
+            // Unlike its siblings (Start/Pause, Save, Saved all carry adjacent text),
+            // Reset was the only icon-only control here with a null contentDescription -
+            // a TalkBack user heard nothing for it.
             ScanEatOutlinedButton(onClick = onReset) {
-                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Refresh, stringResource(R.string.biolism_sessctrl_reset), modifier = Modifier.size(16.dp))
             }
         }
     }

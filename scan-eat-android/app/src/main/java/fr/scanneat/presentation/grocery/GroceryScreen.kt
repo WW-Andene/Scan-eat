@@ -329,7 +329,9 @@ private fun GroceryItemRow(
                 // permanently ticked. Only shown when this row actually has a
                 // manual contribution, since a recipe-only row has nothing here to delete.
                 if (isManual) {
-                    IconButton(onClick = onDeleteManual, modifier = Modifier.size(32.dp)) {
+                    // Left at IconButton's default 48dp touch target (Material/WCAG
+                    // minimum) - a UI/UX audit found this forced to 32dp.
+                    IconButton(onClick = onDeleteManual) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }

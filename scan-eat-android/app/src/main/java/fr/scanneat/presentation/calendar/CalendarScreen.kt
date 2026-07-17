@@ -173,12 +173,14 @@ private fun MultiMarkerMonthGrid(
 
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { onMonthChange(month.minusMonths(1)) }) { Icon(Icons.Default.ChevronLeft, null, tint = OnBackground) }
+            // Both chevrons previously had a null contentDescription - a TalkBack
+            // user heard only "button" for month navigation.
+            IconButton(onClick = { onMonthChange(month.minusMonths(1)) }) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.calendar_cd_prev_month), tint = OnBackground) }
             Text(
                 month.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() } + " " + month.year,
                 style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
             )
-            IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) { Icon(Icons.Default.ChevronRight, null, tint = OnBackground) }
+            IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) { Icon(Icons.Default.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground) }
         }
         Row(Modifier.fillMaxWidth()) {
             weekdayLabels.forEach { label ->

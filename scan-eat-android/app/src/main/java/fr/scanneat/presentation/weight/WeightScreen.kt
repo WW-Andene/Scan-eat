@@ -285,9 +285,11 @@ fun WeightScreen(
                                 }
                             }
                             Spacer(Modifier.height(Spacing.XS))
+                            // Bumped from 0.35f - a UI/UX audit flagged these axis dates
+                            // as real chart data rendered too faint against the dark surface.
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(chartEntries.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.35f))
-                                Text(chartEntries.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.35f))
+                                Text(chartEntries.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Text(chartEntries.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             }
                         }
                     }

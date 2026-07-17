@@ -522,6 +522,7 @@
     <string name="biolism_sessctrl_start">Démarrer</string>
     <string name="biolism_sessctrl_saved">Sauvegardé</string>
     <string name="biolism_sessctrl_save">Sauver</string>
+    <string name="biolism_sessctrl_reset">Réinitialiser</string>
     <string name="biolism_datascreen_empty_tab_hint">Onglet Profil</string>
     <string name="biolism_unit_week">s</string>
     <string name="biolism_unit_day">j</string>
@@ -741,6 +742,8 @@
     <string name="weight_title">Poids</string>
     <string name="weight_kg">%1$s kg</string>
     <string name="weight_cd_calendar">Calendrier</string>
+    <string name="calendar_cd_prev_month">Mois précédent</string>
+    <string name="calendar_cd_next_month">Mois suivant</string>
     <string name="weight_calendar_day_summary">%1$s : %2$s</string>
     <string name="weight_calendar_day_empty">%1$s : aucune pesée</string>
     <string name="weight_delta_kg">%1$s kg (30j)</string>
@@ -1122,6 +1125,7 @@
     <string name="recipes_field_notes">Préparation / notes</string>
     <string name="recipes_cd_notes">Modifier la préparation</string>
     <string name="recipes_cd_share">Partager la recette</string>
+    <string name="recipes_cd_more_actions">Plus d\'actions</string>
     <string name="recipes_cd_scale">Ajuster les portions</string>
     <string name="recipes_cd_save_as_template">Enregistrer comme modèle de repas</string>
     <string name="recipes_save_as_template_title">Enregistrer « %1$s » comme modèle</string>

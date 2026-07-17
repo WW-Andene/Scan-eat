@@ -183,7 +183,9 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
                     )
                 }
             }
-            Text(stringResource(R.string.result_macro_contribution_note), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.35f))
+            // Bumped from 0.35f - a UI/UX audit flagged this explanatory note as
+            // real informational content rendered too faint against the dark surface.
+            Text(stringResource(R.string.result_macro_contribution_note), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         }
     }
 }

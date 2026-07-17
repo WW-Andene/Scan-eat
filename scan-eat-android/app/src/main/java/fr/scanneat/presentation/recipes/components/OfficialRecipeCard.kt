@@ -47,8 +47,10 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
                         )
                     }
                     Row {
-                        IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
-                        IconButton(onClick = onClone, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.ContentCopy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
+                        // Left at IconButton's default 48dp touch target (Material/WCAG
+                        // minimum) - a UI/UX audit found this row forcing 36dp.
+                        IconButton(onClick = onLog) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                        IconButton(onClick = onClone) { Icon(Icons.Default.ContentCopy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
                     }
                 }
                 recipe.ingredients.take(4).forEach { ing ->

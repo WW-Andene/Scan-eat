@@ -115,7 +115,10 @@ fun TemplatesScreen(
                                 Row {
                                     // Templates had no equivalent to Recipes'/ScanHistory's favorite
                                     // pin at all - same Star/StarBorder pattern as RecipeCard.
-                                    IconButton(onClick = { viewModel.toggleFavorite(template) }, modifier = Modifier.size(36.dp)) {
+                                    // Left at IconButton's default 48dp touch target (Material/WCAG
+                                    // minimum) - a UI/UX audit found 6 icon-sized controls competing
+                                    // for width in this row, each forced below the 48dp minimum.
+                                    IconButton(onClick = { viewModel.toggleFavorite(template) }) {
                                         Icon(
                                             if (template.favorite) Icons.Default.Star else Icons.Default.StarBorder,
                                             stringResource(if (template.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
@@ -125,22 +128,38 @@ fun TemplatesScreen(
                                     // Previously the only way a template could get items was
                                     // never - create() always built one with an empty list and
                                     // there was no UI anywhere to add to it afterward.
-                                    IconButton(onClick = { itemsTarget = template }, modifier = Modifier.size(36.dp)) {
+                                    IconButton(onClick = { itemsTarget = template }) {
                                         Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_manage_items_cd), tint = Teal)
                                     }
-                                    // Templates/Recipes had no way to convert between the two -
-                                    // this saves a copy into the user's Recipes library.
-                                    IconButton(onClick = { viewModel.saveAsRecipe(template) }, modifier = Modifier.size(36.dp), enabled = template.items.isNotEmpty()) {
-                                        Icon(Icons.Default.RestaurantMenu, stringResource(R.string.templates_cd_save_as_recipe), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
-                                    }
-                                    IconButton(onClick = { logTarget = template }, modifier = Modifier.size(36.dp), enabled = template.items.isNotEmpty()) {
+                                    IconButton(onClick = { logTarget = template }, enabled = template.items.isNotEmpty()) {
                                         Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
                                     }
-                                    IconButton(onClick = { renameTarget = template }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f))
+                                    // Save-as-Recipe/Rename/Delete moved into an overflow menu -
+                                    // Favorite/Manage-items/Log are the frequent actions and stay
+                                    // directly visible at full size.
+                                    var menuExpanded by remember { mutableStateOf(false) }
+                                    IconButton(onClick = { menuExpanded = true }) {
+                                        Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                                     }
-                                    IconButton(onClick = { deleteTarget = template.id }, modifier = Modifier.size(36.dp)) {
-                                        Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
+                                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                                        // Templates/Recipes had no way to convert between the two -
+                                        // this saves a copy into the user's Recipes library.
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.templates_cd_save_as_recipe)) },
+                                            leadingIcon = { Icon(Icons.Default.RestaurantMenu, contentDescription = null) },
+                                            enabled = template.items.isNotEmpty(),
+                                            onClick = { menuExpanded = false; viewModel.saveAsRecipe(template) },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.common_rename)) },
+                                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                                            onClick = { menuExpanded = false; renameTarget = template },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.common_delete)) },
+                                            leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                                            onClick = { menuExpanded = false; deleteTarget = template.id },
+                                        )
                                     }
                                 }
                             }

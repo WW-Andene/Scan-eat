@@ -15,9 +15,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import fr.scanneat.R
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -48,15 +50,17 @@ fun MonthCalendar(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            // Both chevrons previously had a null contentDescription - a TalkBack
+            // user heard only "button" for month navigation.
             IconButton(onClick = { onMonthChange(month.minusMonths(1)) }) {
-                Icon(Icons.Default.ChevronLeft, null, tint = OnBackground)
+                Icon(Icons.Default.ChevronLeft, stringResource(R.string.calendar_cd_prev_month), tint = OnBackground)
             }
             Text(
                 month.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() } + " " + month.year,
                 style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
             )
             IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) {
-                Icon(Icons.Default.ChevronRight, null, tint = OnBackground)
+                Icon(Icons.Default.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground)
             }
         }
         Row(Modifier.fillMaxWidth()) {

@@ -47,10 +47,12 @@ internal fun DiaryEntryCard(entry: DiaryEntry, onDelete: () -> Unit, onEdit: () 
                 Text(stringResource(R.string.diary_entry_summary, entry.portionG.toInt(), entry.consumed.energyKcal.toInt()),
                     style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
             }
-            IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+            // Left at IconButton's default 48dp touch target (Material/WCAG minimum) -
+            // a UI/UX audit found this row forcing both controls to 32dp.
+            IconButton(onClick = onEdit) {
                 Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+            IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
         }

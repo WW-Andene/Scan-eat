@@ -94,14 +94,16 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> U
             }
         }
         if (isCustom) {
-            IconButton(onClick = onRename, modifier = Modifier.size(32.dp)) {
+            // Left at IconButton's default 48dp touch target (Material/WCAG minimum) -
+            // a UI/UX audit found this row forcing both controls to 32dp.
+            IconButton(onClick = onRename) {
                 Icon(
                     Icons.Default.Edit, stringResource(R.string.common_rename),
                     tint = OnSurface.copy(0.5f),
                     modifier = Modifier.size(16.dp),
                 )
             }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+            IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Default.Close, stringResource(R.string.common_delete),
                     tint = OnSurface.copy(0.4f),

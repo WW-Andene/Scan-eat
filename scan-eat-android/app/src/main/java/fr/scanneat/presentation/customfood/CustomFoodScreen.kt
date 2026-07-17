@@ -125,8 +125,11 @@ fun CustomFoodScreen(
                             color = AccentCoral,
                             modifier = Modifier.weight(1f),
                         )
-                        IconButton(onClick = { viewModel.importFromScan(scan) }, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Add, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                        // Left at IconButton's default 48dp touch target (Material/WCAG
+                        // minimum, was 32dp) and given a real contentDescription (was
+                        // null - a TalkBack user heard nothing for this import action).
+                        IconButton(onClick = { viewModel.importFromScan(scan) }) {
+                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.customfood_import_from_scan, scan.product.name), tint = AccentCoral, modifier = Modifier.size(18.dp))
                         }
                     }
                 }

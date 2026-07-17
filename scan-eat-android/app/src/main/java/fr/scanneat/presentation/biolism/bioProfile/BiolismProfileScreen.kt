@@ -175,7 +175,9 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                 ) {
                     Column(Modifier.weight(1f)) {
                         Text(opt.label, style = MaterialTheme.typography.bodySmall, color = OnBackground, fontWeight = FontWeight.Medium)
-                        Text(opt.note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.35f))
+                        // Bumped from 0.35f - a UI/UX audit flagged this descriptive note
+                        // as real informational content rendered too faint.
+                        Text(opt.note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     }
                     RadioButton(selected = ethnicityId == opt.id, onClick = null,
                         colors = RadioButtonDefaults.colors(selectedColor = Gold))

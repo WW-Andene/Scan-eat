@@ -183,10 +183,10 @@ fun MedicationScreen(
                     }
                     // "Taken today" - previously there was no way to log a dose at all,
                     // only to keep/remove a medication from the active list.
-                    IconButton(
-                        onClick = { if (takenToday != null) viewModel.undoTaken(takenToday) else viewModel.markTaken(m) },
-                        modifier = Modifier.size(36.dp),
-                    ) {
+                    // Left at IconButton's default 48dp touch target (Material/WCAG
+                    // minimum) - a UI/UX audit found this row forcing 4 icon-sized
+                    // controls (plus a Switch) below the 48dp minimum.
+                    IconButton(onClick = { if (takenToday != null) viewModel.undoTaken(takenToday) else viewModel.markTaken(m) }) {
                         Icon(
                             if (takenToday != null) Icons.Default.CheckCircle else Icons.Default.CheckCircleOutline,
                             stringResource(R.string.medication_cd_taken_today),
@@ -199,19 +199,31 @@ fun MedicationScreen(
                     )
                     // Previously "schedule" was display-only text — no way to actually
                     // be reminded to take a medication, unlike Fasting/Hydration/Weight
-                    // which all fire a real notification.
-                    IconButton(onClick = { reminderTarget = m }, modifier = Modifier.size(36.dp)) {
+                    // which all fire a real notification. Kept visible (not in the
+                    // overflow menu below) since its icon tint doubles as an at-a-glance
+                    // "reminder on/off" indicator, unlike Rename/Delete.
+                    IconButton(onClick = { reminderTarget = m }) {
                         Icon(
                             Icons.Default.Notifications,
                             stringResource(R.string.medication_reminder_cd),
                             tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
                         )
                     }
-                    IconButton(onClick = { renameTarget = m }, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f))
+                    var menuExpanded by remember { mutableStateOf(false) }
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                     }
-                    IconButton(onClick = { deleteTarget = m.id }, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
+                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.common_rename)) },
+                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                            onClick = { menuExpanded = false; renameTarget = m },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.common_delete)) },
+                            leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                            onClick = { menuExpanded = false; deleteTarget = m.id },
+                        )
                     }
                 }
             }

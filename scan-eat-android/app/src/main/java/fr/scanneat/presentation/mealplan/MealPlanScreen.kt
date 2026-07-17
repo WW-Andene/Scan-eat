@@ -119,10 +119,10 @@ fun MealPlanScreen(
                                     // Tuesday") previously meant re-assigning each slot by
                                     // hand - this copies the whole day onto the same
                                     // weekday next week.
-                                    IconButton(onClick = { viewModel.duplicateDay(date) }, modifier = Modifier.size(28.dp)) {
+                                    IconButton(onClick = { viewModel.duplicateDay(date) }) {
                                         Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                                     }
-                                    IconButton(onClick = { viewModel.clearDay(date) }, modifier = Modifier.size(28.dp)) {
+                                    IconButton(onClick = { viewModel.clearDay(date) }) {
                                         Icon(Icons.Default.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                                     }
                                 }
@@ -194,10 +194,13 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
                 modifier = Modifier.weight(1f), singleLine = true,
                 colors = scanEatTextFieldColors(),
             )
-            IconButton(onClick = { onEdit(text); editing = false }, modifier = Modifier.size(32.dp)) {
+            // IconButtons left at their default 48dp touch target (Material/WCAG
+            // minimum) below - a UI/UX audit found this row forcing every control
+            // to 32dp. The inner Icon's own smaller size keeps the glyph compact.
+            IconButton(onClick = { onEdit(text); editing = false }) {
                 Icon(Icons.Default.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
             }
-            IconButton(onClick = { editing = false }, modifier = Modifier.size(32.dp)) {
+            IconButton(onClick = { editing = false }) {
                 Icon(Icons.Default.Close, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
         } else {
@@ -220,7 +223,7 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
             // started blank for them, so confirming it used to silently wipe the
             // assignment. Recipe/Template slots use the clear (X) button to remove instead.
             if (slot == null || slot is MealPlanSlot.NoteSlot) {
-                IconButton(onClick = { editing = true }, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = { editing = true }) {
                     Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                 }
             }
@@ -229,18 +232,18 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
             // plan stayed purely decorative. Only meaningful once a real recipe/
             // template is assigned; a note has no nutrition to log.
             if (slot is MealPlanSlot.RecipeSlot || slot is MealPlanSlot.TemplateSlot) {
-                IconButton(onClick = { onLog(slot) }, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = { onLog(slot) }) {
                     Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(18.dp))
                 }
             }
             // Lets a saved Recipe/Template actually be planned onto this slot — until
             // now MealPlanSlot.RecipeSlot/TemplateSlot could only ever be produced by
             // deserializing a backup, never by anything reachable from the UI.
-            IconButton(onClick = onAssign, modifier = Modifier.size(32.dp)) {
+            IconButton(onClick = onAssign) {
                 Icon(Icons.Default.RestaurantMenu, stringResource(R.string.mealplan_assign_cd), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             if (slot != null) {
-                IconButton(onClick = onClear, modifier = Modifier.size(32.dp)) {
+                IconButton(onClick = onClear) {
                     Icon(Icons.Default.Close, stringResource(R.string.common_clear), tint = OnSurface.copy(0.3f), modifier = Modifier.size(14.dp))
                 }
             }

@@ -15,12 +15,15 @@ import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +31,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -60,7 +67,11 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                     }
                     // Recipe had no equivalent to ScanResult's favorite field at all -
                     // mirrors ScanHistoryScreen's identical star toggle placement.
-                    IconButton(onClick = onToggleFavorite, modifier = Modifier.size(36.dp)) {
+                    // Left at IconButton's default 48dp touch target (Material/WCAG
+                    // minimum) rather than the 36dp this row used to force on every
+                    // action - a UI/UX audit found 8 icon-sized controls competing for
+                    // width in this one row, each below the 48dp minimum tappable size.
+                    IconButton(onClick = onToggleFavorite) {
                         Icon(
                             if (recipe.favorite) Icons.Default.Star else Icons.Default.StarBorder,
                             stringResource(if (recipe.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
@@ -68,32 +79,60 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         )
                     }
                     Row {
-                        // Sized to match TemplatesScreen's identical Log+Delete row pattern —
-                        // left at the unconstrained 48dp default, this delete control had a
-                        // larger hit target than every other delete affordance in the app,
-                        // right next to the primary Log action.
-                        IconButton(onClick = onLog, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
-                        // Previously a recipe could only leave the app via the whole-database
-                        // backup - no way to send just this one recipe to someone else.
-                        IconButton(
-                            onClick = {
-                                val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_TEXT, recipe.formatShareText())
-                                }
-                                context.startActivity(Intent.createChooser(sendIntent, null))
-                            },
-                            modifier = Modifier.size(36.dp),
-                        ) { Icon(Icons.Default.Share, stringResource(R.string.recipes_cd_share), tint = OnSurface.copy(0.5f)) }
-                        IconButton(onClick = onEditNotes, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Notes, stringResource(R.string.recipes_cd_notes), tint = OnSurface.copy(0.5f)) }
-                        // Previously servings only ever affected a one-off logged portion
-                        // (LogRecipeDialog) - no way to permanently rescale the recipe itself.
-                        IconButton(onClick = onScale, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Tune, stringResource(R.string.recipes_cd_scale), tint = OnSurface.copy(0.5f)) }
-                        // Templates/Recipes had no way to convert between the two -
-                        // this saves a copy into the user's Saved Meal templates.
-                        IconButton(onClick = onSaveAsTemplate, modifier = Modifier.size(36.dp)) { Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.recipes_cd_save_as_template), tint = OnSurface.copy(0.5f)) }
-                        IconButton(onClick = onRename, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f)) }
-                        IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
+                        // Log stays the one always-visible action - everything else
+                        // (Share/Notes/Scale/Save-as-Template/Rename/Delete) moves into
+                        // an overflow menu so each remaining control can sit at a
+                        // compliant 48dp instead of being squeezed to fit seven-wide.
+                        IconButton(onClick = onLog) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                        var menuExpanded by remember { mutableStateOf(false) }
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                        }
+                        DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                            // Previously a recipe could only leave the app via the whole-database
+                            // backup - no way to send just this one recipe to someone else.
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.recipes_cd_share)) },
+                                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
+                                onClick = {
+                                    menuExpanded = false
+                                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                        type = "text/plain"
+                                        putExtra(Intent.EXTRA_TEXT, recipe.formatShareText())
+                                    }
+                                    context.startActivity(Intent.createChooser(sendIntent, null))
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.recipes_cd_notes)) },
+                                leadingIcon = { Icon(Icons.Default.Notes, contentDescription = null) },
+                                onClick = { menuExpanded = false; onEditNotes() },
+                            )
+                            // Previously servings only ever affected a one-off logged portion
+                            // (LogRecipeDialog) - no way to permanently rescale the recipe itself.
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.recipes_cd_scale)) },
+                                leadingIcon = { Icon(Icons.Default.Tune, contentDescription = null) },
+                                onClick = { menuExpanded = false; onScale() },
+                            )
+                            // Templates/Recipes had no way to convert between the two -
+                            // this saves a copy into the user's Saved Meal templates.
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.recipes_cd_save_as_template)) },
+                                leadingIcon = { Icon(Icons.AutoMirrored.Filled.ListAlt, contentDescription = null) },
+                                onClick = { menuExpanded = false; onSaveAsTemplate() },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.common_rename)) },
+                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                                onClick = { menuExpanded = false; onRename() },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.common_delete)) },
+                                leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                                onClick = { menuExpanded = false; onDelete() },
+                            )
+                        }
                     }
                 }
                 recipe.components.take(3).forEach { c ->

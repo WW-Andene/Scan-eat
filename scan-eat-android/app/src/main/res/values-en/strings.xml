@@ -521,6 +521,7 @@
     <string name="biolism_sessctrl_start">Start</string>
     <string name="biolism_sessctrl_saved">Saved</string>
     <string name="biolism_sessctrl_save">Save</string>
+    <string name="biolism_sessctrl_reset">Reset</string>
     <string name="biolism_datascreen_empty_tab_hint">Profile tab</string>
     <string name="biolism_unit_week">w</string>
     <string name="biolism_unit_day">d</string>
@@ -740,6 +741,8 @@
     <string name="weight_title">Weight</string>
     <string name="weight_kg">%1$s kg</string>
     <string name="weight_cd_calendar">Calendar</string>
+    <string name="calendar_cd_prev_month">Previous month</string>
+    <string name="calendar_cd_next_month">Next month</string>
     <string name="weight_calendar_day_summary">%1$s: %2$s</string>
     <string name="weight_calendar_day_empty">%1$s: no entry</string>
     <string name="weight_delta_kg">%1$s kg (30d)</string>
@@ -1088,6 +1091,7 @@
     <string name="recipes_field_notes">Instructions / notes</string>
     <string name="recipes_cd_notes">Edit instructions</string>
     <string name="recipes_cd_share">Share recipe</string>
+    <string name="recipes_cd_more_actions">More actions</string>
     <string name="recipes_cd_scale">Adjust servings</string>
     <string name="recipes_cd_save_as_template">Save as meal template</string>
     <string name="recipes_save_as_template_title">Save “%1$s” as a template</string>

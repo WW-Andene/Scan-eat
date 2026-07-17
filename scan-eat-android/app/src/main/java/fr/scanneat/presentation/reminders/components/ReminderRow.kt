@@ -113,9 +113,11 @@ internal fun CustomReminderRow(
             textStyle = MaterialTheme.typography.bodySmall,
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
         )
-        IconButton(onClick = onTest) { Icon(Icons.Default.Notifications, null, tint = AccentCoral) }
+        // Both icon-only buttons previously had a null contentDescription - a
+        // TalkBack user got no signal at all for what "test" or "delete" would do.
+        IconButton(onClick = onTest) { Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, labelText.ifBlank { reminder.label }), tint = AccentCoral) }
         Switch(checked = reminder.on, onCheckedChange = { onUpdate(reminder.copy(on = it)) }, colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             modifier = Modifier.semantics { contentDescription = labelText })
-        IconButton(onClick = onDelete) { Icon(Icons.Default.Close, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(16.dp)) }
+        IconButton(onClick = onDelete) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.4f), modifier = Modifier.size(16.dp)) }
     }
 }

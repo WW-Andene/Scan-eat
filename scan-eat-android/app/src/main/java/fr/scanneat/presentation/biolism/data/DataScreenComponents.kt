@@ -80,7 +80,9 @@ internal fun MetCell(label: String, value: String, sub: String, accent: Color = 
         Column(Modifier.padding(9.dp)) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), fontWeight = FontWeight.Bold)
             Text(value, style = MaterialTheme.typography.bodySmall, color = accent, fontWeight = FontWeight.SemiBold)
-            if (sub.isNotBlank()) Text(sub, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+            // Bumped from 0.3f - a UI/UX audit flagged this as real informational
+            // content (not decorative) rendered too faint against the dark surface.
+            if (sub.isNotBlank()) Text(sub, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
         }
     }
 }
@@ -90,7 +92,9 @@ internal fun InfoRow(label: String, value: String, note: String, color: Color = 
     Row(Modifier.fillMaxWidth().padding(vertical = Spacing.XS), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-            if (note.isNotBlank()) Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+            // Bumped from 0.3f - a UI/UX audit flagged this as real informational
+            // content (not decorative) rendered too faint against the dark surface.
+            if (note.isNotBlank()) Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
         }
         Text(value, style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.SemiBold)
     }
@@ -118,7 +122,9 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
             Column {
                 Text(name, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), fontWeight = FontWeight.Medium)
-                Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+                // Bumped from 0.3f - a UI/UX audit flagged this as real informational
+                // content (not decorative) rendered too faint against the dark surface.
+                Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("%.1f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
@@ -156,7 +162,9 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 )
             }
         }
-        Text(stringResource(R.string.biolism_common_ref_range, h.refLow, h.refHigh, h.unit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.25f))
+        // Bumped from 0.25f - a UI/UX audit flagged a clinically meaningful reference
+        // range rendered at the lowest alpha found anywhere in the app.
+        Text(stringResource(R.string.biolism_common_ref_range, h.refLow, h.refHigh, h.unit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
     }
 }
 
