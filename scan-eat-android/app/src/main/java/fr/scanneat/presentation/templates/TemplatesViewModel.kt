@@ -8,7 +8,9 @@ import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.MealTemplate
 import fr.scanneat.data.repository.planning.MealTemplateRepository
+import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.planning.TemplateItem
+import fr.scanneat.data.repository.planning.toRecipeComponents
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.checkDiet
@@ -22,6 +24,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TemplatesViewModel @Inject constructor(
     private val repo: MealTemplateRepository,
+    private val recipeRepo: RecipeRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
     private val prefs: UserPreferences,
@@ -91,6 +94,14 @@ class TemplatesViewModel @Inject constructor(
     fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
 
     fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
+
+    /** Templates and Recipes carry near-identical component shapes but had no
+     *  way to convert between the two - a "quick weeknight combo" built as a
+     *  template couldn't become a proper named Recipe without re-entering
+     *  every ingredient by hand, and vice versa. */
+    fun saveAsRecipe(template: MealTemplate) = viewModelScope.launch {
+        recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1)
+    }
 
     fun create(name: String, meal: MealSlot) {
         if (name.isBlank()) return

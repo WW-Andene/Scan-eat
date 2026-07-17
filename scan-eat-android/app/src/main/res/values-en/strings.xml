@@ -115,6 +115,8 @@
     <string name="mealplan_title">Meal Plan</string>
     <string name="mealplan_day_today">%1$s · Today</string>
     <string name="mealplan_clear_day">Clear day</string>
+    <string name="mealplan_duplicate_day">Duplicate to next week</string>
+    <string name="mealplan_duplicate_week">Duplicate week to next week</string>
     <string name="mealplan_recipe_prefix">%1$s</string>
     <string name="mealplan_template_prefix">%1$s</string>
     <string name="mealplan_assign_cd">Pick a recipe or template</string>
@@ -726,6 +728,7 @@
     <string name="templates_empty_body">Meal templates are created automatically when you log a meal from the diary.</string>
     <string name="templates_summary">%1$d kcal · %2$d items · %3$s</string>
     <string name="templates_manage_items_cd">Manage template items</string>
+    <string name="templates_cd_save_as_recipe">Save as recipe</string>
     <string name="templates_manage_items_title">Items — %1$s</string>
     <string name="templates_no_items_yet">No items yet. Add one below.</string>
     <string name="common_log">Log</string>
@@ -964,6 +967,7 @@
     <string name="settings_backup_import_confirm_body">Backup from %1$s (app v%2$s), %3$d items. This will overwrite your current data.</string>
     <string name="settings_backup_import_confirm_button">Restore</string>
     <string name="settings_csv_export_button">Export diary (CSV)</string>
+    <string name="settings_biolism_csv_export_button">Export Biolism sessions (CSV)</string>
     <string name="settings_section_reset">Reset</string>
     <string name="settings_reset_hint">Selectively clear some of the app\'s data.</string>
     <string name="settings_reset_button">Reset options</string>
@@ -1085,6 +1089,8 @@
     <string name="recipes_cd_notes">Edit instructions</string>
     <string name="recipes_cd_share">Share recipe</string>
     <string name="recipes_cd_scale">Adjust servings</string>
+    <string name="recipes_cd_save_as_template">Save as meal template</string>
+    <string name="recipes_save_as_template_title">Save “%1$s” as a template</string>
     <string name="recipes_scale_title">Adjust servings</string>
     <string name="recipes_scale_servings_label">Number of servings</string>
     <string name="recipes_servings_to_log_label">Servings to log (of %1$d)</string>

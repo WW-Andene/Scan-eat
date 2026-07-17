@@ -128,6 +128,11 @@ fun TemplatesScreen(
                                     IconButton(onClick = { itemsTarget = template }, modifier = Modifier.size(36.dp)) {
                                         Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_manage_items_cd), tint = Teal)
                                     }
+                                    // Templates/Recipes had no way to convert between the two -
+                                    // this saves a copy into the user's Recipes library.
+                                    IconButton(onClick = { viewModel.saveAsRecipe(template) }, modifier = Modifier.size(36.dp), enabled = template.items.isNotEmpty()) {
+                                        Icon(Icons.Default.RestaurantMenu, stringResource(R.string.templates_cd_save_as_recipe), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
+                                    }
                                     IconButton(onClick = { logTarget = template }, modifier = Modifier.size(36.dp), enabled = template.items.isNotEmpty()) {
                                         Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
                                     }

@@ -5,6 +5,8 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HydrationRecord
+import androidx.health.connect.client.records.MealType
+import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.request.ReadRecordsRequest
@@ -13,6 +15,7 @@ import androidx.health.connect.client.units.Energy
 import androidx.health.connect.client.units.Mass
 import androidx.health.connect.client.units.Volume
 import dagger.hilt.android.qualifiers.ApplicationContext
+import fr.scanneat.domain.model.MealSlot
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -76,9 +79,15 @@ class HealthConnectRepository @Inject constructor(
             HealthPermission.getReadPermission(ExerciseSessionRecord::class),
             HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         )
+        // Nutrition is write-only, same accepted limitation as hydration - a DiaryEntry
+        // maps to one NutritionRecord per log, but there's no stored HC record id to
+        // delete later (ConsumptionRepository.delete()/update() only ever get the
+        // local row's own id), so editing/deleting an entry in-app leaves its HC
+        // mirror behind.
+        private val nutritionPermissions = setOf(HealthPermission.getWritePermission(NutritionRecord::class))
 
         /** Requested together up front (single system permission dialog) - see [hasPermission] for why writes each check only their own subset instead of this combined set. */
-        val PERMISSIONS: Set<String> = weightPermissions + hydrationPermissions + activityWritePermissions + activityReadPermissions
+        val PERMISSIONS: Set<String> = weightPermissions + hydrationPermissions + activityWritePermissions + activityReadPermissions + nutritionPermissions
     }
 
     fun availability(): HealthConnectAvailability = when (HealthConnectClient.getSdkStatus(context)) {
@@ -209,6 +218,56 @@ class HealthConnectRepository @Inject constructor(
             energy = Energy.kilocalories(kcal.toDouble()),
         )
         client().insertRecords(listOf(session, calories))
+    }
+
+    /**
+     * Mirrors a single logged diary entry as a NutritionRecord — ConsumptionRepository.log()/
+     * logAll() had zero Health Connect wiring at all, unlike weight/hydration/activity, so a
+     * day's actual food intake never left this app. A tiny (1s) interval ending at [loggedAt],
+     * same convention as [writeHydrationDelta] - NutritionRecord requires startTime < endTime.
+     */
+    suspend fun writeNutrition(
+        loggedAt: Instant,
+        mealSlot: MealSlot,
+        name: String,
+        kcal: Double,
+        proteinG: Double,
+        carbsG: Double,
+        fatG: Double,
+        saturatedFatG: Double,
+        sugarsG: Double,
+        fiberG: Double,
+        saltG: Double,
+    ) {
+        if (!hasPermission(nutritionPermissions)) return
+        val end = loggedAt
+        val start = end.minusSeconds(1)
+        val record = NutritionRecord(
+            startTime = start,
+            startZoneOffset = ZoneId.systemDefault().rules.getOffset(start),
+            endTime = end,
+            endZoneOffset = ZoneId.systemDefault().rules.getOffset(end),
+            name = name,
+            mealType = mealTypeFor(mealSlot),
+            energy = Energy.kilocalories(kcal),
+            protein = Mass.grams(proteinG),
+            totalCarbohydrate = Mass.grams(carbsG),
+            totalFat = Mass.grams(fatG),
+            saturatedFat = Mass.grams(saturatedFatG),
+            sugar = Mass.grams(sugarsG),
+            dietaryFiber = Mass.grams(fiberG),
+            // EU nutrition-label convention: sodium(g) ≈ salt(g) / 2.5 - saltG is what
+            // NutritionPer100g/ConsumedNutrition track, Health Connect wants sodium.
+            sodium = Mass.grams(saltG / 2.5),
+        )
+        client().insertRecords(listOf(record))
+    }
+
+    private fun mealTypeFor(slot: MealSlot): Int = when (slot) {
+        MealSlot.BREAKFAST -> MealType.MEAL_TYPE_BREAKFAST
+        MealSlot.LUNCH     -> MealType.MEAL_TYPE_LUNCH
+        MealSlot.DINNER    -> MealType.MEAL_TYPE_DINNER
+        MealSlot.SNACK     -> MealType.MEAL_TYPE_SNACK
     }
 
     private fun exerciseTypeFor(type: ActivityType): Int = when (type) {

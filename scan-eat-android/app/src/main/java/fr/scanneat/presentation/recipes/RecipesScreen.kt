@@ -24,6 +24,7 @@ import fr.scanneat.presentation.recipes.components.LogOfficialRecipeDialog
 import fr.scanneat.presentation.recipes.components.LogRecipeDialog
 import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
 import fr.scanneat.presentation.recipes.components.RecipeCard
+import fr.scanneat.presentation.recipes.components.SaveAsTemplateDialog
 import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
 import fr.scanneat.presentation.ui.theme.*
 
@@ -46,6 +47,7 @@ fun RecipesScreen(
     var renameTarget by remember { mutableStateOf<Recipe?>(null) }
     var notesTarget by remember { mutableStateOf<Recipe?>(null) }
     var scaleTarget by remember { mutableStateOf<Recipe?>(null) }
+    var saveAsTemplateTarget by remember { mutableStateOf<Recipe?>(null) }
     var logOfficialTarget by remember { mutableStateOf<OfficialRecipe?>(null) }
 
     Scaffold(
@@ -147,7 +149,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe })
+                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe }, onSaveAsTemplate = { saveAsTemplateTarget = recipe })
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
@@ -188,6 +190,14 @@ fun RecipesScreen(
             currentServings = recipe.servings,
             onDismiss = { scaleTarget = null },
             onConfirm = { newServings -> viewModel.scale(recipe, newServings); scaleTarget = null },
+        )
+    }
+
+    saveAsTemplateTarget?.let { recipe ->
+        SaveAsTemplateDialog(
+            recipe = recipe,
+            onDismiss = { saveAsTemplateTarget = null },
+            onConfirm = { meal -> viewModel.saveAsTemplate(recipe, meal); saveAsTemplateTarget = null },
         )
     }
 

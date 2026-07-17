@@ -108,6 +108,27 @@ fun Recipe.scaledComponents(newServings: Int): List<RecipeComponent> {
 }
 
 /**
+ * Inverse of MealTemplate.toRecipeComponents() - a Recipe has no meal of its own
+ * (it collapses into one diary entry, unlike a template's per-item meal), so the
+ * caller supplies which slot the resulting Saved Meal should apply to. satFatG/
+ * sugarsG have no equivalent on RecipeComponent, so they default to 0 same as
+ * any other newly-created TemplateItem.
+ */
+fun Recipe.toTemplateItems(meal: MealSlot): List<TemplateItem> = components.map { c ->
+    TemplateItem(
+        productName = c.productName,
+        grams       = c.grams,
+        meal        = meal.name.lowercase(),
+        kcal        = c.kcal,
+        carbsG      = c.carbsG,
+        fatG        = c.fatG,
+        saltG       = c.saltG,
+        proteinG    = c.proteinG,
+        fiberG      = c.fiberG,
+    )
+}
+
+/**
  * Plain-text rendering for the Android share sheet - previously a recipe could
  * only leave the app via the whole-database JSON backup, with no way to send
  * just this one recipe to someone else. Mirrors formatGroceryList()'s role

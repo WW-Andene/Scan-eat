@@ -115,6 +115,8 @@
     <string name="mealplan_title">Plan de repas</string>
     <string name="mealplan_day_today">%1$s · Aujourd\'hui</string>
     <string name="mealplan_clear_day">Vider la journée</string>
+    <string name="mealplan_duplicate_day">Dupliquer vers la semaine prochaine</string>
+    <string name="mealplan_duplicate_week">Dupliquer la semaine vers la suivante</string>
     <string name="mealplan_recipe_prefix">%1$s</string>
     <string name="mealplan_template_prefix">%1$s</string>
     <string name="mealplan_assign_cd">Choisir une recette ou un modèle</string>
@@ -727,6 +729,7 @@
     <string name="templates_empty_body">Les modèles de repas sont créés automatiquement lorsque vous enregistrez un repas depuis le journal.</string>
     <string name="templates_summary">%1$d kcal · %2$d articles · %3$s</string>
     <string name="templates_manage_items_cd">Gérer les aliments du modèle</string>
+    <string name="templates_cd_save_as_recipe">Enregistrer comme recette</string>
     <string name="templates_manage_items_title">Aliments — %1$s</string>
     <string name="templates_no_items_yet">Aucun aliment pour l\'instant. Ajoutez-en ci-dessous.</string>
     <string name="common_log">Logger</string>
@@ -998,6 +1001,7 @@
     <string name="settings_backup_import_confirm_body">Sauvegarde du %1$s (app v%2$s), %3$d éléments. Cela remplacera vos données actuelles.</string>
     <string name="settings_backup_import_confirm_button">Restaurer</string>
     <string name="settings_csv_export_button">Exporter journal (CSV)</string>
+    <string name="settings_biolism_csv_export_button">Exporter séances Biolism (CSV)</string>
     <string name="settings_section_reset">Réinitialisation</string>
     <string name="settings_reset_hint">Effacer sélectivement certaines données de l\'application.</string>
     <string name="settings_reset_button">Options de réinitialisation</string>
@@ -1119,6 +1123,8 @@
     <string name="recipes_cd_notes">Modifier la préparation</string>
     <string name="recipes_cd_share">Partager la recette</string>
     <string name="recipes_cd_scale">Ajuster les portions</string>
+    <string name="recipes_cd_save_as_template">Enregistrer comme modèle de repas</string>
+    <string name="recipes_save_as_template_title">Enregistrer « %1$s » comme modèle</string>
     <string name="recipes_scale_title">Ajuster les portions</string>
     <string name="recipes_scale_servings_label">Nombre de portions</string>
     <string name="recipes_servings_to_log_label">Portions à logger (sur %1$d)</string>

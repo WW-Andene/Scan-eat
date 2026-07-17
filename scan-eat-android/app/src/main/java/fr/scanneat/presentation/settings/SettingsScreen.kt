@@ -147,7 +147,7 @@ fun SettingsScreen(
         if (state is BackupUiState.ExportReady) {
             exportLauncher.launch("scaneat-backup-${LocalDate.now()}.json")
         } else if (state is BackupUiState.CsvExportReady) {
-            csvExportLauncher.launch("scaneat-journal-${LocalDate.now()}.csv")
+            csvExportLauncher.launch("scaneat-${state.filenamePrefix}-${LocalDate.now()}.csv")
         }
     }
     var showResetDialog by remember { mutableStateOf(false) }
@@ -433,6 +433,16 @@ fun SettingsScreen(
                     Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.settings_csv_export_button), color = OnBackground)
+                }
+                // CSV Biolism export — same spreadsheet-friendly complement, for workout
+                // sessions, which previously only ever left the app via the full JSON backup.
+                ScanEatOutlinedButton(
+                    onClick = { viewModel.prepareBiolismCsvExport() },
+                    enabled = backupState.value !is BackupUiState.Working,
+                ) {
+                    Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.settings_biolism_csv_export_button), color = OnBackground)
                 }
                 // Data stats — show what's stored so the user knows what they'd export or reset
                 val (scanCount, diaryCount) = dataStats.value

@@ -103,6 +103,36 @@ class MealPlanRepository @Inject constructor(
     }
 
     /**
+     * Copies a whole day's plan (all 4 meal slots) onto another date, overwriting
+     * whatever's already there - previously the only way to repeat a day's plan
+     * (e.g. "same as last Monday") was re-assigning every slot by hand. No-ops if
+     * the source day has no plan at all.
+     */
+    suspend fun copyDay(from: LocalDate, to: LocalDate) {
+        if (from == to) return
+        store.edit { prefs ->
+            val plan = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            val source = plan[from] ?: return@edit
+            plan[to] = source.copy(date = to)
+            prefs[KEY_PLAN] = serialize(prune(plan))
+        }
+    }
+
+    /** Same as [copyDay] but for each of the 7 days starting at [fromStart], onto the same offset starting at [toStart]. */
+    suspend fun copyWeek(fromStart: LocalDate, toStart: LocalDate) {
+        if (fromStart == toStart) return
+        store.edit { prefs ->
+            val plan = deserialize(prefs[KEY_PLAN] ?: "").toMutableMap()
+            for (offset in 0 until 7) {
+                val source = plan[fromStart.plusDays(offset.toLong())] ?: continue
+                val to = toStart.plusDays(offset.toLong())
+                plan[to] = source.copy(date = to)
+            }
+            prefs[KEY_PLAN] = serialize(prune(plan))
+        }
+    }
+
+    /**
      * Data-consistency safeguard: RecipeSlot/TemplateSlot store a denormalized
      * copy of the recipe/template's id + name at planning time, with no foreign
      * key and no cascade — deleting the underlying recipe or meal template (from

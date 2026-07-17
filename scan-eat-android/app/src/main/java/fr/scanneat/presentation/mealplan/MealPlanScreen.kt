@@ -55,6 +55,16 @@ fun MealPlanScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.mealplan_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+                // Repeating a whole week's plan previously meant re-assigning all 28
+                // slots (7 days x 4 meals) by hand - this duplicates the displayed
+                // week onto the next 7 days in one tap.
+                actions = {
+                    if (weeklyTotalKcal.value > 0) {
+                        IconButton(onClick = { viewModel.duplicateWeek() }) {
+                            Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_week), tint = OnBackground)
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
@@ -104,8 +114,17 @@ fun MealPlanScreen(
                             // point - clearing a fully-planned day took one tap per
                             // meal slot instead of one action for the whole day.
                             if (MEALS.any { dayPlan[it] != null }) {
-                                IconButton(onClick = { viewModel.clearDay(date) }, modifier = Modifier.size(28.dp)) {
-                                    Icon(Icons.Default.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                                Row {
+                                    // Repeating a day (e.g. "same lunch as today, next
+                                    // Tuesday") previously meant re-assigning each slot by
+                                    // hand - this copies the whole day onto the same
+                                    // weekday next week.
+                                    IconButton(onClick = { viewModel.duplicateDay(date) }, modifier = Modifier.size(28.dp)) {
+                                        Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                                    }
+                                    IconButton(onClick = { viewModel.clearDay(date) }, modifier = Modifier.size(28.dp)) {
+                                        Icon(Icons.Default.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                                    }
                                 }
                             }
                         }

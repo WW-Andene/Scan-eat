@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
@@ -46,7 +47,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit) {
+internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit) {
     val context = LocalContext.current
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
@@ -88,6 +89,9 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         // Previously servings only ever affected a one-off logged portion
                         // (LogRecipeDialog) - no way to permanently rescale the recipe itself.
                         IconButton(onClick = onScale, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Tune, stringResource(R.string.recipes_cd_scale), tint = OnSurface.copy(0.5f)) }
+                        // Templates/Recipes had no way to convert between the two -
+                        // this saves a copy into the user's Saved Meal templates.
+                        IconButton(onClick = onSaveAsTemplate, modifier = Modifier.size(36.dp)) { Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.recipes_cd_save_as_template), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onRename, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Edit, stringResource(R.string.common_rename), tint = OnSurface.copy(0.5f)) }
                         IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f)) }
                     }

@@ -156,6 +156,18 @@ class MealPlanViewModel @Inject constructor(
         viewModelScope.launch { repo.clearDay(date) }
     }
 
+    /** Duplicates a day's whole plan onto the same weekday next week - the
+     *  common "same as this week" case, without needing a date picker. */
+    fun duplicateDay(date: LocalDate) {
+        viewModelScope.launch { repo.copyDay(date, date.plusDays(7)) }
+    }
+
+    /** Duplicates the entire displayed week onto the next 7 days. */
+    fun duplicateWeek() {
+        val start = weekDates.value.firstOrNull() ?: return
+        viewModelScope.launch { repo.copyWeek(start, start.plusDays(7)) }
+    }
+
     fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
         viewModelScope.launch { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name)) }
     }

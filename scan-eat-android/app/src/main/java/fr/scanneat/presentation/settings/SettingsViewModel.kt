@@ -23,8 +23,8 @@ sealed class BackupUiState {
     data object Working : BackupUiState()
     /** JSON generated and ready — the screen still needs to write it to a user-picked URI. */
     data class ExportReady(val json: String) : BackupUiState()
-    /** CSV diary export ready — written via Storage Access Framework like JSON. */
-    data class CsvExportReady(val csv: String) : BackupUiState()
+    /** CSV export ready (diary or Biolism sessions) — written via Storage Access Framework like JSON. filenamePrefix picks the suggested filename. */
+    data class CsvExportReady(val csv: String, val filenamePrefix: String = "journal") : BackupUiState()
     /** peekMetadata() succeeded — the screen shows a confirm dialog ("taken on X, N items")
      *  before confirmImport() actually overwrites local data with this file's contents. */
     data class ImportPreview(val json: String, val metadata: BackupMetadata) : BackupUiState()
@@ -124,6 +124,15 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             val csv = backupRepository.exportDiaryCsv()
             _backupState.value = BackupUiState.CsvExportReady(csv)
+        }
+    }
+
+    /** Same CSV export pattern as [prepareCsvExport], for Biolism workout sessions. */
+    fun prepareBiolismCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch {
+            val csv = backupRepository.exportBiolismSessionsCsv()
+            _backupState.value = BackupUiState.CsvExportReady(csv, filenamePrefix = "biolism")
         }
     }
 

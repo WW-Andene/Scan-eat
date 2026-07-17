@@ -70,6 +70,26 @@ data class MealTemplate(
     )
 }
 
+/**
+ * TemplateItem and RecipeComponent carry almost identical fields - the only
+ * structural difference is per-item meal/quickAdd (templates) vs dish-level
+ * servings/notes/favorite (recipes). satFatG/sugarsG have no equivalent on
+ * RecipeComponent, so they're dropped, matching what a manually-added recipe
+ * ingredient already has (0 - RecipeComponent never tracked them either).
+ */
+fun MealTemplate.toRecipeComponents(): List<RecipeComponent> = items.map { i ->
+    RecipeComponent(
+        productName = i.productName,
+        grams       = i.grams,
+        kcal        = i.kcal,
+        proteinG    = i.proteinG,
+        carbsG      = i.carbsG,
+        fatG        = i.fatG,
+        saltG       = i.saltG,
+        fiberG      = i.fiberG,
+    )
+}
+
 @Singleton
 class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDao,
     private val moshi: Moshi,

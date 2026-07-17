@@ -6,10 +6,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
+import fr.scanneat.data.repository.planning.MealTemplateRepository
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.planning.scaledComponents
+import fr.scanneat.data.repository.planning.toTemplateItems
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
@@ -33,6 +35,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipesViewModel @Inject constructor(
     private val repo: RecipeRepository,
+    private val templateRepo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
     prefs: UserPreferences,
@@ -163,6 +166,12 @@ class RecipesViewModel @Inject constructor(
     }
 
     fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
+
+    /** Inverse of TemplatesViewModel.saveAsRecipe() - a Recipe has no meal of its own,
+     *  so the screen must ask which slot before this can be saved as a Saved Meal. */
+    fun saveAsTemplate(recipe: Recipe, meal: MealSlot) = viewModelScope.launch {
+        templateRepo.save(recipe.name, meal, recipe.toTemplateItems(meal))
+    }
 
     fun rename(recipe: Recipe, newName: String) {
         if (newName.isBlank()) return

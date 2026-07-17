@@ -306,6 +306,24 @@ class BackupRepository @Inject constructor(
     }
 
     /**
+     * Exports Biolism workout sessions as CSV, same RFC 4180 spreadsheet-friendly
+     * pattern as [exportDiaryCsv] - the JSON backup already carries this data via
+     * BiolismRepository.exportForBackup(), but there was no lightweight
+     * spreadsheet-friendly export for it the way the diary already has.
+     */
+    suspend fun exportBiolismSessionsCsv(): String {
+        val rows = biolismRepo.sessions.first()
+        val sb = StringBuilder("timestamp,elapsedSec,kcalBurned,kcalPerMin,bmrDay,tdeeDay,activity,ketosis,startWeightKg,endWeightKg,fatFrac,fatLostKg\n")
+        rows.sortedBy { it.timestamp }.forEach { s ->
+            val activity = s.activityLabel.replace("\"", "\"\"")
+            sb.append("${s.timestamp},${s.elapsedSec.toInt()},${s.kcalBurned.toInt()},${"%.1f".format(java.util.Locale.US, s.kcalPerMin)}," +
+                "${s.bmrDay.toInt()},${s.tdeeDay.toInt()},\"$activity\",${s.ketosis},${s.startWeightKg},${s.endWeightKg}," +
+                "${"%.3f".format(java.util.Locale.US, s.fatFrac)},${s.fatLostKg}\n")
+        }
+        return sb.toString()
+    }
+
+    /**
      * Clears the scan history table (keeps all other data intact) - also clears
      * scan_score_history, since leaving it behind would resurface pre-clear
      * scores as "prior scans" the next time a previously-scanned product is

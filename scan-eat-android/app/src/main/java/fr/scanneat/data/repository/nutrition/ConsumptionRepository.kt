@@ -8,9 +8,11 @@ import fr.scanneat.data.local.db.toEpochMillisUtc
 import fr.scanneat.data.local.db.toIsoString
 import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.toLocalDateTimeUtc
+import fr.scanneat.data.repository.health.HealthConnectRepository
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,6 +21,7 @@ import javax.inject.Singleton
 class ConsumptionRepository @Inject constructor(
     private val dao: ConsumptionDao,
     private val moshi: Moshi,
+    private val healthConnect: HealthConnectRepository,
 ) {
     private val nutritionAdapter = moshi.adapter(NutritionPer100g::class.java)
 
@@ -34,11 +37,30 @@ class ConsumptionRepository @Inject constructor(
 
     suspend fun log(entry: DiaryEntry) {
         dao.insert(entry.toEntity())
+        mirrorToHealthConnect(entry)
     }
 
     /** Atomic multi-entry write — use when logging a template or recipe that expands to several entries. */
     suspend fun logAll(entries: List<DiaryEntry>) {
         dao.insertAll(entries.map { it.toEntity() })
+        entries.forEach { mirrorToHealthConnect(it) }
+    }
+
+    private suspend fun mirrorToHealthConnect(entry: DiaryEntry) {
+        val c = entry.consumed
+        healthConnect.writeNutrition(
+            loggedAt = Instant.ofEpochMilli(entry.loggedAt.toEpochMillisUtc()),
+            mealSlot = entry.mealSlot,
+            name     = entry.productName,
+            kcal     = c.energyKcal,
+            proteinG = c.proteinG,
+            carbsG   = c.carbsG,
+            fatG     = c.fatG,
+            saturatedFatG = c.saturatedFatG,
+            sugarsG  = c.sugarsG,
+            fiberG   = c.fiberG,
+            saltG    = c.saltG,
+        )
     }
 
     suspend fun update(entry: DiaryEntry) {
