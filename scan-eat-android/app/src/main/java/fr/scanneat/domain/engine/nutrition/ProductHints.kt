@@ -18,12 +18,21 @@ data class ProductHints(
     val benefits: List<String>,
     val risks: List<String>,
     val facts: List<String>,
+    /** What complements this product nutritionally or gastronomically — flavor
+     *  pairings (Ahn et al. flavor-network co-occurrence, same PairingsDb the
+     *  standalone PairingsCard already uses) plus absorption-enhancer pairings
+     *  (e.g. vitamin C alongside an iron source). */
+    val pairWell: List<String> = emptyList(),
+    /** What to avoid pairing this product with — nutrient-absorption inhibitor
+     *  interactions (e.g. tea/coffee tannins alongside an iron source), not a
+     *  flavor judgment. */
+    val avoidPairing: List<String> = emptyList(),
 ) {
     companion object {
         /** Fallback for a combine-into-map StateFlow lookup miss (e.g. the one-frame
          *  gap right after a new recipe/template is added, before its hints entry
          *  lands) — same role as NutritionPer100g.EMPTY elsewhere in the codebase. */
-        val EMPTY = ProductHints(emptyList(), emptyList(), emptyList())
+        val EMPTY = ProductHints(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
     }
 }
 
@@ -55,6 +64,25 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     n.potassiumMg?.let { if (it >= 600.0) benefits += if (en) "High in potassium (${it.toInt()} mg/100 g)" else "Riche en potassium (${it.toInt()} mg/100 g)" }
     n.vitCMg?.let { if (it >= 24.0) benefits += if (en) "High in vitamin C (${it} mg/100 g)" else "Riche en vitamine C (${it} mg/100 g)" }
     n.vitDUg?.let { if (it >= 1.5) benefits += if (en) "High in vitamin D (${it} µg/100 g)" else "Riche en vitamine D (${it} µg/100 g)" }
+    // Same "high in X" = ≥30% NRV/100g pattern as potassium/vitC/vitD above,
+    // just extended to the rest of NutritionPer100g's optional micronutrient
+    // fields (NRVs per EU Reg 1169/2011 Annex XIII) — those three were
+    // previously the only micronutrients this ever surfaced as a benefit,
+    // even though CustomFoodRepository/OffMapper/server mappers already
+    // populate most of these fields when the source data has them.
+    n.calciumMg?.let { if (it >= 240.0) benefits += if (en) "High in calcium (${it.toInt()} mg/100 g)" else "Riche en calcium (${it.toInt()} mg/100 g)" }
+    n.ironMg?.let { if (it >= 4.2) benefits += if (en) "High in iron (${it} mg/100 g)" else "Riche en fer (${it} mg/100 g)" }
+    n.magnesiumMg?.let { if (it >= 112.5) benefits += if (en) "High in magnesium (${it.toInt()} mg/100 g)" else "Riche en magnésium (${it.toInt()} mg/100 g)" }
+    n.zincMg?.let { if (it >= 3.0) benefits += if (en) "High in zinc (${it} mg/100 g)" else "Riche en zinc (${it} mg/100 g)" }
+    n.vitAUg?.let { if (it >= 240.0) benefits += if (en) "High in vitamin A (${it.toInt()} µg/100 g)" else "Riche en vitamine A (${it.toInt()} µg/100 g)" }
+    n.vitEMg?.let { if (it >= 3.6) benefits += if (en) "High in vitamin E (${it} mg/100 g)" else "Riche en vitamine E (${it} mg/100 g)" }
+    n.vitKUg?.let { if (it >= 22.5) benefits += if (en) "High in vitamin K (${it.toInt()} µg/100 g)" else "Riche en vitamine K (${it.toInt()} µg/100 g)" }
+    n.b1Mg?.let { if (it >= 0.33) benefits += if (en) "High in vitamin B1 (${it} mg/100 g)" else "Riche en vitamine B1 (${it} mg/100 g)" }
+    n.b2Mg?.let { if (it >= 0.42) benefits += if (en) "High in vitamin B2 (${it} mg/100 g)" else "Riche en vitamine B2 (${it} mg/100 g)" }
+    n.b3Mg?.let { if (it >= 4.8) benefits += if (en) "High in vitamin B3 (${it} mg/100 g)" else "Riche en vitamine B3 (${it} mg/100 g)" }
+    n.b6Mg?.let { if (it >= 0.42) benefits += if (en) "High in vitamin B6 (${it} mg/100 g)" else "Riche en vitamine B6 (${it} mg/100 g)" }
+    n.b9Ug?.let { if (it >= 60.0) benefits += if (en) "High in folate/B9 (${it.toInt()} µg/100 g)" else "Riche en folates/B9 (${it.toInt()} µg/100 g)" }
+    n.b12Ug?.let { if (it >= 0.75) benefits += if (en) "High in vitamin B12 (${it} µg/100 g)" else "Riche en vitamine B12 (${it} µg/100 g)" }
     if (product.declaredMicronutrients.isNotEmpty()) {
         benefits += if (en) "Declared micronutrients: ${product.declaredMicronutrients.joinToString(", ")}"
                     else "Micronutriments déclarés : ${product.declaredMicronutrients.joinToString(", ")}"
@@ -87,6 +115,21 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
                  else "Porte des allégations santé marketing — à vérifier au regard des valeurs nutritionnelles ci-dessus"
     }
     risks += substanceCautions
+
+    // Tier-1/Tier-2 additives (AdditivesDb — same lookup AdditiveRiskPillar
+    // already runs for the score deduction itself) were only ever reflected
+    // as a number buried in the score breakdown, never named here — a user
+    // could see "-8 points, additive risk" on the score without the hint
+    // panel ever saying *which* additive or why. Tier 3 (minor concern) is
+    // left out to keep this list high-signal, matching the pillar's own
+    // "minor" label for that tier.
+    product.ingredients.forEach { ing ->
+        val additive = fr.scanneat.domain.engine.scoring.findAdditive(ing.eNumber, ing.name, ing.category) ?: return@forEach
+        if (additive.tier == fr.scanneat.domain.engine.scoring.AdditiveTier.ONE || additive.tier == fr.scanneat.domain.engine.scoring.AdditiveTier.TWO) {
+            risks += if (en) "Contains ${additive.eNumber} (${ing.name}) — ${additive.concern} (${additive.source})"
+                     else "Contient ${additive.eNumber} (${ing.name}) — ${additive.concern} (${additive.source})"
+        }
+    }
 
     // ---- Personalized (Profile.healthConditions) ----
     // Closes the gap with PersonalScoreEngine, which already personalizes the
@@ -178,5 +221,55 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     // for why this is a hand-curated substring match rather than LLM-generated.
     facts += findIngredientFacts(product.ingredients, lang)
 
-    return ProductHints(benefits, risks, facts)
+    // ---- Pair well with / Avoid pairing with ----
+    // Two different senses of "pairing" folded into one panel, per their own
+    // citation: flavor-network co-occurrence (Ahn et al., the same PairingsDb
+    // ResultScreen's separate always-visible PairingsCard already draws on -
+    // repeated here so the hint panel alone is a complete answer instead of
+    // sending the user hunting for a second card) and nutrient-absorption
+    // enhancer/inhibitor interactions, which nothing in the app surfaced at
+    // all before this - well-established dietetics, not product-specific
+    // medical advice (e.g. non-heme iron absorption enhanced ~3x by vitamin C,
+    // inhibited by tannins/calcium — a mechanism, not a claim about this
+    // exact product's effect on any one person).
+    val pairWell = mutableListOf<String>()
+    val avoidPairing = mutableListOf<String>()
+
+    val flavorPairs = fr.scanneat.domain.engine.planning.findPairings(product.name, limit = 4)
+    if (flavorPairs.isNotEmpty()) {
+        pairWell += if (en) "Goes well with: ${flavorPairs.joinToString(", ")} (flavor-pairing data)"
+                    else "Se marie bien avec : ${flavorPairs.joinToString(", ")} (données d'accords culinaires)"
+    }
+
+    // NRV threshold for "iron source" = 15% of 14 mg (EU Reg 1169/2011 Annex XIII),
+    // same percentage convention as the "high in" benefit checks above, just at
+    // the lower "source of" tier since even a moderate iron contribution is
+    // worth pairing correctly.
+    val isIronSource = (n.ironMg ?: 0.0) >= 2.1
+    val isCalciumSource = (n.calciumMg ?: 0.0) >= 120.0
+    if (isIronSource) {
+        pairWell += if (en) "Pair with a vitamin C source (citrus, peppers, kiwi) in the same meal — vitamin C can enhance non-heme iron absorption up to 3-fold"
+                    else "Associez à une source de vitamine C (agrumes, poivron, kiwi) dans le même repas — la vitamine C peut multiplier jusqu'à 3 fois l'absorption du fer non héminique"
+        avoidPairing += if (en) "Avoid pairing with tea, coffee, or a high-calcium dairy product in the same meal — tannins and calcium both significantly reduce iron absorption"
+                        else "Évitez d'associer thé, café ou un produit laitier riche en calcium dans le même repas — tanins et calcium réduisent tous deux nettement l'absorption du fer"
+    } else if (isCalciumSource) {
+        // Only fires when the product isn't already the iron source itself,
+        // so a food that's rich in both doesn't warn about pairing with itself.
+        avoidPairing += if (en) "Avoid taking at the same time as an iron-rich food or supplement — calcium competes with iron for intestinal absorption (space by about 2 hours if both matter to you)"
+                        else "Évitez de le prendre en même temps qu'un aliment ou complément riche en fer — le calcium entre en compétition avec le fer pour l'absorption intestinale (espacez d'environ 2 heures si les deux vous concernent)"
+    }
+    if (containsCaffeineSource && !isIronSource) {
+        avoidPairing += if (en) "Avoid pairing with iron-rich meals — the tannins in coffee/tea/cocoa can cut iron absorption by up to 60%"
+                        else "Évitez de l'associer à un repas riche en fer — les tanins du café/thé/cacao peuvent réduire l'absorption du fer jusqu'à 60 %"
+    }
+    n.vitDUg?.let { if (it >= 0.5) pairWell += if (en) "Best absorbed with a source of dietary fat in the same meal — vitamin D is fat-soluble"
+                                                else "Mieux absorbée avec une source de matière grasse dans le même repas — la vitamine D est liposoluble" }
+    n.zincMg?.let { if (it >= 1.5) pairWell += if (en) "Pairs well with animal protein in the same meal — zinc from animal sources is absorbed more efficiently than from plant sources alone"
+                                                else "S'associe bien avec une protéine animale dans le même repas — le zinc d'origine animale est mieux absorbé que celui des seules sources végétales" }
+    if (n.fiberG >= 6.0) {
+        avoidPairing += if (en) "Very high-fiber foods can reduce the absorption of some minerals and oral medications if eaten at the exact same time — space by 1-2 hours from a supplement or medication dose"
+                        else "Les aliments très riches en fibres peuvent réduire l'absorption de certains minéraux et médicaments oraux en cas de prise simultanée — espacez de 1 à 2 heures la prise d'un complément ou d'un médicament"
+    }
+
+    return ProductHints(benefits, risks, facts, pairWell, avoidPairing)
 }

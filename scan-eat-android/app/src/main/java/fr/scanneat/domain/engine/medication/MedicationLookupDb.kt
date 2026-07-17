@@ -105,22 +105,42 @@ private fun normalizeForMatch(s: String): String =
         .filter { it.isLetterOrDigit() || it == ' ' }
         .trim()
 
+private fun tokenize(s: String): List<String> = s.split(' ').filter { it.isNotBlank() }
+
 /**
  * Fallback for when there's no barcode/DataMatrix/QR to scan at all — OCR
  * reads the drug/product name off the box (see OcrParser.identifyFood, via
  * ScanRepository.identifyOrScoreFromImages), and this matches it against
  * BDPM's ~12,300 entries by name instead. A linear
  * scan is fine here: this only runs once per explicit user action ("identify
- * without a label"), never per camera frame. Accent/case-insensitive, and
- * matches on whichever direction (OCR text found within the BDPM name, or
- * vice versa) since OCR text is rarely an exact full match to the official
- * denomination (e.g. missing dosage/form suffixes, or the reverse).
+ * without a label"), never per camera frame.
+ *
+ * Token-overlap scoring rather than a single whole-string containment check
+ * (either direction) - OCR text off a box front rarely matches the full
+ * BDPM denomination as one contiguous substring even when it's clearly the
+ * same drug: a dosage like "1000mg" (OCR, no space before the unit) never
+ * appears as a substring of "1000 mg" (BDPM, space-separated) despite
+ * meaning the same thing, and OCR routinely drops the trailing
+ * pharmaceutical-form suffix ("comprimé, boîte de 8") the official name
+ * always carries. Requiring only a majority of the query's own tokens to
+ * each appear (substring match, either direction, so "1000mg" still matches
+ * a "1000" token) somewhere in the candidate tolerates that kind of
+ * reordering/spacing noise, and keeps the single best-scoring entry instead
+ * of whichever happened to be first in map iteration order to clear the
+ * old any-overlap bar.
  */
 fun findMedicationByName(context: Context, name: String): MedicationDbEntry? {
     val query = normalizeForMatch(name)
     if (query.length < 3) return null
-    return MedicationStore.get(context).values.firstOrNull { entry ->
-        val candidate = normalizeForMatch(entry.name)
-        candidate.contains(query) || query.contains(candidate)
+    val queryTokens = tokenize(query)
+    if (queryTokens.isEmpty()) return null
+    var best: MedicationDbEntry? = null
+    var bestScore = 0.0
+    for (entry in MedicationStore.get(context).values) {
+        val candidateTokens = tokenize(normalizeForMatch(entry.name))
+        val matched = queryTokens.count { qt -> candidateTokens.any { ct -> ct.contains(qt) || qt.contains(ct) } }
+        val score = matched.toDouble() / queryTokens.size
+        if (score > bestScore) { bestScore = score; best = entry }
     }
+    return if (bestScore >= 0.6) best else null
 }

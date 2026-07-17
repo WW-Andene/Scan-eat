@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
@@ -58,7 +60,7 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize: androidx.compose.ui.unit.Dp = 24.dp) {
     var showHints by remember { mutableStateOf(false) }
     val hasRisks = hints.risks.isNotEmpty()
-    val totalCount = hints.benefits.size + hints.risks.size + hints.facts.size
+    val totalCount = hints.benefits.size + hints.risks.size + hints.facts.size + hints.pairWell.size + hints.avoidPairing.size
     val baseLabel = stringResource(R.string.hint_cd_open)
     val cd = when {
         hasRisks -> stringResource(R.string.hint_cd_open_with_risks, baseLabel, pluralStringResource(R.plurals.hint_cd_risks_count, hints.risks.size, hints.risks.size))
@@ -80,13 +82,14 @@ fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize:
     }
 }
 
-/** The "💡" hint panel — benefits / risks / facts, each traced to a concrete product field (see ProductHints.kt). */
+/** The "💡" hint panel — benefits / risks / pairings / facts, each traced to a concrete product field (see ProductHints.kt). */
 @Composable
 fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
     val green = semanticGreen()
     val amber = semanticAmber()
     val neutral = OnBackground.copy(0.7f)
-    val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.facts.isEmpty()
+    val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.facts.isEmpty() &&
+        hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty()
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
@@ -99,21 +102,22 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
             Column(
                 modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
             ) {
-                if (hints.benefits.isNotEmpty()) {
-                    HintSection(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Default.ThumbUp)
+                // Was a fixed pairwise chain of "is the section before me AND am I
+                // non-empty" checks - fine for 3 sections, unreadable once pairWell/
+                // avoidPairing made it 5. A running "was anything shown yet" flag
+                // scales to any section count without combinatorial conditions.
+                var shownAny = false
+                @Composable fun section(title: String, lines: List<String>, accent: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+                    if (lines.isEmpty()) return
+                    if (shownAny) HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
+                    HintSection(title, lines, accent, icon)
+                    shownAny = true
                 }
-                if (hints.benefits.isNotEmpty() && hints.risks.isNotEmpty()) {
-                    HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
-                }
-                if (hints.risks.isNotEmpty()) {
-                    HintSection(stringResource(R.string.hint_section_risks), hints.risks, amber, Icons.Default.WarningAmber)
-                }
-                if ((hints.benefits.isNotEmpty() || hints.risks.isNotEmpty()) && hints.facts.isNotEmpty()) {
-                    HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
-                }
-                if (hints.facts.isNotEmpty()) {
-                    HintSection(stringResource(R.string.hint_section_facts), hints.facts, neutral, Icons.Default.Lightbulb)
-                }
+                section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Default.ThumbUp)
+                section(stringResource(R.string.hint_section_risks), hints.risks, amber, Icons.Default.WarningAmber)
+                section(stringResource(R.string.hint_section_pair_well), hints.pairWell, green, Icons.Default.Restaurant)
+                section(stringResource(R.string.hint_section_avoid_pairing), hints.avoidPairing, amber, Icons.Default.Block)
+                section(stringResource(R.string.hint_section_facts), hints.facts, neutral, Icons.Default.Lightbulb)
                 if (isEmpty) {
                     Text(stringResource(R.string.hint_panel_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                 }

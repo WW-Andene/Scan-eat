@@ -19,11 +19,25 @@ import android.content.Context
 // ScanScreen) instead always defers to real emergency services, the only
 // medically-honest answer here.
 //
-// Bundled as assets/nonconsumables_opf.csv (~1,250 rows) and lazily parsed,
+// Bundled as assets/nonconsumables_opf.csv (~3,125 rows) and lazily parsed,
 // same rationale as MedicationLookupDb's asset-backed approach.
-// ============================================================================
-
-enum class NonConsumableCategory { BLEACH, CLEANING_PRODUCT, LAUNDRY, OTHER }
+//
+// Widened 2026-07-17 beyond the original bleach/laundry/cleaning slice to
+// also cover OPF's Health & Beauty, Household Chemicals, Tobacco Products,
+// Batteries, Baby & Toddler / Feminine Sanitary Supplies, and Pet Supplies
+// category trees (same live API v2 search endpoint, one query per category)
+// — a shampoo, toothpaste, cigarette pack, or button battery barcode
+// previously matched nothing here and fell straight through to food
+// scoring. Any product whose own category tags also indicate it's a
+// genuine food/beverage/supplement/medicine (e.g. a magnesium supplement
+// filed under OPF's "Health & Beauty" tree) was excluded from this
+// widening — flagging something actually meant to be swallowed as "not a
+// food product" would be actively wrong, not just imprecise.
+enum class NonConsumableCategory {
+    BLEACH, CLEANING_PRODUCT, LAUNDRY,
+    PERSONAL_CARE, HOUSEHOLD_CHEMICAL, TOBACCO, BATTERY, HYGIENE_PRODUCT, PET_SUPPLY,
+    OTHER,
+}
 
 data class NonConsumableDbEntry(
     val barcode: String,
@@ -85,12 +99,31 @@ private fun normalizeForMatch(s: String): String =
         .filter { it.isLetterOrDigit() || it == ' ' }
         .trim()
 
-/** Same OCR-name fallback as MedicationLookupDb.findMedicationByName, against OPF's ~1,250 household/chemical entries. */
+private fun tokenize(s: String): List<String> = s.split(' ').filter { it.isNotBlank() }
+
+/**
+ * Same OCR-name fallback as MedicationLookupDb.findMedicationByName, against
+ * OPF's ~3,125 household/chemical/personal-care/tobacco/battery/hygiene/pet
+ * entries — and the same token-overlap fix for the same reason: OCR text off
+ * a box front rarely matches "brand + name" as one contiguous substring
+ * (word order, spacing, or a missing/extra word), even when most of the
+ * meaningful tokens are clearly the same product. See
+ * MedicationLookupDb.findMedicationByName's own comment for the full
+ * rationale — kept duplicated here rather than shared, same as
+ * normalizeForMatch/parseCsvLine above.
+ */
 fun findNonConsumableByName(context: Context, name: String): NonConsumableDbEntry? {
     val query = normalizeForMatch(name)
     if (query.length < 3) return null
-    return NonConsumableStore.get(context).values.firstOrNull { entry ->
-        val candidate = normalizeForMatch("${entry.brand} ${entry.name}")
-        candidate.contains(query) || query.contains(normalizeForMatch(entry.name))
+    val queryTokens = tokenize(query)
+    if (queryTokens.isEmpty()) return null
+    var best: NonConsumableDbEntry? = null
+    var bestScore = 0.0
+    for (entry in NonConsumableStore.get(context).values) {
+        val candidateTokens = tokenize(normalizeForMatch("${entry.brand} ${entry.name}"))
+        val matched = queryTokens.count { qt -> candidateTokens.any { ct -> ct.contains(qt) || qt.contains(ct) } }
+        val score = matched.toDouble() / queryTokens.size
+        if (score > bestScore) { bestScore = score; best = entry }
     }
+    return if (bestScore >= 0.6) best else null
 }

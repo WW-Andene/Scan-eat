@@ -12,7 +12,12 @@ import java.text.Normalizer
 // ⚠️  PROVENANCE NOTICE:
 //   Values are hand-transcribed approximations of CIQUAL 2020
 //   (ANSES, https://ciqual.anses.fr/, DOI 10.5281/zenodo.4770600).
-//   NOT a bit-for-bit export. Accurate to ±10 % for these ~54 foods.
+//   NOT a bit-for-bit export. Accurate to ±10 % for these ~130 foods
+//   (expanded 2026-07-17 from the original ~54 - Quick Add search and
+//   LLM reconciliation previously missed most common everyday foods
+//   outside that initial set, e.g. peach, cauliflower, turkey, tofu,
+//   hazelnut, hummus - falling back to the LLM's own rough macro guess
+//   instead of a grounded CIQUAL-style value for anything not in it).
 //   Do not use for clinical or research work without verifying against
 //   the canonical ANSES XML distribution.
 //
@@ -112,6 +117,115 @@ val FOOD_DB: List<FoodEntry> = listOf(
     FoodEntry("coca-cola",     42.0,  0.0, 10.6,  0.0, 0.0),
     FoodEntry("bière",         43.0,  0.4,  3.6,  0.0, 0.0),
     FoodEntry("vin rouge",     83.0,  0.0,  2.6,  0.0, 0.0),
+    FoodEntry("jus de pomme",  46.0,  0.1, 11.0,  0.1, 0.2, aliases = listOf("apple juice")),
+    FoodEntry("eau gazeuse",    0.0,  0.0,  0.0,  0.0, 0.0, aliases = listOf("sparkling water")),
+    FoodEntry("lait chocolaté", 83.0, 3.3, 11.0,  3.0, 0.5, calciumMg = 110.0, aliases = listOf("chocolate milk")),
+
+    // Fruits (suite)
+    FoodEntry("pêche",         39.0,  0.9,   9.0,  0.3,  1.5, aliases = listOf("peach")),
+    FoodEntry("poire",         57.0,  0.4,  15.0,  0.1,  3.1, aliases = listOf("pear")),
+    FoodEntry("ananas",        50.0,  0.5,  13.0,  0.1,  1.4, aliases = listOf("pineapple")),
+    FoodEntry("mangue",        60.0,  0.8,  15.0,  0.4,  1.6, aliases = listOf("mango")),
+    FoodEntry("pastèque",      30.0,  0.6,   8.0,  0.2,  0.4, aliases = listOf("watermelon")),
+    FoodEntry("melon",         34.0,  0.8,   8.0,  0.2,  0.9),
+    FoodEntry("cerise",        63.0,  1.1,  16.0,  0.2,  2.1, aliases = listOf("cerises", "cherry")),
+    FoodEntry("framboise",     52.0,  1.2,  12.0,  0.7,  6.5, aliases = listOf("framboises", "raspberry")),
+    FoodEntry("mûre",          43.0,  1.4,  10.0,  0.5,  5.3, aliases = listOf("mûres", "blackberry")),
+    FoodEntry("abricot",       48.0,  1.4,  11.0,  0.4,  2.0, aliases = listOf("apricot")),
+    FoodEntry("prune",         46.0,  0.7,  11.0,  0.3,  1.4, aliases = listOf("plum")),
+    FoodEntry("pamplemousse",  42.0,  0.8,  11.0,  0.1,  1.6, aliases = listOf("grapefruit")),
+    FoodEntry("citron",        29.0,  1.1,   9.0,  0.3,  2.8, aliases = listOf("lemon")),
+    FoodEntry("clémentine",    47.0,  0.8,  12.0,  0.2,  1.7, aliases = listOf("mandarine", "clementine")),
+    FoodEntry("figue",         74.0,  0.8,  19.0,  0.3,  2.9, aliases = listOf("figues", "fig")),
+    FoodEntry("datte",         282.0, 2.5,  75.0,  0.4,  8.0, ironMg = 1.0, aliases = listOf("dattes", "date")),
+    FoodEntry("noix de coco",  354.0, 3.3,   6.2, 33.5,  9.0, aliases = listOf("coconut")),
+
+    // Légumes (suite)
+    FoodEntry("chou-fleur",    25.0,  1.9,   5.0,  0.3,  2.0, aliases = listOf("cauliflower")),
+    FoodEntry("chou",          25.0,  1.3,   6.0,  0.1,  2.5, aliases = listOf("cabbage")),
+    FoodEntry("chou de bruxelles", 43.0, 3.4, 9.0,  0.3,  3.8, aliases = listOf("choux de bruxelles", "brussels sprouts")),
+    FoodEntry("aubergine",     25.0,  1.0,   6.0,  0.2,  3.0, aliases = listOf("eggplant")),
+    FoodEntry("haricot vert",  31.0,  1.8,   7.0,  0.1,  3.4, aliases = listOf("haricots verts", "green bean")),
+    FoodEntry("petit pois",    81.0,  5.4,  14.0,  0.4,  5.1, ironMg = 1.5, aliases = listOf("petits pois", "green pea")),
+    FoodEntry("asperge",       20.0,  2.2,   3.9,  0.1,  2.1, aliases = listOf("asperges", "asparagus")),
+    FoodEntry("champignon",    22.0,  3.1,   3.3,  0.3,  1.0, aliases = listOf("champignon de paris", "mushroom")),
+    FoodEntry("betterave",     43.0,  1.6,  10.0,  0.2,  2.8, aliases = listOf("beetroot")),
+    FoodEntry("radis",         16.0,  0.7,   3.4,  0.1,  1.6, aliases = listOf("radish")),
+    FoodEntry("céleri",        16.0,  0.7,   3.0,  0.2,  1.6, aliases = listOf("celery")),
+    FoodEntry("poireau",       61.0,  1.5,  14.0,  0.3,  1.8, aliases = listOf("poireaux", "leek")),
+    FoodEntry("artichaut",     47.0,  3.3,  10.0,  0.2,  5.4, aliases = listOf("artichoke")),
+    FoodEntry("patate douce",  86.0,  1.6,  20.0,  0.1,  3.0, aliases = listOf("sweet potato")),
+    FoodEntry("maïs",          86.0,  3.2,  19.0,  1.2,  2.7, aliases = listOf("mais", "corn", "sweetcorn")),
+    FoodEntry("ail",          149.0,  6.4,  33.0,  0.5,  2.1, aliases = listOf("garlic")),
+
+    // Céréales / féculents (suite)
+    FoodEntry("riz complet cuit", 123.0, 2.7, 26.0, 1.0, 1.8, ironMg = 0.6, aliases = listOf("brown rice")),
+    FoodEntry("semoule cuite",    112.0, 3.8, 23.0, 0.2, 1.5, aliases = listOf("couscous", "couscous cuit")),
+    FoodEntry("boulgour cuit",     83.0, 3.1, 19.0, 0.2, 4.5, aliases = listOf("bulgur")),
+    FoodEntry("sarrasin cuit",     92.0, 3.4, 20.0, 0.6, 2.7, aliases = listOf("buckwheat")),
+    FoodEntry("pain de mie",      265.0, 8.5, 49.0, 3.3, 2.5, aliases = listOf("sandwich bread")),
+    FoodEntry("tortilla de blé",  300.0, 8.0, 50.0, 7.0, 2.5, aliases = listOf("tortilla", "wrap")),
+
+    // Protéines animales (suite)
+    FoodEntry("dinde",          135.0, 29.0,  0.0,  1.5, 0.0, b12Ug = 0.3, aliases = listOf("blanc de dinde", "turkey")),
+    FoodEntry("porc",           242.0, 27.0,  0.0, 14.0, 0.0, b12Ug = 0.7, aliases = listOf("filet de porc", "pork")),
+    FoodEntry("agneau",         294.0, 25.0,  0.0, 21.0, 0.0, ironMg = 1.6, b12Ug = 2.3, aliases = listOf("lamb")),
+    FoodEntry("canard",         337.0, 19.0,  0.0, 28.0, 0.0, ironMg = 2.7, aliases = listOf("duck")),
+    FoodEntry("crevette",        99.0, 24.0,  0.2,  0.3, 0.0, b12Ug = 1.1, aliases = listOf("crevettes", "shrimp")),
+    FoodEntry("moules",         172.0, 24.0,  7.0,  4.5, 0.0, ironMg = 6.7, b12Ug = 12.0, aliases = listOf("mussels")),
+    FoodEntry("cabillaud",      105.0, 23.0,  0.0,  0.9, 0.0, vitDUg = 1.3, b12Ug = 1.0, aliases = listOf("cod")),
+    FoodEntry("maquereau",      205.0, 19.0,  0.0, 14.0, 0.0, vitDUg = 8.9, b12Ug = 8.7, aliases = listOf("mackerel")),
+    FoodEntry("sardine",        208.0, 25.0,  0.0, 11.0, 0.0, saltG = 0.7, calciumMg = 380.0, vitDUg = 4.8, b12Ug = 8.9),
+    FoodEntry("tofu",            76.0,  8.0,  1.9,  4.8, 0.4, calciumMg = 350.0, ironMg = 1.6),
+    FoodEntry("jambon cru",      195.0, 27.0,  0.5,  9.0, 0.0, saltG = 5.0, b12Ug = 1.0, aliases = listOf("prosciutto")),
+    FoodEntry("saucisse",        300.0, 13.0,  3.0, 26.0, 0.0, saltG = 1.5, aliases = listOf("sausage")),
+    FoodEntry("bacon",           400.0, 25.0,  1.0, 33.0, 0.0, saltG = 2.5),
+
+    // Produits laitiers (suite)
+    FoodEntry("fromage de chèvre", 364.0, 22.0, 2.0, 29.0, 0.0, calciumMg = 140.0, aliases = listOf("goat cheese")),
+    FoodEntry("mozzarella",        280.0, 22.0, 2.2, 21.0, 0.0, saltG = 0.6, calciumMg = 515.0),
+    FoodEntry("feta",              264.0, 14.0, 4.1, 21.0, 0.0, saltG = 3.0, calciumMg = 493.0),
+    FoodEntry("parmesan",          392.0, 35.0, 3.2, 26.0, 0.0, saltG = 1.6, calciumMg = 1180.0, b12Ug = 1.5),
+    FoodEntry("lait entier",        64.0,  3.2, 4.8,  3.6, 0.0, calciumMg = 118.0, aliases = listOf("whole milk")),
+    FoodEntry("crème fraîche",     292.0,  2.2, 3.4, 30.0, 0.0, calciumMg = 80.0),
+    FoodEntry("lait de soja",       33.0,  3.0, 1.0,  1.8, 0.4, calciumMg = 120.0, aliases = listOf("soy milk")),
+    FoodEntry("lait d'amande",      15.0,  0.5, 0.3,  1.2, 0.3, calciumMg = 120.0, aliases = listOf("almond milk")),
+
+    // Légumineuses / oléagineux (suite)
+    FoodEntry("haricot rouge cuit", 127.0, 8.7, 23.0, 0.5,  6.4, ironMg = 2.2, aliases = listOf("kidney bean")),
+    FoodEntry("haricot blanc cuit", 139.0, 9.7, 25.0, 0.5,  6.3, ironMg = 2.5, aliases = listOf("white bean")),
+    FoodEntry("edamame",             122.0, 11.0, 10.0, 5.2, 5.0, ironMg = 2.3),
+    FoodEntry("noisette",            628.0, 15.0, 17.0, 61.0, 9.7, calciumMg = 114.0, aliases = listOf("noisettes", "hazelnut")),
+    FoodEntry("noix de cajou",       553.0, 18.0, 30.0, 44.0, 3.3, ironMg = 6.7, aliases = listOf("cashew")),
+    FoodEntry("pistache",            562.0, 20.0, 28.0, 45.0, 10.0, ironMg = 3.9, aliases = listOf("pistaches", "pistachio")),
+    FoodEntry("graine de chia",      486.0, 17.0, 42.0, 31.0, 34.4, calciumMg = 631.0, ironMg = 7.7, aliases = listOf("chia seed")),
+    FoodEntry("graine de lin",       534.0, 18.0, 29.0, 42.0, 27.3, ironMg = 5.7, aliases = listOf("flaxseed")),
+    FoodEntry("beurre de cacahuète", 588.0, 25.0, 20.0, 50.0, 6.0, aliases = listOf("peanut butter")),
+    FoodEntry("cacahuète",           567.0, 26.0, 16.0, 49.0, 8.5, aliases = listOf("cacahuètes", "peanut")),
+
+    // Matières grasses (suite)
+    FoodEntry("huile de colza",  900.0, 0.0, 0.0, 100.0, 0.0, aliases = listOf("rapeseed oil", "canola oil")),
+    FoodEntry("huile de coco",   862.0, 0.0, 0.0, 100.0, 0.0, aliases = listOf("coconut oil")),
+    FoodEntry("margarine",       717.0, 0.2, 0.9,  80.0, 0.0),
+    FoodEntry("mayonnaise",      680.0, 1.1, 1.7,  75.0, 0.0),
+
+    // Sucreries / snacks (suite)
+    FoodEntry("pâte à tartiner", 539.0, 6.3, 57.0, 31.0, 3.4, aliases = listOf("chocolate spread")),
+    FoodEntry("confiture",       278.0, 0.3, 69.0,  0.1, 1.0, aliases = listOf("jam")),
+    FoodEntry("chips",           536.0, 6.6, 53.0, 34.0, 4.4, saltG = 1.5, aliases = listOf("potato chips")),
+    FoodEntry("pop-corn",        387.0, 12.0, 78.0, 4.5, 14.5, aliases = listOf("popcorn")),
+    FoodEntry("glace",           207.0, 3.5, 24.0, 11.0, 0.7, aliases = listOf("ice cream")),
+    FoodEntry("crêpe nature",    250.0, 6.5, 30.0, 10.0, 1.0, aliases = listOf("pancake")),
+
+    // Plats préparés
+    FoodEntry("pizza margherita", 266.0, 11.0, 33.0, 10.0, 2.3, saltG = 1.4, aliases = listOf("pizza")),
+    FoodEntry("hamburger",         250.0, 13.0, 30.0,  9.0, 1.5),
+    FoodEntry("frites",            312.0,  3.4, 41.0, 15.0, 3.8, saltG = 0.6, aliases = listOf("french fries")),
+    FoodEntry("sushi saumon",      150.0,  5.5, 28.0,  1.5, 1.0, aliases = listOf("sushi")),
+    FoodEntry("houmous",           166.0,  8.0, 14.0,  9.6, 6.0, ironMg = 1.9, aliases = listOf("hummus")),
+    FoodEntry("falafel",           333.0, 13.3, 32.0, 18.0, 8.0, ironMg = 3.4),
+    FoodEntry("quiche lorraine",   300.0,  9.0, 18.0, 22.0, 1.0),
+    FoodEntry("lasagne",           145.0,  8.0, 13.0,  7.0, 1.2, aliases = listOf("lasagnes", "lasagna")),
 )
 
 // ============================================================================

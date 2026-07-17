@@ -1,10 +1,20 @@
+0005042830879,Design Pro Toothbrush,CVS Health,PERSONAL_CARE
+00067986,Discreet inlegkruisjes urineverlies plus,Always,PERSONAL_CARE
+00068811,Discreet inlegkruisjes urineverlies normaal,Always,PERSONAL_CARE
+00106463,Discreet verband urineverlies long,Always,PERSONAL_CARE
 0011013120500,homesolv,citra solv,LAUNDRY
+0011150335874,Flat Toothpicks,Roundy’s,PERSONAL_CARE
+0011210006720,Sweet Chili Hot Sauce,Tabasco,TOBACCO
+0011225139499,Round toothpicks,Simply Done,PERSONAL_CARE
+0012300703994,Winston Silver,Winston,TOBACCO
 0012388003207,Bold 3 aromas de primavera,Sánchez y Martín,LAUNDRY
 0019200753524,Lemon Breeze Scent All Purpose Cleaner,Lysol,CLEANING_PRODUCT
 0019200791748,"Power Clinging Gel Toilet Bowl Cleaner, Atlantic Fresh Scent",Lysol,CLEANING_PRODUCT
 0019200893312,Ammonia Free Glass Cleaner - Spring Waterfall scent,Glass Plus,CLEANING_PRODUCT
 0020066319946,Rust Dissolver Gel Formula Spray,Rust-oleum,CLEANING_PRODUCT
+0023909970021,Cigarettes,,TOBACCO
 0024200041687,Discs Laundry Detergent Pacs Original,Persil,LAUNDRY
+0025900229832,Sweet 2PK,Swisher Sweets,TOBACCO
 0030772006122,dawn dish detergent,,LAUNDRY
 0030772009086,Détergent à vaisselle liquide,Dawn,CLEANING_PRODUCT
 0030772023792,9 Elements Laundry Detergent,9 Elements,LAUNDRY
@@ -12,46 +22,100 @@
 0030772083765,Cascade Platinum Plus pacs,Cascade,CLEANING_PRODUCT
 0030772121436,Detergent,Tide,LAUNDRY
 0030772177532,Platinum Plus Actionpacs Dishwasher Detergent,Cascade,CLEANING_PRODUCT
+0030772180167,Pods 3 in 1,Tide,HOUSEHOLD_CHEMICAL
+0033200009924,Clump & Seal Cat Litter,Arm & Hammer,PET_SUPPLY
 0033200942337,Oxi Clean Odor Blasters,Oxi Clean,LAUNDRY
+0035000689238,Wisp Disposable Toothbrush,Colgate,PERSONAL_CARE
+0035000783257,Baby toothbrush kit,Colgate,PERSONAL_CARE
+0035000981998,Keep Manual Toothbrush Whitening silver handle Replaceable 2 brush heads,Colgate,PERSONAL_CARE
+0036000183399,Huggies Little Swimmers Zwembroekjes Maat 3-4 7-15 kg 12 Stuks,Huggies,HYGIENE_PRODUCT
+0036000490312,super plus tampon,U by Kotex,HYGIENE_PRODUCT
+0036000515848,Tampons,U by Kotex,HYGIENE_PRODUCT
+0036000515886,click compact tampon,U by Kotex,HYGIENE_PRODUCT
 0036776707379,Éponges,Scotch-Brite,CLEANING_PRODUCT
 0037000004714,Detergent,,LAUNDRY
 0037000007746,Power Dry Rinse Aid - 80 Loads,Cascade,CLEANING_PRODUCT
 0037000127864,Detergent,Gain,LAUNDRY
 0037000441052,Laundry detergent,,LAUNDRY
+0037000561538,Ultra Thin,Always,PERSONAL_CARE
 0037000657323,Platinum Plus Powerwash Dish Spray - Free & Clear,Dawn,CLEANING_PRODUCT
+0037000820734,Infinity Flex Foam Pads 4,"Always, Procter & Gamble",PERSONAL_CARE
+0037000839033,Teen Zero Feel,Always,PERSONAL_CARE
 0037000874744,laundry detergent,,LAUNDRY
 0037000964438,Detergent a vaiselle liquide,,LAUNDRY
+0041220709953,Ultra Thin Pads,Field & Future,PERSONAL_CARE
+0041333520483,AA24,"Duracell, Procell",BATTERY
+0041333535487,AAA24,"Duracell, Procell",BATTERY
+0041333666648,Pilha AAA,Duracell,BATTERY
 0041911000567,Glass Cleaner,Sprayway,CLEANING_PRODUCT
 0043318140105,All purpose cleaner,,CLEANING_PRODUCT
+0043917331010,Clipper oil,Wahl,PERSONAL_CARE
 0044600324289,Bleach,Clorox,BLEACH
+0046100689271,Slipeinlagen,Always,PERSONAL_CARE
 0046500723544,Everyday Clean Multisurface Cleaner Spray - Antibacterial Fresh Citrus,Pledge,CLEANING_PRODUCT
+0047995855093,Cigarettes,American Spirit,TOBACCO
+0048419893837,1000 Toothpicks,Amscan,PERSONAL_CARE
+0048789430359,Round Toothpicks,up & up,PERSONAL_CARE
 0048951308639,Lemon Verbena Laundry Liquid,Nature Clean • 🇨🇦FT Ross,CLEANING_PRODUCT
+0050428341193,Comfort floss picks,Cvs health,PERSONAL_CARE
+0050428347461,Ultra thin pads,CVS Health,PERSONAL_CARE
 0051700206469,finish Quantum dish detergent,,LAUNDRY
 0051700788262,Shiner dishes,finish jet-dry,LAUNDRY
+0051700993314,Dishwasher Detergent,finish,HOUSEHOLD_CHEMICAL
 0052721328826,Dropps dishwasher detergent pods,,LAUNDRY
 0055086002394,Murumuru Butter & Rose Deodorant,Love Beauty & Planet,CLEANING_PRODUCT
+0058000004481,Brosse à dents medium,Colgate,PERSONAL_CARE
 00580076,Trader Joe’s Dishwasher Detergent Gel,Trader Joe’s,LAUNDRY
 0058951232506,Rinse Agent for Automatic Dishwashers,Nature Clean • 🇨🇦Frank T Ross,CLEANING_PRODUCT
 0059200807704,Windex,,CLEANING_PRODUCT
+0059300003136,duMaurier Special Cigarette,Imperial Tobacco,TOBACCO
+0059300050222,Cigarette,,TOBACCO
 0060887140039,Nettoyant Multi-Surface,,LAUNDRY
 0061328533304,Essuie-tout,Sponhetowels,CLEANING_PRODUCT
+0061900047915,Tabac,,TOBACCO
+0061900108005,Cigarette,,TOBACCO
 0063827602567,Baby Sensitive • Sulphate Free Echo Clean • 2X Concentrated Laundry Detergent,Echo Clean • 🇨🇦VIP Products Mission BC,CLEANING_PRODUCT
 00654043,Liquid Laundry Detergent,Trader joes,LAUNDRY
 0067220576012,Natural Dishwasher Detergent,,LAUNDRY
+0067981957501,Invisible,Durex,PERSONAL_CARE
 0069045310727,Laundry Detergent,La Parisienne,LAUNDRY
+0069682165001,Overnight Daily Cleanser,Polident,PERSONAL_CARE
+0070230167668,Tidy Cats Multi Cat Clumping Litter 4 in 1 Strength,Purina,PET_SUPPLY
+0070330747838,Soleil Escape 3 Blade Razors Lavender & Eucalyptus Scented - 4 ct,BiC,PERSONAL_CARE
 0070481011024,Murphy Oil Soap Wood Cleaner Liquid,Murphy,CLEANING_PRODUCT
+0070942011556,fil dentaire,gum,PERSONAL_CARE
+0070942125895,toothbrush,Gum,PERSONAL_CARE
+0070942302401,Expanding Floss,Gum,PERSONAL_CARE
+0070942508407,G.U.M floss threaders,Sunstar,PERSONAL_CARE
 0071153652545,STP Son of A Gun! Protectant,STP,CLEANING_PRODUCT
 0072613474424,Free & Clear up&up detergent,,LAUNDRY
 0072613709472,Free Clear HE Liquid Laundry Detergent,Up & Up,LAUNDRY
+0073010631731,Organic Cotton Tampons,L.,PERSONAL_CARE
+0073010716339,Tampons,Tampax Pure Cotton,HYGIENE_PRODUCT
+0073010719705,Extra Long Overnight Ultra Thin Pads With Wings,L.,PERSONAL_CARE
+0074561192023,Collection privé,Coton frais,PET_SUPPLY
+0075020045775,Sonicare Toothbrush,Philips,PERSONAL_CARE
+0075020069948,Philips Sonicare Electric Toothbrush,Philips,PERSONAL_CARE
+0075020083722,Power Toothbrush,Sonicare & Philips,PERSONAL_CARE
+0077170101271,4Aces,Top,TOBACCO
 0077890479094,Dye and Perfume free dish detergent,Wegmans,LAUNDRY
 0077890504437,Plant powered dishwasher detergent,Wegmans,LAUNDRY
+0078300070412,Ultrathin Pads,Stayfree,PERSONAL_CARE
+0078742159454,Round Toothpicks,Great Value,PERSONAL_CARE
+0079400457400,White Flowers & Lychee Antiperspirant Deodorant,"Degree, Degree Advanced",PERSONAL_CARE
+0079441004007,Cat Litter Pan,,PET_SUPPLY
 0079893200538,Laundry Detergent,Open Nature,LAUNDRY
 0083701338603,Degreaser Concentrate Foaming Spray,Stanley,CLEANING_PRODUCT
+0087273012374,Herbal Snuff - Tobacco Free Nicotine Free,,TOBACCO
 0096619105489,Kirkland ultraclean laundry detergent,,LAUNDRY
 0096619115471,Ultra Clean Premium Laundry Detergent Capsules,Kirkland Signature,LAUNDRY
 0096619337002,kirkland detergent,,LAUNDRY
 0099482451721,laundry Detergent 365,Whole Foods,LAUNDRY
 01137194,Antibacterial Multi-surface Spray,Sainsbury’s,LAUNDRY
+01230331,Cigarettes,Great Lakes Wellness,TOBACCO
+01231932,winston,Winston,TOBACCO
+01232135,Melvius Menthol Salem,,TOBACCO
+01239730,Melvius Menthol White,,TOBACCO
 01277968,Sniper DDVP,Sniper,CLEANING_PRODUCT
 01792768,80 Antibacterial Multi-surface Wipes,Sainsbury’s,LAUNDRY
 0184268001562,Probiotic Multi-Surface Cleaning Concentrate Lemongrass,SCD Probiotics,LAUNDRY
@@ -64,35 +128,82 @@
 0195464433027,Broom Head,Standard Essentials,CLEANING_PRODUCT
 0195464520611,Dust pan,Standard Essentials,CLEANING_PRODUCT
 0197870226798,Field & Future by H‑E‑B Liquid Laundry Detergent - Lavender,Field & Future,LAUNDRY
+0224507689906,Canyon Premium,Canyon,TOBACCO
+02786724,Pall Mall Cigarettes Filter,,TOBACCO
+02836124,Marlboro,Sprite,TOBACCO
+0284016180715,Fil dentaire ciré,Dentalux,PERSONAL_CARE
+02842222,Marlboro,Marlboro,TOBACCO
+02842329,Marlboro Special Select,Marlboro,TOBACCO
+02882929,marlboro,,TOBACCO
+02895224,Marlboro Black,"Malboro, Marlboro",TOBACCO
+0300416687957,Toothbrush,Oral-B,PERSONAL_CARE
+0317804136172,Lessive liquide Bicarbonate,LE CHAT,HOUSEHOLD_CHEMICAL
+0317804136174,Lessive liquide Bicarbonate,LE CHAT,HOUSEHOLD_CHEMICAL
+0317804136177,Lessive liquide Peaux sensibles Savon de Marseille et Aloe vera,LE CHAT,HOUSEHOLD_CHEMICAL
 0317804136184,Lessive liquide Bébé Peaux Sensibles,LE CHAT,LAUNDRY
 0317804136189,"Lessive liquide Sensitive Savon de Marseille et Aloe Vera - LE CHAT - 2,835L",Le Chat,LAUNDRY
 0317804136348,"Lessive liquide Total 4en1 - X-TRA - 2,835L",Xtra,LAUNDRY
+0317804136349,Lessive liquide Savon de Marseille et Aloe Vera X-TRA,,HOUSEHOLD_CHEMICAL
 0317804136395,"Lessive liquide Raviveur de couleurs - MIR - 1,35L",MIR,LAUNDRY
 0317804136396,"Lessive liquide Raviveur de blanc - MIR - 1,35L",MIR,LAUNDRY
 0317804136397,Lessive liquide Raviveur Noir,MIR,LAUNDRY
 0317804136398,Lessive Liquide Raviveur Laine Soie Et Délicats,MIR,LAUNDRY
 0317804136412,Lessive capsules Peaux sensibles Aloe vera et Savon de Marseille - LE CHAT - 23 capsules,Le Chat,LAUNDRY
 0317804136413,Lessive capsules 4en1 Discs Anti-taches,LE CHAT,CLEANING_PRODUCT
+0317804136414,Lessive liquide Total 4en1 Déo Fraîcheur et Anti-odeurs,X-TRA,HOUSEHOLD_CHEMICAL
+0322591001076,Cat Litter,World’s Best Cat Litter,PET_SUPPLY
+0381060002204,Heets,Philip Morris,TOBACCO
 0404494332904,Liquide à vaisselle,La Parisienne,CLEANING_PRODUCT
+0500039413751,"Piles Alcaline LR03-AAA 1,5V Optimum",Duracell,BATTERY
+0500039413765,"Piles Alcaline LR03-AAA 1,5V Optimum",Duracell,BATTERY
+0500039417614,Pile Alcaline Plus Powerboost AA/LR06,Duracell,BATTERY
+0500039420392,Piles Bouton Lithium CR2032 3V,Duracell,BATTERY
+0502905354935,Couches-Culottes Taille 5 12-17kg Extra Care Pants,HUGGIES,HYGIENE_PRODUCT
+05699056,Cotton Wool Oval Pads,Superdrug,PERSONAL_CARE
 0579961047015,Liquide vaisselle,L'arbre vert,CLEANING_PRODUCT
+05937931,Cigarette,,TOBACCO
+0609506883454,Philip Morris,Philip Morris,TOBACCO
+0619666745967,Ultra Thin Pads Super Long with Flexi-Wings Up to 8 hours Leakage Protection,Equate,PERSONAL_CARE
 0626232120431,Laundry Detergent,ATTITUDE,LAUNDRY
 0626232132281,Tablettes Lave-vaisselle,Attitude,CLEANING_PRODUCT
 0626232831290,Unscented Baby Bottle & Dishwashing Liquid,Attitude Baby Leaves,CLEANING_PRODUCT
+0631740010129,Toothbrush,Preserve,PERSONAL_CARE
+0637792505002,Cinnamon Toothpicks,Tea Tree Therapy,PERSONAL_CARE
+0658325537727,cigarette,,TOBACCO
 0671635735454,Dishwasher detergent powder,,LAUNDRY
 0678597200754,Flex Wipes Disinfectant Wipes,Flex Wipes,CLEANING_PRODUCT
+0681131240666,Ultra Thin PADS LONG SUPER with FLEXI-WINGS,Equate,PERSONAL_CARE
+0697003831139,AAA Alkaline Batterien,Amazon Basics,BATTERY
+0700603900454,Scratch & Groom Cat Scratcher with Removable Curved Brush for Self-Grooming Station,Catstages,PET_SUPPLY
 0703074070503,Dishwashing detergent,,LAUNDRY
 0703074228768,Dish Detergent booster,,LAUNDRY
+0704040617210,Cigarillos,Mehari's,TOBACCO
+07087264,Marlboro,"Marlboro, malboro",TOBACCO
 0719283626493,Dish Detergent,Meijer,LAUNDRY
+0725765996602,كمران ذهبي,,TOBACCO
 07267390,up & up detergent,,LAUNDRY
+0729849161450,Chatière avec puce électronique,PetSafe,PET_SUPPLY
 0732913221707,"Seventh Generation, Dishwasher Detergent Gel, Free & Clear",Seventh Generation,LAUNDRY
 0732913229291,Dishwasher Detergent Gel,Seventh Generation,LAUNDRY
 0732913447053,EasyDose Ultra Concentrated Laundry Detergent,Seventh Generation,LAUNDRY
 0732913451340,Laundry detergent powder,,LAUNDRY
+0736832638813,معسل عنب بحريني,Al Prince Vibes,TOBACCO
+0736832638820,معسل عنب ابيض,Al Prince Vibes,TOBACCO
 0737025000264,Hardwood Floor Cleaner Spray,Bona,CLEANING_PRODUCT
+0737557100388,Round Toothpicks,Poly King Products,PERSONAL_CARE
+07389010,Skoal Mint snus,,TOBACCO
+0743724196511,سيجارة شملان,"Shamlan, شملان",TOBACCO
 0749174097996,Ecos Hypoallergenic Laundry Detergent,,LAUNDRY
 0749174098894,Plant Powered Laundry Detergent,ECOS,LAUNDRY
+0760706021418,Protect Plus Long with a touch of Aloe Vera,Always,PERSONAL_CARE
+07703684,Litiere chat,Leader Price,PET_SUPPLY
 0776622011020,Détergent à lessive HE,Biovert,LAUNDRY
+0777539774145,Gold medal 6s 330ml taiwan beer by ttl taiwan tobacco & liquor corporation,,TOBACCO
+0782126008008,Natracare tampon applicator reguler,,HYGIENE_PRODUCT
+0782126009005,Natracare tampon applicator super,,HYGIENE_PRODUCT
+0782126191038,Natracare tampon digital super 10s,,HYGIENE_PRODUCT
 0793969648948,Fragancia Floral,Espumita,LAUNDRY
+0802084125620,Tabac a chicha,,TOBACCO
 0808124114418,Multi-Surface Everyday Cleaner,Mrs. Meyer's,LAUNDRY
 0808124174245,Multi-Surface Everyday Cleaner,Mrs. Meyer's Clean Day,LAUNDRY
 0810049644116,Cleancult Laundry Detergent,,LAUNDRY
@@ -109,55 +220,127 @@
 0829425000170,clorox dishwasher detergent,,LAUNDRY
 0829576020065,Laundry Detergent,Everspring,LAUNDRY
 0829576020973,Lemon & Mint Multi-Surface Cleaning Wipes,Everspring,LAUNDRY
+0842099111522,Produit cigarette electronique holo torque 56,,TOBACCO
 0843536180484,Multi-surface Non-toxic Cleaner,Method,LAUNDRY
+0850003218359,Organic Cotton Topsheet Overnight Pads,Cora,PERSONAL_CARE
 0850016208002,All purpose cleaner,,CLEANING_PRODUCT
 0850024701731,Molly SUDS disheasher detergent pods,,LAUNDRY
+0850075603534,Solid Shampoo Bar And Conditionerg Effect Hair Soap – 4 Pack,Bambo Earth,PERSONAL_CARE
+0851468008196,BLVK UNICORN NICOTINE TOBACCO,,TOBACCO
+0852717003436,Ultra Thin Pads,L.,PERSONAL_CARE
 0852835006661,Molly's Suds Laundry Detergent Lavender,Molly's Suds,LAUNDRY
+0853272008829,252,256,TOBACCO
 0853907001065,Lavender Laundry Wash,Eco Max • Natural Laundry Wash,LAUNDRY
 0853907001430,"4X Concentrate, Laundry Wash",Eco Max • 🇨🇦Prism Care Corp.,CLEANING_PRODUCT
 0855878003055,Boulder Clean Laundry Detergent,,LAUNDRY
+0858409004224,Coffee pouches cans irish cream tobacco free,,TOBACCO
+0860005818600,chemma relax,Happy Globe,TOBACCO
+0860008943842,Nic Nac Naturals Peppermint Lozenges,Nic Nac Naturals,TOBACCO
 0860009003422,Laundry Detergent,Oxydol,LAUNDRY
+0870021663632,Lessive capsules Original 3en1 Pods,Ariel,HOUSEHOLD_CHEMICAL
+0870021666019,Lessive liquide Envolée d'air,DASH,HOUSEHOLD_CHEMICAL
+0870021674213,Tablette Lave-Vaisselle Platinum,Fairy,HOUSEHOLD_CHEMICAL
+0870021684380,Lessive capsules 2 en 1 Envolée d'Air,DASH,HOUSEHOLD_CHEMICAL
 0871895155476,Adoucissant Dilué Grand Air,Soupline,LAUNDRY
 0871895155644,Adoucissant Concentré Grand air,Soupline,LAUNDRY
 0871895163530,Adoucissant Concentré Grand air,Soupline,LAUNDRY
+0872018124821,Lessive capsules Active Clean,Skip,HOUSEHOLD_CHEMICAL
 0872018124822,Lessive capsules Tout en 1 Fraîcheur intense - SKIP - 38 capsules,SKIP,LAUNDRY
+0872018124828,Lessive capsules Extra détachant,Skip,HOUSEHOLD_CHEMICAL
+0872018124829,Lessive capsules 3en1 Touche de Cajoline,Skip,HOUSEHOLD_CHEMICAL
 0872018151024,Lessive capsules 3en1 Monoï,OMO,CLEANING_PRODUCT
 0872018151027,Lessive capsules Jasmin et Fleur de coton,OMO,LAUNDRY
 0872018151029,Lessive capsules 3en1 Mangue Fleurs des îles,OMO,LAUNDRY
+0872018152599,Lessive liquide Rose et Lilas Blanc,Omo,HOUSEHOLD_CHEMICAL
+0872018162077,Lessive capsules Absolu Fleur d'Oranger Vanille,Omo,HOUSEHOLD_CHEMICAL
 0872018162086,Lessive capsules Absolu Fleurs Blanches Bois de Cèdre,,LAUNDRY
+0872018278713,Capsules Lave-vaisselle Tout en 1 Regular Ecolabel,SUN,HOUSEHOLD_CHEMICAL
+0872018285532,Lessive liquide Cycle court Couleur protect,Skip,HOUSEHOLD_CHEMICAL
+0873999000944,"БАТАРЕЙКИ, DURACELL",Duracell,BATTERY
+0887930418729,Super Heavy Duty Zinc AA,Kodak,BATTERY
 0890910606346,Surf Excel,Surf,LAUNDRY
 0892245001306,Dapple dishwasher detergent packs,,LAUNDRY
 0892245001849,Baby Laundry Detergent,Dapple Baby,LAUNDRY
 0895026002721,Organic Fruit and Vegetable Wash,Greenshield Organic,CLEANING_PRODUCT
 0895454002041,Better Life All Purpose Cleaner,,CLEANING_PRODUCT
+09055138,Cigarettes,Maverick.,TOBACCO
+09056234,TOBACCO & WATER,,TOBACCO
+0995593215799,Camel,Camel,TOBACCO
+10010606,Courtleigh Blend,DUNHILL,TOBACCO
 10011742,liquide vaisselle,L' Artisan Savonnier,LAUNDRY
+10040874,Winston rouge box,w,TOBACCO
+10104561,DR-BLK22,Neewee,BATTERY
+10304004,Zigaretten,,TOBACCO
+1081100324011,Jif Baderom Refill,Jif,PERSONAL_CARE
+1111000000026,Scorpio dell’ or so,Lunelli,PERSONAL_CARE
 11723158,lessive concentré,,CLEANING_PRODUCT
+15376325,Monte Carlo,Jt international SA Genève,TOBACCO
 16015951,Una,Una,CLEANING_PRODUCT
 18850002031767,Detergent,SUE SAT,LAUNDRY
+2000000151836,Glide Original Dental Floss,Oral-B,PERSONAL_CARE
+2000000151858,Delicious Mint,Cocofloss,PERSONAL_CARE
+2000000151859,Pure Silk Unscented,,PERSONAL_CARE
+2000000151866,Smart Floss,Dr. Tung's,PERSONAL_CARE
+2000000151867,Peppermint,Radius,PERSONAL_CARE
+2000014444034,Comfort Dry 3-6 kg,Calin,HYGIENE_PRODUCT
+2000475169255,Soft Picks dental floss 2yrs prod,Daily Care,PERSONAL_CARE
+20014056,Coshida Clumping cat litter,,PET_SUPPLY
 20026622,Essuie-tout,,CLEANING_PRODUCT
 2006050104154,Lessive liquide Savon de Marseille Sentive,Tandil,LAUNDRY
 20074623,GEL WC PINHO 3EM1 W5 1LT,W5,CLEANING_PRODUCT
 20074647,GEL WC MARINHO W5 1LT,,CLEANING_PRODUCT
+20221287,Tampons,Norma,HYGIENE_PRODUCT
+2048163352398,Pall mall,Pall Mall,TOBACCO
 20573454,maxi trat,Maxi Trat,LAUNDRY
 20665784,liquide vaisselle,w5,CLEANING_PRODUCT
 20753603,Liquide vaisselle,,CLEANING_PRODUCT
 20893255,Liquide vaisselle Agrumes,W5,CLEANING_PRODUCT
+2200000449801,Dental-Clean Medium,Dental-Clean,PERSONAL_CARE
 2200046601010,AVEO MED Handgel Desinfektion,Müller,CLEANING_PRODUCT
+2200268769482,Tampons,Duchesse,PERSONAL_CARE
+22027023,Tampons,,HYGIENE_PRODUCT
+22136596,Zahnseide Sticks,Today dent.,PERSONAL_CARE
+22139122,V,valiant,TOBACCO
+2250640302004,Benson and hedges Silver,Benson and hedges,TOBACCO
 2263835095322,Eau de javel,,BLEACH
 23134973,WC-Schaumreiniger - Lemon,WC Fix,LAUNDRY
 26025001,Une liquide vaisselle,Ecolabel,CLEANING_PRODUCT
 26025186,pastilles javel effervescentes,Twodo,BLEACH
+26046051,Litière minérale,"Aldi, Choceur",PET_SUPPLY
 26111250861391,MIO,PRODUITS DÉTERGENT,LAUNDRY
+26169637,Smart,,TOBACCO
+26170695,Smart 40 Stück,,TOBACCO
+26349343,Zigaretten 40,"Starlight, Starlight 40",TOBACCO
+2948232412612,Discreet Normal,Always,PERSONAL_CARE
 3000000129821,Liquide vaisselle,,CLEANING_PRODUCT
+30003149,Cigarettes,Gauloises,TOBACCO
+30052765,OCB Premium,OCB,TOBACCO
+30081055,Extra slim,OCB,TOBACCO
+30093393,Feuille à rouler,,TOBACCO
+30110144,Jass,Jass Brown Edition,TOBACCO
 3011610023522,SUN Sel régénérant,,CLEANING_PRODUCT
 3011610056377,sel régénérant,Sun,CLEANING_PRODUCT
 3011610064945,Cajoline Intense Sachets pour Armoire Fraîcheur Printanière 3 sachets,Cajoline,LAUNDRY
 3011610070526,Cajoline Intense Eau De Repassage Parfumée Fraîcheur Printanière Bouteille 750ml,Cajoline,LAUNDRY
 3011610078072,Cajoline Assouplissant Concentré Doux Pur Hypoallergénique 750ml 30 Lavages,Cajoline,LAUNDRY
+3014230004025,Signal Brosse à Dents Expert Confort Souple x1,signal,PERSONAL_CARE
+3014230004049,Signal Expert Confort Brosse à Dents Medium x1,signal,PERSONAL_CARE
+3014230004391,Signal Soin Classique Brosse à Dents Soin Classique Medium x1,signal,PERSONAL_CARE
+3014230004421,Signal Soin Classique Brosse à Dents Souple x1,signal,PERSONAL_CARE
+3014230005022,Signal Brosse à Dents Souple Soin Blancheur x1,signal,PERSONAL_CARE
+3014230005046,Signal Brosse à Dents Soin Medium Blancheur x1,signal,PERSONAL_CARE
+3014230005060,Signal Brosse à Dents Soin Blancheur Dure x1,signal,PERSONAL_CARE
+3014260011888,Complete 5 Way Clean Medium Toothbrush,Oral-B,PERSONAL_CARE
+3014260279530,Kids Clean Cars Toothbrush 5-7 Years,Oral-B,PERSONAL_CARE
+3014260796914,Toothbrush,Oral-B,PERSONAL_CARE
+3014260831523,All Rounder Fresh Clean Soft Toothbrush,Oral-B,PERSONAL_CARE
 3015810747202,Paic Excel,PAIC,CLEANING_PRODUCT
+3031440403028,Ruban interdentaire ultra-doux,Efiseptyl,PERSONAL_CARE
 3045206381208,Sanytol,AC Marca Ideal S.A.S,CLEANING_PRODUCT
 3045206383004,Détartrant désinfectant,Sanytol,CLEANING_PRODUCT
 3045206396608,Tablette lave vaisselle,,CLEANING_PRODUCT
+3057065023106,Liquide cigarette electronique,,TOBACCO
+3057065452104,gout cigarette electronqiue,,TOBACCO
 3059940006976,Traitement intégral désinfectant,Destop,CLEANING_PRODUCT
 3059940248611,Cirage marron,Baranne excellence,CLEANING_PRODUCT
 3059941009488,Gel WC 100% hygiène,Harpic,LAUNDRY
@@ -167,10 +350,15 @@
 3059946164816,Quantum,Finish,LAUNDRY
 3059948004233,200ML GEL EXTRADOUX INTIMA,,LAUNDRY
 3077316792117,Vinaigre ménager à diluer,Le droguiste,LAUNDRY
+3094901304319,Brosse à dents,Sensodyne,PERSONAL_CARE
+3094901390008,Soin Gencives,Sensodyne,PERSONAL_CARE
 3107240104141,BID.2L JAVEL NAT.2.6% CHLOR.PP,,BLEACH
 3134375205771,Éponge texture douce,,CLEANING_PRODUCT
 3141360050001,Calgon Power Gel,Calgon,CLEANING_PRODUCT
 3141360053255,Sel Régénérant - 4 KG,,CLEANING_PRODUCT
+3160920505409,Cure-dents,Mercurochrome,PERSONAL_CARE
+3160920521171,Fil & Cure-dents,Ricqles,PERSONAL_CARE
+3160920521508,Fil dentaire 2 en 1,Mercurochrome,PERSONAL_CARE
 3178040690714,Vaisselle Secrets de Soin Aloé Vera Peaux Sensibles Dégraissant,Mir,CLEANING_PRODUCT
 3178040698123,Liquide vaisselle,Jebs,CLEANING_PRODUCT
 3178041307031,Lessive en poudre XTRA,,LAUNDRY
@@ -192,27 +380,36 @@
 3178041361774,Lessive liquide Sensitive,Le Chat,LAUNDRY
 3178041363426,Lessive Poudre 4+1,X-tra,LAUNDRY
 3178041363785,Lessive détachante fraîcheur d'été,Maison Verte,LAUNDRY
+3178041363976,Lessive liquide Black Raviveur noir,Mir,HOUSEHOLD_CHEMICAL
 3178041364171,Lessive liquide,Xtra,LAUNDRY
 3183940204725,Vinaigre Ménager 500 ML - Citron,,LAUNDRY
 3183940209652,Vinaigre ménager,Ardéa,LAUNDRY
 3183940304074,Vinaigre ménager 14°,onyx,LAUNDRY
 3183940306320,Vinaigre ménager,,LAUNDRY
 3215776103207,Eau bleue,Harpic,CLEANING_PRODUCT
+3220660346714,Biberon Physio,Dorel,HYGIENE_PRODUCT
 3222471121481,Gel Wc Fraicheur marine,,LAUNDRY
 3222471797860,liquide vaisselle peaux sensibles,casino,CLEANING_PRODUCT
 3222475535222,liquide vaisselle désinfectant,,CLEANING_PRODUCT
 3222475708947,Gel WC entretien canal Javel casino,,LAUNDRY
 3222475947926,Liquide vaisselle,Casino,CLEANING_PRODUCT
+3222475951947,Les Tilapins Couches Nouveau Nés Taille 1 - 2 a 5KG - 27 Couches,,HYGIENE_PRODUCT
 3222476759399,Recharge Lessive liquide,Casino,LAUNDRY
 3222477321359,Lessive liquide S.marseille casino,,LAUNDRY
 3222477369030,Liquide vaisselle,,CLEANING_PRODUCT
 3222477376748,adoucissant concentré,,LAUNDRY
 3245411225728,Adoucissant,Carrefour,LAUNDRY
+3245676710656,Cure dent,,PERSONAL_CARE
 3245677723143,Liquide vaisselle Antibactérien,Auchan,CLEANING_PRODUCT
 3245677723150,Liquide vaisselle Antiodeur bicarbonate de sodium,Auchan,CLEANING_PRODUCT
 3245677723167,Liquide vaisselle vinaigre blanc,Auchan,CLEANING_PRODUCT
 3245677723549,Lessive liquide parfum savon de Marseille,Auchan,LAUNDRY
 3245677723556,Lessive liquide Expert Fraîcheur,Auchan,LAUNDRY
+3245677723594,Serviette Ultra Mince avec ailettes Normal+,"Auchan, Better life",PERSONAL_CARE
+3245677723600,Serviette Ultra Mince avec ailettes Super+,"Auchan, Better life",PERSONAL_CARE
+3245677723617,Serviette Ultra Mince avec ailettes Nuit,"Auchan, Better life",PERSONAL_CARE
+3245677723624,Tampons sans applicateur normal,"Auchan, Better life",PERSONAL_CARE
+3245677723631,Tampons sans applicateur Super,"Auchan, Better life",PERSONAL_CARE
 3245677724645,Liquide vaisselle ultra dégraissant,Auchan,CLEANING_PRODUCT
 3245677724720,Liquide vaisselle Antiodeur bicarbonate de sodium,Auchan,CLEANING_PRODUCT
 3245677724751,Blocs nettoyants puissants WC PIN,Auchan,CLEANING_PRODUCT
@@ -245,6 +442,7 @@
 3245678078860,Liquide vaisselle - Agrumes Ecolabel,Auchan,CLEANING_PRODUCT
 3245678078884,Liquide vaisselle -Peaux Sensibles Ecolabel 750mL,Auchan,CLEANING_PRODUCT
 3245678112205,Spray nettoyant vitres,Auchan,CLEANING_PRODUCT
+3245678115480,Serviettes hygiéniques Maxi Nuit x14,Pouce,PERSONAL_CARE
 3245678126431,Adoucissant concentré,Auchan,LAUNDRY
 3245678126448,Adoucissant concentré,Auchan,LAUNDRY
 3245678126455,Adoucissant concentré,Auchan,LAUNDRY
@@ -258,11 +456,19 @@
 3245678126660,Lessive liquide Aloe vera,Auchan,LAUNDRY
 3245678126677,lessive Caraïbes,auchan,LAUNDRY
 3245678126684,lessive fleur tropical,Auchan,LAUNDRY
+3245678126691,Lessive liquide Orient,Auchan,HOUSEHOLD_CHEMICAL
 3245678126707,Lessive liquide Expert Fraîcheur,Auchan,LAUNDRY
 3245678126714,Lessive liquide sensitive,Auchan,LAUNDRY
 3245678126721,Adoucissant concentré Caraibes,Auchan,LAUNDRY
 3245678126738,Adoucissant concentré fleurs tropicales,Auchan,LAUNDRY
 3245678126745,Adoucissant concentré Orient,Auchan,LAUNDRY
+3245678130353,Rasoir systeme activ 3 lames Homme,Cosmia,PERSONAL_CARE
+3245678130360,Recharges 3 lames,Cosmia,PERSONAL_CARE
+3245678130377,Rasoir systeme 5 lames Precision Homme,Cosmia,PERSONAL_CARE
+3245678130384,Recharges 5 lames,Cosmia,PERSONAL_CARE
+3245678130407,Rasoirs jetables 2 lames,Cosmia,PERSONAL_CARE
+3245678130421,Rasoirs jetables 3 lames,Cosmia,PERSONAL_CARE
+3245678130445,Rasoir système 3 lames sensitive+,Cosmia,PERSONAL_CARE
 3245678131817,Liquide vaisselle peaux sensibles,Auchan,CLEANING_PRODUCT
 3245678131848,Liquide vaisselle ultra dégraissant,Auchan,CLEANING_PRODUCT
 3245678131862,Liquide vaisselle ecolabel basilic et laurier,Auchan,CLEANING_PRODUCT
@@ -313,6 +519,10 @@
 3245678133682,Gants jetables sans latex,Auchan,CLEANING_PRODUCT
 3245678133699,Gants jetables sans latex,Auchan,CLEANING_PRODUCT
 3245678133705,Gants jetables sans latex,Auchan,CLEANING_PRODUCT
+3245678134597,Rasoirs jetables 3 lames,Cosmia,PERSONAL_CARE
+3245678139493,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678139547,Brosse à cheveux en bois,Cosmia,PERSONAL_CARE
+3245678139554,Brosse à cheveux,Cosmia,PERSONAL_CARE
 3245678141953,GEL WC AVEC JAVEL EUCALYPTUS 750ml,Auchan,LAUNDRY
 3245678141984,Auchan wc power super detartrant 750ml,Auchan,CLEANING_PRODUCT
 3245678142011,GEL WC AVEC JAVEL Agrumes 750ml,Auchan,LAUNDRY
@@ -332,14 +542,67 @@
 3245678162040,Auchan adoucissant concentre,Auchan,LAUNDRY
 3245678162101,Auchan activ clean détachant lessive blanche poudre 1kg,Auchan,LAUNDRY
 3245678162873,Nettoyant multi surface avec javel,Pouce,CLEANING_PRODUCT
+3245678666784,Lames rasoir,Cosmia,PERSONAL_CARE
+3245678667514,Serviettes hygiéniques Maxi Normal,Auchan,PERSONAL_CARE
+3245678667538,Serviettes hygiéniques Maxi Normal+,Auchan,PERSONAL_CARE
+3245678667552,Serviettes hygiéniques Maxi Super x16,Auchan,PERSONAL_CARE
+3245678667576,Serviettes hygiéniques Maxi Night x12,Auchan,PERSONAL_CARE
+3245678667590,Serviette Ultra mince Normal,Auchan,PERSONAL_CARE
+3245678667613,Serviette ultra mince Normal +,Auchan,PERSONAL_CARE
+3245678667651,Serviettes hygiéniques ultra mince Super +,Auchan,PERSONAL_CARE
+3245678667675,Serviette hygiénique ultra mince Night,Auchan,PERSONAL_CARE
+3245678667712,Protège-lingerie confort thin,Auchan,PERSONAL_CARE
+3245678667910,Tampons sans applicateur mini x24,Auchan,PERSONAL_CARE
+3245678667927,Tampons sans applicateur Normal,Auchan,PERSONAL_CARE
+3245678667934,Tampons sans applicateur Super,Auchan,PERSONAL_CARE
+3245678667941,Tampon avec applicateur normal x24,Auchan,HYGIENE_PRODUCT
+3245678667958,Tampon avec applicateur super x24,Auchan,HYGIENE_PRODUCT
+3245678667965,Tampon avec applicateur compact mini x16,Auchan,HYGIENE_PRODUCT
+3245678667972,Tampon avec applicateur compact normal,Auchan,PERSONAL_CARE
+3245678667989,Tampon avec applicateur compact super,Auchan,PERSONAL_CARE
+3245678668085,Serviettes pliées light,Auchan,HYGIENE_PRODUCT
+3245678668108,Serviettes pliées regular,Auchan,HYGIENE_PRODUCT
+3245678668122,Serviettes pliées extra,Auchan,HYGIENE_PRODUCT
+3245678668146,Serviettes pliées maxi,Auchan,HYGIENE_PRODUCT
+3245678668207,Couches droites,Auchan,HYGIENE_PRODUCT
 3245678668320,Éponge de mer naturelle,Cosmia,CLEANING_PRODUCT
+3245678669600,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669617,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669747,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669754,Mini brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669761,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669778,Brosse à cheveux 2 en 1,Cosmia,PERSONAL_CARE
+3245678669785,Mini brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669808,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669815,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669839,Brosse à cheveux,"Auchan, Cosmia, Kids",PERSONAL_CARE
+3245678669846,Brosse à cheveux,"Cosmia, Kids",PERSONAL_CARE
+3245678669914,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669945,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669952,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669969,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678669976,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3245678670873,Brosse à dents,Pouce,PERSONAL_CARE
+3245678670897,Brosse à dents Classique Médium,Auchan,PERSONAL_CARE
+3245678670965,Brosse à dents Classique souple,Auchan,PERSONAL_CARE
+3245678670972,Brosse à dents Classique Médium,Auchan,PERSONAL_CARE
+3245678671061,Brosse à dents enfant,"Auchan, Kids",PERSONAL_CARE
+3245678671092,Brosse à dent électrique Enfant 6+,"Auchan, Kids",PERSONAL_CARE
+3245678671115,Brosse à dent électrique,Auchan,PERSONAL_CARE
+3245678671122,Recharges brosse à dents électrique,Auchan,PERSONAL_CARE
+3245678686089,Tampons sans applicateur Normal x24,Auchan,PERSONAL_CARE
+3245678686096,Tampons sans applicateur Super x24,Auchan,HYGIENE_PRODUCT
+3245678686102,Tampon avec applicateur compact normal x16,Auchan,HYGIENE_PRODUCT
+3245678686119,Tampon avec applicateur compact super x16,Auchan,HYGIENE_PRODUCT
 3245678709511,Lessive liquide sensitive,Auchan,LAUNDRY
 3245678709887,Nettoyant multi surface avec javel,Pouce,CLEANING_PRODUCT
+3250390212782,Domedia Piles AA LR6,Domedia,BATTERY
 3250390449393,Pastille Javel Dose x 48 trés bon pour la santé,Apta,BLEACH
 3250390544555,Apta Gel wc Activ Marine,Apta,LAUNDRY
 3250390841838,Apta WC Activ' Lavande,Apta,CLEANING_PRODUCT
 3250391255290,Apta Gel wc x Trem Power,Apta,LAUNDRY
 3250391360949,Détartrant universel,Apta Sélection InterMarché,CLEANING_PRODUCT
+3250391428946,10 sachet bac à litière,,PET_SUPPLY
 3250391487820,Apta Liquide Vaisselle Activ Frisson Citron 1,Apta,CLEANING_PRODUCT
 3250391532063,liquide vaisselle ecolabel peaux sensibles,Apta,CLEANING_PRODUCT
 3250391831715,Liquide vaisselle action dégraissant,Netto,CLEANING_PRODUCT
@@ -348,6 +611,7 @@
 3250392701055,Liquide vaisselle fraîcheur florale,Apta,CLEANING_PRODUCT
 3250392791858,Lessive EcoLabel,Apta,LAUNDRY
 3250392924744,Savon de Marseille,Apta,LAUNDRY
+3250399871751,AA LR6 power max,Domédia,BATTERY
 3256220291873,liquide vaisselle parfum citron,U nature,CLEANING_PRODUCT
 3256220291897,Liquide vaisselle - peaux sensibles,Système U,CLEANING_PRODUCT
 3256220416313,Liquide vaisselle DÉGRAISSANT,,CLEANING_PRODUCT
@@ -362,6 +626,7 @@
 3256224766087,Gel WC,,LAUNDRY
 3256225166008,Javel en pastilles,Utile,BLEACH
 3256225432820,Liquide vaisselle,,CLEANING_PRODUCT
+3256225725670,lingettes optiques,U,PERSONAL_CARE
 3256226765231,lessive savon de Marseille,Super U,CLEANING_PRODUCT
 3256227029431,Lessive liquide savon de Marseille,U,LAUNDRY
 3256227446955,Liquide vaisselle,,CLEANING_PRODUCT
@@ -375,24 +640,55 @@
 3256228440686,Lessive liquide magnolia-lys,U,LAUNDRY
 3256228440709,Lessive liquide,U,LAUNDRY
 3256228678089,Vinaigre ménager 14°,U Nature,LAUNDRY
+3256229526860,piles lithium cr2032,u,BATTERY
 3257983903775,Gel WC Javel,,LAUNDRY
 3257984013275,gel WC,,LAUNDRY
 3257986631569,Liquide vaisselle,,CLEANING_PRODUCT
+3258170102162,gauloises blonde rouge,Gauloises,TOBACCO
+3258170205542,Tabac,,TOBACCO
+3258170307529,benson & hedges,,TOBACCO
+3258170321853,Blondes Bleu,Gauloise blonde bleu,TOBACCO
+3258170331111,American spirit yellow,American spirit yellow,TOBACCO
+3258170335850,Winston,Winston,TOBACCO
+3258170456401,Golden Virginia Hand Rolling Tabacco,,TOBACCO
+3258170605502,Tabac,Marlboro,TOBACCO
+3258170611800,Chesterfield,Philip Morris,TOBACCO
+3258170613163,news menthol 100,news,TOBACCO
+3258170622042,Old holborn jaune,,TOBACCO
+3258170699969,Camel,Camel,TOBACCO
+3258170844215,Tabac,,TOBACCO
+3258171845662,Philippe morris,Philip Morris,TOBACCO
+3258172940885,fine rouge,,TOBACCO
+3258172941127,Cigarettes,,TOBACCO
+3258172992280,Tabac,Gauloises,TOBACCO
+3258172992914,Tabac,,TOBACCO
 3258561500645,appelle France liquide désinfectant vaisselle,Belle France,CLEANING_PRODUCT
 3258561510156,gel WC,Belle France,LAUNDRY
 3258561510903,Éponge,,CLEANING_PRODUCT
+3263852377219,Coton tige,,PERSONAL_CARE
+3263853471220,Litière Compacte,Leader Price,PET_SUPPLY
 3263854046434,Savon de Marseille,Leaderprice,CLEANING_PRODUCT
 3263854046496,Lessive liquide,,LAUNDRY
 3263854046823,Lessive liquide,Leader Price,LAUNDRY
 3263854088090,liquide vaisselle citron verveine,Leader Price,CLEANING_PRODUCT
 3263854169270,gel wc,Leader Price,CLEANING_PRODUCT
+3263856145197,lingettes nettoyantes optiques,Leader Price,PERSONAL_CARE
 3266191065694,Liquide vaisselle,Ecoclair,LAUNDRY
+3270190191124,Serviettes Super Maxi,Carrefour Soft,PERSONAL_CARE
+3270190696650,Hygiene non agglomerant,Carrefour,PET_SUPPLY
+3270190696674,Hygiène Non agglomerant,Carrefour,PET_SUPPLY
 3270190928355,Gants PVC doubles coton,,CLEANING_PRODUCT
 3273680128990,Liquide vaisselle evologique,,CLEANING_PRODUCT
+3276007524321,Pastilles 13mm,Standers,HYGIENE_PRODUCT
+3276007540116,ALKALINE AA-LR6 Power+,Lexman,BATTERY
+3276007540185,AAA - LR03,ADEO Servives,BATTERY
 3276552684280,Voile Sèche Linge Grand Air,Soupline,LAUNDRY
 3334961006137,Liquide vaisselle,,CLEANING_PRODUCT
+3337875805025,Vichy,Vichy,PERSONAL_CARE
+3342540815612,Batterie core,Petzl,BATTERY
 3346020034968,WC NET ENERGY DÉTARTRANT GEL,WC NET,CLEANING_PRODUCT
 3346020044066,Lessive liquide,Winni’s,LAUNDRY
+3346020063036,Lingettes surfaces bois,Carolin,HYGIENE_PRODUCT
 3346027788376,WC Net Energy Javel Gel,,LAUNDRY
 3346027794698,Wc net,,CLEANING_PRODUCT
 3346027794704,Détartrant parfumé Energy,WC NET,CLEANING_PRODUCT
@@ -402,6 +698,7 @@
 3346028787460,Détartrant Wc - Huiles Essentielles,,CLEANING_PRODUCT
 3346029989429,Carolin Ultra Dégraissant,Carolin,CLEANING_PRODUCT
 3350031459405,Sel régénérant lave-vaisselle,Monoprix,CLEANING_PRODUCT
+3350031839795,Litière végétale pour chats,"Monoprix, Monoprix Je suis vert",PET_SUPPLY
 3350031853760,Liquide vaisselle concentré peaux sensibles,,CLEANING_PRODUCT
 3350033317956,Liquide vaisselle,Monoprix,CLEANING_PRODUCT
 3350033594289,lessive liquide concentrée monoprix,monoprix,LAUNDRY
@@ -419,6 +716,10 @@
 3384123096735,Combinés gratte eponge anti bacterienne,,CLEANING_PRODUCT
 3384126001040,Eponge Zero Effort,Spontex,CLEANING_PRODUCT
 3384126003136,Gratte eponge,,CLEANING_PRODUCT
+3384349135201,Biberon d'apprentissage 2 en 1 en verre,Béaba,HYGIENE_PRODUCT
+3410280015217,Litière  pour chat minérale,Top budget,PET_SUPPLY
+3428170000687,Kit dentaire complet - Chien,Vetocanis,PET_SUPPLY
+3437340056706,litière petit mammifères,Gamm vert,PET_SUPPLY
 3439496810195,"Essuie-tout, 4x 48 Feuilles 4 Rouleaux",,CLEANING_PRODUCT
 3441710213033,Liquide vaisselle ecologique,,CLEANING_PRODUCT
 3450601013997,Lessive au savon végétal,,CLEANING_PRODUCT
@@ -431,18 +732,23 @@
 3450601046339,Savon Vegetal,L'Arbre Vert,LAUNDRY
 3450601046353,Lessive liquide - savon végétal,L’Arbre Vert,LAUNDRY
 3450601046377,Lessive liquide au savon végétal l'arbre vert,L'arbre vert,LAUNDRY
+3450601046391,"Lessive ecolabel savon végétal, recharge prêt à l'emploi",L'arbre vert,HOUSEHOLD_CHEMICAL
 3450601046995,Peaux Sensibles,L'Arbre Vert,LAUNDRY
 3450601047039,Vaisselle main,L'arbre Vert,CLEANING_PRODUCT
 3450970000543,3 blocs WC Antitartre,,CLEANING_PRODUCT
+3450970004930,Eau de javel,Eco +,HOUSEHOLD_CHEMICAL
 3450970024501,Sel Regenerant,Eco+,CLEANING_PRODUCT
+3450970025973,Brosses à dents souples,Eco+,PERSONAL_CARE
 3450970084468,Gel WC avec Javel,Eco+,CLEANING_PRODUCT
 3450970156233,Essui-tout compact,Eco+,CLEANING_PRODUCT
 3450970167215,"Lessive poudre ECO+ - 3,3Kg / 60 lavages",Eco+,CLEANING_PRODUCT
 3450971449624,Éponges grattantes,Eco+,CLEANING_PRODUCT
+3450971461503,Lingettes optiques,Eco+,PERSONAL_CARE
 3489940036022,Entretien / Entretien Des WC / Détartrant WC,,CLEANING_PRODUCT
 3489940036084,Liquide vaisselle concentré,,CLEANING_PRODUCT
 3489940081015,Entretien / Produits Vaisselle / Liquide Vaisselle,,CLEANING_PRODUCT
 3489940890013,Green laveur  liquide vaisselle concentré,,CLEANING_PRODUCT
+3491952461600,Coton tige,,PERSONAL_CARE
 3517360000542,"Tablettes Lave- Vaisselle, à L'oxygène Actif",,CLEANING_PRODUCT
 3517360000559,Liquide De Rinçage Pour lave vaisselle . biovie,,CLEANING_PRODUCT
 3517360003789,Vinaigre ménager 12°,Biovie - Léa Nature,LAUNDRY
@@ -452,18 +758,28 @@
 3519590252265,Liquide vaisselle,,CLEANING_PRODUCT
 3520830240041,Éponge grattante surfaces délicates x2,Maison Pinson,CLEANING_PRODUCT
 3523680087378,Sel régénérant,Champion,CLEANING_PRODUCT
+3532678607283,Porte-fil dentaire + cure-dents,Superwhite,PERSONAL_CARE
 3538390000791,Liquide vaisselle citron,,CLEANING_PRODUCT
 3538390001101,vaisselle main,etamine,CLEANING_PRODUCT
 3538390001217,Liquide vaisselle hypo allergénique,Etamine,CLEANING_PRODUCT
 3538394911307,Sel régénérant,Etamine du lys,CLEANING_PRODUCT
 3538395235501,Gel lave vaisselle,Étamine du lys,CLEANING_PRODUCT
+3538395235600,Tablettes lave vaisselle,Étamine du Lys,HOUSEHOLD_CHEMICAL
 3543534965317,balayette,,CLEANING_PRODUCT
 3560070153176,bloc WC,Carrefour,CLEANING_PRODUCT
+3560070160440,Fil dentaire Specialist mentholé avec fluor,Carrefour,PERSONAL_CARE
+3560070421541,Lingettes optiques,Grand Jury,PERSONAL_CARE
 3560070513024,Lessive Liquide Couleur,Carrefour,LAUNDRY
 3560070611362,Liquide Vaisselle Ultra Dégraissant,,CLEANING_PRODUCT
 3560070803439,Lessive Liquide Waschmittel Flüssig Mit Marseille Duft,Carrefour,LAUNDRY
+3560070816750,Litière absorbante,Carrefour,PET_SUPPLY
+3560070827435,Compact+ Light,Carrefour,PET_SUPPLY
+3560070827893,COMPANINO VITALIVE VEGETALE Absorbante,Carrefour,PET_SUPPLY
+3560070829767,Litière,Carrefour,PET_SUPPLY
 3560070958573,Carrefour ECO planet tablettes lave-vaisselle,,CLEANING_PRODUCT
+3560071010478,Litière,Carrefour,PET_SUPPLY
 3560071011734,Liquide vaisselle gout pomme,,CLEANING_PRODUCT
+3560071084134,Comfort,Carrefour,PET_SUPPLY
 3560071084790,Double Bloc WC Citron vert carrefour,Carrefour,CLEANING_PRODUCT
 3560071096830,Déboucheur WC en gel,Carrefour,LAUNDRY
 3560071151157,Liquide vaisselle,Carrefour,CLEANING_PRODUCT
@@ -473,12 +789,19 @@
 3560071193881,WC javel,Carrefour,LAUNDRY
 3560071193911,750ML GEL JAV WC PIN/EUCA.CRFE,Carrefour,LAUNDRY
 3560071197292,liquide vaisselle eco planète,Carrefour,CLEANING_PRODUCT
+3560071222031,Argile,Carrefour,PET_SUPPLY
 3560071222116,Eco Planet Gel WC Eucalyptus,Carrefour,LAUNDRY
+3560071230951,Agglomerant,Carrefour,PET_SUPPLY
 3560071241001,Liquide Vaisselle au Vinaigre de Fruits Pamplemousse,Carrefour,CLEANING_PRODUCT
 3560071241896,Lessive liquide,Simpl,LAUNDRY
 3560071269524,Essuie-tout,Carrefour,CLEANING_PRODUCT
+3560071409784,Universal Dual Zone,Carrefour,PERSONAL_CARE
+3560071561635,Duo Glacier Éventails & Cigarettes,Carrefour,TOBACCO
+3560231038724,Cotons tiges en bambou,JJA,PERSONAL_CARE
+3560232699030,plaid,,HYGIENE_PRODUCT
 3561866421387,Éponge magiqueX3,Je cherche une idée ménage,CLEANING_PRODUCT
 3564700014974,Eponges Multi-usages,Mamison,CLEANING_PRODUCT
+3564700021927,Déodorant Manava fraîcheur Vanille glacée spray 200ml,,PERSONAL_CARE
 3564700028520,Javel Pastilles,,BLEACH
 3564700345993,Essuie-tout Supet Absorbant,Marque Repère,CLEANING_PRODUCT
 3564700403099,"Essuie-tout Blanc, Maxi-rouleaux, Par 2, Marque Mimosa",Mimosa,CLEANING_PRODUCT
@@ -487,15 +810,19 @@
 3564700442845,Tablettes lave vaisselle,,CLEANING_PRODUCT
 3564700442883,liquide vaisselle,univert,CLEANING_PRODUCT
 3564700465356,Essuie-tout compact écologique,Marque Repère - UniVert,CLEANING_PRODUCT
+3564700529652,Cotons Duo Démaquillants Inell Duo carré - Disques x50,,PERSONAL_CARE
 3564700604595,Adoucissant Rêve de fraîcheur,Hyperdou,LAUNDRY
+3564700641958,tablette lave vaisselle,uni vert,HOUSEHOLD_CHEMICAL
 3564700671191,Eponges végétales fibres recyclees,,CLEANING_PRODUCT
 3564700750094,Essuie-tout,Mimosa,CLEANING_PRODUCT
 3564700753248,liquide vaisselle concentré,Marque Repère,CLEANING_PRODUCT
 3564700772416,Gel de Lavage Classique,Visior,CLEANING_PRODUCT
 3564700782187,Perfect Main Poudre Express,Epsil,LAUNDRY
 3564700809853,Pastilles Javel,Marque Repère,BLEACH
+3564700830482,Bien Air Fruits rouges,Marque Repère,PET_SUPPLY
 3564700848289,Essuie-tout SuperAbsorbant,Mimosa,CLEANING_PRODUCT
 3564700848326,Essuie-tout,,CLEANING_PRODUCT
+3564700858196,Coton disque Rond confort,Inell,PERSONAL_CARE
 3564706521179,Essuie-tout,Marque Repère,CLEANING_PRODUCT
 3564706528086,VISIOR fruits exotiques & sens minéraux,Marque Repère,CLEANING_PRODUCT
 3564706528123,Visior antibactérien ultra dégraissant,Marque Repère,CLEANING_PRODUCT
@@ -508,24 +835,37 @@
 3564706551657,Adoucissant concentré Rosée du matin,Hyperdou,LAUNDRY
 3564706551732,Adoucissant concentré Passion tropicale,Hyperdou,LAUNDRY
 3564706608054,Désinfectant Désodorisant Chaussures,La Vachette,CLEANING_PRODUCT
+3564706620810,Lessive liquide couleur 25 lavages,Epsil,HOUSEHOLD_CHEMICAL
 3564706620971,Epsil Perfect,Marque Repère,CLEANING_PRODUCT
 3564706667457,Lessive liquide concentrée,Uni vert,LAUNDRY
+3564706670426,Lessive liquide printemps 40 Lavages,Epsil,HOUSEHOLD_CHEMICAL
+3564706670464,Lessive liquide sensitive 40 lavages,Epsil,HOUSEHOLD_CHEMICAL
+3574660050516,Cotton feel,Carefree,PERSONAL_CARE
+3574660235982,Tampons normal,ob ProComfort,HYGIENE_PRODUCT
+3574661128641,Flexia Tag+Nacht,o.b.,PERSONAL_CARE
+3574661322735,Flexia Tag+Nacht,o.b.,HYGIENE_PRODUCT
+3575070015201,Jouet pour chat,Anka,PET_SUPPLY
+3577057054135,Technologie Professionnelle,Inava,PERSONAL_CARE
+3584850003390,Elixirs & Co Stop Tabac,Elixir&Co,TOBACCO
 3596710009312,Gel WC parfum marine,Auchan,LAUNDRY
 3596710034796,Eau de javel diluée 2.6% de chlore actif.,Auchan,BLEACH
 3596710034802,Eau de Javel diluée eucalyptus* 2.6% de chlore actif,Auchan,BLEACH
 3596710057528,Eau de Javel 2.6% de chlore actif,Pouce,BLEACH
 3596710102723,Eau de Javel à diluer avant emploi - 4.8% de chlore actif au conditionnement,Pouce,BLEACH
 3596710118250,Sel régénérant lave-vaisselle,Auchan,CLEANING_PRODUCT
+3596710185412,Litière pour animaux familiers (étiquetage conforme à la norme AFNOR V 19-001)Composant : Bentonite 100%Pouvoir absorbant :&gt; 270%Masse volumique apparente : 800-900g/lpH : 10Granulométrie :&lt; 0.425mm :,Auchan,PET_SUPPLY
 3596710295999,Auchan environnement gel wc detartrant menthe 750 ml,Auchan,LAUNDRY
 3596710296118,Nettoyant multi surfaces,,CLEANING_PRODUCT
 3596710320073,Auchan Pastilles javel std X 52,Auchan,BLEACH
 3596710320486,Eau de javel diluée agrumes* 2.6% de chlore actif.,Auchan,BLEACH
+3596710324972,AUCHAN BABY : Couches taille 2 x 36,Auchan Baby,HYGIENE_PRODUCT
 3596710330874,AUCHAN Pastilles javel eucalyptus** X 44,Auchan,BLEACH
 3596710336869,Gel WC Javel,Pouce,LAUNDRY
 3596710352265,Gel WC parfum pin,Auchan,LAUNDRY
 3596710360802,Gel WC,Pouce,LAUNDRY
 3596710362202,lessive lessive savon de Marseille,Auchan,CLEANING_PRODUCT
 3596710379781,Eau de Javel à diluer avant emploi - 4.8% de chlore actif au condtionnement,Auchan,BLEACH
+3596710381982,AUCHAN BABY : Couches taille 2 x 68,Auchan Baby,HYGIENE_PRODUCT
 3596710383634,Gants de ménage réutilisables,Pouce,CLEANING_PRODUCT
 3596710383641,Gants de ménage réutilisables,Pouce,CLEANING_PRODUCT
 3596710383658,Gants vinyle sans poudre,Pouce,CLEANING_PRODUCT
@@ -533,10 +873,26 @@
 3596710412518,Eau de javel diluée à 2.6% de chlore actif.,Auchan,BLEACH
 3596710441075,Liquide vaisselle super dégraissant citron,,CLEANING_PRODUCT
 3596710441105,Liquide vaisselle parfum citron,Auchan,CLEANING_PRODUCT
+3596710441259,Cigarette chocolat noisette,,TOBACCO
 3596710442294,Pouce eponge grattantes tricouche x3,Auchan,CLEANING_PRODUCT
 3596710444540,Liquide vaisselle au vinaigre - parfum framboise,Auchan,LAUNDRY
+3596710447626,AUCHAN BABY : Couches taille 1 x 22,Auchan Baby,HYGIENE_PRODUCT
 3596710448999,Sel régénérant Lave-vaisselle,Pouce,CLEANING_PRODUCT
 3596710449002,Blocs wc citron,Pouce,CLEANING_PRODUCT
+3596710474233,AUCHAN BABY : Couches taille 3 x 29,Auchan Baby,HYGIENE_PRODUCT
+3596710474257,AUCHAN BABY : Couches taille 4+ x 26,Auchan Baby,HYGIENE_PRODUCT
+3596710474271,AUCHAN BABY : Couches taille 3 x 50,Auchan Baby,HYGIENE_PRODUCT
+3596710474288,AUCHAN BABY : Couches taille 4 x 48,Auchan Baby,HYGIENE_PRODUCT
+3596710474295,AUCHAN BABY : Couches taille 4+ x 46,Auchan Baby,HYGIENE_PRODUCT
+3596710474301,AUCHAN BABY : Couches taille 5 x 44,Auchan Baby,HYGIENE_PRODUCT
+3596710474318,AUCHAN BABY : Couches taille 6 x 40,Auchan Baby,HYGIENE_PRODUCT
+3596710474325,AUCHAN BABY : Couches taille 3 x 96,Auchan Baby,HYGIENE_PRODUCT
+3596710474332,AUCHAN BABY : Couches taille 4 x 92,Auchan,HYGIENE_PRODUCT
+3596710474349,AUCHAN BABY : Couches taille 4+ x 90,Auchan Baby,HYGIENE_PRODUCT
+3596710474356,AUCHAN BABY : Couches taille 5 x 80,Auchan,HYGIENE_PRODUCT
+3596710474363,AUCHAN BABY : Couches taille 4+ x 144,Auchan,HYGIENE_PRODUCT
+3596710474868,AUCHAN BABY : Couches taille 3 x 160,Auchan Baby,HYGIENE_PRODUCT
+3596710474875,AUCHAN BABY : Couches taille 5 x 136,Auchan Baby,HYGIENE_PRODUCT
 3596710478347,"Essuie-tout classique, 2 plis",Auchan,CLEANING_PRODUCT
 3596710478354,"Essuie-tout compact, 2 plis",Auchan,CLEANING_PRODUCT
 3596710478361,"Essuie-tout compact décoré, 2 plis",Auchan,CLEANING_PRODUCT
@@ -545,14 +901,20 @@
 3596710478408,Essuie-tout compact,Auchan,CLEANING_PRODUCT
 3596710478415,"Essuie-tout classique, 2 plis",Auchan,CLEANING_PRODUCT
 3596710478422,"Essuie-tout compact, 2 plis",Auchan,CLEANING_PRODUCT
+3596710478620,Litière pour animaux familiers (étiquetage conforme à la norme AFNOR V 19-001),Pouce,PET_SUPPLY
+3596710478668,Litière pour animaux familiers (étiquetage conforme à la norme AFNOR V 19-001),Auchan,PET_SUPPLY
 3596710478682,Bloc WC Mieux Vivre Environnement,Auchan,CLEANING_PRODUCT
 3596710480548,Pouce liquide vaisselle citron 750 ml,Pouce,CLEANING_PRODUCT
+3596710483679,Litière pour animaux familiers (étiquetage conforme à la norme AFNOR V 19-001),Auchan,PET_SUPPLY
 3596710493456,Bobine essuie-tout recyclé 2 plis,Auchan,CLEANING_PRODUCT
+3596710495078,Litière pour animaux familiers (étiquetage conforme à la norme AFNOR V 19-001),Auchan,PET_SUPPLY
 3596710497409,Vinaigre ménager 12°,Auchan,LAUNDRY
 3596710497416,Vinaigre ménager 12° parfum citron,Auchan,LAUNDRY
 3596710497423,Vinaigre ménager 10° parfum citron,Auchan,LAUNDRY
 3596710497430,Vinaigre ménager 12°,Auchan,LAUNDRY
 3596710507962,Tablettes lave-vaisselle,Pouce,CLEANING_PRODUCT
+3596710510115,Rasoirs jetables 2 lames,Cosmia,PERSONAL_CARE
+3596710510122,Rasoir jetable 2 lames tête pivotante homme,Cosmia,PERSONAL_CARE
 3596710510283,Vinaigre ménager 20°,Auchan,LAUNDRY
 3596710512454,Adoucissant recharge concentré pêche du soleil,Auchan,LAUNDRY
 3596710512461,Adoucissant Recharge Concentré Fraîcheur pure,Auchan,LAUNDRY
@@ -565,21 +927,76 @@
 3596710513161,Pastilles javel eucalyptus** X 48,Auchan,BLEACH
 3596710513628,Tablettes puissantes lave-vaisselle,Auchan,CLEANING_PRODUCT
 3596710513635,Tablettes puissantes lave vaisselle,Auchan,CLEANING_PRODUCT
+3596710514267,Brosse à dents à tête interchangeable sensitive,Auchan,PERSONAL_CARE
+3596710514274,Recharges pour brosse à dents à tête interchangeable sensitive,Auchan,PERSONAL_CARE
+3596710514281,Brosse à dents à tête interchangeable classique,Auchan,PERSONAL_CARE
+3596710514298,Recharges pour brosse à dents à tête interchangeable Classique,Auchan,PERSONAL_CARE
+3596710514304,Brosse à dents bambou souple,Auchan,PERSONAL_CARE
+3596710514311,Brosse à dents bambou medium,Auchan,PERSONAL_CARE
+3596710514328,Brosse à dents sensitive Enfant 3+,"Auchan, Kids",PERSONAL_CARE
+3596710514335,Brosse à dents enfant,"Auchan, Kids",PERSONAL_CARE
+3596710514342,Auchan total clean brossette de rechange pour brosse à dents électrique x2,Auchan,PERSONAL_CARE
+3596710514359,Auchan total clean brossette de rechange pour brosse à dents électrique x5,Auchan,PERSONAL_CARE
+3596710514366,Auchan sensitive brossette de rechange pour brosse à dents électrique x2,Auchan,PERSONAL_CARE
+3596710514373,Auchan cross action brossette de rechange pour brosse à dents électrique x2,"Auchan, Kids",PERSONAL_CARE
 3596710514489,Eponge Konjac,Cosmia,CLEANING_PRODUCT
 3596710514502,Blocs wc citron,Pouce,CLEANING_PRODUCT
+3596710515646,Litière pour animaux familiers (étiquetage conforme à la norme AFNOR V 19-001),Auchan,PET_SUPPLY
 3596710517565,Liquide vaisselle,Pouce,CLEANING_PRODUCT
 3596710519095,"Essuie-tout compact, 2 plis",Auchan,CLEANING_PRODUCT
+3596710519149,Couches Bébé T1,Auchan Baby,HYGIENE_PRODUCT
+3596710519156,Couches Bébé T2,Auchan Baby,HYGIENE_PRODUCT
+3596710519170,Couches Pouce T4,Pouce,HYGIENE_PRODUCT
+3596710519187,Couches Pouce T5,Pouce,HYGIENE_PRODUCT
+3596710519194,Couches Bébé T3,Auchan Baby,HYGIENE_PRODUCT
+3596710519200,Couches Bébé T3,Auchan Baby,HYGIENE_PRODUCT
+3596710519217,Couches Auchan T3,Auchan Baby,HYGIENE_PRODUCT
+3596710519224,Couches Bébé T4,Auchan Baby,HYGIENE_PRODUCT
+3596710519231,Couches Bébé T4,Auchan Baby,HYGIENE_PRODUCT
+3596710519248,Couches Bébé T4,Auchan Baby,HYGIENE_PRODUCT
+3596710519255,Couches Bébé T4+,Auchan Baby,HYGIENE_PRODUCT
+3596710519262,Couches Bébé T4+,Auchan Baby,HYGIENE_PRODUCT
+3596710519279,Couches Bébé T4+,Auchan Baby,HYGIENE_PRODUCT
+3596710519286,Couches Bébé T5,Auchan Baby,HYGIENE_PRODUCT
+3596710519293,Couches Bébé T5,Auchan Baby,HYGIENE_PRODUCT
+3596710519309,Couches Bébé T5,Auchan Baby,HYGIENE_PRODUCT
+3596710519316,Couches Bébé T6,Auchan Baby,HYGIENE_PRODUCT
+3596710519323,Couches Sensitive T2,Auchan Baby,HYGIENE_PRODUCT
+3596710519330,Couches Sensitive T3,Auchan Baby,HYGIENE_PRODUCT
+3596710519347,Couches Sensitive T4,Auchan Baby,HYGIENE_PRODUCT
+3596710519354,Couches Sensitive T5,Auchan Baby,HYGIENE_PRODUCT
+3596710519521,Couches Sensitive T1,Auchan Baby,HYGIENE_PRODUCT
 3596710519910,Auchan liquide vaisselle vinaigre de pomme 750ml,Auchan,CLEANING_PRODUCT
 3596710520169,Lessive capsules 2 en 1,Auchan,LAUNDRY
 3596710520251,Lessive capsules 2 en 1,Auchan,LAUNDRY
+3596710520466,Serviette ultra mince Normal+ Teen,Auchan,PERSONAL_CARE
+3596710520473,Serviette ultra mince Normal +,Auchan,PERSONAL_CARE
+3596710520480,Serviettes hygiéniques ultra mince Super +,Auchan,PERSONAL_CARE
+3596710520497,Serviettes hygiéniques ultra mince Night +,Auchan,PERSONAL_CARE
 3596710521050,Nettoyant multi-surfaces,Auchan,LAUNDRY
 3596710521067,Nettoyant multi-surfaces,Auchan,LAUNDRY
 3596710521081,Nettoyant Multi-surfaces Fraîcheur,Auchan,LAUNDRY
+3596710522217,Culotte de regles pour flux modere,Auchan,PERSONAL_CARE
+3596710522224,Culotte de regles pour flux modere,Auchan,PERSONAL_CARE
+3596710522231,Culotte de regles pour flux modere,Auchan,PERSONAL_CARE
+3596710522248,Culotte de regles pour flux abondant,Auchan,PERSONAL_CARE
+3596710522255,Culotte de regles pour flux abondant,Auchan,PERSONAL_CARE
+3596710522262,Culotte de regles pour flux abondant,Auchan,PERSONAL_CARE
+3596710522279,Culotte de regles pour flux modere,Auchan,PERSONAL_CARE
+3596710522286,Culotte de regles pour flux abondant,Auchan,PERSONAL_CARE
+3596710522347,Serviettes Normal,Auchan,PERSONAL_CARE
+3596710522354,Serviettes Extra+,Auchan,PERSONAL_CARE
+3596710522361,Serviettes Maxi Nuit,Auchan,PERSONAL_CARE
 3596710522514,Auchan life liquide vaisselle zéro sans colorant 750ml,Auchan,CLEANING_PRODUCT
 3596710526130,Auchan life lessive caps ecolabel 20pcs,Auchan,CLEANING_PRODUCT
 3596710527052,Nettoyant multi-surfaces,Auchan,LAUNDRY
 3596710527083,Auchan life spray vitres 750ml,Auchan,CLEANING_PRODUCT
 3596710527748,Essuie-tout 2 plis,Auchan,CLEANING_PRODUCT
+3596710528554,Brosse a cheveux,Cosmia,PERSONAL_CARE
+3596710529339,Culotte de regles pour flux modere,Auchan,PERSONAL_CARE
+3596710529346,Culotte de regles pour flux modere,Auchan,PERSONAL_CARE
+3596710529353,Culotte de regles pour flux abondant,Auchan,PERSONAL_CARE
+3596710529360,Culotte de regles pour flux abondant,Auchan,PERSONAL_CARE
 3596710532865,Dépoussiérant antistatique multi-surfaces,Auchan,LAUNDRY
 3596710532889,Nettoyant multi-surfaces au savon noir Fleur d'Oranger,Auchan,LAUNDRY
 3596710532896,Nettoyant multi-surfaces,Auchan,LAUNDRY
@@ -594,37 +1011,134 @@
 3596710533534,Auchan wc power super detartrant 750ml,Auchan,CLEANING_PRODUCT
 3596710533633,Gel WC Marine,Auchan,LAUNDRY
 3596710533893,"Essuie-tout compact, décoré, 2 plis",Auchan,CLEANING_PRODUCT
+3596710534425,Brosse corps exfoliante,Cosmia,PERSONAL_CARE
+3596710534449,Brosse barbe,Cosmia,PERSONAL_CARE
+3596710534531,Brosse à dents Classique dure,Auchan,PERSONAL_CARE
+3596710534548,Brosse à dents Classique souple,Auchan,PERSONAL_CARE
+3596710534555,Brosse à dents Classique Médium,Auchan,PERSONAL_CARE
 3596710534647,Blocs nettoyants puissants WC,Auchan,CLEANING_PRODUCT
 3596710534685,Blocs nettoyants puissants WC Violette poudrée,Auchan,CLEANING_PRODUCT
 3596710534692,Blocs nettoyants puissants WC MAGNIOLA,Auchan,CLEANING_PRODUCT
+3596710534791,Serviettes Discreet Mini,Auchan,PERSONAL_CARE
+3596710534814,Serviettes Maxi,Auchan,PERSONAL_CARE
 3596710535644,Auchan poudre détachante tous textiles,Auchan,LAUNDRY
 3596710538638,Adoucissant concentré,Auchan,LAUNDRY
+3596710538690,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3596710539024,Litière pour animaux familiers (étiquetage conforme à la norme AFNOR V 19-001),Auchan,PET_SUPPLY
+3596710539154,Litiere silice 5 litres,Auchan,PET_SUPPLY
+3596710539161,Litiere vegetale agglomerante 7 litres,Auchan,PET_SUPPLY
+3596710539178,Litiere vegetale absorbante 10 litres,Auchan,PET_SUPPLY
+3596710539734,Brosse à dents Blancheur Médium,Auchan,PERSONAL_CARE
+3596710540730,Brosse de massage exfoliante,Cosmia,PERSONAL_CARE
+3596710540761,Brosse à dents sensitive,Auchan,PERSONAL_CARE
+3596710540778,Brosse à dents,"Auchan, Kids",PERSONAL_CARE
+3596710540785,Brosse à dents clignotante Enfants 3+,"Auchan, Kids",PERSONAL_CARE
+3596710540938,Brosse à dents Classique souple,Auchan,PERSONAL_CARE
+3596710540945,Brosse à dents Classique Médium,Auchan,PERSONAL_CARE
+3596710542208,Cosmia brosse concept floral op beaute 2025,Cosmia,PERSONAL_CARE
+3596710543182,Litière copeaux de bois,Pouce,PET_SUPPLY
 3596710543496,Spray nettoyant vitres,Auchan,CLEANING_PRODUCT
+3596710543960,Rasoir systeme sensitive 3 lames Femme,Cosmia,PERSONAL_CARE
+3596710543984,Recharges systeme sensitive 3 lames Femme,Cosmia,PERSONAL_CARE
 3596710544868,Tablettes lave vaisselle ultra power,Auchan,CLEANING_PRODUCT
 3596710545810,Dépoussiérant antistatique multi-surfaces,Auchan,LAUNDRY
+3596710547340,Litière végétale pour animaux familiers (étiquetage conforme à la norme AFNOR V 19-001),Auchan,PET_SUPPLY
+3596710549849,Brosse à dents souple,Pouce,PERSONAL_CARE
 3596710550210,Liquide vaisselle citron 500ml,Pouce,CLEANING_PRODUCT
 3596710550227,Nettoyant Multi-surfaces,Pouce,LAUNDRY
+3596710551842,Brosse à dents medium,Pouce,PERSONAL_CARE
+3596710552870,Serviettes hygieniques ultra minces normal,Pouce,PERSONAL_CARE
+3596710552887,Serviettes pour fuites urinaires,Pouce,PERSONAL_CARE
+3596710554973,Brosse à cheveux,Cosmia,PERSONAL_CARE
 3596710556526,Pastilles javel eucalyptus** X 48,Auchan,BLEACH
 3596710556533,Pastilles de Javel,Auchan,BLEACH
+3596710556632,Brosse à cheveux,"Auchan, Kids",PERSONAL_CARE
+3596710556649,Brosse à cheveux,Cosmia,PERSONAL_CARE
+3596710556663,Brosse à cheveux,"Auchan, Kids",PERSONAL_CARE
+3596710559442,Auchan tablette lave vaisselle tout en 1 citron,Auchan,HOUSEHOLD_CHEMICAL
+3596710559466,Auchan tablette lave vaisselle tout en 1 fraicheur,Auchan,HOUSEHOLD_CHEMICAL
 3597610240386,SURFA'SAFE,ANIOS Laboratoires,LAUNDRY
+3601010100338,4 Piles rechargeables HR03/AAA 800 mAh,éco+,BATTERY
+3601010100345,4 Piles rechargeables HR06/AA 1900 mAh,éco+,BATTERY
+3601020132534,Pile alcaline 6LP3146 9V,Foxter,BATTERY
+3601020271127,Litière pour rongeurs,Maque repère,PET_SUPPLY
+3601020491129,Litiere optimale P'tit ami,,PET_SUPPLY
+3601029829107,Tech+,Foxter,BATTERY
+3601029855298,Litière Chats,,PET_SUPPLY
+3603313023260,4 batteries HR03 850 mAh à supprimer,Foxter,BATTERY
+3603313023277,4 Piles rechargeables HR06/AAA 2350 mAh,Foxter,BATTERY
+3603313023284,2 Piles rechargeables HR06/AA 2350 mAh,Foxter,BATTERY
+3603313228832,Pile lithium CR2032,Foxter,BATTERY
+3603313228849,Pile lithium CR2032,Foxter,BATTERY
+3603313233287,Pile CR2032,Foxter,BATTERY
+3608143808537,Litière,"Carrefour, Interdis",PET_SUPPLY
+3608144282497,Litiere chat simpl,"Carrefour, Simpl",PET_SUPPLY
+3616473157935,Piles rechargeables HR6 AA x4,Carrefour,BATTERY
+3616474651272,4 Piles CR2032 I-Tech+,Carrefour,BATTERY
+3616474651289,4 Piles CR2025 I- Tech+,Carrefour,BATTERY
+3616474651302,2 Piles A23 I-Tech+,Carrefour,BATTERY
+3616957750485,4 Piles LR6/AA Classic,Carrefour,BATTERY
+3616957792140,4 Piles LRO3/AAA I-Tech,Carrefour,BATTERY
+3616957792157,1 Pile 3LR12 Classic,Carrefour,BATTERY
+3616957792539,4 Piles LR6/AA I-Tech CRF,Carrefour,BATTERY
+3616957792577,2 Piles LR14/C I-Tech,Carrefour,BATTERY
+3616957792584,1 Pile 6LR61/9V I-Tech,Carrefour,BATTERY
+3616957826708,2 Piles LR20/C I-Tech,Carrefour,BATTERY
 3660992012695,Lessive liquide,Prix Mini,LAUNDRY
 3660992016051,Liquide vaisselle Citron,Prix Mini,CLEANING_PRODUCT
 3660992016068,Liquide vaisselle Pomme,Prix Mini,CLEANING_PRODUCT
 3660992016075,Liquide vaisselle Fruits Rouges,Prix Mini,CLEANING_PRODUCT
+3661075261160,Filtre a tabac,,TOBACCO
+3661103006336,Frontline Combo Spot-on Gatos,Boehringer Ingelheim,PET_SUPPLY
+3661103020066,Frontline Combo Spot-on Caes S 2-10kg,Boehringer Ingelheim,PET_SUPPLY
+3661103020080,Frontline Combo Spot-on Caes L 20-40kg,Boehringer Ingelheim,PET_SUPPLY
+3661103072966,Frontline Combo Spot-on Gatos,Boehringer Ingelheim,PET_SUPPLY
 3663062002619,boule de lavage du linge avec billes céramiques.,CBSstock,CLEANING_PRODUCT
+3663159030297,Liquideo,Wpuff,TOBACCO
+3663159041927,Cigarette électronique,,TOBACCO
+3663159042863,liquide cigarette électronique,liquideo,TOBACCO
+3663159063998,Cigarette électronique,,TOBACCO
 3663518178219,liquide vaisselle mains,body nature,CLEANING_PRODUCT
+3663849003556,Cigarette,,TOBACCO
+3663849005574,Cigarette,,TOBACCO
+3663849300402,Cigarette,Jps,TOBACCO
+3663849300952,Tabac,,TOBACCO
+3664338009967,Séparateur gel demi-lune,Orliman,PERSONAL_CARE
+3664581001077,Lucky strike red,Lucky Strike,TOBACCO
+3664581023574,Cigarette,Vogue l'optimum gold,TOBACCO
+3665092000634,Tabac,,TOBACCO
+3665092007428,cigarrettes,,TOBACCO
+3665092007480,Cigarettes,,TOBACCO
+3665092010589,Tabac,,TOBACCO
+3665092014099,Camel XXL Filters 100's,Camel,TOBACCO
+3665092014686,Tabac,Fleur du Pays,TOBACCO
+3665092015188,Taba,Camel,TOBACCO
+3665092015409,Filters 100's,Camel,TOBACCO
+3665092015508,Winston Selection Red,Winston,TOBACCO
+3665092015881,Glamour Bleue,,TOBACCO
+3665468402420,Tablettes Lave-Vaiselle Quantum,finish,HOUSEHOLD_CHEMICAL
 3665468501536,Power Aroma 10X,Harpic,CLEANING_PRODUCT
 3665468601182,Saint marc a l'acide citrique,Saint marc,CLEANING_PRODUCT
 3665468601236,Javel Multi-usages,St Marc,BLEACH
 3665468601281,St Marc sans javel antibacterien,St Marc,CLEANING_PRODUCT
+3700002190309,cure dent fil,inconnue,PERSONAL_CARE
 3700143609210,Liquide vaisselle,,CLEANING_PRODUCT
+3700147205333,Lessive liquide Fleur de Savon,Bulle Verte,HOUSEHOLD_CHEMICAL
 3700147255000,Sel régénérant,Bulle verte,CLEANING_PRODUCT
 3700311867862,Liquide vaisselle citron,Tous les jours,CLEANING_PRODUCT
 3700311867879,Liquide vaisselle citron,,CLEANING_PRODUCT
+3700376702511,Brosse à dents,Bioseptyl,PERSONAL_CARE
+3700376702542,Brosse à dents à tête interchangeable,Bioseptyl,PERSONAL_CARE
+3700376702672,La Recyclette brosse à dents,Bioseptyl,PERSONAL_CARE
+3700390857983,Brosse à dent bambou,French tendance,PERSONAL_CARE
+3700390865797,Culotte menstruelle,Feel natural,PERSONAL_CARE
 3700505800132,liquide vaisselle main,écu vert,CLEANING_PRODUCT
 3700593603639,Lessive hypoallergénique Peaux Sensibles Bébé à l'extrait d'amande douce,Persavon,LAUNDRY
 3700593603783,persavon,persavon,CLEANING_PRODUCT
+3700668701413,Serviettes hypoallergeniques,love & green,HYGIENE_PRODUCT
+3700668701475,Change WoW,Change wow,HYGIENE_PRODUCT
 3700684700032,Désinfectant nettoyant,You,LAUNDRY
+3700710302353,Arole tabac cigare,,TOBACCO
 3700980080012,éponge Multifonctions - Scrub Daddy - Scrub Daddy,,CLEANING_PRODUCT
 3700992600963,Liquide vaisselle,,CLEANING_PRODUCT
 3700992601908,liquide vaisselle 0% hypoallergenique,maison verte,CLEANING_PRODUCT
@@ -633,35 +1147,121 @@
 3700992608082,Liquide vaisselle BIO aux huiles essentielles,,CLEANING_PRODUCT
 3700992608464,You,You,CLEANING_PRODUCT
 3700992608594,assouplissant,maison verte bio,CLEANING_PRODUCT
+3701015900053,Lubrifiant naturel à base d'eau,Ma Cosm'intime,PERSONAL_CARE
+3701078243876,tabac,,TOBACCO
 3701300500135,LIQUIDE VAISSELLE CITRON FRAIS,,CLEANING_PRODUCT
+3701418800837,Gout Cigarette elctronique,,TOBACCO
+3760005710027,Litière de chanvre,cocoon,PET_SUPPLY
+3760018920833,Tabac Kentucky,,TOBACCO
+3760018920963,Gout pour cigarette electronique,,TOBACCO
+3760029843190,Perles D'huiles Essentielles Tabac Stop Bio - 20 ML - Biofloral,,TOBACCO
+3760060015723,Litière chats,Carrefour Classic,PET_SUPPLY
+3760060015945,Litière pour chat,,PET_SUPPLY
+3760060016850,Litière végétale pour chat,La végétale tranquille,PET_SUPPLY
 3760061170162,Gants Vinyle S,,CLEANING_PRODUCT
 3760077612083,lessive poudré lavandin,3 Abeilles,CLEANING_PRODUCT
+3760121061386,Couches,,HYGIENE_PRODUCT
 3760121210166,Liquide vaisselle,Biocoop,CLEANING_PRODUCT
 3760121210630,Gel wc,Biocoop,CLEANING_PRODUCT
 3760138833129,Éponges grattantes écologiques,la droguerie écologique,CLEANING_PRODUCT
 3760138844101,Éponges grattantes Coques de fruits,La droguerie écologique,CLEANING_PRODUCT
 3760162121728,Savon détachant à la terre des sommières,Laboratoire MKL Green Nature,LAUNDRY
+3760227971947,Produit de cigarette électronique,,TOBACCO
+3760230704914,Cigarette,,TOBACCO
+3760293272016,Born to DIY,,TOBACCO
 3760313230002,Lessive clean & efficace,Spring,CLEANING_PRODUCT
+3760313230057,Tablettes lave-vaisselle,Spring,HOUSEHOLD_CHEMICAL
+3760336253477,Produits pour cigarette électronique,,TOBACCO
 3770013181030,Liquide vaisselle,,CLEANING_PRODUCT
+3770015411661,Tablette lave vaisselle tout en 1 - étui 40 tablettes,Mutyne,HOUSEHOLD_CHEMICAL
+3800001105707,Cigarettes,,TOBACCO
+3800090305774,zebra NAPKINS DELUXE,zebra,HYGIENE_PRODUCT
+3800162414304,Cigarette,,TOBACCO
+3800237076222,Muratti ambassador,Fhilip Morris,TOBACCO
+38032509,Rothmans,Ротманс,TOBACCO
+3838985891293,Honestly Organic,Natura Femina,PERSONAL_CARE
+3856008880758,Nicotine pouches,Velo,TOBACCO
+3870817001517,Hidrogen peroksid 3%,Galenfarm,PERSONAL_CARE
+3875000660007,Cigarettes,Marlboro,TOBACCO
+3875000660465,Malback,Marlboro,TOBACCO
+3875000662025,Sigarette,Marlboro,TOBACCO
 4000196122544,Noir,burti,CLEANING_PRODUCT
+4000576028305,Bio Tampons Super,Cosmea,HYGIENE_PRODUCT
 4000602008905,Galarkor F8,Dr. Becher,CLEANING_PRODUCT
 4000735371617,Küchentücher 3-lagig,K-classic,LAUNDRY
+4000862922102,Cigare,,TOBACCO
 4000869061286,Hygiene-Waschmaschinen-Pflege,ORO,LAUNDRY
 4001499921506,aloe véranda sensitiv- waschmittel,frosch,LAUNDRY
 4001499921629,Holzreiniger,Frosch,LAUNDRY
 4001499960147,Bunt-Waschpulver Granatapfel,Frosch,CLEANING_PRODUCT
+4002064613840,Cat litter,Biokat's,PET_SUPPLY
+4002448021001,Professionell Haftcreme,Kukident,PERSONAL_CARE
+4002448038764,Kukident Die Blauen,"Kukident, Reckitt Benckiser",PERSONAL_CARE
+4002448038900,Reiniger Aktiv Plus,"Kukident, Reckitt Benckiser Healthcare",PERSONAL_CARE
+4002448039532,Die Blauen,Kukident,PERSONAL_CARE
 4002448126478,Oxi Action Multi-Flecken Color,Vanish,LAUNDRY
+4002448131663,Gefühlsecht Ultra,Durex,PERSONAL_CARE
 4002448138822,6in1 WC Duft & Farbspüler Ozean Frisch,Cillit Bang,LAUNDRY
+4002448152187,Gefühlvoll,Durex,PERSONAL_CARE
+4002450110120,Schwinger schnupf,,TOBACCO
+4002450227408,Blue Tobacco,Pueblo,TOBACCO
+4002604005401,Winner Tip Hylse 200stk,BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+4002604115018,Winner Tip Rullemaskin,BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+4002973000908,Litière pour chat,Cats best,PET_SUPPLY
+4004018000232,Moods,Moods Original,TOBACCO
 4004617552408,TopTex 2er-Set Eimer rund,Gerhard Haas,CLEANING_PRODUCT
+4006396012746,100% organic Virginia tobacco,"Manitou, Von Eicken",TOBACCO
+4006396012777,Tabaco,Manitou,TOBACCO
+4006396049384,Cigarettes,,TOBACCO
+4006396074928,Tabac,Fergreen,TOBACCO
 4006508109500,Liquide anti calcaire,Melitta,CLEANING_PRODUCT
 4006508192632,Détartrant poudre,Melitta,CLEANING_PRODUCT
 4006539028184,F100 Fahrradreiniger,Dr. Wack,LAUNDRY
 4007547306400,Geschirrspülmittel Calendula,Sonett,LAUNDRY
+4008239140296,Compact ultra,Vitakraft,PET_SUPPLY
+4008239313942,Geschirr mit Leine,Vitakraft,PET_SUPPLY
+4008402333333,Talonnettes en gel,"Kaps, Kiwi",PERSONAL_CARE
+4008429081231,"Catsan Hygiëne Plus - Kattenbakvulling - 11,5 L",Catsan,PET_SUPPLY
+4008429117114,Litière Pour Chat Végétale Natural Agglomérant,CATSAN,PET_SUPPLY
+4008429694608,Litière,Catsan,PET_SUPPLY
 4008455002149,Gallseife Flecken-Bürste,Dr. Beckmann,LAUNDRY
 4008455004075,Fleckenteufel Stifte & Tinte,Dr. Beckmann,LAUNDRY
 4008455061511,Farb & Schmutzfänger,,CLEANING_PRODUCT
 4008455611419,Adoucissant en feuilles,Beckmann,LAUNDRY
+4008496017003,Batterien AA,Varta,BATTERY
+4008496034727,Varta Energy Lithium CR2032 Batteries,Varta Energy,BATTERY
+4008496038671,Batterien AAS,Varts,BATTERY
+4008496038701,Batterien AA,Varta,BATTERY
+4008496069958,AAA Batterien,,BATTERY
+4008496070077,Batterien  AA,,BATTERY
+4008496083459,"Batterien, AAA, Alkaline",Varta,BATTERY
+4008496083565,Batterien AA,Varta,BATTERY
+4008496083572,Batterien AAA,Varta,BATTERY
+4008496270972,CR2450,VARTA,BATTERY
+4008496276639,Batterien,,BATTERY
+4008496276929,CR2430,VARTA,BATTERY
+4008496525072,"Batterien, Longlife, AAA, Alkaline",Varta,BATTERY
+4008496537327,C123A,VARTA,BATTERY
+4008496559749,Varta Longlife power AAA alkaline batterijen,Varta,BATTERY
+4008496559909,Pile alcaline 6LR61 9V,Varta,BATTERY
+4008496605651,VARTA Longlife Power AA,VARTA,BATTERY
+4008496609314,Batterien AAA,Varta,BATTERY
+4008496659203,Longlife Power AAA 8 + 4,Varta,BATTERY
+4008496659234,Longlife Power AA 8 + 4,Varta,BATTERY
+4008496676583,Batterien und AA,Varta,BATTERY
+4008496745975,VARTA X4 HR6 Rechargable,VARTA,BATTERY
+4008496773510,LCD plug charger,Varta,BATTERY
+4008496807833,Batterien - AA Longlife Alkaline,Varta,BATTERY
+4008496850853,Varta CR2032 batterijen,Varta,BATTERY
+4008496884223,Pile Alkaline AAAA,Varta,BATTERY
+4008496929382,Batterien Micro AAA,Varta,BATTERY
+4008496929443,Batterien,Varta,BATTERY
+4008496978168,AAA 30 Pack,VARTA,BATTERY
+4008496978199,AA 30 Pack,VARTA,BATTERY
+4008496991853,Batterien D,Varta,BATTERY
+4008496992973,Varta Knoopcelbatterij lithium CR2032,Varta,BATTERY
 4008956371249,Allzweckreiniger,KAWE Allzweckreiniger citro,LAUNDRY
+4009017766646,Toothpicks,JESCOLLECTION,PERSONAL_CARE
 4009175114068,Liquide vaisselle écologique super dégraissant citron vert,,CLEANING_PRODUCT
 4009175917010,Entretien / Entretien Des WC / Gel Nettoyant WC,,LAUNDRY
 4009175922618,rainett tablettes lave vaisselle,ecolabel,CLEANING_PRODUCT
@@ -674,22 +1274,148 @@
 4009175953063,rainett aloe Vera lessive liquide,rainett,LAUNDRY
 4009175962959,lessive liquide savon de Marseille,Rainett,LAUNDRY
 4009412310123,Haushaltsschwamm,ana,CLEANING_PRODUCT
+4009977414663,Zahnstocher,"Testrut, axentia",PERSONAL_CARE
 4010355485632,Klarspüler,Denkmit,LAUNDRY
 4010355487285,Desinfektions spray,Denkmit dm,CLEANING_PRODUCT
+4010355963871,Tampons 3 Tropfen,,HYGIENE_PRODUCT
+4011700411900,Tabac Deo,,TOBACCO
+4011905457338,Federspiel,TRIXIE Heimtierbedarf,PET_SUPPLY
+4012922855879,Cigarette,,TOBACCO
+4013674005482,Ansmann Alkaline 20x Mignon AA,Ansmann,BATTERY
+4014024024368,Molfina Normal Plus,,PERSONAL_CARE
+4014663819691,Winston,"Winston, Winston slims",TOBACCO
 4015000968331,Spee Megaperls Color Multi Aktiv,Henkel,CLEANING_PRODUCT
 4015000970044,Weiss & Faser Perwoll,Henkel,CLEANING_PRODUCT
 4015000971157,Bref Power gegen Kalk & Schmutz,Bref,LAUNDRY
 4015000971737,Weißer Riese Color Duo-Caps Aromatherapie Orchidee & Sandelholz,Henkel,CLEANING_PRODUCT
 4015200035789,Professional Color 4in1 Discs,Persil,CLEANING_PRODUCT
+4015200037325,Spee Color Caps,Henkel,HOUSEHOLD_CHEMICAL
+4015200037912,All in 1 Extra Tabs,Somat,HOUSEHOLD_CHEMICAL
+4015400057369,Serviettes Maxi Nuit,Always,PERSONAL_CARE
+4015400205258,Ultra Extra Long s5,Always,PERSONAL_CARE
+4015400267157,Night XL,Always,PERSONAL_CARE
+4015400303664,Maxi thick,Always,PERSONAL_CARE
+4015400406211,Baby-dry 3 6-10 kg,Pampers,HYGIENE_PRODUCT
+4015400437932,Naturella Classic,,PERSONAL_CARE
+4015400498056,Ultra Normal Sanitary Pads,Always,PERSONAL_CARE
+4015400498087,Sanitary Pads,Always,PERSONAL_CARE
+4015400562634,Discreet Flexi Truseinnlegg,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
+4015400563747,Dailies,Always,PERSONAL_CARE
+4015400564324,Truseinnlegg Large Verdipakke,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
+4015400566939,Soft Like Cotton Large Inlegkruisjes,Always,PERSONAL_CARE
+4015400567394,Dailies Soft Like Cotton Normal Fresh Inlegkruisjes,Always,PERSONAL_CARE
+4015400567554,Dailies Soft Like Cotton Normal Inlegkruisjes,Always,PERSONAL_CARE
+4015400598329,Ultra normal,Always,PERSONAL_CARE
+4015400648000,Cottony softness,Always,PERSONAL_CARE
+4015400656760,Dailies Fresh Slim Flexistyle Inlegkruisjes,Always,PERSONAL_CARE
+4015400675464,Discreet Normal Inlegkruisjes,Always,PERSONAL_CARE
+4015400675952,Night,Always,PERSONAL_CARE
+4015400689539,"Couches Baby-dry, taille 4 : 8-16 kg",,HYGIENE_PRODUCT
+4015400699873,Ultra Bind Normal Plus,"Always, Procter & Gamble",PERSONAL_CARE
+4015400699996,Ultra Normal Bind,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
+4015400700074,Ultra Nr 2 Long+,"Always, Procter & gamble as",PERSONAL_CARE
+4015400731535,Sensitive Pads,Always,PERSONAL_CARE
+4015400731627,Sensitive Pads,Always,PERSONAL_CARE
+4015400731719,Ultra Night sanitary Pads,Always,PERSONAL_CARE
+4015400743545,Fresh Normal Truseinnlegg Sp,"Always, Procter & Gamble",PERSONAL_CARE
+4015400755210,Ultra Normal,Always,PERSONAL_CARE
+4015400755241,Ultra Normal (Big Pack),Always,PERSONAL_CARE
+4015400755333,Pads,Always,PERSONAL_CARE
+4015400755425,Ultra Flex And Fit,Always,PERSONAL_CARE
+4015400755456,Ultra Long 2,Always,PERSONAL_CARE
+4015400755548,Ultra Long 2,Always,PERSONAL_CARE
+4015400781882,Aloe Cool,Always,PERSONAL_CARE
+4015400844570,Discreet Long Plus Inlegkruisjes,Always,PERSONAL_CARE
 4015400863540,Sensitive,Ariel,LAUNDRY
 4015400902027,Savon Marseille,Ariel,LAUNDRY
+4015400932161,Night Always sensitive,"Always, Procter & Gamble",PERSONAL_CARE
 4015400961123,Adoucissant,,LAUNDRY
 4015400974888,Parfumelle Divine Envie,Lenor,LAUNDRY
+4019886020701,WC-Kraftgel,Sodasan,HOUSEHOLD_CHEMICAL
 4023103126251,Lint Roller,Vileda,LAUNDRY
 4023103178526,Spugna Aqua Classic,Vileda,CLEANING_PRODUCT
+4023500001458,Filterhülsen,,TOBACCO
+4023500015080,Heets,heets,TOBACCO
+4023500041720,PIELROJA TABAK,Philip Morris,TOBACCO
+4023500046169,Terra turquoise,Philipp Morris,TOBACCO
+4023500049641,Tabak,,TOBACCO
+4023500054652,Tabak,,TOBACCO
+4023500059152,Heets Sienna Selection,Philip Morris,TOBACCO
+4023500083003,L&M cigarettes,,TOBACCO
+4024800374006,175g Tabac a Rouler,,TOBACCO
+4024810007185,Tabaco Maya,"Landewyck, Maya",TOBACCO
+4024810008052,Tabac a rouler,,TOBACCO
+4024810015753,Tabac,,TOBACCO
+4024810024663,Tabac,Maya,TOBACCO
+4029912111112,Cani Mint Toothpaste,Gill's,PERSONAL_CARE
+4030400550412,Tabac,,TOBACCO
+4030400551679,van nelle tabak,,TOBACCO
+4030400553383,Paramount Volume Tobacco,Paramount,TOBACCO
+4030400553536,tabacco,west,TOBACCO
+4030400553703,tabak,,TOBACCO
+4030500018591,Tobacco,Van Nelle,TOBACCO
+4030500023083,XL Volumen Tabak,John Player Special,TOBACCO
+4030600259702,Cigarettes,Gauloises,TOBACCO
+4030600259771,Gauloise,,TOBACCO
+4030600274484,Davidoff Evolve Polar Mist,Davidoff,TOBACCO
+4030600283721,jps cigarette,,TOBACCO
+4030600315590,Davidoff,David off slim,TOBACCO
+4030700111320,Rizla,,TOBACCO
+4030700114055,Tabac a chiquer 40gr,,TOBACCO
+4030700118909,Tabac,,TOBACCO
+4030700119395,Tabaco de liar,Reemtsma,TOBACCO
+4030700121428,Tabac,,TOBACCO
+4030700123941,Tabac,,TOBACCO
+4030700123989,Filter Tips,Rizla,TOBACCO
+4030700124764,Horizon Virginia,,TOBACCO
+4030700124795,Horizon,Reemtsma,TOBACCO
+4030700129080,Filtre en Sticks,Rizla,TOBACCO
+4030700393955,Tabaco,Ducados,TOBACCO
+4031300241981,Tabak,Pall Mall,TOBACCO
+4031300309391,Zigarillos,Pall Mall,TOBACCO
+4031300346709,Tabak,Pall Mall,TOBACCO
+40313825,Cigarette,"Lucky Strike, Lucky strike red",TOBACCO
+40313948,Pall Mall,,TOBACCO
+4032800052893,Camel Tabak 10X30,,TOBACCO
+4032800054507,Tabak American Spirit,,TOBACCO
+4032800054569,Cigarette,,TOBACCO
+4032800054736,Tabac,,TOBACCO
+4032800054781,Pot tabac winston 210g,Winston,TOBACCO
+4032800055009,Tabac,,TOBACCO
+4032800055085,Tabak,,TOBACCO
+4032800055269,Tabac winston red,Winston,TOBACCO
+4032800056112,Fleur du Pays n°1 Blond 30g,fleur du pays,TOBACCO
+4032800056624,Tabac en vrac,Camel,TOBACCO
+4032800081763,Black XXL,Winston,TOBACCO
+4032900100609,Winston compact,winston,TOBACCO
+4032900115863,Winston,,TOBACCO
+4032900130668,winston,,TOBACCO
+4032900131986,Winston Duomix,,TOBACCO
+4032900152820,Winston Red 100's,,TOBACCO
+4032900153414,Slim Winchester Silver,Winchester,TOBACCO
+4032900159799,Cigarette,Désolé n’est-on,TOBACCO
+40329086,Camel Blue,"Camel, Camel Blue",TOBACCO
+40329154,Cigarettes Camel,Camel,TOBACCO
+40329383,Melvius Wind Blue,,TOBACCO
+4033100010255,Original Blue,Natural American Spirit,TOBACCO
+4033100015335,Fleur du pays - tabac à rouler,,TOBACCO
+4033100017629,Cigarette,,TOBACCO
+4033100018312,Winston Red,Winston,TOBACCO
+4033100030499,winston,Winston,TOBACCO
+4033100031397,Camel Essential Tobacco,Camel,TOBACCO
+4033100032059,Tabac,,TOBACCO
+4033100062162,Winston superslims,Winston experience silver,TOBACCO
+4033100081828,Winston Xsphere,Winston,TOBACCO
+40331171,Cigarettes,Camel,TOBACCO
+40331652,Tobacco,Camel,TOBACCO
+40331904,Tobacco,Camel,TOBACCO
+4033766802461,Fisch,Nobby,PET_SUPPLY
 4036421299439,Grünbelagentferner,beko,LAUNDRY
+4044703004077,Zigarettentabak,Power,TOBACCO
 4046136154138,WPC+BPC Spezialreiniger,IWETEC,LAUNDRY
 4046719930906,éponge ultra coloré ne raye pas,,CLEANING_PRODUCT
+4047247041768,Activ Energy Super Alkaline AAA,H. Essers,BATTERY
+4049011175556,Personenwaage,"Imtron, ok.",PERSONAL_CARE
 4052400033566,Reine Citronensäure,Brauns-Heitmann,LAUNDRY
 4056489044352,Detergente,Formil,LAUNDRY
 4056489215998,Formil,Lidl,CLEANING_PRODUCT
@@ -697,6 +1423,9 @@
 4056489226567,Liquide vaisselle,,CLEANING_PRODUCT
 4056489226574,Liquide vaisselle,,CLEANING_PRODUCT
 4056489226581,Eau de javel,,BLEACH
+4056489238263,AAA Batterien,Teonic,BATTERY
+4056489238270,AAA Batterien,Aerocell,BATTERY
+4056489259596,Batterien AAA,Areocell,BATTERY
 4056489262824,Non-bio detergent caps,Formil,LAUNDRY
 4056489279136,Formil liquid detergent,Formil,LAUNDRY
 4056489319894,Suavizante concentrado azul,Doussy,LAUNDRY
@@ -707,9 +1436,23 @@
 4056489733881,Liquide vaisselle,W5,CLEANING_PRODUCT
 4056489738435,"Liquide vaisselle, hypoallergénique",Lidl,CLEANING_PRODUCT
 4056489764250,Liquide vaisselle,W5,CLEANING_PRODUCT
+4056489954958,Tronic Batterien,MaxPower Products,BATTERY
+4058172077920,Tampons Normal,Jessa,HYGIENE_PRODUCT
+4058172172106,Zahnseidesticks,Donto dent,PERSONAL_CARE
+4058172627484,Zahnseide Sensitive Floss,Donto dent,PERSONAL_CARE
+4061458019828,Giants 200 Cigaretten-Hülsen mit Filter,Giants,TOBACCO
+4061459004144,Expert Soft Zahnbürste,Dentitex,PERSONAL_CARE
+4061459046168,Roltabak,Bantam,TOBACCO
+4061459084818,CR-2032  Batterien,Activ Energy,BATTERY
+4061459631494,AAA Batterien,Aktiv Energy,BATTERY
+4061459631517,AAA Batterie,Active Energy,BATTERY
 4061459899887,All-in-one Tabs,Power Force,CLEANING_PRODUCT
 4061461304027,Geschirr-Reiniger-Tabs,PowerForce,CLEANING_PRODUCT
+4061461432218,Tampons,,HYGIENE_PRODUCT
+4061462313127,Batterien AAA,,BATTERY
 4061462654213,Klarspüler,Power Force,CLEANING_PRODUCT
+4061462751707,Batterie AAA LR03,Acive Energy,BATTERY
+4061463401311,Sensitive Expert Zahnpasta,dentofit,PERSONAL_CARE
 4061464664630,Klarspüler,Tandil,CLEANING_PRODUCT
 4061464787940,Alio,Aldi,LAUNDRY
 4061464980068,Geschirr-Reiniger-Tabs classic,,CLEANING_PRODUCT
@@ -717,8 +1460,16 @@
 4062196082839,Reine Soda,Heitmann,LAUNDRY
 4062196354745,Reine Soda,Heitmann,LAUNDRY
 4062196355216,Reine Citronensäure,Heitmann,LAUNDRY
+4066447002973,Tampons,Jessa,HYGIENE_PRODUCT
+4066447084931,Tampons normal,,HYGIENE_PRODUCT
+4066447084979,Tampons super,Jessa,HYGIENE_PRODUCT
+4066447195194,Zungenreiniger,"Dontodent, dm",PERSONAL_CARE
+4066447206449,Tampons Super,Jessa,HYGIENE_PRODUCT
+4066447378078,Interdental-Bürstchen Gr. 3,Donto dent,PERSONAL_CARE
 4066447437171,Detergent vase Pro Climate,dm,LAUNDRY
+4066447713190,Zahnbürsten soft,Donto dent,PERSONAL_CARE
 4066447771480,Geschirrreiniger Mulit-Power Revolution,Denk mit,CLEANING_PRODUCT
+4066447782035,toothbrush,DM,PERSONAL_CARE
 4066447789355,Geschirrspül-Pulver Classic Power,Denkmit,CLEANING_PRODUCT
 4066447789621,Feuchte Allzwecktücher Granatapfel,Denkmit,CLEANING_PRODUCT
 4066447789904,Schmierseife,Denk mit,LAUNDRY
@@ -727,46 +1478,241 @@
 4066447791570,Rohrreiniger Granulat Kraft-Formel,dm,LAUNDRY
 4066447791594,WC Tabs (3-Fach-Power),Denkmit,CLEANING_PRODUCT
 4066447791631,Waschmaschinen Pflege Reiniger,Denk mit,CLEANING_PRODUCT
+4067796000986,Tampons normal,Jessa,HYGIENE_PRODUCT
+4067796001006,Tampons Super,,HYGIENE_PRODUCT
 4067796212440,Spülmittelspender mit Spülschwamm,dm Profissimo,CLEANING_PRODUCT
 4068134123503,Wäsche-Schwarz,domol,CLEANING_PRODUCT
 4068706642890,Seau,HOME CREATION,CLEANING_PRODUCT
 4068947006093,Wundertuch,Tchibo,LAUNDRY
+4069365035566,Geschirrreiniger Tabs Classic (100 Stück),Power Force,HOUSEHOLD_CHEMICAL
+4069400334487,premium No 9 SUMATRA,Villiger,TOBACCO
 4084500407633,Swiffer Duster Staubmagnet Test Kit,Swiffer,LAUNDRY
 4084500909793,liquide vaisselle clean & fresh orange,dreft,CLEANING_PRODUCT
 40874517,Antibacterial Multi-surface Wipes,Lidl,LAUNDRY
 4088500123456,tandil japon,tandil,CLEANING_PRODUCT
+4088500145878,AA Batterien,Activ Energy,BATTERY
+4088500613223,Tampons normal,,HYGIENE_PRODUCT
+4099200051802,Toothpicks,Crofton,PERSONAL_CARE
+4099200402819,Nüsslisalat,Rampon Formentino,PERSONAL_CARE
 41164490000699,Multi-surface concentrate,,LAUNDRY
+4201362962456,Tabac sdf,,TOBACCO
+42046677,cigarette,Marlboro,TOBACCO
+42050865,L&M Fine Tabaccos Finely cut,Philip Morris GmbH,TOBACCO
+42067351,Davidoff gold,,TOBACCO
+42068549,Papier à Rouler Rizla + Micron,,TOBACCO
+4210201077978,Pro 600 Toothbrush,Oral-B,PERSONAL_CARE
+4210201334958,iO Ultimate Clean Electric Toothbrush Refill,Oral-B,PERSONAL_CARE
+4210201343554,iO Gentle Care toothbrush heads,Oral-B,PERSONAL_CARE
+4210201384786,Kids Extra Soft Toothbrush Heads,Oral-B,PERSONAL_CARE
+4210201399971,iO Toothbrush Head Replacement Gentle Clean,Oral-B,PERSONAL_CARE
+4210201410324,CrossAction Electric Toothbrush heads,Oral-B,PERSONAL_CARE
+4210201446392,Pro vitality electric toothbrush,Oral-B,PERSONAL_CARE
+42138051,Blue,Winston,TOBACCO
+42138167,marlboro,marlboro,TOBACCO
+42138198,cigarettes,Winston,TOBACCO
+42139447,Camel White Cigarettes,Camel,TOBACCO
+42158837,Cigarette,News red connections,TOBACCO
+42199151,Lucky strike original,Lucky strike,TOBACCO
+42199304,Cigarette,,TOBACCO
+42214465,Feuilles à rouler Gizeh hyper fin,Gizeh,TOBACCO
+42221920,Lucky Strike True Red 20pk,British american tobacco norway as,TOBACCO
+42226192,Lucky Strike True Blue 20pk,British american tobacco norway as,TOBACCO
+42252108,pall mall,Pall Mall,TOBACCO
+42252214,Lucky Strike Blue,lucky strike,TOBACCO
+42291992,Tabaco,Rothmans,TOBACCO
+42301493,Tabac Pueblo,,TOBACCO
+42302001,Pueblo,,TOBACCO
+42303060,pueblo,pueblo,TOBACCO
+42303114,Tabak Pueblo,Pueblo,TOBACCO
+42303886,Pueblo,Pöschl Tabak,TOBACCO
+42307532,Tabaco y cigarillos,Manitou,TOBACCO
+42307600,Cigarros,Allure Sky,TOBACCO
+42309994,Benson & Hedges Gold,Benson & Hedges,TOBACCO
+42383321,Tabac a rouler,,TOBACCO
+42391531,Virginia Green,Fergreeen,TOBACCO
+42396468,Marlboro,Marlboro,TOBACCO
+42396512,Marlboro Mix,Marlboro,TOBACCO
+42404750,Cigarette,,TOBACCO
+42416029,Marlboro Rot,Marlboro,TOBACCO
+42416081,Zigaretten,Gold,TOBACCO
+42416258,Marlboro Gold,Marlboro,TOBACCO
+42429005,NIVEA Dry Comfort Antitranspirant Stick,Nivea,PERSONAL_CARE
+42435037,Marlboro Red,Marlboro,TOBACCO
+42435105,Marlboro Gold,Marlboro,TOBACCO
+42435402,Marlboro,Marlboro,TOBACCO
+42452676,Marlboro,Marlboro,TOBACCO
+42452690,Marlboro Gold,"Marlboro, Philip Morris GmbH",TOBACCO
+42454502,American Spirit Zigaretten,Japan Tobacco Inc.,TOBACCO
+42459668,Lucky Strike Tabak,Lucky Strike,TOBACCO
+42463597,Marlboro Gold,Marlboro,TOBACCO
+42464761,Fine Cut Tobacco,Pueblo,TOBACCO
+42464778,Pueblo,Pöschel Tabak,TOBACCO
+42472421,Tabak,Lucky Strike,TOBACCO
+42476016,Cigarettes,"Lucky Strike, Lucky Strike Red Big Pack",TOBACCO
+42477495,CAÑUMA,CAÑUMA TABACO AUTÉNTICO,TOBACCO
+42484127,TIPI Tabak,Virginia Blend,TOBACCO
+42487845,Pueblo,Pöschl Tabak,TOBACCO
+4251595305087,Tabac chicha chaos memento 40g,,TOBACCO
 4251758408518,Cillit Bang Kalk & Schmutz,Cillit,LAUNDRY
 4251758410900,Calgon Power Tabs 4 in 1,RB Hygiene Home Deutschland,CLEANING_PRODUCT
+4251758417299,Schimmelfrei,Sagrotan,HOUSEHOLD_CHEMICAL
+4260019960214,DJ,D&J,TOBACCO
+4260077047001,Litière Cristaux,Tigerino crystals,PET_SUPPLY
+4260093465551,oris,ORIS,TOBACCO
+4260365853123,Boite 10 Preservatifs Ultra-fins,Fair Squared,PERSONAL_CARE
+4260397790298,Hydro Phil Toothbrush Packaging,,PERSONAL_CARE
+4260646154277,ORIS chocolate,Cigarillos,TOBACCO
+4262523570910,Mighty Marshmallow Toothpicks,Pick'em,PERSONAL_CARE
 4262551720134,Orangenölreiniger Cleany,InovaTec,LAUNDRY
+42770015,Prince Golden Double Filter 20 stk,British American Tobacco Norway,TOBACCO
+4280001065024,Fil dentaire,Yaweco,PERSONAL_CARE
+4304218145338,Batterien AAA,oho,BATTERY
 4305615226958,WC-Duftspüler,domol,CLEANING_PRODUCT
 4305615358451,domol Black,domol,LAUNDRY
+4305615465753,Tampons,Facelle,HYGIENE_PRODUCT
+4305615621609,Spot on für Hunde,Winston,PET_SUPPLY
+4305615676685,Tampon normal,facelle,HYGIENE_PRODUCT
 4305615834900,Color-Waschmittel,Eco Freude,CLEANING_PRODUCT
+4311501585559,"Batterien, LR03 AAA, Alkaline",Gut & Günstig,BATTERY
+4311501585603,POWER CELL AKKU NiMh 950mAh 4xAAA Micro,Gut & Günstig,BATTERY
 4311501664605,Waschmaschinen Reiniger Tabs,EDEKA,LAUNDRY
+4311536147838,Super Energy Lithium Knopfzelle CR2032,"EURES, KOFUR, star",BATTERY
+4311536231131,Super Energy Alkaline Batterie Mignon AA,Star,BATTERY
 4311596001972,Hygiene Spray,EUCO,LAUNDRY
 4311596006328,Essigreiniger,Priva,LAUNDRY
 4311596007837,Priva Glasreiniger,Priva,CLEANING_PRODUCT
 4316268478489,Bravil ColorPlus,Bravil,CLEANING_PRODUCT
+4326470400154,Zahnseidenstick,Elina Dent,PERSONAL_CARE
 4335619010314,Opvaskemaskinerens,W5,CLEANING_PRODUCT
 4335619011267,Formil,Formil,LAUNDRY
 4335619023499,Detergente,Formil,LAUNDRY
+4335619058514,Pilhas AA LR6,Tronic,BATTERY
+4335619104372,Brillen putztuch,W5,PERSONAL_CARE
+4335619127418,Cat litter,Coshida,PET_SUPPLY
+4335619174900,Goldfield Gold,Goldfield,TOBACCO
 4335619222854,4 éponges vaisselle delicate,W5,CLEANING_PRODUCT
 4337182133506,WC Gel,,LAUNDRY
+4337185024177,Lithium Knopfzellen CR2025,"Kaufland, SwitchOn",BATTERY
+4337185236532,Batterien AA LR6,"Kaufland, Kclassic",BATTERY
 4337256210041,Rohrreiniger Gel für Küche und Bad,AVT Abfüll- und Verpackungstechnik,LAUNDRY
+4337256294683,Brillenputztücher,ja!,PERSONAL_CARE
+4388441172903,Tampons (Normal),REWE Beste Wahl,HYGIENE_PRODUCT
 4388860544008,Glasreiniger Ocean,ja!,CLEANING_PRODUCT
 4388860552836,Gallseife mit Bürste,AVT Abfüll- und Verpackungstechnik,LAUNDRY
+4388860736786,"Alkaline Batterien AA / LR /1,5V",ja!,BATTERY
+45163012,Malboro Double Burst,,TOBACCO
+4530393773787,Lucky Strike red rolling tobacco,"Lucky Strike, Lucky striket",TOBACCO
+4606203103140,Marlboro Crushball - Cigarette,Marlboro,TOBACCO
+4606203103348,Сигареты,Chesterfield,TOBACCO
+46103284,Winston XStyle BLUE,,TOBACCO
+47756946,Sigarettes,"Winston, Winston slims",TOBACCO
+47801271,pall mall,Pall Mall,TOBACCO
+4800033142588,Toothbrush (Baby),Dental B,PERSONAL_CARE
+4801010327103,All Night,Modess,PERSONAL_CARE
+48044165,chesterfield original,,TOBACCO
+48044295,Marlboro,Marlboro,TOBACCO
+4810150001002,Корона,,TOBACCO
+4820118294308,Alkaline Battery Turbo,Videx,BATTERY
+4823003205557,сигарети,Marlboro,TOBACCO
+48406123,Lays,,TOBACCO
+48513890,Cigarettes Lex Blue Slims,Lex,TOBACCO
+48603997,Gold,Marlboro,TOBACCO
+48604512,Heets,iqos,TOBACCO
+4870249811998,Terea,Iqos,TOBACCO
+4891132077703,Double Happiness KING SIZE (Filter Tipped) Cigaretes.,Nanyang Brothers Tobacco Co. Ltd,TOBACCO
+4891199109799,GP Rechargeable AAA Аккумуляторные батареи &quot;Джи Пи&quot; никель-металлогидридные 650 мАч,GP batteries,BATTERY
+4891199164507,Аккумуляторы GP270AAHC/2-2CR6,GP Rechargeable,BATTERY
+4891199176531,CR2032 Lithium Cell Battery,GP Batteries,BATTERY
+4902210202600,Seven stars,Seven stars,TOBACCO
+4902430681353,Complete 5 Way Clean Soft Toothbrush,Oral-B,PERSONAL_CARE
+4902430771481,Complete 5 Way Clean Medium Toothbrush,Oral-B,PERSONAL_CARE
+4902430897204,Cross Action Indicator Toothbrush,Oral-B,PERSONAL_CARE
+49400601,Seven Star Cigarette,Seven Star,TOBACCO
+4987176056337,Premium Care Pants XL,Pampers,HYGIENE_PRODUCT
 4987176099921,Detergent Bar,Tide,LAUNDRY
+4987176117670,Sensitive X Deep Clean Toothbrush,Oral-B,PERSONAL_CARE
+4987176138859,Sensitive & Gums Precision Clean Toothbrush (Extra Soft),"Oral-B, Procter & Gamble",PERSONAL_CARE
+4987176144256,iO 3 Series Ultimate Clean Electric Toothbrush,Oral-B,PERSONAL_CARE
+4987176164155,Baby Diaper XL,Pampers,HYGIENE_PRODUCT
+4987176213730,Pro 300 Kids Sensitive Clean Electric Toothbrush Assorted,Oral-B,PERSONAL_CARE
+4987176239976,CrissCross Deep Clean Anti-Plaque Toothbrush,Oral-B is sold by Procter & Gamble,PERSONAL_CARE
+4987176271884,Vitality Pro Deep Electric Toothbrush & Travel Case Black,Oral-B,PERSONAL_CARE
+4987176271921,Vitality Pro Deep Electric Toothbrush & Travel Case Lilac,Oral-B,PERSONAL_CARE
+4987176303721,Premium Care Pants,Pampers,HYGIENE_PRODUCT
+4987176318374,iO Clean & Gum Sensitive Toothbrush Replacement Heads,Oral-B,PERSONAL_CARE
+4987176340672,Vitality Pro Rechargeable Toothbrush Deeper Clean Lilac,Oral-B,PERSONAL_CARE
+4987176340689,Vitality Pro Rechargeable Toothbrush Deeper Clean Black,Oral-B,PERSONAL_CARE
+4987176340696,Pro Expert Electric Toothbrush,Oral-B,PERSONAL_CARE
+4987176340702,Pro Expert Rechargeable Toothbrush White,Oral-B,PERSONAL_CARE
+4987176340719,Vitality Pro Rechargeable Toothbrush Deeper Clean Mint,Oral-B,PERSONAL_CARE
 4987176351708,Ariel Perfect Wash,Ariel is sold by Procter and Gamble,LAUNDRY
+5000128727938,Waxed Dental Floss,Coop,PERSONAL_CARE
+5000128728324,Toothbrush,Co-op,PERSONAL_CARE
+5000143555097,Amber Leaf Rolling Tobacco,,TOBACCO
+5000143902228,Blue,Benson and Hedges,TOBACCO
+5000143950328,Amber Leaf Tobacco 50g,Amber Leaf,TOBACCO
+5000143956610,Tobacco,Sterling,TOBACCO
+5000143997927,Rolling tobacco,Sterling,TOBACCO
+5000143999228,Cigarettes,,TOBACCO
+5000166004411,Clumping cat litter,Thomas,PET_SUPPLY
 5000204096675,Total Aktiv Gel - Ocean Wave,WC Ente,LAUNDRY
 5000204278071,CANARD LIQU GEL MARINE 750ML,Canard,CLEANING_PRODUCT
 5000204278101,gel action intense,canard,CLEANING_PRODUCT
 5000204329254,Canard WC 100% détartrant,Canard,CLEANING_PRODUCT
 5000204366754,WC-Ente,Canard,LAUNDRY
 5000204983685,CANARD WC 100% DETARTRANT,CANARD,CLEANING_PRODUCT
+5000219021815,Dunhill White,,TOBACCO
+5000219034129,Luckies Slow-Cured Original,Lucky Strike,TOBACCO
+5000219038905,tobacco,golden Virginia,TOBACCO
+5000393184252,Velo nicotine pouches,Velo,TOBACCO
+5000393193919,nicotine pouch,Velo,TOBACCO
+5000393364845,"Tobacco, Cutter’s Choice",Cutter’s Choice,TOBACCO
+5000393364876,Tobacco,Cutters Choice,TOBACCO
+5000393364937,Pall mall rolling tobacco,"British American tobacco group, Pall Mall",TOBACCO
+5000394018396,Mignon Batterien AA,Duracell,BATTERY
+5000394030398,DL/CR 2430,Duracell,BATTERY
+5000394032781,Micron Batterien,Duracell,BATTERY
+5000394083912,Battery AAA Duracel,Duracell,BATTERY
+5000394141117,Batterien Aaa,Duracell,BATTERY
+5000394141230,AAA Batterien,Duracell,BATTERY
+5000394141322,Batteries,Duracell,BATTERY
+5000431027312,Cigarettes,Lambert & Butler,TOBACCO
+5000431029477,Tobacco,Riverstone,TOBACCO
+5000431029507,Easy rolling tobacco,Riverstone,TOBACCO
+5000435010860,Rolling Tobacco,Golden Virginia,TOBACCO
+5000435010891,Golden Virginia Yellow 50g Hand Rolling Tobacco,Golden virgina,TOBACCO
+5000435014264,Tobacco,Gold Lea,TOBACCO
+5010175815243,Bon vieux tabac,,TOBACCO
+5010175815328,Winston Tabac,,TOBACCO
 5010251550037,Thick bleach berry,Morrisons,CLEANING_PRODUCT
 5010287420014,Magic Leaves Laundry Detergent Sheets,Original. Dr Beckmann,LAUNDRY
+5010813812320,JSP,Imperial Brands,TOBACCO
+5010813815932,Jps black,John player special,TOBACCO
+5010891011868,Rolling Paper super Thin,Rizla,TOBACCO
+5010891064215,Cartine,Rizla,TOBACCO
+5011054113450,Nicotine pouches (snus),Nordic Spirit,TOBACCO
+5011054115430,Tobacco,Amber Leaf,TOBACCO
+5011054356437,Amber Leaf 30GR Roll Your Own Pouch,,TOBACCO
+5012035920036,Maoam selection,"Dunhills, Maoam",TOBACCO
+5014107164850,Day Pads,Interlude,PERSONAL_CARE
+5025232940189,DMW-BLK22,Panasonic,BATTERY
+5026260001248,Tobacco flavouring,,TOBACCO
+5028763002371,Medium Toothbrush,Wisdom,PERSONAL_CARE
+5028763005754,Toothbrush,Wisdom,PERSONAL_CARE
+5028804301272,Training pads,Petbrands,PET_SUPPLY
+5029053538969,Huggies unistar,"Huggies, Kimberly Clark, Kimberly-Clark",HYGIENE_PRODUCT
 5033848011377,Purple Nitrile Xtra Gloves,Kimtech,CLEANING_PRODUCT
 5037835300000,Éponge,Muc-Off,CLEANING_PRODUCT
+50433919,Richmond King Size,Richmond,TOBACCO
+50434640,Classic,Golden Virginia,TOBACCO
+5045095724290,Boots Ultra thin Extra Lube Condoms,Boots,PERSONAL_CARE
+5045097538956,Round Cotton Wool Pads,Boots,PERSONAL_CARE
+5052197023848,"Durex Nude No Latex condooms, 10st",Durex,PERSONAL_CARE
+5053250026011,Bamboo Toothbrush,F.E.T.E,PERSONAL_CARE
+5054563050519,Nettoyage,Paradontax,PERSONAL_CARE
+5054563203441,Polident,Stafford - Miller (Ireland),PERSONAL_CARE
+5054781096955,Cotton Wool Round Pads,ASDA,PERSONAL_CARE
+5056246550101,original Tobacco,Pocket Fuel,TOBACCO
 5057753720872,Non-Bio Detergent Capsules,Tesco,LAUNDRY
 5057753907211,Bio Liquid Detergent,Tesco,LAUNDRY
 5057753911201,Non-Bio Liquid Detergent Super Concentrated,Tesco,LAUNDRY
@@ -776,26 +1722,128 @@
 5059512740145,Bio Detergent Capsules,Tesco,LAUNDRY
 5059697256417,Orange Blossom & Pomegranate Bio Detergent Capsules,Tesco,LAUNDRY
 5059697754609,Multi-purpose Household Towel,Tesco,CLEANING_PRODUCT
+5060062991420,Disposable Breast Pads,Lansinoh,PERSONAL_CARE
+5060465310040,Day Pads Box,Kind organic,PERSONAL_CARE
+5060480200715,Sonic Toothbrush Heads,Georganics,PERSONAL_CARE
 5060481022057,The original scrub daddy,Scrub Daddy,CLEANING_PRODUCT
 5060481022064,Scrub Mommy,ScrubDaddy,CLEANING_PRODUCT
 5060481026758,Special edition Scrub Mommy Biedronka,Scrub Daddy,CLEANING_PRODUCT
 5060558050075,Laundry egg,EcoEgg,LAUNDRY
+5060592003105,Pack of 20 cigarettes,"Marlboro, Marlboro Gold",TOBACCO
+5060592005246,Chesterfield Red Superking,,TOBACCO
+5060592005260,Cigarettes,Marlboro,TOBACCO
+5060592005284,Cigarettes,Marlboro,TOBACCO
+5060592005307,Marlboro Touch Cigarettes,Marlboro,TOBACCO
 5063334003869,Lemon washing up liquid,Sainsbury's,CLEANING_PRODUCT
 5063334003906,Raspberry and rhubarb washing up liquid,Sainsbury's,CLEANING_PRODUCT
 5063334003913,Cherry blossom washing up liquid,Sainsbury's,CLEANING_PRODUCT
+5063334005337,Antibacterial Surface Cleaner,Sainsbury's Green Care Home,PERSONAL_CARE
 5063334043872,Original washing up liquid,Sainsbury's,CLEANING_PRODUCT
 5065000240288,Lazim Automatic Detergent powder,,LAUNDRY
 50652365,9 Elements Laundry Detergent Eucalyptus,,LAUNDRY
+50939886,Rich Liqouriche,Rizla,TOBACCO
+50960705,Big Ben Papir 50bl,British american tobacco norway as,TOBACCO
+50973606,Rolling Paper Blue,Rizla,TOBACCO
+50973613,Rolling papers,Rizla,TOBACCO
+5201222300700,Sigaretten,Marlboro,TOBACCO
+5201222301967,cigarette,Marlboro,TOBACCO
+5201222302568,cigarette,marlboro,TOBACCO
+52015991,Karelia Χρυσή,Καπνικά,TOBACCO
+52018183,Hand rolling tobacco,George Karelias and Sons,TOBACCO
+52018244,Karelia ? 23S,,TOBACCO
+52018251,KARELIA LIGHTS,KARELIA,TOBACCO
+52018527,Karelia,Karelia,TOBACCO
+5208049017101,Golden tobacco,Vuse,TOBACCO
+5213003611493,Old Holborn,,TOBACCO
+5281083013353,Cat litter,4'Pattes,PET_SUPPLY
+53010698,Cigarettes,Kent Crystal,TOBACCO
+5304000011888,Marlboro,Marlboro,TOBACCO
+5304000011970,marlboro,,TOBACCO
+5304000180645,Marlboro,Marlboro,TOBACCO
+5310394001091,Malrboro gold touch XL,Marlboro,TOBACCO
+5319990797452,Cigarette,"Marlboro, Marlboro Light",TOBACCO
+5319990797599,Marlboro flavor touch,Marlboro,TOBACCO
+53550040,Marlboro gold,Marlboro,TOBACCO
+5391532944777,Tobacco e liquid,Bmg,TOBACCO
+5397206966984,Oval Cosmetic Pads,Primark,PERSONAL_CARE
+53992918,Tobacco,Amber Leaf,TOBACCO
+5400113568674,Litière pour Chat,Delhaize,PET_SUPPLY
 5400141620740,Poudre à lessiver,Everyday,LAUNDRY
 5400141728163,Tablette lave vaisselle,Boni,CLEANING_PRODUCT
+54002333,Cigarette,,TOBACCO
+54002494,Sigaret,Marlboro,TOBACCO
+54002746,Pall Mall Red 37,British américain tabacco,TOBACCO
+54003842,Cigarette Pall-Mall 49,Pall-Mal,TOBACCO
+54004580,Cigarettes,,TOBACCO
+5400585093506,Cat litter,Flamingo,PET_SUPPLY
+54006829,Rizla+ Natura,,TOBACCO
+5400827003867,Cigarettes,Elixyr,TOBACCO
+5400827011466,Cigarette Augustin mente,,TOBACCO
+5400827012814,filtre mentholé,Elixyr,TOBACCO
+54009646,Micron Pink Edition,Rizla +,TOBACCO
+54009677,Rolling Paper,Rizla Super Thin,TOBACCO
+54009691,Rizla,Rizla,TOBACCO
+54010321,Rizla Papers,Rizla,TOBACCO
+54012820,Rizla Enkle 50 Sigarettpapir,IMPERIAL TOBACCO NORWAY AS,TOBACCO
+54012837,Rizla Doble 100 Sigarettpapir,IMPERIAL TOBACCO NORWAY AS,TOBACCO
+54012882,Rizla Blå Enkel 50bl,Imperial brands norway as,TOBACCO
+54013766,Rolling Papers,Rizla,TOBACCO
+54015340,Marlboro,Marlboro,TOBACCO
+54015395,Marlboro,Marlboro,TOBACCO
+54027039,Marlboro RED,"Marlboro, Philip Morris",TOBACCO
+54029057,luckies,"Lucky Strike, lucky strikes",TOBACCO
+54029187,Lucky Strike,Lucky Strike,TOBACCO
+54029668,Lucky Strike Blue,British American Tobacco Group,TOBACCO
+54029712,Zigaretten,Lucky Strike,TOBACCO
+54034006,rizla+,rizla+,TOBACCO
+54034020,Blue Rolling Paper,Rizla,TOBACCO
+54034341,Rolling Paper,Rizla,TOBACCO
+54034440,Green Rolling Paper,Rizla,TOBACCO
+54034662,Feuilles à rouler Rizla+,,TOBACCO
+54034822,Rizla + orange,rizla +,TOBACCO
+54039377,Luckies,,TOBACCO
+54039537,Pall mall,,TOBACCO
+54043077,Tabac blond,,TOBACCO
+54043213,Camel Belges S,,TOBACCO
 5410076708994,Detergent,Bold,LAUNDRY
 5410091744410,color gel,Persil,CLEANING_PRODUCT
 5410091773311,Clothes Detergent Universal 4+1,Dixan,LAUNDRY
+5410133834116,RIZLA+.,,TOBACCO
 5410201901733,Lavettes éponge,,CLEANING_PRODUCT
 5410306883286,Liquide vaisselle citron super u,,CLEANING_PRODUCT
+5410446002127,Fleur du Pays N°1 Blond,Fleur du Pays,TOBACCO
+5410446007757,Superproduit,Supermarque,TOBACCO
+5410446010986,Tabac Camel,Camel,TOBACCO
+5410446012355,Camel Blue XXL,"Camel, Camel Blue",TOBACCO
+5410446013987,Tabac Belgique,,TOBACCO
+5410446014908,Winston,Winston,TOBACCO
+5410446016223,Tabac,,TOBACCO
+5410446016988,Tabac,,TOBACCO
+5410738005195,Pall Mall Tubing 30g,Pall Mall,TOBACCO
+5410738015538,Tabac,,TOBACCO
+5410853047735,Super Alcalina LR6 AA,Premio,BATTERY
+5410853047742,"Pila LR03 1,5V AAA",Premio,BATTERY
+5410853047759,Pila 9v,Premio,BATTERY
+5410853048008,Pile,Panasonic,BATTERY
+5410853051169,Pile,Panasonic,BATTERY
+5410853059080,Pile,Panasonic,BATTERY
+5410853060321,Pila recargable AAA-P03 Premio,,BATTERY
+5410853062486,Batteries,Panasonic,BATTERY
+5410853063674,General Alkaline AA,Panasonic,BATTERY
+5410853063780,Batterien Aaa,Panasonic,BATTERY
 5411161111651,pastilles de javel,Loda,BLEACH
 5411511530859,Liquide vaisselle concentré,,CLEANING_PRODUCT
+5411741702316,Cigarillos Vanille Filtré,,TOBACCO
+5411741704068,Cigarillos,,TOBACCO
+5411808040023,Tabac,,TOBACCO
+5411808065095,Tabac Fleur du Pays,,TOBACCO
+5411808067884,cigarette,,TOBACCO
+5411808079726,Tabac Blond 200g. American Lent,,TOBACCO
+5411823865144,Cigarette Choc,,TOBACCO
+5411926000312,Tabac,,TOBACCO
+54123021,Chema,,TOBACCO
 5412533003345,SPÜLMASCHINEN-TABS,ECOVER,CLEANING_PRODUCT
+5412533404708,Tablettes lave vaisselle,ECOCERT,HOUSEHOLD_CHEMICAL
 5412533404920,Liquide Vaisselle Citron écologique ? 5L ? Ecover?,,CLEANING_PRODUCT
 5412533408942,Ecover Essential,Ecover,CLEANING_PRODUCT
 5412533413816,Nettoyant WC,Ecover,CLEANING_PRODUCT
@@ -804,15 +1852,70 @@
 5412533418170,Lessive liquide,Ecover,LAUNDRY
 5412533418613,Liquide vaisselle,,CLEANING_PRODUCT
 5412533424676,Lessive liquide noir & foncé,Ecover,LAUNDRY
+5412791541139,Volume maxx tobacco,,TOBACCO
+5412791590861,Pot de Tabac,,TOBACCO
 5413149750470,Feuchte Bodenreinigungstücher,Swiffer,CLEANING_PRODUCT
 5413525101407,Liquide-vaisselle,Biotop,CLEANING_PRODUCT
+54137684,Malboro Gold,Marlboro,TOBACCO
+54140660,Cigarettes,,TOBACCO
+54140813,Marlboro Red,Marlboro,TOBACCO
+54141445,Philip Morris,Philip Morris,TOBACCO
+54141452,Marlboro,Marlboro,TOBACCO
 5414157603116,Gants latex jetables M,,CLEANING_PRODUCT
+5414365066321,Dog Toy,Duvo+,PET_SUPPLY
+5414622206903,Tabac,,TOBACCO
+5414622229001,Tabac 30g,,TOBACCO
+5414842351612,mercator,,TOBACCO
+5415098006134,Taba,,TOBACCO
+5415098007124,Tabac Malbac,,TOBACCO
+5415098007629,Tabac,,TOBACCO
+5415098009074,L&M,,TOBACCO
+5415098009166,Tabac,,TOBACCO
+5415098009418,Chesterfield,,TOBACCO
+5415098011817,L&M,L&M,TOBACCO
+5415098013989,Tabac,,TOBACCO
+5415098014245,Tabac,,TOBACCO
+5415098014849,Tabac de luxe venez pecho,,TOBACCO
+5415098029102,Marlboro red 5xl,Marlboro,TOBACCO
+5415098029133,Marlboro Gold M,"Marlboro, Philip Morris Brands",TOBACCO
+5415098029409,L&m,blue,TOBACCO
+5419980158567,Homa Rilk,Winston,TOBACCO
+5425007960013,Macher,,TOBACCO
+5430000384070,Tabac,Vasconha,TOBACCO
 5430003768044,Feuilles de lessive probiotiques,Yokuu,CLEANING_PRODUCT
+54509856,Cigarette redston,,TOBACCO
+56003567,Marlboro gold,Marlboro,TOBACCO
+5601125001313,TEREA,Philip Morris (EU - under authority),TOBACCO
+5601125001344,Terea Torquise,Terea,TOBACCO
+5601125004796,Tabaco,Marlboro,TOBACCO
+5601125006820,Delia,Iqos,TOBACCO
+5601125007018,VEEV one,Philip Morris,TOBACCO
+5601125007650,ISLAND BEAT,Levia for IQOS Lumia,TOBACCO
+5601125007735,Levia,iQos Phillip Morris,TOBACCO
 5601217139368,Sabão natural,Xau,LAUNDRY
+56041972,Garo,Marlboro,TOBACCO
+5605480000912,preservativo durex mutual,Durex,PERSONAL_CARE
+56091991,Tabaco,Albert Heijn,TOBACCO
 56859003,Vinaigre ménager,,LAUNDRY
+5700551151323,Best Friend Toys Chap Tøyleke,JENSEN & CO AS,PET_SUPPLY
+5700551151521,Best Friend Toys Gummiball,JENSEN & CO AS,PET_SUPPLY
+5700551151552,Best Friend Toys Rope Tauleke,JENSEN & CO AS,PET_SUPPLY
+5700551151590,Best Friend Toys Frisbee Hundeleke,JENSEN & CO AS,PET_SUPPLY
+5700551151750,Best Friend Toys Pig Hundeleke,JENSEN & CO AS,PET_SUPPLY
+5700551250651,Best Friend Toys Chase Katteleke,JENSEN & CO AS,PET_SUPPLY
 5701092107510,Dishwasher deep cleaner,Finish,CLEANING_PRODUCT
 5703036414609,cleaning sponge,,CLEANING_PRODUCT
+5707294192873,Tabac,,TOBACCO
+5707294193238,Tabac,Amsterdamer Original,TOBACCO
+57077567,Prince Cold Plus Double 20pk,British american tobacco norway as,TOBACCO
+57080666,Lucky Strike Red Zone 20pk,BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+57100319,Prince Fine Green Plus 20 stk,British American Tobacco Norway,TOBACCO
+5710840225017,Tiedemanns Gul Mix 3 47g,BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+5710840225079,Tiedemanns Rød Mix 2 47g,BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+5710840225109,Tiedemanns Rød Mix Nr.3 47g,British american tobacco norway as,TOBACCO
+5712643047544,Foodle compartment plate,Done by deer,HYGIENE_PRODUCT
 5712871289891,Shine Badreiniger Zitrone,Shine,LAUNDRY
+5712872292142,Powermaker Energy Plus 9V,Powermaker,BATTERY
 5712873371105,Washing-up liquid concentrated classic,Shine,CLEANING_PRODUCT
 5712873371501,Savin Color Protect,Mayeri Industries,LAUNDRY
 5712874993153,Savin Color Protect Colorwaschmittel,Savin,CLEANING_PRODUCT
@@ -820,54 +1923,354 @@
 5714970000971,Ultimate tabletter,Finish Powerball,CLEANING_PRODUCT
 5714970008038,Ultimate All-in-One,Finish,CLEANING_PRODUCT
 5714970008045,Powerball Ultimate dishwasher tablets,Finish,CLEANING_PRODUCT
+5715345008424,VELO Zesty Elderflower,British American Tobacco (VELO),TOBACCO
+5715345022468,Lucky Strike,Lucky Strike,TOBACCO
+5715345023052,Pall mall,British American Tobacco,TOBACCO
 5900498028133,Miętowy płyn do naczyń,Ludwik,CLEANING_PRODUCT
 5900627090444,KERARIN Therapy - MIX COLORS,Woolite,CLEANING_PRODUCT
+59020219,tabac,Camel,TOBACCO
+59033158,Cigarette Fine,,TOBACCO
+5903621030119,Chesterfield Blue 22,,TOBACCO
+59038207,Lucky Strike Red XL,Lucky Strike,TOBACCO
+59039303,cigarette,Dunhill,TOBACCO
+5905172647051,Електронні цигарки,VEO tobacco free,TOBACCO
+59053477,Lucky Strike Cold Flow 20pk,British american tobacco norway as,TOBACCO
+5905591986144,Strawberry nicotine pouches,"77, Luna Corporate",TOBACCO
+5905753347202,Nicotine pouches,Cuba,TOBACCO
+59059899,Cigarette,,TOBACCO
+5906258542079,Fortuna,Imperial Tobacco,TOBACCO
+59063506,Lucky strike,Lucky strike,TOBACCO
+59063865,Rothmans Cigarettes,British American Tobacco Polska Trading Sp.z.o.o.,TOBACCO
+59064077,PALL MALL,Pall Mall,TOBACCO
+59073451,Terea Blue,"IQOS, Terea",TOBACCO
+59073772,Terea,Philip Morris,TOBACCO
 5908252011919,KERATIN Therapy Fruity - MIX COLORS,Woolite,CLEANING_PRODUCT
+59447436,Marlboro filter plus,Marlboro,TOBACCO
+59454250,marlboro touch,marlboro,TOBACCO
+59460626,Sigarette,,TOBACCO
+59462408,chesterfield,,TOBACCO
+59474203,IQOS Blue,,TOBACCO
+59476481,Tigari,Marlboro,TOBACCO
+59476535,tigati,sobranie,TOBACCO
+59480587,HEETS TEAK,IQOS,TOBACCO
+59482574,marlboro,Marlboro,TOBACCO
+59484523,Camel Caster,Camel,TOBACCO
+59486039,heets,iqos,TOBACCO
+59492856,Velo,british american tobacco,TOBACCO
+59941200,Cigaretta,Marlboro,TOBACCO
+59947721,Marlboro,Marlboro,TOBACCO
+59948070,Cigarette,,TOBACCO
+5998900505631,Dover - BLUE - TABACCO DA PIPA,Continental Tobacco Corp.,TOBACCO
+5998900507604,Silverado,Continental Tobacco,TOBACCO
 5999109581938,rinse & shine aid,finish,CLEANING_PRODUCT
+6001060177811,dunhill,dunhill,TOBACCO
+6001067022558,Extra Clean Medium,Colgate,PERSONAL_CARE
+6003001026158,Maxi Regular Pads,Stayfree,PERSONAL_CARE
+6008165062547,Dunhill Switch,,TOBACCO
+6008165352396,PALL MALL,Pall Mall,TOBACCO
+6008165353072,Pall mall red,"Pall Mall, Segrat",TOBACCO
 6009644923359,Bubble Plus washing powder,Boom,LAUNDRY
+6009660560026,Voyager,Voyager,TOBACCO
 6009709821552,Shine plus window & glass cleaner,Boom,LAUNDRY
 6009709826625,Bubble Plus,Boom,LAUNDRY
 6009711326847,Fabric Conditioner,Boom,LAUNDRY
+6009800476927,marlboro,,TOBACCO
+6087091612040,briquet,samados,TOBACCO
 6091043802748,Adoucissant,,LAUNDRY
+6111245593128,Feather Soft,Always,PERSONAL_CARE
+6111245597287,Special Care 18+ kg,Calin,HYGIENE_PRODUCT
+6111245597294,Special Care 7-16 kg,Calin,HYGIENE_PRODUCT
+6111245597300,Special Care 4-9 kg,Calin,HYGIENE_PRODUCT
+6111245597751,Special Care n°2 3-6 kg,Calin,HYGIENE_PRODUCT
+6111251841312,Tiger,Tiger,PERSONAL_CARE
+6111275360127,Winston blue,JT international SA,TOBACCO
+6118000160281,BETNEVAL 0.1%,,PERSONAL_CARE
+6130006000309,نسيم,,TOBACCO
 6130026923206,Swift eau de javel,Bio Pack,BLEACH
+6130430005161,chama,,TOBACCO
 6130430005413,EAU DE JAVEL BREF,,BLEACH
+61306011,Tabac a chiquer,,TOBACCO
 6131425001533,cleanex,liquide vaisselle. 400da,CLEANING_PRODUCT
+6131548000154,tabac,lucki strike,TOBACCO
+6131548000161,cigarettes,lucky strike,TOBACCO
 6132277700254,Sel Régénérant My King,95 DA,CLEANING_PRODUCT
+6132360100176,Gold Marlboro Original,Marlboro,TOBACCO
 6132500550106,JAVEL D'OZ,D'OZ,BLEACH
 6135533002291,Liquide vaisselle,,CLEANING_PRODUCT
+6151100530004,Tobacco vanille,"Sommy Empire, Sommy Scents",TOBACCO
+6151100530011,Tobacco vanille,"Sommy Empire, Sommy Scents",TOBACCO
+6151100530660,Tobacco oud,"Sommy Empire, Sommy Scents",TOBACCO
+6151100530677,Tobacco oud,"Sommy Empire, Sommy Scents",TOBACCO
+6151100530684,Tobacco oud,"Sommy Empire, Sommy Scents",TOBACCO
+6151100530691,Tobacco oud,"Sommy Empire, Sommy Scents",TOBACCO
+6156000487489,Tobacco vanille,"Sommy Empire, Sommy Scents",TOBACCO
+6156000487496,Tobacco vanille,"Sommy Empire, Sommy Scents",TOBACCO
 6192002403140,Javel,Judy,BLEACH
+61942547,Saphir,,TOBACCO
+6221004001976,سجاير كيلوباترا,مصر,TOBACCO
+62211154,clous de cercueil,,TOBACCO
+62211185,Faycel hidibi,,TOBACCO
+62211550,Marlboro Red,Marlboro,TOBACCO
+6253341400013,كنت ادفانس ازرق,,TOBACCO
+6253345300081,معسل تفاحتين,Mazaya,TOBACCO
 6281006506121,OMO Semi Automatic,Omo,LAUNDRY
 6281006506145,OMO Automatic,Omo,LAUNDRY
+6287041680192,Dzrt,Nicotine,TOBACCO
+6291100730094,Tabac a chicha,,TOBACCO
 6291103086471,Hand washing powder,Rapid,LAUNDRY
+6291107557830,Daily Liners Normal,Always,PERSONAL_CARE
+6291108165782,Tabac,,TOBACCO
+6292184699055,Feather soft diapers,Juniors,HYGIENE_PRODUCT
+6294003802455,White,Marlboro,TOBACCO
+6297000712352,Tradition,AFRAH,TOBACCO
+6304480001057,tobacco,50,TOBACCO
+6337101602234,بيبي ماكس,Baby Max,HYGIENE_PRODUCT
+6413800121204,Lucky Strike Original Red 20pk,British american tobacco norway as,TOBACCO
+6448444455750,Tobacco,,TOBACCO
+6913362750060,Das Experten WAXED MINT floss,Das Experten,PERSONAL_CARE
+6913362823450,Das Experten EXPANDING floss,Das Experten,PERSONAL_CARE
+6913362825119,Das Experten SCHWARZ floss — charcoal dental floss,Das Experten,PERSONAL_CARE
+6913362825898,Das Experten SCHWARZ brush — charcoal toothbrush,Das Experten,PERSONAL_CARE
+6913362825935,Das Experten NANO MASSAGE — silicone nano-silver toothbrush,Das Experten,PERSONAL_CARE
+6919260046924,Lessive capsules Absolu Fleur d'Oranger Vanille,Omo,HOUSEHOLD_CHEMICAL
+6920403163697,AA batteries,Energizer,BATTERY
+6928394902363,Batterien AAA,,BATTERY
+6928771110152,serviette hygiénique,lafia,HYGIENE_PRODUCT
+6932229033238,Toothpick,nacala,PERSONAL_CARE
+6933528760368,Pila AAA,Tolsen,BATTERY
+6934219701424,Batería AAA energy,Energy Cell,BATTERY
+6937643531469,Lost Mary клубника грейпфрут,,TOBACCO
+6943738787581,[DELETE HEBREW PRODUCT NAME],Hong Xin,PERSONAL_CARE
 6953937185156,power green tree,detergent,LAUNDRY
+6970313649675,Geekvape L200 Rainbow,GEEKVAPE,TOBACCO
+6975364636964,Waka Grape Apple,Waka,TOBACCO
+6975560881977,S21 Vape Vanilla Tobacco 800puff,Super21,TOBACCO
 6976233675336,Multi surface flore cleaner,Dreame,CLEANING_PRODUCT
+70114706,Prince Red 20pk,British american tobacco norway as,TOBACCO
+70114720,Prince Red 100's 20pk,British american tobacco norway as,TOBACCO
+70114737,Prince White 20pk,British american tobacco norway as,TOBACCO
+70114751,Prince White 100's 20pk,British american tobacco norway as,TOBACCO
+70114782,Prince Golden 100's 20pk,British american tobacco norway as,TOBACCO
 7032069732342,Flytende Tøyvask Sensitiv,Rema 1000,CLEANING_PRODUCT
+7032069736562,Litiumbatterier CR2032,REMA 1000,BATTERY
+7032069736579,Litiumbatterier CR2025,REMA 1000,BATTERY
+7039110080018,Tiedemanns Rød 20pk,British american tobacco norway as,TOBACCO
+7046110070192,Clean smile,Jordan,PERSONAL_CARE
 7046110322512,Zalo Ultra dish soap,Orkla,LAUNDRY
+7046110323748,Jif Universal Refill,Jif,PERSONAL_CARE
+7090018951923,Marlboro Double Burst 20pk,PHILIP MORRIS NORWAY AS,TOBACCO
+7090018952180,Marlboro Fuse Beyond 20pk,Swedish match sales norway,TOBACCO
+7090018952227,Marlboro Beyond Red 20pk,Swedish match sales norway,TOBACCO
+7090018952463,Marlboro Red 100 20pk,PHILIP MORRIS NORWAY AS,TOBACCO
+7090018952548,Marlboro Silver 20pk,Swedish match sales norway,TOBACCO
+7090018952586,Marlboro Gold 100's 20pk,Swedish match sales norway,TOBACCO
+7090018952623,Marlboro Gold 20pk,PHILIP MORRIS NORWAY AS,TOBACCO
+7090018952661,Marlboro Red 20pk,Swedish match sales norway,TOBACCO
+7090018952708,Marlboro White Menthol 20pk,PHILIP MORRIS NORWAY AS,TOBACCO
+7090058770027,Galdhøpiggen No. 3 Mint S2 Slim,Den Norske Snusfabrikken,TOBACCO
+7310790088311,Libresse Ultra regular maandverband,Libresse,PERSONAL_CARE
+7311041019979,"Batterier Alkaliske AA 1,5V LR6",First Price,BATTERY
+7311041019986,"Batterier Alkaliske AAA 1,5V LR03",First Price,BATTERY
+7311041041505,"Batterier Alkaliske C 1,5V LR14","First Price, Unil as",BATTERY
+7311041041512,"Batterier Alkaliske D 1,5V LR20","First Price, Unil as",BATTERY
+7311250009815,snus,Swedish match,TOBACCO
+7311250094125,onico,non nicotine snuff,TOBACCO
 7313130174002,ICA Skona Avfallspåsar,ICA,CLEANING_PRODUCT
+7313272152487,Borsthuvud regular,apoteket,PERSONAL_CARE
+73151012,Knox White portion,Skruf Snus AB,TOBACCO
+7315980167999,CCS Fotkräm,CCS Skincare,PERSONAL_CARE
 7318690155003,Sköna Kulör-&Vittvätt Parfymfri,ICA,CLEANING_PRODUCT
+73198765,Marlboro red,Marlboro,TOBACCO
+7322540548129,Sanitary Pads,Bodyform,PERSONAL_CARE
+7322540852424,Discreet ultra mini,Tena,PERSONAL_CARE
+7322540852585,Couche lotus baby taille 3,Lotus,HYGIENE_PRODUCT
+7322541070391,Touch - diapers size 3 (5-8 kg),Libero,HYGIENE_PRODUCT
+7322541091044,Подгузники Libero up&go 7,Libero,HYGIENE_PRODUCT
+7330196001042,"Skruf Slim Fresh #4 Extra Stark White 16,8g",IMPERIAL TOBACCO NORWAY AS,TOBACCO
+7330196005828,Skruf Solbær S3 Wite Slim,IMPERIAL TOBACCO NORWAY AS,TOBACCO
+7330196006023,Skruf Pwr No36 Slim White S4,Imperial tobacco norway,TOBACCO
+7330196006153,Skruf PWR Poriton Slim S4 21g,IMPERIAL TOBACCO NORWAY AS,TOBACCO
+7330196007143,Skruf No37 Triplemint S5,Imperial tobacco norway,TOBACCO
 7332543659678,Salt,Electrolux,CLEANING_PRODUCT
+7340011472728,Tero batterier D LR20,"LTD, ZHEJIANG HENGWEI BATTERY CO.",BATTERY
+7350015504158,Mocca Mint Portion 8g,BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+7350015508361,Blå Snus No1 Løssnus 2 42g,British american tobacco norway as,TOBACCO
+7350047852128,"Epok Freeze X-Strong 16,8g",BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+7350047852364,"Epok No6 Winter Chill 5 16,8g",British american tobacco norway as,TOBACCO
+7350047852449,"Epok No5 Tropic Breeze 16,8g",BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+7350047855563,"Epok No3 Zest Green 4 16,8g",British american tobacco norway as,TOBACCO
+7350047855846,Kickup Strong Nikotinfri 20g,BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+7350047856126,"Epok No2 Arctic Blue 2 16,8g",British american tobacco norway as,TOBACCO
+7350047857192,"Real White Mint Slim 16,8g",BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+7350047857277,"Epok Slim Ice Cool Strong 16,8g",BRITISH AMERICAN TOBACCO NORWAY AS,TOBACCO
+7350049924014,Snus menthe,GN Tobacco,TOBACCO
+7350049924311,Snus,,TOBACCO
+7350075692673,Dental Floss Mint,The Humble Co.,PERSONAL_CARE
+7350075693809,Humble brush,The Humble Co,PERSONAL_CARE
+7350106393456,"Epok No9 Urban Blue 5 16,8g",British american tobacco norway as,TOBACCO
+7350106395054,Epok No12 Frosty Green 2 10g,British american tobacco norway as,TOBACCO
+7350115295772,Mini Siberia White Dry,GN Tobacco,TOBACCO
+7350125970041,Ecofriendly toothbrush,The Eco Gang,PERSONAL_CARE
+7352645472135,Exte Blue,,TOBACCO
 7400687728554,Lessive liquide Jasmin et Fleur de coton,OMO,LAUNDRY
+7406135036878,Marlboro Vista Forest Fusion,Marlboro,TOBACCO
+74210435,PALL MALL,,TOBACCO
 74917709,Hypoallergenic ECOS plant Powered Laundry Detergent,Magnolia,LAUNDRY
+75001322,Marlboro,,TOBACCO
 7500435004664,Ariel detergente,,LAUNDRY
 7500435019231,magistral,P&G,LAUNDRY
+7500435119757,Seda sec,Always,PERSONAL_CARE
+7500435133531,Flujo abuntante,Always,PERSONAL_CARE
 7500435160070,Downy,Downy,LAUNDRY
+7500435178754,Diarios plus con perfume,Always,PERSONAL_CARE
+7500435178792,Darios Plus,Always,PERSONAL_CARE
+7500435229548,Doble Protección Suave,Always,PERSONAL_CARE
+7500435229555,Xtra Suave,Always,PERSONAL_CARE
+7500435233033,Protector Respirable,Always,PERSONAL_CARE
 7500459002004,Multiusos 123 Lavanda,Henkel,LAUNDRY
+7501017372751,Pañales,,HYGIENE_PRODUCT
 7501025403058,Limpiador multiusos,Pinol,CLEANING_PRODUCT
 7501791631075,Detergente liquido para trastes,Great Value,LAUNDRY
 7502279102735,Doble cara Esponjas + fibra,Scrub Daddy,CLEANING_PRODUCT
+75043247,Ice Express,Marlboro,TOBACCO
+75053765,marlboro rojo tabaco reposado,marlboro,TOBACCO
+7506195178188,Suave largas,Always,PERSONAL_CARE
+7506306255364,Rexona sexy bouquet,Rexona,PERSONAL_CARE
+75064648,cigarro,pall mall,TOBACCO
 7509546671246,Antibacterial,Axion,LAUNDRY
 7592217001480,Desinfectante Anita,Anita,LAUNDRY
 7610810021916,Vinaigre de nettoyage,Coop,LAUNDRY
 7611210922513,Vacuum rolls,solis,CLEANING_PRODUCT
+7611330263862,Litière pour chat,Bitscat,PET_SUPPLY
+76124006,دخان,dunhill,TOBACCO
+76124457,Kent Surround 20pk,British american tobacco norway as,TOBACCO
+76124464,Kent Surround 100's 20pk,British american tobacco norway as,TOBACCO
+76124471,Kent Surround Green 20pk,British american tobacco norway as,TOBACCO
+76124495,Kent White 20pk,British american tobacco norway as,TOBACCO
+7612800207584,Parisienne Blonde,Parisienne,TOBACCO
+7612800214728,Dunhill Switch,Dunhill,TOBACCO
+76128486,cigarrete,,TOBACCO
 7613413082346,Gants nitrite,,CLEANING_PRODUCT
+7613600005035,VELO Ice Berries,VELO,TOBACCO
+76149122,Camel Blue 20pk,JTI SWEDEN AB,TOBACCO
 7615400821570,Sprint Impact Performer,Diversey,CLEANING_PRODUCT
+76164279,Cigarettes contrefaçon chinoise,,TOBACCO
+7622100580720,Tobacco Sticks,Terea,TOBACCO
+7622100674979,cigar,gn,TOBACCO
+7622100725787,Marlboro Gold,"Malboro, Marlboro",TOBACCO
+7622100743613,مالبور,,TOBACCO
+7622100760245,Hdgdgdg,,TOBACCO
+7622100760481,Marlboro,Marlboro,TOBACCO
+7622100760573,Marlboro,Marlboro,TOBACCO
+7622100761228,Marlboro,Marlboro,TOBACCO
+7622100765301,دخان LM Silver,,TOBACCO
+7622100765578,Chesterfield silver,,TOBACCO
+7622100765615,اوقص سينا,٢٥,TOBACCO
+7622100767671,Hh,,TOBACCO
+7622100775959,Cigarette,,TOBACCO
+7622100775973,Heets Yellow for iQos,Heets iQos,TOBACCO
+7622100776000,Heets,,TOBACCO
+7622100776062,Heets teak selection,,TOBACCO
+7622100816911,Vbbh,,TOBACCO
+7622100832478,Teresa for iQOS Regular,Philip Morris,TOBACCO
+7622100854302,Marlboro red,Marlboro,TOBACCO
+7622100854340,Malboro gold,,TOBACCO
+7622100854944,Malboro Gold,,TOBACCO
+7622100863854,Marlboro Gold,Marlboro,TOBACCO
+7622100864424,Heets,,TOBACCO
+7622100868156,Terea,Philip Morris,TOBACCO
+7622100880875,Blue ice,,TOBACCO
+7622100883845,Paquet de 30 cigarettes,Marlboro,TOBACCO
+7622100885948,Interval feuille blanche,Interval,TOBACCO
+7622100885955,LM LONG,,TOBACCO
+7622100886006,Cigarettes,,TOBACCO
+7622100887423,Marlboro S,Marlboro,TOBACCO
+7622100891123,Intervale,,TOBACCO
+7622100891451,Heets,,TOBACCO
+7622100891512,Marlboro Gold,Marlboro,TOBACCO
+7622100900085,Malboro gold,,TOBACCO
+7622100910091,Cigarette,,TOBACCO
+7622100910121,Marlboro,Marlboro,TOBACCO
+7622100910169,Cigarette,Marlboro,TOBACCO
+7622100910817,Malboro Red,,TOBACCO
+7622100912194,Gold,Marlboro,TOBACCO
+7622100913313,Cigarette,Marlboro,TOBACCO
+7622100913696,Marlboro chinoises,Marlboro,TOBACCO
+7622100915515,Clope,,TOBACCO
+7622100915898,malboro,Malboro,TOBACCO
+7622100916215,Gold,,TOBACCO
+7622100917007,Cigarette,Marlboro,TOBACCO
+7622100917083,Phillip Morris,,TOBACCO
+7622100919063,Marlboro gold,Marlboro,TOBACCO
+7622100919261,دخان,,TOBACCO
+7622100962106,Malboro bleed,,TOBACCO
+7622100965411,Classic,"American Blend, Marlboro",TOBACCO
+7622100972426,Marlboro,Marlboro,TOBACCO
+7622100972969,Clopes,,TOBACCO
+7622100975564,HEETS,Amber Label,TOBACCO
+7622100977063,L&M,"Marlboro, marlboro",TOBACCO
+7622100977070,Blue Label,L&M,TOBACCO
+7622100994145,"Caren Pfleger - Supermoderne Tasche Bag, Gro",,TOBACCO
+7622104775948,Interval,Philippe Morris Products SA,TOBACCO
+7623500182774,Mini Cigarillos,Zino,TOBACCO
+7623900204786,Chesterfield,,TOBACCO
+7623900205042,White Mint,Marlboro,TOBACCO
+7623900208807,Le,,TOBACCO
+7623900406746,Terea iqos,Iqos,TOBACCO
+7623900406753,Terra Amber,IQOS,TOBACCO
+7623900408757,IQOS,IQOS,TOBACCO
+76239878,Marlboro light,marlboro light,TOBACCO
 7627534276300,All-in-1 Power,coop,CLEANING_PRODUCT
+7630019900157,"GUM Trav-ler 0,6 mm lavender",GUM,PERSONAL_CARE
+7630019900171,"GUM Trav-ler rager 0,9 mm",GUM,PERSONAL_CARE
+7630021913596,Natural American Spirit,American Spirit,TOBACCO
+7630021915460,Filtertubes,Winston,TOBACCO
+7630021915712,American Spirit,,TOBACCO
+7630021915903,Camel Blue,"Camel, Camel Blue",TOBACCO
+7630021916177,fleur du pays,Fleur du pays,TOBACCO
+7630021918737,Fleur du pays,,TOBACCO
+7630021926121,Tabak,Winston,TOBACCO
 7630028661643,migros plus oeco power,migros plus,LAUNDRY
+7638900216165,"LR20 1,5V Batterien",,BATTERY
+7638900248357,Pilas 2032,Energizer,BATTERY
+7638900295641,Energizer A23 batteries Alkaline 2 pk,Energizer,BATTERY
+7638900435849,Batterien,,BATTERY
+7638900435856,6 piles lithium CR2032,Energizer,BATTERY
+7638900437652,Piles AA Max,Energizer,BATTERY
+7638900437836,AA Batterien,Energizer,BATTERY
+7638900438284,AAA Batterien,Energizer,BATTERY
+7638900447927,piles CR2032,Energizer,BATTERY
+7638900450361,4 piles lithium CR2032,Energizer,BATTERY
+7638900452686,2 piles ultimate lithium CR2032,Energizer,BATTERY
+7638900452709,4 piles ultimate lithium CR2032,Energizer,BATTERY
+7640119428260,Tabac,,TOBACCO
+7640154260283,gff,Marlboro,TOBACCO
+7640154260474,Marlboro Gold,Marlboro,TOBACCO
+7640154260597,for iQos |LUMA,,TOBACCO
+7640154261112,TEREA BLUE,"IQOS ILUMA, Philip Morris, TEREA",TOBACCO
+7640168930479,комплексная зубная щётка biomed black,biomed,PERSONAL_CARE
+7640170160314,Tabak&Hanf,Heimat,TOBACCO
+7640170760453,Heimat,Manufaktur AG,TOBACCO
+7649988702853,CBD Ed Rosenthal,Lasalade,TOBACCO
 7649994799536,Lessive,Washo,CLEANING_PRODUCT
+7702005600164,Marlboro,Marlboro,TOBACCO
+7702005601468,cigarrillo,chesterfield,TOBACCO
+7702303097475,Rothmans,"BAT Brtish aamerican Tabaco, Mustang",TOBACCO
+7707822758623,Piles 9V,Tronex,BATTERY
 7720097009238,Sel régénérant,Finish,CLEANING_PRODUCT
+77216588,marlboro,Marlboro,TOBACCO
 7750243075121,Suavidad de Coco,Uno,LAUNDRY
+7751201001039,Marlboro Summer fusion,marlboro,TOBACCO
+7751201001152,Marlboro,Cigarro,TOBACCO
+7751201001169,Marlboro Summer mix,20,TOBACCO
+7751201001305,Marlboro forest,,TOBACCO
+7751201001312,Marlboro,arotic fusion,TOBACCO
 7751851008754,Intra Patito Bebe,Patito,LAUNDRY
+77521811,Marlboro,Red,TOBACCO
+77557018,Fresh Twist,Lucky Strike,TOBACCO
+77563170,PALL MALL XL,Pall Mall,TOBACCO
 7771214007507,Bristar Lavavajillas Limón,Bristar,CLEANING_PRODUCT
+77746887,Marlboro,Marlboro,TOBACCO
 7774904403276,Limón,Todo Brillo,CLEANING_PRODUCT
 7774904403900,Todo Brillo Saca Grasa,Luri,CLEANING_PRODUCT
 7775000002509,Ola Maximus Antisarro,Maximus,CLEANING_PRODUCT
@@ -878,98 +2281,356 @@
 7791290008458,Cif Crema Multiuso Limón,Cif,CLEANING_PRODUCT
 7791290792500,Cif Bioactive Crema Multiuso Original,Cif,CLEANING_PRODUCT
 7791290794078,cif detergente 750ml,cif,LAUNDRY
+77913418,Philip Morris,,TOBACCO
+77918482,cigarrillos,Marlboro,TOBACCO
 7792389081383,Lavandina X-5 Concentrada,X-5,BLEACH
 7793253002176,Poett Suavidad de Algodón,Poett,CLEANING_PRODUCT
 7793253004262,Poett Suavidad de Algodón,Poett,CLEANING_PRODUCT
 7840118215025,Guaira Deluxe,Guaira,LAUNDRY
+7891028604645,Cigarette,,TOBACCO
 7891150062153,Limpador CIF,CIF,CLEANING_PRODUCT
 7896021627967,Detergente Lava-Louças,Odd,LAUNDRY
+7896067203002,Pilhas AA Panassonic,Panassonic,BATTERY
+7896067203675,Pilhas AAA Alcalinas Panassonic 6 uni,Panassonic,BATTERY
 7896083800025,Água Sanitária Qboa,Anhembi,CLEANING_PRODUCT
+7897013534201,Pilhs AAA Alcalina Elgin,Elgin,BATTERY
+8000630042656,Signal Brosse à Dents Soin Interdentaire Medium x1,signal,PERSONAL_CARE
+8000630726914,Signal Brosse à Dents Bambou Naturel Medium x1,signal,PERSONAL_CARE
+8000630726921,Signal Brosse à Dents Bambou Naturel Souple x1,signal,PERSONAL_CARE
+8000630726938,Signal Brosse à Dents Bambou Naturel Extra Souple x1,signal,PERSONAL_CARE
 8000965222181,Detergente multiuso,Consilia,LAUNDRY
+8001090118196,3D White Luxe,Blend-a-med,PERSONAL_CARE
+8001090121400,Zero irritation feel with aloe vera Long,Always,PERSONAL_CARE
+8001090131232,Pantyliners Normal Fresh & Protect,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
+8001090131263,Truseinnlegg Normal Verdipakke,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
+8001090131294,Truseinnlegg Normal,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
 8001090148391,Dash 2 en 1 Touche de Fraîcheur Coquelicot & Fleurs de Cerisier,Dash,LAUNDRY
 8001090148650,Recharge Color & Style,Ariel,LAUNDRY
 8001090257482,tout en 1 pods,lenor,CLEANING_PRODUCT
 8001090282767,ARIEL,Ariel,CLEANING_PRODUCT
 8001090339638,Weichspüler Lenor,,LAUNDRY
+8001090361912,Dailies,Always,PERSONAL_CARE
 8001090387325,Simply Propre & Frais Fraîcheur Intense,Ariel,LAUNDRY
 8001090389985,Adoucissant Fleurs de soie,Lenor,LAUNDRY
 8001090393074,Fairy Lemon,Fairy,LAUNDRY
+8001090415059,Dailies Fresh & Protect,Always,PERSONAL_CARE
+8001090542205,Daily liners Normal,Always,PERSONAL_CARE
+8001090542250,Daily liners Normal,Always,PERSONAL_CARE
+8001090542502,Daily Liners Comfort Protect Normal,Always,PERSONAL_CARE
+8001090542762,Daily Liners Normal,Always,PERSONAL_CARE
 8001090636287,Fleur de lotus,,CLEANING_PRODUCT
 8001090703057,Ariel Simply propre&frais,Ariel,CLEANING_PRODUCT
+8001090705600,Tampons,Tanpax,HYGIENE_PRODUCT
+8001090705662,Tampons,Tampax compak,HYGIENE_PRODUCT
 8001090709530,Ariel 3in1 Pods,Ariel,CLEANING_PRODUCT
 8001090712448,Ariel alpine,Ariel,CLEANING_PRODUCT
+8001090718464,Dailies Truseinnlegg Large,"Always, Procter & gamble as",PERSONAL_CARE
 8001090728173,ARIEL PODS 3 EN 1,,CLEANING_PRODUCT
+8001090733320,Slipeinlagen Dailies Large,Always,PERSONAL_CARE
 8001090735409,wasmiddel,ariel compact original,LAUNDRY
+8001090761187,Maxi night,Always,PERSONAL_CARE
+8001090819901,Proglide,Gillette,PERSONAL_CARE
+8001090826510,Discreet Long Plus,Always,PERSONAL_CARE
 8001090833839,Liquide vaisselle,,CLEANING_PRODUCT
+8001090899071,Pads,Always,PERSONAL_CARE
+8001090899132,Platinum Serv. Nuit,Always,PERSONAL_CARE
+8001090899224,Platinum Always,Always,PERSONAL_CARE
+8001090899255,Platinum Nuit,Always,PERSONAL_CARE
 8001090902238,Ferrero rocher,Fairy,LAUNDRY
+8001090921345,All in one Large,Always,PERSONAL_CARE
+8001090921383,All in one,Always,PERSONAL_CARE
+8001090940551,Dailies,Always,PERSONAL_CARE
+8001090983961,Discreet,Always,PERSONAL_CARE
+8001154127027,Cat Litter,Almo Nature,PET_SUPPLY
 8001480021143,ace gentile,Ace,BLEACH
 8001480022287,Wc Gel Profumata Brezza Marina,Ace,LAUNDRY
 8001841009926,All Purpose Cleaner,Flash,CLEANING_PRODUCT
+8001841053684,Bind Maxi Long,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
+8001841053721,Maxi Night 3,"Always, Procter & Gamble",PERSONAL_CARE
+8001841120287,Serviettes Hygiéniques,,HYGIENE_PRODUCT
 8001841132617,Dash 2en1,Dash,CLEANING_PRODUCT
+8001841168395,Bind Ultra Normal S1,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
+8001841168593,Ultra Nr 3 Night+ 18stk Big Pack,"Always, Procter & Gamble",PERSONAL_CARE
+8001841168623,Bind Secure Night,"Always, Procter & Gamble Norge AS",PERSONAL_CARE
+8001841217789,Ultra secure night,Always,PERSONAL_CARE
+8001841230566,Pantyliners,Always,PERSONAL_CARE
 8001841317830,adoucissant textile,lenor,LAUNDRY
+8001841332154,Diskret,Always,PERSONAL_CARE
+8001841332307,Discreet,Always,PERSONAL_CARE
+8001841388724,Dailies Cotton Normal Inlegkruisjes,Always,PERSONAL_CARE
+8001841422596,Always Daily Cotton Protection Inlegkruisjes,Always,PERSONAL_CARE
+8001841479842,Serviettes hygiéniques,Always,PERSONAL_CARE
 8001841534381,ARIEL SEMI AUTOMATIC 110G,,LAUNDRY
 8001841709901,Ariel Automatic,,LAUNDRY
+8001841722436,Dailies Flexistyle Slim,Always,PERSONAL_CARE
 8001841773506,Floral Breeze,Downy,LAUNDRY
+8001841780696,DreamZzz pad Night-Heavy,Always,PERSONAL_CARE
+8001841784175,Nuit,Always,PERSONAL_CARE
 8001841866413,Dash & Lenor,Dash & Lenor,CLEANING_PRODUCT
+8001841930657,Bind Ultra Secure Night S5,"Always, PROCTER & GAMBLE NORGE AS",PERSONAL_CARE
 8001841947259,liquide vaisselle original,dreft,CLEANING_PRODUCT
+8001841953410,Ultra Normal,Always,PERSONAL_CARE
+8001841953502,Ultra Normal,Always,PERSONAL_CARE
+8001841953793,Binden lila,Always Ultra,PERSONAL_CARE
+8001841954080,Ultra Secure Night,Always,PERSONAL_CARE
+8001841954172,Always Extra Nr 5,Always,PERSONAL_CARE
+8001841967400,Diamond with Flex Foam,Always,PERSONAL_CARE
+8001841967448,Diamond with Flex Foam,Always,PERSONAL_CARE
+8001841971414,Ultra long,Always,PERSONAL_CARE
 8002330002206,Detergente piatti concentrato alľaceto,Esselunga,LAUNDRY
 8002849492093,detergente vetri,Ekos,LAUNDRY
 8003650019448,Total hygiène gel,WC NET,LAUNDRY
 8004260265409,Essuie-tout Sopalin,SOPALIN,CLEANING_PRODUCT
 8004260299855,Essuie-tout décoré - Love Les 3 rouleaux,SOPLAIN,CLEANING_PRODUCT
+8006455005012,Litière de chat,,PET_SUPPLY
+8006530017633,Ultra day,Always,PERSONAL_CARE
+8006530029940,Antiperspirant Clear Gel Arctic Ice,"Gillette, ג׳ילט",PERSONAL_CARE
+8006530089241,Platinum Dag Maandverband Size 2,Always,PERSONAL_CARE
+8006530089265,Platinum Dag Maandverband size 1,Always,PERSONAL_CARE
+8006530089272,Platinum Nacht Maandverband size 4,Always,PERSONAL_CARE
+8006530089333,Platinum Dag Maandverband size 3,Always,PERSONAL_CARE
+8006530251075,Discreet Maxi Protection Maxi Incontinentieverband,Always,PERSONAL_CARE
+8006530256995,Discreet Broekjes voor Urineverlies L,Always,PERSONAL_CARE
+8006530257107,Discreet Broekjes voor Urineverlies L,Always,PERSONAL_CARE
+8006530257169,Discreet Boutique Zwart Broekjes Voor Urineverlies,Always,PERSONAL_CARE
+8006530257237,Discreet Boutique Incontinentiebroekjes M,Always,PERSONAL_CARE
+8006530374798,Daily Fresh Normal Inlegkruisjes,Always,PERSONAL_CARE
+8006530374828,Ultra Day Normal Maandverband met Vleugels,Always,PERSONAL_CARE
+8006530374835,Ultra Secure Night (Maat 4) Maandverband met Vleugels,Always,PERSONAL_CARE
+8006530374897,Ultra Day Long Maandverband met Vleugels,Always,PERSONAL_CARE
+8006530374927,Daily Protect Extra Long Inlegkruisjes,Always,PERSONAL_CARE
+8006540199992,Dailies Normal,Always,PERSONAL_CARE
 8006540209295,anti calcaire,antikal,CLEANING_PRODUCT
+8006540221068,Slipeinlagen Long Plus Extra Protect,Always,PERSONAL_CARE
+8006540221464,Dailies,Always,PERSONAL_CARE
+8006540221549,Daily N,Always,PERSONAL_CARE
+8006540231142,Always Always Cotton Protection Normal Maandverband,Always,PERSONAL_CARE
+8006540231173,Cotton Protection Long Maandverband,Always,PERSONAL_CARE
+8006540277355,Diamond with Flex Foam,Always,PERSONAL_CARE
+8006540277386,Diamond with Flex Foam,Always,PERSONAL_CARE
+8006540331354,Pro Plus Crème Adhésive Pour Prothèses Dentaires Antibactérien,Fixodent,PERSONAL_CARE
+8006540331477,Fixodent Original,Fixodent,PERSONAL_CARE
+8006540331798,Professional Fixatifs Crème Adhésive,Fixodent,PERSONAL_CARE
+8006540352052,Discreet,"Always, Procter & Gamble",PERSONAL_CARE
+8006540403266,Zero irritation feel with Aloe Vera,Always,PERSONAL_CARE
+8006540404645,Cotton Binden,Always,PERSONAL_CARE
+8006540434734,Always maandverband bio large,Always,PERSONAL_CARE
+8006540452158,Maxi Long Maandverband,,PERSONAL_CARE
 8006540484258,Lenor Weichspüler,Lenor,LAUNDRY
+8006540502877,always,Always,PERSONAL_CARE
+8006540583982,Ultra,Always,PERSONAL_CARE
+8006540584040,Always maandverband normaal,Always,PERSONAL_CARE
+8006540584101,Always maandverband ultra day long wings,Always,PERSONAL_CARE
+8006540584200,Always maandverband ultra day long plus wings,Always,PERSONAL_CARE
+8006540584316,Maxi Night Maandverband,Always,PERSONAL_CARE
+8006540688939,Slipeinlagen Long,Always,PERSONAL_CARE
+8006540688977,Daily Protect,Always,PERSONAL_CARE
+8006540689011,Daily Protect XL,Always,PERSONAL_CARE
+8006540689196,"Toilettenartikel – Slip, Einlagen",Always,PERSONAL_CARE
+8006540689233,Slip Einlagen,Always,PERSONAL_CARE
+8006540689271,Daily Fresh Normal Flexistyle,Always,PERSONAL_CARE
+8006540713617,Small Plus,Always,PERSONAL_CARE
+8006540714850,Discret,Always,PERSONAL_CARE
+8006540729182,Discreet,Always,PERSONAL_CARE
 8006540730102,Flash All Purpose Cleaner,,CLEANING_PRODUCT
+8006540732045,Binden grün,Always,PERSONAL_CARE
+8006540732120,Binden mit Flügeln,Always,PERSONAL_CARE
+8006540732175,Binden Normal mit Flügel,Always,PERSONAL_CARE
+8006540732304,Ultra Day Long,Always,PERSONAL_CARE
+8006540732502,Ultra Day & Night,Always,PERSONAL_CARE
+8006540732700,Nachtbinden 5,Always,PERSONAL_CARE
+8006540738900,Discreet Long Plus,Always,PERSONAL_CARE
+8006540769737,Daily Protect XL,"Always, Procter & Gamble",PERSONAL_CARE
+8006540806395,Dailies Long Inlegkruisjes,Always,PERSONAL_CARE
+8006540806463,Dailies Long Inlegkruisjes,Always,PERSONAL_CARE
+8006540806524,Dailies Extra Long Inlegkruisjes,Always,PERSONAL_CARE
+8006540806807,Dailies Fresh Normal Inlegkruisjes,Always,PERSONAL_CARE
+8006540806876,Dailies Singles To Go Inlegkruisjes,,PERSONAL_CARE
+8006540822104,Ultra Day (Jumbo Pack),Always,PERSONAL_CARE
+8006540822197,Ultra Day Normal,Always,PERSONAL_CARE
+8006540822340,Ultra normal,Always,PERSONAL_CARE
+8006540822524,Serviettes hygièniques Ultra day taille 2 long,Always,PERSONAL_CARE
+8006540822647,Ultra Day & Night,Always,PERSONAL_CARE
+8006540822678,Serviette Day & Night,Always,PERSONAL_CARE
+8006540822760,Ultra Secure Night,Always,PERSONAL_CARE
+8006540822791,Ultra  Maandverbanden Secure Night (maat 4),Always,PERSONAL_CARE
+8006540828175,Cotton,Always,PERSONAL_CARE
+8006540828205,Maxi t5,Always,PERSONAL_CARE
+8006540828267,Jumbo t5,Always,PERSONAL_CARE
+8006540828274,Zero irritation feel with Aloe Vera Value pack,Always,PERSONAL_CARE
 8006540830796,Fairy Ultra Original Pack Ahorro,Fairy,CLEANING_PRODUCT
+8006540846513,Dailies Fresh Normal Inlegkruisjes,Always,PERSONAL_CARE
+8006540846551,Daily Fresh Slim Flexistyle Fresh Scent Giga Pack,Always,PERSONAL_CARE
+8006540860380,Pro Cross Action Aufsteckbürsten,Oral-B,PERSONAL_CARE
+8006540913741,Binden Größe L,Always,PERSONAL_CARE
 8006540938683,Flash All Purpose Cleaner Lemon,,CLEANING_PRODUCT
+8006540990568,Ultra Day & Night (Economy Pack),Always,PERSONAL_CARE
 8007134994849,verde Eco verde bagno,,CLEANING_PRODUCT
+8008087564769,Asciugacapelli,Sunnysky,PERSONAL_CARE
 8013670457366,Essuie-tout ménager,,CLEANING_PRODUCT
+8016825971731,Interdental Media,Aquafresh,PERSONAL_CARE
+8016867009942,Flux normal,Organyc,PERSONAL_CARE
 8029241132150,gel detergente mani,Sodico,LAUNDRY
 8032649457398,Detergente spray igienizzante per superfici - Sanity green,San.Eco.Vit,LAUNDRY
+8032817680801,tabacco,marlboro,TOBACCO
+8032817681662,tabacco,Chesterfield,TOBACCO
+8032817681686,tabacco,,TOBACCO
+8032817681747,Tabacco marlboro gold,Marlboro,TOBACCO
+8039339255821,Pall mall,"BAT, PALL MALL, Rothmans",TOBACCO
+8050880040957,Balsamo Zampe,Well Fido,PET_SUPPLY
 8051566121120,wc gel,,LAUNDRY
 8051566123773,detergente bagno,,LAUNDRY
 8058664080199,Salviettine detergent I,Chicco,LAUNDRY
+8059145101648,Toscanello Cigars,Toscanello,TOBACCO
+8059145105752,Maremmano,Toscano,TOBACCO
+80784975,Philip Morris Red,,TOBACCO
+80813408,Winston Tabacco,,TOBACCO
+80813422,Tabacco,Camel,TOBACCO
+80828549,Tabacco Old Holborn(blu),,TOBACCO
+80828594,Cigarette,,TOBACCO
+80896531,Turquoise,Heets,TOBACCO
+80901990,b'sigarette Rothmans white',,TOBACCO
+80910503,Zigarette,Philip Morris,TOBACCO
+80939184,Marlboro,Marlboro,TOBACCO
+80967705,Marlboro Gold,Marlboro,TOBACCO
+8188065061364,Parisien,Parisien,TOBACCO
+8400083682018,Toy cleaner,Liebe,PERSONAL_CARE
 8402001024627,Detergente Marsella,Bosque Verde,LAUNDRY
 8402001024634,Detergente Frescura Azul,Bosque Verde,LAUNDRY
 8402001024641,Detergente ropa Colonia Hipoalergénico líquido,Bosque Verde,LAUNDRY
 8410104124632,Finish - Power gel - ALL IN 1,Finish,CLEANING_PRODUCT
 8411287004407,Cabeza de Fregona 100% Microfibra,Mery,CLEANING_PRODUCT
+8411514805876,Arena de gatos,"Sanicat, Tolsa",PET_SUPPLY
 8411660170217,Limpiador Cocinas,Sanytol,LAUNDRY
 8411660170231,Limpiador multiusos,Sanytol,LAUNDRY
+8412239000973,Arena de gato antibacterias,"MYTA, Nuske",PET_SUPPLY
+8416000501324,Cigarette,,TOBACCO
+8416000501331,Cigarros,Nobel,TOBACCO
+8416000501621,West,Altadis,TOBACCO
+8416000501744,Fortuna Original 23,Altadis,TOBACCO
+84160027,Tabaco,,TOBACCO
+84160034,Tabaco,Fortuna,TOBACCO
+84160089,Red,Lucky Strike,TOBACCO
+84160577,L&M Lights,Altadis,TOBACCO
+8416500001447,Tabac camel,,TOBACCO
+8416500002192,Tabaco Winston,"JT International, Winston",TOBACCO
+8416500003052,Camel,Camel,TOBACCO
+84165114,Cigarrillos,Camel,TOBACCO
+84165237,Tabaco,American Spirit,TOBACCO
+84165442,Camel Tabaco De Liar,,TOBACCO
+84165657,Winston,Winston,TOBACCO
+84165695,Camel Essential Brown,Camel,TOBACCO
+84165930,Tabaco,Winston,TOBACCO
+84165947,Classic Winston,Winston,TOBACCO
+84165961,Cigarettes industrielles,"Altadis, Camel",TOBACCO
 8421427065021,Lavavajillas manual ecológico,Biobel,LAUNDRY
 8421427068053,Detergente con jabón natural para todo tipo de ropa,Biobel,LAUNDRY
+8421881016997,Purple Click,Veo,TOBACCO
+8427426006294,Interprox Plus Interdentale rager micro groen,Interprox,PERSONAL_CARE
+8428376000240,Palillos Redondos Torneados,Don Palillo,PERSONAL_CARE
+8432984000257,Ultra-thin night pads,masmi,PERSONAL_CARE
+8435233348810,Tabaco,Larry’s,TOBACCO
 8435495810667,A+ Color Flytende 880ml,Arvid nordquist norge,LAUNDRY
+8435637418683,Totoy,,PET_SUPPLY
+8435643209978,Vegafina,Vegafina,TOBACCO
+8436549961229,Hampton Pipe,Kuuts,TOBACCO
+8436555610937,Heets- Tabaco para calentar,Philip Morris,TOBACCO
+8436555611576,Tabac à rouler « Interval » d’Espagne,,TOBACCO
+8436555613075,Tabaco,Heets,TOBACCO
+8436555614553,Tabaco Chesterfield 24 cgrs,,TOBACCO
+8436555615383,Russet Heets,Philip Morris,TOBACCO
+8436555617059,Turquoise,Terea,TOBACCO
+8436555617936,Cigarette,Philipmorris,TOBACCO
+8436609727628,Filter Kings 100s,Philip Morris,TOBACCO
 8436617751950,"Natulim, detergent strips",Natulim,LAUNDRY
+8437008795331,Interval tabac,,TOBACCO
+8437008795683,Marlboro,Philip Morris,TOBACCO
+8437012200760,Puritos,Chesterfield,TOBACCO
+84460363,Eclipse,Lucky Strike,TOBACCO
 8480000401694,Detergente ropa blanca y color,Bosque Verde,LAUNDRY
 8480000405067,Detergente lavadora marsella,Bosque Verde,LAUNDRY
 8480000405371,Detergente ropa de Color,Bosque Verde,LAUNDRY
 8480000862310,Detergente ropa blanca y de color,Bosque Verde,LAUNDRY
 8480010198249,Detergente quita grasa,Eroski,LAUNDRY
+8480013600176,Palillos Redondos de Madera,Spar,PERSONAL_CARE
+85010093,Popular verde,,TOBACCO
+85072299,Rothmans Clasic King Size,Rothmans,TOBACCO
 8554360018189,Liquide vaisselle Biovie,LEA NATURE,CLEANING_PRODUCT
+8600115399055,Heets,Philip Moris,TOBACCO
+86017886,lucky strike,lucky strike,TOBACCO
+86020374,pall mal,Pall Mall,TOBACCO
+86037198,Lucky strike wild,Lucky strike,TOBACCO
+8606103303028,Reading Glasses +1.50,Ning Shing Industrial,PERSONAL_CARE
+8610194510944,Minor,Dannemann cigarillos,TOBACCO
+8616304528892,Natural Cleansing Foot Pads,Bandoo,PERSONAL_CARE
+8681511380458,Double Melon Ice Premium Hookah Tobacco,Adalya Tobacco,TOBACCO
+8681511386146,Tabac a chicha,,TOBACCO
+8681511387235,Tabac Chicha,,TOBACCO
+8681655700709,Hookah tobacco,Blue Horse,TOBACCO
+8681863053215,Daim hookah tobacco,,TOBACCO
 8682241200443,Sleepy,Sleepy,LAUNDRY
+8682241208944,Sleepy,,PERSONAL_CARE
 8690637917141,omo,Omo,LAUNDRY
+86933001,Camel,,TOBACCO
+86937870,جاري التحميل…,,TOBACCO
+86939843,DUNHILL Cigarettes,DUNHILL,TOBACCO
 8697713836068,Grease Cleaner Spray For Surfaces Magic Yellow,Asperox,CLEANING_PRODUCT
 8697713838956,Detergente frescura de limon,Peros,LAUNDRY
 8697713838963,Detergente frescas rosas,Peros,LAUNDRY
 8697713838987,Peros detergente brisa de lavanda,Peros,LAUNDRY
+8699430062997,semelle gel mémoire,megawell,PERSONAL_CARE
 8700216010481,Produit vaisselle,dreft,CLEANING_PRODUCT
+8700216030922,Coton Bio Long 2,Always,PERSONAL_CARE
 8700216088435,Color+ Pulver,Ariel,CLEANING_PRODUCT
 8700216110808,Lessive liquide,Ariel,LAUNDRY
 8700216110907,Lessive liquide,Ariel,LAUNDRY
 8700216110938,Original,Ariel,LAUNDRY
+8700216124737,Lessive liquide Original,,HOUSEHOLD_CHEMICAL
+8700216165211,Tondeuse sans fil avec sabots et recharge de lame en métal 4D,,PERSONAL_CARE
+8700216179515,Discreet Small Plus,"Always, Procter & Gamble",PERSONAL_CARE
+8700216195522,Oral-B iO Ultimate Clean Opzetborstels,,PERSONAL_CARE
+8700216203838,Old Spice Rockstar Deodorant Stick,Old Spice,PERSONAL_CARE
+8700216213837,Binden,Always,PERSONAL_CARE
+8700216220811,Skin Love,Always,PERSONAL_CARE
+8700216225052,Discreet M,"Always, Procter & Gamble",PERSONAL_CARE
+8700216252751,Discreet Long Plus Incontinentieverband,Always,PERSONAL_CARE
+8700216252812,Discreet Verband Voor Urineverlies,Always,PERSONAL_CARE
+8700216252836,Discreet Verband Voor Urineverlies,Always,PERSONAL_CARE
+8700216252881,Discreet incontinentieverband small,Always,PERSONAL_CARE
+8700216252911,Discreet Verband Voor Urineverlies,Always,PERSONAL_CARE
+8700216252928,Discreet Verband Voor Urineverlies,Always,PERSONAL_CARE
+8700216257732,Night XL,Always,PERSONAL_CARE
 8700216267588,Ariel 3in1 pods Aloe Vera,Ariel,CLEANING_PRODUCT
+8700216268103,3 in 1 Long,Always,PERSONAL_CARE
 8700216316514,Adoucissant Jasmin Et rose,,LAUNDRY
 8700216316866,Adoucissant Ambre et orchidée,Lenor,LAUNDRY
 8700216317320,Adoucissant Envolée d'air,Lenor,LAUNDRY
+8700216448482,Binden Ultra Day,Always,PERSONAL_CARE
+8700216448536,Binden,Always,PERSONAL_CARE
+8700216472807,Discreet,Always,PERSONAL_CARE
+8700216491563,Daily fresh normal,Always,PERSONAL_CARE
+8700216550925,Long,Always,PERSONAL_CARE
+8700216604062,Ariel,P&G,HOUSEHOLD_CHEMICAL
 8700216630481,Liquide vaisselle Dreft,P&G,CLEANING_PRODUCT
 8700216636643,Ariel 4 in 1 Pods,Ariel,LAUNDRY
+8700216637640,Ultra day,"Always, Procter & Gamble",PERSONAL_CARE
+8700216667227,Oral-B Calm original tandpasta,Oral-B,PERSONAL_CARE
 8700216669344,Swiffer Duster XXL Starterkit,Swiffer,LAUNDRY
 8700216673068,Adoucissant Concentré Jasmin et Rose de Mai,Lenor,LAUNDRY
 8700216673242,Lenor Zeebries Wasverzachter,,LAUNDRY
+8700216698191,Lessive capsules Pods Grandiose Original,Ariel,HOUSEHOLD_CHEMICAL
 8700216702249,Color + Pulver,Ariel,CLEANING_PRODUCT
 8700216702409,Color+ Pulver (36 Wäschen),Ariel,CLEANING_PRODUCT
 8700216710923,Antikal Original Kalkreiniger Spray,Antikal,CLEANING_PRODUCT
 8700216714730,Waspoeder kleur,Ariël,LAUNDRY
+8700216843805,Lessive capsules 2 en 1 Envolée d'Air,DASH,HOUSEHOLD_CHEMICAL
+8700216899765,Discreet Long Verband+ voor Urineverlies en Incontinentie,,PERSONAL_CARE
+8700216944274,Recharge Brossette à Dents Pro Cross Action,Oral-B,PERSONAL_CARE
+8710103767091,SH30,Philips,PERSONAL_CARE
+8710103805625,Sonicare C3 Toothbrush heads,Philips,PERSONAL_CARE
+8710103993841,rasoir série 5000,"Philips, philipps",PERSONAL_CARE
+8710151639494,Roltabak,Buffalo,TOBACCO
+8710400652731,"AH Micro AAA alkaline 1,5V LR03",Albert Heijn,BATTERY
 8710447333457,Tablettes lave vaisselle,,CLEANING_PRODUCT
 8710447334218,Tablettes Sun Expert extra dégraissant,Sun,CLEANING_PRODUCT
 8710447334263,Tablettes lave-vaisselle Extra Power SUN EXPERT,,CLEANING_PRODUCT
@@ -1018,14 +2679,31 @@
 8710447451861,Omo Lessive Capsules 2en1 Jasmin & Fleur de Coton 30 Dosettes,Omo,LAUNDRY
 8710447451892,Omo Lessive Capsules 2en1 Lavande & Patchouli 24 Dosettes,Omo,LAUNDRY
 8710447451922,Omo Lessive Capsules 2en1 Rose & Lilas Blanc 24 Dosettes,Omo,LAUNDRY
+8710447464472,Signal bad kids x3 85mm,signal,PERSONAL_CARE
+8710447464489,Signal Brosse à Dents Enfants 2-6 ans Extra Souple x1,signal,PERSONAL_CARE
+8710447464496,Signal Brosse à Dents Enfants Extra Souple Poils Antibactériens x1,signal,PERSONAL_CARE
+8710447464502,Signal Brosse à Dents Enfants 7 + Ans Pokémon Extra Souple x3,signal,PERSONAL_CARE
 8710447479599,Skip Lessive Liquide Sensitive Peaux Sensibles & Bébés 3x25 Lavages,Skip,LAUNDRY
 8710522357248,"Skip Lessive Liquide Active Clean 5,6l 56 Lavages Lot de 2",Skip,LAUNDRY
 8710522396865,Skip Active Clean 46 lavados - Ahorro familiar,Skip,CLEANING_PRODUCT
+8710522416389,Signal Brosse à Dents Souple Poils Antibactériens et Charbon x1,signal,PERSONAL_CARE
+8710522416396,Signal Nature Elements Brosse à Dents Manuelle au Charbon Naturel Anti-bactérien Souple x2,signal,PERSONAL_CARE
+8710522443477,Lbp bad bambou souple,Love Beauty and Planet,PERSONAL_CARE
+8710522443491,Lbp tb reef med 42mm fr,Love Beauty and Planet,PERSONAL_CARE
+8710522447765,Signal Brosse à Dents Manuelle Manche en Bambou 100% Naturel Extra Souple x2,signal,PERSONAL_CARE
+8710522447789,Signal Brosse à Dents Manuelle Manche en Bambou 100% Naturel Souple x2,signal,PERSONAL_CARE
+8710522447932,Signal Brosse à Dents Manuelle Manche en Bambou 100% Naturel Medium x2,signal,PERSONAL_CARE
+8710522480489,Signal Brosse à Dents Écolo Clean Extra Souple x 1,signal,PERSONAL_CARE
+8710522488713,Signal Brosse à Dents Écolo Clean Souple x 1,signal,PERSONAL_CARE
+8710522518786,Signal Brosse à Dents Souple Ecolo Clean 2 Pièces,signal,PERSONAL_CARE
+8710522576168,SIGNAL Kit pour Enfants 4 Dentifrices 3-6 ans Fraise Gaga et 3 Brosses à Dents Manuelles Extra Souples 2-6 ans x1,signal,PERSONAL_CARE
 8710522630662,Persil liq 990ml rose,Persil,LAUNDRY
 8710522630679,Persil Lessive Liquide Ecolabel Soin Couleurs Fleur de Cerisier 990ml 18 Lavages,Persil,LAUNDRY
 8710522965450,Skip Lessive Liquide à Diluer Active Clean Lot 3x500ml - 90 Lavages,Skip,LAUNDRY
 8710522965474,SKIP Lessive Liquide à Diluer Fraîcheur Intense Lot 3x500ml - 90 Lavages,Skip,LAUNDRY
 8710522995846,Persil lessive liquide kit,Persil,LAUNDRY
+8710622505426,Io cigarillos,,TOBACCO
+8710622530060,MINI MEHARIS Dominican,AGIO,TOBACCO
 8710847876622,Skip Lessive Capsules Essence de la Nature 22 capsules,Skip,LAUNDRY
 8710847879289,Cajoline Collection Parfum Perles de Parfum Bouquet Voluptueux 275gr,Cajoline,LAUNDRY
 8710847880285,Cajoline Collection Parfum Assouplissant Ultra Concentré Nectar Divin 870ml - 58 Lavages,Cajoline,LAUNDRY
@@ -1069,22 +2747,51 @@
 8710847993787,Omo Lessive Liquide Lait d'Amande Lot 2 x 2L - 80 lavages,Omo,LAUNDRY
 8710847994166,CIF all purpose floor cleaner,Unilever,CLEANING_PRODUCT
 8710847994746,Omo Lessive Liquide Lait d'Amande 40 Lavages - 2L,Omo,LAUNDRY
+8710900082953,Origenes Tabak,,TOBACCO
 8710908007705,Omo Lessive Capsules 2en1 Noix de Coco 30 Dosettes,Omo,LAUNDRY
+8710908297823,Signal Expert Vertical Brosse à Dents Double Face Souple x1,signal,PERSONAL_CARE
+8710908305160,Signal Brosse à Dents Shiny White Medium Lot de 6(4+2 Gratuits),signal,PERSONAL_CARE
+8710908305207,Signal Brosse à Dents Super Clean Medium Lot de 6(4+2 Gratuits),signal,PERSONAL_CARE
+8710908319815,Zendium Brosse à Dents Protection Complète Souple x1,zendium,PERSONAL_CARE
+8710908320057,Zendium Brosse à Dents Sensibilité Extra Souple x1,zendium,PERSONAL_CARE
+8710908337291,Signal Expert Vertical Brosse à Dents Double Face Medium x1,signal,PERSONAL_CARE
+8710908337321,Signal Expert Vertical Brosse à Dents Double Face Medium x2,signal,PERSONAL_CARE
+8710908423765,Signal Brosse à Dents Double Care Sensitive x1,signal,PERSONAL_CARE
 8710908474675,Ultimate Fresh Clean,SKIP,LAUNDRY
 8710908485824,Persil Concentré Lessive Liquide Au Savon de Marseille 37 Lavages - 1L,Persil,LAUNDRY
 8710908485923,"Persil Concentré Lessive Liquide Amande Douce & Fleur de Lin Bouteille 37 Lavages - 1,29L",Persil,LAUNDRY
 8710908491344,Ultra concentré Tout doux,Cajoline,LAUNDRY
 8710908519093,Cajoline Tout Simplement Assouplissant Narcisse 2l 76 Lavages,Cajoline,LAUNDRY
 8710908584961,Persil Lessive Poudre Bouquet de Provence 85 Doses Pack vintage,Persil,LAUNDRY
+8710908640285,Signal White Now Brosse à Dents Carbon Correct Medium x1,signal,PERSONAL_CARE
+8710908640292,Signal White Now Brosse à Dents Medium Poils Antibactériens x1,signal,PERSONAL_CARE
+8710908709166,Signal White Now Brosse à Dents Carbon Correct Souple x1,signal,PERSONAL_CARE
+8710908709180,Signal White Now Brosse à Dent Extra Blancheur Medium x2,signal,PERSONAL_CARE
+8710908765964,brosses à dents,,PERSONAL_CARE
 8710908808845,Mleczko cleanboost,Cif,CLEANING_PRODUCT
 8710908818837,Omo Lessive Liquide Noir Profond Orchidée du Soir 875ml 25 Lavages,Omo,LAUNDRY
 8710908819537,Omo Lessive Liquide Couleurs Eclatantes Violette Sauvage 875ml 25 Lavages,Omo,LAUNDRY
 8710908854811,CAJOLINE Intense Perles de Parfum Tourbillon de Fraîcheur 275g,Cajoline,LAUNDRY
+87109771,PallMall Blue,Pall Mall,TOBACCO
+8711292035220,Boîte à pilules hebdomadaire,Comfort Aid,PERSONAL_CARE
+8711292085591,Alkaline Batterien,,BATTERY
+8711295514074,Arcs à fil dentaire,,PERSONAL_CARE
 8711577190125,HG Onderhoudsmonteur voor (Vaat)wasmachines,HG,CLEANING_PRODUCT
+8711600432949,Signal Brosse à Dents Ultra Access Medium Lot de 2,signal,PERSONAL_CARE
+8711600432987,Signal Brosse à Dents Soin Blancheur Medium Lot de 2,signal,PERSONAL_CARE
+8711600433922,Signal Brosse à Dents Soin Interdentaire Medium Lot de 2,signal,PERSONAL_CARE
+8711600434158,Signal Brosse à Dents Ultra Access Souple Lot de 2,signal,PERSONAL_CARE
+8711600434776,Signal Brosse à Dents Soin Blancheur Souple Lot de 2,signal,PERSONAL_CARE
+8711600435100,Signal Brosse à Dents Soin Blancheur Dure Lot de 2,signal,PERSONAL_CARE
+8711600602205,Signal Brosse à Dents Inside Précision Medium x1,signal,PERSONAL_CARE
+8711600602304,Signal Brosse à Dents Inside Précision Medium Lot de 2,signal,PERSONAL_CARE
 8711600694569,"CAJOLINE Doux & Pur Adoucissant Concentré Hypoallergénique 1,5L - 60 Lavages",Cajoline,LAUNDRY
 8711600694668,"CAJOLINE Créations Assouplissant Concentré Fleur de la Passion & Bergamote 1,5L - 60 Lavages",Cajoline,LAUNDRY
 8711600839717,"Omo Lessive Liquide Concentrée Rose & Lilas Blanc 42 Lavages - 1,47L",Omo,LAUNDRY
 8711700571371,"CAJOLINE Créations Adoucissant Concentré Fleur de Tiaré & Baies Sauvages 1,5L - 60 Lavages",Cajoline,LAUNDRY
+8711700613958,Signal Brosse à Dents Expert Vertical Souple x1,signal,PERSONAL_CARE
+8711700614276,Signal Brosse à Dents Expert Vertical Medium x1,signal,PERSONAL_CARE
+8711700634618,Signal Brosse à Dents Expert Vertical Medium DuoPack,signal,PERSONAL_CARE
 8711700952422,"Cajoline Créations Adoucissant Concentré Fraîcheur Ensoleillée Bouteille 1,5L 60 Lavages",Cajoline,LAUNDRY
 8712100068874,Skip Lessive Liquide Concentrée Ultimate Active clean 24 lavages,Skip,LAUNDRY
 8712252681532,Lemon concentrated,,CLEANING_PRODUCT
@@ -1101,10 +2808,13 @@
 8712561352482,Omo Lessive Poudre Mandarine & Fleurs de Pommier 50 Doses,Omo,LAUNDRY
 8712561352826,Omo Lessive Poudre Jasmin & Fleur de Coton 50 Doses,Omo,LAUNDRY
 8712561353472,Skip Lessive en Poudre Active Clean 61 Lavages,Skip,LAUNDRY
+8712561364744,Signal Brosse à Dents Expert Vertical Souple DuoPack,signal,PERSONAL_CARE
 8712561478434,Persil Lessive Poudre Bouquet de Provence 85 Doses,Persil,LAUNDRY
 8712561478526,Persil Lessive Poudre Peaux Sensibles 5.95kg - 85 Lavages,Persil,LAUNDRY
+8712561510219,Signal Brosse à Dents Expert Vertical Sensitive Extra Souple x1,signal,PERSONAL_CARE
 8712561542425,"CAJOLINE Adoucissant Concentré Doux & Pur Hypoallergénique 1,16L - 46 Lavages",Cajoline,LAUNDRY
 8712561542623,"Cajoline Assouplissant Concentré Passion Bergamote 1,16L 46 Lavages",Cajoline,LAUNDRY
+8712561696432,Signal Brosse à Dents V-Series Super Clean Medium x1,signal,PERSONAL_CARE
 8712561808347,"Cajoline Assouplissant Concentré Orchidées Sauvages Bois Santal 1,5l 60 Lavages",Cajoline,LAUNDRY
 8712561882446,Cajoline Assouplissant Ultra-Concentré Tourbillon de Fraîcheur 960ml - 64 lavages,Cajoline,LAUNDRY
 8712561882705,CAJOLINE Adoucissant Concentré Passion Gourmande 960ml - 64 Lavages,Cajoline,LAUNDRY
@@ -1112,10 +2822,14 @@
 8712561927062,Lessive,,CLEANING_PRODUCT
 8712566711895,Skip Lessive Tablettes Active Clean 32 Lavages,Skip,LAUNDRY
 8712566712250,Skip Lessive Tablettes Active Clean 56 Lavages,Skip,LAUNDRY
+8712581652753,Piles CR2032 x2,Philips,BATTERY
 8714789016177,Softlan ultra,Softlan,LAUNDRY
 8714789105802,Javel en pastilles,Lacroix,BLEACH
+8714789403632,Brosse à dent Medium Whole mouth clean 360,Colgate,PERSONAL_CARE
 8714789563787,"Paic Citron, Liquide Vaisselle, Flacon De 750 Millilitres",PAIC,CLEANING_PRODUCT
 8714789659541,Paic axel,PAIC,CLEANING_PRODUCT
+8714789682624,Triple action Souple,Colgate,PERSONAL_CARE
+8714789738567,Premier White,Colgate,PERSONAL_CARE
 8714789833651,Liquide vaisselle,Palmolive,CLEANING_PRODUCT
 8714789935355,Eau de Javel eucalyptus,,BLEACH
 8714789944043,Paic INTEGRAL5,PAIC,CLEANING_PRODUCT
@@ -1123,6 +2837,8 @@
 8714789968735,Paic citron,PAIC,CLEANING_PRODUCT
 8714789968810,Paic citron,PAIC,CLEANING_PRODUCT
 8715342054193,Universal discales,Super Finn,CLEANING_PRODUCT
+8717163334676,Signal 4 Saisons Brosse à Dents 4 Actions Souple x4,signal,PERSONAL_CARE
+8717163581063,Signal Brosse à Dents 4 Actions Medium x4,signal,PERSONAL_CARE
 8717163626726,"Skip Essence De La Nature Lessive Liquide Eco Label Recharge 1,98l 36 Lavages Recharge",Essence De La Nature,LAUNDRY
 8717163658642,"Persil Lessive Liquide Ecolabel Naturissime Fraîcheur d'Agrumes 1,32l 24 Lavages",Persil,LAUNDRY
 8717163658659,"Persil Lessive Liquide Ecolabel Naturissime Douceur de Fleurs 1,32l 24 Lavages",Persil,LAUNDRY
@@ -1131,9 +2847,16 @@
 8717163835623,Liquide Vaisselle Ecolabel,Neutral,CLEANING_PRODUCT
 8717496479792,Vinaigre ménager,Mariette Authentique,LAUNDRY
 8717644137796,lessive liquide,omo,LAUNDRY
+8717644157664,Signal Brosse à Dents 4 Actions Medium Lot de 4,signal,PERSONAL_CARE
 8717644231180,Domestos Gel Nettoyant Wc 100 % Désinfectant Fraîcheur Alpine 1L,Domestos,LAUNDRY
 8717644231913,Domestos Gel Antibactérien Wc 100% Désinfectant Original 1l,Domestos,LAUNDRY
+8717644344279,Signal Brosse à Dents Ultra Access Medium x1,signal,PERSONAL_CARE
+8717644344415,Signal Brosse à Dents Ultra Access Souple x1,"Unilever, signal",PERSONAL_CARE
 8717644416655,Comfort Concentrate,cleanright,CLEANING_PRODUCT
+8717677380312,Sanature Katoenen maandverband ultra night,Sanature,PERSONAL_CARE
+8717825618724,Floss Picks,Sence Fresh,PERSONAL_CARE
+8717953157751,Yoni Maandverband medium,Yoni,PERSONAL_CARE
+8718114355467,Signal Brosse à Dents 4 Actions Medium Lot de 4,signal,PERSONAL_CARE
 8718951037939,Detergente limpa vidros,Ajac,LAUNDRY
 8718951064768,Produit Vaisellle,Paic,CLEANING_PRODUCT
 8718951185043,soupline concentré,soupline,CLEANING_PRODUCT
@@ -1141,6 +2864,7 @@
 8718951190702,Softlan Ultra Outdoor Fresh,Colgate-Palmolive,LAUNDRY
 8718951192478,Soupline,colgate-palmolive,CLEANING_PRODUCT
 8718951249295,paic,paic,CLEANING_PRODUCT
+8718951295759,Bambou Charbon,Colgate,PERSONAL_CARE
 8718951394902,adoucissant,Soupline Hypo alergénique,LAUNDRY
 8718951394933,Adoucissant,,LAUNDRY
 8718951472228,Liquide vaisselle,,CLEANING_PRODUCT
@@ -1152,17 +2876,26 @@
 8718951561090,Adoucissant Éclat de Fraîcheur,Soupline,LAUNDRY
 8718951579934,"Assouplissant concentré lavande -  Soupline - 1,35l",Soupline,LAUNDRY
 8718951580114,Adoucissant concentré Hypoallergénique,Soupline,LAUNDRY
+8718951602564,Brosse à dents - medium,"Colgate, Colgate-Palmolive",PERSONAL_CARE
 8718951635302,Adoucissant recharge à diluer,Soupline,LAUNDRY
 8718951638693,Adoucissant Soupline Lingettes Voile Sèche-linge Grand air-x20,Soupline,LAUNDRY
 8718951645585,Ajax fête des fleurs,Ajax,CLEANING_PRODUCT
 8718951697645,Paic execrl,PAIC,CLEANING_PRODUCT
+8718951786585,Paic citron,Colgate-Palmolive,HOUSEHOLD_CHEMICAL
+8718964249565,Wooden and plush stacking tower,Mini matters toys,HYGIENE_PRODUCT
 8719134126976,Liquide vaisselle,,CLEANING_PRODUCT
 8719189416077,Marcel's Green Soap Sandelhout & Kardemom Allesreiniger Spray,Marcel's Green Soap,CLEANING_PRODUCT
+8719202680171,cure dents,Excellent Dental Care,PERSONAL_CARE
 8719238001872,A Food cleWashing pu liquid,A Food clean,CLEANING_PRODUCT
 8719238020866,ECO LESSIVE LIQUIDE,orange créative,LAUNDRY
 8719238049874,All purpose cleaner,,CLEANING_PRODUCT
+8719587176603,Cotton pads,Care,PERSONAL_CARE
+8719587176610,Cotton pads maxi,Care,PERSONAL_CARE
+8719600070178,lucky strike red l,lucky strike,TOBACCO
 8719743402577,Anti calcaire,Super Finn,CLEANING_PRODUCT
+8719743406124,think bleach,super finn,HOUSEHOLD_CHEMICAL
 8719743406315,Liquide vaisselle,,CLEANING_PRODUCT
+8719800200139,Cigare,,TOBACCO
 8720181000973,OMO CAPS TRIO27w ROSE,Omo,LAUNDRY
 8720181000980,Omo Lessive Capsules 3en1 Lavande & Patchouli 27 lavages,Omo,LAUNDRY
 8720181001000,Omo Lessive Capsules 3en1 Noix de Coco 27 Lavages,Omo,LAUNDRY
@@ -1176,6 +2909,8 @@
 8720181018084,Love Home And Planet Liquide Vaisselle Vétiver & Arbre à Thé 500ml,Love home and planet,CLEANING_PRODUCT
 8720181025532,Persil Lessive Capsules 3en1 Douceur Amande EcoPack 19 Lavages,Persil,LAUNDRY
 8720181025549,Persil Lessive Capsules 3en 1 Bouquet de Provence EcoPack 19 Lavages,Persil,LAUNDRY
+8720181029998,Sig switch tet i8 softx2,signal,PERSONAL_CARE
+8720181030550,Sign bad box switch 160uc,signal,PERSONAL_CARE
 8720181037368,Persil Lessive Liquide Bouteille Vide Vrac Douceur & Fraicheur 1.5 L,Persil,LAUNDRY
 8720181077425,"Skip Désinfectant du linge Désinfecte & Purifie 1,2l",Skip,LAUNDRY
 8720181077432,Skip Désinfectant du linge Désinfecte & Anti-Odeurs 1.2l,Skip,LAUNDRY
@@ -1200,17 +2935,24 @@
 8720181125645,Persil Lessive Liquide à Diluer Bouquet De Provence 500ml 30 Lavages,Persil,LAUNDRY
 8720181125652,Persil dil aman 500ml 30w,Persil,LAUNDRY
 8720181177729,Surf Concentrated Liquid Detergent,Unilever,LAUNDRY
+8720181236310,Protection intégrale Medium,signal,PERSONAL_CARE
 8720181248214,Lessive capsules 3-en-1,Skip,LAUNDRY
+8720181248245,Lessive capsules 3-en-1 Active clean,Skip,HOUSEHOLD_CHEMICAL
 8720181248252,Lessive tout en 1,Skip,CLEANING_PRODUCT
 8720181253232,Adoucissant Créations Tiaré baies sauvages,Cajoline,LAUNDRY
 8720181285646,Sensitive,Skip,LAUNDRY
 8720181285806,Skip Active Clean (format familial),Skip,LAUNDRY
 8720181288944,Bouquet de Provence,Persil,LAUNDRY
 8720181288951,Douceur d'schampoing lustrant pour voitureAmande,Carrefour,LAUNDRY
+8720181318610,Prodent Menthol Power Tandpasta,Prodent,PERSONAL_CARE
 8720181347481,Concentrated Liquid Detergent,Surf,LAUNDRY
 8720181348938,Peaux Sensibles Fleur de coton,Persil,LAUNDRY
 8720181373107,capsule detergent,Dero,LAUNDRY
 8720181374227,tablette lave vaisselle,sun,CLEANING_PRODUCT
+8720181515958,Skip,Unilever,HOUSEHOLD_CHEMICAL
+8720181594953,Dove Whole Body Raspberry & Rose Deodorant Spray,Dove,PERSONAL_CARE
+8720181620881,Lessive capsules absolu perles parfumées mangues & pêche OMO 22 lavages,Omo,HOUSEHOLD_CHEMICAL
+8720181630170,Capsules lave-vaisselle 4 en 1,SUN,HOUSEHOLD_CHEMICAL
 8720181633256,Adoucissant fleur de la passion & bergamote,Cajoline,LAUNDRY
 8720181659027,Adoucissant,Cajoline,LAUNDRY
 8720182284648,WC Reiniger Gel,Domestos,LAUNDRY
@@ -1218,13 +2960,63 @@
 8720182432391,Kraft & Frische,Domestos,LAUNDRY
 8720182601216,Optimum capsules lave-vaisselle tout en 1,Sun,CLEANING_PRODUCT
 8720182601414,Capsules lave-vaisselle absolu tout-en-1 brillance,Sun,CLEANING_PRODUCT
+8720182855329,Lessive liquide Cycle Court Couleur Protect,Skip,HOUSEHOLD_CHEMICAL
 8720354266816,Soft broom,Hema,CLEANING_PRODUCT
+8720400253647,Tabac Cigares Cafe Crème Piccolini French Vanilla,,TOBACCO
+8720574142266,Chesterfield,chesterfield,TOBACCO
+8720689044967,All-in-One trimmer 7000 series 17 in 1,Philips,PERSONAL_CARE
+8720689050166,Sonicare Electric Toothbrush Series 1100 White,Philips,PERSONAL_CARE
+8720689050197,Philips Sonicare Electric Toothbrush Series 1100 Marine Blue,Philips,PERSONAL_CARE
+8720689050838,Sonicare Electric Toothbrush Series 2100 Black,Philips,PERSONAL_CARE
 8720847379108,Désodorisant pour lave-vaisselle,Scents,CLEANING_PRODUCT
+8721055004004,Gold,Marlboro,TOBACCO
+87217896,Rothmans Red,,TOBACCO
+87217957,Vogue l'Originale Blue,British American Tobacco,TOBACCO
+8723900194106,Tabac à rouler,Pall Mall,TOBACCO
+8723900935662,Luckies,"British American Tobacco, Luckies",TOBACCO
+87248289,Merit,Philip Morris,TOBACCO
+87248364,Cigarettes,Marlboro,TOBACCO
+87248586,Cigarettes,Marlboro,TOBACCO
+87295986,Winfield rouge,Maison Valou,TOBACCO
+87308525,café crème red,café creme,TOBACCO
+8801116035069,EDGE BLUE cigarettes,Edge Blue,TOBACCO
+88011707,Cigarette Coréenne,,TOBACCO
+8850006943861,360 Advanced Optic White Toothbrush Soft,Colgate,PERSONAL_CARE
+8850006943878,360 Advanced Optic White Toothbrush Medium,Colgate,PERSONAL_CARE
+8850006947296,Gentle Clean Soft Toothbrush,Colgate,PERSONAL_CARE
+8850006951057,Gentle Sensitive Expert Ultra Soft Toothbrush,Colgate,PERSONAL_CARE
+8850006953778,Battery Powered Toothbrush Whitening Optic White,Colgate,PERSONAL_CARE
+8850006954836,Toothbrush Total Foaming Clean Soft,Colgate,PERSONAL_CARE
+8850006954843,Toothbrush Total Foaming Clean Medium,Colgate,PERSONAL_CARE
+8850006960608,Kids Battery Power Toothbrush Harry Potter Soft 3+,Colgate,PERSONAL_CARE
+8850006960615,Battery Powered Toothbrush Harry Potter Soft,Colgate,PERSONAL_CARE
+8850006961032,Kids Toothbrush Harry Potter Ages 6+ Ultra Soft,Colgate,PERSONAL_CARE
+8850477627055,"36 hari ajukan, comfy apel",Cat Comfy,PET_SUPPLY
+8885004830004,LD red,,TOBACCO
+8885004830028,LD Blue,,TOBACCO
+8885004830042,LD Menthol,,TOBACCO
+8886441001484,Marlboro Crafted Ice X L,Marlboro,TOBACCO
+8886467014062,Brosse à dent Médium Easy clean,Signal,PERSONAL_CARE
+8888075061735,Tabakwaren,Parisienne,TOBACCO
+8901012162026,Tampons Regular,,HYGIENE_PRODUCT
 8901030641640,Wheel,,LAUNDRY
 8901030695452,Matic Liquid,Surf Excel,LAUNDRY
 8901030997723,Wheel Detergent Powder,Wheel,LAUNDRY
+8901396704805,DUREX 10CONDOMS,Durex,PERSONAL_CARE
+8901396704904,DUREX EXTRA THIN,Durex,PERSONAL_CARE
 8901399077487,wipro safe wash premium liquid detergent 1kg,,LAUNDRY
+8901571011087,Daily Care,Sensodyne,PERSONAL_CARE
+8901691000633,Everyday Battery,EVEREADY,BATTERY
+8901691010724,AAA Battery,Everyday,BATTERY
+8901725109011,BRISTOL SPECIAL FILTER,WILLS,TOBACCO
+8901725122010,navy cut,wills,TOBACCO
+8901763017071,Four square,Four Square,TOBACCO
 8902850014416,Ozone,Detergent,LAUNDRY
+8904132912588,Petal sanitary napkin,Pads,HYGIENE_PRODUCT
+8904293713789,Flipkart supermart sanitary napkin,Flipkart supermart,PERSONAL_CARE
+8906007130936,Not Out,Skore,PERSONAL_CARE
+8906120040365,Pads,Nua,PERSONAL_CARE
+8906135610577,Finest Round Wooden Toothpicks,Crown,PERSONAL_CARE
 8908009149619,Plant Powered Baby Liquid Cleanser (or Natural Baby Liquid Cleanser),Mother Sparsh,LAUNDRY
 8909106006478,Surf Excel Quick Wash Detergent Powder,Surf Excel,CLEANING_PRODUCT
 8909106015081,Surf Excel Quick Wash,Surf Excel is sold by Hindustan Unilever Limited,LAUNDRY
@@ -1236,20 +3028,99 @@
 8909106051096,Surf Excel Matic Top Load Liquid Detergent,Surf Excel,LAUNDRY
 8909106051102,Surf Excel Matic Front Load Liquid Detergent,Surf Excel,LAUNDRY
 8909106057449,Surf Excel Quick Wash,Surf Excel,LAUNDRY
+8917055396007,Compact Sanitary Pad XL,Fly Free,PERSONAL_CARE
+8934647041206,Cigarettes,White Horse,TOBACCO
+8935236000819,Toothbrush,Colgate,PERSONAL_CARE
 8941100507070,Lizol Floor Cleaner Citrus Disinfectant Surface,Lizol,CLEANING_PRODUCT
+8941193077146,Basundhara anti tobacco,,TOBACCO
+8952020925399859501,Refresco,Coca-Cola,PERSONAL_CARE
+89600047,Cigarettes,DUNHILL,TOBACCO
+8993838008787,Dental Floss Toothpick,Guardian,PERSONAL_CARE
+8999909000544,MARLBORO FILTER BLACK,,TOBACCO
 9000100866224,Clin ablaktisztító - Citrus illattal,Clin,CLEANING_PRODUCT
 9000100867122,Glas & Flächen Streifenfrei,Clin,CLEANING_PRODUCT
 9000101348019,Somat ALL in 1,Somat,CLEANING_PRODUCT
 9000101385991,Balsam Aloe Vera,Pur,CLEANING_PRODUCT
 9001531944635,Baume liquide vaisselle citron,,CLEANING_PRODUCT
+9001616836039,Perfect nuit tétine,Mam,HYGIENE_PRODUCT
+9001616836480,Easy Start Anti Colique 160ml -  Mois et + Tétine Débit 1 Lent,MAM,HYGIENE_PRODUCT
 9003740016721,Geschirrreiniger,clever,CLEANING_PRODUCT
 9005835311346,Claro classic Geschirrspültabs,claro,CLEANING_PRODUCT
+9009865005381,Zahnstocher,clever,PERSONAL_CARE
+9010158004264,Batterien AAA,clever,BATTERY
+9010406001694,Tampons Mini,BI Comfort,PERSONAL_CARE
 9010406004923,Maschinenpfleger Zitrone,Bi Home,CLEANING_PRODUCT
+90300837,Winston Compact,Winston,TOBACCO
+90368189,Tabac,,TOBACCO
+9041200002242,Heets,Heets,TOBACCO
+90412035,Marlboro,Marlboro,TOBACCO
+90412080,Marlboro Gold,Marlboro,TOBACCO
+90412776,chesterfield unplugged blue,chesterfield,TOBACCO
+9300615092799,Radiant Laundry Powder All-in-one Mixed Colours 2kg,Radiant,HOUSEHOLD_CHEMICAL
+9300632018871,Total Dental Floss,Colgate,PERSONAL_CARE
+9300632065547,Zig Zag Medium Toothbrush Value Pack,Colgate,PERSONAL_CARE
+9300807258095,Paw Gentle Puppy Shampoo,Blackmores,PET_SUPPLY
+9310004342268,Goodnights Extra Long With Wings Pads,Libra,PERSONAL_CARE
+9310004342312,Pads Ultra Thin Regular Wings,Libra,PERSONAL_CARE
+9310004342329,Pads Ultra Thin Super Wing,Libra,PERSONAL_CARE
+9310004342336,Exta Regular With Wings Pads,Libra,PERSONAL_CARE
 9310205270148,Dual Angle Window Washer,Sabco,CLEANING_PRODUCT
+9310246063068,Crystal Cat Litter,Feline Friend,PET_SUPPLY
 9310692004448,Earth Choice Top & Front Loader Liquid 4L,,LAUNDRY
 9310692112952,Dishwashing liquid,Earth Choice,CLEANING_PRODUCT
 9310692161448,Earth Choice Top & Front Loader Liquid 4L,Earth Choice,LAUNDRY
+9310797256926,Cigarettes,,TOBACCO
+9310797274937,Pall Mall,British American Tobacco,TOBACCO
+9310797281065,PALL MALL VERT TABAC,BRITISH AMERICAN TOBACCO GROUP,TOBACCO
+9310797284905,Original Blue,Winfield,TOBACCO
+9325344000082,Girl-teen Regular Pads,Libra,PERSONAL_CARE
+9325344000129,Goodnights Ultra Thin Pads,Libra,PERSONAL_CARE
+9325344000525,Invisible Pads Goodnights With Wings,Libra,PERSONAL_CARE
+9325344001232,Maternity Extra Long With Wings Pads,Libra,PERSONAL_CARE
+9325344001423,Invisible Pads Goodnight,Libra,PERSONAL_CARE
+9325344001744,Extra Super With Wings Pads,Libra,PERSONAL_CARE
+9325344001829,Invisible Pads Super Wing,Libra,PERSONAL_CARE
+9325344002116,Girl-teen Goodnight Pads With Wings,Libra,PERSONAL_CARE
+9325344002505,Invisible Regular Pads,Libra,PERSONAL_CARE
+9325344002512,Invisible Regular Pads With Wings,Libra,PERSONAL_CARE
+9325344002536,Invisible Super Pads With Wings,Libra,PERSONAL_CARE
+9325344002666,Original Regular Tampons,Libra,PERSONAL_CARE
+9325344002802,Regular Ultra Thin Pads,Libra,PERSONAL_CARE
+9325344003021,Girl-teen Regular Tampons,Libra,PERSONAL_CARE
+9325344003052,Extra Regular Pads,Libra,PERSONAL_CARE
+9325344003083,Night Pants Large,Libra,PERSONAL_CARE
+9325344003090,Night Pants Medium,Libra,PERSONAL_CARE
+9325344003106,Goodnight Extra Long & Wide,Libra,PERSONAL_CARE
+9325344003588,Liners Double 2-in-1,Libra,PERSONAL_CARE
+9325344003601,Liners Active Protect,Libra,PERSONAL_CARE
+9325344003618,Liners Dry & Long,Libra,PERSONAL_CARE
+9325344005544,Ultra Thin Pads Goodnights Long & Wide,Libra,PERSONAL_CARE
+9325344005728,Teen Liners,Libra,PERSONAL_CARE
+9325344005742,Dry Ultra Thin Pads With Wings,Libra,PERSONAL_CARE
+9325344005759,Dry Extra Pads With Wings,Libra,PERSONAL_CARE
+9336628010192,SupaGRIP Eco Floss Picks,Piksters,PERSONAL_CARE
+9336628010543,Interdental Floss Brush Size 1,Piksters,PERSONAL_CARE
 9350376003848,Cold Power Advanced Clean Laundry Liquid Washing Detergent 2L,Cold Power,LAUNDRY
+9359407002737,Hismile Electric Toothbrush Sugar Pop,Hismile,PERSONAL_CARE
+9359407002744,Electric Toothbrush Milky Way,Hismile,PERSONAL_CARE
+9360811702878,"CR2032 Batteries, 4 Pack, Lithium","Big W, Brilliant Basics",BATTERY
 9370510501535,Eco dishwasher powder,Kin Kin,CLEANING_PRODUCT
+9421026300768,royale,royale,TOBACCO
+9421904034006,tampons,,HYGIENE_PRODUCT
 9501030513023,Gentil,,LAUNDRY
+95010557,Gold leaf l,LEAF,TOBACCO
+95010816,Capstan,Pall Mall,TOBACCO
+95501001501000000155,Tweezers,"TEDi, Tedi",PERSONAL_CARE
+9555900300565,LD Purple Flow,,TOBACCO
+9555900300954,LD Red Flow,,TOBACCO
+9555900301326,Melvius Kiwami,,TOBACCO
+9556109109171,Dunhill King,,TOBACCO
+9556109109409,Dunhill Gold,,TOBACCO
+9556109109423,Dunhill Mix,,TOBACCO
+9556109110467,Luckies Red,,TOBACCO
+9556109110474,Lucky Blue,,TOBACCO
+96184578,Pall mall red,Pall Mall,TOBACCO
+9782370731258,Marlboro Gold,Marlboro,TOBACCO
+9788496886773,Paquetito Tabaco LM,,TOBACCO
+9903618784427,Marlboro,Marlboro,TOBACCO
 9932434877006,Lavette Éponge Axion,80 DA,CLEANING_PRODUCT

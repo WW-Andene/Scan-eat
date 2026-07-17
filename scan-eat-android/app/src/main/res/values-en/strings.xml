@@ -1134,6 +1134,8 @@
     <string name="hint_panel_title">Good to know</string>
     <string name="hint_section_benefits">Benefits</string>
     <string name="hint_section_risks">Points of caution</string>
+    <string name="hint_section_pair_well">Pairs well with</string>
+    <string name="hint_section_avoid_pairing">Avoid pairing with</string>
     <string name="hint_section_facts">Facts</string>
     <string name="hint_panel_empty">No particular information for this product.</string>
     <string name="hint_cd_open_with_risks">%1$s — %2$s</string>
