@@ -128,7 +128,12 @@ private fun SubScoreChip(label: String, score: Float, modifier: Modifier = Modif
     Surface(shape = RoundedCornerShape(8.dp), color = color.copy(0.1f), modifier = modifier) {
         Column(modifier = Modifier.padding(6.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = OnSurface.copy(0.6f))
-            Text("${score.roundToInt()}", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+            // "${score}" alone previously read as the raw measurement (e.g. "IMC: 0"),
+            // not the normalized 0-100 sub-score it actually is - a BMI of 37 legitimately
+            // floors this sub-score at 0 (it's outside the 16-35 range the formula maps),
+            // but showing a bare "0" next to a BMI label reads as "your BMI is zero",
+            // directly contradicting the real BMI shown elsewhere on the same screen.
+            Text("${score.roundToInt()}/100", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
         }
     }
 }

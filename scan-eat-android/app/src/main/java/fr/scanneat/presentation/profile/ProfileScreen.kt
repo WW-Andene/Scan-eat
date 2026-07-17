@@ -54,19 +54,29 @@ fun ProfileScreen(
     val bmiCat = viewModel.bmiCat.collectAsStateWithLifecycle()
     val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
 
-    // Local mutable state mirrors the saved profile
-    var name       by remember(profile.value.id) { mutableStateOf(profile.value.name) }
-    var sex        by remember(profile.value.id) { mutableStateOf(profile.value.sex) }
-    var age        by remember(profile.value.id) { mutableStateOf(profile.value.ageYears?.toString() ?: "") }
-    var heightCm   by remember(profile.value.id) { mutableStateOf(profile.value.heightCm?.toString() ?: "") }
-    var weightKg   by remember(profile.value.id) { mutableStateOf(profile.value.weightKg?.toString() ?: "") }
-    var goalWeightKg by remember(profile.value.id) { mutableStateOf(profile.value.goalWeightKg?.toString() ?: "") }
-    var activity   by remember(profile.value.id) { mutableStateOf(profile.value.activityLevel) }
-    var goal       by remember(profile.value.id) { mutableStateOf(profile.value.goal) }
-    var diet       by remember(profile.value.id) { mutableStateOf(profile.value.diet) }
-    var allergens  by remember(profile.value.id) { mutableStateOf(profile.value.allergens) }
-    var conditions by remember(profile.value.id) { mutableStateOf(profile.value.healthConditions) }
-    var isMenstruating by remember(profile.value.id) { mutableStateOf(profile.value.isMenstruating) }
+    // Local mutable state mirrors the saved profile - keyed on the whole Profile
+    // object (a data class, so this only re-derives when a real field actually
+    // differs), not profile.value.id: id is a constant "default" that never
+    // changes in this single-profile app, so keying on it alone captured
+    // whatever profile.value happened to be at the very first composition
+    // (typically the StateFlow's blank Profile() seed, since prefs.profile
+    // loads from DataStore asynchronously) and then never re-derived again -
+    // every field below stayed frozen at blank/default even after the real
+    // saved data streamed in a moment later, and saving from that state wrote
+    // those blanks back over the real data. Matches the already-correct
+    // biolismProfile.value-keyed pattern used 4 lines below in this same file.
+    var name       by remember(profile.value) { mutableStateOf(profile.value.name) }
+    var sex        by remember(profile.value) { mutableStateOf(profile.value.sex) }
+    var age        by remember(profile.value) { mutableStateOf(profile.value.ageYears?.toString() ?: "") }
+    var heightCm   by remember(profile.value) { mutableStateOf(profile.value.heightCm?.toString() ?: "") }
+    var weightKg   by remember(profile.value) { mutableStateOf(profile.value.weightKg?.toString() ?: "") }
+    var goalWeightKg by remember(profile.value) { mutableStateOf(profile.value.goalWeightKg?.toString() ?: "") }
+    var activity   by remember(profile.value) { mutableStateOf(profile.value.activityLevel) }
+    var goal       by remember(profile.value) { mutableStateOf(profile.value.goal) }
+    var diet       by remember(profile.value) { mutableStateOf(profile.value.diet) }
+    var allergens  by remember(profile.value) { mutableStateOf(profile.value.allergens) }
+    var conditions by remember(profile.value) { mutableStateOf(profile.value.healthConditions) }
+    var isMenstruating by remember(profile.value) { mutableStateOf(profile.value.isMenstruating) }
     // Circumferences + ethnicity — previously only editable from Métabolisme >
     // Mon Profil (BiolismProfileScreen), even though they live in the same
     // BiolismRepository already synced with this screen's shared fields.
