@@ -5,13 +5,23 @@ Android app's domain scoring engine to catch drift between the two.
 
 The two codebases are not laid out file-for-file (the server keeps
 CategoryThresholds/pillars/ScoringEngine in fewer, larger files than the
-Android app), so this compares matched *functions* by name rather than whole
-files: it extracts each named function's body (via brace-matching) from both
-sides, normalizes cosmetic differences (blank lines, trailing whitespace,
-comments, package-qualified references), and diffs the normalized bodies.
+Android app), so this compares matched *declarations* by name rather than
+whole files: it extracts each named `fun` (via brace-matching) or top-level
+`val` (via paren-matching on its initializer) from both sides, normalizes
+cosmetic differences (blank lines, trailing whitespace, comments, visibility
+modifiers, package-qualified references), and diffs the normalized bodies.
 
-Exit code is non-zero if any matched function's normalized body differs, or
-if a function expected on both sides is missing from either side.
+`val` constants matter here too, not just `fun` bodies: WHOLE_FOOD_KEYWORDS,
+CATEGORY_THRESHOLDS and friends are referenced *by name* inside the checked
+pillar functions, so a function-body-only diff would never notice their
+actual values silently diverging between the two hand-maintained copies —
+exactly what happened before this script covered them (see WHOLE_FOOD_KEYWORDS'
+own history: server and android both defined it, both were checked function-
+body-wise via isWholeFood/scoreIngredientIntegrity, and it still could have
+drifted without the drift check being able to tell).
+
+Exit code is non-zero if any matched declaration's normalized body differs,
+or if a declaration expected on both sides is missing from either side.
 """
 from __future__ import annotations
 
@@ -65,9 +75,58 @@ PAIRS = [
     ("mergeOffWithLlm", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
     ("detectSourceConflicts", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
     ("declaredMicronutrientsOf", SERVER_DIR / "DomainModels.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    # Keyword/threshold constants referenced *by name* from the pillar functions
+    # above — a function-body diff alone can't see these actually diverging
+    # (see this script's own module docstring for why WHOLE_FOOD_KEYWORDS in
+    # particular was a real blind spot until now).
+    ("WHOLE_FOOD_KEYWORDS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringKeywords.kt"),
+    ("GENERIC_OIL_TERMS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringKeywords.kt"),
+    ("HIDDEN_SUGAR_NAMES", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringKeywords.kt"),
+    ("UPF_MARKER_PATTERNS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringKeywords.kt"),
+    ("FIRST_INGREDIENT_PENALTY_PATTERNS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringKeywords.kt"),
+    ("FRESH_PRODUCE_NAME", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "ScoringKeywords.kt"),
+    ("NAME_CATEGORY_PATTERNS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "CategoryThresholds.kt"),
+    ("DEFAULT_THRESHOLDS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "CategoryThresholds.kt"),
+    ("CATEGORY_THRESHOLDS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "CategoryThresholds.kt"),
+    ("NRV_TARGETS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "NutritionalDensityPillar.kt"),
 ]
 
 FUNC_START_RE_TMPL = r"^(?:private |internal |public )?fun {name}\b"
+VAL_START_RE_TMPL = r"^(?:private |internal |public )?val {name}\b"
+
+
+def extract_val(path: Path, name: str) -> str:
+    """Top-level `val NAME = listOf(...)/mapOf(...)/Regex(...)` etc. Unlike a
+    `fun` body, these never contain `{ }` (Kotlin string templates aside), so
+    brace-matching can't find the end - instead this counts paren depth from
+    the first `(` after the declaration, which is exactly where every one of
+    these constants' own initializer starts and ends (including nested
+    `Pair(Regex(...), "label")`-style entries and the regex patterns' own
+    internal `(?:...)`/`(?!...)` groups, which are always paren-balanced
+    since they're valid compiled regexes)."""
+    text = path.read_text()
+    lines = text.splitlines()
+    start_re = re.compile(VAL_START_RE_TMPL.format(name=re.escape(name)))
+    start_idx = next((i for i, line in enumerate(lines) if start_re.match(line)), None)
+    if start_idx is None:
+        raise ValueError(f"val `{name}` not found in {path}")
+
+    body_lines = []
+    depth = 0
+    started_paren = False
+    for line in lines[start_idx:]:
+        body_lines.append(line)
+        for ch in line:
+            if ch == "(":
+                depth += 1
+                started_paren = True
+            elif ch == ")":
+                depth -= 1
+        if started_paren and depth == 0:
+            break
+    if not started_paren:
+        raise ValueError(f"val `{name}` in {path} has no `(` initializer - extract_val can't handle this shape")
+    return "\n".join(body_lines)
 
 
 def extract_function(path: Path, name: str) -> str:
@@ -127,12 +186,15 @@ def normalize(body: str) -> str:
         # strip fully-qualified package prefixes so `fr.scanneat.shared.Foo`
         # and a bare `Foo` (imported) compare equal
         line = re.sub(r"\bfr\.scanneat\.[a-zA-Z0-9_.]*\.", "", line)
-        # strip a leading visibility modifier on the function signature line -
+        # strip a leading visibility modifier on the declaration signature line -
         # e.g. declaredMicronutrientsOf is `internal` on Android (module-visibility
         # need, since other domain/engine/* files call it) but plain top-level `fun`
         # on the server (no module boundary there); that's a packaging difference,
-        # not logic drift, so it shouldn't fail the comparison.
-        line = re.sub(r"^(private |internal |public )(?=fun )", "", line)
+        # not logic drift, so it shouldn't fail the comparison. Same story for the
+        # `val` keyword constants: `internal val` on Android (other domain/engine/
+        # scoring/* files reference them), `private val` on server (single file,
+        # no module boundary to guard against).
+        line = re.sub(r"^(private |internal |public )(?=fun |val )", "", line)
         line = line.rstrip()
         if line.strip() == "":
             continue
@@ -140,16 +202,26 @@ def normalize(body: str) -> str:
     return "\n".join(lines)
 
 
+def extract_declaration(path: Path, name: str) -> str:
+    """Try `fun NAME` first, fall back to top-level `val NAME` - a PAIRS entry
+    doesn't say which kind it is, and the two need different extraction
+    strategies (brace-matching vs paren-matching, see extract_val)."""
+    try:
+        return extract_function(path, name)
+    except ValueError:
+        return extract_val(path, name)
+
+
 def main() -> int:
     failures = []
     for name, server_path, android_path in PAIRS:
         try:
-            server_body = extract_function(server_path, name)
+            server_body = extract_declaration(server_path, name)
         except ValueError as e:
             failures.append(f"[{name}] {e}")
             continue
         try:
-            android_body = extract_function(android_path, name)
+            android_body = extract_declaration(android_path, name)
         except ValueError as e:
             failures.append(f"[{name}] {e}")
             continue
@@ -168,7 +240,7 @@ def main() -> int:
         print("\n".join(failures))
         return 1
 
-    print(f"OK — {len(PAIRS)} matched functions are in sync between server and android.")
+    print(f"OK — {len(PAIRS)} matched declarations are in sync between server and android.")
     return 0
 
 

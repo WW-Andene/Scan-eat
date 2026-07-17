@@ -362,6 +362,31 @@ class ScoringEngineTest {
     }
 
     // ============================================================
+    // Ingredient integrity — whole-food keyword matching
+    // ============================================================
+
+    @Test fun `New whole-food keywords earn the first-3-ingredients bonus`() {
+        // Regression for a gap where a real ingredient like "crevette" (shrimp)
+        // never earned the whole-food bonus because it was simply missing from
+        // WHOLE_FOOD_KEYWORDS, despite being just as much a whole food as the
+        // saumon/thon/haricot/lentille entries already in that list. isWhole is
+        // left null (not explicitly true) so this exercises the WHOLE_FOOD_KEYWORDS
+        // heuristic itself, not a caller-supplied flag.
+        for (name in listOf("crevette", "tofu", "champignon", "cabillaud", "artichaut", "maïs")) {
+            val p = product(
+                name = "Test $name",
+                category = ProductCategory.OTHER,
+                novaClass = NovaClass.PROCESSED,
+                ingredients = listOf(ingredient(name)),
+                nutrition = nutrition(100.0, 1.0, 0.2, 5.0, 1.0, 1.0, 10.0, 0.2),
+            )
+            val pillar = scoreIngredientIntegrity(p)
+            val bonus = pillar.bonuses.firstOrNull { it.reason.contains("whole food", ignoreCase = true) }
+            assertNotNull("\"$name\" should be recognized as a whole food (WHOLE_FOOD_KEYWORDS)", bonus)
+        }
+    }
+
+    // ============================================================
     // Category inference from name
     // ============================================================
 

@@ -107,6 +107,15 @@ private val WHOLE_FOOD_KEYWORDS = listOf(
     "saumon","thon","sardine","maquereau","poulet","boeuf","porc","viande",
     "dinde","canard","agneau","jambon","fromage","lait","yaourt","skyr","eau","miel",
     "légume","legume",
+    // Added — already recognized by FRESH_PRODUCE_NAME below (or, for the
+    // seafood/legume/soy entries, matching the same whole-food tier as the
+    // saumon/thon/sardine/haricot/lentille entries already above) but missing
+    // here, so an ingredient list naming them as a primary ingredient (e.g.
+    // "crevette" in a shrimp product) never earned the first-3-ingredients
+    // whole-food bonus despite genuinely being one.
+    "mûre","mure","clémentine","clementine","asperge","champignon","radis",
+    "céleri","celeri","artichaut","patate","maïs","mais","crevette","moules",
+    "cabillaud","tofu","edamame","cacahuète","cacahuete",
 )
 
 private val GENERIC_OIL_TERMS = listOf(
@@ -136,7 +145,7 @@ private val FIRST_INGREDIENT_PENALTY_PATTERNS = listOf(
 )
 
 private val FRESH_PRODUCE_NAME = Regex(
-    """^(banane|banana|pomme|apple|poire|pear|tomate|tomato|oignon|onion|avocat|avocado|carotte|carrot|concombre|cucumber|courgette|zucchini|kiwi|orange|citron|lemon|lime|fraise|strawberr|framboise|raspberr|myrtille|blueberr|cassis|blackcurrant|ananas|pineapple|raisin|grape|cerise|cherry|prune|plum|peche|pêche|peach|mangue|mango|papaye|papaya|poireau|leek|chou|cabbage|brocoli|broccoli|salade|lettuce|epinard|épinard|spinach|radis|radish|navet|turnip|betterave|beet|aubergine|eggplant|poivron|bell pepper|piment|chili pepper|champignon|mushroom|asperge|asparagus|artichaut|artichoke|haricot vert|green bean|haricot|bean|lentille|lentil|petit[-\s]pois|pea|patate douce|sweet potato|pomme de terre|potato|courge|squash|citrouille|pumpkin|ail|garlic|gingembre|ginger|fenouil|fennel|celeri|céleri|celery|persil|parsley|basilic|basil|menthe|mint|coriandre|cilantro|ciboulette|chive|roquette|arugula|mache|mâche|cresson|watercress|endive|chicory|pastèque|watermelon|melon|nectarine|abricot|apricot|figue|fig|datte|date|grenade|pomegranate|noix|nut|amande|almond|noisette|hazelnut)s?\b""",
+    """^(banane|banana|pomme|apple|poire|pear|tomate|tomato|oignon|onion|avocat|avocado|carotte|carrot|concombre|cucumber|courgette|zucchini|kiwi|orange|citron|lemon|lime|fraise|strawberr|framboise|raspberr|myrtille|blueberr|cassis|blackcurrant|ananas|pineapple|raisin|grape|cerise|cherry|prune|plum|peche|pêche|peach|mangue|mango|papaye|papaya|poireau|leek|chou|cabbage|brocoli|broccoli|salade|lettuce|epinard|épinard|spinach|radis|radish|navet|turnip|betterave|beet|aubergine|eggplant|poivron|bell pepper|piment|chili pepper|champignon|mushroom|asperge|asparagus|artichaut|artichoke|ma[iï]s|corn|haricot vert|green bean|haricot|bean|lentille|lentil|petit[-\s]pois|pea|patate douce|sweet potato|pomme de terre|potato|courge|squash|citrouille|pumpkin|ail|garlic|gingembre|ginger|fenouil|fennel|celeri|céleri|celery|persil|parsley|basilic|basil|menthe|mint|coriandre|cilantro|ciboulette|chive|roquette|arugula|mache|mâche|cresson|watercress|endive|chicory|pastèque|watermelon|melon|nectarine|abricot|apricot|figue|fig|datte|date|grenade|pomegranate|noix|nut|amande|almond|noisette|hazelnut)s?\b""",
     RegexOption.IGNORE_CASE
 )
 
