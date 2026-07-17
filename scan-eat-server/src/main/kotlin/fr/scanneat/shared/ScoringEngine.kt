@@ -312,7 +312,8 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
     }
     score += protScore
     if (protScore < 7) deductions += Deduction("nutritional_density", if (en) "Protein ${n.proteinG}g/100g (${protScore.toInt()}/7)" else "Protéines ${n.proteinG}g/100g (${protScore.toInt()}/7)", protScore - 7, Severity.MINOR)
-    else bonuses += Deduction("nutritional_density", if (en) "High protein ${n.proteinG}g/100g" else "Riche en protéines ${n.proteinG}g/100g", 7.0, Severity.INFO)
+    else if (n.proteinG > 0.0) bonuses += Deduction("nutritional_density", if (en) "High protein ${n.proteinG}g/100g" else "Riche en protéines ${n.proteinG}g/100g", 7.0, Severity.INFO)
+    // else: protScore maxed only because this category's protein threshold is 0 (irrelevant, e.g. water) — not a real achievement, skip the highlight
 
     // Fiber (0–7)
     val (fLow, fMed, fHigh) = thresholds.fiberG
@@ -323,8 +324,9 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
         else              -> 0.0
     }
     score += fiberScore
-    if (fiberScore >= 5) bonuses += Deduction("nutritional_density", if (en) "Good fiber ${n.fiberG}g/100g" else "Bonne teneur en fibres ${n.fiberG}g/100g", fiberScore, Severity.INFO)
-    else deductions += Deduction("nutritional_density", if (en) "Low fiber ${n.fiberG}g/100g (${fiberScore.toInt()}/7)" else "Fibres faibles ${n.fiberG}g/100g (${fiberScore.toInt()}/7)", fiberScore - 7, Severity.MINOR)
+    if (fiberScore >= 5 && n.fiberG > 0.0) bonuses += Deduction("nutritional_density", if (en) "Good fiber ${n.fiberG}g/100g" else "Bonne teneur en fibres ${n.fiberG}g/100g", fiberScore, Severity.INFO)
+    else if (fiberScore < 5) deductions += Deduction("nutritional_density", if (en) "Low fiber ${n.fiberG}g/100g (${fiberScore.toInt()}/7)" else "Fibres faibles ${n.fiberG}g/100g (${fiberScore.toInt()}/7)", fiberScore - 7, Severity.MINOR)
+    // else: fiberScore >= 5 only because this category's fiber threshold is 0 (irrelevant, e.g. water) — not a real achievement, skip the highlight
 
     // Micronutrients NRV-15% bonus (0–8): +1 per micro declared at ≥15% NRV per 100g, cap 8
     var microBonus = 0.0
