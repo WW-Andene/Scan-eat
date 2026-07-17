@@ -24,8 +24,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
+import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
+import fr.scanneat.presentation.result.HintPanel
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
@@ -41,6 +43,7 @@ fun TemplatesScreen(
     val libraryTotalKcal = viewModel.libraryTotalKcal.collectAsStateWithLifecycle()
     val ingredientSearchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
     val templateWarnings = viewModel.templateWarnings.collectAsStateWithLifecycle()
+    val templateHints = viewModel.templateHints.collectAsStateWithLifecycle()
     var logTarget by remember { mutableStateOf<MealTemplate?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<MealTemplate?>(null) }
@@ -115,6 +118,9 @@ fun TemplatesScreen(
                 item { EmptyListState(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_empty_body)) }
             }
             items(templates.value, key = { it.id }) { template ->
+                val hints = templateHints.value[template.id] ?: ProductHints.EMPTY
+                val hintsHaveRisks = hints.risks.isNotEmpty()
+                var showHints by remember { mutableStateOf(false) }
                 Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
                     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -154,6 +160,21 @@ fun TemplatesScreen(
                                         Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                                     }
                                     DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                                        // The "💡 Bon à savoir" hint panel was previously reachable
+                                        // only from a scanned product's Result screen - a template's
+                                        // items already carry real per-100g nutrition (see
+                                        // MealTemplateRepository.nutritionPer100g), so the same
+                                        // benefits/risks/facts apply. Placed in the overflow menu
+                                        // rather than as a 5th always-visible icon, since this row
+                                        // already sits at the app's established 4-icon max density
+                                        // (Favorite/Manage-items/Log/More).
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.hint_panel_title)) },
+                                            leadingIcon = { Icon(Icons.Default.Lightbulb, contentDescription = null, tint = if (hintsHaveRisks) semanticRed() else semanticAmber()) },
+                                            trailingIcon = { if (hintsHaveRisks) Badge(containerColor = semanticRed()) { Text("${hints.risks.size}") } },
+                                            onClick = { menuExpanded = false; showHints = true },
+                                        )
+                                        HorizontalDivider(color = OnBackground.copy(0.08f))
                                         // Templates/Recipes had no way to convert between the two -
                                         // this saves a copy into the user's Recipes library.
                                         DropdownMenuItem(
@@ -174,6 +195,9 @@ fun TemplatesScreen(
                                         )
                                     }
                                 }
+                            }
+                            if (showHints) {
+                                HintPanel(hints = hints, onDismiss = { showHints = false })
                             }
                             template.items.take(3).forEach { item ->
                                 Text(stringResource(R.string.templates_item_summary, item.productName, item.grams.toInt(), item.kcal.toInt()),

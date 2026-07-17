@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -38,7 +37,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -62,7 +60,6 @@ fun ResultScreen(
     val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showSheet   by remember { mutableStateOf(false) }
     var showSaveMenu by remember { mutableStateOf(false) }
-    var showHints    by remember { mutableStateOf(false) }
     val context      = LocalContext.current
     val shareTemplate = stringResource(R.string.result_share_text)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -105,9 +102,7 @@ fun ResultScreen(
                         }) {
                             Icon(Icons.Default.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
                         }
-                        IconButton(onClick = { showHints = true }) {
-                            Icon(Icons.Default.Lightbulb, stringResource(R.string.hint_cd_open), tint = semanticAmber())
-                        }
+                        HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value))
                         IconButton(onClick = { showSaveMenu = true }) {
                             Icon(
                                 if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
@@ -162,13 +157,6 @@ fun ResultScreen(
                 sheetState = sheetState,
                 onConfirm  = { g, slot -> viewModel.log(g, slot) },
                 onDismiss  = { showSheet = false },
-            )
-        }
-
-        if (showHints) {
-            HintPanel(
-                hints = generateProductHints(scan.product, profile.value, language.value),
-                onDismiss = { showHints = false },
             )
         }
 

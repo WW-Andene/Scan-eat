@@ -52,6 +52,28 @@ data class MealTemplate(
     val totalProteinG: Int get() = items.sumOf { it.proteinG }.roundToInt()
     val totalCarbsG: Int   get() = items.sumOf { it.carbsG }.roundToInt()
     val totalFatG: Int     get() = items.sumOf { it.fatG }.roundToInt()
+    val totalGrams: Double get() = items.sumOf { it.grams }
+
+    /**
+     * Per-100g nutrition, same scaled-from-item-totals shape as Recipe's own
+     * nutritionPer100g - unlike Recipe's version (whose RecipeComponent has no
+     * satFatG/sugarsG field at all), TemplateItem already tracks both, so
+     * they're included here rather than hardcoded to 0.0.
+     */
+    val nutritionPer100g: NutritionPer100g get() {
+        val basis = if (totalGrams > 0) totalGrams else 100.0
+        fun scale(v: Double) = v * 100.0 / basis
+        return NutritionPer100g(
+            energyKcal    = scale(items.sumOf { it.kcal }),
+            fatG          = scale(items.sumOf { it.fatG }),
+            saturatedFatG = scale(items.sumOf { it.satFatG }),
+            carbsG        = scale(items.sumOf { it.carbsG }),
+            sugarsG       = scale(items.sumOf { it.sugarsG }),
+            fiberG        = scale(items.sumOf { it.fiberG }),
+            proteinG      = scale(items.sumOf { it.proteinG }),
+            saltG         = scale(items.sumOf { it.saltG }),
+        )
+    }
 
     /**
      * Synthetic Product so a saved template can be run through the same
@@ -60,13 +82,20 @@ data class MealTemplate(
      * contain a forbidden ingredient as a Recipe, but previously had no
      * equivalent check anywhere, so a vegan or allergic user got zero warning
      * for the one meal type they'd actually re-log most often.
+     *
+     * nutrition previously hardcoded NutritionPer100g.EMPTY even though every
+     * field it needs was already sitting right there on nutritionPer100g above
+     * (itself only added later) - harmless for checkDiet/checkUserAllergens
+     * (both only look at ingredients), but it silently starved any nutrition-
+     * threshold-based use of this Product (e.g. generateProductHints's
+     * fiber/protein/salt/sugar/sat-fat benefit and risk lines) of real data.
      */
     fun toCheckProduct(): Product = Product(
         name        = name,
         category    = ProductCategory.OTHER,
         novaClass   = NovaClass.UNPROCESSED,
         ingredients = items.map { i -> Ingredient(name = i.productName, category = IngredientCategory.FOOD) },
-        nutrition   = NutritionPer100g.EMPTY,
+        nutrition   = nutritionPer100g,
     )
 }
 

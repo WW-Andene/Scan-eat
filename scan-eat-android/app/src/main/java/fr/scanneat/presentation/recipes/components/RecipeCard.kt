@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.formatShareText
+import fr.scanneat.domain.engine.nutrition.ProductHints
+import fr.scanneat.presentation.result.HintIconButton
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -54,7 +56,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit) {
+internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit) {
     val context = LocalContext.current
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
@@ -78,6 +80,11 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                             tint = if (recipe.favorite) Gold else OnSurface.copy(0.3f),
                         )
                     }
+                    // The "💡" hint panel was previously reachable only from a scanned
+                    // product's Result screen - a saved Recipe carries the exact same
+                    // toCheckProduct() a scan does, so the same benefits/risks/facts
+                    // apply and were simply never surfaced here.
+                    HintIconButton(hints = hints)
                     Row {
                         // Log stays the one always-visible action - everything else
                         // (Share/Notes/Scale/Save-as-Template/Rename/Delete) moves into

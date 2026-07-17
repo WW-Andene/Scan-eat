@@ -18,7 +18,14 @@ data class ProductHints(
     val benefits: List<String>,
     val risks: List<String>,
     val facts: List<String>,
-)
+) {
+    companion object {
+        /** Fallback for a combine-into-map StateFlow lookup miss (e.g. the one-frame
+         *  gap right after a new recipe/template is added, before its hints entry
+         *  lands) — same role as NutritionPer100g.EMPTY elsewhere in the codebase. */
+        val EMPTY = ProductHints(emptyList(), emptyList(), emptyList())
+    }
+}
 
 fun generateProductHints(product: Product, profile: Profile, lang: String): ProductHints {
     val en = lang == "en"

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.presentation.customfood.components.AddFoodDialog
 import fr.scanneat.presentation.customfood.components.FoodEntryRow
 import fr.scanneat.presentation.ui.theme.*
@@ -31,6 +32,8 @@ fun CustomFoodScreen(
     val results = viewModel.searchResults.collectAsStateWithLifecycle()
     val latestScan = viewModel.latestScan.collectAsStateWithLifecycle()
     val avgKcal = viewModel.avgKcal.collectAsStateWithLifecycle()
+    val profile = viewModel.profile.collectAsStateWithLifecycle()
+    val language = viewModel.language.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to name
     var renameTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to current name
@@ -157,6 +160,7 @@ fun CustomFoodScreen(
                     FoodEntryRow(
                         entry    = entry,
                         isCustom = entry.name in customNames,
+                        hints    = generateProductHints(viewModel.toProduct(entry), profile.value, language.value),
                         onDelete = {
                             foodsWithId.value.firstOrNull { it.second.name == entry.name }
                                 ?.let { (id, _) -> deleteTarget = id to entry.name }

@@ -12,6 +12,8 @@ import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.planning.TemplateItem
 import fr.scanneat.data.repository.planning.toRecipeComponents
 import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.ProductHints
+import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
@@ -75,6 +77,17 @@ class TemplatesViewModel @Inject constructor(
             dietResult.reason?.let { parts += it }
             if (parts.isEmpty()) null else template.id to parts.joinToString(" · ")
         }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * template id -> ProductHints, same combine-into-map pattern as
+     * [templateWarnings] above - the "💡 Bon à savoir" hint panel was previously
+     * reachable only from ResultScreen's scanned-product flow, despite a "Saved
+     * Meal" template now carrying real per-100g nutrition via toCheckProduct()
+     * (see MealTemplateRepository.nutritionPer100g).
+     */
+    val templateHints: StateFlow<Map<String, ProductHints>> = combine(templates, prefs.profile, language) { list, profile, lang ->
+        list.associate { it.id to generateProductHints(it.toCheckProduct(), profile, lang) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     // ── Ingredient search for "manage items" ─────────────────────────────────

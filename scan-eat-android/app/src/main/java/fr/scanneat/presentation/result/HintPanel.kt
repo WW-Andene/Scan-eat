@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -13,15 +14,23 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,6 +42,43 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.semanticRed
+
+/**
+ * Self-contained lightbulb entry point for the hint panel - owns its own
+ * open/closed state and shows the panel on tap. Previously ResultScreen was
+ * the only place the hint panel was reachable from, via a plain always-amber
+ * icon with no signal of what was behind it; a user with a declared allergy
+ * or diet had to tap in blind to discover an allergen/diet-violation risk was
+ * even there. This turns red with a count badge whenever [hints] carries a
+ * risk, and its contentDescription speaks the actual counts to TalkBack
+ * instead of a generic "view information."
+ */
+@Composable
+fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize: androidx.compose.ui.unit.Dp = 24.dp) {
+    var showHints by remember { mutableStateOf(false) }
+    val hasRisks = hints.risks.isNotEmpty()
+    val totalCount = hints.benefits.size + hints.risks.size + hints.facts.size
+    val baseLabel = stringResource(R.string.hint_cd_open)
+    val cd = when {
+        hasRisks -> stringResource(R.string.hint_cd_open_with_risks, baseLabel, pluralStringResource(R.plurals.hint_cd_risks_count, hints.risks.size, hints.risks.size))
+        totalCount > 0 -> stringResource(R.string.hint_cd_open_with_count, baseLabel, pluralStringResource(R.plurals.hint_cd_info_count, totalCount, totalCount))
+        else -> baseLabel
+    }
+    BadgedBox(
+        modifier = modifier,
+        badge = {
+            if (hasRisks) Badge(containerColor = semanticRed()) { Text("${hints.risks.size}") }
+        },
+    ) {
+        IconButton(onClick = { showHints = true }) {
+            Icon(Icons.Default.Lightbulb, cd, tint = if (hasRisks) semanticRed() else semanticAmber(), modifier = Modifier.size(iconSize))
+        }
+    }
+    if (showHints) {
+        HintPanel(hints = hints, onDismiss = { showHints = false })
+    }
+}
 
 /** The "💡" hint panel — benefits / risks / facts, each traced to a concrete product field (see ProductHints.kt). */
 @Composable

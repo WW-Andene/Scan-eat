@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
+import fr.scanneat.domain.engine.nutrition.ProductHints
+import fr.scanneat.presentation.result.HintIconButton
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -34,7 +36,7 @@ import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warning: String?, pairings: List<String>, onLog: () -> Unit, onClone: () -> Unit) {
+internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onClone: () -> Unit) {
     Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -49,6 +51,7 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
                     Row {
                         // Left at IconButton's default 48dp touch target (Material/WCAG
                         // minimum) - a UI/UX audit found this row forcing 36dp.
+                        HintIconButton(hints = hints)
                         IconButton(onClick = onLog) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
                         IconButton(onClick = onClone) { Icon(Icons.Default.ContentCopy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
                     }

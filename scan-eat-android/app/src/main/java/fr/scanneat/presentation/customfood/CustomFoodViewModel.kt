@@ -3,10 +3,13 @@ package fr.scanneat.presentation.customfood
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.model.Product
+import fr.scanneat.domain.model.Profile
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -19,7 +22,21 @@ import javax.inject.Inject
 class CustomFoodViewModel @Inject constructor(
     private val repo: CustomFoodRepository,
     private val scanRepo: ScanRepository,
+    prefs: UserPreferences,
 ) : ViewModel() {
+    // Needed so the hint panel can cross-reference health conditions the same way
+    // ResultViewModel's identical pair already does for scanned products — the
+    // "💡 Bon à savoir" panel was previously reachable only from Result, despite
+    // CustomFoodRepository.toProduct() already making every custom/built-in food
+    // here just as eligible.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+    val profile: StateFlow<Profile> = prefs.profile
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
+
+    /** Thin pass-through so the screen can build a Product for [fr.scanneat.domain.engine.nutrition.generateProductHints]
+     *  without reaching into the repository directly — toProduct() already works on any FoodEntry, custom or built-in. */
+    fun toProduct(entry: FoodEntry): Product = repo.toProduct(entry)
 
     val foods: StateFlow<List<FoodEntry>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

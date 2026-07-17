@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
+import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.recipes.components.AddRecipeDialog
 import fr.scanneat.presentation.recipes.components.LogOfficialRecipeDialog
 import fr.scanneat.presentation.recipes.components.LogRecipeDialog
@@ -38,6 +39,8 @@ fun RecipesScreen(
     val warnings = viewModel.recipeWarnings.collectAsStateWithLifecycle()
     val officialWarnings = viewModel.officialRecipeWarnings.collectAsStateWithLifecycle()
     val pairings = viewModel.recipePairings.collectAsStateWithLifecycle()
+    val hints = viewModel.recipeHints.collectAsStateWithLifecycle()
+    val officialHints = viewModel.officialRecipeHints.collectAsStateWithLifecycle()
     val goalFilter = viewModel.goalFilter.collectAsStateWithLifecycle()
     val recipeQuery = viewModel.recipeQuery.collectAsStateWithLifecycle()
     val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
@@ -81,6 +84,7 @@ fun RecipesScreen(
                     isFrench = language.value == "fr",
                     warning  = officialWarnings.value[recipe.nameFr],
                     pairings = viewModel.officialRecipePairings[recipe.nameFr] ?: emptyList(),
+                    hints    = officialHints.value[recipe.nameFr] ?: ProductHints.EMPTY,
                     onLog    = { logOfficialTarget = recipe },
                     onClone  = { viewModel.cloneOfficial(recipe) },
                 )
@@ -149,7 +153,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe }, onSaveAsTemplate = { saveAsTemplateTarget = recipe })
+                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), hints = hints.value[recipe.id] ?: ProductHints.EMPTY, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe }, onSaveAsTemplate = { saveAsTemplateTarget = recipe })
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }

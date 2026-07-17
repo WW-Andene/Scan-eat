@@ -1136,6 +1136,16 @@
     <string name="hint_section_risks">Points of caution</string>
     <string name="hint_section_facts">Facts</string>
     <string name="hint_panel_empty">No particular information for this product.</string>
+    <string name="hint_cd_open_with_risks">%1$s — %2$s</string>
+    <string name="hint_cd_open_with_count">%1$s — %2$s</string>
+    <plurals name="hint_cd_risks_count">
+        <item quantity="one">%1$d thing to watch</item>
+        <item quantity="other">%1$d things to watch</item>
+    </plurals>
+    <plurals name="hint_cd_info_count">
+        <item quantity="one">%1$d insight available</item>
+        <item quantity="other">%1$d insights available</item>
+    </plurals>
     <string name="result_cd_unfavorite">Remove from favorites</string>
     <string name="result_score_history_title">Score history</string>
     <string name="result_macro_contribution_title">Per 100 g contribution (%% DRV)</string>

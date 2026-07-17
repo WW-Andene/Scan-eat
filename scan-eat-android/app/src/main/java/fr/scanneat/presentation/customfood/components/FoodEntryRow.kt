@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.ProductHints
+import fr.scanneat.presentation.result.HintIconButton
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnSurface
@@ -35,7 +37,7 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> Unit, onRename: () -> Unit) {
+internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHints, onDelete: () -> Unit, onRename: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,6 +95,12 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, onDelete: () -> U
                 }
             }
         }
+        // The "💡 Bon à savoir" hint panel was previously reachable only from a
+        // scanned product's Result screen - CustomFoodRepository.toProduct() already
+        // works on any FoodEntry (custom or a plain FOOD_DB search hit), so both get
+        // the same benefits/risks/facts. Sized to 16dp to match this row's existing
+        // compact Edit/Close icons instead of the panel's default 24dp.
+        HintIconButton(hints = hints, iconSize = 16.dp)
         if (isCustom) {
             // Left at IconButton's default 48dp touch target (Material/WCAG minimum) -
             // a UI/UX audit found this row forcing both controls to 32dp.

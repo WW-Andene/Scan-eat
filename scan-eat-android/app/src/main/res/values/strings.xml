@@ -1171,6 +1171,16 @@
     <string name="hint_section_risks">Points de vigilance</string>
     <string name="hint_section_facts">Informations</string>
     <string name="hint_panel_empty">Aucune information particulière pour ce produit.</string>
+    <string name="hint_cd_open_with_risks">%1$s — %2$s</string>
+    <string name="hint_cd_open_with_count">%1$s — %2$s</string>
+    <plurals name="hint_cd_risks_count">
+        <item quantity="one">%1$d point de vigilance</item>
+        <item quantity="other">%1$d points de vigilance</item>
+    </plurals>
+    <plurals name="hint_cd_info_count">
+        <item quantity="one">%1$d information disponible</item>
+        <item quantity="other">%1$d informations disponibles</item>
+    </plurals>
     <string name="result_cd_unfavorite">Retirer des favoris</string>
     <string name="result_score_history_title">Historique du score</string>
     <string name="result_macro_contribution_title">Apport pour 100 g (%% VNR)</string>

@@ -16,6 +16,8 @@ import fr.scanneat.domain.engine.nutrition.FOOD_DB
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
+import fr.scanneat.domain.engine.nutrition.ProductHints
+import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.planning.findPairings
 import fr.scanneat.domain.engine.planning.normalizeKey
@@ -117,6 +119,22 @@ class RecipesViewModel @Inject constructor(
             dietResult.reason?.let { parts += it }
             if (parts.isEmpty()) null else recipe.nameFr to parts.joinToString(" · ")
         }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * recipe id -> ProductHints, same combine-into-map pattern as [recipeWarnings]/
+     * [recipePairings] above - the "💡 Bon à savoir" hint panel (previously only
+     * reachable from ResultScreen's scanned-product flow) needs the exact same
+     * benefits/risks/facts for a saved recipe, which toCheckProduct() already
+     * makes possible.
+     */
+    val recipeHints: StateFlow<Map<String, ProductHints>> = combine(recipes, prefs.profile, language) { list, profile, lang ->
+        list.associate { it.id to generateProductHints(it.toCheckProduct(), profile, lang) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Same as [recipeHints], for the official/starter recipes shown above the user's own. */
+    val officialRecipeHints: StateFlow<Map<String, ProductHints>> = combine(prefs.profile, language) { profile, lang ->
+        OFFICIAL_RECIPE_DB.associate { recipe -> recipe.nameFr to generateProductHints(recipe.toCheckProduct(), profile, lang) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     /** Officially-sourced starter recipes (see OfficialRecipeDb.kt) — read-only, browsable alongside the user's own. */
