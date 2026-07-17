@@ -336,16 +336,38 @@ fun computePersonalScore(
     // selectable (surfaced elsewhere, e.g. the hint system) but have no dedicated
     // nutrition-threshold rule reliable enough to code here yet.
     val conditions = profile.healthConditions
+    // The base engine's own NegativeNutrientsPillar judges sat-fat/sugar against
+    // category-relative thresholds (cheese tolerates far more sat fat than a
+    // sandwich; a condiment far more sugar than a beverage - see
+    // CategoryThresholds.kt) - but every condition/BMI check below this point
+    // used to compare against one flat number regardless of category. That mix
+    // produced exactly the "raw mozzarella flagged, boxed pasta meal not"
+    // inconsistency a user reported: cheese is *always and unavoidably* higher
+    // in saturated fat than the flat 5g/100g bar, so an overweight/obese
+    // profile got that same amplified penalty on every single cheese scanned
+    // regardless of whether it was unusually fatty for a cheese - while nothing
+    // here ever looked at refined-carbohydrate/energy-density signals at all,
+    // so a NOVA-4 boxed pasta/rice meal (low fat, low sugar, but refined starch
+    // and calorie-dense even for a ready meal) sailed through untouched. Reusing
+    // the same category-relative thresholds here (computed once, since diabetes/
+    // age/BMI all need them) fixes the false positive; the new refined-carb/
+    // energy-density check below fixes the false negative.
+    val catThresholds = getThresholds(product.category)
     if ("diabetes" in conditions) {
         val sugars = product.nutrition.sugarsG
-        if (sugars >= 15.0) {
+        // .third/.first = the "major"/"minor" tiers of Quadruple(minor, moderate,
+        // major, critical) - for the DEFAULT category these are exactly 15.0/5.0,
+        // so this is behavior-identical to the old flat cutoff for any product
+        // whose category has no override, and only loosens for categories (e.g.
+        // condiments) whose own base-pillar thresholds are already higher.
+        if (sugars >= catThresholds.sugarThresholds.third) {
             adjustments += PersonalAdjustment(
                 points = -4.0,
                 reason = if (lang == "en") "High sugar (${sugars} g/100 g) — caution advised for diabetes"
                          else "Sucres élevés (${sugars} g/100 g) — prudence recommandée en cas de diabète",
                 category = AdjustmentCategory.CONDITION,
             )
-        } else if (sugars <= 5.0) {
+        } else if (sugars <= catThresholds.sugarThresholds.first) {
             adjustments += PersonalAdjustment(
                 points = 2.0,
                 reason = if (lang == "en") "Low sugar — diabetes-friendly"
@@ -460,7 +482,7 @@ fun computePersonalScore(
             )
         }
         if (age < 18) {
-            if (product.nutrition.sugarsG > 15) {
+            if (product.nutrition.sugarsG > catThresholds.sugarThresholds.third) {
                 adjustments += PersonalAdjustment(
                     points   = -4.0,
                     reason   = if (lang == "en") "Sugar penalty amplified for under-18 (WHO stricter in children)"
@@ -630,12 +652,56 @@ fun computePersonalScore(
     val bmiValue = bmi(profile)
     val bmiCat   = bmiCategory(bmiValue)
     if (bmiCat == BmiCategory.OVERWEIGHT || bmiCat?.name?.startsWith("OBESE") == true) {
-        if (product.nutrition.saturatedFatG > 5 || product.nutrition.sugarsG > 15) {
+        // .first = the "moderate" tier of Triple(moderate, major, critical) - for
+        // the DEFAULT category this is exactly 5.0, so behavior-identical to the
+        // old flat cutoff for any uncategorized product, and only loosens for
+        // categories (cheese, oil) whose own base-pillar threshold is already
+        // higher - see catThresholds' own comment above for why a flat 5g bar
+        // flagged literally every cheese regardless of whether it was unusually
+        // fatty for a cheese.
+        if (product.nutrition.saturatedFatG > catThresholds.satFatThresholds.first || product.nutrition.sugarsG > catThresholds.sugarThresholds.third) {
             adjustments += PersonalAdjustment(
                 points   = -4.0,
                 reason   = if (lang == "en")
                     "BMI $bmiValue (${bmiCat?.name?.lowercase()}) — high sat fat/sugar penalty amplified (WHO BMI 2000)"
                 else "IMC $bmiValue (${bmiCat?.name?.lowercase()}) — pénalité accrue sur graisses saturées/sucres (OMS 2000)",
+                category = AdjustmentCategory.BMI,
+            )
+        }
+        // Refined-carbohydrate / energy-density signal — previously this whole
+        // BMI section only ever looked at sat fat and sugar, so an ultra-
+        // processed, low-fat, low-sugar refined-starch product (a boxed pasta/
+        // rice meal: wheat pasta + a seasoning sachet, no meaningful fat or
+        // sugar, but essentially fiber-free refined carbohydrate and often
+        // markedly more calorie-dense than a typical ready meal) passed through
+        // completely untouched for an overweight/obese profile. Refined
+        // carbohydrate/glycemic load is an independently established obesity-
+        // risk factor, not just fat/sugar (Mozaffarian et al., NEJM 2011;
+        // McKeown et al., Framingham Offspring Study, Am J Clin Nutr 2004).
+        val netCarbs = (product.nutrition.carbsG - product.nutrition.fiberG).coerceAtLeast(0.0)
+        if (product.novaClass == NovaClass.ULTRA_PROCESSED && netCarbs >= 40.0 && product.nutrition.fiberG < 3.0) {
+            adjustments += PersonalAdjustment(
+                points   = -3.0,
+                reason   = if (lang == "en")
+                    "Ultra-processed refined carbohydrate (${netCarbs}g net carbs/100g, low fiber) — obesity-risk signal amplified (Mozaffarian et al., NEJM 2011)"
+                else "Glucides raffinés ultra-transformés (${netCarbs} g de glucides nets/100 g, peu de fibres) — signal de risque amplifié (Mozaffarian et al., NEJM 2011)",
+                category = AdjustmentCategory.BMI,
+            )
+        }
+        // Same idea, orthogonal to macro composition: a product can be
+        // calorie-dense for its own category through refined starch alone,
+        // with no single macro crossing the sat-fat/sugar/net-carbs bars above.
+        // 1.15x (looser than the base engine's own >1.25x "anomaly" bar in
+        // NegativeNutrientsPillar) so this amplifies moderately-elevated
+        // density specifically for an at-risk BMI, on top of - not only
+        // duplicating - the neutral anomaly flag everyone already gets.
+        val (_, kcalHigh) = catThresholds.expectedKcalRange
+        if (product.nutrition.energyKcal > kcalHigh * 1.15) {
+            adjustments += PersonalAdjustment(
+                points   = -2.0,
+                reason   = if (lang == "en")
+                    "Energy-dense for its category (${product.nutrition.energyKcal.roundToInt()} kcal/100 g vs ${kcalHigh.roundToInt()} typical max) — amplified for BMI $bmiValue"
+                else "Dense en énergie pour sa catégorie (${product.nutrition.energyKcal.roundToInt()} kcal/100 g vs ${kcalHigh.roundToInt()} maximum typique) — amplifié pour IMC $bmiValue",
                 category = AdjustmentCategory.BMI,
             )
         }

@@ -295,6 +295,89 @@ class PersonalScoreEngineTest {
         assertFalse(result.adjustments.any { it.category == AdjustmentCategory.GOAL })
     }
 
+    // ---- computePersonalScore: BMI — category-aware thresholds ----
+    //
+    // Regression coverage for a reported inconsistency: raw mozzarella (naturally
+    // high in saturated fat, as all cheese is) got the BMI "amplified" penalty on
+    // every single scan, while a boxed/ultra-processed pasta meal (refined carbs,
+    // low fat, low sugar, but calorie-dense) got none at all — the old code
+    // compared everything against one flat 5g-sat-fat/15g-sugar bar regardless of
+    // category, instead of the same category-relative thresholds
+    // NegativeNutrientsPillar already uses for the base score.
+
+    private fun obeseProfile() = maleProfile().copy(weightKg = 110.0) // BMI ~33.9 -> OBESE_1
+
+    @Test
+    fun `Mozzarella with moderate sat fat gets no BMI penalty once cheese's own category threshold is used`() {
+        // 9g sat fat/100g is above the flat 5g bar the old code used, but below
+        // cheese's own category threshold (12g "moderate" tier) — this is an
+        // unremarkable amount of fat for a cheese, not something that should be
+        // flagged as extra-risky just because it's cheese.
+        val mozzarella = Product(
+            name = "Mozzarella fraîche", category = ProductCategory.CHEESE, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(Ingredient(name = "lait", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(
+                energyKcal = 280.0, fatG = 17.0, saturatedFatG = 9.0, carbsG = 2.0,
+                sugarsG = 1.0, fiberG = 0.0, proteinG = 22.0, saltG = 0.6,
+            ),
+        )
+        val audit = scoreProduct(mozzarella)
+        // lang="en" so the reason text below matches the English phrasing being
+        // asserted on (computePersonalScore defaults to "fr").
+        val result = computePersonalScore(audit, mozzarella, obeseProfile(), lang = "en")
+        // AdjustmentCategory.BMI is also reused by the unrelated PROTEIN PRI and
+        // DAILY TARGET CONTEXT sections (this cheese's own protein density
+        // legitimately earns a PRI bonus regardless of the fix under test here),
+        // so this checks the specific sat-fat/sugar rule's own reason text
+        // rather than the whole (overloaded) category tag.
+        assertTrue("Moderate-sat-fat cheese should not get the BMI sat-fat/sugar penalty (was flagged via a flat 5g bar before the fix)",
+            result.adjustments.none { it.reason.contains("sat fat/sugar penalty amplified", ignoreCase = true) })
+    }
+
+    @Test
+    fun `Mozzarella genuinely above cheese's own category threshold still gets flagged`() {
+        // The fix only removes the *unfair* flag — a cheese that's unusually
+        // fatty even by cheese standards (>12g/100g) should still be caught.
+        val fattyMozzarella = Product(
+            name = "Mozzarella extra grasse", category = ProductCategory.CHEESE, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(Ingredient(name = "lait", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(
+                energyKcal = 350.0, fatG = 28.0, saturatedFatG = 18.0, carbsG = 2.0,
+                sugarsG = 1.0, fiberG = 0.0, proteinG = 22.0, saltG = 0.6,
+            ),
+        )
+        val audit = scoreProduct(fattyMozzarella)
+        val result = computePersonalScore(audit, fattyMozzarella, obeseProfile(), lang = "en")
+        assertTrue(result.adjustments.any { it.reason.contains("sat fat/sugar penalty amplified", ignoreCase = true) })
+    }
+
+    @Test
+    fun `Boxed ultra-processed pasta meal now gets a BMI penalty it previously never got`() {
+        // Low fat, low sugar (never crosses the old flat bars at all), but
+        // ultra-processed refined-carb and markedly more calorie-dense than a
+        // typical ready meal (category norm 80-200 kcal/100g).
+        val pastaBox = Product(
+            name = "Pâtes box au fromage", category = ProductCategory.READY_MEAL, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(
+                Ingredient(name = "pâtes de blé", category = IngredientCategory.FOOD),
+                Ingredient(name = "arômes", category = IngredientCategory.ADDITIVE),
+            ),
+            nutrition = NutritionPer100g(
+                // saltG kept well clear of the unrelated DAILY TARGET CONTEXT
+                // salt-budget rule's own 30%-of-5g-ceiling trigger, so this test
+                // stays focused on the refined-carb/energy-density signals only.
+                energyKcal = 370.0, fatG = 2.0, saturatedFatG = 1.0, carbsG = 70.0,
+                sugarsG = 3.0, fiberG = 2.0, proteinG = 10.0, saltG = 1.0,
+            ),
+        )
+        val audit = scoreProduct(pastaBox)
+        val result = computePersonalScore(audit, pastaBox, obeseProfile())
+        val bmiAdjustments = result.adjustments.filter { it.category == AdjustmentCategory.BMI }
+        assertTrue("Boxed ultra-processed pasta meal should now get at least one BMI adjustment (refined-carb and/or energy-density signal)",
+            bmiAdjustments.isNotEmpty())
+        assertTrue("All new BMI signals here should be penalties, not bonuses", bmiAdjustments.all { it.points < 0 })
+    }
+
     // ---- personalGrade ----
 
     @Test
