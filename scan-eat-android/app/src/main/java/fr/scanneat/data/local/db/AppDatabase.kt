@@ -39,7 +39,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationLogEntity::class,
         ScanScoreHistoryEntity::class,
     ],
-    version = 21,
+    version = 22,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -316,5 +316,13 @@ val MIGRATION_20_21 = object : Migration(20, 21) {
         // ScanResult's favorite field at all, so a saved recipe could never be
         // pinned to the top of the list the way a favorited scan can.
         db.execSQL("ALTER TABLE `recipes` ADD COLUMN `favorite` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+val MIGRATION_21_22 = object : Migration(21, 22) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v21 → v22: meal_templates gains favorite - same gap as recipes had
+        // before MIGRATION_20_21: a saved meal template could never be pinned
+        // to the top of the Templates library.
+        db.execSQL("ALTER TABLE `meal_templates` ADD COLUMN `favorite` INTEGER NOT NULL DEFAULT 0")
     }
 }

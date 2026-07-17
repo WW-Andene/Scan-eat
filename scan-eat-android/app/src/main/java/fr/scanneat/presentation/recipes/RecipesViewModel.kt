@@ -16,6 +16,7 @@ import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.planning.findPairings
+import fr.scanneat.domain.engine.planning.normalizeKey
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.DiaryEntry
@@ -43,20 +44,32 @@ class RecipesViewModel @Inject constructor(
 
     fun setGoalFilter(f: GoalFilter) { _goalFilter.value = f }
 
+    // Recipes previously had no way to search by name at all - only the macro-based
+    // GoalFilter chips - unlike ScanHistory's real debounced text search. The list
+    // lives fully in memory already (repo.observeAll()), so a simple in-memory
+    // contains() filter is enough; no DAO query needed.
+    private val _recipeQuery = MutableStateFlow("")
+    val recipeQuery: StateFlow<String> = _recipeQuery.asStateFlow()
+    fun setRecipeQuery(q: String) { _recipeQuery.value = q }
+
     private val _allRecipes: StateFlow<List<Recipe>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val recipes: StateFlow<List<Recipe>> = combine(_allRecipes, _goalFilter) { list, filter ->
+    val recipes: StateFlow<List<Recipe>> = combine(_allRecipes, _goalFilter, _recipeQuery.debounce(150)) { list, filter, query ->
         val filtered = when (filter) {
             GoalFilter.ALL         -> list
             GoalFilter.HIGH_PROTEIN -> list.filter { r -> r.totalGrams > 0 && r.totalProteinG / r.totalGrams * 100 >= 15 }
             GoalFilter.LOW_CARB    -> list.filter { r -> r.totalGrams > 0 && r.totalCarbsG / r.totalGrams * 100 <= 20 }
             GoalFilter.LOW_FAT     -> list.filter { r -> r.totalGrams > 0 && r.totalFatG / r.totalGrams * 100 <= 10 }
         }
+        val searched = if (query.isBlank()) filtered else {
+            val key = normalizeKey(query)
+            filtered.filter { normalizeKey(it.name).contains(key) }
+        }
         // Favorites first (Recipe had no equivalent to ScanResult's favorite field
         // at all) - sortedByDescending is stable, so createdAt-DESC ordering
         // (already applied by RecipeDao.observeAll) is preserved within each group.
-        filtered.sortedByDescending { it.favorite }
+        searched.sortedByDescending { it.favorite }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun toggleFavorite(recipe: Recipe) = viewModelScope.launch {

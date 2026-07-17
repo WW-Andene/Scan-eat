@@ -115,6 +115,12 @@ class TodayWidget : GlanceAppWidget() {
         val noTargetLabel = localizedString(context, lang, R.string.widget_today_no_target)
         val hydrationLabel = localizedString(context, lang, R.string.widget_today_hydration_ml, hydrationMl)
         val addGlassLabel = localizedString(context, lang, R.string.widget_today_add_glass, HYD_GLASS_ML)
+        // Widget hasn't tracked Dashboard/Diary's macro breakdown at all since it was
+        // built - reuse the same single-letter abbreviations (P/G/L fr, P/C/F en)
+        // Templates/Recipes cards already use, rather than a widget-only string.
+        val macroLabel = "${localizedString(context, lang, R.string.macro_protein_abbr)} ${summary.totals.proteinG.roundToInt()}g · " +
+            "${localizedString(context, lang, R.string.macro_carbs_abbr)} ${summary.totals.carbsG.roundToInt()}g · " +
+            "${localizedString(context, lang, R.string.macro_fat_abbr)} ${summary.totals.fatG.roundToInt()}g"
 
         provideContent {
             // semanticBlue() (used by the hydration row below) reads LocalColorblindMode,
@@ -136,6 +142,7 @@ class TodayWidget : GlanceAppWidget() {
                         noTargetLabel = noTargetLabel,
                         hydrationLabel = hydrationLabel,
                         addGlassLabel = addGlassLabel,
+                        macroLabel = macroLabel,
                         compact = compact,
                     )
                 }
@@ -145,7 +152,9 @@ class TodayWidget : GlanceAppWidget() {
 
     companion object {
         val COMPACT_SIZE = DpSize(180.dp, 90.dp)
-        val FULL_SIZE = DpSize(180.dp, 130.dp)
+        // Grew from 130dp when the macro (P/C/F) row was added below the streak line -
+        // see today_widget_info.xml's matching minHeight bump.
+        val FULL_SIZE = DpSize(180.dp, 148.dp)
     }
 }
 
@@ -159,6 +168,7 @@ private fun TodayWidgetContent(
     noTargetLabel: String,
     hydrationLabel: String,
     addGlassLabel: String,
+    macroLabel: String,
     compact: Boolean,
 ) {
     Column(
@@ -194,6 +204,8 @@ private fun TodayWidgetContent(
         if (!compact) {
             Spacer(modifier = GlanceModifier.height(6.dp))
             Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoral), fontSize = 12.sp, fontWeight = FontWeight.Medium))
+            Spacer(modifier = GlanceModifier.height(4.dp))
+            Text(macroLabel, style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp))
             Spacer(modifier = GlanceModifier.height(10.dp))
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),

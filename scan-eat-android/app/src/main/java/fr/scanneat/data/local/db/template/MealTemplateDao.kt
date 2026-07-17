@@ -26,4 +26,7 @@ interface MealTemplateDao {
 
     @Query("DELETE FROM meal_templates WHERE id = :id")
     suspend fun delete(id: String)
+
+    @Query("UPDATE meal_templates SET favorite = :favorite WHERE id = :id")
+    suspend fun setFavorite(id: String, favorite: Boolean)
 }

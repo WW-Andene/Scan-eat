@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -37,6 +38,7 @@ fun RecipesScreen(
     val officialWarnings = viewModel.officialRecipeWarnings.collectAsStateWithLifecycle()
     val pairings = viewModel.recipePairings.collectAsStateWithLifecycle()
     val goalFilter = viewModel.goalFilter.collectAsStateWithLifecycle()
+    val recipeQuery = viewModel.recipeQuery.collectAsStateWithLifecycle()
     val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
@@ -84,6 +86,27 @@ fun RecipesScreen(
             item { Spacer(Modifier.height(Spacing.M)) }
             item {
                 Text(stringResource(R.string.recipes_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+            }
+            item {
+                // Recipes previously had no way to search by name - only the macro-based
+                // filter chips below - unlike History/CustomFood's real text search.
+                OutlinedTextField(
+                    value = recipeQuery.value,
+                    onValueChange = { viewModel.setRecipeQuery(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.recipes_search_placeholder), color = OnBackground.copy(0.4f)) },
+                    leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
+                    trailingIcon = {
+                        if (recipeQuery.value.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.setRecipeQuery("") }) {
+                                Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                )
             }
             item {
                 val filterOptions = listOf(

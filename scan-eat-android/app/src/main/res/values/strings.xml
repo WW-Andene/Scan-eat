@@ -1098,6 +1098,7 @@
     <string name="templates_stats_count">%1$d modèle(s)</string>
     <string name="templates_stats_total_kcal">%1$d kcal total</string>
     <string name="recipes_empty_body">Aucune recette. Créez votre première recette multi-ingrédients.</string>
+    <string name="recipes_search_placeholder">Rechercher une recette…</string>
     <string name="recipes_filter_all">Tous</string>
     <string name="recipes_filter_high_protein">Riche protéines</string>
     <string name="recipes_filter_low_carb">Low-carb</string>

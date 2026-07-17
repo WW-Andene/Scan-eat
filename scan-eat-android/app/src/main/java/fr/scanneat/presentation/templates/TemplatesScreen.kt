@@ -3,6 +3,7 @@ package fr.scanneat.presentation.templates
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,6 +37,7 @@ fun TemplatesScreen(
     onBack: () -> Unit,
 ) {
     val templates = viewModel.templates.collectAsStateWithLifecycle()
+    val mealFilter = viewModel.mealFilter.collectAsStateWithLifecycle()
     val libraryTotalKcal = viewModel.libraryTotalKcal.collectAsStateWithLifecycle()
     val ingredientSearchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
     val templateWarnings = viewModel.templateWarnings.collectAsStateWithLifecycle()
@@ -60,6 +62,22 @@ fun TemplatesScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            item {
+                // Templates had zero list-level filtering despite MealTemplate.meal being
+                // the exact same ready-made filter dimension Recipes already uses for its
+                // own GoalFilter chips.
+                val mealOptions = listOf<MealSlot?>(null) + MealSlot.values().toList()
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    items(mealOptions) { slot ->
+                        FilterChip(
+                            selected = mealFilter.value == slot,
+                            onClick = { viewModel.setMealFilter(slot) },
+                            label = { Text(slot?.label() ?: stringResource(R.string.recipes_filter_all)) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                        )
+                    }
+                }
+            }
             if (templates.value.isNotEmpty()) {
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -95,6 +113,15 @@ fun TemplatesScreen(
                                         style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                                 }
                                 Row {
+                                    // Templates had no equivalent to Recipes'/ScanHistory's favorite
+                                    // pin at all - same Star/StarBorder pattern as RecipeCard.
+                                    IconButton(onClick = { viewModel.toggleFavorite(template) }, modifier = Modifier.size(36.dp)) {
+                                        Icon(
+                                            if (template.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                                            stringResource(if (template.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                                            tint = if (template.favorite) Gold else OnSurface.copy(0.3f),
+                                        )
+                                    }
                                     // Previously the only way a template could get items was
                                     // never - create() always built one with an empty list and
                                     // there was no UI anywhere to add to it afterward.

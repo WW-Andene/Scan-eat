@@ -43,6 +43,7 @@ data class MealTemplate(
     val meal: MealSlot,
     val items: List<TemplateItem>,
     val createdAt: Long,
+    val favorite: Boolean = false,
 ) {
     // Round rather than truncate - .toInt() biased every total down (e.g. a
     // template summing to 0.9g protein displayed "0g"), same fix already
@@ -91,19 +92,25 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
         // id) previously re-stamped createdAt to now on every save - same bug already
         // fixed in RecipeRepository/MedicationRepository/CustomFoodRepository - preserve
         // the original row's createdAt when one exists, since observeAll() orders by it.
-        val createdAt = id?.let { dao.findById(it)?.createdAt } ?: System.currentTimeMillis()
+        val existing = id?.let { dao.findById(it) }
+        val createdAt = existing?.createdAt ?: System.currentTimeMillis()
         val template = MealTemplate(
             id        = id ?: UUID.randomUUID().toString(),
             name      = name.trim(),
             meal      = meal,
             items     = items,
             createdAt = createdAt,
+            // Same reconstruct-from-scratch save() as RecipeRepository - without this,
+            // any edit (rename/addItem/removeItem) would silently un-favorite the template.
+            favorite  = existing?.favorite ?: false,
         )
         dao.upsert(template.toEntity(profileId))
         return template
     }
 
     suspend fun delete(id: String) = dao.delete(id)
+
+    suspend fun setFavorite(id: String, favorite: Boolean) = dao.setFavorite(id, favorite)
 
     suspend fun findById(id: String): MealTemplate? = dao.findById(id)?.toDomain()
 
@@ -159,6 +166,7 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
         itemsJson = itemsAdapter.toJson(items),
         createdAt = createdAt,
         profileId = profileId,
+        favorite  = favorite,
     )
 
     private fun MealTemplateEntity.toDomain(): MealTemplate? = runCatching {
@@ -168,6 +176,7 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
             meal      = MealSlot.valueOf(meal.uppercase()),
             items     = itemsAdapter.fromJson(itemsJson) ?: emptyList(),
             createdAt = createdAt,
+            favorite  = favorite,
         )
     }.onFailure {
         // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -

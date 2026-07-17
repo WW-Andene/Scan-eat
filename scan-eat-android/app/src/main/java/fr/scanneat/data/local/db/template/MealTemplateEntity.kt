@@ -12,4 +12,5 @@ data class MealTemplateEntity(
     val itemsJson: String,         // serialised List<TemplateItem>
     val createdAt: Long,
     val profileId: String = "default",
+    val favorite: Boolean = false,
 )

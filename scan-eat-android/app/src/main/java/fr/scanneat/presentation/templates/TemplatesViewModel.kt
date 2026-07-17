@@ -26,11 +26,29 @@ class TemplatesViewModel @Inject constructor(
     private val customFoodRepo: CustomFoodRepository,
     private val prefs: UserPreferences,
 ) : ViewModel() {
-    val templates: StateFlow<List<MealTemplate>> = repo.observeAll()
+    private val _allTemplates: StateFlow<List<MealTemplate>> = repo.observeAll()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /** Sum of all items' kcal across every template — shown as a library-level stat. */
-    val libraryTotalKcal: StateFlow<Int> = templates.map { list ->
+    // Templates had zero list-level filtering despite MealTemplate.meal being the
+    // exact same ready-made filter dimension Recipes already uses for its own
+    // GoalFilter chips - null means "all meal slots".
+    private val _mealFilter = MutableStateFlow<MealSlot?>(null)
+    val mealFilter: StateFlow<MealSlot?> = _mealFilter.asStateFlow()
+    fun setMealFilter(m: MealSlot?) { _mealFilter.value = m }
+
+    val templates: StateFlow<List<MealTemplate>> = combine(_allTemplates, _mealFilter) { list, filter ->
+        val filtered = if (filter == null) list else list.filter { it.meal == filter }
+        // Favorites first - same pattern as RecipesViewModel.recipes; sortedByDescending
+        // is stable, so observeAll()'s createdAt-DESC ordering is preserved within each group.
+        filtered.sortedByDescending { it.favorite }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun toggleFavorite(template: MealTemplate) = viewModelScope.launch {
+        repo.setFavorite(template.id, !template.favorite)
+    }
+
+    /** Sum of all items' kcal across every template — shown as a library-level stat, unaffected by the meal-slot filter. */
+    val libraryTotalKcal: StateFlow<Int> = _allTemplates.map { list ->
         list.sumOf { it.totalKcal }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
