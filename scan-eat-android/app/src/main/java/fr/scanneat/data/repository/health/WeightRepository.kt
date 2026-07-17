@@ -4,6 +4,7 @@ import fr.scanneat.data.local.db.toIsoString
 import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.data.local.db.weight.WeightEntity
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.domain.model.roundTo1Decimal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -39,6 +40,7 @@ data class WeightSummary(
 class WeightRepository @Inject constructor(
     private val dao: WeightDao,
     private val healthConnect: HealthConnectRepository,
+    private val userPreferences: UserPreferences,
 ) {
 
     fun observeAll(profileId: String = "default"): Flow<List<WeightEntry>> =
@@ -73,6 +75,16 @@ class WeightRepository @Inject constructor(
             )
         }
         if (existing?.weightKg != rounded) healthConnect.writeWeight(date, rounded)
+        // Every BMI/TDEE/calorie-balance/kcal-burned calc downstream reads
+        // prefs.profile.weightKg (ProfileViewModel, DashboardViewModel,
+        // ActivityViewModel, BiolismRepository's no-override fallback), but this
+        // never actually called updateWeight() - its own doc comment already
+        // claimed "used by WeightRepository after logging," yet it had zero real
+        // callers, so every one of those calcs kept using a stale weight after
+        // any weigh-in. Skipped for backdated past-day corrections (a fix to an
+        // old missed entry isn't the user's current weight and shouldn't
+        // override it).
+        if (!date.isBefore(LocalDate.now())) userPreferences.updateWeight(rounded)
     }
 
     /**
@@ -113,16 +125,21 @@ class WeightRepository @Inject constructor(
         for ((date, records) in byDate) {
             if (date.toIsoString() in existingDates) continue
             val latest = records.maxByOrNull { it.time } ?: continue
+            val kg = latest.weight.inKilograms.roundTo1Decimal()
             dao.insertIfAbsent(date.toIsoString(), profileId) {
                 WeightEntity(
                     id        = UUID.randomUUID().toString(),
                     date      = date.toIsoString(),
-                    weightKg  = latest.weight.inKilograms.roundTo1Decimal(),
+                    weightKg  = kg,
                     notes     = "",
                     loggedAt  = System.currentTimeMillis(),
                     profileId = profileId,
                 )
             }
+            // Same profile-sync rule as log() - a scale writing straight into Health
+            // Connect and pulled in here should keep the app-wide profile weight
+            // fresh too, not just its own local history.
+            if (date == LocalDate.now()) userPreferences.updateWeight(kg)
         }
     }
 

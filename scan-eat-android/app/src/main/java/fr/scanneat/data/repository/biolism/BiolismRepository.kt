@@ -157,7 +157,12 @@ class BiolismRepository @Inject constructor(
         }
         userPreferences.saveProfile(
             current.copy(
-                sex           = sex,
+                // age/height/weight already guard against a zero racing in from
+                // BiolismProfileScreen's own cold-start seed (see its p-keyed
+                // remember() comment) - sex had the identical race unguarded: a
+                // save that lands before the real profile Flow value arrives
+                // would silently reset the main profile's sex to NOT_SPECIFIED.
+                sex           = sex.takeIf { it != fr.scanneat.domain.model.Sex.NOT_SPECIFIED } ?: current.sex,
                 ageYears      = profile.ageYears.takeIf { it > 0 } ?: current.ageYears,
                 heightCm      = profile.heightCm.takeIf { it > 0 } ?: current.heightCm,
                 weightKg      = profile.weightKg.takeIf { it > 0 } ?: current.weightKg,
@@ -332,6 +337,14 @@ class BiolismRepository @Inject constructor(
     suspend fun importForBackup(data: BiolismBackupData) {
         store.edit { p ->
             p[K_ONBOARDED] = data.onboarded
+            // Previously only reapplied K_SEX/AGE/HEIGHT/WEIGHT/ACTIVITY when the
+            // backup itself had an override, but never cleared an EXISTING local
+            // override when the backup didn't - restoring a backup with no
+            // override (or an old pre-v4 backup with none at all) left this
+            // device's prior override in place, now permanently diverged from the
+            // main profile the restore just overwrote. Always clear first, same
+            // key set as clearProfileOverride(), then conditionally reapply.
+            p.remove(K_SEX); p.remove(K_AGE); p.remove(K_HEIGHT); p.remove(K_WEIGHT); p.remove(K_ACTIVITY)
             if (data.hasProfileOverride) {
                 data.sex?.let         { p[K_SEX] = it }
                 data.ageYears?.let    { p[K_AGE] = it }

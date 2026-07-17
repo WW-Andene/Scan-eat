@@ -69,6 +69,18 @@ fun HydrationScreen(
     val goalGlasses = goal.value / HYD_GLASS_ML
     val pct         = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
 
+    // addGlass()/removeGlass() previously failed completely silently - see
+    // HydrationViewModel.actionFailed's own comment.
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.XL),
@@ -291,7 +303,10 @@ fun HydrationScreen(
     }
 
     if (embedded) {
-        content(PaddingValues(0.dp))
+        Box(Modifier.fillMaxSize()) {
+            content(PaddingValues(0.dp))
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+        }
     } else {
         Scaffold(
             topBar = {
@@ -301,6 +316,7 @@ fun HydrationScreen(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = Background,
         ) { padding -> content(padding) }
     }

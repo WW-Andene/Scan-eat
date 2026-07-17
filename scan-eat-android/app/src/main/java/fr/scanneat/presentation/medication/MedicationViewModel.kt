@@ -9,8 +9,10 @@ import fr.scanneat.data.repository.health.MedicationRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -173,38 +175,55 @@ class MedicationViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Every write below previously called repo's Room writes completely unguarded -
+    // unlike every sibling tracker (Weight/Activity/Dashboard/MealPlan/Templates all
+    // wrap theirs in runCatching), so a write failure here wasn't just silent, it
+    // was an uncaught exception that would crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed save, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun markTaken(medication: Medication) {
-        viewModelScope.launch { repo.logTaken(medication) }
+        viewModelScope.launch { runCatching { repo.logTaken(medication) }.onFailure { _actionFailed.value = true } }
     }
 
     fun undoTaken(entry: MedicationLogEntry) {
-        viewModelScope.launch { repo.deleteLogEntry(entry.id) }
+        viewModelScope.launch { runCatching { repo.deleteLogEntry(entry.id) }.onFailure { _actionFailed.value = true } }
     }
 
     fun save(name: String, dosage: String, scheduleNote: String, reminderOn: Boolean = false, reminderTime: String = "08:00") {
         if (name.isBlank()) return
-        viewModelScope.launch { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime) }
+        viewModelScope.launch {
+            runCatching { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime) }.onFailure { _actionFailed.value = true }
+        }
     }
 
     fun rename(medication: Medication, newName: String) {
         if (newName.isBlank()) return
         viewModelScope.launch {
-            repo.save(newName, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
-                reminderOn = medication.reminderOn, reminderTime = medication.reminderTime)
+            runCatching {
+                repo.save(newName, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
+                    reminderOn = medication.reminderOn, reminderTime = medication.reminderTime)
+            }.onFailure { _actionFailed.value = true }
         }
     }
 
     /** Toggles/updates a medication's own reminder — previously "schedule" was display-only text with no actual reminder capability. */
     fun setReminder(medication: Medication, on: Boolean, time: String) {
         viewModelScope.launch {
-            repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
-                reminderOn = on, reminderTime = time)
+            runCatching {
+                repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
+                    reminderOn = on, reminderTime = time)
+            }.onFailure { _actionFailed.value = true }
         }
     }
 
     fun setActive(medication: Medication, active: Boolean) {
-        viewModelScope.launch { repo.setActive(medication, active) }
+        viewModelScope.launch { runCatching { repo.setActive(medication, active) }.onFailure { _actionFailed.value = true } }
     }
 
-    fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
+    fun delete(id: String) = viewModelScope.launch {
+        runCatching { repo.delete(id) }.onFailure { _actionFailed.value = true }
+    }
 }

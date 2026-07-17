@@ -34,8 +34,17 @@ class FastingViewModel @Inject constructor(
         while (true) { emit(System.currentTimeMillis()); delay(1000) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), System.currentTimeMillis())
 
-    fun start(hours: Int) = viewModelScope.launch { repo.start(hours) }
-    fun stop()            = viewModelScope.launch { repo.stop() }
-    fun cancel()          = viewModelScope.launch { repo.cancel() }
+    // start()/stop()/cancel() previously called repo's DataStore writes completely
+    // unguarded - unlike every sibling tracker (Weight/Activity/Dashboard/MealPlan/
+    // Templates all wrap theirs in runCatching), so a write failure here wasn't
+    // just silent, it was an uncaught exception that would crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed save, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
+    fun start(hours: Int) = viewModelScope.launch { runCatching { repo.start(hours) }.onFailure { _actionFailed.value = true } }
+    fun stop()            = viewModelScope.launch { runCatching { repo.stop() }.onFailure { _actionFailed.value = true } }
+    fun cancel()           = viewModelScope.launch { runCatching { repo.cancel() }.onFailure { _actionFailed.value = true } }
 }
 

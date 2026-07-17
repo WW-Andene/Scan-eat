@@ -170,7 +170,7 @@ internal fun DualScoreRing(
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(classicGrade.label, style = HeroNumberStyle.copy(fontSize = 26.sp), color = classicColor)
-                    Text("$classicScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.result_score_out_of_100, classicScore), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
                 }
             }
         }
@@ -204,7 +204,7 @@ internal fun DualScoreRing(
                     Text(if (veto) "✗" else personalGrade.label,
                         style = HeroNumberStyle.copy(fontSize = 26.sp),
                         color = personalColor)
-                    Text("$personalScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
+                    Text(stringResource(R.string.result_score_out_of_100, personalScore), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
                 }
             }
         }

@@ -73,8 +73,20 @@ class ProfileViewModel @Inject constructor(
      */
     fun save(profile: Profile, waistCm: Double, hipCm: Double, neckCm: Double, ethnicityId: String) {
         viewModelScope.launch {
+            // Biolism's own override (sex/age/height/weight/activity - see
+            // BiolismRepository.saveProfile()'s own doc comment) previously got
+            // cleared unconditionally on every single save here, even one that
+            // only touched allergens/diet/goal weight - a user who'd deliberately
+            // set a Biolism-specific weight/activity (e.g. for a more precise
+            // body-comp-aware TDEE) lost it the next time they saved anything
+            // unrelated on this screen. Only clear when a field Biolism actually
+            // mirrors changed.
+            val before = this@ProfileViewModel.profile.value
             prefs.saveProfile(profile)
-            biolismRepo.clearProfileOverride()
+            val sharedFieldsChanged = before.sex != profile.sex || before.ageYears != profile.ageYears ||
+                before.heightCm != profile.heightCm || before.weightKg != profile.weightKg ||
+                before.activityLevel != profile.activityLevel
+            if (sharedFieldsChanged) biolismRepo.clearProfileOverride()
             biolismRepo.saveBodyMeasurements(waistCm, hipCm, neckCm, ethnicityId)
             _saved.value = true
         }

@@ -55,12 +55,24 @@ class WeightViewModel @Inject constructor(
     val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    /** Consecutive days ending today that have at least one log entry. */
+    /**
+     * Consecutive days ending today that have at least one log entry - 1-day
+     * grace, same rule DashboardAggregator.logStreakDays() already uses for the
+     * diary streak (today not yet logged doesn't break the streak by itself,
+     * only today AND yesterday both missing does). Previously required today
+     * specifically to already have an entry just to start counting at all - a
+     * genuine multi-week streak reset to 0 every single morning before that
+     * day's weigh-in, rather than only after a real gap.
+     */
     val loggingStreakDays: StateFlow<Int> = entries.map { all ->
         if (all.isEmpty()) return@map 0
         val dates = all.map { it.date }.toSet()
-        var streak = 0
         var day = LocalDate.now()
+        if (!dates.contains(day)) {
+            day = day.minusDays(1)
+            if (!dates.contains(day)) return@map 0
+        }
+        var streak = 0
         while (dates.contains(day)) { streak++; day = day.minusDays(1) }
         streak
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)

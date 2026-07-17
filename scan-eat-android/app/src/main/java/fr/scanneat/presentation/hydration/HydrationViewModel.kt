@@ -96,6 +96,15 @@ class HydrationViewModel @Inject constructor(
         week.count { (_, ml) -> ml >= goalMl }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    fun addGlass()    = viewModelScope.launch { repo.addGlass() }
-    fun removeGlass() = viewModelScope.launch { repo.removeGlass() }
+    // addGlass()/removeGlass() previously called repo's DataStore write completely
+    // unguarded - unlike every sibling tracker (Weight/Activity/Dashboard/MealPlan/
+    // Templates all wrap theirs in runCatching), so a write failure here wasn't
+    // just silent, it was an uncaught exception that would crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed save, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
+    fun addGlass()    = viewModelScope.launch { runCatching { repo.addGlass() }.onFailure { _actionFailed.value = true } }
+    fun removeGlass() = viewModelScope.launch { runCatching { repo.removeGlass() }.onFailure { _actionFailed.value = true } }
 }

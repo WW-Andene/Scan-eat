@@ -55,7 +55,12 @@ fun PhysiologicalMetricsCard(
 
         // Manual HR cross-check
         Spacer(Modifier.height(Spacing.S))
-        var hrText by remember { mutableStateOf(manualHR?.toString() ?: "") }
+        // Unkeyed remember() froze this at manualHR's value from the very first
+        // composition (typically null, since manualHR loads asynchronously from
+        // DataStore) and never re-derived - a saved manual HR reading appeared
+        // blank here even though it was correctly loaded and shown elsewhere on
+        // this same card (the diff/SV rows below already read manualHR live).
+        var hrText by remember(manualHR) { mutableStateOf(manualHR?.toString() ?: "") }
         TintedPanel(Violet) {
             Label(stringResource(R.string.biolism_physio_hr_check_title), Violet)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {

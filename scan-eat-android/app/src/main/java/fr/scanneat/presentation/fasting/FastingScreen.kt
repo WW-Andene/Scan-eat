@@ -121,6 +121,18 @@ fun FastingScreen(
     val personalRecord = viewModel.personalRecord.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle() // force recomposition every second
 
+    // start()/stop()/cancel() previously failed completely silently - see
+    // FastingViewModel.actionFailed's own comment.
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     var targetHours by remember { mutableIntStateOf(16) }
     var customMode by remember { mutableStateOf(false) }
     var customStart by remember { mutableStateOf("18:00") }
@@ -319,7 +331,10 @@ fun FastingScreen(
     }
 
     if (embedded) {
-        content(PaddingValues(0.dp))
+        Box(Modifier.fillMaxSize()) {
+            content(PaddingValues(0.dp))
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+        }
     } else {
         Scaffold(
             topBar = {
@@ -329,6 +344,7 @@ fun FastingScreen(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = Background,
         ) { padding -> content(padding) }
     }

@@ -42,10 +42,23 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
         // every second (live tick) — remember so it's not re-scanned 60x/minute
         // against the whole session history.
         val todaySessKcal = remember(sessions) { sessions.filter { isToday(it.timestamp) }.sumOf { it.kcalBurned } }
+        // totalOut (TDEE + today's tracked session) is shown for context in the
+        // Expenditure row below, but netBal deliberately excludes todaySessKcal -
+        // met.tdeeDay is itself PAL-derived from profile.activityMeta (shown just
+        // above), so folding a specific logged session on top risks double-
+        // counting the same activity twice, exactly the reasoning Dashboard's own
+        // CalorieBalanceCard already applies to ActivityRepository's exercise kcal
+        // (see DashboardViewModel's CalorieBalance.exerciseKcal doc comment) -
+        // this card previously used a different rule for what's meant to be the
+        // same "today's net balance" concept as that one.
         val totalOut = met.tdeeDay + todaySessKcal
-        val netBal = todayIntakeKcal - totalOut
+        val netBal = todayIntakeKcal - met.tdeeDay
         Spacer(Modifier.height(Spacing.S))
-        val balanceColor = if (netBal > 200) semanticRed() else if (netBal < -50) semanticGreen() else semanticAmber()
+        // Aligned to Dashboard's CalorieBalanceCard color convention (its own
+        // "Part B6 atmosphere fix") - this card previously mapped deficit to
+        // semanticGreen() while Dashboard maps deficit to AccentCoral, so the
+        // same status read as a different color depending which screen showed it.
+        val balanceColor = if (netBal > 200) semanticRed() else if (netBal < -50) AccentCoral else semanticAmber()
         TintedPanel(balanceColor) {
             Label(stringResource(R.string.biolism_energy_balance_title), balanceColor)
             InfoRow(stringResource(R.string.biolism_energy_intake), "%.0f kcal".format(Locale.US, todayIntakeKcal), stringResource(R.string.biolism_energy_intake_sub), Teal)
@@ -53,7 +66,12 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
             InfoRow(stringResource(R.string.biolism_energy_net_balance), "%+.0f kcal".format(Locale.US, netBal),
                 if (netBal > 200) stringResource(R.string.biolism_energy_status_surplus) else if (netBal < -50) stringResource(R.string.biolism_energy_status_deficit) else stringResource(R.string.biolism_energy_status_balanced),
                 balanceColor)
-            InfoRow(stringResource(R.string.biolism_energy_weight_impact), "%+.3f kg".format(Locale.US, netBal / 7700.0), stringResource(R.string.biolism_energy_weight_impact_sub), TextSecondary)
+            // 1 decimal, matching WeightSummaryCard/BodyCompositionCard's weight
+            // precision convention app-wide - the previous 3 decimals (e.g.
+            // "+0.026 kg") implied a precision this rough net-kcal/7700 estimate
+            // doesn't actually have, and read as disagreeing with every other
+            // weight figure in the app rather than just being a coarser estimate.
+            InfoRow(stringResource(R.string.biolism_energy_weight_impact), "%+.1f kg".format(Locale.US, netBal / 7700.0), stringResource(R.string.biolism_energy_weight_impact_sub), TextSecondary)
         }
     }
 }

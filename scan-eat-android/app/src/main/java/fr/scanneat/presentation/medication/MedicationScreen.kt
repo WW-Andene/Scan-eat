@@ -44,6 +44,18 @@ fun MedicationScreen(
     val interactionWarnings  = viewModel.interactionWarnings.collectAsStateWithLifecycle()
     val adherenceStreak      = viewModel.adherenceStreak.collectAsStateWithLifecycle()
     val weeklyAdherence      = viewModel.weeklyAdherence.collectAsStateWithLifecycle()
+
+    // markTaken/save/rename/delete etc. previously failed completely silently -
+    // see MedicationViewModel.actionFailed's own comment.
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
     var showAdd by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<Medication?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -281,6 +293,7 @@ fun MedicationScreen(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.L),
                 containerColor = Teal,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = androidx.compose.ui.graphics.Color.Black) }
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
         }
     } else {
         Scaffold(
@@ -292,6 +305,7 @@ fun MedicationScreen(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = Background,
         ) { padding -> content(padding) }
     }
