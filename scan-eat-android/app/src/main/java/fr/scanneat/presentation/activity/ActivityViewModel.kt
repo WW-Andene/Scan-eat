@@ -135,29 +135,44 @@ class ActivityViewModel @Inject constructor(
         if (_date.value != today) _date.value = today
     }
 
+    // log()/delete()/restore() previously called repo.log()/repo.delete() completely
+    // unguarded - unlike every sibling ViewModel's equivalent write (Result/Dashboard/
+    // MealPlan/Templates/Weight all wrap theirs in runCatching), so a Room write
+    // failure here wasn't just silent, it was an uncaught exception that would crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed save, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun log(
         type: ActivityType, minutes: Int,
         subType: String? = null, sets: Int? = null, reps: Int? = null,
         distanceKm: Double? = null, weightUsedKg: Double? = null,
     ) {
         viewModelScope.launch {
-            repo.log(
-                type, minutes, weightKg.value ?: 70.0,
-                subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
-            )
+            runCatching {
+                repo.log(
+                    type, minutes, weightKg.value ?: 70.0,
+                    subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
+                )
+            }.onFailure { _actionFailed.value = true }
         }
     }
 
-    fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
+    fun delete(id: String) = viewModelScope.launch {
+        runCatching { repo.delete(id) }.onFailure { _actionFailed.value = true }
+    }
 
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original stats. */
     fun restore(entry: ActivityEntry) {
         viewModelScope.launch {
-            repo.log(
-                entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date,
-                subType = entry.subType, sets = entry.sets, reps = entry.reps,
-                distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg,
-            )
+            runCatching {
+                repo.log(
+                    entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date,
+                    subType = entry.subType, sets = entry.sets, reps = entry.reps,
+                    distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg,
+                )
+            }.onFailure { _actionFailed.value = true }
         }
     }
 }

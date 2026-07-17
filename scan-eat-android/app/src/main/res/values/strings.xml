@@ -69,7 +69,7 @@
     <string name="hydration_weekly_goal_met">%1$d/7 objectifs atteints</string>
     <string name="settings_groq_key">Clé Groq API</string>
     <string name="settings_server_url">URL du serveur</string>
-    <string name="result_log_it">Journaliser</string>
+    <string name="result_log_it">Logger</string>
     <string name="diary_title">Journal du jour</string>
     <string name="dashboard_title">Tableau de bord</string>
 
@@ -661,7 +661,7 @@
     <string name="allergen_lupin">Lupin</string>
 
     <!-- ── Log sheet (portion selector) ───────────────────────────────────── -->
-    <string name="logsheet_title">Journaliser</string>
+    <string name="logsheet_title">Logger</string>
     <string name="logsheet_quantity_label">Quantité (g)</string>
     <string name="logsheet_preset_grams">%1$d g</string>
     <string name="logsheet_preset_package">%1$d g (paquet)</string>
@@ -734,6 +734,7 @@
     <string name="templates_manage_items_title">Aliments — %1$s</string>
     <string name="templates_no_items_yet">Aucun aliment pour l\'instant. Ajoutez-en ci-dessous.</string>
     <string name="common_log">Logger</string>
+    <string name="common_log_failed">Échec de l\'enregistrement. Réessayez.</string>
     <string name="templates_item_summary">• %1$s · %2$d g · %3$d kcal</string>
     <string name="templates_more_items">+ %1$d de plus…</string>
     <string name="templates_log_dialog_title">Logger « %1$s »</string>
@@ -1047,6 +1048,7 @@
     <string name="dashboard_tile_customfoods">Mes aliments</string>
     <string name="dashboard_tile_favorites">Favoris</string>
     <string name="dashboard_tile_calendar">Calendrier</string>
+    <string name="dashboard_tile_history">Historique</string>
     <string name="dashboard_recent_scans_title">Scans récents</string>
     <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant.</string>
     <string name="dashboard_view_all">Voir tout</string>

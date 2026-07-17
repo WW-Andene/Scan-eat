@@ -91,6 +91,14 @@ fun WeightScreen(
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.weight_deleted_message)
     val undoLabel = stringResource(R.string.weight_undo)
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
 
     fun dispWeight(kg: Double): String =
         if (useImperial) "%.1f lb".format(Locale.US, kg * 2.20462) else "%.1f kg".format(Locale.US, kg)

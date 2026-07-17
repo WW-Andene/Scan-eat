@@ -49,8 +49,20 @@ fun MealPlanScreen(
     val dayFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d", Locale(language.value)) }
     // (date, meal) of the slot currently being assigned a recipe/template, or null.
     var assignTarget by remember { mutableStateOf<Pair<LocalDate, String>?>(null) }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    // logSlot previously failed completely silently - see MealPlanViewModel
+    // .actionFailed's own comment.
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.mealplan_title), color = OnBackground) },

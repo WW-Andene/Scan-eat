@@ -168,6 +168,14 @@ class MealPlanViewModel @Inject constructor(
         viewModelScope.launch { repo.copyWeek(start, start.plusDays(7)) }
     }
 
+    // logSlot's runCatching below prevented a crash on Room write failure but had no
+    // failure path at all - a user tapping a planned slot's log icon got zero visible
+    // effect if the write failed, unable to tell whether it had actually logged.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed log, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
         viewModelScope.launch { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name)) }
     }
@@ -204,7 +212,7 @@ class MealPlanViewModel @Inject constructor(
                     }
                     is MealPlanSlot.NoteSlot -> Unit
                 }
-            }
+            }.onFailure { _actionFailed.value = true }
         }
     }
 }

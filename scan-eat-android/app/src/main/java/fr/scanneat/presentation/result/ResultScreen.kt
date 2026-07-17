@@ -13,6 +13,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -23,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +43,7 @@ import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import kotlinx.coroutines.launch
 
 // Orchestrator only — content composition lives in ResultContent.kt, each
 // section/banner in cards/*.kt. Was previously a single 467-line file with
@@ -61,16 +65,26 @@ fun ResultScreen(
     var showHints    by remember { mutableStateOf(false) }
     val context      = LocalContext.current
     val shareTemplate = stringResource(R.string.result_share_text)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    // Navigate to diary after successful log
+    // Navigate to diary after successful log. ResultViewModel.log() already computed
+    // a LogState.Error on failure (Room write failure, disk full, etc.) but nothing
+    // here ever read it - a failed save previously just left the sheet sitting open
+    // with no feedback, so the user couldn't tell whether their tap had registered.
     LaunchedEffect(state.value.logState) {
-        if (state.value.logState is LogState.Done) {
-            showSheet = false
-            onLog()
+        when (val logState = state.value.logState) {
+            is LogState.Done -> { showSheet = false; onLog() }
+            is LogState.Error -> {
+                scope.launch { snackbarHostState.showSnackbar(logState.message) }
+                viewModel.clearLogState()
+            }
+            else -> {}
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.result_title), color = OnBackground) },

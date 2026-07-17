@@ -108,6 +108,14 @@ fun ActivityScreen(
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.activity_deleted_message)
     val undoLabel = stringResource(R.string.activity_undo)
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(

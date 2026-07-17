@@ -83,16 +83,25 @@ class WeightViewModel @Inject constructor(
         viewModelScope.launch { prefs.setUseImperialWeight(v) }
     }
 
+    // log()/restore() previously called repo.log() completely unguarded - unlike
+    // every sibling ViewModel's equivalent write (Result/Dashboard/MealPlan/
+    // Templates all wrap theirs in runCatching), so a Room write failure here
+    // wasn't just silent, it was an uncaught exception that would crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed save, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun log(kg: Double, notes: String = "", date: LocalDate = LocalDate.now()) {
-        viewModelScope.launch { repo.log(date, kg, notes) }
+        viewModelScope.launch { runCatching { repo.log(date, kg, notes) }.onFailure { _actionFailed.value = true } }
     }
 
     fun delete(id: String) {
-        viewModelScope.launch { repo.delete(id) }
+        viewModelScope.launch { runCatching { repo.delete(id) }.onFailure { _actionFailed.value = true } }
     }
 
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original date/weight/notes. */
     fun restore(entry: WeightEntry) {
-        viewModelScope.launch { repo.log(entry.date, entry.weightKg, entry.notes) }
+        viewModelScope.launch { runCatching { repo.log(entry.date, entry.weightKg, entry.notes) }.onFailure { _actionFailed.value = true } }
     }
 }

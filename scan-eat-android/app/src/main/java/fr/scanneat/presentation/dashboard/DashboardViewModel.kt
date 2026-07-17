@@ -221,6 +221,15 @@ class DashboardViewModel @Inject constructor(
     /** Non-null briefly after a successful log, for a one-shot confirmation snackbar. */
     val gapLoggedName: StateFlow<String?> = _gapLoggedName.asStateFlow()
 
+    // logGapSuggestion/logNeverLoggedScan both guarded their Room write with runCatching
+    // to avoid crashing on a disk-full/constraint failure, but neither had a failure
+    // path at all - a save that failed produced zero visible effect, so the user
+    // couldn't tell their tap hadn't actually logged anything.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed log, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun logGapSuggestion(suggestion: GapSuggestion) {
         viewModelScope.launch {
             // Previously only ever searched raw FOOD_DB - a suggestion built from a
@@ -243,6 +252,7 @@ class DashboardViewModel @Inject constructor(
                     )
                 )
             }.onSuccess { _gapLoggedName.value = food.name }
+                .onFailure { _actionFailed.value = true }
         }
     }
 
@@ -263,7 +273,7 @@ class DashboardViewModel @Inject constructor(
                         source      = scan.source,
                     )
                 )
-            }
+            }.onFailure { _actionFailed.value = true }
         }
     }
 

@@ -733,6 +733,7 @@
     <string name="templates_manage_items_title">Items — %1$s</string>
     <string name="templates_no_items_yet">No items yet. Add one below.</string>
     <string name="common_log">Log</string>
+    <string name="common_log_failed">Couldn\'t save. Try again.</string>
     <string name="templates_item_summary">• %1$s · %2$d g · %3$d kcal</string>
     <string name="templates_more_items">+ %1$d more…</string>
     <string name="templates_log_dialog_title">Log “%1$s”</string>
@@ -1013,6 +1014,7 @@
     <string name="dashboard_tile_customfoods">My Foods</string>
     <string name="dashboard_tile_favorites">Favorites</string>
     <string name="dashboard_tile_calendar">Calendar</string>
+    <string name="dashboard_tile_history">History</string>
     <string name="dashboard_recent_scans_title">Recent Scans</string>
     <string name="dashboard_recent_scans_empty">No scans yet.</string>
     <string name="dashboard_view_all">View all</string>

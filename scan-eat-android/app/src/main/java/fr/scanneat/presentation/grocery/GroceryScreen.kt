@@ -295,6 +295,10 @@ private fun GroceryItemRow(
     val item = checkableItem.item
     val checked = checkableItem.checked
     val contentAlpha by animateFloatAsState(if (checked) 0.5f else 1f, label = "groceryItemAlpha")
+    // Previously deleted a manual item on a single tap with no confirmation - every
+    // other destructive action in the app (Weight/Activity/Recipes/Templates/Medication/
+    // CustomFood/ScanHistory) routes through DeleteConfirmDialog first.
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Row(Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.XS), verticalAlignment = Alignment.CenterVertically,
@@ -331,11 +335,18 @@ private fun GroceryItemRow(
                 if (isManual) {
                     // Left at IconButton's default 48dp touch target (Material/WCAG
                     // minimum) - a UI/UX audit found this forced to 32dp.
-                    IconButton(onClick = onDeleteManual) {
+                    IconButton(onClick = { showDeleteConfirm = true }) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }
             }
         }
+    }
+    if (showDeleteConfirm) {
+        DeleteConfirmDialog(
+            itemName = item.name,
+            onConfirm = { onDeleteManual(); showDeleteConfirm = false },
+            onDismiss = { showDeleteConfirm = false },
+        )
     }
 }

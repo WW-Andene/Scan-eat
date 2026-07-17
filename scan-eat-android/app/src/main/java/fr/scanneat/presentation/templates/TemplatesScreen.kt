@@ -46,8 +46,20 @@ fun TemplatesScreen(
     var renameTarget by remember { mutableStateOf<MealTemplate?>(null) }
     var showAdd by remember { mutableStateOf(false) }
     var itemsTarget by remember { mutableStateOf<MealTemplate?>(null) }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    // logTemplate previously failed completely silently - see TemplatesViewModel
+    // .actionFailed's own comment.
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.templates_title), color = OnBackground) },

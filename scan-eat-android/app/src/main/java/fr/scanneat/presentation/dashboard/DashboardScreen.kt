@@ -75,6 +75,7 @@ fun DashboardScreen(
     val s        = state.value
     val language = viewModel.language.collectAsStateWithLifecycle()
     val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var loggingScan by remember { mutableStateOf<ScanResult?>(null) }
     val gapLoggedMessage = gapLoggedName.value?.let { stringResource(R.string.dashboard_gap_logged, it) }
@@ -82,6 +83,15 @@ fun DashboardScreen(
         gapLoggedMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearGapLoggedMessage()
+        }
+    }
+    // logGapSuggestion/logNeverLoggedScan previously failed completely silently -
+    // see DashboardViewModel.actionFailed's own comment.
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
         }
     }
 
@@ -181,7 +191,12 @@ fun DashboardScreen(
                     // day - Diary/Weight/Activity/Hydration each embedded their own
                     // siloed single-domain mini-calendar with no cross-tracker view.
                     FeatureTile(Icons.Default.CalendarMonth, stringResource(R.string.dashboard_tile_calendar), Modifier.weight(1f), onClick = onOpenCalendar)
-                    Spacer(Modifier.weight(2f))
+                    // A UI/UX audit found ScanHistoryScreen (search/sort/favorite/
+                    // delete) was reachable ONLY via the "View all" link below, itself
+                    // gated on recentScans.isNotEmpty() - a brand-new user with zero
+                    // scans had no way to open it at all. This tile is unconditional.
+                    FeatureTile(Icons.Default.History, stringResource(R.string.dashboard_tile_history), Modifier.weight(1f), onClick = onOpenHistory)
+                    Spacer(Modifier.weight(1f))
                 }
             }
 

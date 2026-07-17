@@ -87,9 +87,20 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
         ReminderRow(defaultLabel = stringResource(R.string.reminders_dinner), customLabel = s.dinnerLabel, on = s.dinnerOn, time = s.dinnerTime,
             onToggle = { viewModel.setDinner(it, s.dinnerTime) }, onTimeChange = { viewModel.setDinner(s.dinnerOn, it) }, onLabelChange = { viewModel.setDinnerLabel(it) },
             onTest = { NotificationHelper.show(context, 903, context.getString(R.string.reminders_dinner), context.getString(R.string.reminders_test_body)) })
+        // Previously deleted a custom reminder on a single tap with no confirmation -
+        // every other destructive action in the app routes through DeleteConfirmDialog.
+        var deleteTargetId by remember { mutableStateOf<Int?>(null) }
         s.customReminders.forEach { cr ->
-            CustomReminderRow(reminder = cr, onUpdate = { viewModel.updateCustomReminder(it) }, onDelete = { viewModel.deleteCustomReminder(cr.id) },
+            CustomReminderRow(reminder = cr, onUpdate = { viewModel.updateCustomReminder(it) }, onDelete = { deleteTargetId = cr.id },
                 onTest = { NotificationHelper.show(context, cr.id, cr.label, cr.label) })
+        }
+        deleteTargetId?.let { id ->
+            val target = s.customReminders.find { it.id == id }
+            DeleteConfirmDialog(
+                itemName = target?.label,
+                onConfirm = { viewModel.deleteCustomReminder(id); deleteTargetId = null },
+                onDismiss = { deleteTargetId = null },
+            )
         }
         var showAddDialog by remember { mutableStateOf(false) }
         TextButton(onClick = { showAddDialog = true }, modifier = Modifier.align(Alignment.End)) {

@@ -103,6 +103,14 @@ class TemplatesViewModel @Inject constructor(
         recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1)
     }
 
+    // logTemplate's runCatching below prevented a crash on Room write failure but had
+    // no failure path at all - a user tapping a template's log icon got zero visible
+    // effect if the write failed, unable to tell whether it had actually logged.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed log, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun create(name: String, meal: MealSlot) {
         if (name.isBlank()) return
         viewModelScope.launch { repo.save(name, meal, items = emptyList<TemplateItem>()) }
@@ -121,7 +129,7 @@ class TemplatesViewModel @Inject constructor(
             // Guarded like DashboardViewModel.logGapSuggestion/ResultViewModel.log -
             // a Room insert failure (disk-full, constraint violation) here previously
             // crashed the app instead of just failing to log this template.
-            runCatching { consumptionRepo.logAll(scaled) }
+            runCatching { consumptionRepo.logAll(scaled) }.onFailure { _actionFailed.value = true }
         }
     }
 
