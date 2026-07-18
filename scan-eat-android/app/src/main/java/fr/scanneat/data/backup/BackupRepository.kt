@@ -197,10 +197,20 @@ class BackupRepository @Inject constructor(
             // backup row whose barcode already has a local row - the existing
             // local state (possibly edited/rescanned since the backup was taken)
             // wins, matching scan_history's dedup-favors-existing approach above.
-            val existingCustomFoodBarcodes = customFoodDao.getAllForBackup()
-                .mapNotNullTo(mutableSetOf()) { it.barcode }
+            val existingCustomFoodRows = customFoodDao.getAllForBackup()
+            val existingCustomFoodBarcodes = existingCustomFoodRows.mapNotNullTo(mutableSetOf()) { it.barcode }
+            // Barcode-less rows (every food ever added through AddFoodDialog) had no
+            // dedup guard at all here - CustomFoodDao.upsertFood()/renameIfNoCollision()
+            // guarantee no two live-saved custom foods share a name, but restoring a
+            // backup bypassed that entirely via a raw insertAll(). Restoring the same
+            // backup twice, or restoring onto a device that already has manually-typed
+            // foods, could silently create two rows with an identical name - which then
+            // broke CustomFoodScreen's own name-based delete/rename resolution (tapping
+            // one row could mutate/delete the other).
+            val existingCustomFoodNames = existingCustomFoodRows.mapTo(mutableSetOf()) { it.name.lowercase() }
             val newCustomFoods = bundle.customFoods.filter { row ->
-                row.barcode == null || existingCustomFoodBarcodes.add(row.barcode)
+                if (row.barcode != null) existingCustomFoodBarcodes.add(row.barcode)
+                else existingCustomFoodNames.add(row.name.lowercase())
             }
             customFoodDao.insertAll(newCustomFoods)
 
@@ -289,6 +299,22 @@ class BackupRepository @Inject constructor(
         BackupMetadata.from(parseBundle(json))
     }
 
+    /**
+     * RFC 4180 CSV field escaping with a formula-injection guard - Excel/Sheets
+     * evaluate a quoted CSV cell's leading character regardless of the
+     * surrounding quotes, so free text starting with =+-@ (which can originate
+     * from the crowd-edited Open Food Facts database, not just something the
+     * user themselves typed, e.g. a product name or Activité's custom sub-type
+     * field) becomes a live formula the instant the exported file is opened in
+     * a spreadsheet. Prefixing with a single quote is the standard mitigation
+     * (OWASP's CSV-injection guidance) - spreadsheet apps treat a leading '
+     * as "force this cell to plain text."
+     */
+    private fun csvField(value: String): String {
+        val guarded = if (value.isNotEmpty() && value[0] in "=+-@") "'$value" else value
+        return "\"${guarded.replace("\"", "\"\"")}\""
+    }
+
     /** Exports diary (consumption log) entries as RFC 4180 CSV — a spreadsheet-friendly
      * complement to the full JSON backup, covering date/meal/product/portion/kcal columns. */
     suspend fun exportDiaryCsv(): String {
@@ -299,8 +325,7 @@ class BackupRepository @Inject constructor(
             val nutrition = runCatching { nutritionAdapter.fromJson(e.nutritionJson) }.getOrNull()
             val kcalPer100 = nutrition?.energyKcal ?: 0.0
             val kcalTotal  = kcalPer100 * e.portionG / 100.0
-            val name = e.productName.replace("\"", "\"\"")
-            sb.append("${e.date},${e.mealSlot},\"$name\",${e.portionG.toInt()},${kcalPer100.toInt()},${kcalTotal.toInt()}\n")
+            sb.append("${e.date},${e.mealSlot},${csvField(e.productName)},${e.portionG.toInt()},${kcalPer100.toInt()},${kcalTotal.toInt()}\n")
         }
         return sb.toString()
     }
@@ -315,9 +340,8 @@ class BackupRepository @Inject constructor(
         val rows = biolismRepo.sessions.first()
         val sb = StringBuilder("timestamp,elapsedSec,kcalBurned,kcalPerMin,bmrDay,tdeeDay,activity,ketosis,startWeightKg,endWeightKg,fatFrac,fatLostKg\n")
         rows.sortedBy { it.timestamp }.forEach { s ->
-            val activity = s.activityLabel.replace("\"", "\"\"")
             sb.append("${s.timestamp},${s.elapsedSec.toInt()},${s.kcalBurned.toInt()},${"%.1f".format(java.util.Locale.US, s.kcalPerMin)}," +
-                "${s.bmrDay.toInt()},${s.tdeeDay.toInt()},\"$activity\",${s.ketosis},${s.startWeightKg},${s.endWeightKg}," +
+                "${s.bmrDay.toInt()},${s.tdeeDay.toInt()},${csvField(s.activityLabel)},${s.ketosis},${s.startWeightKg},${s.endWeightKg}," +
                 "${"%.3f".format(java.util.Locale.US, s.fatFrac)},${s.fatLostKg}\n")
         }
         return sb.toString()
@@ -333,8 +357,7 @@ class BackupRepository @Inject constructor(
         val rows = weightDao.getAllForBackup()
         val sb = StringBuilder("date,weightKg,notes\n")
         rows.sortedBy { it.date }.forEach { e ->
-            val notes = e.notes.replace("\"", "\"\"")
-            sb.append("${e.date},${e.weightKg},\"$notes\"\n")
+            sb.append("${e.date},${e.weightKg},${csvField(e.notes)}\n")
         }
         return sb.toString()
     }
@@ -344,8 +367,11 @@ class BackupRepository @Inject constructor(
         val rows = activityDao.getAllForBackup()
         val sb = StringBuilder("date,type,minutes,kcalBurned,subType,sets,reps,distanceKm,weightUsedKg\n")
         rows.sortedBy { it.date }.forEach { e ->
+            // subType is genuine free text (Activité's custom sub-type field) - previously
+            // written completely unquoted/unescaped, so a comma typed into that field
+            // shifted every subsequent column for the row.
             sb.append("${e.date},${e.type},${e.minutes},${e.kcalBurned}," +
-                "${e.subType ?: ""},${e.sets ?: ""},${e.reps ?: ""},${e.distanceKm ?: ""},${e.weightUsedKg ?: ""}\n")
+                "${csvField(e.subType ?: "")},${e.sets ?: ""},${e.reps ?: ""},${e.distanceKm ?: ""},${e.weightUsedKg ?: ""}\n")
         }
         return sb.toString()
     }
@@ -363,8 +389,7 @@ class BackupRepository @Inject constructor(
         val rows = medicationLogDao.getAllForBackup()
         val sb = StringBuilder("date,medication,takenAt\n")
         rows.sortedBy { it.date }.forEach { e ->
-            val name = e.medicationName.replace("\"", "\"\"")
-            sb.append("${e.date},\"$name\",${e.takenAt}\n")
+            sb.append("${e.date},${csvField(e.medicationName)},${e.takenAt}\n")
         }
         return sb.toString()
     }

@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 @HiltViewModel
 class MealPlanViewModel @Inject constructor(
@@ -78,7 +79,10 @@ class MealPlanViewModel @Inject constructor(
                     // overstates a day's/week's planned intake by the servings
                     // factor for any recipe that isn't single-serving.
                     is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }
-                        ?.let { (it.totalKcal / it.servings.coerceAtLeast(1)).toInt() } ?: 0
+                        // Round rather than truncate - .toInt() always rounds toward zero,
+                        // biasing every multi-serving recipe's per-slot total down (same
+                        // fix already applied to MealTemplate.totalKcal/GroceryList).
+                        ?.let { (it.totalKcal / it.servings.coerceAtLeast(1)).roundToInt() } ?: 0
                     is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.totalKcal ?: 0
                     else -> 0
                 }

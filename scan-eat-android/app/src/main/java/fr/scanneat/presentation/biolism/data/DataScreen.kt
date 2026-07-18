@@ -70,7 +70,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     ) {
         item { MetabolicHealthScoreCard(met, profile.value) }
         item { BodyCompositionCard(met, profile.value) }
-        item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value) }
+        item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value, language.value) }
         item { BurnRateCard(met, s, cum.value) }
         item { SubstrateFluxCard(met, s) }
         if (s.ketosisOn) {
@@ -85,7 +85,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         item { MacroTargetsCard(met, profile.value) }
         if (sessions.value.isNotEmpty()) {
             item { GlobalSummaryCard(sessions.value) }
-            item { DailyGoalsCard(met, profile.value, sessions.value) }
+            item { DailyGoalsCard(met, profile.value, sessions.value, language.value) }
         }
         item { EquationsCard(met, profile.value) }
         if (sessions.value.isNotEmpty()) {

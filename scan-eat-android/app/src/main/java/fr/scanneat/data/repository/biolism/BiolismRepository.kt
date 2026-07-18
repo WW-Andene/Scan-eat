@@ -358,9 +358,12 @@ class BiolismRepository @Inject constructor(
                 data.cycleDay?.let    { p[K_CYCLE_DAY] = it }
             }
             if (data.manualHR != null) p[K_MANUAL_HR] = data.manualHR else p.remove(K_MANUAL_HR)
-            if (data.sessions.isNotEmpty()) {
-                p[K_SESSIONS] = Json.encodeToString(data.sessions.map { SerializableSession.fromDomain(it) }.takeLast(20))
-            }
+            // Previously only written `if (data.sessions.isNotEmpty())`, same "forgot to
+            // clear on the empty case" bug this function's own doc comment above already
+            // describes fixing for the profile-override fields - restoring a backup with
+            // no (or fewer) sessions left this device's existing session history in place
+            // instead of reverting to the backup's actual state.
+            p[K_SESSIONS] = Json.encodeToString(data.sessions.map { SerializableSession.fromDomain(it) }.takeLast(20))
         }
         saveTimerState(data.timerState)
     }

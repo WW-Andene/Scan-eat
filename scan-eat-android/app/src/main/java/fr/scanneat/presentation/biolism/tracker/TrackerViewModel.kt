@@ -299,7 +299,11 @@ class TrackerViewModel @Inject constructor(
             kcalPerMin    = if (elapsedSec > 0) snapshot.kcalTotal / (elapsedSec / 60.0) else 0.0,
             bmrDay        = snapshot.bmrDay,
             tdeeDay       = snapshot.tdeeDay,
-            activityLabel = p.activityMeta.label,
+            // Previously the bare English label regardless of app language - persisted
+            // verbatim, so this leaked English text into Session History and the CSV
+            // export for French-language users even though `language` was already
+            // available here (used by computeMetabolicSnapshot just above).
+            activityLabel = p.activityMeta.label(language.value),
             ketosis       = s.ketosisOn,
             startWeightKg = p.weightKg,
             endWeightKg   = snapshot.liveWeightKg,

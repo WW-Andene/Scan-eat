@@ -34,7 +34,10 @@ class BiolismProfileViewModel @Inject constructor(
             p.waistCm > 0,
             p.hipCm > 0,
             p.neckCm > 0,
-            p.ethnicityId.isNotBlank() && p.ethnicityId != "other",
+            // ETHNICITY_OPTIONS has no "other" id (its real opt-out choice is
+            // "prefer_not") - the old sentinel could never match, so selecting
+            // "Prefer not to say" always counted as a completed field.
+            p.ethnicityId.isNotBlank() && p.ethnicityId != "prefer_not",
         )
         checks.count { it }.toFloat() / checks.size.toFloat()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0f)

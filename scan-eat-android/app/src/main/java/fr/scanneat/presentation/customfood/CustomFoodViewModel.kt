@@ -114,6 +114,15 @@ class CustomFoodViewModel @Inject constructor(
                 fatG     = n.fatG,
                 fiberG   = n.fiberG,
                 saltG    = n.saltG,
+                // Previously omitted here (unlike ResultViewModel.saveToDestinations,
+                // already fixed to pass both) - without the barcode, upsertFood's
+                // fallback match is name-only, so a scan whose name happens to
+                // case-insensitively collide with an existing custom food silently
+                // overwrote that unrelated row's nutrition values instead of adding
+                // a new one, since two differently-barcoded products can share a
+                // generic display name (e.g. two brands both "Yaourt nature").
+                barcode  = scan.barcode,
+                category = scan.product.category,
             )
         }
     }

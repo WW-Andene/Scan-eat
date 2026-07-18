@@ -45,10 +45,15 @@ class HealthConnectRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     companion object {
-        private val weightPermissions = setOf(
-            HealthPermission.getWritePermission(WeightRecord::class),
-            HealthPermission.getReadPermission(WeightRecord::class),
-        )
+        // Write and read are two separate subsets (not one combined set), same
+        // reasoning as activity's own split just below: a user who granted only
+        // the read half (or only the write half) - a plausible privacy choice,
+        // e.g. "let it log my weigh-ins out, but don't let it read anyone else's
+        // weight data in" - must not lose the other half's functionality just
+        // because this pair happens to ship together. writeWeight()/deleteWeight()
+        // check only the write subset; readWeights() checks only the read subset.
+        private val weightWritePermissions = setOf(HealthPermission.getWritePermission(WeightRecord::class))
+        private val weightReadPermissions = setOf(HealthPermission.getReadPermission(WeightRecord::class))
         // Hydration is write-only (see writeHydrationDelta) - Health Connect's
         // HydrationRecord models a volume over a start/end interval, but this
         // app stores intake as a single mutable running total per day, so
@@ -87,7 +92,7 @@ class HealthConnectRepository @Inject constructor(
         private val nutritionPermissions = setOf(HealthPermission.getWritePermission(NutritionRecord::class))
 
         /** Requested together up front (single system permission dialog) - see [hasPermission] for why writes each check only their own subset instead of this combined set. */
-        val PERMISSIONS: Set<String> = weightPermissions + hydrationPermissions + activityWritePermissions + activityReadPermissions + nutritionPermissions
+        val PERMISSIONS: Set<String> = weightWritePermissions + weightReadPermissions + hydrationPermissions + activityWritePermissions + activityReadPermissions + nutritionPermissions
     }
 
     fun availability(): HealthConnectAvailability = when (HealthConnectClient.getSdkStatus(context)) {
@@ -119,7 +124,7 @@ class HealthConnectRepository @Inject constructor(
 
     /** Mirrors a locally-logged weight entry into Health Connect. No-ops silently if not available/permitted — sync is opt-in, never a hard dependency for local logging. */
     suspend fun writeWeight(date: LocalDate, weightKg: Double) {
-        if (!hasPermission(weightPermissions)) return
+        if (!hasPermission(weightWritePermissions)) return
         val instant = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
         val record = WeightRecord(
             time = instant,
@@ -131,7 +136,7 @@ class HealthConnectRepository @Inject constructor(
 
     /** Reads weight records Health Connect has from any source (this app or others) in the given window. */
     suspend fun readWeights(start: Instant, end: Instant): List<WeightRecord> {
-        if (!hasPermission(weightPermissions)) return emptyList()
+        if (!hasPermission(weightReadPermissions)) return emptyList()
         return client()
             .readRecords(ReadRecordsRequest(recordType = WeightRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end)))
             .records
@@ -159,7 +164,9 @@ class HealthConnectRepository @Inject constructor(
      * Health Connect-assigned metadata id.
      */
     suspend fun deleteWeight(date: LocalDate) {
-        if (!hasPermission(weightPermissions)) return
+        // Deleting needs write permission; the read below (to find which records
+        // to delete) is gated separately inside readWeights() itself.
+        if (!hasPermission(weightWritePermissions)) return
         val start = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
         val end = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
         val ids = readWeights(start, end).map { it.metadata.id }

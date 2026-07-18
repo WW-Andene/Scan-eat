@@ -156,6 +156,27 @@ fun Route.fetchRecipeRoute() {
 
 private val jsonParser = Json { ignoreUnknownKeys = true; isLenient = true }
 
+// kotlinx.serialization's JSON parser is recursive-descent with no built-in depth
+// limit - MAX_HTML_BYTES bounds total page size (3 MB) but not structural nesting,
+// and a few bytes per level ("[[[[...") comfortably fits millions of levels in that
+// budget, enough to blow the parsing coroutine's stack (a StackOverflowError). This
+// route needs no Groq key and is reachable by anyone who can get the server to
+// fetch a URL they control, so it's a repeatable crash vector against request-
+// handling threads, not a one-off. A cheap pre-scan rejects anything past a depth
+// no real schema.org Recipe block would ever need (genuine ones nest ~3-5 levels).
+private const val MAX_JSON_NESTING_DEPTH = 64
+
+private fun exceedsJsonNestingDepth(raw: String, maxDepth: Int): Boolean {
+    var depth = 0
+    for (c in raw) {
+        when (c) {
+            '{', '[' -> { depth++; if (depth > maxDepth) return true }
+            '}', ']' -> depth--
+        }
+    }
+    return false
+}
+
 // internal (not private) so tests can exercise the real extraction logic
 // instead of asserting on a fixture string the test itself wrote.
 internal fun parseSchemaOrgRecipe(html: String, sourceUrl: String): FetchedRecipeResponse? {
@@ -165,7 +186,7 @@ internal fun parseSchemaOrgRecipe(html: String, sourceUrl: String): FetchedRecip
         RegexOption.IGNORE_CASE
     ).findAll(html).mapNotNull { m ->
         val raw = m.groupValues[1].trim()
-        if (raw.isEmpty()) return@mapNotNull null
+        if (raw.isEmpty() || exceedsJsonNestingDepth(raw, MAX_JSON_NESTING_DEPTH)) return@mapNotNull null
         runCatching { jsonParser.parseToJsonElement(raw) }.getOrNull()
             ?: runCatching {
                 // Best-effort: unescape common HTML entities
@@ -276,14 +297,24 @@ private fun numFrom(element: JsonElement?): Double = when (element) {
     else -> 0.0
 }
 
+// This route proxies arbitrary attacker-hostable pages with no Groq key required -
+// numFrom() parses whatever a page's JSON-LD declares, including a negative value
+// (e.g. a bare "-99999" parses as a valid Double) or an absurdly large one, with no
+// floor/ceiling before it flows into FetchedNutritionDto and the client's diary/
+// scoring pipeline - a direct, unfiltered path to poisoning a user's nutrition data.
+// Bounds are generous (a whole recipe/batch, not per-100g like LlmLabelParser's
+// coerceNutrient) since a real multi-serving recipe can legitimately run into the
+// thousands of kcal/grams.
+private fun coerceRecipeNutrient(v: Double, max: Double): Double = v.coerceIn(0.0, max)
+
 private fun extractNutrition(element: JsonElement?): FetchedNutritionDto? {
     val obj = element as? JsonObject ?: return null
-    val kcal = numFrom(obj["calories"])
+    val kcal = coerceRecipeNutrient(numFrom(obj["calories"]), 10_000.0)
     if (kcal == 0.0) return null
     return FetchedNutritionDto(
         kcal      = kcal,
-        proteinG  = numFrom(obj["proteinContent"]),
-        fatG      = numFrom(obj["fatContent"]),
-        carbsG    = numFrom(obj["carbohydrateContent"]),
+        proteinG  = coerceRecipeNutrient(numFrom(obj["proteinContent"]), 1_000.0),
+        fatG      = coerceRecipeNutrient(numFrom(obj["fatContent"]), 1_000.0),
+        carbsG    = coerceRecipeNutrient(numFrom(obj["carbohydrateContent"]), 1_000.0),
     )
 }

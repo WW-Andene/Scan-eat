@@ -15,7 +15,9 @@ import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.temporal.WeekFields
@@ -43,9 +45,13 @@ data class CalendarDayDetail(
     val hydrationMl: Int = 0,
     val fastCompletion: FastCompletion? = null,
     val medicationsTaken: List<MedicationLogEntry> = emptyList(),
+    // DayNotesRepository.listDates() was already wired into the month grid's NOTE dot,
+    // but nothing surfaced the actual note text anywhere - tapping a day with that dot
+    // to read the note found nothing, a dead end.
+    val note: String = "",
 ) {
     val isEmpty: Boolean get() = mealCount == 0 && weightKg == null && activities.isEmpty() &&
-        hydrationMl == 0 && fastCompletion == null && medicationsTaken.isEmpty()
+        hydrationMl == 0 && fastCompletion == null && medicationsTaken.isEmpty() && note.isBlank()
 }
 
 /**
@@ -84,6 +90,30 @@ class CalendarViewModel @Inject constructor(
 
     fun setMonth(m: YearMonth) { _month.value = m }
     fun selectDate(date: LocalDate) { _selectedDate.value = date }
+
+    // _month/_selectedDate were previously set once at construction and never
+    // revisited - a session left open on "today" across midnight (this screen
+    // has no lifecycle hook forcing a re-check) left the day-detail panel and
+    // month grid's selection frozen on yesterday, while MultiMarkerMonthGrid's
+    // own isToday check (recomputed fresh every recomposition) correctly moved
+    // the bold "today" cell forward - a visible split-brain state on the same
+    // screen. Only advances when the user was actually viewing "today" (not
+    // after they've deliberately browsed to a different day/month), so this
+    // never yanks someone back mid-browse.
+    init {
+        viewModelScope.launch {
+            var previousToday = LocalDate.now()
+            while (true) {
+                delay(60_000)
+                val newToday = LocalDate.now()
+                if (newToday != previousToday) {
+                    if (_selectedDate.value == previousToday) _selectedDate.value = newToday
+                    if (_month.value == YearMonth.from(previousToday)) _month.value = YearMonth.from(newToday)
+                    previousToday = newToday
+                }
+            }
+        }
+    }
 
     /**
      * Per-source marker set for every day in the visible month. Activity's
@@ -195,6 +225,8 @@ class CalendarViewModel @Inject constructor(
             )
         }.combine(medicationRepo.observeLogByDate(date)) { detail, medsTaken ->
             detail.copy(medicationsTaken = medsTaken)
+        }.combine(dayNotesRepo.observe(date)) { detail, note ->
+            detail.copy(note = note)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalendarDayDetail(LocalDate.now()))
 }

@@ -16,7 +16,7 @@ import fr.scanneat.presentation.ui.theme.*
 import java.util.Locale
 
 @Composable
-fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState, sessions: List<BiolismSession>, todayIntakeKcal: Double) {
+fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState, sessions: List<BiolismSession>, todayIntakeKcal: Double, lang: String = "fr") {
     BioCard(stringResource(R.string.biolism_energy_title),
         badge = { if (s.ketosisOn) TealBadge(stringResource(R.string.biolism_energy_keto_badge, ((1.0 - met.ketoSupprFactor) * 100).toInt())) }
     ) {
@@ -25,7 +25,8 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
             Text("%.1f".format(Locale.US, met.tdeeDay), style = HeroNumberStyle.copy(fontSize = 34.sp), color = Gold)
             Text(stringResource(R.string.biolism_energy_tdee_sub, met.tdeeDay / met.bmrDay.coerceAtLeast(1.0)), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         }
-        InfoRow(stringResource(R.string.biolism_energy_activity_level), profile.activityMeta.label, profile.activityMeta.note, Gold)
+        // Previously the bare English activityMeta.label/.note regardless of app language.
+        InfoRow(stringResource(R.string.biolism_energy_activity_level), profile.activityMeta.label(lang), profile.activityMeta.note(lang), Gold)
         val kcalJ = stringResource(R.string.biolism_energy_kcal_j)
         MetCellGrid(listOf(
             Triple(stringResource(R.string.biolism_energy_bmr_avg), "%.1f".format(Locale.US, met.bmrDay), stringResource(R.string.biolism_energy_bmr_avg_sub)),

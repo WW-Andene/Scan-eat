@@ -77,11 +77,16 @@ fun Application.module() {
     // recommends (Docker behind a reverse proxy, Railway/Render/Fly.io) puts a proxy in
     // front, so remoteHost is the proxy's own IP for every client and the whole client base
     // collapses into one rate-limit bucket. XForwardedHeaders makes remoteHost follow
-    // X-Forwarded-For instead. This trusts whatever sits directly in front of the process;
-    // if this server is ever exposed with no reverse proxy at all, a caller could forge
-    // X-Forwarded-For to spoof a distinct client key per request and evade the limiter -
-    // acceptable here since every documented deployment path already terminates behind one.
-    install(XForwardedHeaders)
+    // X-Forwarded-For instead.
+    //
+    // useLastProxy() (not the plugin's default useFirstProxy()) is what actually delivers
+    // that intent: a standards-compliant reverse proxy *appends* its own observed IP rather
+    // than replacing the header ("X-Forwarded-For: <whatever the client sent>, <proxy's real
+    // observed IP>"), so the *last* entry is the only one the proxy itself vouches for - the
+    // default trusts the *first* (leftmost) entry instead, which is exactly the value a
+    // client can set itself, silently defeating the limiter/SSRF guard even in the documented
+    // single-reverse-proxy deployments this comment describes, not just a no-proxy exposure.
+    install(XForwardedHeaders) { useLastProxy() }
     // Some reverse proxies/orchestrators/uptime monitors send HEAD (not GET)
     // for liveness checks - without this, /health only answers GET and those
     // probes see a 404/405 instead of a clean liveness signal.

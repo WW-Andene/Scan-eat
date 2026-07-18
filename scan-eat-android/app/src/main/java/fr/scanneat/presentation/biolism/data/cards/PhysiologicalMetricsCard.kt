@@ -65,12 +65,17 @@ fun PhysiologicalMetricsCard(
             Label(stringResource(R.string.biolism_physio_hr_check_title), Violet)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
-                    value = hrText, onValueChange = { hrText = it; it.toIntOrNull()?.let { bpm -> onSaveManualHR(bpm) } },
+                    // 0 (or negative) previously saved through unguarded, and mhr==0 divides
+                    // by zero in the implied-stroke-volume text below, rendering the literal
+                    // string "Infinity mL".
+                    value = hrText, onValueChange = { hrText = it; it.toIntOrNull()?.let { bpm -> if (bpm > 0) onSaveManualHR(bpm) } },
                     label = { Text(stringResource(R.string.biolism_physio_hr_input_label)) }, singleLine = true,
                     modifier = Modifier.width(140.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Violet, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                 )
-                manualHR?.let { mhr ->
+                // takeIf guards a pre-existing stored 0 (from before onSaveManualHR
+                // rejected non-positive values) from dividing by zero below.
+                manualHR?.takeIf { it > 0 }?.let { mhr ->
                     val diff = mhr - met.hrEstimated
                     Column {
                         Text(stringResource(R.string.biolism_physio_hr_diff_value, diff, abs(diff) / met.hrEstimated * 100),

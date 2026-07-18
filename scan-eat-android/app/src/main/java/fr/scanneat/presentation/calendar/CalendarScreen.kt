@@ -232,8 +232,16 @@ private fun MultiMarkerMonthGrid(
                                         fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
                                     )
                                     if (sources.isNotEmpty()) {
+                                        // Previously .take(4) - by enum declaration order (MEALS,
+                                        // WEIGHT, ACTIVITY, HYDRATION, FASTING, MEDICATION, NOTE) any
+                                        // day with 4+ trackers logged deterministically dropped
+                                        // FASTING/MEDICATION/NOTE, arguably the ones most worth
+                                        // noticing (medication adherence, personal notes) - and the
+                                        // more actively a user logs, the worse this got. All 7
+                                        // possible sources are only 3dp dots with 1dp spacing (≤27dp
+                                        // total), comfortably fitting a day cell without a cap.
                                         Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
-                                            sources.sortedBy { it.ordinal }.take(4).forEach { s ->
+                                            sources.sortedBy { it.ordinal }.forEach { s ->
                                                 Box(Modifier.size(3.dp).clip(CircleShape).background(colorFor(s)))
                                             }
                                         }
@@ -290,6 +298,11 @@ private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale) {
                             colorFor(CalendarSource.MEDICATION),
                             stringResource(R.string.calendar_day_medication, detail.medicationsTaken.joinToString(", ") { it.medicationName }),
                         )
+                    }
+                    // The month grid's NOTE dot previously had nowhere to lead - tapping a
+                    // day with a note to actually read it found nothing here.
+                    if (detail.note.isNotBlank()) {
+                        DetailRow(colorFor(CalendarSource.NOTE), stringResource(R.string.calendar_day_note, detail.note))
                     }
                 }
             }

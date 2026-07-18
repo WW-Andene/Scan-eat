@@ -17,8 +17,10 @@ import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 data class CheckableGroceryItem(val item: GroceryItem, val checked: Boolean)
@@ -61,12 +63,25 @@ class GroceryViewModel @Inject constructor(
     private val recipes: Flow<List<Recipe>> = recipeRepo.observeAll()
     private val templates: Flow<List<MealTemplate>> = templateRepo.observeAll()
 
+    // weekDates() defaults its startDate to LocalDate.now() evaluated only when this
+    // flow's map block actually re-executes - which previously happened only when
+    // mealPlanRepo.weekPlan itself emitted (a plan edit), not when time passed. A
+    // screen left open across midnight with no plan edit kept scoring against the
+    // same 7-day window forever. Same poll+distinctUntilChanged fix already applied
+    // to MealPlanViewModel's own weekDates.
+    private val today: Flow<LocalDate> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+
     /** recipeId -> number of slots it occupies within the current week's plan. */
-    private val plannedRecipeCounts: Flow<Map<String, Int>> = mealPlanRepo.weekPlan.map { plan ->
-        val weekDates = mealPlanRepo.weekDates().toSet()
+    private val plannedRecipeCounts: Flow<Map<String, Int>> = combine(mealPlanRepo.weekPlan, today) { plan, date ->
+        val weekDates = mealPlanRepo.weekDates(date).toSet()
         val counts = mutableMapOf<String, Int>()
-        for ((date, day) in plan) {
-            if (date !in weekDates) continue
+        for ((d, day) in plan) {
+            if (d !in weekDates) continue
             for (meal in PLAN_MEALS) {
                 val slot = day[meal]
                 if (slot is MealPlanSlot.RecipeSlot) counts[slot.id] = (counts[slot.id] ?: 0) + 1
@@ -76,11 +91,11 @@ class GroceryViewModel @Inject constructor(
     }
 
     /** Same as [plannedRecipeCounts] but for MealPlanSlot.TemplateSlot. */
-    private val plannedTemplateCounts: Flow<Map<String, Int>> = mealPlanRepo.weekPlan.map { plan ->
-        val weekDates = mealPlanRepo.weekDates().toSet()
+    private val plannedTemplateCounts: Flow<Map<String, Int>> = combine(mealPlanRepo.weekPlan, today) { plan, date ->
+        val weekDates = mealPlanRepo.weekDates(date).toSet()
         val counts = mutableMapOf<String, Int>()
-        for ((date, day) in plan) {
-            if (date !in weekDates) continue
+        for ((d, day) in plan) {
+            if (d !in weekDates) continue
             for (meal in PLAN_MEALS) {
                 val slot = day[meal]
                 if (slot is MealPlanSlot.TemplateSlot) counts[slot.id] = (counts[slot.id] ?: 0) + 1

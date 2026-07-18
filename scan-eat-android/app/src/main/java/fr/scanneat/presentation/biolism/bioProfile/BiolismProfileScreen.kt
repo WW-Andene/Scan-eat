@@ -28,6 +28,11 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
     val profile = viewModel.profile.collectAsStateWithLifecycle()
     val saved   = viewModel.saved.collectAsStateWithLifecycle()
     val completeness = viewModel.profileCompleteness.collectAsStateWithLifecycle()
+    // Previously never collected here - every activity-level/ethnicity label and
+    // note on this screen used the bare English field regardless of the app's
+    // language setting, unlike BiolismOnboardingScreen (the only caller that
+    // already used the lang-aware .label(lang)/.note(lang) extensions).
+    val language = viewModel.language.collectAsStateWithLifecycle()
 
     val p = profile.value
 
@@ -50,7 +55,11 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
     fun dispCirc(cm: Double): String = if (useImperial) "%.1f in".format(cm / 2.54) else "%.1f cm".format(cm)
     fun dispHeight(cm: Double): String {
         if (!useImperial) return "%.1f cm".format(cm)
-        val totalIn = cm / 2.54
+        // Round to the displayed 1-decimal precision *before* splitting into feet/
+        // inches - splitting the raw unrounded value let a remainder like 11.9999in
+        // independently round up to display "12.0" without carrying into the next
+        // foot (e.g. "5′ 12.0″" instead of "6′ 0.0″").
+        val totalIn = kotlin.math.round(cm / 2.54 * 10) / 10.0
         val ft = (totalIn / 12).toInt()
         val inch = totalIn % 12
         return "$ft′ ${"%.1f".format(inch)}″"
@@ -96,8 +105,8 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                             style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                     }
                 }
-                val activityLabel = ACTIVITY_LEVELS.firstOrNull { it.id == p.activityId }?.label ?: "—"
-                val ethnicityLabel = ETHNICITY_OPTIONS.firstOrNull { it.id == p.ethnicityId }?.label ?: "—"
+                val activityLabel = ACTIVITY_LEVELS.firstOrNull { it.id == p.activityId }?.label(language.value) ?: "—"
+                val ethnicityLabel = ETHNICITY_OPTIONS.firstOrNull { it.id == p.ethnicityId }?.label(language.value) ?: "—"
                 OverviewRow(stringResource(R.string.profile_field_age), if (p.ageYears > 0) "${p.ageYears}" else null)
                 OverviewRow(stringResource(R.string.bioprofile_field_weight), if (p.weightKg > 0) dispWeight(p.weightKg) else null)
                 OverviewRow(stringResource(R.string.profile_field_height), if (p.heightCm > 0) dispHeight(p.heightCm) else null)
@@ -154,8 +163,8 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text(lvl.label, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = if (activityId == lvl.id) FontWeight.SemiBold else FontWeight.Normal)
-                        Text(lvl.note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                        Text(lvl.label(language.value), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = if (activityId == lvl.id) FontWeight.SemiBold else FontWeight.Normal)
+                        Text(lvl.note(language.value), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                     }
                     RadioButton(selected = activityId == lvl.id, onClick = null,
                         colors = RadioButtonDefaults.colors(selectedColor = Gold))
@@ -174,10 +183,10 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column(Modifier.weight(1f)) {
-                        Text(opt.label, style = MaterialTheme.typography.bodySmall, color = OnBackground, fontWeight = FontWeight.Medium)
+                        Text(opt.label(language.value), style = MaterialTheme.typography.bodySmall, color = OnBackground, fontWeight = FontWeight.Medium)
                         // Bumped from 0.35f - a UI/UX audit flagged this descriptive note
                         // as real informational content rendered too faint.
-                        Text(opt.note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+                        Text(opt.note(language.value), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     }
                     RadioButton(selected = ethnicityId == opt.id, onClick = null,
                         colors = RadioButtonDefaults.colors(selectedColor = Gold))

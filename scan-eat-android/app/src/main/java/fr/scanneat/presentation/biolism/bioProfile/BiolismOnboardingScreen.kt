@@ -50,11 +50,19 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
     var neck by remember { mutableStateOf("") }
     var activityId by remember { mutableStateOf("sedentary") }
 
+    // No bound at all previously - an errant value here (e.g. a typo'd extra
+    // digit) silently propagates into BiolismEngine's TDEE/BMI/body-fat% math.
+    // Clamped to the same sane human ranges BiolismProfileScreen's own save()
+    // already uses, rather than rejecting outright, since a slightly-off real
+    // value should still save, just not corrupt downstream math.
     fun buildProfile() = BiolismProfile(
-        sex = sex, ageYears = age.toIntOrNull() ?: 0,
-        heightCm = height.replace(',', '.').toDoubleOrNull() ?: 0.0, weightKg = weight.replace(',', '.').toDoubleOrNull() ?: 0.0,
+        sex = sex, ageYears = age.toIntOrNull()?.coerceIn(1, 120) ?: 0,
+        heightCm = height.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0) ?: 0.0,
+        weightKg = weight.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0) ?: 0.0,
         activityId = activityId,
-        waistCm = waist.replace(',', '.').toDoubleOrNull() ?: 0.0, hipCm = hip.replace(',', '.').toDoubleOrNull() ?: 0.0, neckCm = neck.replace(',', '.').toDoubleOrNull() ?: 0.0,
+        waistCm = waist.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+        hipCm = hip.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+        neckCm = neck.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
     )
 
     val canAdvance = when (step) {

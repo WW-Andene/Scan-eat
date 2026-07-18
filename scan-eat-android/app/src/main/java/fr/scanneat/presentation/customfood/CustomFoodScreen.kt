@@ -161,15 +161,21 @@ fun CustomFoodScreen(
                         entry    = entry,
                         isCustom = entry.name in customNames,
                         hints    = generateProductHints(viewModel.toProduct(entry), profile.value, language.value),
+                        // Matched on full structural equality (every field), not just name -
+                        // two custom foods sharing a name (e.g. after a backup restore, or a
+                        // displayed row that's actually a built-in FOOD_DB hit sharing a
+                        // custom food's name) previously resolved via a name-only firstOrNull,
+                        // so tapping delete/rename on the row the user is actually looking at
+                        // could silently mutate/delete a different row instead.
                         onDelete = {
-                            foodsWithId.value.firstOrNull { it.second.name == entry.name }
+                            foodsWithId.value.firstOrNull { it.second == entry }
                                 ?.let { (id, _) -> deleteTarget = id to entry.name }
                         },
                         onRename = {
                             // Previously delete was the only entry point — a typo in a
                             // custom food's name could never be fixed without deleting
                             // and re-creating it from scratch.
-                            foodsWithId.value.firstOrNull { it.second.name == entry.name }
+                            foodsWithId.value.firstOrNull { it.second == entry }
                                 ?.let { (id, _) -> renameTarget = id to entry.name }
                         },
                     )
