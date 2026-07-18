@@ -172,6 +172,18 @@ class ScanViewModel @Inject constructor(
         // eating the next real detection. Any non-Idle/Error state means a result is
         // already being shown or produced, so new detections must wait.
         if (_state.value !is ScanUiState.Idle && _state.value !is ScanUiState.Error) return
+        // Once the user has started building a photo queue, a *new* barcode
+        // appearing in frame is almost always incidental (background clutter,
+        // a neighboring product swept past while framing the next shot) rather
+        // than a deliberate re-aim - score() prefers a held barcode over the
+        // photo queue whenever one is set (so a barcode detected first can be
+        // *augmented* with follow-up photos when OFF's entry for it is sparse),
+        // so silently adopting a new incidental one here hijacked the eventual
+        // Score tap into a barcode lookup for a product the user never meant to
+        // scan, completely ignoring the photos they'd just taken. A barcode
+        // already held before any photo was taken (the deliberate combo flow)
+        // is untouched - this only blocks picking up a *new* one afterward.
+        if (_images.value.isNotEmpty()) return
         if (_scannedBarcode.value == barcode) return
         _scannedBarcode.value = barcode
         if (_instantMode.value) score()
