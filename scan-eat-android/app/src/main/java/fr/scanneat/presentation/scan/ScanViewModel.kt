@@ -208,9 +208,19 @@ class ScanViewModel @Inject constructor(
      * from Scan and back re-triggered ScanScreen's `LaunchedEffect(state.value)` with
      * the same Success value still current, firing onResultReady again and stacking
      * another result screen on the back stack every time.
+     *
+     * Also clears the photo queue — previously left untouched here (and in score()'s/
+     * identifyFromPhotos()'s own success paths), so the photos used for a completed
+     * scan silently persisted into the *next* one. Coming back to Scan and photographing
+     * or scanning a different product resubmitted the prior product's leftover photos
+     * alongside (or instead of) the new ones. Combined with onBarcodeDetected()'s
+     * images-queue guard above, a leftover non-empty queue after any photo-involving
+     * scan would permanently block every subsequent barcode from ever being adopted
+     * again, not just risk a stale-photo mixup.
      */
     fun resultConsumed() {
         _scannedBarcode.value = null
+        _images.value = emptyList()
         _state.value = ScanUiState.Idle
     }
 
