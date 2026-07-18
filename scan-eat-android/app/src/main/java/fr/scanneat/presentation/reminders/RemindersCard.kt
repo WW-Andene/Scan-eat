@@ -221,13 +221,3 @@ fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
         }
     }
 }
-
-@Composable
-fun RemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        MealRemindersCard(viewModel)
-        HydrationReminderCard(viewModel)
-        WeightReminderCard(viewModel)
-        ActivityReminderCard(viewModel)
-    }
-}

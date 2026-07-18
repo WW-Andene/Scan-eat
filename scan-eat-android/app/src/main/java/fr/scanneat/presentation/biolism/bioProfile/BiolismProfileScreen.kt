@@ -230,16 +230,22 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                 // Onboarding normalizes comma decimals (French-locale default)
                 // before parsing; this edit screen didn't, so a French user
                 // typing "82,5" here (metric mode) silently saved weightKg=0.
+                // No bound at all previously - an errant value here (e.g. a typo'd
+                // extra digit) silently propagates into BiolismEngine's TDEE/BMI/
+                // body-fat% math. Clamped to the same sane human ranges
+                // ProfileScreen's equivalent save() already uses, rather than
+                // rejecting outright, since a slightly-off real value should still
+                // save, just not corrupt downstream math.
                 viewModel.save(BiolismProfile(
                     sex         = sex,
-                    ageYears    = age.toIntOrNull() ?: 0,
-                    heightCm    = height.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                    weightKg    = weight.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                    ageYears    = age.toIntOrNull()?.coerceIn(1, 120) ?: 0,
+                    heightCm    = height.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0) ?: 0.0,
+                    weightKg    = weight.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0) ?: 0.0,
                     activityId  = activityId,
                     ethnicityId = ethnicityId,
-                    waistCm     = waist.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                    hipCm       = hip.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                    neckCm      = neck.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                    waistCm     = waist.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+                    hipCm       = hip.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+                    neckCm      = neck.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
                     cycleDay    = cycleDay.toIntOrNull()?.coerceIn(1, 28) ?: 14,
                 ))
             },

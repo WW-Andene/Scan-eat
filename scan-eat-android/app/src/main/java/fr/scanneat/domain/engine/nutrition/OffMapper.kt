@@ -310,7 +310,13 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         ecoscoreGrade   = off.ecoscoreGrade,
         ecoscoreValue   = off.ecoscoreValue,
         nutriscoreGrade = off.nutriscoreGrade,
-        declaredAllergenTags = off.declaredAllergenTags,
+        // Previously kept only off.declaredAllergenTags, discarding the LLM's own -
+        // LlmLabelParser.mapToProduct() reads the packaging's printed allergen box
+        // (allergen_declarations) into declaredAllergenTags just like OFF's allergens_tags,
+        // but OFF frequently has none even for a well-populated record, silently losing
+        // a real, LLM-read allergen declaration on merge. Mirrors declaredMicronutrients'
+        // union just above.
+        declaredAllergenTags = (off.declaredAllergenTags + llm.declaredAllergenTags).distinct(),
     )
 }
 

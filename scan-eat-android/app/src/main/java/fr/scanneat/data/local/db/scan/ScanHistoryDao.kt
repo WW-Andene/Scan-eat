@@ -7,6 +7,9 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
+/** Row shape for [ScanHistoryDao.topScanned] - see that query's own doc comment. */
+data class TopScannedRow(val productName: String, val cnt: Int, val dbId: Long)
+
 @Dao
 interface ScanHistoryDao {
     @Query("SELECT * FROM scan_history WHERE profileId = :profileId ORDER BY scannedAt DESC LIMIT :limit")
@@ -91,6 +94,30 @@ interface ScanHistoryDao {
 
     @Query("SELECT COUNT(*) FROM scan_history WHERE profileId = :profileId")
     fun observeTotalCount(profileId: String = "default"): Flow<Int>
+
+    /**
+     * Top-N most-frequently-scanned products, counted from the append-only
+     * scan_score_history log (one row per persist() call, never REPLACEd) —
+     * previously "Top Scanned" grouped the barcode-upserted scan_history table
+     * itself, where a rescan REPLACEs the same row in place, so any barcoded
+     * product's count could never exceed 1 and the tile only ever surfaced
+     * barcode-less (photo-identified) products. Joins back to scan_history
+     * purely to resolve a display name/dbId for the tap target - matched by
+     * barcode when the log's matchKey is one, else by lowercased name (mirrors
+     * ScanRepository.matchKeyFor exactly).
+     */
+    @Query("""
+        SELECT sh.productName as productName, COUNT(*) as cnt, MAX(sh.id) as dbId
+        FROM scan_score_history ssh
+        JOIN scan_history sh
+          ON (sh.barcode IS NOT NULL AND sh.barcode = ssh.matchKey)
+          OR (sh.barcode IS NULL AND LOWER(sh.productName) = ssh.matchKey)
+        WHERE ssh.profileId = :profileId AND sh.profileId = :profileId
+        GROUP BY ssh.matchKey
+        ORDER BY cnt DESC
+        LIMIT :limit
+    """)
+    fun observeTopScanned(profileId: String = "default", limit: Int = 3): Flow<List<TopScannedRow>>
 
     /**
      * Name/barcode search over the *entire* history, not just whatever window

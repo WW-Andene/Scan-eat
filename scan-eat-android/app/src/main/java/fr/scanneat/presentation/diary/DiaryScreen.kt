@@ -11,6 +11,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +54,12 @@ private enum class DiaryTab(val labelRes: Int) {
     TREATMENT(R.string.diary_tab_treatment),
 }
 
+/** Bundle doesn't natively round-trip an enum - process death (a low-memory
+ *  background kill, the most common reason Android recreates an Activity)
+ *  otherwise silently reset whichever Journal sub-tab (Weight/Water/Activity/
+ *  Fasting/Treatment) the user was on back to Meals with no indication anything moved. */
+private val DiaryTabSaver = Saver<DiaryTab, String>(save = { it.name }, restore = { DiaryTab.valueOf(it) })
+
 /**
  * Journal — the single home for every "log something today" task: meals
  * (this screen's original scope), weight, water, activity, and fasting.
@@ -67,7 +75,7 @@ fun DiaryScreen(
     isTabRoot: Boolean = false,
     onOpenCalendar: () -> Unit = {},
 ) {
-    var activeTab by remember { mutableStateOf(DiaryTab.MEALS) }
+    var activeTab by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.MEALS) }
     var showAddEntry by remember { mutableStateOf(false) }
 
     Scaffold(

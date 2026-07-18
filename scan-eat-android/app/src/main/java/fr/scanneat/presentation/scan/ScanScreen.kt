@@ -35,6 +35,8 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -120,6 +122,28 @@ fun ScanScreen(
             if (requestedOnce && !canShowRationale) permanentlyDenied = true
         }
         requestedOnce = true
+    }
+
+    // hasCamera was only ever updated by the permission-request launcher's own
+    // callback - revoking Camera permission from system Settings while this
+    // screen is backgrounded left it stuck true, so CameraPreview's next bind
+    // attempt threw a SecurityException that got misclassified as a hardware/
+    // driver fault (cameraUnavailable=true), trapping the user in a "Retry"
+    // loop that could never succeed since the real problem (missing permission)
+    // was never rechecked and the permission-request UI was never re-shown.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                val granted = hasCameraHardware &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                if (granted != hasCamera) {
+                    hasCamera = granted
+                    cameraUnavailable = false
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     LaunchedEffect(state.value) {

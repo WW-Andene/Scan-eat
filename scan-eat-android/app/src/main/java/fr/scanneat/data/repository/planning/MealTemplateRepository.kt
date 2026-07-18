@@ -202,6 +202,11 @@ class MealTemplateRepository @Inject constructor(private val dao: MealTemplateDa
                     saltG         = if (item.grams > 0) item.saltG * 100 / item.grams else 0.0,
                 ),
                 source = ScanSource.LLM,  // quick-add origin
+                // Previously omitted, defaulting to emptyList() - DiaryViewModel.diaryWarnings
+                // runs entry.toCheckProduct() against this list to surface allergen/diet
+                // warnings, so a template item logged this way never got a warning even
+                // when the template's own templateWarnings flagged the same ingredient.
+                ingredients = listOf(Ingredient(name = item.productName, category = IngredientCategory.FOOD)),
             )
         }
     }

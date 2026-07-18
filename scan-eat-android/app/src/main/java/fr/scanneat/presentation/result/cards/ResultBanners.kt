@@ -128,6 +128,30 @@ internal fun DietVetoBanner(reason: String?) {
     }
 }
 
+// OCR/photo scans that fail to read the ingredient panel leave AllergenHit/veto
+// checks with nothing to match against - AllergenWarningsCard/DietVetoBanner then
+// simply don't render, which looks identical to "no allergens found" rather than
+// "we couldn't check." Shown whenever the scan carries OcrParser's own
+// "ingredients unreadable" warning, so the safety-relevant gap is explicit near
+// the top of the screen instead of buried in the generic warnings section below.
+@Composable
+internal fun AllergenUnverifiedBanner() {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape    = RoundedCornerShape(CardRadius.CONTROL),
+            color    = semanticAmber().copy(alpha = 0.15f),
+        ) {
+            Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
+                Text(stringResource(R.string.result_allergens_unverified), style = MaterialTheme.typography.bodySmall,
+                    color = OnBackground, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
 @Composable
 internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String = "fr") {
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {

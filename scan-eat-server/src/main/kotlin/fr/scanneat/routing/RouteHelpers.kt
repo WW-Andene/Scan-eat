@@ -69,10 +69,19 @@ val ALLOWED_LANGS = setOf("fr", "en")
 /** Resolve a caller-supplied lang against [ALLOWED_LANGS], defaulting to "fr". */
 fun resolveLang(lang: String?): String = if (lang in ALLOWED_LANGS) lang!! else "fr"
 
+// The 12 MB rejectIfTooLarge() cap bounds the wire-format body, but nothing
+// previously bounded the *element count* of the `images` array before/after
+// deserialization - a body full of many small/duplicate entries could still
+// decode into far more image objects than any real scan ever needs, forwarding
+// all of them into GroqService.complete()'s content-part builder (and Groq's
+// own per-request cost) before this function's filter ever ran. Any genuine
+// scan supplies at most a couple of label photos.
+const val MAX_IMAGES = 8
+
 /** Normalize a legacy `imageBase64` field alongside the `images` array. */
 fun normalizeImages(images: List<ImageDto>?, imageBase64: String?, mime: String?): List<ImageDto> {
     if (!images.isNullOrEmpty()) {
-        return images.filter { it.base64.isNotBlank() }
+        return images.filter { it.base64.isNotBlank() }.take(MAX_IMAGES)
     }
     if (!imageBase64.isNullOrBlank()) {
         return listOf(ImageDto(imageBase64, mime ?: "image/jpeg"))

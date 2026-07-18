@@ -102,24 +102,37 @@ fun SettingsScreen(
     val context = LocalContext.current
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         val state = backupState.value
-        if (uri != null && state is BackupUiState.ExportReady) {
-            val wrote = runCatching {
-                context.contentResolver.openOutputStream(uri)?.use { it.write(state.json.toByteArray()) }
-            }.isSuccess
-            if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
-        } else {
-            viewModel.clearBackupState()
+        when {
+            uri == null -> viewModel.clearBackupState()   // user cancelled the picker - not a failure
+            state is BackupUiState.ExportReady -> {
+                // openOutputStream() can return null (stale/invalidated SAF document) - the
+                // previous `runCatching { stream?.use{...} }.isSuccess` treated a null stream
+                // as success (the safe-call just short-circuits to null, no exception thrown),
+                // so this silently reported a write that never happened.
+                val stream = context.contentResolver.openOutputStream(uri)
+                val wrote = stream != null && runCatching { stream.use { it.write(state.json.toByteArray()) } }.isSuccess
+                if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
+            }
+            // A destination was picked but the export JSON isn't there anymore - most
+            // commonly the process died while this system picker (a separate task/
+            // activity, routinely killed under memory pressure) was open, recreating
+            // the ViewModel back to Idle. The SAF picker already materializes an empty
+            // file at the chosen URI regardless of what happens next, so silently
+            // clearing state here would leave the user believing they have a real
+            // backup when nothing was ever written to it.
+            else -> viewModel.reportBackupIoFailed()
         }
     }
     val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
         val state = backupState.value
-        if (uri != null && state is BackupUiState.CsvExportReady) {
-            val wrote = runCatching {
-                context.contentResolver.openOutputStream(uri)?.use { it.write(state.csv.toByteArray()) }
-            }.isSuccess
-            if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
-        } else {
-            viewModel.clearBackupState()
+        when {
+            uri == null -> viewModel.clearBackupState()
+            state is BackupUiState.CsvExportReady -> {
+                val stream = context.contentResolver.openOutputStream(uri)
+                val wrote = stream != null && runCatching { stream.use { it.write(state.csv.toByteArray()) } }.isSuccess
+                if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
+            }
+            else -> viewModel.reportBackupIoFailed()
         }
     }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->

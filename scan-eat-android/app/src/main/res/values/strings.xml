@@ -1211,6 +1211,7 @@
     <string name="result_badge_nova">NOVA %1$d</string>
     <string name="result_allergens_title">Allergènes détectés</string>
     <string name="result_allergen_hit">• %1$s (%2$s)</string>
+    <string name="result_allergens_unverified">La liste des ingrédients n\'a pas pu être lue sur l\'étiquette — vos allergènes et votre régime n\'ont pas pu être vérifiés pour ce produit</string>
     <string name="result_personalization_prompt">Complétez votre profil (santé, régime, allergies) pour activer un score personnalisé</string>
     <string name="result_adjustments_title">Ajustements personnels</string>
     <string name="result_classic_score_label">Score classique</string>

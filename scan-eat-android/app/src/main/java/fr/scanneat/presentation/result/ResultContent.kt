@@ -111,6 +111,16 @@ internal fun ResultContent(
             AllergenWarningsCard(allergens, language)
         }
 
+        // Personalization active but this particular scan's ingredient panel
+        // couldn't be OCR'd - allergenHits/veto are both silently empty in that
+        // case (nothing to match against), which otherwise looks identical to a
+        // genuine "no allergens found" result for a user with real allergens set.
+        if (personalScore != null && personalScore.applicable && allergens.isEmpty() && personalScore.veto != true &&
+            scan.warnings.any { it.contains("could not be parsed", ignoreCase = true) }
+        ) {
+            AllergenUnverifiedBanner()
+        }
+
         // Personal score adjustments
         if (personalScore != null && personalScore.applicable && personalScore.adjustments.isNotEmpty()) {
             AdjustmentsSection(adjustments = personalScore.adjustments)

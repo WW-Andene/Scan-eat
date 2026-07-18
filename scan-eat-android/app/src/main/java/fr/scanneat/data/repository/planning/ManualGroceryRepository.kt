@@ -60,6 +60,28 @@ class ManualGroceryRepository @Inject constructor(
         }
     }
 
+    /**
+     * Adds a new manual grocery item, or updates an existing one with the same
+     * name in place - "Save to Courses" from a scanned product's popup previously
+     * always called [add], so re-saving the same product on a later shopping trip
+     * (a common flow) silently piled up a duplicate line item every time instead
+     * of refreshing the existing one's quantity, unlike the Mes Aliments
+     * destination in that same popup, which already dedupes by barcode/name.
+     */
+    suspend fun addOrUpdate(name: String, grams: Double) {
+        if (name.isBlank()) return
+        store.edit { prefs ->
+            val current = parse(prefs[KEY_ITEMS]).toMutableList()
+            val idx = current.indexOfFirst { it.name.equals(name.trim(), ignoreCase = true) }
+            if (idx >= 0) {
+                current[idx] = current[idx].copy(grams = grams.coerceAtLeast(0.0))
+            } else {
+                current.add(ManualGroceryItem(UUID.randomUUID().toString(), name.trim(), grams.coerceAtLeast(0.0)))
+            }
+            prefs[KEY_ITEMS] = serialize(current)
+        }
+    }
+
     suspend fun remove(id: String) {
         store.edit { prefs ->
             val current = parse(prefs[KEY_ITEMS]).filterNot { it.id == id }

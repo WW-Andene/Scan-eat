@@ -82,14 +82,20 @@ class CustomFoodRepository @Inject constructor(
         // observeAll()) with no way to identify it afterward in the UI. Reject it up
         // front instead, same guard style as WeightRepository.log()'s require().
         require(name.isNotBlank()) { "Custom food name must not be blank" }
+        // Only rejected negatives before - a typo or fat-finger (e.g. "1000" meant
+        // as kcal in the protein field, or a missing decimal point turning 45.0g
+        // into 4500g) flowed straight into Dashboard's MicronutrientCard bars,
+        // dailyTargets percentage math, and chronic-gap detection unclamped. 900
+        // is generous for kcal/100g (pure fat/oil tops out around 884); 100 is the
+        // physical ceiling for any single macro per 100g of product.
         val entry = FoodEntry(
             name      = name.trim(),
-            kcal      = kcal.coerceAtLeast(0.0),
-            proteinG  = proteinG.coerceAtLeast(0.0),
-            carbsG    = carbsG.coerceAtLeast(0.0),
-            fatG      = fatG.coerceAtLeast(0.0),
-            fiberG    = fiberG.coerceAtLeast(0.0),
-            saltG     = saltG.coerceAtLeast(0.0),
+            kcal      = kcal.coerceIn(0.0, 900.0),
+            proteinG  = proteinG.coerceIn(0.0, 100.0),
+            carbsG    = carbsG.coerceIn(0.0, 100.0),
+            fatG      = fatG.coerceIn(0.0, 100.0),
+            fiberG    = fiberG.coerceIn(0.0, 100.0),
+            saltG     = saltG.coerceIn(0.0, 100.0),
             aliases   = aliases.filter { it.isNotBlank() },
         )
         // Two custom foods sharing a name break Compose's LazyColumn key uniqueness in

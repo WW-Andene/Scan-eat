@@ -21,8 +21,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.R
@@ -83,8 +86,21 @@ fun ActivityScreen(
     embedded: Boolean = false,
     onOpenCalendar: () -> Unit = {},
 ) {
-    // Refresh date when screen becomes active (handles midnight crossing)
-    LaunchedEffect(Unit) { viewModel.refreshDate() }
+    // LaunchedEffect(Unit) only ever fires once for this composable's lifetime -
+    // a user who backgrounds the app overnight with this screen still composed
+    // (e.g. as the Diary/Journal Activity sub-tab) and reopens it the next
+    // morning never got a second firing, so `date` stayed pinned at yesterday
+    // until the composition was torn down and rebuilt some other way. An
+    // ON_RESUME observer re-fires every time the screen is actually revisited,
+    // which is when a midnight crossing needs to be caught.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refreshDate()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val entries          = viewModel.entries.collectAsStateWithLifecycle()
     val pastSubTypes     = viewModel.pastSubTypes.collectAsStateWithLifecycle()

@@ -24,6 +24,8 @@ import fr.scanneat.domain.engine.planning.normalizeKey
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.DiaryEntry
+import fr.scanneat.domain.model.Ingredient
+import fr.scanneat.domain.model.IngredientCategory
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanSource
@@ -241,6 +243,11 @@ class RecipesViewModel @Inject constructor(
                         saltG         = 0.0,
                     ),
                     source = ScanSource.MANUAL,
+                    // Previously omitted, defaulting to emptyList() - DiaryViewModel.diaryWarnings
+                    // runs entry.toCheckProduct() against this list to surface allergen/diet
+                    // warnings, so logging an official recipe never got a warning even when
+                    // this same screen's officialRecipeWarnings already flagged it pre-log.
+                    ingredients = recipe.ingredients.map { i -> Ingredient(name = i.foodName, category = IngredientCategory.FOOD) },
                 )
             )
         }

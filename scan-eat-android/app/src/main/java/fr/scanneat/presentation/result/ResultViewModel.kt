@@ -266,10 +266,18 @@ class ResultViewModel @Inject constructor(
                 // as "100 g", actively corrupting the "how much do I need to buy"
                 // math aggregateGroceryList() exists to compute. weightG is the
                 // label's own stated package weight when the scan captured one.
-                manualGroceryRepo.add(scan.product.name, scan.product.weightG ?: 100.0)
+                // addOrUpdate (not add) - re-saving the same product on a later
+                // shopping trip previously created a fresh duplicate line item
+                // every time instead of refreshing the existing one's quantity.
+                manualGroceryRepo.addOrUpdate(scan.product.name, scan.product.weightG ?: 100.0)
             }
             if (SaveDestination.REPAS in destinations) {
                 val n = scan.product.nutrition
+                // Previously always called save() with no id, so re-saving the same
+                // scanned product created a brand-new one-component "recipe" every
+                // time instead of recognizing it was already saved - matched by name
+                // here since Recipe (unlike CustomFood) has no barcode field of its own.
+                val existingId = recipeRepo.observeAll().first().find { it.name.equals(scan.product.name, ignoreCase = true) }?.id
                 recipeRepo.save(
                     name = scan.product.name,
                     components = listOf(
@@ -279,6 +287,7 @@ class ResultViewModel @Inject constructor(
                             fatG = n.fatG, saltG = n.saltG, fiberG = n.fiberG,
                         ),
                     ),
+                    id = existingId,
                 )
             }
         }

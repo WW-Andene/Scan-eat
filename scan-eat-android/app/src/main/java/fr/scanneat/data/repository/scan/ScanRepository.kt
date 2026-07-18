@@ -6,6 +6,7 @@ import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
+import fr.scanneat.data.local.db.scan.TopScannedRow
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.*
@@ -185,6 +186,10 @@ class ScanRepository @Inject constructor(
      */
     suspend fun priorScores(barcode: String?, productName: String, beforeMillis: Long, profileId: String = "default", limit: Int = 6): List<Int> =
         scoreHistoryDao.recentScoresBefore(matchKeyFor(barcode, productName), beforeMillis, limit, profileId)
+
+    /** Top-N most-frequently-scanned products, counted from the append-only score log - see ScanHistoryDao.observeTopScanned's own doc comment. */
+    fun observeTopScanned(profileId: String = "default", limit: Int = 3): Flow<List<TopScannedRow>> =
+        dao.observeTopScanned(profileId, limit)
 
     private fun matchKeyFor(barcode: String?, productName: String): String = barcode ?: productName.lowercase()
 

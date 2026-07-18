@@ -21,6 +21,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
+import fr.scanneat.presentation.reminders.components.PermissionBanner
+import fr.scanneat.presentation.reminders.components.permissionState
 import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalDate
 
@@ -347,12 +349,19 @@ fun MedicationScreen(
         var on by remember(m.id) { mutableStateOf(m.reminderOn) }
         var time by remember(m.id) { mutableStateOf(m.reminderTime) }
         val isValidTime = remember(time) { runCatching { java.time.LocalTime.parse(time) }.isSuccess }
+        // Every sibling reminder card (meal/hydration/weight/activity, see
+        // RemindersCard.kt) shows this banner - this dialog didn't, so a user with
+        // POST_NOTIFICATIONS denied could enable a medication reminder that would
+        // silently never fire (NotificationHelper.show() no-ops without the
+        // permission), with the switch looking "on" and nothing telling them why.
+        val (permGranted, permDenied, onRequest) = permissionState()
         AlertDialog(
             onDismissRequest = { reminderTarget = null },
             containerColor = SurfaceVariant,
             title = { Text(stringResource(R.string.medication_reminder_dialog_title, m.name), color = OnBackground) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    PermissionBanner(permGranted, permDenied, onRequest)
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.medication_reminder_toggle), color = OnBackground.copy(0.8f))
                         Switch(checked = on, onCheckedChange = { on = it }, colors = SwitchDefaults.colors(checkedTrackColor = Teal))

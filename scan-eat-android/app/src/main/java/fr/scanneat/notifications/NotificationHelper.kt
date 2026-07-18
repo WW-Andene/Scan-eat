@@ -3,13 +3,16 @@ package fr.scanneat.notifications
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import fr.scanneat.R
+import fr.scanneat.presentation.MainActivity
 
 /** Per-category notification channels — users can individually mute or
  *  change the importance of meals vs. hydration vs. weight vs. medications
@@ -54,12 +57,22 @@ object NotificationHelper {
             ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
         val channelId = channel?.id ?: CHANNEL_ID
+        // Previously absent - every notification this app posts (meal/hydration/
+        // weight/activity/fasting-target/daily digest, and critically the
+        // medication dose reminder) was a dead end when tapped: it just
+        // auto-cancelled with no navigation back into the app at all.
+        val contentIntent = PendingIntent.getActivity(
+            context, id,
+            Intent(context, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setContentIntent(contentIntent)
             .build()
         NotificationManagerCompat.from(context).notify(id, notification)
     }

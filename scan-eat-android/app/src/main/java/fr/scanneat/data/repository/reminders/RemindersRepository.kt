@@ -219,6 +219,12 @@ class RemindersRepository @Inject constructor(
         p[K_WEIGHT_CUSTOM_ON] = settings.weightCustomOn; p[K_WEIGHT_CUSTOM_TIME] = settings.weightCustomTime
         p[K_ACTIVITY_ON] = settings.activityOn; p[K_ACTIVITY_THRESHOLD] = settings.activityThresholdDays
         p[K_CUSTOM_REMINDERS] = Json.encodeToString(settings.customReminders)
+        // Previously the one field this "restores every field" function didn't -
+        // exportToJson serializes it fine, so a backup restore silently reset the
+        // daily digest back to off with no error, the same class of bug this
+        // function's own doc comment says it was written to prevent for snack/
+        // labels/custom reminders in an earlier round.
+        p[K_DAILY_DIGEST_ON] = settings.dailyDigestOn
     }
 
     suspend fun fastingTargetAlreadyNotified(startMs: Long): Boolean =

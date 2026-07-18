@@ -46,11 +46,15 @@ internal fun AddFoodDialog(
     var aliases by remember { mutableStateOf("") }
 
     // Blank macro fields default to 0.0 at save time - only reject a field that's
-    // actually filled in with something negative (kcal itself must always parse).
-    fun nonNegativeOrBlank(s: String) = s.isBlank() || (s.replace(',', '.').toDoubleOrNull()?.let { it >= 0.0 } == true)
+    // actually filled in, and only accept values in a physically plausible range
+    // (previously only negatives were rejected, so a typo like "1000" in the
+    // protein field, or a missing decimal point turning 45.0g into 4500g, saved
+    // silently - CustomFoodRepository.save() now clamps to the same bounds as a
+    // defensive backstop, but rejecting it here lets the user actually fix the typo).
+    fun inRangeOrBlank(s: String, max: Double) = s.isBlank() || (s.replace(',', '.').toDoubleOrNull()?.let { it in 0.0..max } == true)
     val valid = name.isNotBlank() &&
-        (kcal.replace(',', '.').toDoubleOrNull()?.let { it >= 0.0 } == true) &&
-        nonNegativeOrBlank(prot) && nonNegativeOrBlank(carb) && nonNegativeOrBlank(fat) && nonNegativeOrBlank(fib) && nonNegativeOrBlank(salt)
+        (kcal.replace(',', '.').toDoubleOrNull()?.let { it in 0.0..900.0 } == true) &&
+        inRangeOrBlank(prot, 100.0) && inRangeOrBlank(carb, 100.0) && inRangeOrBlank(fat, 100.0) && inRangeOrBlank(fib, 100.0) && inRangeOrBlank(salt, 100.0)
 
     AlertDialog(
         onDismissRequest = onDismiss,

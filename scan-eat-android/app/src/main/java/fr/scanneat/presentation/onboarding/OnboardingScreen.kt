@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +38,13 @@ import fr.scanneat.presentation.profile.components.SexSelector
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 
+/** Bundle only natively round-trips a handful of types - an enum needs an explicit
+ *  Saver (stored as its .name) to survive rememberSaveable's process-death restore. */
+private inline fun <reified T : Enum<T>> enumSaver() = Saver<T, String>(
+    save = { it.name },
+    restore = { enumValueOf<T>(it) },
+)
+
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
@@ -51,17 +60,21 @@ fun OnboardingScreen(
         }
     }
 
-    var page by remember { mutableIntStateOf(0) }
-    var selectedMode by remember { mutableStateOf(ApiMode.DIRECT) }
-    var apiKey by remember { mutableStateOf("") }
-    var apiKeyVisible by remember { mutableStateOf(false) }
-    var serverUrl by remember { mutableStateOf("") }
-    var sex by remember { mutableStateOf(Sex.NOT_SPECIFIED) }
-    var ageText by remember { mutableStateOf("") }
-    var heightText by remember { mutableStateOf("") }
-    var weightText by remember { mutableStateOf("") }
-    var activity by remember { mutableStateOf(ActivityLevel.MODERATELY_ACTIVE) }
-    var goal by remember { mutableStateOf(Goal.MAINTAIN) }
+    // Previously plain remember{} - MainActivity unlocks orientation for tablets/
+    // foldables (smallestScreenWidthDp >= 600), so a rotation there (or any
+    // locale/font-scale change, on any device) recreated the Activity and wiped
+    // every field typed so far, resetting to page 0 with no way to recover.
+    var page by rememberSaveable { mutableStateOf(0) }
+    var selectedMode by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(ApiMode.DIRECT) }
+    var apiKey by rememberSaveable { mutableStateOf("") }
+    var apiKeyVisible by rememberSaveable { mutableStateOf(false) }
+    var serverUrl by rememberSaveable { mutableStateOf("") }
+    var sex by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(Sex.NOT_SPECIFIED) }
+    var ageText by rememberSaveable { mutableStateOf("") }
+    var heightText by rememberSaveable { mutableStateOf("") }
+    var weightText by rememberSaveable { mutableStateOf("") }
+    var activity by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(ActivityLevel.MODERATELY_ACTIVE) }
+    var goal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(Goal.MAINTAIN) }
 
     Scaffold(containerColor = Background) { padding ->
         Column(
@@ -224,8 +237,13 @@ fun OnboardingScreen(
                         SexSelector(sex) { sex = it }
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             OutlinedInput(stringResource(R.string.profile_field_age), ageText, KeyboardType.Number, Modifier.weight(1f)) { ageText = it.filter(Char::isDigit) }
-                            OutlinedInput(stringResource(R.string.profile_field_height), heightText, KeyboardType.Number, Modifier.weight(1f)) { heightText = it.filter { c -> c.isDigit() || c == '.' } }
-                            OutlinedInput(stringResource(R.string.profile_field_weight), weightText, KeyboardType.Number, Modifier.weight(1f)) { weightText = it.filter { c -> c.isDigit() || c == '.' } }
+                            // ProfileScreen already normalizes comma->period before filtering -
+                            // this abbreviated onboarding capture didn't, so on this app's
+                            // default French locale (whose numeric keypad decimal key is a
+                            // comma) typing "75,5" had the comma silently stripped instead of
+                            // converted, concatenating both digit groups into "755".
+                            OutlinedInput(stringResource(R.string.profile_field_height), heightText, KeyboardType.Number, Modifier.weight(1f)) { heightText = it.replace(',', '.').filter { c -> c.isDigit() || c == '.' } }
+                            OutlinedInput(stringResource(R.string.profile_field_weight), weightText, KeyboardType.Number, Modifier.weight(1f)) { weightText = it.replace(',', '.').filter { c -> c.isDigit() || c == '.' } }
                         }
                         ActivitySelector(activity) { activity = it }
                         GoalSelector(goal) { goal = it }
@@ -236,7 +254,7 @@ fun OnboardingScreen(
                         ScanEatPrimaryButton(
                             onClick = {
                                 scope.launch {
-                                    viewModel.saveMinimalProfile(sex, ageText.toIntOrNull(), heightText.toDoubleOrNull(), weightText.toDoubleOrNull(), activity, goal)
+                                    viewModel.saveMinimalProfile(sex, ageText.toIntOrNull()?.coerceIn(1, 120), heightText.toDoubleOrNull()?.coerceIn(50.0, 250.0), weightText.toDoubleOrNull()?.coerceIn(20.0, 400.0), activity, goal)
                                     viewModel.finish()
                                 }
                             },
@@ -250,7 +268,7 @@ fun OnboardingScreen(
                             // silently discarded by following this link instead of "Continue".
                             onClick = {
                                 scope.launch {
-                                    if (canSave) viewModel.saveMinimalProfile(sex, ageText.toIntOrNull(), heightText.toDoubleOrNull(), weightText.toDoubleOrNull(), activity, goal)
+                                    if (canSave) viewModel.saveMinimalProfile(sex, ageText.toIntOrNull()?.coerceIn(1, 120), heightText.toDoubleOrNull()?.coerceIn(50.0, 250.0), weightText.toDoubleOrNull()?.coerceIn(20.0, 400.0), activity, goal)
                                     viewModel.finish(goToProfile = true)
                                 }
                             },

@@ -24,6 +24,7 @@ import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.result.defaultMealForHour
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -111,9 +112,21 @@ class DashboardViewModel @Inject constructor(
     private val medicationRepo: MedicationRepository,
 ) : ViewModel() {
 
-    // Combine 4 flows with the type-safe 4-parameter lambda (not the array form).
-    // flatMapLatest wraps the suspend calls cleanly.
-    private val from = LocalDate.now().minusDays(30)
+    // LocalDate.now() captured once at property-init time (the previous shape
+    // of this ViewModel) would keep every combine() below observing the day
+    // this ViewModel happened to be constructed on forever - a session left
+    // open across midnight (the single most common way to use a home-screen
+    // Dashboard) silently kept showing yesterday's totals/streaks/rollups,
+    // and a diary entry logged after midnight wouldn't even count toward
+    // "today". Polling + distinctUntilChanged re-subscribes every date-scoped
+    // query to the new day exactly when it rolls over, same fix already
+    // applied to HydrationViewModel/DiaryViewModel/ActivityViewModel.
+    private val today: Flow<LocalDate> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
 
     // Combine 5 flows — the 30-day range is now a Flow itself, so
     // DashboardViewModel never issues a suspend DB call on every upstream tick.
@@ -122,121 +135,124 @@ class DashboardViewModel @Inject constructor(
     // weekly rollup / gap-closer / Biolism TDEE recomputation on every scan
     // even though none of that depends on the scan-history list. It's merged
     // in separately below, as a cheap .copy().
-    private val heavyState: StateFlow<DashboardUiState> = combine(
-        consumptionRepo.observeDay(LocalDate.now()),
-        consumptionRepo.observeRange(from, LocalDate.now()),
-        prefs.profile,
-        weightRepo.observeAll(),
-        biolismRepo.profile,
-    ) { today, allEntries, profile, _, bioProfile ->
-        // weightRepo.observeAll() (4th param, ignored) is a trigger-only input -
-        // it makes this combine re-run when weight changes, but wSummary below
-        // is fetched fresh via weightRepo.summarize() rather than threaded
-        // through here. Kotlin's typed 5-flow combine() overload removes the
-        // Array<*>-indexed unchecked casts the previous form needed.
-        Quad(today, allEntries, profile, bioProfile)
-    }
-        // Nested rather than folded into the 5-way combine above (which is
-        // already at Kotlin's typed-overload limit) - closeTheGap()/
-        // chronicNutrientGaps() below documented their own foodDB param as
-        // "FOOD_DB + custom foods" but this ViewModel only ever passed bare
-        // FOOD_DB, so a user's own custom foods (e.g. "Lentilles maison",
-        // high in iron) could never be suggested to close a real deficit.
-        .combine(customFoodRepo.observeAll()) { quad, customFoods -> quad to customFoods }
-        .flatMapLatest { (quad, customFoods) ->
-            val (today, allEntries, profile, bioProfile) = quad
-            val foodDb = FOOD_DB + customFoods
-            flow {
-                // WeeklyBarsCard/gap engines below all read targets.kcal directly, but
-                // only calorieBalance further down ever substituted the richer
-                // Biolism TDEE for it - so this same screen could show a Biolism-based
-                // "1850/2400 kcal today" balance right next to a WeeklyBarsCard target
-                // line still drawn from the plain PAL-based estimate. Overriding once,
-                // at the source, keeps every consumer of `targets` in agreement.
-                val bioTdeePreview = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
-                // withKcalOverride rescales fat/carbs targets onto the Biolism kcal too -
-                // a plain kcal swap left TodayMacroCard's macro rings computed from the
-                // stale profile-only kcal, so they no longer summed to the balance above.
-                val targets = (if (hasMinimalProfile(profile)) dailyTargets(profile) else null)
-                    ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal) else it }
-                val thisWeek  = weeklyRollup(allEntries, LocalDate.now())
-                val priorWeek = weeklyRollup(allEntries, LocalDate.now().minusDays(7))
-                val thisMonth = monthlyRollup(allEntries, LocalDate.now())
-                val wSummary  = weightRepo.summarize(30)
-                val forecast  = if (wSummary != null && profile.goalWeightKg != null)
-                    weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
-                else WeightForecast.InsufficientData
-                val gaps = if (targets != null && today.entries.isNotEmpty())
-                    closeTheGap(today.totals, targets, foodDb)
-                else emptyList()
-                // chronicNutrientGaps() was fully built (7-day recurring-deficit
-                // scan) but never called from any ViewModel - closeTheGap() above
-                // only ever looks at today, so a real ongoing shortfall (e.g. low
-                // fiber 5 of the last 7 days) never surfaced unless it also
-                // happened to be true today.
-                val chronic = if (targets != null) chronicNutrientGaps(allEntries, targets, foodDb) else emptyList()
-
-                // Weekly active minutes for the cross-tracker insight below - a
-                // fresh range query (not the single-day observeByDate used elsewhere
-                // on Dashboard) since no 7-day activity window was already loaded here.
-                val weeklyActiveMinutes = activityRepo.getRange(LocalDate.now().minusDays(6), LocalDate.now()).sumOf { it.minutes }
-                val crossInsight = weeklyCrossTrackerInsight(
-                    weeklyAvgKcal         = thisWeek.avg.kcal,
-                    kcalTarget            = targets?.kcal ?: 0.0,
-                    daysLogged            = thisWeek.daysLogged,
-                    weightTrendKgPerWeek  = wSummary?.trendKgPerWeek,
-                    weeklyActiveMinutes   = weeklyActiveMinutes,
-                )
-
-                val calorieBalance = targets?.kcal?.let {
-                    CalorieBalance(
-                        kcalIn          = today.totals.energyKcal,
-                        tdee            = it,
-                        tdeeFromBiolism = bioTdeePreview != null,
-                        net             = today.totals.energyKcal - it,
-                    )
-                }
-
-                emit(DashboardUiState(
-                    todayTotals    = today.totals,
-                    targets        = targets,
-                    calorieBalance = calorieBalance,
-                    streak         = logStreakDays(allEntries),
-                    longestStreak  = longestLogStreak(allEntries),
-                    weekly         = thisWeek,
-                    monthly        = thisMonth,
-                    weekDelta      = weekOverWeekDelta(thisWeek, priorWeek),
-                    weightSummary  = wSummary,
-                    weightForecast = forecast,
-                    gapSuggestions = gaps,
-                    chronicGaps    = chronic,
-                    todayEntries   = today.entries,
-                    crossInsight   = crossInsight,
-                ))
-            }
+    private val heavyState: StateFlow<DashboardUiState> = today.flatMapLatest { date ->
+        combine(
+            consumptionRepo.observeDay(date),
+            consumptionRepo.observeRange(date.minusDays(30), date),
+            prefs.profile,
+            weightRepo.observeAll(),
+            biolismRepo.profile,
+        ) { todayData, allEntries, profile, _, bioProfile ->
+            // weightRepo.observeAll() (4th param, ignored) is a trigger-only input -
+            // it makes this combine re-run when weight changes, but wSummary below
+            // is fetched fresh via weightRepo.summarize() rather than threaded
+            // through here. Kotlin's typed 5-flow combine() overload removes the
+            // Array<*>-indexed unchecked casts the previous form needed.
+            Quad(todayData, allEntries, profile, bioProfile)
         }
+            // Nested rather than folded into the 5-way combine above (which is
+            // already at Kotlin's typed-overload limit) - closeTheGap()/
+            // chronicNutrientGaps() below documented their own foodDB param as
+            // "FOOD_DB + custom foods" but this ViewModel only ever passed bare
+            // FOOD_DB, so a user's own custom foods (e.g. "Lentilles maison",
+            // high in iron) could never be suggested to close a real deficit.
+            .combine(customFoodRepo.observeAll()) { quad, customFoods -> quad to customFoods }
+            .flatMapLatest { (quad, customFoods) ->
+                val (todayData, allEntries, profile, bioProfile) = quad
+                val foodDb = FOOD_DB + customFoods
+                flow {
+                    // WeeklyBarsCard/gap engines below all read targets.kcal directly, but
+                    // only calorieBalance further down ever substituted the richer
+                    // Biolism TDEE for it - so this same screen could show a Biolism-based
+                    // "1850/2400 kcal today" balance right next to a WeeklyBarsCard target
+                    // line still drawn from the plain PAL-based estimate. Overriding once,
+                    // at the source, keeps every consumer of `targets` in agreement.
+                    val bioTdeePreview = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
+                    // withKcalOverride rescales fat/carbs targets onto the Biolism kcal too -
+                    // a plain kcal swap left TodayMacroCard's macro rings computed from the
+                    // stale profile-only kcal, so they no longer summed to the balance above.
+                    val targets = (if (hasMinimalProfile(profile)) dailyTargets(profile) else null)
+                        ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal) else it }
+                    val thisWeek  = weeklyRollup(allEntries, date)
+                    val priorWeek = weeklyRollup(allEntries, date.minusDays(7))
+                    val thisMonth = monthlyRollup(allEntries, date)
+                    val wSummary  = weightRepo.summarize(30)
+                    val forecast  = if (wSummary != null && profile.goalWeightKg != null)
+                        weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
+                    else WeightForecast.InsufficientData
+                    val gaps = if (targets != null && todayData.entries.isNotEmpty())
+                        closeTheGap(todayData.totals, targets, foodDb)
+                    else emptyList()
+                    // chronicNutrientGaps() was fully built (7-day recurring-deficit
+                    // scan) but never called from any ViewModel - closeTheGap() above
+                    // only ever looks at today, so a real ongoing shortfall (e.g. low
+                    // fiber 5 of the last 7 days) never surfaced unless it also
+                    // happened to be true today.
+                    val chronic = if (targets != null) chronicNutrientGaps(allEntries, targets, foodDb) else emptyList()
+
+                    // Weekly active minutes for the cross-tracker insight below - a
+                    // fresh range query (not the single-day observeByDate used elsewhere
+                    // on Dashboard) since no 7-day activity window was already loaded here.
+                    val weeklyActiveMinutes = activityRepo.getRange(date.minusDays(6), date).sumOf { it.minutes }
+                    val crossInsight = weeklyCrossTrackerInsight(
+                        weeklyAvgKcal         = thisWeek.avg.kcal,
+                        kcalTarget            = targets?.kcal ?: 0.0,
+                        daysLogged            = thisWeek.daysLogged,
+                        weightTrendKgPerWeek  = wSummary?.trendKgPerWeek,
+                        weeklyActiveMinutes   = weeklyActiveMinutes,
+                    )
+
+                    val calorieBalance = targets?.kcal?.let {
+                        CalorieBalance(
+                            kcalIn          = todayData.totals.energyKcal,
+                            tdee            = it,
+                            tdeeFromBiolism = bioTdeePreview != null,
+                            net             = todayData.totals.energyKcal - it,
+                        )
+                    }
+
+                    emit(DashboardUiState(
+                        todayTotals    = todayData.totals,
+                        targets        = targets,
+                        calorieBalance = calorieBalance,
+                        streak         = logStreakDays(allEntries),
+                        longestStreak  = longestLogStreak(allEntries),
+                        weekly         = thisWeek,
+                        monthly        = thisMonth,
+                        weekDelta      = weekOverWeekDelta(thisWeek, priorWeek),
+                        weightSummary  = wSummary,
+                        weightForecast = forecast,
+                        gapSuggestions = gaps,
+                        chronicGaps    = chronic,
+                        todayEntries   = todayData.entries,
+                        crossInsight   = crossInsight,
+                    ))
+                }
+            }
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
-    val state: StateFlow<DashboardUiState> = combine(
-        heavyState, scanRepo.observeHistory(limit = 20), activityRepo.observeByDate(LocalDate.now()),
-    ) { s, scans, activity ->
-        // In-memory only, both lists already loaded for other purposes above - no
-        // new DB query. Matched by the same "barcode when present, else lowercased
-        // name" identity ScanRepository.matchKeyFor uses internally for its own
-        // score-history dedup.
-        fun DiaryEntry.matchKey() = barcode ?: productName.lowercase()
-        fun ScanResult.matchKey() = barcode ?: product.name.lowercase()
-        val loggedToday = s.todayEntries.mapTo(mutableSetOf()) { it.matchKey() }
-        val today = LocalDate.now()
-        val neverLogged = scans.filter { scan ->
-            Instant.ofEpochMilli(scan.scannedAt).atZone(ZoneId.systemDefault()).toLocalDate() == today &&
-                scan.matchKey() !in loggedToday
+    val state: StateFlow<DashboardUiState> = today.flatMapLatest { date ->
+        combine(
+            heavyState, scanRepo.observeHistory(limit = 20), activityRepo.observeByDate(date),
+        ) { s, scans, activity ->
+            // In-memory only, both lists already loaded for other purposes above - no
+            // new DB query. Matched by the same "barcode when present, else lowercased
+            // name" identity ScanRepository.matchKeyFor uses internally for its own
+            // score-history dedup.
+            fun DiaryEntry.matchKey() = barcode ?: productName.lowercase()
+            fun ScanResult.matchKey() = barcode ?: product.name.lowercase()
+            val loggedToday = s.todayEntries.mapTo(mutableSetOf()) { it.matchKey() }
+            val neverLogged = scans.filter { scan ->
+                Instant.ofEpochMilli(scan.scannedAt).atZone(ZoneId.systemDefault()).toLocalDate() == date &&
+                    scan.matchKey() !in loggedToday
+            }
+            s.copy(
+                recentScans      = scans,
+                neverLoggedScans = neverLogged,
+                calorieBalance   = s.calorieBalance?.copy(exerciseKcal = activity.sumOf { it.kcalBurned }),
+            )
         }
-        s.copy(
-            recentScans      = scans,
-            neverLoggedScans = neverLogged,
-            calorieBalance   = s.calorieBalance?.copy(exerciseKcal = activity.sumOf { it.kcalBurned }),
-        )
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
@@ -251,22 +267,24 @@ class DashboardViewModel @Inject constructor(
     // Journal's Water/Fasting/Treatment tabs). Kept as its own StateFlow rather than
     // folded into the heavy combine above - these are all today-only cheap reads with
     // no dependency on the 30-day window that combine recomputes on every diary edit.
-    val otherTrackers: StateFlow<OtherTrackersSnapshot> = combine(
-        hydrationRepo.observe(LocalDate.now()),
-        fastingRepo.state,
-        medicationRepo.observeAll(),
-        medicationRepo.observeLogByDate(LocalDate.now()),
-        prefs.profile,
-    ) { hydrationMl, fasting, meds, todayLogs, profile ->
-        val activeMeds = meds.filter { it.active }
-        val takenIds = todayLogs.map { it.medicationId }.toSet()
-        OtherTrackersSnapshot(
-            hydrationMl     = hydrationMl,
-            hydrationGoalMl = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions),
-            fastingActive   = fasting?.takeIf { it.isActive },
-            medsTakenCount  = activeMeds.count { it.id in takenIds },
-            medsActiveCount = activeMeds.size,
-        )
+    val otherTrackers: StateFlow<OtherTrackersSnapshot> = today.flatMapLatest { date ->
+        combine(
+            hydrationRepo.observe(date),
+            fastingRepo.state,
+            medicationRepo.observeAll(),
+            medicationRepo.observeLogByDate(date),
+            prefs.profile,
+        ) { hydrationMl, fasting, meds, todayLogs, profile ->
+            val activeMeds = meds.filter { it.active }
+            val takenIds = todayLogs.map { it.medicationId }.toSet()
+            OtherTrackersSnapshot(
+                hydrationMl     = hydrationMl,
+                hydrationGoalMl = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions),
+                fastingActive   = fasting?.takeIf { it.isActive },
+                medsTakenCount  = activeMeds.count { it.id in takenIds },
+                medsActiveCount = activeMeds.size,
+            )
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OtherTrackersSnapshot())
 
     // ── Gap-closer suggestions: previously a dead end ────────────────────────
@@ -329,6 +347,7 @@ class DashboardViewModel @Inject constructor(
                         portionG    = portionG,
                         nutrition   = scan.product.nutrition,
                         source      = scan.source,
+                        ingredients = scan.product.ingredients,
                     )
                 )
             }.onFailure { _actionFailed.value = true }

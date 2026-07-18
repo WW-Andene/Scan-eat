@@ -206,6 +206,11 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             portionG    = grams.coerceAtLeast(1.0),
             nutrition   = recipe.nutritionPer100g,
             source      = ScanSource.LLM,
+            // Previously omitted, defaulting to emptyList() - DiaryViewModel.diaryWarnings
+            // runs entry.toCheckProduct() against this list to surface allergen/diet
+            // warnings on logged entries, so a recipe logged straight from Recipes never
+            // got a warning even when the same recipe's own recipeWarnings flagged it.
+            ingredients = recipe.components.map { c -> Ingredient(name = c.productName, category = IngredientCategory.FOOD) },
         )
     }
 

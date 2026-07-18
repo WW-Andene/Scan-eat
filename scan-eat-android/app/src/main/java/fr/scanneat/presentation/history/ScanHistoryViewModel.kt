@@ -97,15 +97,14 @@ class ScanHistoryViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Top 3 most-scanned products: name, count, and latest dbId for tap-to-open.
-    // Previously clicking a top-scanned chip did nothing (no onClick handler existed).
-    val topScanned: StateFlow<List<Triple<String, Int, Long>>> = allScans
-        .map { scans ->
-            scans.groupBy { it.product.name }
-                .entries
-                .sortedByDescending { it.value.size }
-                .take(3)
-                .map { (name, list) -> Triple(name, list.size, list.maxOf { it.dbId }) }
-        }
+    // Previously grouped allScans (scan_history), which persist() upserts by
+    // barcode - a rescan REPLACEs the same row in place, so any barcoded
+    // product's count could never exceed 1 and this could only ever surface
+    // barcode-less (photo-identified) products. Now derived from the
+    // append-only scan_score_history log via a dedicated DAO query, so a
+    // repeatedly-rescanned barcoded product is finally counted correctly.
+    val topScanned: StateFlow<List<Triple<String, Int, Long>>> = repo.observeTopScanned(limit = 3)
+        .map { rows -> rows.map { Triple(it.productName, it.cnt, it.dbId) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Average audit score across all scans, null when history is empty. */

@@ -73,6 +73,17 @@ private fun noInputMessage(lang: String) =
     else "Scannez un code-barres ou prenez une photo"
 
 /**
+ * identifyFromPhotos() previously reused noInputMessage() for its offline branch
+ * even though photos are guaranteed present there (the function early-returns on
+ * an empty queue before this check) - a user with photos already queued, offline,
+ * trying to identify unlabeled produce, got told to "scan a barcode or take a
+ * photo" instead of the real, actionable problem. Mirrors ScanRepository's own
+ * private offlineMessage(), which every barcode/label-parsing path already uses.
+ */
+private fun offlineMessage(lang: String) =
+    if (lang == "en") "No internet connection" else "Pas de connexion internet"
+
+/**
  * Fallback for the `else` branch of the scan-failure `when` — every sibling
  * branch (invalidApiKeyMessage/invalidModelMessage/rateLimitedMessage/
  * noInputMessage) routes through lang, but this default case used to hardcode
@@ -228,7 +239,7 @@ class ScanViewModel @Inject constructor(
                 val lang   = prefs.language.first()
                 val online = isOnline()
                 if (!online) {
-                    _state.value = ScanUiState.Error(noInputMessage(lang))
+                    _state.value = ScanUiState.Error(offlineMessage(lang))
                     return@launch
                 }
                 val identified = scanRepo.identifyOrScoreFromImages(imgs, lang, online, identifyMode = true)
