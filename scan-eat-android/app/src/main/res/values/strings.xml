@@ -1057,6 +1057,7 @@
     <string name="dashboard_tile_profile">Mon Profil</string>
     <string name="dashboard_tile_customfoods">Mes aliments</string>
     <string name="dashboard_tile_favorites">Favoris</string>
+    <string name="planning_switcher_cd">Aller à…</string>
     <string name="dashboard_tile_calendar">Calendrier</string>
     <string name="dashboard_tile_history">Historique</string>
     <string name="dashboard_recent_scans_title">Scans récents</string>

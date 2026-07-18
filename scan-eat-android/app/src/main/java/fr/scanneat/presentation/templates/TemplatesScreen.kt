@@ -28,6 +28,8 @@ import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.result.HintPanel
+import fr.scanneat.presentation.shell.PlanningDestination
+import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
@@ -37,6 +39,7 @@ import java.time.LocalDate
 fun TemplatesScreen(
     viewModel: TemplatesViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    onNavigateToPlanning: (PlanningDestination) -> Unit = {},
 ) {
     val templates = viewModel.templates.collectAsStateWithLifecycle()
     val mealFilter = viewModel.mealFilter.collectAsStateWithLifecycle()
@@ -67,7 +70,10 @@ fun TemplatesScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.templates_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.templates_cd_new), tint = AccentCoral) } },
+                actions = {
+                    PlanningSwitcherMenu(current = PlanningDestination.TEMPLATES, onNavigate = onNavigateToPlanning)
+                    IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.templates_cd_new), tint = AccentCoral) }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },

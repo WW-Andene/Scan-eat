@@ -27,12 +27,15 @@ import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
 import fr.scanneat.presentation.recipes.components.RecipeCard
 import fr.scanneat.presentation.recipes.components.SaveAsTemplateDialog
 import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
+import fr.scanneat.presentation.shell.PlanningDestination
+import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 fun RecipesScreen(
     viewModel: RecipesViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    onNavigateToPlanning: (PlanningDestination) -> Unit = {},
 ) {
     val recipes = viewModel.recipes.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
@@ -58,7 +61,10 @@ fun RecipesScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.recipes_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) } },
+                actions = {
+                    PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
+                    IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },

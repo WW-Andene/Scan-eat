@@ -19,12 +19,15 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.presentation.customfood.components.AddFoodDialog
 import fr.scanneat.presentation.customfood.components.FoodEntryRow
+import fr.scanneat.presentation.shell.PlanningDestination
+import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 fun CustomFoodScreen(
     viewModel: CustomFoodViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    onNavigateToPlanning: (PlanningDestination) -> Unit = {},
 ) {
     val foods   = viewModel.foods.collectAsStateWithLifecycle()
     val foodsWithId = viewModel.foodsWithId.collectAsStateWithLifecycle()
@@ -50,6 +53,7 @@ fun CustomFoodScreen(
                     }
                 },
                 actions = {
+                    PlanningSwitcherMenu(current = PlanningDestination.CUSTOM_FOODS, onNavigate = onNavigateToPlanning)
                     IconButton(onClick = { showAdd = true }) {
                         Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral)
                     }

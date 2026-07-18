@@ -169,11 +169,27 @@ fun AppNavGraph(
         composable(AppRoutes.SCAN_PROFILE) { ProfileScreen(onBack = { navController.popBackStack() }) }
         // Weight/Fasting/Hydration/Activity are no longer separately pushed
         // routes — they're embedded as Journal sub-tabs (see DiaryScreen.kt).
-        composable(AppRoutes.RECIPES)      { RecipesScreen(onBack = { navController.popBackStack() }) }
-        composable(AppRoutes.TEMPLATES)    { TemplatesScreen(onBack = { navController.popBackStack() }) }
-        composable(AppRoutes.MEAL_PLAN)    { MealPlanScreen(onBack = { navController.popBackStack() }) }
-        composable(AppRoutes.GROCERY)      { GroceryScreen(onBack = { navController.popBackStack() }) }
-        composable(AppRoutes.CUSTOM_FOODS) { CustomFoodScreen(onBack = { navController.popBackStack() }) }
+        //
+        // Recipes/Templates/MealPlan/Grocery/CustomFoods constantly feed into
+        // each other but previously had no way to reach one another directly -
+        // every lateral move required backing out to Dashboard first (see
+        // PlanningSwitcherMenu's own doc comment). onNavigateToPlanning wires
+        // each of the five to a plain push of whichever sibling the user picks.
+        composable(AppRoutes.RECIPES) {
+            RecipesScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
+        }
+        composable(AppRoutes.TEMPLATES) {
+            TemplatesScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
+        }
+        composable(AppRoutes.MEAL_PLAN) {
+            MealPlanScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
+        }
+        composable(AppRoutes.GROCERY) {
+            GroceryScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
+        }
+        composable(AppRoutes.CUSTOM_FOODS) {
+            CustomFoodScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
+        }
         composable(AppRoutes.CALENDAR)     { CalendarScreen(onBack = { navController.popBackStack() }) }
         composable(AppRoutes.SCAN_HISTORY) {
             ScanHistoryScreen(
@@ -194,3 +210,15 @@ fun AppNavGraph(
 /** Tab-root ↔ tab-root switches use fade-through; everything else is a peer-level push/pop (slide). */
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.isTabSwitch(): Boolean =
     initialState.destination.route in TAB_ROOT_ROUTES && targetState.destination.route in TAB_ROOT_ROUTES
+
+/** See PlanningSwitcherMenu's doc comment - a plain push, same as reaching any of these from Dashboard. */
+private fun NavHostController.navigateToPlanning(dest: PlanningDestination) {
+    val route = when (dest) {
+        PlanningDestination.RECIPES      -> AppRoutes.RECIPES
+        PlanningDestination.TEMPLATES    -> AppRoutes.TEMPLATES
+        PlanningDestination.MEAL_PLAN    -> AppRoutes.MEAL_PLAN
+        PlanningDestination.GROCERY      -> AppRoutes.GROCERY
+        PlanningDestination.CUSTOM_FOODS -> AppRoutes.CUSTOM_FOODS
+    }
+    navigate(route)
+}

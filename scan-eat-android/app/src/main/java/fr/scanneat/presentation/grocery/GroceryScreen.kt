@@ -29,6 +29,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.presentation.shell.PlanningDestination
+import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -36,6 +38,7 @@ import kotlinx.coroutines.launch
 fun GroceryScreen(
     viewModel: GroceryViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    onNavigateToPlanning: (PlanningDestination) -> Unit = {},
 ) {
     var quickAddText by remember { mutableStateOf("") }
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
@@ -63,6 +66,7 @@ fun GroceryScreen(
                 title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
+                    PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
                     if (checkable.value.any { it.checked }) {
                         IconButton(onClick = { showClearConfirm = true }) {
                             Icon(Icons.Default.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))

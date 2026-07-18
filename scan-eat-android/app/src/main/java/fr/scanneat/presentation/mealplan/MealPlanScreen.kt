@@ -23,6 +23,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
+import fr.scanneat.presentation.shell.PlanningDestination
+import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
@@ -35,6 +37,7 @@ private val MEALS = listOf("breakfast", "lunch", "dinner", "snack")
 fun MealPlanScreen(
     viewModel: MealPlanViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    onNavigateToPlanning: (PlanningDestination) -> Unit = {},
 ) {
     val plan = viewModel.weekPlan.collectAsStateWithLifecycle()
     val weekDates = viewModel.weekDates.collectAsStateWithLifecycle()
@@ -71,6 +74,7 @@ fun MealPlanScreen(
                 // slots (7 days x 4 meals) by hand - this duplicates the displayed
                 // week onto the next 7 days in one tap.
                 actions = {
+                    PlanningSwitcherMenu(current = PlanningDestination.MEAL_PLAN, onNavigate = onNavigateToPlanning)
                     if (weeklyTotalKcal.value > 0) {
                         IconButton(onClick = { viewModel.duplicateWeek() }) {
                             Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_week), tint = OnBackground)
