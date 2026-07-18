@@ -11,7 +11,10 @@ import androidx.room.PrimaryKey
  * event of its own: not on its own tab, and not on the unified Calendar
  * (which combines every *other* tracker's dated log).
  */
-@Entity(tableName = "medication_log", indices = [Index("date", "profileId"), Index("medicationId")])
+// medicationId/date/profileId is unique — see MIGRATION_23_24's own doc
+// comment for why a DB-level guard was added on top of insertIfAbsent's
+// app-level transactional check.
+@Entity(tableName = "medication_log", indices = [Index("date", "profileId"), Index(value = ["medicationId", "date", "profileId"], unique = true)])
 data class MedicationLogEntity(
     @PrimaryKey val id: String,
     val medicationId: String,

@@ -101,20 +101,36 @@ interface ScanHistoryDao {
      * previously "Top Scanned" grouped the barcode-upserted scan_history table
      * itself, where a rescan REPLACEs the same row in place, so any barcoded
      * product's count could never exceed 1 and the tile only ever surfaced
-     * barcode-less (photo-identified) products. Joins back to scan_history
-     * purely to resolve a display name/dbId for the tap target - matched by
-     * barcode when the log's matchKey is one, else by lowercased name (mirrors
-     * ScanRepository.matchKeyFor exactly).
+     * barcode-less (photo-identified) products.
+     *
+     * The count is aggregated from scan_score_history *first*, in its own
+     * subquery, before scan_history is touched at all. Joining the two tables
+     * directly (the previous approach) fanned out for every barcode-less
+     * product: unlike scan_history's barcode path (upsertByBarcode reuses the
+     * one existing row), a barcode-less scan always inserts a brand-new
+     * scan_history row, so N repeat scans of the same unbarcoded product left
+     * N matching scan_history rows and N matching scan_score_history rows
+     * sharing one matchKey — a direct join's cross product reported N² instead
+     * of N. The correlated subquery below picks exactly one scan_history row
+     * (the most recent) per matchKey purely to resolve a display name/dbId for
+     * the tap target, so the pre-aggregated cnt is never multiplied.
      */
     @Query("""
-        SELECT sh.productName as productName, COUNT(*) as cnt, MAX(sh.id) as dbId
-        FROM scan_score_history ssh
-        JOIN scan_history sh
-          ON (sh.barcode IS NOT NULL AND sh.barcode = ssh.matchKey)
-          OR (sh.barcode IS NULL AND LOWER(sh.productName) = ssh.matchKey)
-        WHERE ssh.profileId = :profileId AND sh.profileId = :profileId
-        GROUP BY ssh.matchKey
-        ORDER BY cnt DESC
+        SELECT display.productName as productName, agg.cnt as cnt, display.id as dbId
+        FROM (
+            SELECT matchKey, COUNT(*) as cnt
+            FROM scan_score_history
+            WHERE profileId = :profileId
+            GROUP BY matchKey
+        ) agg
+        JOIN scan_history display
+          ON display.id = (
+              SELECT sh.id FROM scan_history sh
+              WHERE sh.profileId = :profileId
+                AND ((sh.barcode IS NOT NULL AND sh.barcode = agg.matchKey) OR (sh.barcode IS NULL AND LOWER(sh.productName) = agg.matchKey))
+              ORDER BY sh.scannedAt DESC LIMIT 1
+          )
+        ORDER BY agg.cnt DESC
         LIMIT :limit
     """)
     fun observeTopScanned(profileId: String = "default", limit: Int = 3): Flow<List<TopScannedRow>>

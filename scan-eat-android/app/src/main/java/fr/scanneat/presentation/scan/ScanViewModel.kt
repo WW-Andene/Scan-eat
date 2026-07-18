@@ -202,7 +202,18 @@ class ScanViewModel @Inject constructor(
         _state.value = ScanUiState.Idle
     }
 
+    /**
+     * Capped at MAX_QUEUED_PHOTOS — previously unbounded, unlike the server's own
+     * RouteHelpers.normalizeImages() (MAX_IMAGES=8, added round 30). A user tapping
+     * the capture FAB repeatedly grew this list forever: in SERVER mode the extra
+     * images were uploaded over the network only to be silently dropped server-side,
+     * and in DIRECT mode (straight to Groq/Cerebras, no server-side cap at all) every
+     * queued photo's full base64 payload was sent to the vision LLM with no limit.
+     * Silently ignored past the cap rather than surfaced as an error, matching this
+     * screen's other silent caps (e.g. recentBarcodes.takeLast(5)).
+     */
     fun addPhoto(bitmap: Bitmap) {
+        if (_images.value.size >= MAX_QUEUED_PHOTOS) return
         _images.value = _images.value + bitmap.toPayload()
     }
 
@@ -410,5 +421,7 @@ class ScanViewModel @Inject constructor(
     private companion object {
         const val THUMBNAIL_MAX_PX = 160
         const val UPLOAD_MAX_PX = 1024   // ample for label OCR - well under the raw 1600x1200 capture
+        /** Mirrors the server's RouteHelpers.MAX_IMAGES - see addPhoto()'s doc comment. */
+        const val MAX_QUEUED_PHOTOS = 8
     }
 }

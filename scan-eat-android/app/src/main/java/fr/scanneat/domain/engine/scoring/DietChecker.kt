@@ -155,6 +155,16 @@ private val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
         forbidden = listOf(
             b("gluten|bl[eé]|froment|seigle|orge|avoine(?! sans gluten)|[eé]peautre|kamut|triticale|couscous|boulgour|bulgur|chapelure|semoule de bl[eé]|farine de bl[eé]|farine de seigle|farine d[e']orge|malt|malt d'orge"),
         ),
+        // GLUTEN_FREE sits in CERTIFICATION_OVERRIDE_DIETS below (same safety-net
+        // as HALAL/KOSHER/VEGAN: a real certification trumps a regex false
+        // positive), but had no `preferred` patterns at all - preferredHits could
+        // never be non-empty, so `certified` was unconditionally false and the
+        // override could never actually trigger despite the diet being listed as
+        // if it supported one. "épi barré" is AFDIAG's official French gluten-free
+        // certification mark name (the crossed-grain-ear symbol).
+        preferred = listOf(
+            b("sans gluten certifi[eé]|certifi[eé] sans gluten|AFDIAG|[eé]pi barr[eé]|gluten[- ]free certified|certified gluten[- ]free"),
+        ),
         noteFr = "Pas de blé, seigle, orge, avoine (sauf certifiée), épeautre, kamut, triticale. Règl. (CE) 41/2009 ≤20 mg/kg.",
         noteEn = "No wheat, rye, barley, oats (unless certified), spelt, kamut, triticale. EC Regulation 41/2009 ≤20 mg/kg gluten.",
     ),

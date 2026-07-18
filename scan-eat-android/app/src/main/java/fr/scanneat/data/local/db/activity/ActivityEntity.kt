@@ -4,7 +4,10 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "activity_log", indices = [Index("date", "profileId")])
+// profileId/externalSourceId - see MIGRATION_23_24, added so
+// ActivityDao.getImportedExternalIds (queried on every Health Connect sync)
+// isn't a full table scan.
+@Entity(tableName = "activity_log", indices = [Index("date", "profileId"), Index("profileId", "externalSourceId")])
 data class ActivityEntity(
     @PrimaryKey val id: String,
     val date: String,

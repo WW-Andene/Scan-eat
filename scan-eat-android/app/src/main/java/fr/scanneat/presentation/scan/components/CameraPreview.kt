@@ -211,6 +211,11 @@ fun CameraPreview(
 
         FloatingActionButton(
             onClick = {
+                // imageCapture is only assigned once the async ProcessCameraProvider
+                // future resolves and binds - a tap landing in that brief startup
+                // window previously no-op'd via the safe call with zero feedback, the
+                // same silently-does-nothing class of bug onCaptureError below exists
+                // to prevent for every *other* capture failure.
                 imageCapture?.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         val bmp = image.toBitmap(); image.close(); onPhotoCaptured(bmp)
@@ -223,7 +228,7 @@ fun CameraPreview(
                     override fun onError(exception: ImageCaptureException) {
                         onCaptureError()
                     }
-                })
+                }) ?: onCaptureError()
             },
             modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.L),
             containerColor = SurfaceVariant,
