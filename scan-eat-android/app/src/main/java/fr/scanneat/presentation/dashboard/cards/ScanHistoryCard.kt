@@ -35,7 +35,7 @@ internal fun ScanHistoryCard(scan: ScanResult, onItemClick: ((Long) -> Unit)? = 
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            Surface(shape = RoundedCornerShape(8.dp), color = gradeColor.copy(0.2f)) {
+            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
                 Text(
                     scan.audit.grade.label,
                     modifier   = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),

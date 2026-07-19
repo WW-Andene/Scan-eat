@@ -22,6 +22,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.presentation.ui.theme.dispWeight as sharedDispWeight
+import java.util.Locale
 
 @Composable
 fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
@@ -51,18 +53,19 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
 
     LaunchedEffect(saved.value) { if (saved.value) viewModel.clearSaved() }
 
-    fun dispWeight(kg: Double): String = if (useImperial) "%.1f lb".format(kg * 2.20462) else "%.1f kg".format(kg)
-    fun dispCirc(cm: Double): String = if (useImperial) "%.1f in".format(cm / 2.54) else "%.1f cm".format(cm)
+    fun dispWeight(kg: Double): String = sharedDispWeight(kg, useImperial)
+    fun dispCirc(cm: Double): String =
+        if (useImperial) "%.1f in".format(Locale.US, cm / CM_TO_IN) else "%.1f cm".format(Locale.US, cm)
     fun dispHeight(cm: Double): String {
-        if (!useImperial) return "%.1f cm".format(cm)
+        if (!useImperial) return "%.1f cm".format(Locale.US, cm)
         // Round to the displayed 1-decimal precision *before* splitting into feet/
         // inches - splitting the raw unrounded value let a remainder like 11.9999in
         // independently round up to display "12.0" without carrying into the next
         // foot (e.g. "5′ 12.0″" instead of "6′ 0.0″").
-        val totalIn = kotlin.math.round(cm / 2.54 * 10) / 10.0
+        val totalIn = kotlin.math.round(cm / CM_TO_IN * 10) / 10.0
         val ft = (totalIn / 12).toInt()
         val inch = totalIn % 12
-        return "$ft′ ${"%.1f".format(inch)}″"
+        return "$ft′ ${"%.1f".format(Locale.US, inch)}″"
     }
 
     Column(
@@ -147,11 +150,11 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             BioInput(stringResource(R.string.profile_field_age), age, KeyboardType.Number) { age = it }
             BioInputUnit(
                 stringResource(R.string.profile_field_height), stringResource(R.string.profile_field_height_imperial),
-                height, useImperial, { it / 2.54 }, { it * 2.54 },
+                height, useImperial, { it / CM_TO_IN }, { it * CM_TO_IN },
             ) { height = it }
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_weight), stringResource(R.string.bioprofile_field_weight_imperial),
-                weight, useImperial, { it * 2.20462 }, { it / 2.20462 },
+                weight, useImperial, { it * KG_TO_LB }, { it / KG_TO_LB },
             ) { weight = it }
         }
 
@@ -201,15 +204,15 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_waist), stringResource(R.string.bioprofile_field_waist_imperial),
-                waist, useImperial, { it / 2.54 }, { it * 2.54 },
+                waist, useImperial, { it / CM_TO_IN }, { it * CM_TO_IN },
             ) { waist = it }
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_hip), stringResource(R.string.bioprofile_field_hip_imperial),
-                hip, useImperial, { it / 2.54 }, { it * 2.54 },
+                hip, useImperial, { it / CM_TO_IN }, { it * CM_TO_IN },
             ) { hip = it }
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_neck), stringResource(R.string.bioprofile_field_neck_imperial),
-                neck, useImperial, { it / 2.54 }, { it * 2.54 },
+                neck, useImperial, { it / CM_TO_IN }, { it * CM_TO_IN },
             ) { neck = it }
         }
 

@@ -170,7 +170,7 @@ fun RecipesScreen(
         val searchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
         AddRecipeDialog(
             onDismiss = { showAdd = false },
-            onSave = { name, comps, servings, notes -> viewModel.save(name, comps, servings, notes); showAdd = false },
+            onConfirm = { name, comps, servings, notes -> viewModel.save(name, comps, servings, notes); showAdd = false },
             searchResults = searchResults.value,
             onQueryChange = viewModel::setIngredientQuery,
         )

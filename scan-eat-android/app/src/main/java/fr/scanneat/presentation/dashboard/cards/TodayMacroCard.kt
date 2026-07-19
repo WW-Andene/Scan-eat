@@ -21,8 +21,8 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
-    Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(18.dp))) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), color = SurfaceVariant) {
+    Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
+        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
             Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                 val kcalPct = targets?.let { (totals.energyKcal / it.kcal).toFloat() }

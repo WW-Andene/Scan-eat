@@ -41,7 +41,7 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 @Composable
 fun SaveDestinationsPopup(
     alreadyFavorite: Boolean,
-    onSave: (Set<SaveDestination>) -> Unit,
+    onConfirm: (Set<SaveDestination>) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var selected by remember {
@@ -65,7 +65,7 @@ fun SaveDestinationsPopup(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSave(selected) }, enabled = selected.isNotEmpty()) {
+            TextButton(onClick = { onConfirm(selected) }, enabled = selected.isNotEmpty()) {
                 Text(stringResource(R.string.common_save), color = AccentCoral)
             }
         },

@@ -269,15 +269,15 @@ fun ProfileScreen(
                 }
                 BioInputUnit(
                     stringResource(R.string.profile_field_height), stringResource(R.string.profile_field_height_imperial),
-                    heightCm, useImperial.value, { it / 2.54 }, { it * 2.54 },
+                    heightCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
                 ) { heightCm = it }
                 BioInputUnit(
                     stringResource(R.string.profile_field_weight), stringResource(R.string.profile_field_weight_imperial),
-                    weightKg, useImperial.value, { it * 2.20462 }, { it / 2.20462 },
+                    weightKg, useImperial.value, { it * KG_TO_LB }, { it / KG_TO_LB },
                 ) { weightKg = it }
                 BioInputUnit(
                     stringResource(R.string.profile_field_goal_weight), stringResource(R.string.profile_field_goal_weight_imperial),
-                    goalWeightKg, useImperial.value, { it * 2.20462 }, { it / 2.20462 },
+                    goalWeightKg, useImperial.value, { it * KG_TO_LB }, { it / KG_TO_LB },
                 ) { goalWeightKg = it }
                 if (sex == Sex.FEMALE) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -299,15 +299,15 @@ fun ProfileScreen(
             ProfileSection(stringResource(R.string.profile_section_measurements)) {
                 BioInputUnit(
                     stringResource(R.string.profile_field_waist), stringResource(R.string.profile_field_waist_imperial),
-                    waistCm, useImperial.value, { it / 2.54 }, { it * 2.54 },
+                    waistCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
                 ) { waistCm = it }
                 BioInputUnit(
                     stringResource(R.string.profile_field_hip), stringResource(R.string.profile_field_hip_imperial),
-                    hipCm, useImperial.value, { it / 2.54 }, { it * 2.54 },
+                    hipCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
                 ) { hipCm = it }
                 BioInputUnit(
                     stringResource(R.string.profile_field_neck), stringResource(R.string.profile_field_neck_imperial),
-                    neckCm, useImperial.value, { it / 2.54 }, { it * 2.54 },
+                    neckCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
                 ) { neckCm = it }
                 Text(stringResource(R.string.profile_field_ethnicity), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                 val isFrench = Locale.current.language == "fr"

@@ -37,6 +37,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.presentation.reminders.WeightReminderCard
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.presentation.ui.theme.dispWeight as sharedDispWeight
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -101,8 +102,7 @@ fun WeightScreen(
         }
     }
 
-    fun dispWeight(kg: Double): String =
-        if (useImperial) "%.1f lb".format(Locale.US, kg * 2.20462) else "%.1f kg".format(Locale.US, kg)
+    fun dispWeight(kg: Double): String = sharedDispWeight(kg, useImperial)
 
     val content = @Composable { padding: PaddingValues ->
         val reversedEntries = remember(entries.value) { entries.value.reversed() }
@@ -336,7 +336,7 @@ fun WeightScreen(
                             Surface(shape = RoundedCornerShape(50), color = dColor.copy(0.15f)) {
                                 val sign = if (delta >= 0) "+" else ""
                                 Text(
-                                    "$sign${"%.1f".format(Locale.US, if (useImperial) delta * 2.20462 else delta)} ${if (useImperial) "lb" else "kg"}",
+                                    "$sign${"%.1f".format(Locale.US, if (useImperial) delta * KG_TO_LB else delta)} ${if (useImperial) "lb" else "kg"}",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = dColor,
                                     fontWeight = FontWeight.Bold,
@@ -376,7 +376,7 @@ fun WeightScreen(
                         val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurface.copy(0.4f)
                         val sign = if (delta >= 0) "+" else ""
                         Text(
-                            "$sign${"%.1f".format(Locale.US, if (useImperial) delta * 2.20462 else delta)}",
+                            "$sign${"%.1f".format(Locale.US, if (useImperial) delta * KG_TO_LB else delta)}",
                             style = MaterialTheme.typography.labelSmall,
                             color = dColor,
                             fontWeight = FontWeight.SemiBold,
@@ -435,16 +435,18 @@ fun WeightScreen(
                         label = { Text(if (useImperial) stringResource(R.string.weight_field_lb) else stringResource(R.string.weight_field_kg)) }, singleLine = true,
                         isError = kgText.isNotBlank() && !isValidWeight,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
                         colors = scanEatTextFieldColors(),
                     )
                     OutlinedTextField(
                         value = notesText, onValueChange = { notesText = it },
                         label = { Text(stringResource(R.string.weight_field_notes)) }, singleLine = true,
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
                         colors = scanEatTextFieldColors(),
                     )
                     Surface(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)).clickable { showDatePicker = true },
-                        shape = RoundedCornerShape(4.dp),
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).clickable { showDatePicker = true },
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
                         color = Color.Transparent,
                         border = BorderStroke(1.dp, OnBackground.copy(0.2f)),
                     ) {
@@ -465,7 +467,7 @@ fun WeightScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val kg = if (useImperial) kgValue!! / 2.20462 else kgValue!!
+                        val kg = if (useImperial) kgValue!! / KG_TO_LB else kgValue!!
                         viewModel.log(kg, notesText, entryDate)
                         kgText = ""; notesText = ""; entryDate = LocalDate.now(); showAdd = false
                     },

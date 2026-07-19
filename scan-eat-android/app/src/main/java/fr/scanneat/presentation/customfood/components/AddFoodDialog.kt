@@ -31,7 +31,7 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 @Composable
 internal fun AddFoodDialog(
     onDismiss: () -> Unit,
-    onSave: (String, Double, Double, Double, Double, Double, Double, List<String>) -> Unit,
+    onConfirm: (String, Double, Double, Double, Double, Double, Double, List<String>) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var kcal by rememberSaveable { mutableStateOf("") }
@@ -82,7 +82,7 @@ internal fun AddFoodDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    onSave(
+                    onConfirm(
                         name.trim(),
                         kcal.replace(',', '.').toDoubleOrNull() ?: 0.0,
                         prot.replace(',', '.').toDoubleOrNull() ?: 0.0,
@@ -121,7 +121,7 @@ private fun FoodField(
         modifier = modifier,
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor   = AccentCoral,
             unfocusedBorderColor = OnBackground.copy(0.18f),

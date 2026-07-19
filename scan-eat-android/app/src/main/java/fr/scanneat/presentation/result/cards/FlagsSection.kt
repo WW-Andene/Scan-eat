@@ -32,7 +32,7 @@ private fun FlagRow(text: String, isRed: Boolean) {
     val color = if (isRed) semanticRed() else semanticGreen()
     Row(
         modifier = Modifier.fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(CardRadius.CONTROL))
             .background(color.copy(alpha = 0.1f))
             .padding(horizontal = Spacing.M, vertical = Spacing.S),
         verticalAlignment = Alignment.CenterVertically,

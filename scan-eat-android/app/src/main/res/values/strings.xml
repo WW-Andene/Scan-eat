@@ -733,7 +733,7 @@
     <string name="templates_empty_body">Les modèles de repas sont créés automatiquement lorsque vous enregistrez un repas depuis le journal.</string>
     <string name="templates_summary">%1$d kcal · %2$d articles · %3$s</string>
     <string name="templates_manage_items_cd">Gérer les aliments du modèle</string>
-    <string name="templates_cd_save_as_recipe">Enregistrer comme recette</string>
+    <string name="templates_cd_save_as_recipe">Sauvegarder comme recette</string>
     <string name="templates_manage_items_title">Aliments — %1$s</string>
     <string name="templates_no_items_yet">Aucun aliment pour l\'instant. Ajoutez-en ci-dessous.</string>
     <string name="common_log">Logger</string>
@@ -754,7 +754,7 @@
     <string name="weight_delta_kg">%1$s kg (30j)</string>
     <string name="weight_trend_kg_week">%1$s kg/sem.</string>
     <string name="weight_goal_forecast">Objectif dans %1$dj</string>
-    <string name="weight_dialog_title">Enregistrer le poids</string>
+    <string name="weight_dialog_title">Sauvegarder le poids</string>
     <string name="weight_field_kg">Poids (kg)</string>
     <string name="weight_field_lb">Poids (lb)</string>
     <string name="weight_field_notes">Notes (optionnel)</string>
@@ -1026,8 +1026,8 @@
     <string name="settings_reset_clear_scans">Effacer l\'historique des scans</string>
     <string name="settings_reset_clear_fasting">Effacer l\'historique de jeûne</string>
     <string name="settings_reset_clear_all_hint">Pour effacer toutes les données, utilisez Paramètres système → Application → Effacer les données.</string>
-    <string name="settings_reset_confirm_body">Cette action est irréversible et supprimera tout l\'historique de vos scans. Confirmer ?</string>
-    <string name="settings_reset_confirm_body_fasting">Cette action est irréversible et supprimera tout l\'historique de vos jeûnes. Confirmer ?</string>
+    <string name="settings_reset_confirm_body">Cette action est irréversible et effacera tout l\'historique de vos scans. Confirmer ?</string>
+    <string name="settings_reset_confirm_body_fasting">Cette action est irréversible et effacera tout l\'historique de vos jeûnes. Confirmer ?</string>
     <string name="settings_reset_confirm_button">Oui, tout effacer</string>
     <string name="settings_data_stats_scans">%1$d scan(s) enregistré(s)</string>
     <string name="settings_data_stats_diary">%1$d entrée(s) dans le journal</string>
@@ -1155,8 +1155,8 @@
     <string name="recipes_cd_share">Partager la recette</string>
     <string name="recipes_cd_more_actions">Plus d\'actions</string>
     <string name="recipes_cd_scale">Ajuster les portions</string>
-    <string name="recipes_cd_save_as_template">Enregistrer comme modèle de repas</string>
-    <string name="recipes_save_as_template_title">Enregistrer « %1$s » comme modèle</string>
+    <string name="recipes_cd_save_as_template">Sauvegarder comme modèle de repas</string>
+    <string name="recipes_save_as_template_title">Sauvegarder « %1$s » comme modèle</string>
     <string name="recipes_scale_title">Ajuster les portions</string>
     <string name="recipes_scale_servings_label">Nombre de portions</string>
     <string name="recipes_servings_to_log_label">Portions à logger (sur %1$d)</string>
@@ -1196,7 +1196,7 @@
     <string name="result_macro_carbs">Glucides</string>
     <string name="result_macro_fat">Lipides</string>
     <string name="result_macro_fiber">Fibres</string>
-    <string name="save_destinations_title">Enregistrer dans...</string>
+    <string name="save_destinations_title">Sauvegarder dans...</string>
     <string name="save_destinations_courses">Courses</string>
     <string name="save_destinations_mes_aliments">Mes aliments</string>
     <string name="save_destinations_repas">Repas</string>

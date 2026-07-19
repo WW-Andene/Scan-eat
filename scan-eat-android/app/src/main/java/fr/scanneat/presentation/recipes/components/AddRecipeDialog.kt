@@ -34,7 +34,7 @@ import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
 @Composable
 internal fun AddRecipeDialog(
-    onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>, Int, String) -> Unit,
+    onDismiss: () -> Unit, onConfirm: (String, List<RecipeComponent>, Int, String) -> Unit,
     searchResults: List<FoodEntry> = emptyList(), onQueryChange: (String) -> Unit = {},
 ) {
     var name by rememberSaveable { mutableStateOf("") }
@@ -148,7 +148,7 @@ internal fun AddRecipeDialog(
             TextButton(onClick = {
                 if (name.isNotBlank() && components.isNotEmpty()) {
                     val servings = servingsText.toIntOrNull()?.coerceAtLeast(1) ?: 1
-                    onSave(name, components, servings, notes.trim())
+                    onConfirm(name, components, servings, notes.trim())
                 }
             }, enabled = name.isNotBlank() && components.isNotEmpty()) {
                 Text(stringResource(R.string.common_create), color = AccentCoral)

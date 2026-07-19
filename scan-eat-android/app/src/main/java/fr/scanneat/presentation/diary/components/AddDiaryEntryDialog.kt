@@ -120,7 +120,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                     items(scanResults.value, key = { "scan-${it.dbId}" }) { scan ->
                         Surface(
                             onClick = { selectedScan = scan },
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
                             color = SurfaceVariant,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
@@ -139,7 +139,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                     items(results.value, key = { it.name }) { entry ->
                         Surface(
                             onClick = { selected = entry },
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
                             color = SurfaceVariant,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
@@ -158,7 +158,8 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                 }
             }
         },
-        confirmButton = {
+        confirmButton = {},
+        dismissButton = {
             TextButton(onClick = { viewModel.clearSearch(); onDismiss() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
         },
     )

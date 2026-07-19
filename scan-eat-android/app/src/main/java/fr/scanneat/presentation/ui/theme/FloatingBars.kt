@@ -8,6 +8,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
@@ -21,6 +22,11 @@ import androidx.compose.ui.unit.dp
  * bar blend invisibly into the screen, the opposite of what a floating card
  * should do. Handles its own status-bar inset (TopAppBar did this internally
  * too) since it no longer delegates to TopAppBar for layout.
+ *
+ * [accent] mirrors ScanEatCard's own param of the same name — defaults to
+ * White (glassSheen's own default, so every existing call site is
+ * unaffected) but lets a section with its own brand hue (Biolism's Gold)
+ * tint the glow instead of hand-rolling this whole component a second time.
  */
 @Composable
 fun FloatingTopBar(
@@ -28,13 +34,14 @@ fun FloatingTopBar(
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
+    accent: Color = Color.White,
 ) {
     Box(
         modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
             .padding(horizontal = Spacing.L, vertical = Spacing.S)
-            .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), grainDensity = 30),
+            .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = accent, grainDensity = 30),
     ) {
         Surface(
             shape           = RoundedCornerShape(CardRadius.PROMINENT),

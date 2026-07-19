@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.result.cards
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -9,7 +8,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -94,36 +92,31 @@ internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = nu
 // PersonalScoreResult.applicable is false, tappable straight to Profile.
 @Composable
 internal fun PersonalizationPromptCard(onOpenProfile: () -> Unit) {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-        Surface(
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenProfile),
-            shape    = RoundedCornerShape(CardRadius.CONTROL),
-            color    = AccentCoral.copy(alpha = 0.1f),
-        ) {
-            Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(Icons.Default.Person, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
-                Text(stringResource(R.string.result_personalization_prompt), style = MaterialTheme.typography.bodySmall,
-                    color = OnBackground, modifier = Modifier.weight(1f))
-            }
+    ScanEatCard(
+        onClick = onOpenProfile,
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
+        contentPadding = PaddingValues(Spacing.M),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(Icons.Default.Person, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
+            Text(stringResource(R.string.result_personalization_prompt), style = MaterialTheme.typography.bodySmall,
+                color = OnBackground, modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
 internal fun DietVetoBanner(reason: String?) {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(CardRadius.CONTROL),
-            color    = semanticRed().copy(alpha = 0.15f),
-        ) {
-            Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(Icons.Default.Block, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Inline))
-                Text(reason ?: "", style = MaterialTheme.typography.bodySmall,
-                    color = OnBackground, modifier = Modifier.weight(1f))
-            }
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(alpha = 0.15f),
+        contentPadding = PaddingValues(Spacing.M),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(Icons.Default.Block, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Inline))
+            Text(reason ?: "", style = MaterialTheme.typography.bodySmall,
+                color = OnBackground, modifier = Modifier.weight(1f))
         }
     }
 }
@@ -136,43 +129,35 @@ internal fun DietVetoBanner(reason: String?) {
 // the top of the screen instead of buried in the generic warnings section below.
 @Composable
 internal fun AllergenUnverifiedBanner() {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(CardRadius.CONTROL),
-            color    = semanticAmber().copy(alpha = 0.15f),
-        ) {
-            Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
-                Text(stringResource(R.string.result_allergens_unverified), style = MaterialTheme.typography.bodySmall,
-                    color = OnBackground, modifier = Modifier.weight(1f))
-            }
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticAmber().copy(alpha = 0.15f),
+        contentPadding = PaddingValues(Spacing.M),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
+            Text(stringResource(R.string.result_allergens_unverified), style = MaterialTheme.typography.bodySmall,
+                color = OnBackground, modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
 internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String = "fr") {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape    = RoundedCornerShape(CardRadius.CONTROL),
-            color    = semanticAmber().copy(alpha = 0.15f),
-        ) {
-            Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
-                    Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
-                        color = semanticAmber(), fontWeight = FontWeight.SemiBold)
-                }
-                allergens.forEach { hit ->
-                    val label = if (language == "en") hit.labelEn else hit.labelFr
-                    Text(stringResource(R.string.result_allergen_hit, label, hit.triggers.joinToString()),
-                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.85f))
-                }
-            }
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticAmber().copy(alpha = 0.15f),
+        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
+            Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
+                color = semanticAmber(), fontWeight = FontWeight.SemiBold)
+        }
+        allergens.forEach { hit ->
+            val label = if (language == "en") hit.labelEn else hit.labelFr
+            Text(stringResource(R.string.result_allergen_hit, label, hit.triggers.joinToString()),
+                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.85f))
         }
     }
 }

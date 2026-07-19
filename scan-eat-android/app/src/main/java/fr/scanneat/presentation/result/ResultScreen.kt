@@ -163,7 +163,7 @@ fun ResultScreen(
         if (showSaveMenu) {
             SaveDestinationsPopup(
                 alreadyFavorite = scan.favorite,
-                onSave = { destinations ->
+                onConfirm = { destinations ->
                     viewModel.saveToDestinations(destinations)
                     showSaveMenu = false
                 },

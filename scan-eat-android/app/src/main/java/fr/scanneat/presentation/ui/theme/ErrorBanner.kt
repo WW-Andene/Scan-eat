@@ -39,7 +39,7 @@ fun ErrorBanner(
     onAction: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
 ) {
-    Surface(modifier = modifier.fillMaxWidth(), color = semanticRed().copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp)) {
+    Surface(modifier = modifier.fillMaxWidth(), color = semanticRed().copy(alpha = 0.15f), shape = RoundedCornerShape(CardRadius.CONTROL)) {
         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.ErrorOutline, null, tint = semanticRed())
             Spacer(Modifier.width(8.dp))

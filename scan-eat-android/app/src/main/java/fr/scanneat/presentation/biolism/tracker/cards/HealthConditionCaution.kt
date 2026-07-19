@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticAmber
 
@@ -70,7 +71,7 @@ private val KETOSIS_CAUTIONS: Map<String, Pair<String, String>> = mapOf(
 private fun CautionBanner(text: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(CardRadius.CONTROL),
         color = semanticAmber().copy(alpha = 0.12f),
         border = BorderStroke(1.dp, semanticAmber().copy(alpha = 0.35f)),
     ) {

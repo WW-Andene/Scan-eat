@@ -22,8 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.FastCompletion
-import fr.scanneat.domain.model.MS_PER_HOUR
-import fr.scanneat.domain.model.MS_PER_MINUTE
+import fr.scanneat.presentation.biolism.hmsFromSeconds
 import fr.scanneat.presentation.ui.theme.*
 
 import androidx.compose.foundation.background
@@ -195,13 +194,12 @@ fun FastingScreen(
                                 color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
                                 trackColor = SurfaceVariant, strokeWidth = 10.dp,
                             )
-                            val h = (fs.elapsedMs / MS_PER_HOUR).toInt()
-                            val m = ((fs.elapsedMs % MS_PER_HOUR) / MS_PER_MINUTE).toInt()
+                            val (h, m, _) = hmsFromSeconds(fs.elapsedMs / 1000)
                             Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
                             Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
 
                             // Metabolic phase indicator (now bilingual)
-                            val phase = metabolicPhase(h)
+                            val phase = metabolicPhase(h.toInt())
                             val nextPhase = METABOLIC_PHASES.firstOrNull { it.minHours > h }
                             val lang = language.value
                             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.1f)) {
