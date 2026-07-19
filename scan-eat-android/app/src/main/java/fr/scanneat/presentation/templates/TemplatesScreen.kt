@@ -125,7 +125,8 @@ fun TemplatesScreen(
             }
             items(templates.value, key = { it.id }) { template ->
                 val hints = templateHints.value[template.id] ?: ProductHints.EMPTY
-                val hintsHaveRisks = hints.risks.isNotEmpty()
+                val hintsRiskCount = hints.risks.size + hints.conditionRisks.size
+                val hintsHaveRisks = hintsRiskCount > 0
                 var showHints by remember { mutableStateOf(false) }
                 Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
                     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
@@ -177,7 +178,7 @@ fun TemplatesScreen(
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.hint_panel_title)) },
                                             leadingIcon = { Icon(Icons.Default.Lightbulb, contentDescription = null, tint = if (hintsHaveRisks) semanticRed() else semanticAmber()) },
-                                            trailingIcon = { if (hintsHaveRisks) Badge(containerColor = semanticRed()) { Text("${hints.risks.size}") } },
+                                            trailingIcon = { if (hintsHaveRisks) Badge(containerColor = semanticRed()) { Text("$hintsRiskCount") } },
                                             onClick = { menuExpanded = false; showHints = true },
                                         )
                                         HorizontalDivider(color = OnBackground.copy(0.08f))

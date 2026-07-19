@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ThumbUp
@@ -59,18 +60,19 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 @Composable
 fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize: androidx.compose.ui.unit.Dp = 24.dp) {
     var showHints by remember { mutableStateOf(false) }
-    val hasRisks = hints.risks.isNotEmpty()
-    val totalCount = hints.benefits.size + hints.risks.size + hints.facts.size + hints.pairWell.size + hints.avoidPairing.size
+    val riskCount = hints.risks.size + hints.conditionRisks.size
+    val hasRisks = riskCount > 0
+    val totalCount = hints.benefits.size + riskCount + hints.facts.size + hints.pairWell.size + hints.avoidPairing.size
     val baseLabel = stringResource(R.string.hint_cd_open)
     val cd = when {
-        hasRisks -> stringResource(R.string.hint_cd_open_with_risks, baseLabel, pluralStringResource(R.plurals.hint_cd_risks_count, hints.risks.size, hints.risks.size))
+        hasRisks -> stringResource(R.string.hint_cd_open_with_risks, baseLabel, pluralStringResource(R.plurals.hint_cd_risks_count, riskCount, riskCount))
         totalCount > 0 -> stringResource(R.string.hint_cd_open_with_count, baseLabel, pluralStringResource(R.plurals.hint_cd_info_count, totalCount, totalCount))
         else -> baseLabel
     }
     BadgedBox(
         modifier = modifier,
         badge = {
-            if (hasRisks) Badge(containerColor = semanticRed()) { Text("${hints.risks.size}") }
+            if (hasRisks) Badge(containerColor = semanticRed()) { Text("$riskCount") }
         },
     ) {
         IconButton(onClick = { showHints = true }) {
@@ -87,8 +89,9 @@ fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize:
 fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
     val green = semanticGreen()
     val amber = semanticAmber()
+    val red = semanticRed()
     val neutral = OnBackground.copy(0.7f)
-    val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.facts.isEmpty() &&
+    val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.conditionRisks.isEmpty() && hints.facts.isEmpty() &&
         hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty()
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -113,8 +116,9 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
                     HintSection(title, lines, accent, icon)
                     shownAny = true
                 }
-                section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Default.ThumbUp)
                 section(stringResource(R.string.hint_section_risks), hints.risks, amber, Icons.Default.WarningAmber)
+                section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, Icons.Default.ErrorOutline)
+                section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Default.ThumbUp)
                 section(stringResource(R.string.hint_section_pair_well), hints.pairWell, green, Icons.Default.Restaurant)
                 section(stringResource(R.string.hint_section_avoid_pairing), hints.avoidPairing, amber, Icons.Default.Block)
                 section(stringResource(R.string.hint_section_facts), hints.facts, neutral, Icons.Default.Lightbulb)
@@ -160,7 +164,11 @@ internal fun HintSection(title: String, lines: List<String>, accent: Color, icon
             Text(title, style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.Bold)
         }
         lines.forEach { line ->
-            Row(modifier = Modifier.padding(top = Spacing.XS)) {
+            // Spacing.S (8dp), not XS (4dp) - each line here is often a full
+            // wrapped sentence/paragraph rather than a short list item, and 4dp
+            // read as a run-on wall of text with no visual break between one
+            // bullet's wrapped second line and the next bullet's first line.
+            Row(modifier = Modifier.padding(top = Spacing.S)) {
                 Text("•  ", style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
                 // weight(1f) so a wrapped second line stays within the dialog's
                 // width instead of the un-weighted Text being measured at its

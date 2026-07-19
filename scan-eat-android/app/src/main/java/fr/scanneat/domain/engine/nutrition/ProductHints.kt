@@ -16,7 +16,16 @@ import fr.scanneat.domain.model.Profile
 
 data class ProductHints(
     val benefits: List<String>,
+    /** General, population-level cautions - apply to anyone regardless of profile
+     *  (high sat fat/sugar/salt, trans fat, NOVA 4, additive concerns...). */
     val risks: List<String>,
+    /** Risks specific to *this* user's own profile (declared allergens, chosen
+     *  diet, and Profile.healthConditions) - previously merged into [risks], so
+     *  a generic "high sugar" caution that applies to everyone and a "caution
+     *  advised for diabetes" line that only applies because of this one user's
+     *  own condition were visually indistinguishable, even though they mean
+     *  very different things to a reader without a diabetes diagnosis. */
+    val conditionRisks: List<String>,
     val facts: List<String>,
     /** What complements this product nutritionally or gastronomically — flavor
      *  pairings (Ahn et al. flavor-network co-occurrence, same PairingsDb the
@@ -32,7 +41,7 @@ data class ProductHints(
         /** Fallback for a combine-into-map StateFlow lookup miss (e.g. the one-frame
          *  gap right after a new recipe/template is added, before its hints entry
          *  lands) — same role as NutritionPer100g.EMPTY elsewhere in the codebase. */
-        val EMPTY = ProductHints(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+        val EMPTY = ProductHints(emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
     }
 }
 
@@ -41,6 +50,7 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     val n = product.nutrition
     val benefits = mutableListOf<String>()
     val risks = mutableListOf<String>()
+    val conditionRisks = mutableListOf<String>()
     val facts = mutableListOf<String>()
 
     // ---- Benefits ----
@@ -145,13 +155,13 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     val allergenHits = fr.scanneat.domain.engine.scoring.checkUserAllergens(product, profile.allergens, lang)
     allergenHits.forEach { hit ->
         val label = if (en) hit.labelEn else hit.labelFr
-        risks += if (en) "Contains $label — you've flagged this as an allergen" else "Contient $label — vous avez signalé cet allergène"
+        conditionRisks += if (en) "Contains $label — you've flagged this as an allergen" else "Contient $label — vous avez signalé cet allergène"
     }
     if (profile.diet != fr.scanneat.domain.engine.scoring.DietKey.NONE) {
         val dietResult = fr.scanneat.domain.engine.scoring.checkDiet(product, profile.diet, lang)
         if (!dietResult.compliant && dietResult.violations.isNotEmpty()) {
             val list = dietResult.violations.joinToString(", ")
-            risks += if (en) "Not compliant with your diet — contains: $list" else "Non compatible avec votre régime — contient : $list"
+            conditionRisks += if (en) "Not compliant with your diet — contains: $list" else "Non compatible avec votre régime — contient : $list"
         }
     }
 
@@ -173,24 +183,24 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     val conditions = profile.healthConditions
     if ("diabetes" in conditions) {
         if (isSugarSweetenedBeverage) {
-            risks += if (en) "Sugar-sweetened beverage — caution advised for diabetes (liquid sugar causes a faster glycemic spike)"
+            conditionRisks += if (en) "Sugar-sweetened beverage — caution advised for diabetes (liquid sugar causes a faster glycemic spike)"
                      else "Boisson sucrée — prudence recommandée en cas de diabète (le sucre liquide provoque un pic glycémique plus rapide)"
-        } else if (n.sugarsG >= catThresholds.sugarThresholds.third) risks += if (en) "High sugar (${n.sugarsG} g/100 g) — caution advised for diabetes"
+        } else if (n.sugarsG >= catThresholds.sugarThresholds.third) conditionRisks += if (en) "High sugar (${n.sugarsG} g/100 g) — caution advised for diabetes"
                                         else "Sucres élevés (${n.sugarsG} g/100 g) — prudence recommandée en cas de diabète"
         else if (n.sugarsG <= catThresholds.sugarThresholds.first) benefits += if (en) "Low sugar — diabetes-friendly" else "Faible en sucres — adapté au diabète"
     }
     if ("hypertension" in conditions) {
         val hypertensionSaltBar = maxOf(1.2, catThresholds.saltThresholds.first)
-        if (n.saltG >= hypertensionSaltBar) risks += if (en) "High salt (${n.saltG} g/100 g) — caution advised for hypertension"
+        if (n.saltG >= hypertensionSaltBar) conditionRisks += if (en) "High salt (${n.saltG} g/100 g) — caution advised for hypertension"
                                      else "Sel élevé (${n.saltG} g/100 g) — prudence recommandée en cas d'hypertension"
         else if (n.saltG <= 0.3) benefits += if (en) "Low salt — hypertension-friendly" else "Faible en sel — adapté à l'hypertension"
     }
     val kidneyProteinBar = maxOf(15.0, catThresholds.proteinG.third)
     if ("kidney_disease" in conditions && n.proteinG >= kidneyProteinBar) {
-        risks += if (en) "High protein (${n.proteinG} g/100 g) — caution advised for kidney disease"
+        conditionRisks += if (en) "High protein (${n.proteinG} g/100 g) — caution advised for kidney disease"
                  else "Protéines élevées (${n.proteinG} g/100 g) — prudence recommandée en cas de maladie rénale"
     }
-    risks += findHealthConditionGuidance(product.ingredients, profile.healthConditions, lang)
+    conditionRisks += findHealthConditionGuidance(product.ingredients, profile.healthConditions, lang)
     // \b-bounded, not `.contains()` on the normalized name - a plain substring
     // check let bare "mate" match inside "tomate" (tomato) and bare "tea"
     // match inside "steak", firing a false caffeine hint on completely
@@ -207,7 +217,7 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
         // claim threshold already reported above for the general population. Flagged
         // on any caffeine-source ingredient, not just declared caffeine content,
         // since coffee/tea/cocoa rarely declare an exact mg figure on-label.
-        risks += if (en) "May contain caffeine — ANSES recommends pregnant women keep total daily caffeine intake under 200 mg"
+        conditionRisks += if (en) "May contain caffeine — ANSES recommends pregnant women keep total daily caffeine intake under 200 mg"
                  else "Peut contenir de la caféine — l'ANSES recommande de limiter l'apport total en caféine à 200 mg/jour pendant la grossesse"
     }
     // Same alcohol-content check PersonalScoreEngine already runs for its own
@@ -220,22 +230,22 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
         Regex("""\b(?:alcool|alcohol|vin|wine|bi[eè]re|beer)\b""", RegexOption.IGNORE_CASE).containsMatchIn(it.name)
     }
     if ("cancer" in conditions && containsAlcohol) {
-        risks += if (en) "Contains alcohol — WCRF cancer prevention guidance recommends limiting alcohol intake"
+        conditionRisks += if (en) "Contains alcohol — WCRF cancer prevention guidance recommends limiting alcohol intake"
                  else "Contient de l'alcool — les recommandations WCRF de prévention du cancer conseillent d'en limiter la consommation"
     }
     if ("depression" in conditions && containsAlcohol) {
-        risks += if (en) "Contains alcohol — can worsen depressive symptoms and interacts with most antidepressants"
+        conditionRisks += if (en) "Contains alcohol — can worsen depressive symptoms and interacts with most antidepressants"
                  else "Contient de l'alcool — peut aggraver les symptômes dépressifs et interagit avec la plupart des antidépresseurs"
     }
     // Mirrors PersonalScoreEngine's own sugar/NOVA depression adjustments exactly
     // (same 15.0 g threshold, same two cited cohort studies) so the two surfaces
     // never disagree.
     if ("depression" in conditions && n.sugarsG >= 15.0) {
-        risks += if (en) "High sugar (${n.sugarsG} g/100 g) — prospectively associated with depression risk (Knüppel et al., Whitehall II cohort, Sci Rep 2017)"
+        conditionRisks += if (en) "High sugar (${n.sugarsG} g/100 g) — prospectively associated with depression risk (Knüppel et al., Whitehall II cohort, Sci Rep 2017)"
                  else "Sucres élevés (${n.sugarsG} g/100 g) — associé de façon prospective au risque de dépression (Knüppel et al., cohorte Whitehall II, Sci Rep 2017)"
     }
     if ("depression" in conditions && product.novaClass == NovaClass.ULTRA_PROCESSED) {
-        risks += if (en) "Ultra-processed (NOVA 4) — prospectively associated with incident depressive symptoms (Adjibade et al., NutriNet-Santé cohort, BMC Medicine 2019)"
+        conditionRisks += if (en) "Ultra-processed (NOVA 4) — prospectively associated with incident depressive symptoms (Adjibade et al., NutriNet-Santé cohort, BMC Medicine 2019)"
                  else "Ultra-transformé (NOVA 4) — associé de façon prospective à l'apparition de symptômes dépressifs (Adjibade et al., cohorte NutriNet-Santé, BMC Medicine 2019)"
     }
 
@@ -298,5 +308,5 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
                         else "Les aliments très riches en fibres peuvent réduire l'absorption de certains minéraux et médicaments oraux en cas de prise simultanée — espacez de 1 à 2 heures la prise d'un complément ou d'un médicament"
     }
 
-    return ProductHints(benefits, risks, facts, pairWell, avoidPairing)
+    return ProductHints(benefits, risks, conditionRisks, facts, pairWell, avoidPairing)
 }

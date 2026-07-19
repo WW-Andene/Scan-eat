@@ -1168,11 +1168,12 @@
     <string name="result_cd_favorite">Ajouter aux favoris</string>
     <string name="hint_cd_open">Voir les informations</string>
     <string name="hint_panel_title">Bon à savoir</string>
-    <string name="hint_section_benefits">Bénéfices</string>
+    <string name="hint_section_benefits">Points positifs</string>
     <string name="hint_section_risks">Points de vigilance</string>
+    <string name="hint_section_condition_risks">Risque lié à votre profil</string>
     <string name="hint_section_pair_well">S\'associe bien avec</string>
     <string name="hint_section_avoid_pairing">À éviter en association</string>
-    <string name="hint_section_facts">Informations</string>
+    <string name="hint_section_facts">Le saviez-vous ?</string>
     <string name="hint_panel_empty">Aucune information particulière pour ce produit.</string>
     <string name="hint_cd_open_with_risks">%1$s — %2$s</string>
     <string name="hint_cd_open_with_count">%1$s — %2$s</string>
