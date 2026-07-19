@@ -234,7 +234,12 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
 
     val haystacks: List<String> = listOf(product.name) + product.ingredients.map { it.name }
 
-    fun testAny(re: Regex): String? = haystacks.firstOrNull { re.containsMatchIn(it) }
+    // Matches against a lowercased copy - same accented-uppercase gap as
+    // AllergenDetector.detectAllergens() (RegexOption.IGNORE_CASE alone doesn't
+    // Unicode-fold accents), so e.g. "BŒUF HACHÉ" silently passed as vegetarian-
+    // compliant. firstOrNull still returns the original-casing element from
+    // [haystacks], so violation/preferredHits text keeps its original casing.
+    fun testAny(re: Regex): String? = haystacks.firstOrNull { re.containsMatchIn(it.lowercase()) }
 
     val violations    = mutableListOf<String>()
     val preferredHits = mutableListOf<String>()

@@ -13,9 +13,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -118,30 +120,38 @@ class MedicationViewModel @Inject constructor(
     // New: daily adherence streak — consecutive past days where every active
     // medication had at least one log entry. Only checks the last 30 days to
     // bound the DB query; today is excluded (still in progress).
-    val adherenceStreak: StateFlow<Int> = medications
-        .map { allMeds ->
+    //
+    // Combined with [today] and re-subscribed via flatMapLatest (rather than a
+    // one-shot repo.getLogRange() call inside a plain .map over `medications`)
+    // so this recomputes whenever medication_log itself changes too - a .map
+    // over `medications` alone (bound only to the medications table) never
+    // re-ran when markTaken()/undoTaken() wrote to medication_log, leaving this
+    // stale until something unrelated (e.g. editing a medication) forced a
+    // re-emit of `medications`.
+    val adherenceStreak: StateFlow<Int> = combine(medications, today) { allMeds, date -> allMeds to date }
+        .flatMapLatest { (allMeds, today) ->
             val activeMeds = allMeds.filter { it.active }
-            if (activeMeds.isEmpty()) return@map 0
-            val today = LocalDate.now()
-            val logs = repo.getLogRange(today.minusDays(30), today.minusDays(1))
-            val logsByDate = logs.groupBy { it.date }
-            var streak = 0
-            var date = today.minusDays(1)
-            repeat(30) {
-                val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
-                // Only require a log for medications that actually existed on
-                // [date] - the domain Medication previously dropped createdAt
-                // entirely (see MedicationRepository.toDomain()'s matching fix),
-                // so adding any new active medication made yesterday's takenIds
-                // unable to contain it (it didn't exist yesterday), dropping the
-                // whole combined streak to 0 even with a flawless prior history.
-                val relevantMeds = activeMeds.filter { med ->
-                    Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate() <= date
+            if (activeMeds.isEmpty()) return@flatMapLatest flowOf(0)
+            repo.observeLogRange(today.minusDays(30), today.minusDays(1)).map { logs ->
+                val logsByDate = logs.groupBy { it.date }
+                var streak = 0
+                var date = today.minusDays(1)
+                repeat(30) {
+                    val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
+                    // Only require a log for medications that actually existed on
+                    // [date] - the domain Medication previously dropped createdAt
+                    // entirely (see MedicationRepository.toDomain()'s matching fix),
+                    // so adding any new active medication made yesterday's takenIds
+                    // unable to contain it (it didn't exist yesterday), dropping the
+                    // whole combined streak to 0 even with a flawless prior history.
+                    val relevantMeds = activeMeds.filter { med ->
+                        Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate() <= date
+                    }
+                    if (relevantMeds.all { it.id in takenIds }) { streak++; date = date.minusDays(1) }
+                    else return@map streak
                 }
-                if (relevantMeds.all { it.id in takenIds }) { streak++; date = date.minusDays(1) }
-                else return@map streak
+                streak
             }
-            streak
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
@@ -154,22 +164,23 @@ class MedicationViewModel @Inject constructor(
     // Medication had none. Reuses the same createdAt/relevantMeds guard as
     // adherenceStreak (see its own comment) so a medication added mid-week
     // doesn't count the days before it existed as missed doses.
-    val weeklyAdherence: StateFlow<List<DayAdherence>> = medications
-        .map { allMeds ->
+    // Same medication_log-reactivity fix as adherenceStreak above - see its comment.
+    val weeklyAdherence: StateFlow<List<DayAdherence>> = combine(medications, today) { allMeds, date -> allMeds to date }
+        .flatMapLatest { (allMeds, today) ->
             val activeMeds = allMeds.filter { it.active }
-            val today = LocalDate.now()
-            val logs = repo.getLogRange(today.minusDays(6), today)
-            val logsByDate = logs.groupBy { it.date }
-            (6 downTo 0).map { i ->
-                val date = today.minusDays(i.toLong())
-                val relevantMeds = activeMeds.filter { med ->
-                    Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate() <= date
-                }
-                if (relevantMeds.isEmpty()) {
-                    DayAdherence(date, null)
-                } else {
-                    val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
-                    DayAdherence(date, relevantMeds.count { it.id in takenIds } * 100 / relevantMeds.size)
+            repo.observeLogRange(today.minusDays(6), today).map { logs ->
+                val logsByDate = logs.groupBy { it.date }
+                (6 downTo 0).map { i ->
+                    val date = today.minusDays(i.toLong())
+                    val relevantMeds = activeMeds.filter { med ->
+                        Instant.ofEpochMilli(med.createdAt).atZone(ZoneId.systemDefault()).toLocalDate() <= date
+                    }
+                    if (relevantMeds.isEmpty()) {
+                        DayAdherence(date, null)
+                    } else {
+                        val takenIds = logsByDate[date]?.map { it.medicationId }?.toSet() ?: emptySet()
+                        DayAdherence(date, relevantMeds.count { it.id in takenIds } * 100 / relevantMeds.size)
+                    }
                 }
             }
         }

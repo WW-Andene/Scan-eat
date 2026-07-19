@@ -88,8 +88,13 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
     if (microBonus > 0) bonuses += Deduction("nutritional_density", (if (en) "Micronutrient richness: " else "Richesse en micronutriments : ") + declaredMicros.joinToString(), microBonus, Severity.INFO)
 
     // Healthy-fat bonus (+3): omega-3 or declared omega-3 nutrition
+    // \b on both "lin" and "saumon" - unbounded, they matched as substrings
+    // inside unrelated words ("colin" the fish, "saumonette" a salmon
+    // substitute), wrongly awarding this bonus. \blin\b still matches
+    // "graine de lin" (boundary only requires the char right before "lin"
+    // to be a non-word char, which a preceding space already satisfies).
     val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.any { ing ->
-        Regex("""(graine de )?lin\b|\bchia\b|\bnoix\b|saumon|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
+        Regex("""\blin\b|\bchia\b|\bnoix\b|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
     }
     if (hasOmega3) {
         score += 3

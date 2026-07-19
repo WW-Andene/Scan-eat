@@ -225,7 +225,22 @@ class BackupRepository @Inject constructor(
                 row.barcode == null || existingMedicationBarcodes.add(row.barcode)
             }
             medicationDao.insertAll(newMedications)
-            medicationLogDao.insertAll(bundle.medicationLog)
+
+            // medication_log has a DB-level UNIQUE index on (medicationId, date,
+            // profileId) since MIGRATION_23_24 - inserting via insertAll's REPLACE
+            // (MedicationLogDao.insertAll) with no dedup here, unlike every sibling
+            // table above, meant a backup row colliding with an existing local row
+            // on that key (different id - e.g. after a correct-and-relog) would
+            // silently REPLACE (delete + reinsert) the existing local row with the
+            // backup's possibly-stale one, losing the corrected adherence record.
+            // Skip any backup row whose key already has a local row - existing
+            // local state wins, matching every other table's dedup approach here.
+            val existingLogKeys = medicationLogDao.getAllForBackup()
+                .mapTo(mutableSetOf()) { Triple(it.medicationId, it.date, it.profileId) }
+            val newMedicationLog = bundle.medicationLog.filter { row ->
+                existingLogKeys.add(Triple(row.medicationId, row.date, row.profileId))
+            }
+            medicationLogDao.insertAll(newMedicationLog)
 
             // scan_score_history uses an autoGenerate Long id like scan_history/
             // consumption_log above, for the same reason - reset id=0 and dedup by

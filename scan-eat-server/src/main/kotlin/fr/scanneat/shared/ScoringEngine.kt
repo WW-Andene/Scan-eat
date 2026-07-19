@@ -353,8 +353,13 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
     if (microBonus > 0) bonuses += Deduction("nutritional_density", (if (en) "Micronutrient richness: " else "Richesse en micronutriments : ") + declaredMicros.joinToString(), microBonus, Severity.INFO)
 
     // Healthy-fat bonus (+3): omega-3 or declared omega-3 nutrition
+    // \b on both "lin" and "saumon" - unbounded, they matched as substrings
+    // inside unrelated words ("colin" the fish, "saumonette" a salmon
+    // substitute), wrongly awarding this bonus. \blin\b still matches
+    // "graine de lin" (boundary only requires the char right before "lin"
+    // to be a non-word char, which a preceding space already satisfies).
     val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.any { ing ->
-        Regex("""(graine de )?lin\b|\bchia\b|\bnoix\b|saumon|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
+        Regex("""\blin\b|\bchia\b|\bnoix\b|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
     }
     if (hasOmega3) {
         score += 3
@@ -539,7 +544,14 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     val sugarAliases = mutableSetOf<String>()
     for (ing in product.ingredients) {
         val n = ing.name.lowercase()
-        for (alias in HIDDEN_SUGAR_NAMES) { if (n.contains(alias)) sugarAliases += alias }
+        // Longest matching alias wins, not every matching alias - HIDDEN_SUGAR_NAMES
+        // has nested substrings ("glucose" and "sirop" both sit inside "sirop de
+        // glucose"), so a single ingredient like "sirop de glucose" previously
+        // added all 3 as independent "sources", inflating one ingredient into a
+        // false >=2-sources deduction below. Same longest-synonym-wins principle
+        // AdditivesDb.findAdditive already applies for the identical nested-
+        // substring shape.
+        HIDDEN_SUGAR_NAMES.filter { n.contains(it) }.maxByOrNull { it.length }?.let { sugarAliases += it }
         if (Regex("""^sucre""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name.trim())) sugarAliases += "sucre"
     }
     if (sugarAliases.size >= 2) {
@@ -652,7 +664,15 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
         candidates += VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", 30)
 
-    if (product.category != ProductCategory.SNACK_SWEET && sugars > 30)
+    // CONDIMENT excluded too, alongside SNACK_SWEET — CategoryThresholds.kt
+    // deliberately gives it a wider sugar band (30g is only its own "major"
+    // tier, critical starts at 45g: chutneys/glazes/hoisin-style sauces are
+    // eaten by the tablespoon, not the 100g this scale is normalized to). This
+    // flat 30g line ignored that category-specific tolerance and hard-capped
+    // such a condiment to grade C even though the pillar itself only scored it
+    // MAJOR, not CRITICAL - the same category-blindness class already fixed
+    // for BMI/diabetes thresholds elsewhere in this engine.
+    if (product.category != ProductCategory.SNACK_SWEET && product.category != ProductCategory.CONDIMENT && sugars > 30)
         candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", 40)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }

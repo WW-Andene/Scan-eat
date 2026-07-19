@@ -192,13 +192,20 @@ fun ScanScreen(
             NoCameraFallback(
                 titleRes = R.string.scan_no_camera_title,
                 bodyRes  = R.string.scan_no_camera_body,
-                onSubmit = { viewModel.onBarcodeDetected(it); viewModel.score() },
+                // quickScan(), not onBarcodeDetected()+score() - the latter's photo-queue
+                // guard (meant only to reject an *incidental* live-camera barcode while
+                // photos are queued) also silently swallowed this deliberately typed
+                // barcode whenever photos were already queued, since onBarcodeDetected()
+                // no-ops in that case and score() then ran with barcode=null. quickScan()
+                // already exists for exactly this "explicit, deliberate entry" case (see
+                // its use for the recent-barcode chips below) and bypasses that guard.
+                onSubmit = { viewModel.quickScan(it) },
             )
         } else if (cameraUnavailable) {
             NoCameraFallback(
                 titleRes = R.string.scan_camera_unavailable_title,
                 bodyRes  = R.string.scan_camera_unavailable_body,
-                onSubmit = { viewModel.onBarcodeDetected(it); viewModel.score() },
+                onSubmit = { viewModel.quickScan(it) },
                 onRetry  = { cameraUnavailable = false },
             )
         } else {
@@ -237,7 +244,7 @@ fun ScanScreen(
                         Text(stringResource(R.string.scan_manual_entry_toggle), color = OnBackground.copy(0.8f))
                     }
                 } else {
-                    ManualBarcodeEntry(onSubmit = { viewModel.onBarcodeDetected(it); viewModel.score() })
+                    ManualBarcodeEntry(onSubmit = { viewModel.quickScan(it) })
                 }
             }
         }

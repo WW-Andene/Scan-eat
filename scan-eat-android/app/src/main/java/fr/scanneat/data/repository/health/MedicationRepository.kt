@@ -108,6 +108,10 @@ class MedicationRepository @Inject constructor(
     suspend fun getLogRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<MedicationLogEntry> =
         logDao.getRange(from.toIsoString(), to.toIsoString(), profileId).map { it.toLogDomain() }
 
+    /** Flow counterpart to [getLogRange] — see MedicationLogDao.observeRange's own doc comment. */
+    fun observeLogRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<MedicationLogEntry>> =
+        logDao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.map { it.toLogDomain() } }
+
     suspend fun logTaken(medication: Medication, date: LocalDate = LocalDate.now(), profileId: String = "default") {
         logDao.insertIfAbsent(medication.id, date.toIsoString(), profileId) {
             MedicationLogEntity(

@@ -12,8 +12,8 @@ import fr.scanneat.data.repository.health.HealthConnectRepository
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,7 +52,19 @@ class ConsumptionRepository @Inject constructor(
     private suspend fun mirrorToHealthConnect(entry: DiaryEntry) {
         val c = entry.consumed
         healthConnect.writeNutrition(
-            loggedAt = Instant.ofEpochMilli(entry.loggedAt.toEpochMillisUtc()),
+            // entry.loggedAt is a real local wall-clock LocalDateTime (see its
+            // LocalDateTime.now() default), not a UTC one - toEpochMillisUtc()
+            // treats whatever LocalDateTime it's given as if it WERE UTC, which
+            // is the correct/intentional convention for the Room storage
+            // round-trip (toEntity()/toDomain() below), but wrong here: feeding
+            // that into Instant.ofEpochMilli() produced an absolute instant
+            // offset from the real moment by the device's UTC offset (e.g. a
+            // 14:00 Paris lunch landed in Health Connect as 16:00 UTC+2 -
+            // display code would then show it as 16:00 local, two hours late).
+            // atZone(systemDefault()).toInstant() is the correct local-wall-
+            // clock -> real-instant conversion, matching how writeWeight/
+            // writeActivity already anchor their own instants to systemDefault().
+            loggedAt = entry.loggedAt.atZone(ZoneId.systemDefault()).toInstant(),
             mealSlot = entry.mealSlot,
             name     = entry.productName,
             kcal     = c.energyKcal,

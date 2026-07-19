@@ -128,6 +128,27 @@ class DietCheckerTest {
         assertTrue(checkDiet(productWithIngredients("pâte feuilletée"), DietKey.VEGETARIAN).compliant)
     }
 
+    // ---- Regression lock: accented uppercase text (RegexOption.IGNORE_CASE
+    // alone doesn't Unicode-fold accents, only ASCII a-z/A-Z) ----
+
+    @Test
+    fun `vegetarian flags all-caps accented PATE DE CAMPAGNE`() {
+        // A very common way OFF/OCR label text is stored - all-caps with the
+        // accent preserved. Pattern.CASE_INSENSITIVE without UNICODE_CASE
+        // does not fold "Â"/"É" against a lowercase-only [aâ]/[eé]-style
+        // character class - same lowercase-only pattern shape as the
+        // existing "pâté with the circumflex accent" regression test above,
+        // just uppercased.
+        val result = checkDiet(productWithIngredients("PÂTÉ DE CAMPAGNE"), DietKey.VEGETARIAN)
+        assertFalse(result.compliant)
+    }
+
+    @Test
+    fun `violation text preserves the ingredient's original casing`() {
+        val result = checkDiet(productWithIngredients("PÂTÉ DE CAMPAGNE"), DietKey.VEGETARIAN)
+        assertTrue(result.violations.contains("PÂTÉ DE CAMPAGNE"))
+    }
+
     @Test
     fun `keto flags high net-carb products`() {
         val highCarb = Product(

@@ -144,8 +144,16 @@ fun detectAllergens(product: Product, lang: String = "fr"): List<AllergenHit> {
 
     for (ingredient in product.ingredients) {
         val name = ingredient.name
+        // Match against a lowercased copy, not [name] itself - RegexOption.IGNORE_CASE
+        // maps to Pattern.CASE_INSENSITIVE alone (no UNICODE_CASE), which only
+        // case-folds ASCII a-z/A-Z, not accented letters. An all-caps ingredient
+        // like OFF/OCR commonly produces (e.g. "FARINE DE BLÉ") never matched the
+        // lowercase-only [eé]-style character classes below, silently missing a
+        // mandatory EU allergen. [name] itself (original casing) is still what
+        // gets stored as the trigger, so the UI display is unaffected.
+        val matchable = name.lowercase()
         for (rule in RULES) {
-            if (rule.re.containsMatchIn(name)) {
+            if (rule.re.containsMatchIn(matchable)) {
                 hits.getOrPut(rule.key) { mutableSetOf() }.add(name)
             }
         }

@@ -213,11 +213,24 @@ class ScanRepository @Inject constructor(
         // already-stored product locally (pure function, no network) instead
         // of serving a permanently stale score — without this, engine fixes
         // never reach anything already in a user's history.
-        getCachedByBarcode(barcode)?.let { cached ->
-            val fresh = if (cached.audit.engineVersion != ENGINE_VERSION) {
-                cached.copy(audit = scoreProduct(cached.product, lang))
-            } else cached
-            return@runCatching Pair(fresh, persist(fresh))
+        //
+        // Only takes this shortcut when no new photos are queued. [images] used
+        // to be ignored here entirely: any cache hit returned immediately
+        // regardless of [images], silently discarding photos the user had just
+        // taken to enrich/correct a sparse cached entry - directly contradicting
+        // ScanViewModel.onBarcodeDetected's own documented design ("a barcode
+        // detected first can be augmented with follow-up photos when OFF's
+        // entry for it is sparse"). Falling through to the normal lookup below
+        // when images are present lets scoreDirectBarcode/scoreViaServer's
+        // existing OFF+LLM merge logic run instead, and persist() still upserts
+        // the same barcode's existing row rather than creating a duplicate.
+        if (images.isEmpty()) {
+            getCachedByBarcode(barcode)?.let { cached ->
+                val fresh = if (cached.audit.engineVersion != ENGINE_VERSION) {
+                    cached.copy(audit = scoreProduct(cached.product, lang))
+                } else cached
+                return@runCatching Pair(fresh, persist(fresh))
+            }
         }
         if (!online) error(offlineMessage(lang))
 

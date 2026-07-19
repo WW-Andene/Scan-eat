@@ -80,6 +80,31 @@ class AllergenDetectorTest {
         assertTrue(detectAllergens(productWithIngredients("noix du brésil")).any { it.key == "nuts" })
     }
 
+    // ---- Regression lock: accented uppercase text (RegexOption.IGNORE_CASE
+    // alone doesn't Unicode-fold accents, only ASCII a-z/A-Z) ----
+
+    @Test
+    fun `gluten allergen matches all-caps accented FARINE DE BLE`() {
+        // A very common way OFF/OCR label text is stored - all-caps with the
+        // accent preserved. Pattern.CASE_INSENSITIVE without UNICODE_CASE
+        // does not match "É" against a lowercase-only [eé] character class.
+        val hits = detectAllergens(productWithIngredients("FARINE DE BLÉ"))
+        assertTrue(hits.any { it.key == "gluten" })
+    }
+
+    @Test
+    fun `lactose allergen matches all-caps accented CREME FRAICHE`() {
+        val hits = detectAllergens(productWithIngredients("CRÈME FRAÎCHE"))
+        assertTrue(hits.any { it.key == "lactose" })
+    }
+
+    @Test
+    fun `allergen trigger text preserves the ingredient's original casing`() {
+        val hits = detectAllergens(productWithIngredients("FARINE DE BLÉ"))
+        val gluten = hits.first { it.key == "gluten" }
+        assertTrue(gluten.triggers.contains("FARINE DE BLÉ"))
+    }
+
     // ---- checkUserAllergens filtering ----
 
     @Test

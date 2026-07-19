@@ -66,7 +66,14 @@ fun scoreIngredientIntegrity(product: Product, lang: String = "en"): PillarScore
     val sugarAliases = mutableSetOf<String>()
     for (ing in product.ingredients) {
         val n = ing.name.lowercase()
-        for (alias in HIDDEN_SUGAR_NAMES) { if (n.contains(alias)) sugarAliases += alias }
+        // Longest matching alias wins, not every matching alias - HIDDEN_SUGAR_NAMES
+        // has nested substrings ("glucose" and "sirop" both sit inside "sirop de
+        // glucose"), so a single ingredient like "sirop de glucose" previously
+        // added all 3 as independent "sources", inflating one ingredient into a
+        // false >=2-sources deduction below. Same longest-synonym-wins principle
+        // AdditivesDb.findAdditive already applies for the identical nested-
+        // substring shape.
+        HIDDEN_SUGAR_NAMES.filter { n.contains(it) }.maxByOrNull { it.length }?.let { sugarAliases += it }
         if (Regex("""^sucre""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name.trim())) sugarAliases += "sucre"
     }
     if (sugarAliases.size >= 2) {

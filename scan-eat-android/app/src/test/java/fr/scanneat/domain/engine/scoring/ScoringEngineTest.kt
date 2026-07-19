@@ -306,6 +306,37 @@ class ScoringEngineTest {
             audit.veto.reason.contains("beverage", ignoreCase = true) || audit.veto.reason.contains("boisson", ignoreCase = true))
     }
 
+    // Regression: checkVeto()'s flat ">30g added sugar in non-confectionery"
+    // rule ignored CategoryThresholds.kt's own, deliberately wider CONDIMENT
+    // sugar band (30g is only that category's "major" tier — critical starts
+    // at 45g, since condiments are eaten by the tablespoon). A chutney-style
+    // condiment at 35g used to get hard-capped to grade C by this veto even
+    // though the pillar itself only scored it MAJOR, not CRITICAL.
+    @Test fun `Condiment with 35g sugar is not vetoed - only SNACK_SWEET-style hard cap is exempt`() {
+        val audit = scoreProduct(product(
+            name = "Chutney mangue (test)",
+            category = ProductCategory.CONDIMENT,
+            novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("mangue"), ingredient("sucre"), ingredient("vinaigre")),
+            nutrition = nutrition(150.0, 0.5, 0.1, 38.0, 35.0, 1.0, 1.0, 0.8),
+        ))
+        assertFalse("35g sugar condiment should not hit the >30g flat veto", audit.veto.triggered)
+    }
+
+    @Test fun `Condiment with 50g sugar (above its own 45g critical tier) is still fine on the flat veto`() {
+        // CONDIMENT is fully exempt from this particular flat rule (matching
+        // SNACK_SWEET) - its own pillar-level critical deduction at 45g is the
+        // mechanism that penalizes this, not this cross-category veto.
+        val audit = scoreProduct(product(
+            name = "Confiture forte (test)",
+            category = ProductCategory.CONDIMENT,
+            novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("fruits"), ingredient("sucre")),
+            nutrition = nutrition(250.0, 0.2, 0.0, 55.0, 50.0, 1.0, 0.5, 0.1),
+        ))
+        assertFalse(audit.veto.triggered)
+    }
+
     // ============================================================
     // NOVA fresh-produce exception
     // ============================================================
@@ -502,5 +533,88 @@ class ScoringEngineTest {
 
     @Test fun `inferCategoryFromName — unknown returns OTHER`() {
         assertEquals(ProductCategory.OTHER, inferCategoryFromName("Produit inconnu XYZ123"))
+    }
+
+    // ============================================================
+    // Nutritional density — omega-3 ingredient regex word boundaries
+    // ============================================================
+
+    // Regression: the omega-3 bonus regex had no \b around "lin"/"saumon",
+    // so it matched as a substring inside unrelated words - "colin" (hake, a
+    // completely different fish with no special omega-3 recognition here) via
+    // "lin", and "saumonette" (dogfish, a cheap salmon substitute) via "saumon".
+    @Test fun `Colin (hake) does not falsely earn the omega-3 bonus via the 'lin' substring`() {
+        val p = product(
+            name = "Colin sauce citron (test)",
+            category = ProductCategory.FISH,
+            novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("colin"), ingredient("citron")),
+            nutrition = nutrition(90.0, 1.0, 0.2, 1.0, 0.5, 0.0, 18.0, 0.3),
+        )
+        val pillar = scoreNutritionalDensity(p)
+        assertNull("Colin should not trigger the omega-3 bonus", pillar.bonuses.firstOrNull { it.reason.contains("omega", ignoreCase = true) })
+    }
+
+    @Test fun `Saumonette does not falsely earn the omega-3 bonus via the 'saumon' substring`() {
+        val p = product(
+            name = "Saumonette (test)",
+            category = ProductCategory.FISH,
+            novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("saumonette")),
+            nutrition = nutrition(90.0, 1.0, 0.2, 1.0, 0.5, 0.0, 18.0, 0.3),
+        )
+        val pillar = scoreNutritionalDensity(p)
+        assertNull("Saumonette should not trigger the omega-3 bonus", pillar.bonuses.firstOrNull { it.reason.contains("omega", ignoreCase = true) })
+    }
+
+    @Test fun `Real saumon and graine de lin still earn the omega-3 bonus`() {
+        for (name in listOf("filet de saumon", "graine de lin", "chia", "sardine")) {
+            val p = product(
+                name = "Test $name",
+                category = ProductCategory.OTHER,
+                novaClass = NovaClass.PROCESSED,
+                ingredients = listOf(ingredient(name)),
+                nutrition = nutrition(90.0, 1.0, 0.2, 1.0, 0.5, 0.0, 18.0, 0.3),
+            )
+            val pillar = scoreNutritionalDensity(p)
+            assertNotNull("\"$name\" should still trigger the omega-3 bonus", pillar.bonuses.firstOrNull { it.reason.contains("omega", ignoreCase = true) })
+        }
+    }
+
+    // ============================================================
+    // Ingredient integrity — hidden-sugar alias double-counting
+    // ============================================================
+
+    // Regression: HIDDEN_SUGAR_NAMES has nested substrings ("glucose" and
+    // "sirop" both sit inside "sirop de glucose"), and the matching loop used
+    // to add every containing alias independently - a single ingredient like
+    // "sirop de glucose" inflated into 3 "distinct sugar sources", wrongly
+    // triggering the >=2-sources deduction for what is really one ingredient.
+    @Test fun `A single 'sirop de glucose' ingredient counts as one sugar source, not three`() {
+        val p = product(
+            name = "Test sirop de glucose",
+            category = ProductCategory.OTHER,
+            novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("sirop de glucose"), ingredient("farine")),
+            nutrition = nutrition(300.0, 1.0, 0.2, 60.0, 30.0, 1.0, 3.0, 0.5),
+        )
+        val pillar = scoreIngredientIntegrity(p)
+        assertNull("A single hidden-sugar ingredient must not trigger the multi-source deduction",
+            pillar.deductions.firstOrNull { it.reason.contains("sugar source", ignoreCase = true) || it.reason.contains("sources de sucre", ignoreCase = true) })
+        assertNotNull("A single hidden-sugar ingredient should earn the single-source bonus instead",
+            pillar.bonuses.firstOrNull { it.reason.contains("sugar", ignoreCase = true) || it.reason.contains("sucre", ignoreCase = true) })
+    }
+
+    @Test fun `Two genuinely distinct sugar ingredients still trigger the multi-source deduction`() {
+        val p = product(
+            name = "Test deux sucres",
+            category = ProductCategory.OTHER,
+            novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("sirop de glucose"), ingredient("dextrose"), ingredient("caramel")),
+            nutrition = nutrition(300.0, 1.0, 0.2, 60.0, 30.0, 1.0, 3.0, 0.5),
+        )
+        val pillar = scoreIngredientIntegrity(p)
+        assertNotNull("Two genuinely distinct hidden-sugar aliases should still trigger the deduction",
+            pillar.deductions.firstOrNull { it.reason.contains("sugar source", ignoreCase = true) || it.reason.contains("sources de sucre", ignoreCase = true) })
     }
 }
