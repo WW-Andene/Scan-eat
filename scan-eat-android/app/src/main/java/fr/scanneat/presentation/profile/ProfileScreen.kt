@@ -163,9 +163,11 @@ fun ProfileScreen(
                     if (diff < 0.5) null else (diff / 0.5).roundToInt()
                 }
 
-                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                ScanEatCard(
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    color = SurfaceVariant,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.S),
+                ) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                                 bmi.value?.let { bmiVal ->
                                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -239,8 +241,6 @@ fun ProfileScreen(
                                 }
                             }
                         }
-                    }
-                }
             }
 
             // ---- Identity ----

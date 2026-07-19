@@ -1,10 +1,8 @@
 package fr.scanneat.presentation.dashboard.cards
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,34 +19,34 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
-    Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
-            Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                val kcalPct = targets?.let { (totals.energyKcal / it.kcal).toFloat() }
-                val kcalColor = when {
-                    kcalPct == null  -> AccentCoral
-                    kcalPct > 1.1f   -> semanticRed()
-                    kcalPct > 0.9f   -> semanticGreen()
-                    else             -> AccentCoral
-                }
-                val protPct = targets?.proteinGTarget?.takeIf { it > 0 }?.let { (totals.proteinG / it).toFloat() }
-                // A hard cap (e.g. keto's 30g) still turns the ring red once exceeded;
-                // every other diet gets the general AMDR-derived target instead of a
-                // bare unfilled ring, same treatment as calories/protein/fat.
-                val carbsTarget = targets?.carbsGTarget
-                val carbsPct = carbsTarget?.takeIf { it > 0 }?.let { (totals.carbsG / it).toFloat() }
-                val carbsIsHardCap = targets?.carbsGDailyMax != null
-                val carbsColor = if (carbsIsHardCap && carbsPct != null && carbsPct > 1f) semanticRed() else AccentCoral
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor, targets?.kcal?.roundToInt())
-                    MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral, targets?.proteinGTarget?.takeIf { it > 0 }?.roundToInt())
-                    MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", carbsPct, carbsColor, carbsTarget?.takeIf { it > 0 }?.roundToInt())
-                    val fatPct = targets?.fatGTarget?.takeIf { it > 0 }?.let { (totals.fatG / it).toFloat() }
-                    val fatColor = if (fatPct != null && fatPct > 1.1f) semanticRed() else AccentCoral
-                    MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", fatPct, fatColor, targets?.fatGTarget?.roundToInt())
-                }
-            }
+    ScanEatCard(
+        color = SurfaceVariant,
+        contentPadding = PaddingValues(Spacing.L),
+        verticalArrangement = Arrangement.spacedBy(Spacing.M),
+    ) {
+        Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+        val kcalPct = targets?.let { (totals.energyKcal / it.kcal).toFloat() }
+        val kcalColor = when {
+            kcalPct == null  -> AccentCoral
+            kcalPct > 1.1f   -> semanticRed()
+            kcalPct > 0.9f   -> semanticGreen()
+            else             -> AccentCoral
+        }
+        val protPct = targets?.proteinGTarget?.takeIf { it > 0 }?.let { (totals.proteinG / it).toFloat() }
+        // A hard cap (e.g. keto's 30g) still turns the ring red once exceeded;
+        // every other diet gets the general AMDR-derived target instead of a
+        // bare unfilled ring, same treatment as calories/protein/fat.
+        val carbsTarget = targets?.carbsGTarget
+        val carbsPct = carbsTarget?.takeIf { it > 0 }?.let { (totals.carbsG / it).toFloat() }
+        val carbsIsHardCap = targets?.carbsGDailyMax != null
+        val carbsColor = if (carbsIsHardCap && carbsPct != null && carbsPct > 1f) semanticRed() else AccentCoral
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+            MacroRing(stringResource(R.string.diary_macro_calories), totals.energyKcal.roundToInt(), "kcal", kcalPct, kcalColor, targets?.kcal?.roundToInt())
+            MacroRing(stringResource(R.string.diary_macro_protein), totals.proteinG.roundToInt(), "g", protPct, AccentCoral, targets?.proteinGTarget?.takeIf { it > 0 }?.roundToInt())
+            MacroRing(stringResource(R.string.diary_macro_carbs), totals.carbsG.roundToInt(), "g", carbsPct, carbsColor, carbsTarget?.takeIf { it > 0 }?.roundToInt())
+            val fatPct = targets?.fatGTarget?.takeIf { it > 0 }?.let { (totals.fatG / it).toFloat() }
+            val fatColor = if (fatPct != null && fatPct > 1.1f) semanticRed() else AccentCoral
+            MacroRing(stringResource(R.string.diary_macro_fat), totals.fatG.roundToInt(), "g", fatPct, fatColor, targets?.fatGTarget?.roundToInt())
         }
     }
 }

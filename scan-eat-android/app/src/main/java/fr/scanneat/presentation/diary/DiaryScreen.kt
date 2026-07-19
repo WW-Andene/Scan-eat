@@ -218,18 +218,16 @@ private fun MealsTab(viewModel: DiaryViewModel) {
 
         if (showCalendar) {
             item {
-                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(Spacing.M)) {
-                            MonthCalendar(
-                                month = calendarMonth,
-                                selected = selectedDate.value,
-                                locale = Locale(language.value),
-                                onMonthChange = { calendarMonth = it },
-                                onDayClick = { day -> saveNoteIfDirty(); viewModel.selectDate(day); showCalendar = false },
-                            )
-                        }
-                    }
+                ScanEatCard(
+                    shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M),
+                ) {
+                    MonthCalendar(
+                        month = calendarMonth,
+                        selected = selectedDate.value,
+                        locale = Locale(language.value),
+                        onMonthChange = { calendarMonth = it },
+                        onDayClick = { day -> saveNoteIfDirty(); viewModel.selectDate(day); showCalendar = false },
+                    )
                 }
             }
         }
@@ -250,40 +248,40 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                     MealSlot.SNACK     to semanticAmber().copy(0.6f),
                     MealSlot.DINNER    to semanticBlue().copy(0.6f),
                 )
-                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.10f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0f, grainDensity = 0)) {
-                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Text(stringResource(R.string.diary_kcal_breakdown_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                        Row(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))) {
-                            MealSlot.values().forEach { slot ->
-                                val slotKcal = bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0
-                                val frac = (slotKcal / totalKcal).toFloat().coerceAtLeast(0f)
-                                if (frac > 0f) {
-                                    Box(Modifier.weight(frac).fillMaxHeight().background(slotColors[slot] ?: OnSurface.copy(0.3f)))
-                                }
-                            }
-                            val loggedFrac = MealSlot.values().sumOf { slot -> bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0 } / totalKcal
-                            if (loggedFrac < 0.99f) {
-                                Box(Modifier.weight((1f - loggedFrac.toFloat()).coerceAtLeast(0f)).fillMaxHeight().background(OnSurface.copy(0.08f)))
+                ScanEatCard(
+                    emphasis = CardEmphasis.SECONDARY,
+                    shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant,
+                    contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+                ) {
+                    Text(stringResource(R.string.diary_kcal_breakdown_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                    Row(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))) {
+                        MealSlot.values().forEach { slot ->
+                            val slotKcal = bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0
+                            val frac = (slotKcal / totalKcal).toFloat().coerceAtLeast(0f)
+                            if (frac > 0f) {
+                                Box(Modifier.weight(frac).fillMaxHeight().background(slotColors[slot] ?: OnSurface.copy(0.3f)))
                             }
                         }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                            MealSlot.values().forEach { slot ->
-                                val slotKcal = (bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0)
-                                if (slotKcal > 0) {
-                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                        Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(3.dp)))
-                                        Text(
-                                            "${slot.shortLabel()} ${slotKcal.toInt()}kcal",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = OnSurface.copy(0.55f),
-                                        )
-                                    }
+                        val loggedFrac = MealSlot.values().sumOf { slot -> bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0 } / totalKcal
+                        if (loggedFrac < 0.99f) {
+                            Box(Modifier.weight((1f - loggedFrac.toFloat()).coerceAtLeast(0f)).fillMaxHeight().background(OnSurface.copy(0.08f)))
+                        }
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                        MealSlot.values().forEach { slot ->
+                            val slotKcal = (bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0)
+                            if (slotKcal > 0) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(3.dp)))
+                                    Text(
+                                        "${slot.shortLabel()} ${slotKcal.toInt()}kcal",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = OnSurface.copy(0.55f),
+                                    )
                                 }
                             }
                         }
                     }
-                }
                 }
             }
         }
@@ -295,27 +293,27 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                 val maxSlotProt = MealSlot.values().maxOfOrNull { slot ->
                     bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
                 }?.coerceAtLeast(1.0) ?: 1.0
-                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.10f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0f, grainDensity = 0)) {
-                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Text(stringResource(R.string.diary_protein_per_slot_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                        MealSlot.values().forEach { slot ->
-                            val prot = bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
-                            if (prot > 0.0) {
-                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                                    Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(36.dp))
-                                    androidx.compose.material3.LinearProgressIndicator(
-                                        progress = { (prot / maxSlotProt).toFloat().coerceIn(0f, 1f) },
-                                        modifier = Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)),
-                                        color = AccentCoral,
-                                        trackColor = OnSurface.copy(0.08f),
-                                    )
-                                    Text("${prot.toInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(30.dp))
-                                }
+                ScanEatCard(
+                    emphasis = CardEmphasis.SECONDARY,
+                    shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant,
+                    contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+                ) {
+                    Text(stringResource(R.string.diary_protein_per_slot_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                    MealSlot.values().forEach { slot ->
+                        val prot = bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
+                        if (prot > 0.0) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                                Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(36.dp))
+                                androidx.compose.material3.LinearProgressIndicator(
+                                    progress = { (prot / maxSlotProt).toFloat().coerceIn(0f, 1f) },
+                                    modifier = Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)),
+                                    color = AccentCoral,
+                                    trackColor = OnSurface.copy(0.08f),
+                                )
+                                Text("${prot.toInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(30.dp))
                             }
                         }
                     }
-                }
                 }
             }
         }

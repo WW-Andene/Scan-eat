@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -174,37 +173,35 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
         Triple(stringResource(R.string.result_macro_fiber),  nutrition.fiberG, 25.0),
     ).filter { (_, value, _) -> value > 0.0 }
     if (rows.isEmpty()) return
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CARD))) {
-        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-            Text(stringResource(R.string.result_macro_contribution_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-            rows.forEach { (label, value, ref) ->
-                val pct = (value / ref).coerceIn(0.0, 1.0).toFloat()
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(56.dp))
-                    LinearProgressIndicator(
-                        progress = { pct },
-                        modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
-                        color = when {
-                            pct >= 0.5f -> semanticAmber()
-                            else -> AccentCoral.copy(0.7f)
-                        },
-                        trackColor = OnSurface.copy(0.08f),
-                    )
-                    Text(
-                        "${(pct * 100).toInt()}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = OnSurface.copy(0.5f),
-                        modifier = Modifier.width(32.dp),
-                        textAlign = TextAlign.End,
-                    )
-                }
+    ScanEatCard(
+        color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+    ) {
+        Text(stringResource(R.string.result_macro_contribution_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+        rows.forEach { (label, value, ref) ->
+            val pct = (value / ref).coerceIn(0.0, 1.0).toFloat()
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(56.dp))
+                LinearProgressIndicator(
+                    progress = { pct },
+                    modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
+                    color = when {
+                        pct >= 0.5f -> semanticAmber()
+                        else -> AccentCoral.copy(0.7f)
+                    },
+                    trackColor = OnSurface.copy(0.08f),
+                )
+                Text(
+                    "${(pct * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = OnSurface.copy(0.5f),
+                    modifier = Modifier.width(32.dp),
+                    textAlign = TextAlign.End,
+                )
             }
-            // Bumped from 0.35f - a UI/UX audit flagged this explanatory note as
-            // real informational content rendered too faint against the dark surface.
-            Text(stringResource(R.string.result_macro_contribution_note), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         }
-        }
+        // Bumped from 0.35f - a UI/UX audit flagged this explanatory note as
+        // real informational content rendered too faint against the dark surface.
+        Text(stringResource(R.string.result_macro_contribution_note), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
     }
 }
 
@@ -217,45 +214,39 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
     val range     = (maxScore - minScore).coerceAtLeast(1f)
     val lineColor = AccentCoral
 
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CARD))) {
-        Surface(
-            shape = RoundedCornerShape(CardRadius.CARD),
-            color = SurfaceVariant,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-        Column(modifier = Modifier.padding(Spacing.M)) {
-            Text(
-                stringResource(R.string.result_score_history_title),
-                style = MaterialTheme.typography.labelSmall,
-                color = OnSurface.copy(0.5f),
-            )
-            Spacer(Modifier.height(Spacing.XS))
-            Canvas(modifier = Modifier.fillMaxWidth().height(48.dp)) {
-                val pts = allScores.mapIndexed { i, s ->
-                    val x = if (allScores.size == 1) size.width / 2f
-                            else i / (allScores.size - 1f) * size.width
-                    val y = size.height - (s - minScore) / range * size.height
-                    Offset(x, y)
-                }
-                val path = Path().apply {
-                    pts.forEachIndexed { i, pt -> if (i == 0) moveTo(pt.x, pt.y) else lineTo(pt.x, pt.y) }
-                }
-                drawPath(path, color = lineColor.copy(0.4f), style = Stroke(width = 2.dp.toPx()))
-                pts.forEachIndexed { i, pt ->
-                    val isLast = i == pts.lastIndex
-                    drawCircle(
-                        color  = if (isLast) lineColor else lineColor.copy(0.5f),
-                        radius = if (isLast) 5.dp.toPx() else 3.dp.toPx(),
-                        center = pt,
-                    )
-                }
+    ScanEatCard(
+        color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M),
+    ) {
+        Text(
+            stringResource(R.string.result_score_history_title),
+            style = MaterialTheme.typography.labelSmall,
+            color = OnSurface.copy(0.5f),
+        )
+        Spacer(Modifier.height(Spacing.XS))
+        Canvas(modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            val pts = allScores.mapIndexed { i, s ->
+                val x = if (allScores.size == 1) size.width / 2f
+                        else i / (allScores.size - 1f) * size.width
+                val y = size.height - (s - minScore) / range * size.height
+                Offset(x, y)
             }
-            Spacer(Modifier.height(Spacing.XS))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("${scores.first()}", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnSurface.copy(0.4f))
-                Text("$currentScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = lineColor, fontWeight = FontWeight.Bold)
+            val path = Path().apply {
+                pts.forEachIndexed { i, pt -> if (i == 0) moveTo(pt.x, pt.y) else lineTo(pt.x, pt.y) }
+            }
+            drawPath(path, color = lineColor.copy(0.4f), style = Stroke(width = 2.dp.toPx()))
+            pts.forEachIndexed { i, pt ->
+                val isLast = i == pts.lastIndex
+                drawCircle(
+                    color  = if (isLast) lineColor else lineColor.copy(0.5f),
+                    radius = if (isLast) 5.dp.toPx() else 3.dp.toPx(),
+                    center = pt,
+                )
             }
         }
+        Spacer(Modifier.height(Spacing.XS))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("${scores.first()}", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnSurface.copy(0.4f))
+            Text("$currentScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = lineColor, fontWeight = FontWeight.Bold)
         }
     }
 }

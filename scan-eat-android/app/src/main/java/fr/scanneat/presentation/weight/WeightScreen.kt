@@ -2,7 +2,6 @@ package fr.scanneat.presentation.weight
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -242,9 +241,7 @@ fun WeightScreen(
                         dispWeight(chartEntries.last().weightKg),
                         chartEntries.size,
                     )
-                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(Spacing.M)) {
+                    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(stringResource(R.string.weight_trend_caption, chartEntries.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                 Text(dispWeight(chartEntries.last().weightKg), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = AccentCoral)
@@ -312,8 +309,6 @@ fun WeightScreen(
                                 Text(chartEntries.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                             }
                         }
-                    }
-                    }
                 }
             }
 
@@ -360,34 +355,34 @@ fun WeightScreen(
             itemsIndexed(reversedEntries, key = { _, e -> e.id }) { idx, e ->
                 val prev = if (idx > 0) reversedEntries[idx - 1] else null
                 val delta = prev?.let { e.weightKg - it.weightKg }
-                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).background(SurfaceVariant).padding(Spacing.M),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(e.date.format(fmt), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                        if (e.notes.isNotBlank()) {
-                            Text(e.notes, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(e.date.format(fmt), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                            if (e.notes.isNotBlank()) {
+                                Text(e.notes, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                            }
+                        }
+                        if (delta != null) {
+                            val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurface.copy(0.4f)
+                            val sign = if (delta >= 0) "+" else ""
+                            Text(
+                                "$sign${"%.1f".format(Locale.US, if (useImperial) delta * KG_TO_LB else delta)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = dColor,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(end = Spacing.XS),
+                            )
+                        }
+                        Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                        IconButton(onClick = { deleteTarget = e.id }) {
+                            Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                         }
                     }
-                    if (delta != null) {
-                        val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurface.copy(0.4f)
-                        val sign = if (delta >= 0) "+" else ""
-                        Text(
-                            "$sign${"%.1f".format(Locale.US, if (useImperial) delta * KG_TO_LB else delta)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = dColor,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(end = Spacing.XS),
-                        )
-                    }
-                    Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
-                    IconButton(onClick = { deleteTarget = e.id }) {
-                        Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
-                    }
-                }
                 }
             }
             item { WeightReminderCard() }

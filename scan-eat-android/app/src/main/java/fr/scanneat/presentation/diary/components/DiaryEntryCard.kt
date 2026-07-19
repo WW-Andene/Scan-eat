@@ -1,14 +1,10 @@
 package fr.scanneat.presentation.diary.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -30,17 +25,18 @@ import fr.scanneat.R
 import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
 internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, onDelete: () -> Unit, onEdit: () -> Unit) {
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
+    ScanEatCard(
+        onClick = onEdit,
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M),
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).background(SurfaceVariant)
-                .clickable(onClick = onEdit).padding(Spacing.M),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {

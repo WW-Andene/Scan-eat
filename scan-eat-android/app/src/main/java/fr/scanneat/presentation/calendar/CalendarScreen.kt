@@ -89,33 +89,29 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Spacer(Modifier.height(Spacing.XS))
-            Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
-                Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(Spacing.M)) {
-                        MultiMarkerMonthGrid(
-                            month = month.value, selected = selected.value, markers = markers.value, locale = locale,
-                            weekSummaries = weekSummaries.value,
-                            onMonthChange = viewModel::setMonth, onDayClick = viewModel::selectDate,
-                            onWeekClick = { weekPopup = it },
-                        )
-                        // Legend - which color means which tracker, since a bare dot alone
-                        // (unlike the existing single-domain MonthCalendar) is now ambiguous.
-                        // Horizontally scrollable rather than SpaceEvenly-only - a 7th entry
-                        // (NOTE) pushed this past what reliably fits on a narrow phone width
-                        // without wrapping or clipping.
-                        Row(
-                            Modifier.fillMaxWidth().padding(top = Spacing.S).horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
-                        ) {
-                            LegendDot(colorFor(CalendarSource.MEALS), stringResource(R.string.calendar_legend_meals))
-                            LegendDot(colorFor(CalendarSource.WEIGHT), stringResource(R.string.calendar_legend_weight))
-                            LegendDot(colorFor(CalendarSource.ACTIVITY), stringResource(R.string.calendar_legend_activity))
-                            LegendDot(colorFor(CalendarSource.HYDRATION), stringResource(R.string.calendar_legend_hydration))
-                            LegendDot(colorFor(CalendarSource.FASTING), stringResource(R.string.calendar_legend_fasting))
-                            LegendDot(colorFor(CalendarSource.MEDICATION), stringResource(R.string.calendar_legend_medication))
-                            LegendDot(colorFor(CalendarSource.NOTE), stringResource(R.string.calendar_legend_note))
-                        }
-                    }
+            ScanEatCard(color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M)) {
+                MultiMarkerMonthGrid(
+                    month = month.value, selected = selected.value, markers = markers.value, locale = locale,
+                    weekSummaries = weekSummaries.value,
+                    onMonthChange = viewModel::setMonth, onDayClick = viewModel::selectDate,
+                    onWeekClick = { weekPopup = it },
+                )
+                // Legend - which color means which tracker, since a bare dot alone
+                // (unlike the existing single-domain MonthCalendar) is now ambiguous.
+                // Horizontally scrollable rather than SpaceEvenly-only - a 7th entry
+                // (NOTE) pushed this past what reliably fits on a narrow phone width
+                // without wrapping or clipping.
+                Row(
+                    Modifier.fillMaxWidth().padding(top = Spacing.S).horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                ) {
+                    LegendDot(colorFor(CalendarSource.MEALS), stringResource(R.string.calendar_legend_meals))
+                    LegendDot(colorFor(CalendarSource.WEIGHT), stringResource(R.string.calendar_legend_weight))
+                    LegendDot(colorFor(CalendarSource.ACTIVITY), stringResource(R.string.calendar_legend_activity))
+                    LegendDot(colorFor(CalendarSource.HYDRATION), stringResource(R.string.calendar_legend_hydration))
+                    LegendDot(colorFor(CalendarSource.FASTING), stringResource(R.string.calendar_legend_fasting))
+                    LegendDot(colorFor(CalendarSource.MEDICATION), stringResource(R.string.calendar_legend_medication))
+                    LegendDot(colorFor(CalendarSource.NOTE), stringResource(R.string.calendar_legend_note))
                 }
             }
 
@@ -279,52 +275,48 @@ private fun MultiMarkerMonthGrid(
 @Composable
 private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale) {
     val dateFmt = DateTimeFormatter.ofPattern("EEEE d MMMM", locale)
-    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
-        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Text(
-                    detail.date.format(dateFmt).replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold,
-                )
-                if (detail.isEmpty) {
-                    Text(stringResource(R.string.calendar_day_empty), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.5f))
-                } else {
-                    if (detail.mealCount > 0) {
-                        DetailRow(colorFor(CalendarSource.MEALS), stringResource(R.string.calendar_day_meals, detail.mealCount, detail.kcal.roundToInt()))
-                    }
-                    detail.weightKg?.let {
-                        DetailRow(colorFor(CalendarSource.WEIGHT), stringResource(R.string.calendar_day_weight, it))
-                    }
-                    if (detail.activities.isNotEmpty()) {
-                        val totalMin = detail.activities.sumOf { it.minutes }
-                        val totalKcal = detail.activities.sumOf { it.kcalBurned }
-                        DetailRow(colorFor(CalendarSource.ACTIVITY), stringResource(R.string.calendar_day_activity, detail.activities.size, totalMin, totalKcal))
-                        // Was a.type.labelFr - always French regardless of the app's language
-                        // setting. ActivityScreen already has localized labels for these same
-                        // types, reused here instead.
-                        val activityTypeLabels = typeLabels()
-                        detail.activities.forEach { a ->
-                            Text("· ${activityTypeLabels[a.type] ?: a.type.name} (${a.minutes} min)", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                        }
-                    }
-                    if (detail.hydrationMl > 0) {
-                        DetailRow(colorFor(CalendarSource.HYDRATION), stringResource(R.string.calendar_day_hydration, detail.hydrationMl))
-                    }
-                    detail.fastCompletion?.let { f ->
-                        DetailRow(colorFor(CalendarSource.FASTING), stringResource(R.string.calendar_day_fasting, f.achievedHours, f.targetHours))
-                    }
-                    if (detail.medicationsTaken.isNotEmpty()) {
-                        DetailRow(
-                            colorFor(CalendarSource.MEDICATION),
-                            stringResource(R.string.calendar_day_medication, detail.medicationsTaken.joinToString(", ") { it.medicationName }),
-                        )
-                    }
-                    // The month grid's NOTE dot previously had nowhere to lead - tapping a
-                    // day with a note to actually read it found nothing here.
-                    if (detail.note.isNotBlank()) {
-                        DetailRow(colorFor(CalendarSource.NOTE), stringResource(R.string.calendar_day_note, detail.note))
-                    }
+    ScanEatCard(color = SurfaceVariant, contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        Text(
+            detail.date.format(dateFmt).replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold,
+        )
+        if (detail.isEmpty) {
+            Text(stringResource(R.string.calendar_day_empty), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.5f))
+        } else {
+            if (detail.mealCount > 0) {
+                DetailRow(colorFor(CalendarSource.MEALS), stringResource(R.string.calendar_day_meals, detail.mealCount, detail.kcal.roundToInt()))
+            }
+            detail.weightKg?.let {
+                DetailRow(colorFor(CalendarSource.WEIGHT), stringResource(R.string.calendar_day_weight, it))
+            }
+            if (detail.activities.isNotEmpty()) {
+                val totalMin = detail.activities.sumOf { it.minutes }
+                val totalKcal = detail.activities.sumOf { it.kcalBurned }
+                DetailRow(colorFor(CalendarSource.ACTIVITY), stringResource(R.string.calendar_day_activity, detail.activities.size, totalMin, totalKcal))
+                // Was a.type.labelFr - always French regardless of the app's language
+                // setting. ActivityScreen already has localized labels for these same
+                // types, reused here instead.
+                val activityTypeLabels = typeLabels()
+                detail.activities.forEach { a ->
+                    Text("· ${activityTypeLabels[a.type] ?: a.type.name} (${a.minutes} min)", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 }
+            }
+            if (detail.hydrationMl > 0) {
+                DetailRow(colorFor(CalendarSource.HYDRATION), stringResource(R.string.calendar_day_hydration, detail.hydrationMl))
+            }
+            detail.fastCompletion?.let { f ->
+                DetailRow(colorFor(CalendarSource.FASTING), stringResource(R.string.calendar_day_fasting, f.achievedHours, f.targetHours))
+            }
+            if (detail.medicationsTaken.isNotEmpty()) {
+                DetailRow(
+                    colorFor(CalendarSource.MEDICATION),
+                    stringResource(R.string.calendar_day_medication, detail.medicationsTaken.joinToString(", ") { it.medicationName }),
+                )
+            }
+            // The month grid's NOTE dot previously had nowhere to lead - tapping a
+            // day with a note to actually read it found nothing here.
+            if (detail.note.isNotBlank()) {
+                DetailRow(colorFor(CalendarSource.NOTE), stringResource(R.string.calendar_day_note, detail.note))
             }
         }
     }

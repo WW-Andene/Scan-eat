@@ -1,7 +1,5 @@
 package fr.scanneat.presentation.dashboard.cards
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -10,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,16 +19,14 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun ScanHistoryCard(scan: ScanResult, onItemClick: ((Long) -> Unit)? = null) {
     val gradeColor = gradeColor(scan.audit.grade)
-    val clickMod = if (onItemClick != null && scan.dbId > 0)
-        Modifier.clickable { onItemClick(scan.dbId) } else Modifier
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        color = SurfaceVariant,
+        contentPadding = PaddingValues(Spacing.M),
+        onClick = if (onItemClick != null && scan.dbId > 0) { { onItemClick(scan.dbId) } } else null,
+    ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(CardRadius.CONTROL))
-                .background(SurfaceVariant)
-                .then(clickMod)
-                .padding(Spacing.M),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {

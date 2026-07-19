@@ -20,7 +20,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Surface
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.cards.*
 import fr.scanneat.presentation.ui.theme.AccentCoral
@@ -37,7 +36,6 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.Violet
 import fr.scanneat.presentation.ui.theme.Warm
-import fr.scanneat.presentation.ui.theme.glassSheen
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -173,14 +171,15 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 val fatKgPerHour = lm.fatFrac * lm.kcalSec * 3600 / 7700.0
                 val etaHours = if (fatKgPerHour > 0) (fatKgRemaining / fatKgPerHour).roundToInt() else null
                 if (etaHours != null && etaHours > 0) {
-                    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
-                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text(stringResource(R.string.biolism_tracker_goal_label, gw), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                                    Text(stringResource(R.string.biolism_tracker_goal_eta, etaHours), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
-                                }
-                            }
+                    ScanEatCard(
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        color = SurfaceVariant,
+                        contentPadding = PaddingValues(Spacing.M),
+                        verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+                    ) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.biolism_tracker_goal_label, gw), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.biolism_tracker_goal_eta, etaHours), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                         }
                     }
                 }
@@ -192,21 +191,22 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 val tdeeInt = lm.tdeeDay.roundToInt()
                 val burnInt = kcalTotal.roundToInt()
                 val budgetPct = (kcalTotal / lm.tdeeDay).coerceIn(0.0, 1.0).toFloat()
-                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(stringResource(R.string.biolism_tracker_tdee_budget_title), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                                Text(stringResource(R.string.biolism_tracker_tdee_budget_note, burnInt, tdeeInt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
-                            }
-                            LinearProgressIndicator(
-                                progress = { budgetPct },
-                                modifier = Modifier.fillMaxWidth(),
-                                color = if (budgetPct >= 1f) AccentCoral else Gold,
-                                trackColor = OnSurface.copy(0.1f),
-                            )
-                        }
+                ScanEatCard(
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    color = SurfaceVariant,
+                    contentPadding = PaddingValues(Spacing.M),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+                ) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(R.string.biolism_tracker_tdee_budget_title), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.biolism_tracker_tdee_budget_note, burnInt, tdeeInt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                     }
+                    LinearProgressIndicator(
+                        progress = { budgetPct },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = if (budgetPct >= 1f) AccentCoral else Gold,
+                        trackColor = OnSurface.copy(0.1f),
+                    )
                 }
             }
 

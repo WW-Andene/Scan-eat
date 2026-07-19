@@ -1,9 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,31 +15,31 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary, forecast: WeightForecast) {
-  Box(Modifier.fillMaxWidth().glassSheen()) {
-    Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
-        Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Text(stringResource(R.string.weight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text(stringResource(R.string.weight_kg, summary.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
-                    val deltaColor = when {
-                        summary.deltaKg < 0 -> semanticGreen()
-                        summary.deltaKg > 0 -> semanticRed()
-                        else -> OnSurface.copy(0.5f)
-                    }
-                    val sign = if (summary.deltaKg >= 0) "+" else ""
-                    Text(stringResource(R.string.weight_delta_kg, "$sign${summary.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = deltaColor)
+  ScanEatCard(
+    color = SurfaceVariant,
+    contentPadding = PaddingValues(Spacing.L),
+    verticalArrangement = Arrangement.spacedBy(Spacing.S),
+  ) {
+        Text(stringResource(R.string.weight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Column {
+                Text(stringResource(R.string.weight_kg, summary.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
+                val deltaColor = when {
+                    summary.deltaKg < 0 -> semanticGreen()
+                    summary.deltaKg > 0 -> semanticRed()
+                    else -> OnSurface.copy(0.5f)
                 }
-                Column(horizontalAlignment = Alignment.End) {
-                    val trend = summary.trendKgPerWeek
-                    val trendSign = if (trend >= 0) "+" else ""
-                    Text(stringResource(R.string.weight_trend_kg_week, "$trendSign$trend"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
-                    if (forecast is WeightForecast.Ok) {
-                        Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
-                    }
+                val sign = if (summary.deltaKg >= 0) "+" else ""
+                Text(stringResource(R.string.weight_delta_kg, "$sign${summary.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = deltaColor)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                val trend = summary.trendKgPerWeek
+                val trendSign = if (trend >= 0) "+" else ""
+                Text(stringResource(R.string.weight_trend_kg_week, "$trendSign$trend"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                if (forecast is WeightForecast.Ok) {
+                    Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                 }
             }
         }
-    }
   }
 }

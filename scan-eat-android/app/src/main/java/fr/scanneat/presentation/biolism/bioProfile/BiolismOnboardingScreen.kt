@@ -73,10 +73,15 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
     val s = onboardSteps[step]
 
     Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal), contentAlignment = Alignment.Center) {
-        Box(Modifier.padding(20.dp).fillMaxWidth().glassSheen(edgeAlpha = 0.24f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold, glowAlpha = 0.06f)) {
-        Surface(shape = RoundedCornerShape(CardRadius.PROMINENT), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+        ScanEatCard(
+            modifier = Modifier.padding(20.dp),
+            shape = RoundedCornerShape(CardRadius.PROMINENT),
+            color = SurfaceVariant,
+            contentPadding = PaddingValues(Spacing.XL),
+            accent = Gold,
+        ) {
             Column(
-                Modifier.padding(Spacing.XL).verticalScroll(rememberScrollState()).heightIn(max = 560.dp),
+                Modifier.verticalScroll(rememberScrollState()).heightIn(max = 560.dp),
                 verticalArrangement = Arrangement.spacedBy(Spacing.L),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -185,7 +190,6 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                     }
                 }
             }
-        }
         }
     }
 }

@@ -131,9 +131,11 @@ fun TemplatesScreen(
                 val hintsRiskCount = hints.risks.size + hints.conditionRisks.size
                 val hintsHaveRisks = hintsRiskCount > 0
                 var showHints by remember { mutableStateOf(false) }
-                Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CONTROL))) {
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                ScanEatCard(
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    color = SurfaceVariant,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.S),
+                ) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f)) {
                                     Text(template.name, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
@@ -244,8 +246,6 @@ fun TemplatesScreen(
                                 }
                             }
                         }
-                    }
-                }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }

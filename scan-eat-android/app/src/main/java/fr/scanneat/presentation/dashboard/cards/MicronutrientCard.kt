@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -62,27 +61,27 @@ internal fun MicronutrientCard(totals: ConsumedNutrition, targets: DailyTargets?
     val zincTarget       = targets?.zincMgTarget      ?: NRV.ZINC_MG
     val vitCTarget       = targets?.vitCMgTarget      ?: NRV.VIT_C_MG
 
-    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
-            Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Text(
-                    stringResource(R.string.dashboard_micronutrients_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = OnSurface,
-                    fontWeight = FontWeight.SemiBold,
-                )
+    ScanEatCard(
+        color = SurfaceVariant,
+        contentPadding = PaddingValues(Spacing.L),
+        verticalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        Text(
+            stringResource(R.string.dashboard_micronutrients_title),
+            style = MaterialTheme.typography.titleSmall,
+            color = OnSurface,
+            fontWeight = FontWeight.SemiBold,
+        )
 
-                MicroRow(stringResource(R.string.dashboard_micro_fiber),   totals.fiberG,    fiberTarget,   "g",  Teal)
-                MicroRow(stringResource(R.string.dashboard_micro_iron),    totals.ironMg,    ironTarget,    "mg", Gold)
-                MicroRow(stringResource(R.string.dashboard_micro_calcium), totals.calciumMg, calciumTarget, "mg", AccentCoral)
-                MicroRow(stringResource(R.string.dashboard_micro_vitd),    totals.vitDUg,    vitDTarget,    "µg", Violet)
-                MicroRow(stringResource(R.string.dashboard_micro_b12),     totals.b12Ug,     b12Target,     "µg", Warm)
-                MicroRow(stringResource(R.string.dashboard_micro_magnesium), totals.magnesiumMg, magnesiumTarget, "mg", MetaGreen)
-                MicroRow(stringResource(R.string.dashboard_micro_potassium), totals.potassiumMg, potassiumTarget, "mg", HydrationBlue)
-                MicroRow(stringResource(R.string.dashboard_micro_zinc),     totals.zincMg,      zincTarget,      "mg", CalorieOrange)
-                MicroRow(stringResource(R.string.dashboard_micro_vitc),     totals.vitCMg,       vitCTarget,      "mg", Teal)
-            }
-        }
+        MicroRow(stringResource(R.string.dashboard_micro_fiber),   totals.fiberG,    fiberTarget,   "g",  Teal)
+        MicroRow(stringResource(R.string.dashboard_micro_iron),    totals.ironMg,    ironTarget,    "mg", Gold)
+        MicroRow(stringResource(R.string.dashboard_micro_calcium), totals.calciumMg, calciumTarget, "mg", AccentCoral)
+        MicroRow(stringResource(R.string.dashboard_micro_vitd),    totals.vitDUg,    vitDTarget,    "µg", Violet)
+        MicroRow(stringResource(R.string.dashboard_micro_b12),     totals.b12Ug,     b12Target,     "µg", Warm)
+        MicroRow(stringResource(R.string.dashboard_micro_magnesium), totals.magnesiumMg, magnesiumTarget, "mg", MetaGreen)
+        MicroRow(stringResource(R.string.dashboard_micro_potassium), totals.potassiumMg, potassiumTarget, "mg", HydrationBlue)
+        MicroRow(stringResource(R.string.dashboard_micro_zinc),     totals.zincMg,      zincTarget,      "mg", CalorieOrange)
+        MicroRow(stringResource(R.string.dashboard_micro_vitc),     totals.vitCMg,       vitCTarget,      "mg", Teal)
     }
 }
 

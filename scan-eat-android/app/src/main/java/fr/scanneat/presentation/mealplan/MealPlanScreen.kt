@@ -115,64 +115,64 @@ fun MealPlanScreen(
                 val isToday = date == LocalDate.now()
                 val kcal = dayCalories.value[date] ?: 0
                 val suggestion = gapSuggestions.value[date]
-                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                            Column {
-                                Text(
-                                    if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = if (isToday) AccentCoral else OnSurface,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                                if (kcal > 0) Text(stringResource(R.string.mealplan_day_kcal, kcal), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                            }
-                            // MealPlanRepository.clearDay() previously had no UI entry
-                            // point - clearing a fully-planned day took one tap per
-                            // meal slot instead of one action for the whole day.
-                            if (MEALS.any { dayPlan[it] != null }) {
-                                Row {
-                                    // Repeating a day (e.g. "same lunch as today, next
-                                    // Tuesday") previously meant re-assigning each slot by
-                                    // hand - this copies the whole day onto the same
-                                    // weekday next week.
-                                    IconButton(onClick = { viewModel.duplicateDay(date) }) {
-                                        Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
-                                    }
-                                    IconButton(onClick = { viewModel.clearDay(date) }) {
-                                        Icon(Icons.Default.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
-                                    }
+                ScanEatCard(
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    color = SurfaceVariant,
+                    verticalArrangement = Arrangement.spacedBy(Spacing.S),
+                ) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column {
+                            Text(
+                                if (isToday) stringResource(R.string.mealplan_day_today, date.format(dayFmt)) else date.format(dayFmt),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = if (isToday) AccentCoral else OnSurface,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            if (kcal > 0) Text(stringResource(R.string.mealplan_day_kcal, kcal), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                        }
+                        // MealPlanRepository.clearDay() previously had no UI entry
+                        // point - clearing a fully-planned day took one tap per
+                        // meal slot instead of one action for the whole day.
+                        if (MEALS.any { dayPlan[it] != null }) {
+                            Row {
+                                // Repeating a day (e.g. "same lunch as today, next
+                                // Tuesday") previously meant re-assigning each slot by
+                                // hand - this copies the whole day onto the same
+                                // weekday next week.
+                                IconButton(onClick = { viewModel.duplicateDay(date) }) {
+                                    Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                                }
+                                IconButton(onClick = { viewModel.clearDay(date) }) {
+                                    Icon(Icons.Default.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                                 }
                             }
                         }
-                        MEALS.forEach { meal ->
-                            val slot = dayPlan[meal]
-                            MealPlanRow(
-                                meal  = mealLabel(meal),
-                                slot  = slot,
-                                onEdit = { text -> viewModel.setNote(date, meal, text) },
-                                onClear = { viewModel.clear(date, meal) },
-                                onAssign = { assignTarget = date to meal },
-                                onLog = { s -> viewModel.logSlot(date, meal, s) },
+                    }
+                    MEALS.forEach { meal ->
+                        val slot = dayPlan[meal]
+                        MealPlanRow(
+                            meal  = mealLabel(meal),
+                            slot  = slot,
+                            onEdit = { text -> viewModel.setNote(date, meal, text) },
+                            onClear = { viewModel.clear(date, meal) },
+                            onAssign = { assignTarget = date to meal },
+                            onLog = { s -> viewModel.logSlot(date, meal, s) },
+                        )
+                    }
+                    if (suggestion != null) {
+                        HorizontalDivider(color = OnSurface.copy(0.07f))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                        ) {
+                            Icon(Icons.Default.Lightbulb, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                            Text(
+                                stringResource(R.string.mealplan_gap_suggestion, suggestion.name, suggestion.totalKcal.toInt(), suggestion.totalProteinG.toInt()),
+                                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f), modifier = Modifier.weight(1f),
                             )
                         }
-                        if (suggestion != null) {
-                            HorizontalDivider(color = OnSurface.copy(0.07f))
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-                            ) {
-                                Icon(Icons.Default.Lightbulb, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
-                                Text(
-                                    stringResource(R.string.mealplan_gap_suggestion, suggestion.name, suggestion.totalKcal.toInt(), suggestion.totalProteinG.toInt()),
-                                    style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f), modifier = Modifier.weight(1f),
-                                )
-                            }
-                        }
                     }
-                }
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }

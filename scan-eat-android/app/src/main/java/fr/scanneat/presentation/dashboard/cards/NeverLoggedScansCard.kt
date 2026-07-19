@@ -2,8 +2,6 @@ package fr.scanneat.presentation.dashboard.cards
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,7 +23,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.glassSheen
+import fr.scanneat.presentation.ui.theme.ScanEatCard
 
 /**
  * DashboardViewModel already injected both ConsumptionRepository and
@@ -39,34 +37,34 @@ import fr.scanneat.presentation.ui.theme.glassSheen
 @Composable
 internal fun NeverLoggedScansCard(scans: List<ScanResult>, onLogClick: (ScanResult) -> Unit) {
     if (scans.isEmpty()) return
-    Box(Modifier.fillMaxWidth().glassSheen()) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
-            Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+    ScanEatCard(
+        color = SurfaceVariant,
+        contentPadding = PaddingValues(Spacing.L),
+        verticalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        Text(
+            stringResource(R.string.dashboard_never_logged_title),
+            style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold,
+        )
+        scans.take(3).forEach { scan ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    stringResource(R.string.dashboard_never_logged_title),
-                    style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold,
+                    scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
                 )
-                scans.take(3).forEach { scan ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
-                        )
-                        Surface(
-                            shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.15f),
-                            modifier = Modifier.clickable { onLogClick(scan) },
-                        ) {
-                            Text(
-                                stringResource(R.string.dashboard_never_logged_action),
-                                style = MaterialTheme.typography.labelSmall, color = AccentCoral, fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(PaddingValues(horizontal = Spacing.S, vertical = Spacing.XS)),
-                            )
-                        }
-                    }
+                Surface(
+                    shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.15f),
+                    modifier = Modifier.clickable { onLogClick(scan) },
+                ) {
+                    Text(
+                        stringResource(R.string.dashboard_never_logged_action),
+                        style = MaterialTheme.typography.labelSmall, color = AccentCoral, fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(PaddingValues(horizontal = Spacing.S, vertical = Spacing.XS)),
+                    )
                 }
             }
         }

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,24 +32,24 @@ import kotlin.math.roundToInt
 internal fun NutrientBudgetCard(totals: ConsumedNutrition, targets: DailyTargets) {
     if (totals.energyKcal < 1.0) return
 
-    Box(Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.CARD))) {
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
-            Column(modifier = Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Text(
-                    stringResource(R.string.dashboard_budget_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = OnSurface,
-                    fontWeight = FontWeight.SemiBold,
-                )
+    ScanEatCard(
+        color = SurfaceVariant,
+        contentPadding = PaddingValues(Spacing.L),
+        verticalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        Text(
+            stringResource(R.string.dashboard_budget_title),
+            style = MaterialTheme.typography.titleSmall,
+            color = OnSurface,
+            fontWeight = FontWeight.SemiBold,
+        )
 
-                BudgetRow(stringResource(R.string.dashboard_budget_satfat), totals.saturatedFatG, targets.satFatGMax, "g", Gold)
-                // Total sugars, not strictly "free sugars" - same approximation
-                // PersonalScoreEngine.kt's own scan-result flag copy already makes
-                // when comparing product.nutrition.sugarsG against freeSugarsGMax.
-                BudgetRow(stringResource(R.string.dashboard_budget_sugars), totals.sugarsG, targets.freeSugarsGMax, "g", AccentCoral)
-                BudgetRow(stringResource(R.string.dashboard_budget_salt), totals.saltG, targets.saltGMax, "g", Violet)
-            }
-        }
+        BudgetRow(stringResource(R.string.dashboard_budget_satfat), totals.saturatedFatG, targets.satFatGMax, "g", Gold)
+        // Total sugars, not strictly "free sugars" - same approximation
+        // PersonalScoreEngine.kt's own scan-result flag copy already makes
+        // when comparing product.nutrition.sugarsG against freeSugarsGMax.
+        BudgetRow(stringResource(R.string.dashboard_budget_sugars), totals.sugarsG, targets.freeSugarsGMax, "g", AccentCoral)
+        BudgetRow(stringResource(R.string.dashboard_budget_salt), totals.saltG, targets.saltGMax, "g", Violet)
     }
 }
 
