@@ -18,6 +18,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,11 +43,22 @@ internal fun BioCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var open by remember { mutableStateOf(defaultOpen) }
+    // TalkBack previously heard only "button" for this row - the ExpandLess/ExpandMore
+    // icon swap was purely visual (contentDescription = null) with no semantics on the
+    // Row itself, so neither the toggle affordance nor the current open/closed state
+    // was announced. mergeDescendants keeps the title/badge text audible while adding
+    // the expanded/collapsed state and a Button role, mirroring HydrationScreen's
+    // goal-editor row (see HydrationScreen.kt ~line 171).
+    val openStateDescription = stringResource(if (open) R.string.common_expanded else R.string.common_collapsed)
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f)) {
         Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().clickable { open = !open },
+                    modifier = Modifier.fillMaxWidth().clickable { open = !open }
+                        .semantics(mergeDescendants = true) {
+                            stateDescription = openStateDescription
+                            role = Role.Button
+                        },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {

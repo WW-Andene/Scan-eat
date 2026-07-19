@@ -51,7 +51,7 @@ fun LogSheet(
     }
     var selectedSlot by remember { mutableStateOf(defaultMealForHour(now.hour)) }
 
-    val portionG = portionText.replace(',', '.').toDoubleOrNull()?.coerceAtLeast(1.0)
+    val portionG = portionText.replace(',', '.').toDoubleOrNull()?.coerceIn(1.0, 2000.0)
     val kcalPreview = portionG?.let {
         (product.nutrition.energyKcal * it / 100.0).toInt()
     }

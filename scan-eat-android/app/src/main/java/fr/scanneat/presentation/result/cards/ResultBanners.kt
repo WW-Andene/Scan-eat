@@ -75,7 +75,7 @@ internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = nu
     // here - but the card is reused defensively with onOpen omitted rather than
     // assuming every future caller can guarantee that.
     ScanEatCard(
-        modifier = if (onOpen != null && alternative.dbId > 0) Modifier.clickable(onClick = onOpen) else Modifier,
+        onClick = if (onOpen != null && alternative.dbId > 0) onOpen else null,
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
         contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {

@@ -49,11 +49,11 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
 
     Box(
         modifier = Modifier.fillMaxWidth().glassSheen(
-            edgeAlpha    = 0.34f,
+            edgeAlpha    = HeroGlassSpec.edgeAlpha,
             shape        = RoundedCornerShape(CardRadius.PROMINENT),
             glowTint     = balColor,
-            glowAlpha    = 0.12f,
-            grainDensity = 70,
+            glowAlpha    = HeroGlassSpec.glowAlpha,
+            grainDensity = HeroGlassSpec.grainDensity,
         ),
     ) {
         // This is the Dashboard's one focal metric — the Part B6 atmosphere
@@ -64,7 +64,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             color = Color.Transparent,
-            border = BorderStroke(1.dp, balColor.copy(alpha = 0.22f)),
+            border = BorderStroke(1.dp, balColor.copy(alpha = HeroGlassSpec.borderAlpha)),
         ) {
             Column(
                 modifier = Modifier

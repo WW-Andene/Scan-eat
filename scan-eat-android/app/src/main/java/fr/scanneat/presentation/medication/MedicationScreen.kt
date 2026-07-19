@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -316,9 +317,9 @@ fun MedicationScreen(
     }
 
     if (showAdd) {
-        var name by remember { mutableStateOf("") }
-        var dosage by remember { mutableStateOf("") }
-        var scheduleNote by remember { mutableStateOf("") }
+        var name by rememberSaveable { mutableStateOf("") }
+        var dosage by rememberSaveable { mutableStateOf("") }
+        var scheduleNote by rememberSaveable { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showAdd = false },
             containerColor = SurfaceVariant,
@@ -349,8 +350,8 @@ fun MedicationScreen(
     }
 
     reminderTarget?.let { m ->
-        var on by remember(m.id) { mutableStateOf(m.reminderOn) }
-        var time by remember(m.id) { mutableStateOf(m.reminderTime) }
+        var on by rememberSaveable(m.id) { mutableStateOf(m.reminderOn) }
+        var time by rememberSaveable(m.id) { mutableStateOf(m.reminderTime) }
         val isValidTime = remember(time) { runCatching { java.time.LocalTime.parse(time) }.isSuccess }
         // Every sibling reminder card (meal/hydration/weight/activity, see
         // RemindersCard.kt) shows this banner - this dialog didn't, so a user with

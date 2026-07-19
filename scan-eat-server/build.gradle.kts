@@ -48,6 +48,13 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
     implementation("io.ktor:ktor-client-logging-jvm:$ktor_version")
 
+    // Used only by FetchRecipeRoute: OkHttp's Dns interface lets us resolve a
+    // user-supplied hostname exactly once and hand OkHttp that same validated
+    // address for the actual connection - closing the DNS-rebinding TOCTOU gap
+    // Ktor's CIO engine can't close (it re-resolves internally with no hook to
+    // pin the address used for the real request).
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     // JSON
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 

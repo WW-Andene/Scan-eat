@@ -380,6 +380,42 @@ class ScoringEngineTest {
             pillar.deductions.firstOrNull { it.severity == Severity.MAJOR && it.reason.contains("Salt", ignoreCase = true) })
     }
 
+    @Test fun `Typical commercial soup does not trigger a salt flag once SOUP's own category threshold is used`() {
+        // Broth-base + canning process puts most commercial soups around
+        // 0.7-1.1g salt/100g - previously had no ProductCategory at all, so
+        // fell to OTHER/DEFAULT_THRESHOLDS (0.75/1.25/1.5) and tripped a
+        // "minor"/"moderate" flag on essentially every soup on the market,
+        // the same category-blind-threshold bug already fixed for soy sauce
+        // and cured meat but never swept to soup.
+        val soup = product(
+            name = "Velouté de légumes (test)", category = ProductCategory.SOUP, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("légumes"), ingredient("bouillon"), ingredient("sel")),
+            nutrition = nutrition(45.0, 1.5, 0.3, 5.0, 2.0, 1.5, 1.5, 0.9),
+        )
+        val pillar = scoreNegativeNutrients(soup)
+        assertNull("0.9g/100g is typical for soup and should not be flagged",
+            pillar.deductions.firstOrNull { it.reason.contains("Salt", ignoreCase = true) })
+    }
+
+    @Test fun `An unusually salty soup still triggers a salt deduction`() {
+        // The fix only removes the *unfair* flag for typical soups - one well
+        // above SOUP's own major tier (2.2g) should still be caught.
+        val saltySoup = product(
+            name = "Bouillon cube concentré en sachet (test)", category = ProductCategory.SOUP, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(ingredient("sel"), ingredient("exhausteur de goût")),
+            nutrition = nutrition(80.0, 2.0, 0.5, 6.0, 1.0, 0.5, 2.0, 2.8),
+        )
+        val pillar = scoreNegativeNutrients(saltySoup)
+        assertNotNull("2.8g/100g exceeds SOUP's own major tier (2.2g)",
+            pillar.deductions.firstOrNull { it.severity == Severity.MAJOR && it.reason.contains("Salt", ignoreCase = true) })
+    }
+
+    @Test fun `inferCategoryFromName — velouté is soup`() {
+        assertEquals(ProductCategory.SOUP, inferCategoryFromName("Velouté de champignons"))
+        assertEquals(ProductCategory.SOUP, inferCategoryFromName("Chicken noodle soup"))
+        assertEquals(ProductCategory.SOUP, inferCategoryFromName("Bouillon de légumes déshydraté"))
+    }
+
     // ============================================================
     // NOVA fresh-produce exception
     // ============================================================

@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -32,18 +33,18 @@ internal fun AddFoodDialog(
     onDismiss: () -> Unit,
     onSave: (String, Double, Double, Double, Double, Double, Double, List<String>) -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
-    var kcal by remember { mutableStateOf("") }
-    var prot by remember { mutableStateOf("") }
-    var carb by remember { mutableStateOf("") }
-    var fat  by remember { mutableStateOf("") }
-    var fib  by remember { mutableStateOf("") }
-    var salt by remember { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var kcal by rememberSaveable { mutableStateOf("") }
+    var prot by rememberSaveable { mutableStateOf("") }
+    var carb by rememberSaveable { mutableStateOf("") }
+    var fat  by rememberSaveable { mutableStateOf("") }
+    var fib  by rememberSaveable { mutableStateOf("") }
+    var salt by rememberSaveable { mutableStateOf("") }
     // CustomFoodRepository.save() already accepted/persisted aliases (built-in
     // FOOD_DB entries carry them so a bilingual search finds them either way),
     // but this dialog never collected any - every custom food a user created
     // was permanently unreachable by an alternate spelling/translation.
-    var aliases by remember { mutableStateOf("") }
+    var aliases by rememberSaveable { mutableStateOf("") }
 
     // Blank macro fields default to 0.0 at save time - only reject a field that's
     // actually filled in, and only accept values in a physically plausible range

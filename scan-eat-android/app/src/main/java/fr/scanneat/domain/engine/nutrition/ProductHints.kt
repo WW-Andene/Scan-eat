@@ -179,7 +179,7 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     // score visibly disagreeing, exactly what this comment promises can't happen.
     val catThresholds = fr.scanneat.domain.engine.scoring.getThresholds(product.category)
     val isSugarSweetenedBeverage = product.category == fr.scanneat.domain.model.ProductCategory.BEVERAGE_SOFT &&
-        n.sugarsG > 5.0 && n.proteinG < 1.0 && n.fiberG < 1.0
+        (n.addedSugarsG ?: n.sugarsG) > 5.0 && n.proteinG < 1.0 && n.fiberG < 1.0
     val conditions = profile.healthConditions
     if ("diabetes" in conditions) {
         if (isSugarSweetenedBeverage) {

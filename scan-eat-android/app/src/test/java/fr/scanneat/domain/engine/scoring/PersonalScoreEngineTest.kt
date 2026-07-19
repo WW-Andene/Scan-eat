@@ -506,6 +506,28 @@ class PersonalScoreEngineTest {
     }
 
     @Test
+    fun `Juice-blended soda with low added sugar is not treated as SSB, even with higher total sugar`() {
+        // isSugarSweetenedBeverage previously hard-coded total sugarsG despite
+        // its own comment claiming to match checkVeto's addedSugarsG-preferring
+        // definition exactly - a real divergence for any beverage where OFF/LLM
+        // populates addedSugarsG separately and lower than sugarsG (e.g. a soda
+        // blended with real fruit juice). addedSugarsG=4.5 (<=5) must NOT be
+        // treated as SSB even though total sugarsG=8.9 (>5) alone would suggest it.
+        val juiceBlendSoda = Product(
+            name = "Soda aux fruits (test)", category = ProductCategory.BEVERAGE_SOFT, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(Ingredient(name = "jus de fruits", category = IngredientCategory.FOOD), Ingredient(name = "sucre", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(
+                energyKcal = 38.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 8.9,
+                sugarsG = 8.9, addedSugarsG = 4.5, fiberG = 0.0, proteinG = 0.0, saltG = 0.0,
+            ),
+        )
+        val audit = scoreProduct(juiceBlendSoda)
+        val result = computePersonalScore(audit, juiceBlendSoda, maleProfile().copy(healthConditions = setOf("diabetes")), lang = "en")
+        assertTrue("Low added-sugar beverage should not trigger the SSB-specific diabetes penalty even with higher total sugar",
+            result.adjustments.none { it.reason.contains("Sugar-sweetened beverage", ignoreCase = true) })
+    }
+
+    @Test
     fun `Regular soda gets the SSB penalty amplified for an obese BMI`() {
         val soda = regularSoda()
         val audit = scoreProduct(soda)

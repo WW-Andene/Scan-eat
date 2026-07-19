@@ -748,6 +748,7 @@
     <string name="weight_cd_calendar">Calendrier</string>
     <string name="calendar_cd_prev_month">Mois précédent</string>
     <string name="calendar_cd_next_month">Mois suivant</string>
+    <string name="calendar_cd_week_summary">Résumé de la semaine %1$d</string>
     <string name="weight_calendar_day_summary">%1$s : %2$s</string>
     <string name="weight_calendar_day_empty">%1$s : aucune pesée</string>
     <string name="weight_delta_kg">%1$s kg (30j)</string>
@@ -771,6 +772,7 @@
     <string name="weight_deleted_message">Pesée supprimée</string>
     <string name="weight_undo">Annuler</string>
     <string name="weight_weekly_avg_title">Moyenne hebdomadaire</string>
+    <string name="weight_vs_last_week">vs %1$s</string>
     <string name="weight_logging_streak_label">Série de pesées</string>
     <string name="weight_logging_streak_value">%1$d j</string>
     <string name="weight_empty_body">Aucune pesée enregistrée. Ajoutez votre premier poids pour suivre votre évolution.</string>
@@ -1244,6 +1246,8 @@
 
     <!-- ── Accessibility labels ───────────────────────────────────────────── -->
     <string name="common_clear_search">Effacer la recherche</string>
+    <string name="common_expanded">développé</string>
+    <string name="common_collapsed">réduit</string>
     <string name="settings_toggle_key_visibility">Afficher/masquer la clé</string>
     <string name="history_item_summary">%1$s, note %2$s, %3$d sur 100</string>
 

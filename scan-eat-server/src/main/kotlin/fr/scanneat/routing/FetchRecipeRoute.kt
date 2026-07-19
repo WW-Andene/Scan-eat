@@ -1,18 +1,21 @@
 package fr.scanneat.routing
 
 import fr.scanneat.model.*
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.origin
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.*
+import okhttp3.Dns
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.slf4j.LoggerFactory
+import java.net.InetAddress
+import java.net.UnknownHostException
+import java.util.concurrent.TimeUnit
 
 private val log = LoggerFactory.getLogger("FetchRecipeRoute")
 
@@ -42,53 +45,121 @@ internal fun isFetchRecipeRateLimited(clientKey: String, nowMs: Long = System.cu
 // No Groq key needed — pure HTML fetch + parse.
 // ============================================================================
 
-private val httpClient = HttpClient(CIO) {
-    install(HttpTimeout) {
-        requestTimeoutMillis = 8_000
-        connectTimeoutMillis = 8_000
-    }
-    // Redirects are followed manually below so every hop gets the same
-    // private-address check — automatic following would let a public URL
-    // 302 the server into localhost or the cloud metadata endpoint.
-    followRedirects = false
-}
+/**
+ * True when [addr] is a public, routable address — not loopback, private,
+ * link-local (incl. 169.254.169.254, the cloud metadata endpoint), or IPv6
+ * unique-local. Shared by the fast pre-check below and the OkHttp [Dns]
+ * override that actually governs the outbound connection, so both enforce
+ * the identical definition of "safe" with no risk of the two drifting apart.
+ */
+// internal (not private) so tests can exercise the real address/DNS guard
+// logic instead of asserting on a fixture the test itself wrote.
+internal fun isPublicAddress(addr: InetAddress): Boolean =
+    !addr.isLoopbackAddress && !addr.isSiteLocalAddress && !addr.isLinkLocalAddress &&
+    !addr.isAnyLocalAddress && !addr.isMulticastAddress &&
+    // IPv6 unique-local fc00::/7 — not covered by isSiteLocalAddress
+    (addr.address.size != 16 || (addr.address[0].toInt() and 0xFE) != 0xFC)
 
 /**
- * True when [url] may be fetched: http(s) only, and the host must not resolve
- * to a loopback, private, link-local (incl. 169.254.169.254 metadata), or
- * IPv6 unique-local address. This route proxies arbitrary user-supplied URLs,
- * so without this check it is a straight SSRF hole into whatever network the
- * server runs on.
+ * This route proxies arbitrary user-supplied URLs, so it needs to resolve the
+ * hostname and confirm every address is public before connecting — otherwise
+ * it's a straight SSRF hole into whatever network the server runs on.
  *
- * Known residual gap: this resolves DNS here to validate, but the actual
- * request below (httpClient.get) resolves the same hostname again
- * independently when it connects. A host serving a public IP to this check
- * and then a private/loopback IP moments later on a short-TTL DNS record
- * (classic DNS-rebinding) would pass validation and still reach the private
- * address on the real request. Closing that fully requires resolving once
- * and connecting to the pinned IP directly (while still sending the correct
- * Host header / TLS SNI for the original hostname) - a bigger change than
- * this pass covers; flagging so it isn't mistaken for a complete SSRF fix.
+ * OkHttp calls [Dns.lookup] exactly once per connection attempt and connects
+ * directly to whichever address that call returns — there is no second,
+ * independent resolution afterwards the way Ktor's CIO client (or any client
+ * that validates via one lookup and then connects via another) would do.
+ * That makes validating *inside* this Dns override equivalent to pinning: a
+ * host whose record flips to a private/loopback answer after this check runs
+ * can never be reached through it, because this is the only resolution that
+ * ever happens for the real request. This closes the DNS-rebinding TOCTOU gap
+ * that a separate check-then-connect (resolve once to validate, then let the
+ * HTTP client resolve again to connect) can't.
  */
-private fun isFetchableUrl(url: String): Boolean {
+internal object SsrfSafeDns : Dns {
+    override fun lookup(hostname: String): List<InetAddress> {
+        val addresses = InetAddress.getAllByName(hostname).toList()
+        if (addresses.isEmpty() || !addresses.all(::isPublicAddress)) {
+            throw UnknownHostException("$hostname does not resolve to a public address")
+        }
+        return addresses
+    }
+}
+
+private val httpClient = OkHttpClient.Builder()
+    .dns(SsrfSafeDns)
+    // Redirects are followed manually below so every hop gets the same
+    // isFetchableUrl pre-check (and, via SsrfSafeDns, the same pinned-
+    // resolution enforcement) — automatic following would let a public URL
+    // 302 the server into localhost or the cloud metadata endpoint.
+    .followRedirects(false)
+    .followSslRedirects(false)
+    .connectTimeout(8, TimeUnit.SECONDS)
+    .readTimeout(8, TimeUnit.SECONDS)
+    .callTimeout(8, TimeUnit.SECONDS)
+    .build()
+
+/**
+ * Cheap pre-check before spending a network round trip: http(s) scheme only,
+ * and the host must currently resolve to a public address. This is NOT what
+ * stops DNS rebinding — [SsrfSafeDns] is — it only exists to fail fast with a
+ * clear 400 response instead of letting a malformed or already-unsafe URL
+ * fall through to an OkHttp [UnknownHostException].
+ */
+internal fun isFetchableUrl(url: String): Boolean {
     val parsed = runCatching { java.net.URI(url) }.getOrNull() ?: return false
     if (parsed.scheme != "http" && parsed.scheme != "https") return false
     val host = parsed.host ?: return false
-    val addresses = runCatching { java.net.InetAddress.getAllByName(host) }.getOrNull() ?: return false
-    return addresses.all { addr ->
-        !addr.isLoopbackAddress && !addr.isSiteLocalAddress && !addr.isLinkLocalAddress &&
-        !addr.isAnyLocalAddress && !addr.isMulticastAddress &&
-        // IPv6 unique-local fc00::/7 — not covered by isSiteLocalAddress
-        (addr.address.size != 16 || (addr.address[0].toInt() and 0xFE) != 0xFC)
-    }
+    val addresses = runCatching { InetAddress.getAllByName(host) }.getOrNull() ?: return false
+    return addresses.isNotEmpty() && addresses.all(::isPublicAddress)
 }
 
 private const val MAX_REDIRECTS = 3
 
 // A malicious/misconfigured server can stream far more than a real recipe
-// page ever needs within the 8s timeout window; bodyAsText() would otherwise
-// buffer all of it in memory from a single request.
+// page ever needs within the 8s timeout window; reading the body unbounded
+// would otherwise buffer all of it in memory from a single request.
 private const val MAX_HTML_BYTES = 3L * 1024 * 1024
+
+/** Thrown when a redirect Location points at a non-public address; caught in [fetchRecipeRoute] as a 400. */
+private class UnsafeRedirectException : Exception("URL must be a public http(s) address")
+
+private fun buildRecipeRequest(url: String): Request =
+    Request.Builder().url(url)
+        .header("User-Agent", "ScanEat/0.1 (+https://github.com/scanneat)")
+        .header("Accept", "text/html,application/xhtml+xml")
+        .build()
+
+private sealed class FetchOutcome {
+    data class Html(val text: String) : FetchOutcome()
+    object TooLarge : FetchOutcome()
+}
+
+/** Blocking — run inside [Dispatchers.IO]. Follows redirects itself (see [httpClient]'s followRedirects = false). */
+private fun fetchRecipeHtml(startUrl: String): FetchOutcome {
+    var currentUrl = startUrl
+    var response = httpClient.newCall(buildRecipeRequest(currentUrl)).execute()
+    var hops = 0
+    while (response.code in 301..308 && hops < MAX_REDIRECTS) {
+        val location = response.header(HttpHeaders.Location) ?: break
+        val next = java.net.URI(currentUrl).resolve(location).toString()
+        response.close()
+        if (!isFetchableUrl(next)) throw UnsafeRedirectException()
+        currentUrl = next
+        hops++
+        response = httpClient.newCall(buildRecipeRequest(currentUrl)).execute()
+    }
+    return response.use { resp ->
+        val source = resp.body?.source()
+        if (source == null) {
+            FetchOutcome.Html("")
+        } else {
+            source.request(MAX_HTML_BYTES + 1)
+            if (source.buffer.size > MAX_HTML_BYTES) FetchOutcome.TooLarge
+            else FetchOutcome.Html(source.buffer.readUtf8())
+        }
+    }
+}
 
 fun Route.fetchRecipeRoute() {
     get("/fetch-recipe") {
@@ -108,33 +179,14 @@ fun Route.fetchRecipeRoute() {
         }
 
         try {
-            var currentUrl = url
-            var response = httpClient.get(currentUrl) {
-                header("User-Agent", "ScanEat/0.1 (+https://github.com/scanneat)")
-                header("Accept", "text/html,application/xhtml+xml")
-            }
-            var hops = 0
-            while (response.status.value in 301..308 && hops < MAX_REDIRECTS) {
-                val location = response.headers[HttpHeaders.Location] ?: break
-                val next = java.net.URI(currentUrl).resolve(location).toString()
-                if (!isFetchableUrl(next)) {
-                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("URL must be a public http(s) address"))
+            val outcome = withContext(Dispatchers.IO) { fetchRecipeHtml(url) }
+            val html = when (outcome) {
+                is FetchOutcome.TooLarge -> {
+                    call.respond(HttpStatusCode.PayloadTooLarge, ErrorResponse("Recipe page too large"))
                     return@get
                 }
-                currentUrl = next
-                hops++
-                response = httpClient.get(currentUrl) {
-                    header("User-Agent", "ScanEat/0.1 (+https://github.com/scanneat)")
-                    header("Accept", "text/html,application/xhtml+xml")
-                }
+                is FetchOutcome.Html -> outcome.text
             }
-            val packet = response.bodyAsChannel().readRemaining(MAX_HTML_BYTES + 1)
-            if (packet.remaining > MAX_HTML_BYTES) {
-                packet.close()
-                call.respond(HttpStatusCode.PayloadTooLarge, ErrorResponse("Recipe page too large"))
-                return@get
-            }
-            val html = packet.readText()
 
             val recipe = parseSchemaOrgRecipe(html, url)
             if (recipe == null) {
@@ -142,6 +194,8 @@ fun Route.fetchRecipeRoute() {
                 return@get
             }
             call.respond(recipe)
+        } catch (e: UnsafeRedirectException) {
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("URL must be a public http(s) address"))
         } catch (e: Exception) {
             log.error("[/api/fetch-recipe] $url", e)
             val (status, body) = mapError(e)

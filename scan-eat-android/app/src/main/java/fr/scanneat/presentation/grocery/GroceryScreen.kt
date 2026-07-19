@@ -2,6 +2,8 @@ package fr.scanneat.presentation.grocery
 
 import android.content.Intent
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -297,7 +299,12 @@ private fun GroceryItemRow(
 ) {
     val item = checkableItem.item
     val checked = checkableItem.checked
-    val contentAlpha by animateFloatAsState(if (checked) 0.5f else 1f, label = "groceryItemAlpha")
+    val reducedMotion = rememberReducedMotion()
+    val contentAlpha by animateFloatAsState(
+        targetValue   = if (checked) 0.5f else 1f,
+        animationSpec = if (reducedMotion) snap() else tween(durationMillis = 200),
+        label         = "groceryItemAlpha",
+    )
     // Previously deleted a manual item on a single tap with no confirmation - every
     // other destructive action in the app (Weight/Activity/Recipes/Templates/Medication/
     // CustomFood/ScanHistory) routes through DeleteConfirmDialog first.

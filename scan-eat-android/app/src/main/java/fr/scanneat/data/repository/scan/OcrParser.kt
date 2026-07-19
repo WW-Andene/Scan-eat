@@ -306,11 +306,11 @@ class OcrParser(
                 product  = Product(name = "(parse error)", category = ProductCategory.OTHER,
                     novaClass = NovaClass.ULTRA_PROCESSED, ingredients = emptyList(),
                     nutrition = NutritionPer100g.EMPTY),
-                warnings = listOf("LLM returned unparseable JSON"),
+                warnings = listOf(unparseableJsonMessage(lang)),
             )
 
         val product  = mapLlmToProduct(dto)
-        val warnings = buildWarnings(product, dto)
+        val warnings = buildWarnings(product, dto, lang)
         return ParseLabelResult(product = product, warnings = warnings, barcode = dto.barcode)
     }
 
@@ -321,6 +321,7 @@ class OcrParser(
         images: List<ImagePayload>,
         groqApiKey: String,
         cerebrasApiKey: String = "",
+        lang: String = "fr",
     ): ParseLabelResult {
         val prompt = """
 Identify the food in this image. Return a JSON object with the same schema as a food label:
@@ -345,9 +346,9 @@ Output ONLY the JSON. No explanation.
         val dto     = runCatching { dtoAdapter.fromJson(json) }.getOrNull() ?: return ParseLabelResult(
             product  = Product("(identification failed)", ProductCategory.OTHER,
                 NovaClass.ULTRA_PROCESSED, emptyList(), NutritionPer100g.EMPTY),
-            warnings = listOf("LLM identification returned unparseable JSON"),
+            warnings = listOf(unparseableIdentificationMessage(lang)),
         )
-        return ParseLabelResult(product = mapLlmToProduct(dto), warnings = listOf("Nutrition estimated by AI — not from label"))
+        return ParseLabelResult(product = mapLlmToProduct(dto), warnings = listOf(aiEstimatedMessage(lang)))
     }
 
     // ----
@@ -440,20 +441,37 @@ Output ONLY the JSON. No explanation.
         throw lastErr ?: RuntimeException("All AI provider/model candidates exhausted")
     }
 
-    private fun buildWarnings(product: Product, dto: LlmProductDto): List<String> {
+    private fun buildWarnings(product: Product, dto: LlmProductDto, lang: String): List<String> {
         val w = mutableListOf<String>()
         if (product.nutrition.energyKcal == 0.0 && product.nutrition.proteinG == 0.0)
-            w += "Nutrition values could not be read from image"
+            w += if (lang == "en") "Nutrition values could not be read from image"
+                 else "Les valeurs nutritionnelles n'ont pas pu être lues sur l'image"
         if (product.ingredients.isEmpty())
-            w += "Ingredients list could not be parsed"
+            w += if (lang == "en") "Ingredients list could not be parsed"
+                 else "La liste des ingrédients n'a pas pu être lue"
         if (dto.barcode != null && !dto.barcode.matches(NutritionLimits.BARCODE_DIGITS_REGEX))
-            w += "Barcode '${dto.barcode}' found on label may be incorrect"
+            w += if (lang == "en") "Barcode '${dto.barcode}' found on label may be incorrect"
+                 else "Le code-barres « ${dto.barcode} » lu sur l'étiquette est peut-être incorrect"
         // coerceDouble clamps physically-implausible values (a hallucinated or
         // misread per-100g figure) rather than silently trusting them - flag it
         // so the clamp is visible to the user instead of masquerading as a
         // clean read.
         if (dto.nutrition?.energy_kcal != null && dto.nutrition.energy_kcal > NutritionLimits.MAX_ENERGY_KCAL_PER_100G)
-            w += "Energy value on label seems implausibly high and was capped"
+            w += if (lang == "en") "Energy value on label seems implausibly high and was capped"
+                 else "La valeur énergétique de l'étiquette semble anormalement élevée et a été plafonnée"
         return w
     }
 }
+
+// These reach the user as ScanResult.warnings entries (rendered verbatim by
+// WarningsSection) - previously hardcoded English regardless of the [lang]
+// this OcrParser was already threading through parseLabel/identifyFood for
+// every other user-facing string.
+private fun unparseableJsonMessage(lang: String) =
+    if (lang == "en") "LLM returned unparseable JSON" else "Réponse de l'IA illisible (JSON invalide)"
+
+private fun unparseableIdentificationMessage(lang: String) =
+    if (lang == "en") "LLM identification returned unparseable JSON" else "Identification par l'IA illisible (JSON invalide)"
+
+private fun aiEstimatedMessage(lang: String) =
+    if (lang == "en") "Nutrition estimated by AI — not from label" else "Nutrition estimée par l'IA — pas issue d'une étiquette"

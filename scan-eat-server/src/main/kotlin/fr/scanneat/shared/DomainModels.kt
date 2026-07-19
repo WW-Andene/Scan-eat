@@ -20,6 +20,7 @@ enum class NovaClass(val value: Int) {
 enum class ProductCategory(val key: String) {
     SANDWICH("sandwich"),
     READY_MEAL("ready_meal"),
+    SOUP("soup"),
     BREAD("bread"),
     BREAKFAST_CEREAL("breakfast_cereal"),
     YOGURT("yogurt"),

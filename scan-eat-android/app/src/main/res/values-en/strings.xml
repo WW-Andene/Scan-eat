@@ -747,6 +747,7 @@
     <string name="weight_cd_calendar">Calendar</string>
     <string name="calendar_cd_prev_month">Previous month</string>
     <string name="calendar_cd_next_month">Next month</string>
+    <string name="calendar_cd_week_summary">Week %1$d summary</string>
     <string name="weight_calendar_day_summary">%1$s: %2$s</string>
     <string name="weight_calendar_day_empty">%1$s: no entry</string>
     <string name="weight_delta_kg">%1$s kg (30d)</string>
@@ -770,6 +771,7 @@
     <string name="weight_deleted_message">Weigh-in deleted</string>
     <string name="weight_undo">Undo</string>
     <string name="weight_weekly_avg_title">Weekly average</string>
+    <string name="weight_vs_last_week">vs %1$s</string>
     <string name="weight_logging_streak_label">Logging streak</string>
     <string name="weight_logging_streak_value">%1$d days</string>
     <string name="weight_empty_body">No weigh-ins logged yet. Add your first weight to start tracking progress.</string>
@@ -1209,6 +1211,8 @@
 
     <!-- ── Accessibility labels ───────────────────────────────────────────── -->
     <string name="common_clear_search">Clear search</string>
+    <string name="common_expanded">expanded</string>
+    <string name="common_collapsed">collapsed</string>
     <string name="settings_toggle_key_visibility">Show/hide key</string>
     <string name="history_item_summary">%1$s, grade %2$s, %3$d out of 100</string>
 

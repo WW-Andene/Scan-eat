@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,8 +71,8 @@ fun WeightScreen(
     // Locale.getDefault(), which would silently mix languages in the date labels.
     val fmt = remember(language.value) { DateTimeFormatter.ofPattern("dd MMM", Locale(language.value)) }
 
-    var kgText by remember { mutableStateOf("") }
-    var notesText by remember { mutableStateOf("") }
+    var kgText by rememberSaveable { mutableStateOf("") }
+    var notesText by rememberSaveable { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
     // Log dialog previously always wrote LocalDate.now() — WeightRepository.log()/
     // WeightDao.upsertForDate already fully support an arbitrary date (used by
@@ -329,7 +330,7 @@ fun WeightScreen(
                                 Text(stringResource(R.string.weight_weekly_avg_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                                     Text(dispWeight(thisWeek), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                                    Text("vs ${dispWeight(lastWeek)}", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                    Text(stringResource(R.string.weight_vs_last_week, dispWeight(lastWeek)), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                 }
                             }
                             Surface(shape = RoundedCornerShape(50), color = dColor.copy(0.15f)) {

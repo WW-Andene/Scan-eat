@@ -20,6 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -53,11 +57,26 @@ private fun PillarRow(pillar: PillarScore) {
     val color = when { ratio >= 0.7f -> semanticGreen(); ratio >= 0.4f -> semanticAmber(); else -> semanticRed() }
     val reasons = (pillar.deductions + pillar.bonuses).sortedByDescending { abs(it.points) }
     var expanded by remember { mutableStateOf(false) }
+    // TalkBack previously heard only "button" for this row - the ExpandLess/ExpandMore
+    // icon swap was purely visual (contentDescription = null) with no semantics on the
+    // Row itself, so neither the toggle affordance nor the current open/closed state
+    // was announced. mergeDescendants keeps the pillar name/score text audible while
+    // adding the expanded/collapsed state and a Button role, mirroring HydrationScreen's
+    // goal-editor row (see HydrationScreen.kt ~line 171) and BioCard's own header row.
+    val expandedStateDescription = stringResource(if (expanded) R.string.common_expanded else R.string.common_collapsed)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth()
-                .let { if (reasons.isNotEmpty()) it.clickable { expanded = !expanded } else it },
+                .let {
+                    if (reasons.isNotEmpty()) {
+                        it.clickable { expanded = !expanded }
+                            .semantics(mergeDescendants = true) {
+                                stateDescription = expandedStateDescription
+                                role = Role.Button
+                            }
+                    } else it
+                },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {

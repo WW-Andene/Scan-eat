@@ -48,6 +48,14 @@ private fun serverUrlMissingMessage(lang: String) =
     if (lang == "en") "Server URL not configured — set it up in Settings"
     else "URL du serveur non configurée — configurez-la dans Réglages"
 
+private fun productNotFoundMessage(lang: String) =
+    if (lang == "en") "Product not found in Open Food Facts — add a photo to continue"
+    else "Produit introuvable dans Open Food Facts — ajoutez une photo pour continuer"
+
+private fun conflictMessage(lang: String, field: String, offValue: Any?, llmValue: Any?) =
+    if (lang == "en") "Conflict: $field OFF=$offValue LLM=$llmValue"
+    else "Conflit : $field OFF=$offValue IA=$llmValue"
+
 @Singleton
 class ScanRepository @Inject constructor(
     private val offApi: OpenFoodFactsApi,
@@ -311,7 +319,7 @@ class ScanRepository @Inject constructor(
             ApiMode.DIRECT -> {
                 if (apiKey.isBlank() && cerebrasKey.isBlank()) error(missingApiKeyMessage(lang))
                 val parsed = if (identifyMode) {
-                    ocrParser.identifyFood(images, apiKey, cerebrasKey)
+                    ocrParser.identifyFood(images, apiKey, cerebrasKey, lang = lang)
                 } else {
                     ocrParser.parseLabel(images, apiKey, cerebrasKey, lang = lang)
                 }
@@ -568,14 +576,14 @@ class ScanRepository @Inject constructor(
                 val merged    = mergeOffWithLlm(offProduct, parsed.product)
                 val conflicts = detectSourceConflicts(offProduct, parsed.product)
                 Triple(merged, ScanSource.MERGED,
-                    parsed.warnings + conflicts.map { "Conflict: ${it.field} OFF=${it.offValue} LLM=${it.llmValue}" })
+                    parsed.warnings + conflicts.map { conflictMessage(lang, it.field, it.offValue, it.llmValue) })
             }
             offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
             images.isNotEmpty() && hasAnyKey -> {
                 val parsed = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
                 Triple(parsed.product, ScanSource.LLM, parsed.warnings)
             }
-            else -> throw ProductNotFoundException("Produit introuvable dans Open Food Facts — ajoutez une photo pour continuer")
+            else -> throw ProductNotFoundException(productNotFoundMessage(lang))
         }
 
         val audit = scoreProduct(finalProduct, lang)

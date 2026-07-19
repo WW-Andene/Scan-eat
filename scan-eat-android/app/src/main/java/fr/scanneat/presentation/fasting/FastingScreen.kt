@@ -308,7 +308,7 @@ fun FastingScreen(
                         listOf(
                             stringResource(R.string.fasting_stat_total)   to "${completed.size}",
                             stringResource(R.string.fasting_stat_success) to "$successCount/${completed.size}",
-                            stringResource(R.string.fasting_stat_avg)     to "${String.format("%.1f", avgHours)}h",
+                            stringResource(R.string.fasting_stat_avg)     to "${String.format(Locale.US, "%.1f", avgHours)}h",
                             stringResource(R.string.fasting_stat_record)  to "${longestH}h",
                         ).forEach { (label, value) ->
                             Surface(modifier = Modifier.weight(1f), shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant) {

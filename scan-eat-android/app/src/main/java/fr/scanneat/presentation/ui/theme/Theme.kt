@@ -205,8 +205,16 @@ fun ScanEatTheme(
     val goldAccent = if (theme == "light") LightGoldAccent else Gold
     val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography
     CompositionLocalProvider(LocalGoldAccent provides goldAccent, LocalColorblindMode provides colorblindMode) {
+        // The 5 schemes above bake `error` in as a plain val at construction
+        // time, so it can't itself read LocalColorblindMode - every isError
+        // form field in the app (OutlinedTextField etc.) rendered via
+        // MaterialTheme.colorScheme.error bypassed colorblind mode entirely.
+        // Overridden here, once, using the same mapping semanticRed() uses
+        // everywhere else, now that LocalColorblindMode is actually provided.
+        val effectiveColorScheme = if (colorblindMode == "none") colorScheme
+            else colorScheme.copy(error = semanticRed(), onErrorContainer = semanticRed())
         MaterialTheme(
-            colorScheme = colorScheme,
+            colorScheme = effectiveColorScheme,
             typography  = typography,
             content     = content,
         )

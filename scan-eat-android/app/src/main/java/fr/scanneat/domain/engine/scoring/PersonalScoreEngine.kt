@@ -403,7 +403,8 @@ fun computePersonalScore(
     // indistinguishable to every condition/BMI check in this function even
     // though only one of them actually contains sugar.
     val isSugarSweetenedBeverage = product.category == ProductCategory.BEVERAGE_SOFT &&
-        product.nutrition.sugarsG > 5.0 && product.nutrition.proteinG < 1.0 && product.nutrition.fiberG < 1.0
+        (product.nutrition.addedSugarsG ?: product.nutrition.sugarsG) > 5.0 &&
+        product.nutrition.proteinG < 1.0 && product.nutrition.fiberG < 1.0
     if ("diabetes" in conditions) {
         val sugars = product.nutrition.sugarsG
         if (isSugarSweetenedBeverage) {
@@ -612,7 +613,9 @@ fun computePersonalScore(
     // Gated on the profile's own isMenstruating answer, not an age-range
     // guess — see dailyTargets()'s ironTarget for why the guess was wrong.
     if (profile.sex == Sex.FEMALE && profile.isMenstruating) {
-        val declaresIron = product.declaredMicronutrients.any { it.contains("iron", ignoreCase = true) || it.contains("fer", ignoreCase = true) }
+        // declaredMicronutrients only ever contains OffMapper's fixed English
+        // tokens (see declaredMicronutrientsOf()) - never a French "fer" label.
+        val declaresIron = product.declaredMicronutrients.any { it.contains("iron", ignoreCase = true) }
         if (declaresIron) {
             adjustments += PersonalAdjustment(
                 points   = 2.0,

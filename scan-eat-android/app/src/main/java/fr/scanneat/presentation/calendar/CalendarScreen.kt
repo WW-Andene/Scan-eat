@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import fr.scanneat.presentation.activity.typeLabels
@@ -181,7 +183,10 @@ private fun MultiMarkerMonthGrid(
             )
             IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) { Icon(Icons.Default.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground) }
         }
-        Row(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            // Matches the week-number column's 48dp width below so these labels
+            // land over the day columns they actually label, not shifted left of them.
+            Spacer(Modifier.size(48.dp))
             weekdayLabels.forEach { label ->
                 Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), textAlign = TextAlign.Center)
             }
@@ -194,17 +199,33 @@ private fun MultiMarkerMonthGrid(
             val weekStart = firstDayInRow.minusDays(firstDayInRow.dayOfWeek.value.toLong() - 1)
             val ws = weekSummaries[weekStart]
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                // Week-number column — tappable when a summary is available
+                // Week-number column — tappable when a summary is available.
+                // Outer box holds Android's 48dp minimum touch target; the visible dot
+                // stays a small 20dp circle centered inside it via contentAlignment.
+                // Growing the visible dot itself (rather than just the tap target) would
+                // eat into the 7 weighted day-of-month columns to its right, since this
+                // is a fixed-width sibling in the same Row.
+                val weekNumber = firstDayInRow.get(java.time.temporal.WeekFields.ISO.weekOfYear())
+                val weekSummaryCd = stringResource(R.string.calendar_cd_week_summary, weekNumber)
                 Box(
-                    Modifier.size(20.dp).clip(CircleShape)
-                        .background(if (ws != null && ws.totalKcal > 0) AccentCoral.copy(0.1f) else Color.Transparent)
-                        .then(if (ws != null) Modifier.clickable { onWeekClick(ws) } else Modifier),
+                    Modifier.size(48.dp)
+                        .then(
+                            if (ws != null) {
+                                Modifier.clickable { onWeekClick(ws) }.semantics { contentDescription = weekSummaryCd }
+                            } else Modifier
+                        ),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        "${firstDayInRow.get(java.time.temporal.WeekFields.ISO.weekOfYear())}",
-                        style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f),
-                    )
+                    Box(
+                        Modifier.size(20.dp).clip(CircleShape)
+                            .background(if (ws != null && ws.totalKcal > 0) AccentCoral.copy(0.1f) else Color.Transparent),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            "$weekNumber",
+                            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f),
+                        )
+                    }
                 }
                 for (col in 0 until 7) {
                     val cellIndex = row * 7 + col

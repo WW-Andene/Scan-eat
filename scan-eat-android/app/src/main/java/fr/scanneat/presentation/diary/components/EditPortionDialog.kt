@@ -38,7 +38,7 @@ internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double, MealSlot) 
     // logged this as lunch but it was actually a snack") required delete +
     // re-add instead of a one-tap fix.
     var mealSlot by remember(entry.id) { mutableStateOf(entry.mealSlot) }
-    val portion = text.replace(',', '.').toDoubleOrNull()
+    val portion = text.replace(',', '.').toDoubleOrNull()?.let { if (it in 1.0..2000.0) it else null }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(entry.productName, color = OnBackground) },

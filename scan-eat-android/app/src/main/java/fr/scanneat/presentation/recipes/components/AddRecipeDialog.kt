@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,12 +37,12 @@ internal fun AddRecipeDialog(
     onDismiss: () -> Unit, onSave: (String, List<RecipeComponent>, Int, String) -> Unit,
     searchResults: List<FoodEntry> = emptyList(), onQueryChange: (String) -> Unit = {},
 ) {
-    var name by remember { mutableStateOf("") }
-    var notes by remember { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf("") }
+    var notes by rememberSaveable { mutableStateOf("") }
     var components by remember { mutableStateOf(listOf<RecipeComponent>()) }
-    var newIngName by remember { mutableStateOf("") }
-    var newIngGrams by remember { mutableStateOf("") }
-    var newIngKcal by remember { mutableStateOf("") }
+    var newIngName by rememberSaveable { mutableStateOf("") }
+    var newIngGrams by rememberSaveable { mutableStateOf("") }
+    var newIngKcal by rememberSaveable { mutableStateOf("") }
     // Set once a FOOD_DB/custom-food search result is picked - carries full
     // macros (protein/carbs/fat/fiber), not just the kcal the manual fields
     // below ever captured. Cleared whenever the name is edited by hand again,
@@ -53,7 +54,7 @@ internal fun AddRecipeDialog(
     // makes — the log dialog's "portion fraction" then had to be reverse-engineered by hand
     // (e.g. entering 0.25 for "1 of 4 servings"). Collecting it here is what makes the
     // servings-based logging in LogRecipeDialog below meaningful.
-    var servingsText by remember { mutableStateOf("1") }
+    var servingsText by rememberSaveable { mutableStateOf("1") }
 
     AlertDialog(
         onDismissRequest = onDismiss,

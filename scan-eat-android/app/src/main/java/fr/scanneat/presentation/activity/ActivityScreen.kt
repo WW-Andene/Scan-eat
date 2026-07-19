@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -110,13 +111,13 @@ fun ActivityScreen(
     val sortedTypes      = viewModel.sortedActivityTypes.collectAsStateWithLifecycle()
     val streak           = viewModel.streak.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
-    var minutesText by remember { mutableStateOf("30") }
-    var selectedSubType by remember { mutableStateOf<String?>(null) }
-    var customSubTypeText by remember { mutableStateOf("") }
-    var setsText by remember { mutableStateOf("") }
-    var repsText by remember { mutableStateOf("") }
-    var distanceText by remember { mutableStateOf("") }
-    var weightUsedText by remember { mutableStateOf("") }
+    var minutesText by rememberSaveable { mutableStateOf("30") }
+    var selectedSubType by rememberSaveable { mutableStateOf<String?>(null) }
+    var customSubTypeText by rememberSaveable { mutableStateOf("") }
+    var setsText by rememberSaveable { mutableStateOf("") }
+    var repsText by rememberSaveable { mutableStateOf("") }
+    var distanceText by rememberSaveable { mutableStateOf("") }
+    var weightUsedText by rememberSaveable { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     val typeLabels = typeLabels()
@@ -418,7 +419,7 @@ fun ActivityScreen(
                         )
                     }
                     val minutes = minutesText.toIntOrNull()
-                    val minutesValid = minutes != null && minutes > 0
+                    val minutesValid = minutes != null && minutes in 1..1440
                     OutlinedTextField(
                         value = minutesText, onValueChange = { minutesText = it },
                         label = { Text(stringResource(R.string.activity_duration_label)) }, singleLine = true,
@@ -434,7 +435,7 @@ fun ActivityScreen(
                 }
             },
             confirmButton = {
-                val minutesValid = (minutesText.toIntOrNull() ?: 0) > 0
+                val minutesValid = (minutesText.toIntOrNull() ?: 0) in 1..1440
                 TextButton(
                     onClick = {
                         minutesText.toIntOrNull()?.let { min ->

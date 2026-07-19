@@ -116,8 +116,11 @@ internal fun ResultContent(
         // couldn't be OCR'd - allergenHits/veto are both silently empty in that
         // case (nothing to match against), which otherwise looks identical to a
         // genuine "no allergens found" result for a user with real allergens set.
+        // Checked structurally (empty ingredient list) rather than by matching
+        // scan.warnings' text, since that text is localized and this condition
+        // must hold regardless of the app's display language.
         if (personalScore != null && personalScore.applicable && allergens.isEmpty() && personalScore.veto != true &&
-            scan.warnings.any { it.contains("could not be parsed", ignoreCase = true) }
+            scan.product.ingredients.isEmpty()
         ) {
             AllergenUnverifiedBanner()
         }

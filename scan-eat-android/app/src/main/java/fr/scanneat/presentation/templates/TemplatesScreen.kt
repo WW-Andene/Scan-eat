@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -33,6 +34,7 @@ import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
+import java.util.Locale
 
 
 @Composable
@@ -251,7 +253,7 @@ fun TemplatesScreen(
 
     logTarget?.let { t ->
         var slot by remember { mutableStateOf(t.meal) }
-        var portion by remember { mutableFloatStateOf(1f) }
+        var portion by rememberSaveable { mutableFloatStateOf(1f) }
         AlertDialog(
             onDismissRequest = { logTarget = null },
             containerColor = SurfaceVariant,
@@ -271,7 +273,7 @@ fun TemplatesScreen(
                     HorizontalDivider(color = OnBackground.copy(0.08f))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.templates_log_portion_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                        Text(stringResource(R.string.templates_log_portion_value, String.format("%.1f", portion), (t.totalKcal * portion).toInt()), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                        Text(stringResource(R.string.templates_log_portion_value, String.format(Locale.US, "%.1f", portion), (t.totalKcal * portion).toInt()), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                     }
                     Slider(
                         value = portion, onValueChange = { portion = it },
@@ -314,7 +316,7 @@ fun TemplatesScreen(
     }
 
     if (showAdd) {
-        var name by remember { mutableStateOf("") }
+        var name by rememberSaveable { mutableStateOf("") }
         var meal by remember { mutableStateOf(MealSlot.LUNCH) }
         AlertDialog(
             onDismissRequest = { showAdd = false },
@@ -354,9 +356,9 @@ private fun EditTemplateItemsDialog(
     searchResults: List<fr.scanneat.domain.engine.nutrition.FoodEntry> = emptyList(),
     onQueryChange: (String) -> Unit = {},
 ) {
-    var newName by remember { mutableStateOf("") }
-    var newGrams by remember { mutableStateOf("") }
-    var newKcal by remember { mutableStateOf("") }
+    var newName by rememberSaveable { mutableStateOf("") }
+    var newGrams by rememberSaveable { mutableStateOf("") }
+    var newKcal by rememberSaveable { mutableStateOf("") }
     // Set once a FOOD_DB/custom-food search result is picked - carries full
     // macros (protein/carbs/fat/fiber/salt), not just the kcal the manual field
     // below ever captured. Cleared whenever the name is edited by hand again, same

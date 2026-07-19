@@ -1,6 +1,9 @@
 package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -32,8 +36,13 @@ import androidx.compose.ui.unit.dp
  */
 enum class CardEmphasis { HERO, PRIMARY, SECONDARY }
 
-private data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val grainDensity: Int, val borderAlpha: Float)
-private val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, grainDensity = 70, borderAlpha = 0.22f)
+// internal (not private) so a card that can't use ScanEatCard directly - e.g.
+// CalorieBalanceCard, which overlays a streak badge on the outer Box via
+// BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit
+// doesn't expose - can still render at the HERO tier without re-declaring
+// (and risking drifting from) these same numbers as separate literals.
+internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val grainDensity: Int, val borderAlpha: Float)
+internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, grainDensity = 70, borderAlpha = 0.22f)
 private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, grainDensity = 40, borderAlpha = 0f)
 private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, grainDensity = 0,  borderAlpha = 0f)
 
@@ -55,6 +64,12 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
  *    and which hue its glow/border echo — default (PRIMARY, white accent)
  *    reproduces this primitive's original look plus the new subtle layers,
  *    so no existing call site needs to change to keep working.
+ *  - [onClick], when non-null, makes the card tappable and applies
+ *    [pressScale] alongside the tap ripple — both share one interaction
+ *    source, which a caller-supplied `Modifier.clickable` on [modifier]
+ *    couldn't give pressScale access to (it owns the ripple internally).
+ *    A caller that needs a tappable card should use this instead of adding
+ *    its own `Modifier.clickable`.
  */
 @Composable
 fun ScanEatCard(
@@ -65,6 +80,7 @@ fun ScanEatCard(
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,
     accent: Color = Color.White,
+    onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val spec = when (emphasis) {
@@ -72,6 +88,8 @@ fun ScanEatCard(
         CardEmphasis.PRIMARY   -> PrimaryGlassSpec
         CardEmphasis.SECONDARY -> SecondaryGlassSpec
     }
+    val interactionSource = remember { MutableInteractionSource() }
+    val indication = LocalIndication.current
     Box(
         modifier.fillMaxWidth().glassSheen(
             edgeAlpha = spec.edgeAlpha,
@@ -82,7 +100,12 @@ fun ScanEatCard(
         ),
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().then(
+                if (onClick != null)
+                    Modifier.pressScale(interactionSource)
+                        .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
+                else Modifier
+            ),
             shape = shape,
             color = color,
             border = if (spec.borderAlpha > 0f) BorderStroke(1.dp, accent.copy(alpha = spec.borderAlpha)) else null,

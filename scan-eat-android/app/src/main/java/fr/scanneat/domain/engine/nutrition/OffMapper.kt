@@ -69,6 +69,7 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
         "beverage" in tag || "soda" in tag || "boisson" in tag -> ProductCategory.BEVERAGE_SOFT
         "sauce" in tag || "condiment" in tag || "dressing" in tag -> ProductCategory.CONDIMENT
         "oil" in tag || "fat" in tag || "huile" in tag -> ProductCategory.OIL_FAT
+        "soup" in tag || "soupe" in tag || "broth" in tag || "bouillon" in tag -> ProductCategory.SOUP
         "ready-meal" in tag || "plat-prepare" in tag -> ProductCategory.READY_MEAL
         else -> ProductCategory.OTHER
     }
