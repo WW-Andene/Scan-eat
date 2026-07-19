@@ -408,6 +408,85 @@ class PersonalScoreEngineTest {
         ),
     )
 
+    // ---- Regression lock: category-relative hypertension/kidney_disease
+    // checks (same "mozzarella flagged, soda wasn't" category-blindness
+    // class as the sat-fat/BMI fix above, for salt/hypertension and
+    // protein/kidney_disease) ----
+
+    @Test
+    fun `Genuinely low-salt condiment does not trigger the hypertension caution`() {
+        // 0.9g/100g is well under CONDIMENT's own minor tier (2.0g) - under the
+        // old flat 1.2g bar this (and virtually every other condiment) still
+        // triggered the caution just for being a condiment.
+        val mayo = Product(
+            name = "Mayonnaise", category = ProductCategory.CONDIMENT, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(Ingredient(name = "huile de colza", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(
+                energyKcal = 680.0, fatG = 75.0, saturatedFatG = 6.0, carbsG = 1.0,
+                sugarsG = 1.0, fiberG = 0.0, proteinG = 1.0, saltG = 0.9,
+            ),
+        )
+        val audit = scoreProduct(mayo)
+        val result = computePersonalScore(audit, mayo, maleProfile().copy(healthConditions = setOf("hypertension")), lang = "en")
+        assertTrue("Genuinely low-salt condiment should not trigger the hypertension caution",
+            result.adjustments.none { it.category == AdjustmentCategory.CONDITION && it.points < 0 })
+    }
+
+    @Test
+    fun `Excessively salty condiment still triggers the hypertension caution`() {
+        // The fix only removes the *unfair* flag - a condiment unusually salty
+        // even by condiment standards (well above CONDIMENT's own major tier)
+        // should still be caught.
+        val bouillon = Product(
+            name = "Bouillon concentré", category = ProductCategory.CONDIMENT, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(Ingredient(name = "sel", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(
+                energyKcal = 90.0, fatG = 2.0, saturatedFatG = 0.5, carbsG = 5.0,
+                sugarsG = 1.0, fiberG = 0.0, proteinG = 3.0, saltG = 22.0,
+            ),
+        )
+        val audit = scoreProduct(bouillon)
+        val result = computePersonalScore(audit, bouillon, maleProfile().copy(healthConditions = setOf("hypertension")), lang = "en")
+        assertTrue(result.adjustments.any { it.category == AdjustmentCategory.CONDITION && it.reason.contains("salt", ignoreCase = true) })
+    }
+
+    @Test
+    fun `Ordinary chicken breast does not trigger the kidney_disease protein caution`() {
+        // 23g protein/100g is completely unremarkable for FRESH_MEAT (category's
+        // own high tier is 25g) - the old flat 15g bar flagged literally every
+        // fresh meat/fish scan regardless of being typical for the category.
+        val chicken = Product(
+            name = "Blanc de poulet", category = ProductCategory.FRESH_MEAT, novaClass = NovaClass.UNPROCESSED,
+            ingredients = listOf(Ingredient(name = "poulet", isWholeFood = true, category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(
+                energyKcal = 120.0, fatG = 2.0, saturatedFatG = 0.5, carbsG = 0.0,
+                sugarsG = 0.0, fiberG = 0.0, proteinG = 23.0, saltG = 0.2,
+            ),
+        )
+        val audit = scoreProduct(chicken)
+        val result = computePersonalScore(audit, chicken, maleProfile().copy(healthConditions = setOf("kidney_disease")), lang = "en")
+        assertTrue("Ordinary meat protein should not trigger the kidney_disease caution",
+            result.adjustments.none { it.category == AdjustmentCategory.CONDITION })
+    }
+
+    @Test
+    fun `Protein bar unusually protein-dense for its own category still triggers the kidney_disease caution`() {
+        // 18g protein/100g is unremarkable for meat/fish but genuinely unusual
+        // for SNACK_SWEET (category's own high tier is only 10g) - the fix must
+        // still catch a real outlier, not just raise the bar for everything.
+        val proteinBar = Product(
+            name = "Barre protéinée", category = ProductCategory.SNACK_SWEET, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(Ingredient(name = "isolat de protéine de lactosérum", category = IngredientCategory.FOOD)),
+            nutrition = NutritionPer100g(
+                energyKcal = 380.0, fatG = 12.0, saturatedFatG = 6.0, carbsG = 35.0,
+                sugarsG = 20.0, fiberG = 2.0, proteinG = 18.0, saltG = 0.5,
+            ),
+        )
+        val audit = scoreProduct(proteinBar)
+        val result = computePersonalScore(audit, proteinBar, maleProfile().copy(healthConditions = setOf("kidney_disease")), lang = "en")
+        assertTrue(result.adjustments.any { it.category == AdjustmentCategory.CONDITION && it.reason.contains("protein", ignoreCase = true) })
+    }
+
     @Test
     fun `Regular soda gets a diabetes SSB penalty a flat 15g bar would have missed`() {
         val soda = regularSoda()

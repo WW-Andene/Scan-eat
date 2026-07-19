@@ -155,18 +155,38 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
         }
     }
 
+    // Category-relative, matching PersonalScoreEngine.computePersonalScore's own
+    // diabetes/hypertension/kidney_disease checks exactly (getThresholds() +
+    // the same maxOf-against-the-original-flat-value pattern, and the same SSB
+    // definition) - this section's own doc comment above claims these mirror
+    // PersonalScoreEngine "exactly" so the two surfaces "never disagree," but
+    // before this fix they used flat cutoffs while PersonalScoreEngine had
+    // already been made category-aware in a prior round: a condiment at 20g
+    // sugar (below its own 30g major tier - no diabetes penalty in the actual
+    // score) still showed "high sugar, caution for diabetes" here, and every
+    // typical soy sauce/cured meat/fresh meat or fish showed a salt/protein
+    // caution the score itself no longer applied - the hint panel and the
+    // score visibly disagreeing, exactly what this comment promises can't happen.
+    val catThresholds = fr.scanneat.domain.engine.scoring.getThresholds(product.category)
+    val isSugarSweetenedBeverage = product.category == fr.scanneat.domain.model.ProductCategory.BEVERAGE_SOFT &&
+        n.sugarsG > 5.0 && n.proteinG < 1.0 && n.fiberG < 1.0
     val conditions = profile.healthConditions
     if ("diabetes" in conditions) {
-        if (n.sugarsG >= 15.0) risks += if (en) "High sugar (${n.sugarsG} g/100 g) — caution advised for diabetes"
+        if (isSugarSweetenedBeverage) {
+            risks += if (en) "Sugar-sweetened beverage — caution advised for diabetes (liquid sugar causes a faster glycemic spike)"
+                     else "Boisson sucrée — prudence recommandée en cas de diabète (le sucre liquide provoque un pic glycémique plus rapide)"
+        } else if (n.sugarsG >= catThresholds.sugarThresholds.third) risks += if (en) "High sugar (${n.sugarsG} g/100 g) — caution advised for diabetes"
                                         else "Sucres élevés (${n.sugarsG} g/100 g) — prudence recommandée en cas de diabète"
-        else if (n.sugarsG <= 5.0) benefits += if (en) "Low sugar — diabetes-friendly" else "Faible en sucres — adapté au diabète"
+        else if (n.sugarsG <= catThresholds.sugarThresholds.first) benefits += if (en) "Low sugar — diabetes-friendly" else "Faible en sucres — adapté au diabète"
     }
     if ("hypertension" in conditions) {
-        if (n.saltG >= 1.2) risks += if (en) "High salt (${n.saltG} g/100 g) — caution advised for hypertension"
+        val hypertensionSaltBar = maxOf(1.2, catThresholds.saltThresholds.first)
+        if (n.saltG >= hypertensionSaltBar) risks += if (en) "High salt (${n.saltG} g/100 g) — caution advised for hypertension"
                                      else "Sel élevé (${n.saltG} g/100 g) — prudence recommandée en cas d'hypertension"
         else if (n.saltG <= 0.3) benefits += if (en) "Low salt — hypertension-friendly" else "Faible en sel — adapté à l'hypertension"
     }
-    if ("kidney_disease" in conditions && n.proteinG >= 15.0) {
+    val kidneyProteinBar = maxOf(15.0, catThresholds.proteinG.third)
+    if ("kidney_disease" in conditions && n.proteinG >= kidneyProteinBar) {
         risks += if (en) "High protein (${n.proteinG} g/100 g) — caution advised for kidney disease"
                  else "Protéines élevées (${n.proteinG} g/100 g) — prudence recommandée en cas de maladie rénale"
     }

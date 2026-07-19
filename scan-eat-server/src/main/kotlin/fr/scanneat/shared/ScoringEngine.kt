@@ -25,6 +25,18 @@ data class CategoryThresholds(
     val expectMicronutrients: Boolean,
     val satFatThresholds: Triple<Double, Double, Double> = Triple(5.0, 10.0, 15.0),
     val sugarThresholds: Quadruple<Double, Double, Double, Double> = Quadruple(5.0, 10.0, 15.0, 22.5),
+    // (minor, moderate, major) g/100g - same shape/semantics as satFatThresholds.
+    // Default matches NegativeNutrientsPillar's old flat 0.75/1.25/1.5 cutoffs
+    // exactly, so this is behavior-identical for any category without an
+    // override below. CONDIMENT and PROCESSED_MEAT get an explicit override:
+    // salt is *inherent* to how those categories are made (soy sauce/miso are
+    // brine-fermented, ~10-15g salt/100ml; dry-cured meat is salt-cured,
+    // ~2.5-6g/100g) the same way saturated fat is inherent to cheese - without
+    // this, a completely typical soy sauce or prosciutto always tripped the
+    // same flat "major salt" flag every cheese used to trip for sat fat,
+    // giving the flag zero power to distinguish "typical for this category"
+    // from "unusually salty even for this category."
+    val saltThresholds: Triple<Double, Double, Double> = Triple(0.75, 1.25, 1.5),
 )
 
 private val DEFAULT_THRESHOLDS = CategoryThresholds(
@@ -41,7 +53,8 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     ProductCategory.BREAKFAST_CEREAL to CategoryThresholds(Triple(6.0,10.0,14.0), Triple(5.0,8.0,12.0), Pair(320.0,420.0), true),
     ProductCategory.YOGURT           to CategoryThresholds(Triple(3.0,5.0,9.0),   Triple(0.0,1.0,2.0),  Pair(40.0,120.0),  true),
     ProductCategory.CHEESE           to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(200.0,450.0), true,  satFatThresholds = Triple(12.0,20.0,30.0)),
-    ProductCategory.PROCESSED_MEAT   to CategoryThresholds(Triple(10.0,15.0,22.0),Triple(0.0,0.0,1.0),  Pair(100.0,400.0), false),
+    ProductCategory.PROCESSED_MEAT   to CategoryThresholds(Triple(10.0,15.0,22.0),Triple(0.0,0.0,1.0),  Pair(100.0,400.0), false,
+        saltThresholds = Triple(2.5,4.0,6.0)),
     ProductCategory.FRESH_MEAT       to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(100.0,300.0), true),
     ProductCategory.FISH             to CategoryThresholds(Triple(15.0,20.0,25.0),Triple(0.0,0.0,0.0),  Pair(80.0,250.0),  true),
     ProductCategory.SNACK_SWEET      to CategoryThresholds(Triple(4.0,7.0,10.0),  Triple(2.0,4.0,6.0),  Pair(350.0,550.0), false),
@@ -50,7 +63,7 @@ val CATEGORY_THRESHOLDS: Map<ProductCategory, CategoryThresholds> = mapOf(
     ProductCategory.BEVERAGE_JUICE   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,1.0,2.0),  Pair(20.0,60.0),   true),
     ProductCategory.BEVERAGE_WATER   to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(0.0,5.0),     false),
     ProductCategory.CONDIMENT        to CategoryThresholds(Triple(0.0,3.0,7.0),   Triple(0.0,1.0,3.0),  Pair(20.0,400.0),  false,
-        sugarThresholds = Quadruple(10.0,20.0,30.0,45.0)),
+        sugarThresholds = Quadruple(10.0,20.0,30.0,45.0), saltThresholds = Triple(2.0,5.0,10.0)),
     ProductCategory.OIL_FAT          to CategoryThresholds(Triple(0.0,0.0,0.0),   Triple(0.0,0.0,0.0),  Pair(700.0,900.0), false,
         satFatThresholds = Triple(20.0,35.0,50.0)),
     ProductCategory.OTHER            to DEFAULT_THRESHOLDS,
@@ -404,13 +417,19 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         sugars > sMinor -> { score -= 3; deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMinor " + (if (en) "minor" else "mineur") + ")", -3.0, Severity.MINOR) }
     }
 
-    // Salt
+    // Salt — category-relative like sat fat/sugar above, not a flat cutoff.
+    // Salt is structurally inherent to some categories (soy sauce/miso are
+    // brine-fermented; dry-cured meat is salt-cured) the same way sat fat is
+    // inherent to cheese - a flat 1.5g bar flagged literally every soy sauce
+    // and prosciutto regardless of whether it was unusually salty even for
+    // its own category. See CategoryThresholds.kt's saltThresholds doc comment.
     val salt = n.saltG
+    val (saltMinor, saltMod, saltMaj) = thresholds.saltThresholds
     val saltLabel = if (en) "Salt" else "Sel"
     when {
-        salt > 1.5  -> { score -= 6; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>1.5g " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
-        salt > 1.25 -> { score -= 4; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>1.25g " + (if (en) "moderate" else "modéré") + ")", -4.0, Severity.MODERATE) }
-        salt > 0.75 -> { score -= 2; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>0.75g " + (if (en) "minor" else "mineur") + ")", -2.0, Severity.MINOR) }
+        salt > saltMaj  -> { score -= 6; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMaj " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
+        salt > saltMod  -> { score -= 4; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMod " + (if (en) "moderate" else "modéré") + ")", -4.0, Severity.MODERATE) }
+        salt > saltMinor -> { score -= 2; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMinor " + (if (en) "minor" else "mineur") + ")", -2.0, Severity.MINOR) }
     }
 
     // Trans fat

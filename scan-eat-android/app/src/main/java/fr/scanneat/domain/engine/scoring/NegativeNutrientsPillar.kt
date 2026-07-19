@@ -37,13 +37,19 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         sugars > sMinor -> { score -= 3; deductions += Deduction("negative_nutrients", "$sugarLabel ${sugars}g/100g (>$sMinor " + (if (en) "minor" else "mineur") + ")", -3.0, Severity.MINOR) }
     }
 
-    // Salt
+    // Salt — category-relative like sat fat/sugar above, not a flat cutoff.
+    // Salt is structurally inherent to some categories (soy sauce/miso are
+    // brine-fermented; dry-cured meat is salt-cured) the same way sat fat is
+    // inherent to cheese - a flat 1.5g bar flagged literally every soy sauce
+    // and prosciutto regardless of whether it was unusually salty even for
+    // its own category. See CategoryThresholds.kt's saltThresholds doc comment.
     val salt = n.saltG
+    val (saltMinor, saltMod, saltMaj) = thresholds.saltThresholds
     val saltLabel = if (en) "Salt" else "Sel"
     when {
-        salt > 1.5  -> { score -= 6; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>1.5g " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
-        salt > 1.25 -> { score -= 4; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>1.25g " + (if (en) "moderate" else "modéré") + ")", -4.0, Severity.MODERATE) }
-        salt > 0.75 -> { score -= 2; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>0.75g " + (if (en) "minor" else "mineur") + ")", -2.0, Severity.MINOR) }
+        salt > saltMaj  -> { score -= 6; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMaj " + (if (en) "major" else "majeur") + ")", -6.0, Severity.MAJOR) }
+        salt > saltMod  -> { score -= 4; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMod " + (if (en) "moderate" else "modéré") + ")", -4.0, Severity.MODERATE) }
+        salt > saltMinor -> { score -= 2; deductions += Deduction("negative_nutrients", "$saltLabel ${salt}g/100g (>$saltMinor " + (if (en) "minor" else "mineur") + ")", -2.0, Severity.MINOR) }
     }
 
     // Trans fat

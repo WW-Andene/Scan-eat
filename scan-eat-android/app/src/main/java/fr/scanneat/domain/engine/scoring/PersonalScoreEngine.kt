@@ -358,10 +358,16 @@ fun computePersonalScore(
     // ===== HEALTH CONDITIONS =====
     // Only the conditions with an established, simple nutrition-level rule get a
     // scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
-    // alcohol veto, WCRF/NHS alcohol caution for cancer/depression). Thyroid
-    // disorders / food_allergies / intolerances / digestive disorders are still
-    // selectable (surfaced elsewhere, e.g. the hint system) but have no dedicated
-    // nutrition-threshold rule reliable enough to code here yet.
+    // alcohol veto, WCRF/NHS alcohol caution for cancer/depression). "thyroid_disorder",
+    // "food_allergies", "intolerances" and "digestive_disorders" are still selectable
+    // in ProfileSelectors.kt (Profile.healthConditions is free-form) but have no
+    // dedicated nutrition-threshold rule reliable enough to code here yet, and are
+    // NOT surfaced anywhere else either - this comment previously claimed they were
+    // ("surfaced elsewhere, e.g. the hint system"), but neither ProductHints.kt nor
+    // HealthConditionGuidanceDb.kt (whose own header explains why digestive_disorders
+    // specifically is too heterogeneous a bucket to map to ingredients) ever reads
+    // these 4 keys - a user can select any of them expecting some product-specific
+    // guidance and gets none, identically to not having selected it at all.
     val conditions = profile.healthConditions
     // The base engine's own NegativeNutrientsPillar judges sat-fat/sugar against
     // category-relative thresholds (cheese tolerates far more sat fat than a
@@ -430,7 +436,16 @@ fun computePersonalScore(
     }
     if ("hypertension" in conditions) {
         val salt = product.nutrition.saltG
-        if (salt >= 1.2) {
+        // maxOf against the original flat 1.2g - never lowers the bar for any
+        // category (so a random product still gets flagged exactly as before),
+        // only raises it for CONDIMENT/PROCESSED_MEAT, whose own category norm
+        // (CategoryThresholds.kt's saltThresholds) is structurally higher -
+        // same "mozzarella flagged for sat fat, soda wasn't" category-blindness
+        // this fixes, just for salt/hypertension instead of sat-fat/BMI. Without
+        // this, every soy sauce and every cured ham triggered this exact same
+        // caution regardless of being entirely typical for its category.
+        val hypertensionSaltBar = maxOf(1.2, catThresholds.saltThresholds.first)
+        if (salt >= hypertensionSaltBar) {
             adjustments += PersonalAdjustment(
                 points = -4.0,
                 reason = if (lang == "en") "High salt (${salt} g/100 g) — caution advised for hypertension"
@@ -446,7 +461,17 @@ fun computePersonalScore(
             )
         }
     }
-    if ("kidney_disease" in conditions && product.nutrition.proteinG >= 15.0) {
+    // maxOf against the original flat 15.0g - never lowers the bar, only raises
+    // it for FRESH_MEAT/FISH/CHEESE/PROCESSED_MEAT etc. whose own category norm
+    // (CategoryThresholds.kt's proteinG "high" tier) is structurally higher.
+    // Without this, every single fresh chicken breast or cod fillet (completely
+    // ordinary protein for meat/fish, ~18-23g/100g) triggered the identical
+    // kidney-disease caution as a genuine outlier like a protein bar spiked
+    // to 3-4x its own category's norm - the warning couldn't distinguish
+    // "ordinary meat" from "unusually protein-dense for what it is," exactly
+    // the same category-blindness class as the mozzarella/sat-fat case.
+    val kidneyProteinBar = maxOf(15.0, catThresholds.proteinG.third)
+    if ("kidney_disease" in conditions && product.nutrition.proteinG >= kidneyProteinBar) {
         adjustments += PersonalAdjustment(
             points = -3.0,
             reason = if (lang == "en") "High protein (${product.nutrition.proteinG} g/100 g) — caution advised for kidney disease"
@@ -541,7 +566,12 @@ fun computePersonalScore(
                 category = AdjustmentCategory.AGE,
             )
         }
-        if (age >= 50 && product.nutrition.saltG > 1.5) {
+        // maxOf against the original flat 1.5g - same category-relative fix as
+        // the hypertension check above (CONDIMENT/PROCESSED_MEAT raised, every
+        // other category unchanged), applied consistently to this sibling
+        // salt check rather than leaving it as the one flat outlier.
+        val ageSaltBar = maxOf(1.5, catThresholds.saltThresholds.third)
+        if (age >= 50 && product.nutrition.saltG > ageSaltBar) {
             adjustments += PersonalAdjustment(
                 points   = -3.0,
                 reason   = if (lang == "en") "Salt penalty amplified after 50y (higher hypertension risk, WHO 2012)"
@@ -645,7 +675,13 @@ fun computePersonalScore(
     // zero effect from it on the products they scan.
     when (profile.goal) {
         Goal.LOSE -> {
-            if (product.nutrition.energyKcal >= 400 && product.nutrition.saturatedFatG > 10) {
+            // maxOf against the original flat 10g - same category-relative fix
+            // as the BMI section's own sat-fat check (which already uses
+            // catThresholds.satFatThresholds), applied here too so a weight-
+            // loss-goal user scoring a completely typical cheese doesn't get
+            // this flagged on top of that already-category-aware BMI penalty.
+            val goalSatFatBar = maxOf(10.0, catThresholds.satFatThresholds.second)
+            if (product.nutrition.energyKcal >= 400 && product.nutrition.saturatedFatG > goalSatFatBar) {
                 adjustments += PersonalAdjustment(
                     points   = -2.0,
                     reason   = if (lang == "en")

@@ -337,6 +337,49 @@ class ScoringEngineTest {
         assertFalse(audit.veto.triggered)
     }
 
+    // Regression: NegativeNutrientsPillar's salt deduction used a flat 0.75/
+    // 1.25/1.5g cutoff regardless of category - salt is structurally inherent
+    // to some categories (soy sauce/miso are brine-fermented; dry-cured meat
+    // is salt-cured) the same way sat fat is inherent to cheese, so a typical
+    // condiment/cured meat always tripped the same MAJOR salt deduction
+    // regardless of being unremarkable for its own category.
+    @Test fun `Typical cured ham does not trigger a MAJOR salt deduction once PROCESSED_MEAT's own threshold is used`() {
+        val ham = product(
+            name = "Jambon cru (test)", category = ProductCategory.PROCESSED_MEAT, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("jambon"), ingredient("sel")),
+            nutrition = nutrition(220.0, 12.0, 4.0, 0.0, 0.0, 0.0, 27.0, 4.5),
+        )
+        val pillar = scoreNegativeNutrients(ham)
+        assertNull("4.5g/100g salt is below PROCESSED_MEAT's own major tier (6.0g), not the old flat 1.5g",
+            pillar.deductions.firstOrNull { it.severity == Severity.MAJOR && it.reason.contains("Salt", ignoreCase = true) })
+    }
+
+    @Test fun `Excessively salty condiment still triggers a MAJOR salt deduction`() {
+        // The fix only removes the *unfair* flag - a condiment unusually salty
+        // even by condiment standards (well above CONDIMENT's own major tier
+        // of 10g) should still be caught.
+        val bouillon = product(
+            name = "Bouillon concentré (test)", category = ProductCategory.CONDIMENT, novaClass = NovaClass.ULTRA_PROCESSED,
+            ingredients = listOf(ingredient("sel")),
+            nutrition = nutrition(90.0, 2.0, 0.5, 5.0, 1.0, 0.0, 3.0, 22.0),
+        )
+        val pillar = scoreNegativeNutrients(bouillon)
+        assertNotNull(pillar.deductions.firstOrNull { it.severity == Severity.MAJOR && it.reason.contains("Salt", ignoreCase = true) })
+    }
+
+    @Test fun `Uncategorized product keeps the original flat salt thresholds`() {
+        // Behavior must stay identical to the pre-fix flat cutoffs for any
+        // category without an explicit saltThresholds override.
+        val generic = product(
+            name = "Generic (test)", category = ProductCategory.OTHER, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(ingredient("sel")),
+            nutrition = nutrition(200.0, 5.0, 1.0, 10.0, 2.0, 1.0, 5.0, 1.6),
+        )
+        val pillar = scoreNegativeNutrients(generic)
+        assertNotNull("1.6g/100g still exceeds the unchanged default major tier (1.5g)",
+            pillar.deductions.firstOrNull { it.severity == Severity.MAJOR && it.reason.contains("Salt", ignoreCase = true) })
+    }
+
     // ============================================================
     // NOVA fresh-produce exception
     // ============================================================
