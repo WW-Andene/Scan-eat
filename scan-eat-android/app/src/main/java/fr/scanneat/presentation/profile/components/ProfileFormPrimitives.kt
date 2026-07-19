@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.CardRadius
 
@@ -31,9 +32,18 @@ internal fun MetricChip(label: String, value: String) {
     }
 }
 
+// Wraps every section in the app's one card primitive (glassSheen + grey
+// SurfaceVariant fill, same as every other card in the app) - this used to be
+// a bare Column with no background at all, so Identity/Body/Measurements/
+// Activity/Allergens/Conditions/Diet all rendered directly on the screen
+// background while the BMI/TDEE preview card above them (a hand-rolled
+// Surface(color = SurfaceVariant)) was the only "real" card on this screen,
+// making the rest of the page look visually inconsistent with the rest of
+// the app. ScanEatCard's content lambda has the exact same ColumnScope
+// signature this already had, so every call site is unaffected.
 @Composable
 internal fun ProfileSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         content()
     }

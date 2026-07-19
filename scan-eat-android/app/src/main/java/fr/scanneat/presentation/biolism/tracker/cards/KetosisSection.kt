@@ -32,7 +32,19 @@ internal fun KetosisToggleRow(
     ) {
         Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                // weight(1f) - without it, this Row (whose description text can run
+                // long: "< 50g glucides · graisse = carburant principal · RQ ≈ 0.70")
+                // and the fixed-content badge Surface below both measured at their own
+                // natural width with nothing to reconcile the two, so the badge got
+                // squeezed into whatever sliver of the row was left over and its short
+                // "npRQ 0.858" text wrapped character-by-character ("np"/"RQ"/"0,8"/"58").
+                // weight(1f) reserves the badge's own natural width first and lets this
+                // side wrap its own text within whatever's left, instead of the reverse.
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f).padding(end = Spacing.S),
+                ) {
                     Checkbox(checked = active, onCheckedChange = { onToggle() },
                         colors = CheckboxDefaults.colors(checkedColor = Teal, uncheckedColor = Teal.copy(0.4f)))
                     Column {
@@ -46,7 +58,8 @@ internal fun KetosisToggleRow(
                     Text(if (active) stringResource(R.string.biolism_ketosis_oxi_active, fatPct, npRq)
                          else stringResource(R.string.biolism_ketosis_nprq_inactive, npRq),
                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
-                        style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold,
+                        softWrap = false)
                 }
             }
             if (active) {
@@ -78,7 +91,14 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
         border = BorderStroke(1.dp, if (active) GoldBorder else GoldTrace),
     ) {
         Row(Modifier.fillMaxWidth().padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Same weight(1f) fix as KetosisToggleRow above - reserves the fixed
+            // "RQ→0.xxx" badge's own width first so this side wraps instead of
+            // squeezing the badge into an unreadable sliver.
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f).padding(end = Spacing.S),
+            ) {
                 Checkbox(checked = active, onCheckedChange = { onToggle() },
                     colors = CheckboxDefaults.colors(checkedColor = Gold, uncheckedColor = Gold.copy(0.4f)))
                 Column {
@@ -98,7 +118,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
             }
             Surface(shape = RoundedCornerShape(4.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
                 Text(if (active) "RQ→0.715" else "RQ→0.720", modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
-                    style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold, softWrap = false)
             }
         }
     }

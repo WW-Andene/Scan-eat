@@ -45,6 +45,15 @@ import kotlin.math.roundToInt
 internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
     Box(Modifier.fillMaxWidth().glassSheen()) {
         Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant) {
+            // weight(1f) on each stat, not a bare SpaceBetween over 3 unweighted
+            // columns - "Traitement" is a much wider label than "Eau"/"Jeûne", so
+            // each column's own natural width (icon vs value vs label, whichever
+            // is widest) differed a lot between the three, and SpaceBetween only
+            // equalizes the *gaps* between columns, not the columns themselves -
+            // the icon centers correctly *within its own column* (TrackerStat's
+            // CenterHorizontally), but the columns' centers weren't evenly spaced
+            // across the row, so the icons visibly weren't aligned with each other.
+            // Equal-width slots make every icon sit at the same relative position.
             Row(modifier = Modifier.padding(Spacing.L).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 val hydrationPct = if (snapshot.hydrationGoalMl > 0) (snapshot.hydrationMl * 100 / snapshot.hydrationGoalMl) else 0
                 TrackerStat(
@@ -52,6 +61,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
                     tint = semanticBlue(),
                     value = stringResource(R.string.dashboard_other_trackers_hydration_value, hydrationPct.coerceAtMost(999)),
                     label = stringResource(R.string.dashboard_other_trackers_hydration_label),
+                    modifier = Modifier.weight(1f),
                 )
                 val fasting = snapshot.fastingActive
                 TrackerStat(
@@ -60,12 +70,14 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
                     value = if (fasting != null) stringResource(R.string.dashboard_other_trackers_fasting_active_value, fasting.elapsedHours.roundToInt())
                             else stringResource(R.string.dashboard_other_trackers_fasting_idle_value),
                     label = stringResource(R.string.dashboard_other_trackers_fasting_label),
+                    modifier = Modifier.weight(1f),
                 )
                 TrackerStat(
                     icon = Icons.Default.Medication,
                     tint = if (snapshot.medsActiveCount == 0 || snapshot.medsTakenCount == snapshot.medsActiveCount) semanticGreen() else semanticAmber(),
                     value = stringResource(R.string.dashboard_other_trackers_meds_value, snapshot.medsTakenCount, snapshot.medsActiveCount),
                     label = stringResource(R.string.dashboard_other_trackers_meds_label),
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -73,8 +85,14 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
 }
 
 @Composable
-private fun TrackerStat(icon: androidx.compose.ui.graphics.vector.ImageVector, tint: androidx.compose.ui.graphics.Color, value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+private fun TrackerStat(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: androidx.compose.ui.graphics.Color,
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
         Text(value, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))

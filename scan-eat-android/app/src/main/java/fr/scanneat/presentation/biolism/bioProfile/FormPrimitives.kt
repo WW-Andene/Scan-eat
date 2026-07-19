@@ -1,7 +1,6 @@
 package fr.scanneat.presentation.biolism.bioProfile
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Row
@@ -18,14 +17,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.CardRadius
 import java.util.Locale
 
 /** Reusable, stateless form primitives local to the Biolism profile edit screen. */
 
+// Wraps every section in the app's one card primitive (glassSheen + grey
+// SurfaceVariant fill, same as every other card in the app) - this used to be
+// a bare Column with no background at all, so Identity/Activity/Ethnicity/
+// Circumferences/Cycle all rendered directly on the screen background while
+// the "Overview" section above them (which already used ScanEatCard) was the
+// only "real" card on this screen. ScanEatCard's content lambda has the exact
+// same ColumnScope signature this already had, so every call site is unaffected.
 @Composable
 internal fun ProfileSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(title, style = MaterialTheme.typography.titleSmall, color = Gold, fontWeight = FontWeight.SemiBold)
         content()
     }
