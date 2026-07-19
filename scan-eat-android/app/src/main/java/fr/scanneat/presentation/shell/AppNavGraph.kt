@@ -113,6 +113,7 @@ fun AppNavGraph(
         composable(TopTab.Dashboard.route) {
             DashboardScreen(
                 onBack          = {},
+                isTabRoot       = true,
                 onOpenHistory   = { navController.navigate(AppRoutes.SCAN_HISTORY) },
                 onOpenRecipes   = { navController.navigate(AppRoutes.RECIPES) },
                 onOpenTemplates = { navController.navigate(AppRoutes.TEMPLATES) },

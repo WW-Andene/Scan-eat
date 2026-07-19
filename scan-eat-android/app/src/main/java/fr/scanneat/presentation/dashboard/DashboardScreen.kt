@@ -64,6 +64,7 @@ import fr.scanneat.presentation.ui.theme.ambientGloom
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    isTabRoot: Boolean = false,
     onOpenHistory: () -> Unit = {},
     onOpenRecipes: () -> Unit = {},
     onOpenTemplates: () -> Unit = {},
@@ -104,8 +105,10 @@ fun DashboardScreen(
             FloatingTopBar(
                 title = { Text(stringResource(R.string.dashboard_title), color = OnBackground) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+                    if (!isTabRoot) {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+                        }
                     }
                 },
             )
