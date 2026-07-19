@@ -97,7 +97,16 @@ fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
                 startRoute != null -> startRoute
                 else               -> TopTab.Dashboard.route
             },
-            modifier         = Modifier.padding(padding),
+            // consumeWindowInsets, not just padding — Scaffold's own doc comment
+            // says the content lambda's PaddingValues "should be applied ... via
+            // padding and consumeWindowInsets" together. Without this, every
+            // screen's own inner Scaffold(topBar = { FloatingTopBar(...) }) reads
+            // WindowInsets.statusBars fresh (it's an ambient system value, not a
+            // shrinking budget) and re-applies the *same* status-bar inset a
+            // second time on top of the gap this outer Scaffold already reserved
+            // via contentWindowInsets - doubling the empty space above every
+            // floating header instead of showing just one gap.
+            modifier         = Modifier.padding(padding).consumeWindowInsets(padding),
         )
     }
 }
