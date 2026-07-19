@@ -27,8 +27,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -102,14 +100,13 @@ fun DashboardScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            FloatingTopBar(
                 title = { Text(stringResource(R.string.dashboard_title), color = OnBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

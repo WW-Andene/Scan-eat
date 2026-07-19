@@ -4,9 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,9 +31,30 @@ fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
         contentWindowInsets = WindowInsets.systemBars,
         bottomBar = {
             AnimatedVisibility(visible = showNav, enter = fadeIn(), exit = fadeOut()) {
+                // Floating/detached bottom nav — margin on every side instead of the
+                // previous edge-to-edge bar, rounded on all four corners (not just the
+                // top two), glassy + elevated so it reads as a chrome piece hovering
+                // over the content rather than fused to the screen edge. Handles its
+                // own nav-bar inset (windowInsets = 0 below) so the floating gap is the
+                // *only* gap, instead of stacking on top of NavigationBar's own default
+                // system-bar padding.
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(horizontal = Spacing.L, vertical = Spacing.S)
+                        .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), grainDensity = 30),
+                ) {
+                Surface(
+                    shape           = RoundedCornerShape(CardRadius.PROMINENT),
+                    color           = SurfaceVariant.copy(alpha = 0.92f),
+                    shadowElevation = 8.dp,
+                    modifier        = Modifier.fillMaxWidth(),
+                ) {
                 NavigationBar(
-                    containerColor = SurfaceVariant,
+                    containerColor = Color.Transparent,
                     tonalElevation = 0.dp,
+                    windowInsets   = WindowInsets(0.dp),
                     modifier = Modifier.height(64.dp),
                 ) {
                     val hierarchy = backStack.value?.destination?.hierarchy
@@ -61,6 +84,8 @@ fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
                             ),
                         )
                     }
+                }
+                }
                 }
             }
         },

@@ -80,14 +80,13 @@ fun DiaryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            FloatingTopBar(
                 title = { Text(stringResource(R.string.diary_header), color = OnBackground, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     if (!isTabRoot) {
                         IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
         // Only Meals has a manual "search and log" entry point — the other tabs

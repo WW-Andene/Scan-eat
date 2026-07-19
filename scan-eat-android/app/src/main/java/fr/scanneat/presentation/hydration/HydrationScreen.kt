@@ -83,7 +83,9 @@ fun HydrationScreen(
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.XL),
+            modifier = Modifier.fillMaxSize().padding(padding)
+                .ambientGloom(base = Background, primary = HydrationBlue, secondary = AccentCoral)
+                .padding(horizontal = Spacing.XL),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {
@@ -310,10 +312,9 @@ fun HydrationScreen(
     } else {
         Scaffold(
             topBar = {
-                TopAppBar(
+                FloatingTopBar(
                     title = { Text(stringResource(R.string.hydration_title), color = OnBackground) },
                     navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },

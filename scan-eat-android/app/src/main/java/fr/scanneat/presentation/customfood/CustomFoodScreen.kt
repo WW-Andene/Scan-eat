@@ -45,7 +45,7 @@ fun CustomFoodScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            FloatingTopBar(
                 title = { Text(stringResource(R.string.customfood_title), color = OnBackground) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -58,12 +58,11 @@ fun CustomFoodScreen(
                         Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
         containerColor = Background,
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = CalorieOrange)) {
             // Search bar
             OutlinedTextField(
                 value = query.value,

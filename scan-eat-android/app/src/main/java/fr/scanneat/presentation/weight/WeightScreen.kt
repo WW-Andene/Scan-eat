@@ -106,7 +106,9 @@ fun WeightScreen(
     val content = @Composable { padding: PaddingValues ->
         val reversedEntries = remember(entries.value) { entries.value.reversed() }
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            modifier = Modifier.fillMaxSize().padding(padding)
+                .ambientGloom(base = Background, primary = Gold, secondary = AccentCoral)
+                .padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Unit toggle + calendar nav — previously an inline single-domain
@@ -405,11 +407,10 @@ fun WeightScreen(
     } else {
         Scaffold(
             topBar = {
-                TopAppBar(
+                FloatingTopBar(
                     title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
                     navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                     actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },

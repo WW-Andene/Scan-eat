@@ -65,7 +65,9 @@ fun MedicationScreen(
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            modifier = Modifier.fillMaxSize().padding(padding)
+                .ambientGloom(base = Background, primary = Teal, secondary = AccentCoral)
+                .padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item { Spacer(Modifier.height(Spacing.S)) }
@@ -222,6 +224,7 @@ fun MedicationScreen(
             }
             items(medications.value, key = { it.id }) { m ->
                 val takenToday = todayTaken.value.find { it.medicationId == m.id }
+                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).background(SurfaceVariant).padding(Spacing.M),
                     verticalAlignment = Alignment.CenterVertically,
@@ -282,6 +285,7 @@ fun MedicationScreen(
                         )
                     }
                 }
+                }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
@@ -300,11 +304,10 @@ fun MedicationScreen(
     } else {
         Scaffold(
             topBar = {
-                TopAppBar(
+                FloatingTopBar(
                     title = { Text(stringResource(R.string.medication_title), color = OnBackground) },
                     navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                     actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.medication_cd_new), tint = Teal) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },

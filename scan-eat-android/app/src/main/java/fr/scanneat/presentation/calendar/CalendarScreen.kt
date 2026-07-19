@@ -75,16 +75,15 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            FloatingTopBar(
                 title = { Text(stringResource(R.string.calendar_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
         containerColor = Background,
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L).verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(horizontal = Spacing.L).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Spacer(Modifier.height(Spacing.XS))

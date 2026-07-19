@@ -78,7 +78,9 @@ fun OnboardingScreen(
 
     Scaffold(containerColor = Background) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 28.dp),
+            modifier = Modifier.fillMaxSize().padding(padding)
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
+                .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {

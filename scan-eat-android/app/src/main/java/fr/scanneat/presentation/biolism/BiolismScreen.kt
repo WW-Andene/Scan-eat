@@ -42,14 +42,27 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
 
     var activeTab by remember { mutableStateOf(BiolismTab.TRACKER) }
 
-    val bgColor = MaterialTheme.colorScheme.background
     val fgColor = MaterialTheme.colorScheme.onBackground
-    Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
-        // ── Internal 3-tab header ─────────────────────────────────────────────
-        Column(
+    Column(modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal)) {
+        // ── Internal 3-tab header — floating/detached like the rest of the app's
+        // chrome (FloatingTopBar/MainShell's nav), in Biolism's own Gold accent
+        // rather than the shared AccentCoral, so it stays recognizably Biolism's
+        // own header instead of borrowing Scan'eat's exact component. ──
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Background)
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(horizontal = Spacing.L, vertical = Spacing.S)
+                .glassSheen(edgeAlpha = 0.26f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold, glowAlpha = 0.06f, grainDensity = 20),
+        ) {
+        Surface(
+            shape           = RoundedCornerShape(CardRadius.PROMINENT),
+            color           = SurfaceVariant.copy(alpha = 0.92f),
+            shadowElevation = 8.dp,
+            modifier        = Modifier.fillMaxWidth(),
+        ) {
+        Column(
+            modifier = Modifier
                 .padding(horizontal = Spacing.L)
                 .padding(top = Spacing.M, bottom = Spacing.S),
         ) {
@@ -84,8 +97,8 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                 }
             }
         }
-
-        HorizontalDivider(color = OnBackground.copy(0.06f))
+        }
+        }
 
         // ── Tab content ───────────────────────────────────────────────────────
         Box(modifier = Modifier.fillMaxSize()) {

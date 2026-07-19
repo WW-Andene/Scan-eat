@@ -62,7 +62,7 @@ fun GroceryScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
+            FloatingTopBar(
                 title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
@@ -128,12 +128,11 @@ fun GroceryScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
         containerColor = Background,
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
+        Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = CalorieOrange, secondary = AccentCoral)) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,

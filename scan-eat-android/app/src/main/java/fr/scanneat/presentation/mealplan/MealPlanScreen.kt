@@ -67,7 +67,7 @@ fun MealPlanScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
+            FloatingTopBar(
                 title = { Text(stringResource(R.string.mealplan_title), color = OnBackground) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 // Repeating a whole week's plan previously meant re-assigning all 28
@@ -81,13 +81,14 @@ fun MealPlanScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
             )
         },
         containerColor = Background,
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            modifier = Modifier.fillMaxSize().padding(padding)
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Teal)
+                .padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
@@ -114,6 +115,7 @@ fun MealPlanScreen(
                 val isToday = date == LocalDate.now()
                 val kcal = dayCalories.value[date] ?: 0
                 val suggestion = gapSuggestions.value[date]
+                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -170,6 +172,7 @@ fun MealPlanScreen(
                             }
                         }
                     }
+                }
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }

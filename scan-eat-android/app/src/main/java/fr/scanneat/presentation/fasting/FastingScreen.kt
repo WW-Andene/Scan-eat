@@ -149,7 +149,9 @@ fun FastingScreen(
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            modifier = Modifier.fillMaxSize().padding(padding)
+                .ambientGloom(base = Background, primary = Teal, secondary = AccentCoral)
+                .padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(Spacing.L),
         ) {
             item { Spacer(Modifier.height(Spacing.S)) }
@@ -346,10 +348,9 @@ fun FastingScreen(
     } else {
         Scaffold(
             topBar = {
-                TopAppBar(
+                FloatingTopBar(
                     title = { Text(stringResource(R.string.fasting_title), color = OnBackground) },
                     navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },

@@ -136,7 +136,7 @@ fun ActivityScreen(
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = Warm, secondary = AccentCoral).padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             // Previously an inline single-domain MonthCalendar toggled here;
@@ -249,6 +249,7 @@ fun ActivityScreen(
             }
 
             items(entries.value, key = { it.id }) { e ->
+                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).background(SurfaceVariant).padding(Spacing.M),
                     verticalAlignment = Alignment.CenterVertically,
@@ -273,6 +274,7 @@ fun ActivityScreen(
                     IconButton(onClick = { deleteTarget = e.id }) {
                         Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
+                }
                 }
             }
 
@@ -303,11 +305,10 @@ fun ActivityScreen(
     } else {
         Scaffold(
             topBar = {
-                TopAppBar(
+                FloatingTopBar(
                     title = { Text(stringResource(R.string.activity_title), color = OnBackground) },
                     navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                     actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Background),
                 )
             },
             containerColor = Background,

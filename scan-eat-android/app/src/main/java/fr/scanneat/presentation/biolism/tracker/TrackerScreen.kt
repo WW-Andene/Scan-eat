@@ -25,7 +25,9 @@ import androidx.compose.material3.Surface
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.cards.*
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.ambientGloom
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
@@ -81,11 +83,10 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
         "Warm"   -> Warm;    "Severe"-> semanticRed();  else -> Teal
     }
 
-    val bgColor = MaterialTheme.colorScheme.background
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(bgColor)
+            .ambientGloom(base = Background, primary = Gold, secondary = Teal)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
             .padding(bottom = Spacing.XXL),

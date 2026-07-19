@@ -26,9 +26,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.data.cards.*
+import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.Teal
+import fr.scanneat.presentation.ui.theme.ambientGloom
 
 // Orchestrator only — each card section lives in cards/*.kt (one file per
 // independent card), shared helpers (BioCard, MetCellGrid, InfoRow, ...) in
@@ -51,8 +54,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val s   = timer.value
 
     if (met == null) {
-        val bgColor = MaterialTheme.colorScheme.background
-        Box(Modifier.fillMaxSize().background(bgColor), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(48.dp))
                 Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
@@ -62,9 +64,8 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         return
     }
 
-    val bgColor2 = MaterialTheme.colorScheme.background
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(bgColor2),
+        modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
