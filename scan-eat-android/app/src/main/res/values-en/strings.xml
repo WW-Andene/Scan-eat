@@ -771,7 +771,7 @@
     <string name="weight_undo">Undo</string>
     <string name="weight_weekly_avg_title">Weekly average</string>
     <string name="weight_logging_streak_label">Logging streak</string>
-    <string name="weight_logging_streak_value">%1$d days 🔥</string>
+    <string name="weight_logging_streak_value">%1$d days</string>
     <string name="weight_empty_body">No weigh-ins logged yet. Add your first weight to start tracking progress.</string>
     <string name="weight_cd_add">Add weight</string>
 
@@ -914,7 +914,7 @@
     <string name="fasting_7day_chart_title">Last 7 days</string>
     <string name="fasting_phase_label">Phase · %1$s</string>
     <string name="fasting_phase_next">Next: %1$s at %2$dh</string>
-    <string name="fasting_new_record">🏆 New personal record!</string>
+    <string name="fasting_new_record">New personal record!</string>
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Settings</string>

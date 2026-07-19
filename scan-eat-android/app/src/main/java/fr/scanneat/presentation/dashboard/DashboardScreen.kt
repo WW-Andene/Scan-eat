@@ -52,8 +52,10 @@ import fr.scanneat.presentation.result.LogSheet
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.EmptyListState
+import fr.scanneat.presentation.ui.theme.HydrationBlue
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.ambientGloom
 
 // Orchestrator only — each dashboard section lives in cards/*.kt, the
 // shared FeatureTile helper in DashboardScreenComponents.kt. Was previously
@@ -114,7 +116,11 @@ fun DashboardScreen(
         containerColor = Background,
     ) { padding ->
         LazyColumn(
-            modifier            = Modifier.fillMaxSize().padding(padding).padding(horizontal = Spacing.L),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = HydrationBlue)
+                .padding(horizontal = Spacing.L),
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }

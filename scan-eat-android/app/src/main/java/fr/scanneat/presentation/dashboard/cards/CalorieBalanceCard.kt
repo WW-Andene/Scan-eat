@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,6 +9,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,12 +39,33 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         else R.string.dashboard_calorie_balanced
     val sourceRes = if (balance.tdeeFromBiolism) R.string.dashboard_calorie_source_biolism else R.string.dashboard_calorie_source_profile
 
-    Box(modifier = Modifier.fillMaxWidth().glassSheen(shape = RoundedCornerShape(CardRadius.PROMINENT))) {
+    // Dashboard's single HERO-tier card (see CardEmphasis's own doc comment) —
+    // stronger glow/edge/grain than a plain glassSheen(), echoed in the
+    // balance's own color rather than a fixed hue, plus a one-time reveal on
+    // the number itself (started-flip idiom, same as ScoreDisplay's score ring).
+    var started by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { started = true }
+    val entrance = rememberHeroEntrance(visible = started)
+
+    Box(
+        modifier = Modifier.fillMaxWidth().glassSheen(
+            edgeAlpha    = 0.34f,
+            shape        = RoundedCornerShape(CardRadius.PROMINENT),
+            glowTint     = balColor,
+            glowAlpha    = 0.12f,
+            grainDensity = 70,
+        ),
+    ) {
         // This is the Dashboard's one focal metric — the Part B6 atmosphere
         // fix: a soft radial light-pool in the balance color, at Haze-level
         // intensity (~10% alpha), rendered on top of the flat surface fill
         // rather than left flat. Reserved for this card alone, not every card.
-        Surface(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(CardRadius.PROMINENT), color = Color.Transparent) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(CardRadius.PROMINENT),
+            color = Color.Transparent,
+            border = BorderStroke(1.dp, balColor.copy(alpha = 0.22f)),
+        ) {
             Column(
                 modifier = Modifier
                     .background(SurfaceVariant)
@@ -57,6 +84,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 Text(
                     (if (balance.net >= 0) "+" else "") + "${balance.net.roundToInt()} kcal",
                     style = HeroNumberStyle.copy(fontSize = 32.sp), color = balColor,
+                    modifier = Modifier.heroEntrance(entrance),
                 )
                 Text(stringResource(statusRes), style = MaterialTheme.typography.labelSmall, color = balColor, fontWeight = FontWeight.SemiBold)
 

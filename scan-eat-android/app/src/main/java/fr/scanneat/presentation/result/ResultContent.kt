@@ -52,6 +52,7 @@ internal fun ResultContent(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = Spacing.M),
         verticalArrangement = Arrangement.spacedBy(Spacing.L),
@@ -170,7 +171,8 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
         Triple(stringResource(R.string.result_macro_fiber),  nutrition.fiberG, 25.0),
     ).filter { (_, value, _) -> value > 0.0 }
     if (rows.isEmpty()) return
-    Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CARD))) {
+        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.result_macro_contribution_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
             rows.forEach { (label, value, ref) ->
@@ -199,6 +201,7 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
             // real informational content rendered too faint against the dark surface.
             Text(stringResource(R.string.result_macro_contribution_note), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         }
+        }
     }
 }
 
@@ -211,11 +214,12 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
     val range     = (maxScore - minScore).coerceAtLeast(1f)
     val lineColor = AccentCoral
 
-    Surface(
-        shape = RoundedCornerShape(CardRadius.CARD),
-        color = SurfaceVariant,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CARD))) {
+        Surface(
+            shape = RoundedCornerShape(CardRadius.CARD),
+            color = SurfaceVariant,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
         Column(modifier = Modifier.padding(Spacing.M)) {
             Text(
                 stringResource(R.string.result_score_history_title),
@@ -248,6 +252,7 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
                 Text("${scores.first()}", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnSurface.copy(0.4f))
                 Text("$currentScore", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = lineColor, fontWeight = FontWeight.Bold)
             }
+        }
         }
     }
 }

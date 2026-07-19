@@ -21,6 +21,7 @@ import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.glassSheen
 import kotlin.math.roundToInt
 
 @Composable
@@ -29,7 +30,7 @@ internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
     val color = if (delta.kcal <= 0) semanticGreen() else semanticAmber()
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(CardRadius.CONTROL))
+            .glassSheen(edgeAlpha = 0.10f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0f, reliefAlpha = 0f)
             .background(color.copy(0.1f))
             .padding(horizontal = 14.dp, vertical = Spacing.S),
         verticalAlignment = Alignment.CenterVertically,

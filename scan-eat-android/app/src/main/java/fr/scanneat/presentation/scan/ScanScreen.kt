@@ -169,7 +169,7 @@ fun ScanScreen(
     // it instead of sharing the screen as stacked siblings (the previous layout
     // left the camera only the leftover space between a header row and a
     // separate button row below it).
-    Box(modifier = Modifier.fillMaxSize().background(Background)) {
+    Box(modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
         // barcodeBounds: (rect, rotatedImgW, rotatedImgH) — updated on every frame that contains a barcode
         var barcodeBounds by remember { mutableStateOf<Triple<android.graphics.Rect, Int, Int>?>(null) }
 
@@ -287,8 +287,11 @@ fun ScanScreen(
             }
 
             barcode.value?.let { bc ->
+                Box(
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 96.dp)
+                        .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
+                ) {
                 Surface(
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 96.dp),
                     shape = RoundedCornerShape(24.dp),
                     color = SurfaceVariant.copy(0.9f),
                 ) {
@@ -315,6 +318,7 @@ fun ScanScreen(
                         }
                     }
                 }
+                }
             }
 
             // ── Photo queue — floats below the header, distinct corner from the button cluster ──
@@ -323,6 +327,7 @@ fun ScanScreen(
                     modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = 88.dp)
                         .padding(horizontal = Spacing.L),
                 ) {
+                    Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(10.dp))) {
                     Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f)) {
                         Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
                             Text(pluralStringResource(R.plurals.scan_photo_count, images.value.size, images.value.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
@@ -348,6 +353,7 @@ fun ScanScreen(
                                 }
                             }
                         }
+                    }
                     }
                 }
             }
@@ -394,8 +400,11 @@ fun ScanScreen(
             // from). Routes to OcrParser.identifyFood, which previously had no caller
             // anywhere in the app despite already being implemented. ──
             if (images.value.isNotEmpty() && barcode.value == null && state.value !is ScanUiState.Scanning) {
+                Box(
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = 28.dp)
+                        .glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f),
+                ) {
                 Surface(
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = 28.dp),
                     shape = RoundedCornerShape(CardRadius.PROMINENT),
                     color = SurfaceVariant.copy(0.9f),
                     onClick = { viewModel.identifyFromPhotos() },
@@ -405,6 +414,7 @@ fun ScanScreen(
                         Spacer(Modifier.width(6.dp))
                         Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
                     }
+                }
                 }
             }
 
@@ -416,6 +426,7 @@ fun ScanScreen(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     recentBarcodes.value.takeLast(3).reversed().forEach { bc ->
+                        Box(Modifier.glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(20.dp), glowAlpha = 0f, reliefAlpha = 0f)) {
                         Surface(
                             onClick = { viewModel.quickScan(bc) },
                             shape = RoundedCornerShape(20.dp),
@@ -425,6 +436,7 @@ fun ScanScreen(
                                 Icon(Icons.Default.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
                                 Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
                             }
+                        }
                         }
                     }
                 }

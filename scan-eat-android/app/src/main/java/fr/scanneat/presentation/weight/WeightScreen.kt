@@ -198,13 +198,22 @@ fun WeightScreen(
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text(stringResource(R.string.weight_logging_streak_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                 Surface(shape = RoundedCornerShape(50), color = Gold.copy(0.15f)) {
-                                    Text(
-                                        stringResource(R.string.weight_logging_streak_value, streak),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = Gold,
-                                        fontWeight = FontWeight.Bold,
+                                    Row(
                                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
-                                    )
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        // Icon, not the 🔥 emoji baked into the string before -
+                                        // same LocalFireDepartment streak-badge convention already
+                                        // used by Activity/Medication/Fasting/Hydration's own streaks.
+                                        Icon(Icons.Default.LocalFireDepartment, null, tint = Gold, modifier = Modifier.size(14.dp))
+                                        Text(
+                                            stringResource(R.string.weight_logging_streak_value, streak),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Gold,
+                                            fontWeight = FontWeight.Bold,
+                                        )
+                                    }
                                 }
                             }
                         }

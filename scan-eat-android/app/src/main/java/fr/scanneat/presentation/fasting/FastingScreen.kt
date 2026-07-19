@@ -216,7 +216,15 @@ fun FastingScreen(
                             val pr = personalRecord.value
                             if (pr > 0 && h >= pr) {
                                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Gold.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Gold.copy(0.4f))) {
-                                    Text(stringResource(R.string.fasting_new_record), modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS), style = MaterialTheme.typography.labelMedium, color = Gold, fontWeight = FontWeight.Bold)
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    ) {
+                                        // Icon, not the 🏆 emoji baked into the string before.
+                                        Icon(Icons.Default.EmojiEvents, null, tint = Gold, modifier = Modifier.size(16.dp))
+                                        Text(stringResource(R.string.fasting_new_record), style = MaterialTheme.typography.labelMedium, color = Gold, fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
 

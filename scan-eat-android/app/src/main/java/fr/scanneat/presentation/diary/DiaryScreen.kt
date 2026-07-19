@@ -102,7 +102,7 @@ fun DiaryScreen(
         },
         containerColor = Background,
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
+        Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L).padding(bottom = Spacing.S),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -251,6 +251,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                     MealSlot.SNACK     to semanticAmber().copy(0.6f),
                     MealSlot.DINNER    to semanticBlue().copy(0.6f),
                 )
+                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.10f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0f, grainDensity = 0)) {
                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Text(stringResource(R.string.diary_kcal_breakdown_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
@@ -284,6 +285,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                         }
                     }
                 }
+                }
             }
         }
 
@@ -294,6 +296,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                 val maxSlotProt = MealSlot.values().maxOfOrNull { slot ->
                     bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
                 }?.coerceAtLeast(1.0) ?: 1.0
+                Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.10f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0f, grainDensity = 0)) {
                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Text(stringResource(R.string.diary_protein_per_slot_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
@@ -313,6 +316,7 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                             }
                         }
                     }
+                }
                 }
             }
         }

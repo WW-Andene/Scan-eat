@@ -772,7 +772,7 @@
     <string name="weight_undo">Annuler</string>
     <string name="weight_weekly_avg_title">Moyenne hebdomadaire</string>
     <string name="weight_logging_streak_label">Série de pesées</string>
-    <string name="weight_logging_streak_value">%1$d j 🔥</string>
+    <string name="weight_logging_streak_value">%1$d j</string>
     <string name="weight_empty_body">Aucune pesée enregistrée. Ajoutez votre premier poids pour suivre votre évolution.</string>
     <string name="weight_cd_add">Ajouter un poids</string>
 
@@ -949,7 +949,7 @@
     <string name="fasting_7day_chart_title">7 derniers jours</string>
     <string name="fasting_phase_label">Phase · %1$s</string>
     <string name="fasting_phase_next">Prochain : %1$s à %2$dh</string>
-    <string name="fasting_new_record">🏆 Nouveau record !</string>
+    <string name="fasting_new_record">Nouveau record !</string>
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Paramètres</string>
