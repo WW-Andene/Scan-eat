@@ -1,7 +1,6 @@
 package fr.scanneat.presentation.history
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -267,15 +266,16 @@ fun ScanHistoryScreen(
                 items(scans.value, key = { it.dbId }) { scan ->
                     val gradeColor = gradeColor(scan.audit.grade)
                     val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
-                    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
+                    ScanEatCard(
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        color = SurfaceVariant,
+                        contentPadding = PaddingValues(Spacing.M),
+                        onClick = { if (scan.dbId > 0) onOpenResult(scan.dbId) },
+                    ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(CardRadius.CONTROL))
-                                .background(SurfaceVariant)
-                                .clickable { if (scan.dbId > 0) onOpenResult(scan.dbId) }
-                                .clearAndSetSemantics { contentDescription = summary }
-                                .padding(Spacing.M),
+                                .clearAndSetSemantics { contentDescription = summary },
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(Spacing.M),
                         ) {

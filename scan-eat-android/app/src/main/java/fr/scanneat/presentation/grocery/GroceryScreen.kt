@@ -309,45 +309,46 @@ private fun GroceryItemRow(
     // other destructive action in the app (Weight/Activity/Recipes/Templates/Medication/
     // CustomFood/ScanHistory) routes through DeleteConfirmDialog first.
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.14f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
-            Row(Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.XS), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                Checkbox(
-                    checked = checked,
-                    onCheckedChange = onToggleChecked,
-                    colors = CheckboxDefaults.colors(checkedColor = AccentCoral),
-                )
-                Column(Modifier.weight(1f)) {
-                    Text(item.name, style = MaterialTheme.typography.bodyMedium,
-                        color = OnSurface.copy(contentAlpha), fontWeight = FontWeight.Medium,
-                        textDecoration = if (checked) TextDecoration.LineThrough else null)
-                    if (item.sources.isNotEmpty()) {
-                        Text(item.sources.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f * contentAlpha))
-                    }
-                    // Diet/allergen check previously only ran on scanned products and
-                    // (as of this same round) Recipes - the grocery list itself, the
-                    // other place a user relies on the app to protect them, had none.
-                    warning?.let {
-                        Text(it, style = MaterialTheme.typography.labelSmall, color = semanticAmber().copy(contentAlpha))
-                    }
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        color = SurfaceVariant,
+        contentPadding = PaddingValues(horizontal = Spacing.XS, vertical = Spacing.XS),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Checkbox(
+                checked = checked,
+                onCheckedChange = onToggleChecked,
+                colors = CheckboxDefaults.colors(checkedColor = AccentCoral),
+            )
+            Column(Modifier.weight(1f)) {
+                Text(item.name, style = MaterialTheme.typography.bodyMedium,
+                    color = OnSurface.copy(contentAlpha), fontWeight = FontWeight.Medium,
+                    textDecoration = if (checked) TextDecoration.LineThrough else null)
+                if (item.sources.isNotEmpty()) {
+                    Text(item.sources.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f * contentAlpha))
                 }
-                if (item.grams > 0) {
-                    Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge,
-                        color = AccentCoral.copy(contentAlpha), fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(end = Spacing.S))
+                // Diet/allergen check previously only ran on scanned products and
+                // (as of this same round) Recipes - the grocery list itself, the
+                // other place a user relies on the app to protect them, had none.
+                warning?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = semanticAmber().copy(contentAlpha))
                 }
-                // Manually-added items (e.g. "Save to grocery" from a scanned
-                // product) previously had no way to be removed at all, only
-                // checked off — the only way to hide one was to leave it
-                // permanently ticked. Only shown when this row actually has a
-                // manual contribution, since a recipe-only row has nothing here to delete.
-                if (isManual) {
-                    // Left at IconButton's default 48dp touch target (Material/WCAG
-                    // minimum) - a UI/UX audit found this forced to 32dp.
-                    IconButton(onClick = { showDeleteConfirm = true }) {
-                        Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
-                    }
+            }
+            if (item.grams > 0) {
+                Text(stringResource(R.string.grocery_grams, item.grams), style = MaterialTheme.typography.labelLarge,
+                    color = AccentCoral.copy(contentAlpha), fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(end = Spacing.S))
+            }
+            // Manually-added items (e.g. "Save to grocery" from a scanned
+            // product) previously had no way to be removed at all, only
+            // checked off — the only way to hide one was to leave it
+            // permanently ticked. Only shown when this row actually has a
+            // manual contribution, since a recipe-only row has nothing here to delete.
+            if (isManual) {
+                // Left at IconButton's default 48dp touch target (Material/WCAG
+                // minimum) - a UI/UX audit found this forced to 32dp.
+                IconButton(onClick = { showDeleteConfirm = true }) {
+                    Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                 }
             }
         }
