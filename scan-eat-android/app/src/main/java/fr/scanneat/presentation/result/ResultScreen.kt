@@ -36,6 +36,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
+import fr.scanneat.presentation.ui.theme.FloatingTopBar
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant

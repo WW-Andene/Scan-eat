@@ -50,6 +50,7 @@ import fr.scanneat.presentation.result.LogSheet
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.EmptyListState
+import fr.scanneat.presentation.ui.theme.FloatingTopBar
 import fr.scanneat.presentation.ui.theme.HydrationBlue
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
