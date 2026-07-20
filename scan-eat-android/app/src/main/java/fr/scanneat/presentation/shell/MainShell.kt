@@ -3,10 +3,12 @@ package fr.scanneat.presentation.shell
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -26,70 +28,15 @@ fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
 
     val showNav = HIDDEN_NAV_ROUTES.none { currentRoute == it }
 
-    Scaffold(
-        containerColor = Background,
-        contentWindowInsets = WindowInsets.systemBars,
-        bottomBar = {
-            AnimatedVisibility(visible = showNav, enter = fadeIn(), exit = fadeOut()) {
-                // Floating/detached bottom nav — margin on every side instead of the
-                // previous edge-to-edge bar, rounded on all four corners (not just the
-                // top two), glassy + elevated so it reads as a chrome piece hovering
-                // over the content rather than fused to the screen edge. Handles its
-                // own nav-bar inset (windowInsets = 0 below) so the floating gap is the
-                // *only* gap, instead of stacking on top of NavigationBar's own default
-                // system-bar padding.
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .padding(horizontal = Spacing.L, vertical = Spacing.S)
-                        .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), grainDensity = 30),
-                ) {
-                Surface(
-                    shape           = RoundedCornerShape(CardRadius.PROMINENT),
-                    color           = SurfaceVariant.copy(alpha = 0.92f),
-                    shadowElevation = 8.dp,
-                    modifier        = Modifier.fillMaxWidth(),
-                ) {
-                NavigationBar(
-                    containerColor = Color.Transparent,
-                    tonalElevation = 0.dp,
-                    windowInsets   = WindowInsets(0.dp),
-                    modifier = Modifier.height(64.dp),
-                ) {
-                    val hierarchy = backStack.value?.destination?.hierarchy
-                    TOP_TABS.forEach { tab ->
-                        val isSelected = hierarchy?.any { it.route == tab.route } == true
-                        NavigationBarItem(
-                            selected = isSelected,
-                            onClick  = {
-                                navController.navigate(tab.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState    = true
-                                }
-                            },
-                            icon  = { Icon(tab.icon, stringResource(tab.labelRes),
-                                tint = if (isSelected) AccentCoral else IconInactive,
-                                modifier = Modifier.size(IconSize.Nav)) },
-                            label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
-                                color = if (isSelected) AccentCoral else IconInactive,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor   = AccentCoral,
-                                selectedTextColor   = AccentCoral,
-                                unselectedIconColor = IconInactive,
-                                unselectedTextColor = IconInactive,
-                                indicatorColor      = AccentCoral.copy(alpha = 0.12f),
-                            ),
-                        )
-                    }
-                }
-                }
-                }
-            }
-        },
-    ) { padding ->
+    // True floating chrome: a Box, not a Scaffold, so AppNavGraph's own screens
+    // fill the entire frame and the bottom nav is a z-ordered overlay on top of
+    // them instead of a Scaffold slot that pads content away from it — scrolling
+    // a list all the way down now shows cards passing underneath the nav's own
+    // translucent glassSheen(), rather than stopping short of it. Each screen
+    // reserves its own bottom clearance for this via FloatingScreenScaffold's
+    // BottomNavClearance (see FloatingBars.kt) instead of this Box consuming it
+    // via Scaffold's contentWindowInsets/padding.
+    Box(Modifier.fillMaxSize().background(Background)) {
         AppNavGraph(
             navController    = navController,
             startDestination = when {
@@ -97,16 +44,70 @@ fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
                 startRoute != null -> startRoute
                 else               -> TopTab.Dashboard.route
             },
-            // consumeWindowInsets, not just padding — Scaffold's own doc comment
-            // says the content lambda's PaddingValues "should be applied ... via
-            // padding and consumeWindowInsets" together. Without this, every
-            // screen's own inner Scaffold(topBar = { FloatingTopBar(...) }) reads
-            // WindowInsets.statusBars fresh (it's an ambient system value, not a
-            // shrinking budget) and re-applies the *same* status-bar inset a
-            // second time on top of the gap this outer Scaffold already reserved
-            // via contentWindowInsets - doubling the empty space above every
-            // floating header instead of showing just one gap.
-            modifier         = Modifier.padding(padding).consumeWindowInsets(padding),
+            modifier         = Modifier.fillMaxSize(),
         )
+        AnimatedVisibility(
+            visible  = showNav,
+            enter    = fadeIn(),
+            exit     = fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
+            // Floating/detached bottom nav — margin on every side instead of the
+            // previous edge-to-edge bar, rounded on all four corners (not just the
+            // top two), glassy + elevated so it reads as a chrome piece hovering
+            // over the content rather than fused to the screen edge. Handles its
+            // own nav-bar inset (windowInsets = 0 below) so the floating gap is the
+            // *only* gap, instead of stacking on top of NavigationBar's own default
+            // system-bar padding.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(horizontal = Spacing.L, vertical = Spacing.S)
+                    .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT)),
+            ) {
+            Surface(
+                shape           = RoundedCornerShape(CardRadius.PROMINENT),
+                color           = SurfaceVariant.copy(alpha = 0.7f),
+                shadowElevation = 8.dp,
+                modifier        = Modifier.fillMaxWidth(),
+            ) {
+            NavigationBar(
+                containerColor = Color.Transparent,
+                tonalElevation = 0.dp,
+                windowInsets   = WindowInsets(0.dp),
+                modifier = Modifier.height(64.dp),
+            ) {
+                val hierarchy = backStack.value?.destination?.hierarchy
+                TOP_TABS.forEach { tab ->
+                    val isSelected = hierarchy?.any { it.route == tab.route } == true
+                    NavigationBarItem(
+                        selected = isSelected,
+                        onClick  = {
+                            navController.navigate(tab.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState    = true
+                            }
+                        },
+                        icon  = { Icon(tab.icon, stringResource(tab.labelRes),
+                            tint = if (isSelected) AccentCoral else IconInactive,
+                            modifier = Modifier.size(IconSize.Nav)) },
+                        label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
+                            color = if (isSelected) AccentCoral else IconInactive,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor   = AccentCoral,
+                            selectedTextColor   = AccentCoral,
+                            unselectedIconColor = IconInactive,
+                            unselectedTextColor = IconInactive,
+                            indicatorColor      = AccentCoral.copy(alpha = 0.12f),
+                        ),
+                    )
+                }
+            }
+            }
+            }
+        }
     }
 }

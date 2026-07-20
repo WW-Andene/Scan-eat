@@ -105,65 +105,66 @@ fun DiaryScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.diary_header), color = OnBackground, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    if (!isTabRoot) {
-                        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
-                    }
-                },
-            )
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.diary_header), color = OnBackground, fontWeight = FontWeight.Bold) },
+        navigationIcon = {
+            if (!isTabRoot) {
+                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
+            }
         },
-        // Only Meals has a manual "search and log" entry point — the other tabs
-        // (weight/water/activity/fasting) each already have their own add
-        // affordance (a "+" button in their own embedded screen).
-        floatingActionButton = {
+        showBottomNavClearance = true,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
+        val bottomClearance = padding.calculateBottomPadding()
+        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
+            Column(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L).padding(bottom = Spacing.S),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    DiaryTab.entries.forEach { tab ->
+                        val isActive = tab == activeTab
+                        Surface(
+                            onClick = { activeTab = tab },
+                            modifier = Modifier.weight(1f).semantics { role = Role.Tab; selected = isActive },
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isActive) AccentCoral.copy(0.15f) else OnBackground.copy(0.03f),
+                            border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
+                        ) {
+                            Text(
+                                stringResource(tab.labelRes),
+                                modifier = Modifier.padding(vertical = Spacing.S),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
+                                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                            )
+                        }
+                    }
+                }
+                ScanEatDivider()
+
+                when (activeTab) {
+                    DiaryTab.MEALS    -> MealsTab(viewModel, bottomPadding = bottomClearance)
+                    DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                    DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                    DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                    DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                    DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                }
+            }
+            // Only Meals has a manual "search and log" entry point — the other tabs
+            // (weight/water/activity/fasting) each already have their own add
+            // affordance (a "+" button in their own embedded screen).
             if (activeTab == DiaryTab.MEALS) {
-                FloatingActionButton(onClick = { showAddEntry = true }, containerColor = AccentCoral) {
+                FloatingActionButton(
+                    onClick = { showAddEntry = true },
+                    containerColor = AccentCoral,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
+                ) {
                     Icon(Icons.Default.Add, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
                 }
-            }
-        },
-        containerColor = Background,
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L).padding(bottom = Spacing.S),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                DiaryTab.entries.forEach { tab ->
-                    val isActive = tab == activeTab
-                    Surface(
-                        onClick = { activeTab = tab },
-                        modifier = Modifier.weight(1f).semantics { role = Role.Tab; selected = isActive },
-                        shape = RoundedCornerShape(8.dp),
-                        color = if (isActive) AccentCoral.copy(0.15f) else OnBackground.copy(0.03f),
-                        border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
-                    ) {
-                        Text(
-                            stringResource(tab.labelRes),
-                            modifier = Modifier.padding(vertical = Spacing.S),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
-                            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                        )
-                    }
-                }
-            }
-            ScanEatDivider()
-
-            when (activeTab) {
-                DiaryTab.MEALS    -> MealsTab(viewModel)
-                DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
-                DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
-                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
-                DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
-                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, onOpenCalendar = onOpenCalendar)
             }
         }
     }
@@ -174,7 +175,7 @@ fun DiaryScreen(
 }
 
 @Composable
-private fun MealsTab(viewModel: DiaryViewModel) {
+private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.ui.unit.Dp = 0.dp) {
     val summary      = viewModel.summary.collectAsStateWithLifecycle()
     val selectedDate = viewModel.selectedDate.collectAsStateWithLifecycle()
     val isToday      = viewModel.isToday.collectAsStateWithLifecycle(initialValue = true)
@@ -219,7 +220,8 @@ private fun MealsTab(viewModel: DiaryViewModel) {
     }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(bottom = bottomPadding),
+        verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { Spacer(Modifier.height(Spacing.XS)) }
 

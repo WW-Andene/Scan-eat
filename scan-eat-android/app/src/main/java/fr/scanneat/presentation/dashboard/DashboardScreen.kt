@@ -22,7 +22,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -50,7 +49,7 @@ import fr.scanneat.presentation.result.LogSheet
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.EmptyListState
-import fr.scanneat.presentation.ui.theme.FloatingTopBar
+import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
 import fr.scanneat.presentation.ui.theme.HydrationBlue
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -100,28 +99,24 @@ fun DashboardScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.dashboard_title), color = OnBackground) },
-                navigationIcon = {
-                    if (!isTabRoot) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
-                        }
-                    }
-                },
-            )
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.dashboard_title), color = OnBackground) },
+        navigationIcon = {
+            if (!isTabRoot) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+                }
+            }
         },
+        showBottomNavClearance = isTabRoot,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Background,
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = HydrationBlue)
                 .padding(horizontal = Spacing.L),
+            contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }

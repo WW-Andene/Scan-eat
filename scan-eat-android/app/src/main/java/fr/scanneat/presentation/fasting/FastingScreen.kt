@@ -111,6 +111,10 @@ fun FastingScreen(
     viewModel: FastingViewModel = hiltViewModel(),
     onBack: () -> Unit,
     embedded: Boolean = false,
+    // Only meaningful when [embedded] — the host (DiaryScreen) supplies this so
+    // this screen's own LazyColumn reserves the same floating-bottom-nav
+    // clearance the host itself is already reserving.
+    embeddedBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onOpenCalendar: () -> Unit = {},
 ) {
     val state          = viewModel.fastingState.collectAsStateWithLifecycle()
@@ -148,10 +152,11 @@ fun FastingScreen(
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding)
+            modifier = Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = Teal, secondary = AccentCoral)
                 .padding(horizontal = Spacing.L),
-            verticalArrangement = Arrangement.spacedBy(Spacing.L),
+            contentPadding = padding,
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.S)) }
 
@@ -340,19 +345,14 @@ fun FastingScreen(
 
     if (embedded) {
         Box(Modifier.fillMaxSize()) {
-            content(PaddingValues(0.dp))
-            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+            content(PaddingValues(bottom = embeddedBottomPadding))
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
-        Scaffold(
-            topBar = {
-                FloatingTopBar(
-                    title = { Text(stringResource(R.string.fasting_title), color = OnBackground) },
-                    navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                )
-            },
+        FloatingScreenScaffold(
+            title = { Text(stringResource(R.string.fasting_title), color = OnBackground) },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = Background,
         ) { padding -> content(padding) }
     }
 }

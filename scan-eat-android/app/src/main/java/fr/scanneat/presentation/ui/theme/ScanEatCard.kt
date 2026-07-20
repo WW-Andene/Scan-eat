@@ -26,13 +26,12 @@ import androidx.compose.ui.unit.dp
  * on a screen got the exact same glassSheen()/border treatment regardless of
  * whether it was the one number a screen exists to show (Dashboard's calorie
  * balance, Result's score) or a minor supporting stat three scrolls down.
- *  - HERO: the single focal element on a screen — stronger glow, a visible
- *    tinted border, and a touch more grain. Use for at most one element per
- *    screen; using it everywhere defeats the point of a hierarchy.
+ *  - HERO: the single focal element on a screen — stronger glow and a
+ *    visible tinted border. Use for at most one element per screen; using
+ *    it everywhere defeats the point of a hierarchy.
  *  - PRIMARY: the default — matches this card primitive's original look
- *    (same edge/glow strength ScanEatCard already shipped with) plus the new
- *    subtle glow/grain layers everyone gets for free.
- *  - SECONDARY: supporting/minor content — quieter still, no grain.
+ *    (same edge/glow strength ScanEatCard already shipped with).
+ *  - SECONDARY: supporting/minor content — quieter still.
  */
 enum class CardEmphasis { HERO, PRIMARY, SECONDARY }
 
@@ -41,10 +40,10 @@ enum class CardEmphasis { HERO, PRIMARY, SECONDARY }
 // BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit
 // doesn't expose - can still render at the HERO tier without re-declaring
 // (and risking drifting from) these same numbers as separate literals.
-internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val grainDensity: Int, val borderAlpha: Float)
-internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, grainDensity = 70, borderAlpha = 0.22f)
-private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, grainDensity = 40, borderAlpha = 0f)
-private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, grainDensity = 0,  borderAlpha = 0f)
+internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val borderAlpha: Float)
+internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, borderAlpha = 0.22f)
+private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, borderAlpha = 0f)
+private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, borderAlpha = 0f)
 
 /**
  * The app's one card primitive — glassSheen() top-light + hairline edge over
@@ -55,10 +54,10 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
  * default, not a per-screen coin flip.
  *
  * Frosted-glass + hierarchy upgrade (app-wide polish pass):
- *  - [color] now defaults to a translucent (not fully opaque) fill, so a
- *    screen's own ambient background wash (see [ambientGloom]) bleeds
- *    through very slightly — this is what actually reads as "frosted glass
- *    over an atmosphere" rather than a flat tinted rectangle. Existing call
+ *  - [color] defaults to a meaningfully translucent fill (not near-opaque),
+ *    so a screen's own ambient background wash (see [ambientGloom]) bleeds
+ *    through visibly — this is what actually reads as "frosted glass over
+ *    an atmosphere" rather than a flat tinted rectangle. Existing call
  *    sites that pass an explicit [color] are unaffected.
  *  - [emphasis]/[accent] pick which [CardEmphasis] tier this card renders at
  *    and which hue its glow/border echo — default (PRIMARY, white accent)
@@ -75,7 +74,7 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
 fun ScanEatCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(CardRadius.CARD),
-    color: Color = SurfaceVariant.copy(alpha = 0.86f),
+    color: Color = SurfaceVariant.copy(alpha = 0.62f),
     contentPadding: PaddingValues = PaddingValues(14.dp),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,
@@ -96,7 +95,6 @@ fun ScanEatCard(
             shape = shape,
             glowTint = accent,
             glowAlpha = spec.glowAlpha,
-            grainDensity = spec.grainDensity,
         ),
     ) {
         Surface(

@@ -39,6 +39,10 @@ fun MedicationScreen(
     viewModel: MedicationViewModel = hiltViewModel(),
     onBack: () -> Unit,
     embedded: Boolean = false,
+    // Only meaningful when [embedded] — the host (DiaryScreen) supplies this so
+    // this screen's own LazyColumn reserves the same floating-bottom-nav
+    // clearance the host itself is already reserving.
+    embeddedBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onOpenCalendar: () -> Unit = {},
 ) {
     val medications          = viewModel.medications.collectAsStateWithLifecycle()
@@ -65,10 +69,11 @@ fun MedicationScreen(
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding)
+            modifier = Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = Teal, secondary = AccentCoral)
                 .padding(horizontal = Spacing.L),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = padding,
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.S)) }
             // Previously no calendar entry point at all for Traitement (unlike
@@ -293,25 +298,20 @@ fun MedicationScreen(
 
     if (embedded) {
         Box(Modifier.fillMaxSize()) {
-            content(PaddingValues(0.dp))
+            content(PaddingValues(bottom = embeddedBottomPadding))
             FloatingActionButton(
                 onClick = { showAdd = true },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.L),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = Teal,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = androidx.compose.ui.graphics.Color.Black) }
-            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
-        Scaffold(
-            topBar = {
-                FloatingTopBar(
-                    title = { Text(stringResource(R.string.medication_title), color = OnBackground) },
-                    navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.medication_cd_new), tint = Teal) } },
-                )
-            },
+        FloatingScreenScaffold(
+            title = { Text(stringResource(R.string.medication_title), color = OnBackground) },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+            actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.medication_cd_new), tint = Teal) } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            containerColor = Background,
         ) { padding -> content(padding) }
     }
 

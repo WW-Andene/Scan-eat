@@ -84,6 +84,10 @@ fun ActivityScreen(
     viewModel: ActivityViewModel = hiltViewModel(),
     onBack: () -> Unit,
     embedded: Boolean = false,
+    // Only meaningful when [embedded] — the host (DiaryScreen) supplies this so
+    // this screen's own LazyColumn reserves the same floating-bottom-nav
+    // clearance the host itself is already reserving.
+    embeddedBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onOpenCalendar: () -> Unit = {},
 ) {
     // LaunchedEffect(Unit) only ever fires once for this composable's lifetime -
@@ -136,8 +140,9 @@ fun ActivityScreen(
 
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = Warm, secondary = AccentCoral).padding(horizontal = Spacing.L),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Warm, secondary = AccentCoral).padding(horizontal = Spacing.L),
+            contentPadding = padding,
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             // Previously an inline single-domain MonthCalendar toggled here;
             // now routes to the unified Calendar (Dashboard), which shows
@@ -294,24 +299,19 @@ fun ActivityScreen(
 
     if (embedded) {
         Box(Modifier.fillMaxSize()) {
-            content(PaddingValues(0.dp))
+            content(PaddingValues(bottom = embeddedBottomPadding))
             FloatingActionButton(
                 onClick = { showAdd = true },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(Spacing.L),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
-            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
-        Scaffold(
-            topBar = {
-                FloatingTopBar(
-                    title = { Text(stringResource(R.string.activity_title), color = OnBackground) },
-                    navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                    actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
-                )
-            },
-            containerColor = Background,
+        FloatingScreenScaffold(
+            title = { Text(stringResource(R.string.activity_title), color = OnBackground) },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+            actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }

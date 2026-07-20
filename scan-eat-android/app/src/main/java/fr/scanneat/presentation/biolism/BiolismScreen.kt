@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
@@ -31,6 +32,11 @@ private enum class BiolismTab(@androidx.annotation.StringRes val labelRes: Int) 
     EVOLUTION(R.string.biolism_tab_evolution), PROFILE(R.string.biolism_tab_profile)
 }
 
+// Taller than FloatingTopBarHeight (title + subtitle + tab row, not just a
+// single title row) — not including the device's own status-bar inset, which
+// is added separately via windowInsetsPadding below, same as FloatingTopBar.
+private val BiolismHeaderHeight = 140.dp
+
 @Composable
 fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     val profile   = gateViewModel.profile.collectAsStateWithLifecycle()
@@ -44,21 +50,44 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     var activeTab by remember { mutableStateOf(BiolismTab.TRACKER) }
 
     val fgColor = MaterialTheme.colorScheme.onBackground
-    Column(modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal)) {
-        // ── Internal 3-tab header — floating/detached like the rest of the app's
+    // True floating chrome, matching MainShell/FloatingScreenScaffold: the tab
+    // content Box fills the whole frame and the header floats on top of it
+    // (z-order, not push-down), so scrolling a tab's content passes underneath
+    // the header's own translucent glassSheen() instead of stopping short of
+    // it. Bottom clearance for MainShell's own floating nav (Biolism is one of
+    // its TOP_TABS) is reserved here as a fixed gap rather than true
+    // scroll-under, since none of the 4 tab screens below expose a
+    // contentPadding hook of their own to thread it through precisely.
+    Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = BiolismHeaderHeight)
+                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight),
+        ) {
+            when (activeTab) {
+                BiolismTab.TRACKER   -> TrackerScreen()
+                BiolismTab.DATA      -> DataScreen()
+                BiolismTab.EVOLUTION -> EvolutionScreen()
+                BiolismTab.PROFILE   -> BiolismProfileScreen()
+            }
+        }
+
+        // ── Internal 4-tab header — floating/detached like the rest of the app's
         // chrome (FloatingTopBar/MainShell's nav), in Biolism's own Gold accent
         // rather than the shared AccentCoral, so it stays recognizably Biolism's
         // own header instead of borrowing Scan'eat's exact component. ──
         Box(
             modifier = Modifier
+                .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(horizontal = Spacing.L, vertical = Spacing.S)
-                .glassSheen(edgeAlpha = 0.26f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold, glowAlpha = 0.06f, grainDensity = 20),
+                .glassSheen(edgeAlpha = 0.26f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold, glowAlpha = 0.06f),
         ) {
         Surface(
             shape           = RoundedCornerShape(CardRadius.PROMINENT),
-            color           = SurfaceVariant.copy(alpha = 0.92f),
+            color           = SurfaceVariant.copy(alpha = 0.7f),
             shadowElevation = 8.dp,
             modifier        = Modifier.fillMaxWidth(),
         ) {
@@ -99,16 +128,6 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
             }
         }
         }
-        }
-
-        // ── Tab content ───────────────────────────────────────────────────────
-        Box(modifier = Modifier.fillMaxSize()) {
-            when (activeTab) {
-                BiolismTab.TRACKER   -> TrackerScreen()
-                BiolismTab.DATA      -> DataScreen()
-                BiolismTab.EVOLUTION -> EvolutionScreen()
-                BiolismTab.PROFILE   -> BiolismProfileScreen()
-            }
         }
     }
 }

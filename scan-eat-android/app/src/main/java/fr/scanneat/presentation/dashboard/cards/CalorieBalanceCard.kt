@@ -40,20 +40,19 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
     val sourceRes = if (balance.tdeeFromBiolism) R.string.dashboard_calorie_source_biolism else R.string.dashboard_calorie_source_profile
 
     // Dashboard's single HERO-tier card (see CardEmphasis's own doc comment) —
-    // stronger glow/edge/grain than a plain glassSheen(), echoed in the
-    // balance's own color rather than a fixed hue, plus a one-time reveal on
-    // the number itself (started-flip idiom, same as ScoreDisplay's score ring).
+    // stronger glow/edge than a plain glassSheen(), echoed in the balance's
+    // own color rather than a fixed hue, plus a one-time reveal on the number
+    // itself (started-flip idiom, same as ScoreDisplay's score ring).
     var started by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { started = true }
     val entrance = rememberHeroEntrance(visible = started)
 
     Box(
         modifier = Modifier.fillMaxWidth().glassSheen(
-            edgeAlpha    = HeroGlassSpec.edgeAlpha,
-            shape        = RoundedCornerShape(CardRadius.PROMINENT),
-            glowTint     = balColor,
-            glowAlpha    = HeroGlassSpec.glowAlpha,
-            grainDensity = HeroGlassSpec.grainDensity,
+            edgeAlpha = HeroGlassSpec.edgeAlpha,
+            shape     = RoundedCornerShape(CardRadius.PROMINENT),
+            glowTint  = balColor,
+            glowAlpha = HeroGlassSpec.glowAlpha,
         ),
     ) {
         // This is the Dashboard's one focal metric — the Part B6 atmosphere
