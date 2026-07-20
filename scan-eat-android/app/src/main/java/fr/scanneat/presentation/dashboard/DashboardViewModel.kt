@@ -69,6 +69,10 @@ data class DashboardUiState(
     // anything past a single week anywhere on the Dashboard.
     val monthly: RollupResult? = null,
     val weekDelta: WeekOverWeekDelta? = null,
+    // monthOverMonthDelta() existed alongside weekOverWeekDelta() but had no
+    // Dashboard caller - MonthlyTrendCard only ever plotted 30 daily bars
+    // against a flat target line, no delta number the way WeekDeltaCard has.
+    val monthDelta: WeekOverWeekDelta? = null,
     val weightSummary: fr.scanneat.data.repository.health.WeightSummary? = null,
     val weightForecast: WeightForecast = WeightForecast.InsufficientData,
     val gapSuggestions: List<GapEntry> = emptyList(),
@@ -176,6 +180,13 @@ class DashboardViewModel @Inject constructor(
                     val thisWeek  = weeklyRollup(allEntries, date)
                     val priorWeek = weeklyRollup(allEntries, date.minusDays(7))
                     val thisMonth = monthlyRollup(allEntries, date)
+                    // allEntries only ever covers the last 30 days (observeRange above) -
+                    // a prior-30-day comparison needs its own one-shot fetch of days
+                    // 31-60 ago, not widening the primary reactive window every other
+                    // computation in this block reads from.
+                    val priorMonthEnd = date.minusDays(31)
+                    val priorMonthEntries = consumptionRepo.observeRange(priorMonthEnd.minusDays(29), priorMonthEnd).first()
+                    val monthDelta = monthOverMonthDelta(thisMonth, monthlyRollup(priorMonthEntries, priorMonthEnd))
                     val wSummary  = weightRepo.summarize(30)
                     val forecast  = if (wSummary != null && profile.goalWeightKg != null)
                         weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
@@ -194,12 +205,31 @@ class DashboardViewModel @Inject constructor(
                     // fresh range query (not the single-day observeByDate used elsewhere
                     // on Dashboard) since no 7-day activity window was already loaded here.
                     val weeklyActiveMinutes = activityRepo.getRange(date.minusDays(6), date).sumOf { it.minutes }
+                    val weekStart = date.minusDays(6)
+                    // "five trackers... never cross-reference each other" (see
+                    // weeklyCrossTrackerInsight's own doc comment) - fasting/hydration
+                    // were tracked but excluded from this insight entirely. Fasting
+                    // adherence mirrors FastingScreen's own "successCount/completed.size"
+                    // convention (% of *attempted* fasts that hit target, not % of the
+                    // week, since fasting is often deliberately not a daily practice) -
+                    // hydration is expected daily, so it divides by the fixed 7-day week.
+                    val weeklyFastCompletions = fastingRepo.history.first().filter { c ->
+                        runCatching { LocalDate.parse(c.date) }.getOrNull()?.let { it in weekStart..date } == true
+                    }
+                    val weeklyFastingAdherencePct = weeklyFastCompletions.takeIf { it.isNotEmpty() }
+                        ?.let { it.count { c -> c.reached } * 100 / it.size }
+                    val weeklyHydrationEntries = hydrationRepo.exportAll().filter { (d, _) -> d in weekStart..date }
+                    val hydrationGoal = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions)
+                    val weeklyHydrationAdherencePct = weeklyHydrationEntries.takeIf { it.isNotEmpty() && hydrationGoal > 0 }
+                        ?.let { entries -> entries.count { (_, ml) -> ml >= hydrationGoal } * 100 / 7 }
                     val crossInsight = weeklyCrossTrackerInsight(
                         weeklyAvgKcal         = thisWeek.avg.kcal,
                         kcalTarget            = targets?.kcal ?: 0.0,
                         daysLogged            = thisWeek.daysLogged,
                         weightTrendKgPerWeek  = wSummary?.trendKgPerWeek,
                         weeklyActiveMinutes   = weeklyActiveMinutes,
+                        weeklyFastingAdherencePct   = weeklyFastingAdherencePct,
+                        weeklyHydrationAdherencePct = weeklyHydrationAdherencePct,
                     )
 
                     val calorieBalance = targets?.kcal?.let {
@@ -220,6 +250,7 @@ class DashboardViewModel @Inject constructor(
                         weekly         = thisWeek,
                         monthly        = thisMonth,
                         weekDelta      = weekOverWeekDelta(thisWeek, priorWeek),
+                        monthDelta     = monthDelta,
                         weightSummary  = wSummary,
                         weightForecast = forecast,
                         gapSuggestions = gaps,

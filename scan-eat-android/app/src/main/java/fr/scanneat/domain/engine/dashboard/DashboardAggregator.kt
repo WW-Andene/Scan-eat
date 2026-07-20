@@ -172,6 +172,24 @@ fun weekOverWeekDelta(current: RollupResult, prior: RollupResult): WeekOverWeekD
     )
 }
 
+/**
+ * Same delta math as [weekOverWeekDelta], for a 30-day window instead of 7 -
+ * MonthlyTrendCard only ever plotted 30 daily bars against a flat target line,
+ * with no comparison number to the prior 30-day window the way WeekDeltaCard
+ * already has for weeks. Reuses [WeekOverWeekDelta]'s shape (it's just a kcal/
+ * protein/carbs/fat delta struct, not actually week-specific) rather than
+ * introducing a parallel type for the exact same four fields.
+ */
+fun monthOverMonthDelta(current: RollupResult, prior: RollupResult): WeekOverWeekDelta {
+    fun delta(a: Double, b: Double) = (a - b).roundTo1Decimal()
+    return WeekOverWeekDelta(
+        kcal     = delta(current.avg.kcal,     prior.avg.kcal),
+        proteinG = delta(current.avg.proteinG, prior.avg.proteinG),
+        carbsG   = delta(current.avg.carbsG,   prior.avg.carbsG),
+        fatG     = delta(current.avg.fatG,     prior.avg.fatG),
+    )
+}
+
 // ============================================================================
 // logStreakDays — consecutive days with at least one logged entry (1-day grace)
 // Port of logStreakDays() from presenters.js
@@ -458,6 +476,16 @@ sealed class CrossTrackerInsight {
         val weightTrendKgPerWeek: Double,
         val weeklyActiveMinutes: Int,
         val agreement: InsightAgreement,
+        // Fasting and hydration were tracked but never cross-referenced anywhere
+        // (see this section's own doc comment: "five trackers... never cross-
+        // reference each other"). Both optional/percent-of-goal rather than
+        // folded into [agreement] - a genuine "does eating-under-target,
+        // fasting adherence, AND hydration all agree" verdict needs its own
+        // reasoned rules, not a guess bolted onto the existing weight-vs-intake
+        // one. Null means the user isn't tracking that one (no history/no goal),
+        // not "0% adherence".
+        val weeklyFastingAdherencePct: Int? = null,
+        val weeklyHydrationAdherencePct: Int? = null,
     ) : CrossTrackerInsight()
 }
 
@@ -474,6 +502,8 @@ fun weeklyCrossTrackerInsight(
     weightTrendKgPerWeek: Double?,
     weeklyActiveMinutes: Int,
     minLoggedDays: Int = 4,
+    weeklyFastingAdherencePct: Int? = null,
+    weeklyHydrationAdherencePct: Int? = null,
 ): CrossTrackerInsight {
     if (daysLogged < minLoggedDays || weightTrendKgPerWeek == null || kcalTarget <= 0) return CrossTrackerInsight.InsufficientData
     val avgDeficit = (kcalTarget - weeklyAvgKcal).roundToInt()
@@ -485,7 +515,10 @@ fun weeklyCrossTrackerInsight(
         avgDeficit < 0 && weightTrendKgPerWeek > 0 -> InsightAgreement.CONSISTENT // eating over target, scale trending up
         else -> InsightAgreement.MISMATCH
     }
-    return CrossTrackerInsight.WeightVsIntake(avgDeficit, weightTrendKgPerWeek, weeklyActiveMinutes, agreement)
+    return CrossTrackerInsight.WeightVsIntake(
+        avgDeficit, weightTrendKgPerWeek, weeklyActiveMinutes, agreement,
+        weeklyFastingAdherencePct, weeklyHydrationAdherencePct,
+    )
 }
 
 // DailyTargets (from PersonalScoreEngine) now includes all micronutrient targets.

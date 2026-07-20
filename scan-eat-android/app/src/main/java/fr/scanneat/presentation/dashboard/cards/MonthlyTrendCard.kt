@@ -3,6 +3,10 @@ package fr.scanneat.presentation.dashboard.cards
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.RollupResult
+import fr.scanneat.domain.engine.dashboard.WeekOverWeekDelta
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.presentation.ui.theme.*
 import java.time.format.DateTimeFormatter
@@ -31,7 +36,7 @@ import kotlin.math.roundToInt
  * single week on the Dashboard.
  */
 @Composable
-internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, language: String) {
+internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, language: String, delta: WeekOverWeekDelta? = null) {
   ScanEatCard(
     color = SurfaceVariant,
     contentPadding = PaddingValues(Spacing.L),
@@ -44,6 +49,23 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
                 else stringResource(R.string.dashboard_week_avg_kcal, rollup.avg.kcal.roundToInt()),
                 style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f),
             )
+        }
+        // WeekDeltaCard already compares this week to last week - the 30-day view
+        // right below it had no equivalent, no way to tell "is this month trending
+        // up or down from the prior 30 days" without doing the arithmetic by hand.
+        delta?.let { d ->
+            val sign = if (d.kcal >= 0) "+" else ""
+            val color = if (d.kcal <= 0) semanticGreen() else semanticAmber()
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Icon(
+                    if (d.kcal >= 0) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
+                    null, tint = color, modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    stringResource(R.string.dashboard_month_delta, "$sign${d.kcal.roundToInt()}"),
+                    style = MaterialTheme.typography.labelSmall, color = color,
+                )
+            }
         }
         val peak = (listOf(targets?.kcal ?: 0.0) + rollup.days.map { it.kcal }).maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
         Row(

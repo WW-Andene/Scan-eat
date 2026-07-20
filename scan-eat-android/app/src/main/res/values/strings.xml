@@ -1081,6 +1081,7 @@
     <string name="dashboard_month_title">30 derniers jours</string>
     <string name="dashboard_month_days_logged">%1$d/%2$d jours suivis</string>
     <string name="dashboard_week_delta">%1$s kcal vs semaine dernière</string>
+    <string name="dashboard_month_delta">%1$s kcal vs mois dernier</string>
     <string name="dashboard_gap_title">Combler les écarts</string>
     <string name="dashboard_gap_entry">%1$s : −%2$s manquant</string>
     <string name="dashboard_gap_suggestion">%1$s · %2$d g</string>
@@ -1095,6 +1096,8 @@
     <string name="dashboard_insight_deficit_not_losing">Cette semaine : déficit moyen de %1$d kcal/j, mais le poids ne baisse pas (%2$+.1f kg/sem) — à surveiller.</string>
     <string name="dashboard_insight_surplus_not_gaining">Cette semaine : surplus moyen de %1$d kcal/j, mais le poids ne monte pas (%2$+.1f kg/sem) — à surveiller.</string>
     <string name="dashboard_insight_active_minutes">%1$d min actives cette semaine</string>
+    <string name="dashboard_insight_fasting_adherence">Jeûne : %1$d %% des jeûnes réussis cette semaine</string>
+    <string name="dashboard_insight_hydration_adherence">Hydratation : objectif atteint %1$d %% de la semaine</string>
     <string name="dashboard_other_trackers_hydration_value">%1$d %%</string>
     <string name="dashboard_other_trackers_hydration_label">Eau</string>
     <string name="dashboard_other_trackers_fasting_active_value">%1$dh</string>

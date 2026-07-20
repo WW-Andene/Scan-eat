@@ -1046,6 +1046,7 @@
     <string name="dashboard_month_title">Last 30 Days</string>
     <string name="dashboard_month_days_logged">%1$d/%2$d days logged</string>
     <string name="dashboard_week_delta">%1$s kcal vs last week</string>
+    <string name="dashboard_month_delta">%1$s kcal vs last month</string>
     <string name="dashboard_gap_title">Close the Gaps</string>
     <string name="dashboard_gap_entry">%1$s: −%2$s missing</string>
     <string name="dashboard_gap_suggestion">%1$s · %2$d g</string>
@@ -1060,6 +1061,8 @@
     <string name="dashboard_insight_deficit_not_losing">This week: average deficit of %1$d kcal/day, but weight isn\'t trending down (%2$+.1f kg/week) — worth a look.</string>
     <string name="dashboard_insight_surplus_not_gaining">This week: average surplus of %1$d kcal/day, but weight isn\'t trending up (%2$+.1f kg/week) — worth a look.</string>
     <string name="dashboard_insight_active_minutes">%1$d active min this week</string>
+    <string name="dashboard_insight_fasting_adherence">Fasting: %1$d%% of fasts hit target this week</string>
+    <string name="dashboard_insight_hydration_adherence">Hydration: goal met %1$d%% of this week</string>
     <string name="dashboard_other_trackers_hydration_value">%1$d%%</string>
     <string name="dashboard_other_trackers_hydration_label">Water</string>
     <string name="dashboard_other_trackers_fasting_active_value">%1$dh</string>

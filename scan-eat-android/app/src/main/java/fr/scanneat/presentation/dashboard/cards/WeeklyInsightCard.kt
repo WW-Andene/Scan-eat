@@ -75,5 +75,20 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake) {
                 )
             }
         }
+        // Fasting/hydration previously never appeared in this card at all - see
+        // weeklyCrossTrackerInsight's own doc comment on why they're separate
+        // context lines rather than folded into the weight-vs-intake agreement.
+        insight.weeklyFastingAdherencePct?.let { pct ->
+            Text(
+                stringResource(R.string.dashboard_insight_fasting_adherence, pct),
+                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+            )
+        }
+        insight.weeklyHydrationAdherencePct?.let { pct ->
+            Text(
+                stringResource(R.string.dashboard_insight_hydration_adherence, pct),
+                style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+            )
+        }
     }
 }
