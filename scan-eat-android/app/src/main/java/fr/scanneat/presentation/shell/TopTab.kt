@@ -36,4 +36,9 @@ val HIDDEN_NAV_ROUTES = setOf(
     // Same gap, reintroduced for Calendar — it's also a full-screen nested route
     // with its own TopAppBar back arrow (reachable from Dashboard/Diary).
     AppRoutes.CALENDAR,
+    // Same gap again for Reminders (reachable from Settings) — RemindersScreen
+    // renders its own FloatingScreenScaffold with a back arrow exactly like
+    // every route above it, so leaving it out left the bottom nav visible
+    // underneath that back arrow too.
+    AppRoutes.REMINDERS,
 )

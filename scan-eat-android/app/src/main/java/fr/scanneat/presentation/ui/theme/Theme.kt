@@ -211,7 +211,14 @@ fun ScanEatTheme(
         // MaterialTheme.colorScheme.error bypassed colorblind mode entirely.
         // Overridden here, once, using the same mapping semanticRed() uses
         // everywhere else, now that LocalColorblindMode is actually provided.
-        val effectiveColorScheme = if (colorblindMode == "none") colorScheme
+        // High Contrast's own error = Color(0xFFFF5555) is a deliberately hand-picked
+        // maximal-contrast value against HighContrastBackgroundRaw/HighContrastSurfaceRaw
+        // specifically - not derived from semanticRed()'s hue-safety tuning, which was
+        // picked against the OLED/Dark palette instead. Applying the colorblind override
+        // here too silently replaced High Contrast's own considered choice whenever both
+        // accessibility features were enabled together, undercutting whichever one the
+        // user actually needed more.
+        val effectiveColorScheme = if (colorblindMode == "none" || theme == "high_contrast") colorScheme
             else colorScheme.copy(error = semanticRed(), onErrorContainer = semanticRed())
         MaterialTheme(
             colorScheme = effectiveColorScheme,

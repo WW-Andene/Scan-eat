@@ -36,6 +36,14 @@ data class ResultUiState(
     val scoreDelta: Int? = null,
     /** Up to 5 most-recent prior scores for this product, oldest first (excludes current scan). */
     val scoreHistory: List<Int> = emptyList(),
+    /**
+     * True only once scanLoad has resolved to ScanLoad.Empty (scanId genuinely has no row -
+     * stale deep link, deleted history entry). Distinguishes "confirmed not found" from
+     * the initial pre-load state, which also has scanResult == null but should keep
+     * showing the loading spinner rather than an error - without this flag the two were
+     * indistinguishable and a missing scan just spun forever.
+     */
+    val notFound: Boolean = false,
 )
 
 // Only worth suggesting an alternative below this grade — A/B/A+ are already a
@@ -169,7 +177,7 @@ class ResultViewModel @Inject constructor(
 
     val state: StateFlow<ResultUiState> = combine(scanLoad, _logState, favoriteOverride) { load, logState, favOverride ->
         when (load) {
-            is ScanLoad.Empty  -> ResultUiState(logState = logState)
+            is ScanLoad.Empty  -> ResultUiState(logState = logState, notFound = true)
             is ScanLoad.Loaded -> ResultUiState(
                 scanResult        = favOverride?.let { load.scan.copy(favorite = it) } ?: load.scan,
                 personalScore     = load.personal,
@@ -218,23 +226,6 @@ class ResultViewModel @Inject constructor(
 
     fun clearLogState() { _logState.value = LogState.Idle }
 
-    fun toggleFavorite() {
-        val scan = state.value.scanResult ?: return
-        if (scan.dbId <= 0) return
-        val newValue = !scan.favorite
-        favoriteOverride.value = newValue
-        viewModelScope.launch {
-            // Reuses the same LogState.Error signal log() already surfaces on a Room
-            // write failure - toggleFavorite()/saveToDestinations() previously called
-            // their Room/DataStore writes completely unguarded, unlike every sibling
-            // tracker ViewModel's writes.
-            runCatching { scanRepo.setFavorite(scan.dbId, newValue) }.onFailure { e ->
-                if (e is CancellationException) throw e
-                _logState.value = LogState.Error(e.message ?: if (language.value == "en") "Error" else "Erreur")
-            }
-        }
-    }
-
     /**
      * Multi-destination save from the scanned product's "Save to..." popup —
      * each destination is independent (a product can go to several at once)
@@ -247,7 +238,7 @@ class ResultViewModel @Inject constructor(
             // write failure (disk-full, constraint violation) on any one of these 4
             // independent destinations crashed the app instead of just failing to
             // save that one destination. Reuses the same LogState.Error signal log()
-            // already surfaces on failure, same as toggleFavorite() above.
+            // already surfaces on failure.
             runCatching {
                 // Symmetric with the check: unchecking Favoris and tapping Save must
                 // actually unfavorite, not just skip re-favoriting — this popup is

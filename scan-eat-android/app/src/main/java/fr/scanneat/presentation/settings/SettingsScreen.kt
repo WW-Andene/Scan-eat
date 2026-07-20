@@ -15,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -439,7 +438,11 @@ fun SettingsScreen(
                             onClick = { viewModel.prepareExport() },
                             enabled = !working,
                         ) {
-                            Icon(Icons.Default.Upload, null, tint = Color.Black, modifier = Modifier.size(18.dp))
+                            // No explicit tint - defaults to LocalContentColor, which
+                            // ScanEatPrimaryButton now correctly dims when disabled (was
+                            // previously hardcoded black regardless of enabled state,
+                            // compounding the same bug fixed in ScanEatButton.kt).
+                            Icon(Icons.Default.Upload, null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(6.dp))
                             Text(stringResource(R.string.settings_backup_export_button))
                         }

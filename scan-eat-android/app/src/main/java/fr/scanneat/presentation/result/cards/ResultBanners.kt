@@ -33,8 +33,16 @@ internal fun ComparisonCard(cmp: ComparisonResult) {
         Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
         val delta = cmp.scoreDelta
-        val dColor = if (delta >= 0) semanticGreen() else semanticRed()
-        val dSign  = if (delta >= 0) "+" else ""
+        // Matches ScoreDeltaChip's three-way neutral/positive/negative split - delta == 0
+        // previously fell into the >= 0 branch here and rendered as green "+0" ("improved"),
+        // contradicting ScoreDeltaChip's gray "=" for the identical zero-change case shown
+        // on the same screen.
+        val dColor = when {
+            delta > 0  -> semanticGreen()
+            delta < 0  -> semanticRed()
+            else       -> OnBackground.copy(0.5f)
+        }
+        val dSign  = if (delta > 0) "+" else ""
         Text("${cmp.prev.name} → ${cmp.next.name}",
             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
         Text(stringResource(R.string.result_comparison_score, "$dSign$delta"),

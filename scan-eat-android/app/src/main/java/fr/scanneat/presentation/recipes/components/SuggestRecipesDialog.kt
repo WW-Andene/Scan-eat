@@ -20,7 +20,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -29,7 +28,9 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.scan.FetchedRecipeResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.semanticRed
@@ -53,11 +54,15 @@ internal fun SuggestRecipesDialog(
     var ingredient by rememberSaveable { mutableStateOf("") }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        // See ImportRecipeUrlDialog's identical fix: an implicit dismiss (back-press/
+        // scrim tap) while a suggest request is in flight must not clear import state
+        // out from under the still-running coroutine, or its eventual Success/Error
+        // pops a dialog the user already thought they'd cancelled out of.
+        onDismissRequest = { if (!isLoading) onDismiss() },
         containerColor  = SurfaceVariant,
         title = { Text(stringResource(R.string.recipes_suggest_title), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(stringResource(R.string.recipes_suggest_hint), color = OnBackground.copy(0.6f))
                 OutlinedTextField(
                     value = ingredient, onValueChange = { ingredient = it },
@@ -67,7 +72,7 @@ internal fun SuggestRecipesDialog(
                     colors = scanEatTextFieldColors(),
                 )
                 if (isLoading) {
-                    CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                 }
                 errorMessage?.let { Text(it, color = semanticRed()) }
                 if (!results.isNullOrEmpty()) {

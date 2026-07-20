@@ -170,9 +170,18 @@ fun ProfileScreen(
                                                 fr.scanneat.domain.engine.scoring.BmiCategory.UNDERWEIGHT -> stringResource(R.string.profile_bmi_cat_underweight) to semanticBlue()
                                                 fr.scanneat.domain.engine.scoring.BmiCategory.NORMAL      -> stringResource(R.string.profile_bmi_cat_normal)      to semanticGreen()
                                                 fr.scanneat.domain.engine.scoring.BmiCategory.OVERWEIGHT  -> stringResource(R.string.profile_bmi_cat_overweight)  to semanticAmber()
+                                                // OBESE_2 and OBESE_3 previously both rendered in the exact same
+                                                // full-opacity semanticRed(), giving no visual distinction between
+                                                // two categories of meaningfully different severity, while OBESE_1
+                                                // was (correctly) lighter via alpha. Alpha already maxes out at
+                                                // OBESE_2, so OBESE_3 darkens the same hue instead of picking an
+                                                // independent color - this keeps it correct under every colorblind
+                                                // mode, since it's a scale of whatever semanticRed() already
+                                                // returned for the active mode, not a second hardcoded color.
                                                 fr.scanneat.domain.engine.scoring.BmiCategory.OBESE_1     -> stringResource(R.string.profile_bmi_cat_obese1)      to semanticRed().copy(0.8f)
                                                 fr.scanneat.domain.engine.scoring.BmiCategory.OBESE_2     -> stringResource(R.string.profile_bmi_cat_obese2)      to semanticRed()
-                                                fr.scanneat.domain.engine.scoring.BmiCategory.OBESE_3     -> stringResource(R.string.profile_bmi_cat_obese3)      to semanticRed()
+                                                fr.scanneat.domain.engine.scoring.BmiCategory.OBESE_3     -> stringResource(R.string.profile_bmi_cat_obese3)      to
+                                                    semanticRed().let { it.copy(red = it.red * 0.7f, green = it.green * 0.7f, blue = it.blue * 0.7f) }
                                             }
                                             Surface(shape = RoundedCornerShape(50), color = catColor.copy(alpha = 0.15f)) {
                                                 Text(catLabel, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = catColor)

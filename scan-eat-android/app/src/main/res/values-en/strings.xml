@@ -1182,7 +1182,10 @@
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>
+    <string name="result_not_found_title">Scan not found</string>
+    <string name="result_not_found_body">This scan no longer exists or was deleted.</string>
     <string name="result_cd_share">Share score</string>
+    <string name="result_cd_save_options">Save options</string>
     <string name="result_share_text">%1$s scored %2$d/100 (%3$s) on Scan\'eat</string>
     <string name="result_cd_favorite">Add to favorites</string>
     <string name="hint_cd_open">View information</string>
@@ -1332,6 +1335,7 @@
     <string name="medication_reminder_cd">Medication reminder</string>
     <string name="medication_cd_calendar">Calendar</string>
     <string name="medication_cd_taken_today">Mark as taken today</string>
+    <string name="medication_cd_undo_taken">Undo today\'s dose</string>
     <string name="medication_reminder_dialog_title">Reminder — %1$s</string>
     <string name="medication_reminder_toggle">Enable daily reminder</string>
     <string name="medication_reminder_time_label">Time (HH:mm)</string>

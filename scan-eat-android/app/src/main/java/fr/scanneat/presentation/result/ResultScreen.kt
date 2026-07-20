@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -34,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.EmptyListState
 import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -99,9 +101,15 @@ fun ResultScreen(
                 }
                 HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value))
                 IconButton(onClick = { showSaveMenu = true }) {
+                    // This opens SaveDestinationsPopup (a multi-select "save to..." dialog),
+                    // not a direct favorite toggle - unlike the star buttons in
+                    // TemplatesScreen/ScanHistoryScreen/RecipeCard, which do flip favorite
+                    // status directly and correctly reuse result_cd_favorite/unfavorite.
+                    // Using those same strings here told screen-reader users the tap would
+                    // directly toggle favorite status when it actually opens a dialog.
                     Icon(
                         if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
-                        stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                        stringResource(R.string.result_cd_save_options),
                         tint = if (scan.favorite) Gold else OnBackground,
                     )
                 }
@@ -113,7 +121,13 @@ fun ResultScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         val s = state.value
-        if (s.scanResult == null) {
+        if (s.notFound) {
+            // scanLoad resolved to ScanLoad.Empty - a stale deep link or a deleted
+            // history entry, not "still loading". Previously indistinguishable from
+            // the pre-load state (both had scanResult == null), so this spun the
+            // loading indicator forever with no way out but the back arrow.
+            EmptyListState(Icons.Default.ErrorOutline, stringResource(R.string.result_not_found_body))
+        } else if (s.scanResult == null) {
             // Matches ScoreRing's own size/stroke/track exactly, so the loading
             // state visually sets up the score reveal instead of being a generic
             // spinner unrelated to what's about to appear.
@@ -148,6 +162,7 @@ fun ResultScreen(
             LogSheet(
                 product    = scan.product,
                 sheetState = sheetState,
+                isLoading  = state.value.logState is LogState.Loading,
                 onConfirm  = { g, slot -> viewModel.log(g, slot) },
                 onDismiss  = { showSheet = false },
             )

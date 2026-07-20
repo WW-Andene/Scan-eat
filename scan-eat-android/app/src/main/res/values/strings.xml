@@ -904,6 +904,7 @@
     <string name="medication_reminder_cd">Rappel du traitement</string>
     <string name="medication_cd_calendar">Calendrier</string>
     <string name="medication_cd_taken_today">Marquer comme pris aujourd\'hui</string>
+    <string name="medication_cd_undo_taken">Annuler la prise d\'aujourd\'hui</string>
     <string name="medication_reminder_dialog_title">Rappel — %1$s</string>
     <string name="medication_reminder_toggle">Activer le rappel quotidien</string>
     <string name="medication_reminder_time_label">Heure (HH:mm)</string>
@@ -1217,7 +1218,10 @@
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>
+    <string name="result_not_found_title">Scan introuvable</string>
+    <string name="result_not_found_body">Ce scan n\'existe plus ou a été supprimé.</string>
     <string name="result_cd_share">Partager le score</string>
+    <string name="result_cd_save_options">Options d\'enregistrement</string>
     <string name="result_share_text">%1$s a obtenu %2$d/100 (%3$s) sur Scan\'eat</string>
     <string name="result_cd_favorite">Ajouter aux favoris</string>
     <string name="hint_cd_open">Voir les informations</string>

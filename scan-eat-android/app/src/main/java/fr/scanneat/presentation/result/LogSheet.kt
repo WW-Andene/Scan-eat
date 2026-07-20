@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -16,6 +17,7 @@ import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.Product
 import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalTime
+import kotlin.math.roundToInt
 
 // ============================================================================
 // LOG SHEET — portion selector bottom sheet
@@ -41,6 +43,7 @@ fun defaultMealForHour(hour: Int): MealSlot = when (hour) {
 fun LogSheet(
     product: Product,
     sheetState: SheetState,
+    isLoading: Boolean = false,
     onConfirm: (portionG: Double, mealSlot: MealSlot) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -53,7 +56,7 @@ fun LogSheet(
 
     val portionG = portionText.replace(',', '.').toDoubleOrNull()?.coerceIn(1.0, 2000.0)
     val kcalPreview = portionG?.let {
-        (product.nutrition.energyKcal * it / 100.0).toInt()
+        (product.nutrition.energyKcal * it / 100.0).roundToInt()
     }
 
     ModalBottomSheet(
@@ -113,16 +116,18 @@ fun LogSheet(
             val presetPackage = product.weightG?.takeIf { it in 10.0..2000.0 }?.let { w ->
                 stringResource(R.string.logsheet_preset_package, w.toInt())
             }
-            val presetHalf = product.weightG?.takeIf { it in 40.0..2000.0 }?.let { w ->
-                stringResource(R.string.logsheet_preset_half, (w / 2).toInt())
-            }
             val preset200 = stringResource(R.string.logsheet_preset_grams, 200)
             val preset50  = stringResource(R.string.logsheet_preset_grams, 50)
+            // 100g/package/200g/50g are the 4 core presets (package is the only
+            // conditional one, so this is never more than 4). The half-package preset
+            // that used to sit between package and 200g pushed this to 5 whenever a
+            // package weight was known, and presets.take(4) below always kept the
+            // first 4 in insertion order - silently dropping 50g, the one preset every
+            // product has, in favor of the half-package convenience preset.
             val presets = buildList {
                 add(Pair(presetGrams, 100.0))
                 product.weightG?.takeIf { it in 10.0..2000.0 }?.let { w ->
                     presetPackage?.let { add(Pair(it, w)) }
-                    if (w >= 40) presetHalf?.let { add(Pair(it, w / 2)) }
                 }
                 add(Pair(preset200, 200.0))
                 add(Pair(preset50, 50.0))
@@ -159,16 +164,24 @@ fun LogSheet(
                 }
             }
 
-            // Confirm button
+            // Confirm button — ResultViewModel.log() sets LogState.Loading while writing,
+            // but neither this button nor the sheet ever reflected that: the button stayed
+            // enabled with no spinner, so a slow write left the user tapping what looked
+            // like an unresponsive button (the VM's own re-entrancy guard prevented a
+            // double-write, but gave no visible feedback that the tap had registered).
             ScanEatPrimaryButton(
                 onClick  = {
                     val g = portionG ?: return@ScanEatPrimaryButton
                     onConfirm(g, selectedSlot)
                 },
-                enabled  = portionG != null,
+                enabled  = portionG != null && !isLoading,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(kcalPreview?.let { stringResource(R.string.logsheet_confirm_with_kcal, it) } ?: stringResource(R.string.logsheet_confirm_plain))
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.Black, strokeWidth = 2.dp, modifier = Modifier.size(IconSize.Inline))
+                } else {
+                    Text(kcalPreview?.let { stringResource(R.string.logsheet_confirm_with_kcal, it) } ?: stringResource(R.string.logsheet_confirm_plain))
+                }
             }
         }
     }

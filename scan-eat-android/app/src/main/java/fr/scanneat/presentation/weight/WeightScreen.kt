@@ -142,7 +142,7 @@ fun WeightScreen(
             // Summary card
             summary.value?.let { s ->
                 item {
-                    ScanEatCard(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
                                 Text(dispWeight(s.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
@@ -346,7 +346,7 @@ fun WeightScreen(
                                     style = MaterialTheme.typography.labelSmall,
                                     color = dColor,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
+                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                 )
                             }
                         }
@@ -364,7 +364,12 @@ fun WeightScreen(
                 }
             }
             itemsIndexed(reversedEntries, key = { _, e -> e.id }) { idx, e ->
-                val prev = if (idx > 0) reversedEntries[idx - 1] else null
+                // reversedEntries is newest-first (entries.value is DAO-ordered oldest->newest),
+                // so the chronologically-older neighbor for a "change since last weigh-in" is the
+                // NEXT element (idx + 1), not the previous one - reversedEntries[idx - 1] is a
+                // newer entry, which inverted the sign shown here and left the newest row (idx 0)
+                // with no delta at all since idx - 1 was never valid for it.
+                val prev = reversedEntries.getOrNull(idx + 1)
                 val delta = prev?.let { e.weightKg - it.weightKg }
                 ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
                     Row(

@@ -358,6 +358,19 @@ class RecipesViewModel @Inject constructor(
 
     fun clearImportState() { _importState.value = ImportUiState.Idle }
 
+    /**
+     * RecipesScreen's photo-picker launcher calls this when decodeImagePayload()
+     * returns null (corrupt file, OOM, unsupported format) - previously that path
+     * just did nothing at all, unlike every other import failure here which always
+     * lands in ImportUiState.Error.
+     */
+    fun photoDecodeFailed() {
+        val lang = language.value
+        _importState.value = ImportUiState.Error(
+            if (lang == "en") "Couldn't read that photo — try a different one" else "Impossible de lire cette photo — essayez-en une autre",
+        )
+    }
+
     private fun importErrorMessage(e: Throwable, lang: String): String = when {
         e is HttpException && e.code() == 404 ->
             if (lang == "en") "No recipe found on this page" else "Aucune recette trouvée sur cette page"

@@ -35,9 +35,20 @@ fun ScanEatPrimaryButton(
         modifier = modifier,
         enabled = enabled,
         shape   = RoundedCornerShape(CardRadius.CONTROL),
-        colors  = ButtonDefaults.buttonColors(containerColor = containerColor),
+        // contentColor/disabledContentColor (not a hardcoded Text style) is what
+        // actually flows through LocalContentColor per enabled state - the previous
+        // ProvideTextStyle(... color = Color.Black ...) below set an explicit,
+        // non-Unspecified Text color that always wins over LocalContentColor, so
+        // Button's own correctly-dimmed disabledContentColor never had any effect:
+        // a disabled button's label stayed fully opaque black, with only the
+        // container dimming.
+        colors  = ButtonDefaults.buttonColors(
+            containerColor        = containerColor,
+            contentColor          = Color.Black,
+            disabledContentColor  = Color.Black.copy(alpha = 0.38f),
+        ),
     ) {
-        ProvideTextStyle(LocalTextStyle.current.copy(color = Color.Black, fontWeight = FontWeight.SemiBold)) {
+        ProvideTextStyle(LocalTextStyle.current.copy(fontWeight = FontWeight.SemiBold)) {
             content()
         }
     }

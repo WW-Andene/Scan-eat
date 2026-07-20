@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Gold
@@ -90,7 +89,11 @@ private fun DestinationRow(
             .padding(vertical = Spacing.XS),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(checked = checked, onCheckedChange = { onToggle(destination) }, colors = CheckboxDefaults.colors(checkedColor = Gold))
+        // onCheckedChange = null: the whole Row above is already toggleable (onValueChange
+        // = { onToggle(destination) }) - a second independent actionable control nested
+        // inside it is a real screen-reader/interaction conflict (two actionable elements
+        // claiming the same tap), not just redundant. Same fix as OnboardingScreen's ModeCard.
+        Checkbox(checked = checked, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = Gold))
         Icon(if (checked) Icons.Default.Star else Icons.Default.StarBorder, null, tint = Gold, modifier = Modifier.padding(end = Spacing.XS))
         Text(label, style = MaterialTheme.typography.bodyMedium, color = OnBackground)
     }

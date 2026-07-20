@@ -257,7 +257,7 @@ fun MedicationScreen(
                         IconButton(onClick = { if (takenToday != null) viewModel.undoTaken(takenToday) else viewModel.markTaken(m) }) {
                             Icon(
                                 if (takenToday != null) Icons.Default.CheckCircle else Icons.Default.CheckCircleOutline,
-                                stringResource(R.string.medication_cd_taken_today),
+                                stringResource(if (takenToday != null) R.string.medication_cd_undo_taken else R.string.medication_cd_taken_today),
                                 tint = if (takenToday != null) Teal else OnSurface.copy(0.4f),
                             )
                         }

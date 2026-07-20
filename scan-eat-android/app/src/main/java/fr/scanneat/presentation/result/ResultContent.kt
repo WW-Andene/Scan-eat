@@ -1,10 +1,8 @@
 package fr.scanneat.presentation.result
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
@@ -24,11 +22,11 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.PersonalScoreResult
 import fr.scanneat.domain.engine.scoring.personalGrade
-import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.result.cards.*
 import fr.scanneat.presentation.ui.theme.*
+import kotlin.math.roundToInt
 
 // Assembles the sections that make up a scan result. Each section lives in
 // cards/*.kt (one file per independent card/banner). Was previously inlined
@@ -191,7 +189,7 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
                     trackColor = OnSurface.copy(0.08f),
                 )
                 Text(
-                    "${(pct * 100).toInt()}%",
+                    "${(pct * 100).roundToInt()}%",
                     style = MaterialTheme.typography.labelSmall,
                     color = OnSurface.copy(0.5f),
                     modifier = Modifier.width(32.dp),

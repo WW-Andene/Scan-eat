@@ -13,16 +13,16 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.semanticRed
@@ -43,11 +43,19 @@ internal fun ImportRecipeUrlDialog(
     var url by rememberSaveable { mutableStateOf("") }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        // A back-press/scrim-tap dismissal while a fetch is in flight previously
+        // called onDismiss (clearing the ViewModel's import state) without
+        // cancelling the coroutine underneath - it kept running and later set
+        // importState to Success/Error regardless, which RecipesScreen's
+        // LaunchedEffect(importState.value) reacted to as if the user were still
+        // here, popping AddRecipeDialog or an error dialog after they thought
+        // they'd cancelled. Only the dismiss button was ever gated by isLoading;
+        // this closes the same gap for the implicit dismiss paths.
+        onDismissRequest = { if (!isLoading) onDismiss() },
         containerColor  = SurfaceVariant,
         title = { Text(stringResource(R.string.recipes_import_url_title), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(stringResource(R.string.recipes_import_url_hint), color = OnBackground.copy(0.6f))
                 OutlinedTextField(
                     value = url, onValueChange = { url = it },
@@ -58,7 +66,7 @@ internal fun ImportRecipeUrlDialog(
                     colors = scanEatTextFieldColors(),
                 )
                 if (isLoading) {
-                    CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                 }
                 errorMessage?.let { Text(it, color = semanticRed()) }
             }

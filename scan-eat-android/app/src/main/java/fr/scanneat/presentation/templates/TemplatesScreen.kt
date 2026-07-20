@@ -26,14 +26,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.domain.engine.nutrition.ProductHints
-import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.result.HintPanel
 import fr.scanneat.presentation.shell.PlanningDestination
 import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
-import java.time.LocalDate
 import java.util.Locale
 
 

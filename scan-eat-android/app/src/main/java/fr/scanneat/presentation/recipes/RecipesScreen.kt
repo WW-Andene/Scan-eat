@@ -140,7 +140,7 @@ fun RecipesScreen(
         if (uri != null) {
             coroutineScope.launch {
                 val payload = withContext(Dispatchers.IO) { decodeImagePayload(context, uri) }
-                if (payload != null) viewModel.importRecipeFromPhotos(listOf(payload))
+                if (payload != null) viewModel.importRecipeFromPhotos(listOf(payload)) else viewModel.photoDecodeFailed()
             }
         }
     }
