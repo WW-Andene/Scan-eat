@@ -34,7 +34,6 @@ import fr.scanneat.util.formatDecimal
 @Composable
 internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggestion) -> Unit) {
   ScanEatCard(
-    color = SurfaceVariant,
     contentPadding = PaddingValues(Spacing.L),
     verticalArrangement = Arrangement.spacedBy(10.dp),
   ) {

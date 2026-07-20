@@ -34,7 +34,6 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
     val targetFrac = targets?.let { (it.kcal / peak).toFloat().coerceIn(0f, 1f) }
 
   ScanEatCard(
-    color = SurfaceVariant,
     contentPadding = PaddingValues(Spacing.L),
     verticalArrangement = Arrangement.spacedBy(Spacing.S),
   ) {
@@ -116,7 +115,6 @@ internal fun BestWorstDayCard(rollup: RollupResult, targets: DailyTargets?, lang
     if (best.date == worst.date) return
 
     ScanEatCard(
-        color = SurfaceVariant,
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {

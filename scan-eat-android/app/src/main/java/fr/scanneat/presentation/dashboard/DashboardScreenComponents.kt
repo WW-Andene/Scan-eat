@@ -19,15 +19,16 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.glassSheen
 
 // Shared helper used repeatedly by the orchestrator's feature-tile rows.
 @Composable
 internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant,
+        color = SurfaceVariant.copy(alpha = 0.62f),
     ) {
         Column(
             modifier = Modifier.padding(Spacing.M),

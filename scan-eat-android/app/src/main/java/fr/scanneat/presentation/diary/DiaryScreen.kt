@@ -252,7 +252,7 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
         if (showCalendar) {
             item {
                 ScanEatCard(
-                    shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M),
+                    shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M),
                 ) {
                     MonthCalendar(
                         month = calendarMonth,
@@ -283,7 +283,7 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
                 )
                 ScanEatCard(
                     emphasis = CardEmphasis.SECONDARY,
-                    shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant,
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
                     contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
                 ) {
                     Text(stringResource(R.string.diary_kcal_breakdown_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
@@ -328,7 +328,7 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
                 }?.coerceAtLeast(1.0) ?: 1.0
                 ScanEatCard(
                     emphasis = CardEmphasis.SECONDARY,
-                    shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant,
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
                     contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
                 ) {
                     Text(stringResource(R.string.diary_protein_per_slot_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))

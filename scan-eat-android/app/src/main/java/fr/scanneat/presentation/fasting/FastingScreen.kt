@@ -36,7 +36,11 @@ private fun Fasting7DayChart(history: List<FastCompletion>) {
     val today = LocalDate.now()
     // Map date-string → FastCompletion for quick lookup (one entry per day)
     val byDate = history.associateBy { it.date }
-    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+    Surface(
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        color = SurfaceVariant.copy(alpha = 0.62f),
+        modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+    ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.fasting_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
             Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
@@ -314,7 +318,11 @@ fun FastingScreen(
                             stringResource(R.string.fasting_stat_avg)     to "${String.format(Locale.US, "%.1f", avgHours)}h",
                             stringResource(R.string.fasting_stat_record)  to "${longestH}h",
                         ).forEach { (label, value) ->
-                            Surface(modifier = Modifier.weight(1f), shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant) {
+                            Surface(
+                                modifier = Modifier.weight(1f).glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+                                shape = RoundedCornerShape(CardRadius.CONTROL),
+                                color = SurfaceVariant.copy(alpha = 0.62f),
+                            ) {
                                 Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(value, style = MaterialTheme.typography.titleSmall, color = AccentCoral, fontWeight = FontWeight.Bold)
                                     Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))

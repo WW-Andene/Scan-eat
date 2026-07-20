@@ -35,7 +35,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 @Composable
 internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onClone: () -> Unit) {
     ScanEatCard(
-        shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, verticalArrangement = Arrangement.spacedBy(Spacing.S),
+        shape = RoundedCornerShape(CardRadius.CONTROL), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {

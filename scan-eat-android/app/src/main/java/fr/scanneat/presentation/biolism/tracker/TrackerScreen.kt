@@ -193,7 +193,6 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 if (etaHours != null && etaHours > 0) {
                     ScanEatCard(
                         shape = RoundedCornerShape(CardRadius.CONTROL),
-                        color = SurfaceVariant,
                         contentPadding = PaddingValues(Spacing.M),
                         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
                     ) {
@@ -213,7 +212,6 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 val budgetPct = (kcalTotal / lm.tdeeDay).coerceIn(0.0, 1.0).toFloat()
                 ScanEatCard(
                     shape = RoundedCornerShape(CardRadius.CONTROL),
-                    color = SurfaceVariant,
                     contentPadding = PaddingValues(Spacing.M),
                     verticalArrangement = Arrangement.spacedBy(Spacing.XS),
                 ) {

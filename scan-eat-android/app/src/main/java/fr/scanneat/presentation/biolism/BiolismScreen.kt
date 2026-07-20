@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -18,6 +19,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.bioProfile.BiolismOnboardingScreen
 import fr.scanneat.presentation.biolism.bioProfile.BiolismProfileScreen
@@ -48,20 +52,22 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     }
 
     var activeTab by remember { mutableStateOf(BiolismTab.TRACKER) }
+    val hazeState = remember { HazeState() }
 
     val fgColor = MaterialTheme.colorScheme.onBackground
     // True floating chrome, matching MainShell/FloatingScreenScaffold: the tab
     // content Box fills the whole frame and the header floats on top of it
-    // (z-order, not push-down), so scrolling a tab's content passes underneath
-    // the header's own translucent glassSheen() instead of stopping short of
-    // it. Bottom clearance for MainShell's own floating nav (Biolism is one of
-    // its TOP_TABS) is reserved here as a fixed gap rather than true
-    // scroll-under, since none of the 4 tab screens below expose a
-    // contentPadding hook of their own to thread it through precisely.
+    // (z-order, not push-down), registered as this header's own hazeSource so
+    // it shows a real backdrop blur of whatever's passing underneath instead
+    // of stopping short of it. Bottom clearance for MainShell's own floating
+    // nav (Biolism is one of its TOP_TABS) is reserved here as a fixed gap
+    // rather than true scroll-under, since none of the 4 tab screens below
+    // expose a contentPadding hook of their own to thread it through precisely.
     Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .hazeSource(hazeState)
                 .padding(top = BiolismHeaderHeight)
                 .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight),
         ) {
@@ -87,9 +93,12 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
         ) {
         Surface(
             shape           = RoundedCornerShape(CardRadius.PROMINENT),
-            color           = SurfaceVariant.copy(alpha = 0.7f),
+            color           = Color.Transparent,
             shadowElevation = 8.dp,
-            modifier        = Modifier.fillMaxWidth(),
+            modifier        = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(CardRadius.PROMINENT))
+                .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
         Column(
             modifier = Modifier

@@ -129,7 +129,6 @@ fun TemplatesScreen(
                 var showHints by remember { mutableStateOf(false) }
                 ScanEatCard(
                     shape = RoundedCornerShape(CardRadius.CONTROL),
-                    color = SurfaceVariant,
                     verticalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

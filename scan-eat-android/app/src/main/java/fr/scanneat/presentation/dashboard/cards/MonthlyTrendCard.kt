@@ -38,7 +38,6 @@ import kotlin.math.roundToInt
 @Composable
 internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, language: String, delta: WeekOverWeekDelta? = null) {
   ScanEatCard(
-    color = SurfaceVariant,
     contentPadding = PaddingValues(Spacing.L),
     verticalArrangement = Arrangement.spacedBy(Spacing.S),
   ) {

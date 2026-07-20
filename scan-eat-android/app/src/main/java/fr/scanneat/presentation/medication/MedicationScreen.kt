@@ -142,7 +142,11 @@ fun MedicationScreen(
                 item {
                     val active = medications.value.filter { it.active }
                     val allTaken = active.all { m -> todayTaken.value.any { it.medicationId == m.id } }
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+                    Surface(
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = 0.62f),
+                        modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+                    ) {
                         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                             Text(
                                 stringResource(R.string.medication_today_summary_title),
@@ -229,7 +233,7 @@ fun MedicationScreen(
             }
             items(medications.value, key = { it.id }) { m ->
                 val takenToday = todayTaken.value.find { it.medicationId == m.id }
-                ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M)) {
+                ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,

@@ -160,7 +160,6 @@ fun ProfileScreen(
 
                 ScanEatCard(
                     shape = RoundedCornerShape(CardRadius.CONTROL),
-                    color = SurfaceVariant,
                     verticalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {

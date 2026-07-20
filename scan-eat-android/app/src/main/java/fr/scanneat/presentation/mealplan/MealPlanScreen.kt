@@ -113,7 +113,6 @@ fun MealPlanScreen(
                 val suggestion = gapSuggestions.value[date]
                 ScanEatCard(
                     shape = RoundedCornerShape(CardRadius.CONTROL),
-                    color = SurfaceVariant,
                     verticalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {

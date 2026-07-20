@@ -62,7 +62,6 @@ internal fun MicronutrientCard(totals: ConsumedNutrition, targets: DailyTargets?
     val vitCTarget       = targets?.vitCMgTarget      ?: NRV.VIT_C_MG
 
     ScanEatCard(
-        color = SurfaceVariant,
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {

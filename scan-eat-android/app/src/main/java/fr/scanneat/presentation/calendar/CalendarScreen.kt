@@ -86,7 +86,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Spacer(Modifier.height(Spacing.XS))
-            ScanEatCard(color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M)) {
+            ScanEatCard(contentPadding = PaddingValues(Spacing.M)) {
                 MultiMarkerMonthGrid(
                     month = month.value, selected = selected.value, markers = markers.value, locale = locale,
                     weekSummaries = weekSummaries.value,
@@ -272,7 +272,7 @@ private fun MultiMarkerMonthGrid(
 @Composable
 private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, onOpenDate: (LocalDate) -> Unit = {}) {
     val dateFmt = DateTimeFormatter.ofPattern("EEEE d MMMM", locale)
-    ScanEatCard(color = SurfaceVariant, contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text(
                 detail.date.format(dateFmt).replaceFirstChar { it.uppercase() },

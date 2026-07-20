@@ -201,9 +201,10 @@ fun ScanHistoryScreen(
                             topScanned.value.forEach { (name, count, dbId) ->
                                 Surface(
                                     onClick  = { if (dbId > 0) onOpenResult(dbId) },
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.weight(1f)
+                                        .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                                     shape    = RoundedCornerShape(CardRadius.CONTROL),
-                                    color    = SurfaceVariant,
+                                    color    = SurfaceVariant.copy(alpha = 0.62f),
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(Spacing.S),
@@ -276,7 +277,6 @@ fun ScanHistoryScreen(
                     val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
                     ScanEatCard(
                         shape = RoundedCornerShape(CardRadius.CONTROL),
-                        color = SurfaceVariant,
                         contentPadding = PaddingValues(Spacing.M),
                         onClick = { if (scan.dbId > 0) onOpenResult(scan.dbId) },
                     ) {

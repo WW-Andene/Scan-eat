@@ -254,7 +254,7 @@ fun ActivityScreen(
             }
 
             items(entries.value, key = { it.id }) { e ->
-                ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M)) {
+                ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,

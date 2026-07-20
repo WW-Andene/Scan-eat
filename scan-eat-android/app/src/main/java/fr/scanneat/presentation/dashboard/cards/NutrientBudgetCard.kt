@@ -33,7 +33,6 @@ internal fun NutrientBudgetCard(totals: ConsumedNutrition, targets: DailyTargets
     if (totals.energyKcal < 1.0) return
 
     ScanEatCard(
-        color = SurfaceVariant,
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {

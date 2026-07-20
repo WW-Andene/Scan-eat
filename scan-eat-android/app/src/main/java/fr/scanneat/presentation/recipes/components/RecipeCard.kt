@@ -56,7 +56,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit) {
     val context = LocalContext.current
     ScanEatCard(
-        shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, verticalArrangement = Arrangement.spacedBy(Spacing.S),
+        shape = RoundedCornerShape(CardRadius.CONTROL), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {

@@ -315,7 +315,6 @@ private fun GroceryItemRow(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant,
         contentPadding = PaddingValues(horizontal = Spacing.XS, vertical = Spacing.XS),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {

@@ -16,7 +16,6 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary, forecast: WeightForecast) {
   ScanEatCard(
-    color = SurfaceVariant,
     contentPadding = PaddingValues(Spacing.L),
     verticalArrangement = Arrangement.spacedBy(Spacing.S),
   ) {

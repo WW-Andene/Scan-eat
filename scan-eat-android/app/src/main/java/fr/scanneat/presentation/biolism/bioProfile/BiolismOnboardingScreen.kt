@@ -81,7 +81,6 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
         ScanEatCard(
             modifier = Modifier.padding(20.dp),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
-            color = SurfaceVariant,
             contentPadding = PaddingValues(Spacing.XL),
             accent = Gold,
         ) {

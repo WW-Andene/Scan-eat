@@ -20,7 +20,6 @@ import kotlin.math.roundToInt
 @Composable
 internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
     ScanEatCard(
-        color = SurfaceVariant,
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {

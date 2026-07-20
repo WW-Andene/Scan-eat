@@ -310,7 +310,7 @@ private fun FeatureDomainChips() {
         domains.chunked(4).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 row.forEach { (icon, label) ->
-                    Surface(shape = RoundedCornerShape(50), color = SurfaceVariant) {
+                    Surface(shape = RoundedCornerShape(50), color = SurfaceVariant.copy(alpha = 0.62f)) {
                         Row(
                             modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                             verticalAlignment = Alignment.CenterVertically,

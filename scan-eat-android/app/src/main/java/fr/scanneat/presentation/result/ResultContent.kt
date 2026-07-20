@@ -174,7 +174,7 @@ private fun MacroContributionCard(nutrition: NutritionPer100g) {
     ).filter { (_, value, _) -> value > 0.0 }
     if (rows.isEmpty()) return
     ScanEatCard(
-        color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         Text(stringResource(R.string.result_macro_contribution_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         rows.forEach { (label, value, ref) ->
@@ -215,7 +215,7 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
     val lineColor = AccentCoral
 
     ScanEatCard(
-        color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M),
+        contentPadding = PaddingValues(Spacing.M),
     ) {
         Text(
             stringResource(R.string.result_score_history_title),

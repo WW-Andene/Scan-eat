@@ -38,7 +38,6 @@ import fr.scanneat.presentation.ui.theme.ScanEatCard
 internal fun NeverLoggedScansCard(scans: List<ScanResult>, onLogClick: (ScanResult) -> Unit) {
     if (scans.isEmpty()) return
     ScanEatCard(
-        color = SurfaceVariant,
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {

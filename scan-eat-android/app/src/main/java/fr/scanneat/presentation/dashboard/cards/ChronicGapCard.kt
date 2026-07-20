@@ -38,7 +38,6 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 @Composable
 internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSuggestion) -> Unit) {
   ScanEatCard(
-    color = SurfaceVariant,
     contentPadding = PaddingValues(Spacing.L),
     verticalArrangement = Arrangement.spacedBy(10.dp),
   ) {

@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -18,6 +19,8 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -27,25 +30,31 @@ fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
     val currentRoute    = backStack.value?.destination?.route
 
     val showNav = HIDDEN_NAV_ROUTES.none { currentRoute == it }
+    val bottomNavHazeState = remember { HazeState() }
 
     // True floating chrome: a Box, not a Scaffold, so AppNavGraph's own screens
     // fill the entire frame and the bottom nav is a z-ordered overlay on top of
     // them instead of a Scaffold slot that pads content away from it — scrolling
     // a list all the way down now shows cards passing underneath the nav's own
-    // translucent glassSheen(), rather than stopping short of it. Each screen
-    // reserves its own bottom clearance for this via FloatingScreenScaffold's
-    // BottomNavClearance (see FloatingBars.kt) instead of this Box consuming it
-    // via Scaffold's contentWindowInsets/padding.
+    // real backdrop blur (see FrostedGlassStyle in FloatingBars.kt), rather than
+    // stopping short of it. Each screen reserves its own bottom clearance for
+    // this via FloatingScreenScaffold's BottomNavClearance instead of this Box
+    // consuming it via Scaffold's contentWindowInsets/padding, and registers its
+    // own scrolling content as this nav's blur source via the same
+    // LocalBottomNavHazeState provided below (a different composable subtree
+    // than this one, hence the CompositionLocal instead of a direct param).
     Box(Modifier.fillMaxSize().background(Background)) {
-        AppNavGraph(
-            navController    = navController,
-            startDestination = when {
-                startOnboarding    -> AppRoutes.ONBOARDING
-                startRoute != null -> startRoute
-                else               -> TopTab.Dashboard.route
-            },
-            modifier         = Modifier.fillMaxSize(),
-        )
+        CompositionLocalProvider(LocalBottomNavHazeState provides bottomNavHazeState) {
+            AppNavGraph(
+                navController    = navController,
+                startDestination = when {
+                    startOnboarding    -> AppRoutes.ONBOARDING
+                    startRoute != null -> startRoute
+                    else               -> TopTab.Dashboard.route
+                },
+                modifier         = Modifier.fillMaxSize(),
+            )
+        }
         AnimatedVisibility(
             visible  = showNav,
             enter    = fadeIn(),
@@ -68,9 +77,12 @@ fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
             ) {
             Surface(
                 shape           = RoundedCornerShape(CardRadius.PROMINENT),
-                color           = SurfaceVariant.copy(alpha = 0.7f),
+                color           = Color.Transparent,
                 shadowElevation = 8.dp,
-                modifier        = Modifier.fillMaxWidth(),
+                modifier        = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(CardRadius.PROMINENT))
+                    .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle),
             ) {
             NavigationBar(
                 containerColor = Color.Transparent,

@@ -48,7 +48,6 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake) {
         else                     -> R.string.dashboard_insight_surplus_not_gaining
     }
     ScanEatCard(
-        color = SurfaceVariant,
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {

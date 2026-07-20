@@ -6,10 +6,47 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+
+/**
+ * Real, RenderEffect-backed backdrop blur for the app's floating glass chrome
+ * (real optical blur of whatever scrolls underneath, not just an alpha/
+ * gradient approximation — see [glassSheen]'s own doc comment for why that
+ * alone doesn't read as "frosted glass"). [backgroundColor] is the opaque
+ * fallback Haze draws on API levels/devices where RenderEffect blur isn't
+ * available (pre-Android 12); [tint] is the translucent colour composited
+ * over the live blurred content everywhere else — that's what actually reads
+ * as "glass" rather than a plain scrim. `noiseFactor = 0f` deliberately: the
+ * library's default film-grain dithering risks reading as the same dot/grain
+ * texture this rework was asked to remove, so it's off.
+ */
+val FrostedGlassStyle = HazeStyle(
+    backgroundColor = SurfaceVariant,
+    tint            = HazeTint(SurfaceVariant.copy(alpha = 0.55f)),
+    blurRadius      = 20.dp,
+    noiseFactor     = 0f,
+)
+
+/**
+ * Shared [HazeState] for MainShell's bottom nav: created once in MainShell
+ * and provided across the AppNavGraph boundary via [androidx.compose.runtime.CompositionLocalProvider],
+ * so every top-tab screen's own [FloatingScreenScaffold] (a different
+ * composable subtree than MainShell's persistent nav) can register its
+ * scrolling content as that same nav's blur source. The no-arg default here
+ * only matters for previews/tests that never wire the real provider.
+ */
+val LocalBottomNavHazeState = compositionLocalOf { HazeState() }
 
 /**
  * The app-wide "floating header" — a detached, glassy pill instead of the
@@ -27,10 +64,17 @@ import androidx.compose.ui.unit.dp
  * White (glassSheen's own default, so every existing call site is
  * unaffected) but lets a section with its own brand hue (Biolism's Gold)
  * tint the glow instead of hand-rolling this whole component a second time.
+ *
+ * [hazeState] is the blur source registered by the screen's own scrolling
+ * content (see [FloatingScreenScaffold]) — the Surface below draws a real
+ * backdrop blur of whatever's passing underneath it via [FrostedGlassStyle],
+ * with [glassSheen]'s gradient/edge-highlight layered on top for the "light
+ * catching a glass edge" finish.
  */
 @Composable
 fun FloatingTopBar(
     title: @Composable () -> Unit,
+    hazeState: HazeState,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
@@ -45,9 +89,12 @@ fun FloatingTopBar(
     ) {
         Surface(
             shape           = RoundedCornerShape(CardRadius.PROMINENT),
-            color           = SurfaceVariant.copy(alpha = 0.7f),
+            color           = Color.Transparent,
             shadowElevation = 8.dp,
-            modifier        = Modifier.fillMaxWidth(),
+            modifier        = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(CardRadius.PROMINENT))
+                .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
             Row(
                 modifier          = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 4.dp),
@@ -108,17 +155,29 @@ fun FloatingScreenScaffold(
     snackbarHost: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    val headerHazeState = remember { HazeState() }
+    val bottomNavHazeState = LocalBottomNavHazeState.current
     Box(modifier.fillMaxSize()) {
         val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
         val bottomInset = if (showBottomNavClearance) WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() else 0.dp
-        content(
-            PaddingValues(
-                top    = topInset + FloatingTopBarHeight,
-                bottom = if (showBottomNavClearance) bottomInset + FloatingBottomNavHeight else 0.dp,
-            ),
-        )
+        // Nested so each hazeSource attaches to its own layout node — the
+        // outer one only exists (and only feeds MainShell's shared nav
+        // state) on genuine bottom-nav-tab screens.
+        Box(
+            if (showBottomNavClearance) Modifier.fillMaxSize().hazeSource(bottomNavHazeState) else Modifier.fillMaxSize(),
+        ) {
+            Box(Modifier.fillMaxSize().hazeSource(headerHazeState)) {
+                content(
+                    PaddingValues(
+                        top    = topInset + FloatingTopBarHeight,
+                        bottom = if (showBottomNavClearance) bottomInset + FloatingBottomNavHeight else 0.dp,
+                    ),
+                )
+            }
+        }
         FloatingTopBar(
             title          = title,
+            hazeState      = headerHazeState,
             navigationIcon = navigationIcon,
             actions        = actions,
             accent         = accent,

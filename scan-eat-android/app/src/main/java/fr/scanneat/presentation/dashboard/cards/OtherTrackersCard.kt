@@ -41,7 +41,6 @@ import kotlin.math.roundToInt
 @Composable
 internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
     ScanEatCard(
-        color = SurfaceVariant,
         contentPadding = PaddingValues(Spacing.L),
     ) {
         // weight(1f) on each stat, not a bare SpaceBetween over 3 unweighted

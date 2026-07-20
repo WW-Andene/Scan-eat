@@ -34,7 +34,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, onDelete: () -> Unit, onEdit: () -> Unit) {
     ScanEatCard(
         onClick = onEdit,
-        shape = RoundedCornerShape(CardRadius.CONTROL), color = SurfaceVariant, contentPadding = PaddingValues(Spacing.M),
+        shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

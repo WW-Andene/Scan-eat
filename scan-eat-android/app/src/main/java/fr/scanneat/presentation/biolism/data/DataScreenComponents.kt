@@ -51,7 +51,7 @@ internal fun BioCard(
     // goal-editor row (see HydrationScreen.kt ~line 171).
     val openStateDescription = stringResource(if (open) R.string.common_expanded else R.string.common_collapsed)
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f)) {
-        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant, modifier = Modifier.fillMaxWidth()) {
+        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(alpha = 0.62f), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { open = !open }

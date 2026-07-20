@@ -32,6 +32,12 @@ kotlinx-serialization = "1.7.3"
 health-connect        = "1.1.0-alpha07"
 guava                 = "33.3.1-android"
 glance-appwidget      = "1.1.1"
+# Pinned to the last release whose transitive compose-ui/compose-foundation
+# requirement (1.7.3) is an *exact* match for compose-bom 2024.09.03's own
+# pins — later Haze releases require compose-ui 1.8+/material3 1.7+, which
+# would force a version skew across the rest of the Compose stack. Re-verify
+# this pin against the BOM's compose-ui version before bumping either one.
+haze                  = "1.5.4"
 
 [libraries]
 # Kotlin + Coroutines
@@ -99,6 +105,11 @@ mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version
 
 # Glance (Compose-based home-screen widgets)
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance-appwidget" }
+
+# Haze — real backdrop-blur (RenderEffect) for the floating header/nav glass
+# chrome, not the flat/tinted haze-materials companion artifact (which pulls
+# a much newer material3 than this BOM pins).
+haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
 
 # Health Connect
 health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "health-connect" }
