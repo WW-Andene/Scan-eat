@@ -176,24 +176,20 @@ fun SettingsScreen(
     }
     LaunchedEffect(Unit) { viewModel.refreshHealthConnectStatus() }
 
-    Scaffold(
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.settings_title), color = OnBackground) },
-                navigationIcon = {
-                    if (!isTabRoot) {
-                        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
-                    }
-                },
-            )
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.settings_title), color = OnBackground) },
+        navigationIcon = {
+            if (!isTabRoot) {
+                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
+            }
         },
-        containerColor = Background,
+        showBottomNavClearance = isTabRoot,
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding)
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Violet)
                 .padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(Spacing.XL),
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Spacer(Modifier.height(Spacing.XS))
 

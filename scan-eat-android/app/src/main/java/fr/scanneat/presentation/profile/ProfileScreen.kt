@@ -89,45 +89,40 @@ fun ProfileScreen(
         if (saved.value) { viewModel.clearSaved(); onBack() }
     }
 
-    Scaffold(
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.profile_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = {
-                    TextButton(onClick = {
-                        // No bound at all previously - an errant value here (e.g. a typo'd
-                        // extra digit) silently propagates into ActivityViewModel's kcal-burn
-                        // calc and ProfileViewModel's BMI/TDEE. Clamp to sane human ranges
-                        // instead of rejecting outright, since a slightly-off real value
-                        // (e.g. a very tall/heavy user) should still save, just not corrupt math.
-                        viewModel.save(
-                            profile = Profile(
-                                name          = name.trim(),
-                                sex           = sex,
-                                ageYears      = age.toIntOrNull()?.coerceIn(1, 120),
-                                heightCm      = heightCm.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0),
-                                weightKg      = weightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
-                                goalWeightKg  = goalWeightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
-                                activityLevel = activity,
-                                goal          = goal,
-                                diet          = diet,
-                                allergens     = allergens,
-                                healthConditions = conditions,
-                                isMenstruating = isMenstruating,
-                            ),
-                            waistCm     = waistCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
-                            hipCm       = hipCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
-                            neckCm      = neckCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
-                            ethnicityId = ethnicityId,
-                        )
-                    }) {
-                        Text(stringResource(R.string.common_save), color = AccentCoral, fontWeight = FontWeight.SemiBold)
-                    }
-                },
-            )
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.profile_title), color = OnBackground) },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        actions = {
+            TextButton(onClick = {
+                // No bound at all previously - an errant value here (e.g. a typo'd
+                // extra digit) silently propagates into ActivityViewModel's kcal-burn
+                // calc and ProfileViewModel's BMI/TDEE. Clamp to sane human ranges
+                // instead of rejecting outright, since a slightly-off real value
+                // (e.g. a very tall/heavy user) should still save, just not corrupt math.
+                viewModel.save(
+                    profile = Profile(
+                        name          = name.trim(),
+                        sex           = sex,
+                        ageYears      = age.toIntOrNull()?.coerceIn(1, 120),
+                        heightCm      = heightCm.replace(',', '.').toDoubleOrNull()?.coerceIn(50.0, 250.0),
+                        weightKg      = weightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
+                        goalWeightKg  = goalWeightKg.replace(',', '.').toDoubleOrNull()?.coerceIn(20.0, 400.0),
+                        activityLevel = activity,
+                        goal          = goal,
+                        diet          = diet,
+                        allergens     = allergens,
+                        healthConditions = conditions,
+                        isMenstruating = isMenstruating,
+                    ),
+                    waistCm     = waistCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+                    hipCm       = hipCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 250.0) ?: 0.0,
+                    neckCm      = neckCm.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
+                    ethnicityId = ethnicityId,
+                )
+            }) {
+                Text(stringResource(R.string.common_save), color = AccentCoral, fontWeight = FontWeight.SemiBold)
+            }
         },
-        containerColor = Background,
     ) { padding ->
         Column(
             modifier = Modifier
@@ -136,7 +131,7 @@ fun ProfileScreen(
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Spacer(Modifier.height(Spacing.XS))
 

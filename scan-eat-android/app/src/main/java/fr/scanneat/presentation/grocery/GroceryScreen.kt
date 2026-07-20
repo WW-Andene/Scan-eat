@@ -70,78 +70,73 @@ fun GroceryScreen(
         }
     }
 
-    Scaffold(
+    FloatingScreenScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = {
-                    PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
-                    if (checkable.value.any { it.checked }) {
-                        IconButton(onClick = { showClearConfirm = true }) {
-                            Icon(Icons.Default.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))
-                        }
+        title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        actions = {
+                PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
+                if (checkable.value.any { it.checked }) {
+                    IconButton(onClick = { showClearConfirm = true }) {
+                        Icon(Icons.Default.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))
                     }
-                    if (items.value.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.toggleSortAlpha() }) {
-                            Icon(
-                                Icons.Default.SortByAlpha,
-                                stringResource(R.string.grocery_sort_alpha),
-                                tint = if (sortAlpha.value) AccentCoral else OnBackground.copy(0.6f),
+                }
+                if (items.value.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.toggleSortAlpha() }) {
+                        Icon(
+                            Icons.Default.SortByAlpha,
+                            stringResource(R.string.grocery_sort_alpha),
+                            tint = if (sortAlpha.value) AccentCoral else OnBackground.copy(0.6f),
+                        )
+                    }
+                    // Previously a flat unsorted/alphabetical-only list with no
+                    // produce/dairy/pantry sectioning at all.
+                    IconButton(onClick = { viewModel.toggleGroupByAisle() }) {
+                        Icon(
+                            Icons.Default.Category,
+                            stringResource(R.string.grocery_group_by_aisle),
+                            tint = if (groupByAisle.value) AccentCoral else OnBackground.copy(0.6f),
+                        )
+                    }
+                    // Previously the only way out of the app was clipboard copy-then-paste -
+                    // mirrors ResultScreen's existing ACTION_SEND share pattern.
+                    IconButton(onClick = {
+                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, formatGroceryList(items.value))
+                        }
+                        context.startActivity(Intent.createChooser(sendIntent, null))
+                    }) {
+                        Icon(Icons.Default.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
+                    }
+                    Box {
+                        IconButton(onClick = { copyMenuExpanded = true }) {
+                            Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
+                        }
+                        DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { copyMenuExpanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.grocery_copy_plain)) },
+                                onClick = {
+                                    copyMenuExpanded = false
+                                    clipboard.setText(AnnotatedString(formatGroceryList(items.value)))
+                                    scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
+                                },
+                            )
+                            // formatGroceryList's markdown param existed since the original JS
+                            // port but had no UI entry point at all - a real feature dropped
+                            // in translation, not a deliberate scope cut.
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.grocery_copy_checklist)) },
+                                onClick = {
+                                    copyMenuExpanded = false
+                                    clipboard.setText(AnnotatedString(formatGroceryList(items.value, markdown = true)))
+                                    scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
+                                },
                             )
                         }
-                        // Previously a flat unsorted/alphabetical-only list with no
-                        // produce/dairy/pantry sectioning at all.
-                        IconButton(onClick = { viewModel.toggleGroupByAisle() }) {
-                            Icon(
-                                Icons.Default.Category,
-                                stringResource(R.string.grocery_group_by_aisle),
-                                tint = if (groupByAisle.value) AccentCoral else OnBackground.copy(0.6f),
-                            )
-                        }
-                        // Previously the only way out of the app was clipboard copy-then-paste -
-                        // mirrors ResultScreen's existing ACTION_SEND share pattern.
-                        IconButton(onClick = {
-                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, formatGroceryList(items.value))
-                            }
-                            context.startActivity(Intent.createChooser(sendIntent, null))
-                        }) {
-                            Icon(Icons.Default.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
-                        }
-                        Box {
-                            IconButton(onClick = { copyMenuExpanded = true }) {
-                                Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
-                            }
-                            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { copyMenuExpanded = false }) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.grocery_copy_plain)) },
-                                    onClick = {
-                                        copyMenuExpanded = false
-                                        clipboard.setText(AnnotatedString(formatGroceryList(items.value)))
-                                        scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
-                                    },
-                                )
-                                // formatGroceryList's markdown param existed since the original JS
-                                // port but had no UI entry point at all - a real feature dropped
-                                // in translation, not a deliberate scope cut.
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.grocery_copy_checklist)) },
-                                    onClick = {
-                                        copyMenuExpanded = false
-                                        clipboard.setText(AnnotatedString(formatGroceryList(items.value, markdown = true)))
-                                        scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
-                                    },
-                                )
-                            }
-                        }
                     }
-                },
-            )
+                }
         },
-        containerColor = Background,
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = CalorieOrange, secondary = AccentCoral)) {
             Row(
@@ -172,7 +167,7 @@ fun GroceryScreen(
             } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
-                verticalArrangement = Arrangement.spacedBy(Spacing.S),
+                verticalArrangement = Arrangement.spacedBy(Spacing.M),
             ) {
                 item { Spacer(Modifier.height(Spacing.XS)) }
                 item {

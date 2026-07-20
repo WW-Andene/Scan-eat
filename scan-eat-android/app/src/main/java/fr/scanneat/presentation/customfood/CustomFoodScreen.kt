@@ -43,24 +43,19 @@ fun CustomFoodScreen(
 
     val displayList = if (query.value.isBlank()) foods.value else results.value
 
-    Scaffold(
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.customfood_title), color = OnBackground) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
-                    }
-                },
-                actions = {
-                    PlanningSwitcherMenu(current = PlanningDestination.CUSTOM_FOODS, onNavigate = onNavigateToPlanning)
-                    IconButton(onClick = { showAdd = true }) {
-                        Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral)
-                    }
-                },
-            )
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.customfood_title), color = OnBackground) },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+            }
         },
-        containerColor = Background,
+        actions = {
+            PlanningSwitcherMenu(current = PlanningDestination.CUSTOM_FOODS, onNavigate = onNavigateToPlanning)
+            IconButton(onClick = { showAdd = true }) {
+                Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral)
+            }
+        },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = CalorieOrange)) {
             // Search bar
@@ -143,7 +138,7 @@ fun CustomFoodScreen(
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
-                verticalArrangement = Arrangement.spacedBy(Spacing.S),
+                verticalArrangement = Arrangement.spacedBy(Spacing.M),
             ) {
                 if (displayList.isEmpty()) {
                     item {

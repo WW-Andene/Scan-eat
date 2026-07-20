@@ -77,14 +77,9 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
     val locale = Locale(language.value)
     var weekPopup by remember { mutableStateOf<WeekSummary?>(null) }
 
-    Scaffold(
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.calendar_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-            )
-        },
-        containerColor = Background,
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.calendar_title), color = OnBackground) },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(horizontal = Spacing.L).verticalScroll(rememberScrollState()),

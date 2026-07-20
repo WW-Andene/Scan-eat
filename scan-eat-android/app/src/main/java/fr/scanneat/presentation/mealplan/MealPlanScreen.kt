@@ -64,31 +64,27 @@ fun MealPlanScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.mealplan_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                // Repeating a whole week's plan previously meant re-assigning all 28
-                // slots (7 days x 4 meals) by hand - this duplicates the displayed
-                // week onto the next 7 days in one tap.
-                actions = {
-                    PlanningSwitcherMenu(current = PlanningDestination.MEAL_PLAN, onNavigate = onNavigateToPlanning)
-                    if (weeklyTotalKcal.value > 0) {
-                        IconButton(onClick = { viewModel.duplicateWeek() }) {
-                            Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_week), tint = OnBackground)
-                        }
-                    }
-                },
-            )
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.mealplan_title), color = OnBackground) },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        // Repeating a whole week's plan previously meant re-assigning all 28
+        // slots (7 days x 4 meals) by hand - this duplicates the displayed
+        // week onto the next 7 days in one tap.
+        actions = {
+            PlanningSwitcherMenu(current = PlanningDestination.MEAL_PLAN, onNavigate = onNavigateToPlanning)
+            if (weeklyTotalKcal.value > 0) {
+                IconButton(onClick = { viewModel.duplicateWeek() }) {
+                    Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_week), tint = OnBackground)
+                }
+            }
         },
-        containerColor = Background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding)
+            modifier = Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Teal)
                 .padding(horizontal = Spacing.L),
+            contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
