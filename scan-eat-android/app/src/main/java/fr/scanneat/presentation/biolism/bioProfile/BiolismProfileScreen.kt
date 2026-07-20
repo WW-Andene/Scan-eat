@@ -91,7 +91,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
             .padding(bottom = 40.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         Spacer(Modifier.height(Spacing.S))
 

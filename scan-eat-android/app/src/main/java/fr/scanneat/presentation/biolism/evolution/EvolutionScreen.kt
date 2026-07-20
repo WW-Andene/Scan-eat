@@ -63,7 +63,7 @@ fun EvolutionScreen(viewModel: EvolutionViewModel = hiltViewModel()) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { WeightEvolutionCard(weightEntries.value, useImperial.value, language.value) }
         item { BodyCompositionEvolutionCard(bodyComposition.value, language.value) }

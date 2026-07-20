@@ -66,7 +66,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { MetabolicHealthScoreCard(met, profile.value) }
         item { BodyCompositionCard(met, profile.value) }
