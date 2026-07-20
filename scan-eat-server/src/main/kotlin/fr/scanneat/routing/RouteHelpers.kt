@@ -6,6 +6,8 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import kotlinx.coroutines.CancellationException
+import org.slf4j.Logger
 
 // ============================================================================
 // ROUTING HELPERS — shared across all routes
@@ -87,6 +89,24 @@ fun normalizeImages(images: List<ImageDto>?, imageBase64: String?, mime: String?
         return listOf(ImageDto(imageBase64, mime ?: "image/jpeg"))
     }
     return emptyList()
+}
+
+/**
+ * Shared tail of every route's try/catch around its handler body — was
+ * previously duplicated 8x as `log.error(...)` + `mapError(e)` +
+ * `call.respond(status, body)`, each copy also missing the CancellationException
+ * rethrow below (see mapError callers). CancellationException (client disconnect,
+ * request scope closing) is a subtype of Exception, so a plain `catch (e:
+ * Exception)` catches it same as any real failure — rethrowing it first here,
+ * before logging or responding on a connection that may already be gone, lets it
+ * propagate and complete the coroutine's cancellation normally instead of being
+ * logged as a spurious error and answered with a response nobody will receive.
+ */
+suspend fun ApplicationCall.handleRouteError(log: Logger, tag: String, e: Exception) {
+    if (e is CancellationException) throw e
+    log.error(tag, e)
+    val (status, body) = mapError(e)
+    respond(status, body)
 }
 
 /** Map internal errors to non-revealing public messages. */

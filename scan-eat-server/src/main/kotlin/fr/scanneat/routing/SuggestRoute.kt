@@ -7,6 +7,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CancellationException
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("SuggestRoute")
@@ -36,7 +37,8 @@ fun Route.suggestRecipesRoute(groqService: GroqService) {
         // calls Groq's paid LLM API. See RateLimiter.kt.
         if (call.rejectIfRateLimited(llmRateLimiter)) return@post
         val key = call.requireGroqKey() ?: return@post
-        val req = runCatching { call.receive<SuggestRecipesRequest>() }.getOrElse {
+        val req = runCatching { call.receive<SuggestRecipesRequest>() }.getOrElse { e ->
+            if (e is CancellationException) throw e
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post
         }
@@ -52,14 +54,12 @@ fun Route.suggestRecipesRoute(groqService: GroqService) {
             val result = groqService.suggestRecipes(req.ingredient.trim(), key)
             call.respond(SuggestedRecipesResponse(
                 recipes = result.recipes.map { r ->
-                    SuggestedRecipeDto(r.name, r.description, r.cook_time_min, r.difficulty, r.main_ingredients)
+                    SuggestedRecipeDto(r.name, r.description, r.cookTimeMin, r.difficulty, r.mainIngredients)
                 },
                 warnings = result.warnings,
             ))
         } catch (e: Exception) {
-            log.error("[/api/suggest-recipes]", e)
-            val (status, body) = mapError(e)
-            call.respond(status, body)
+            call.handleRouteError(log, "[/api/suggest-recipes]", e)
         }
     }
 }
@@ -77,7 +77,8 @@ fun Route.suggestFromPantryRoute(groqService: GroqService) {
         // calls Groq's paid LLM API. See RateLimiter.kt.
         if (call.rejectIfRateLimited(llmRateLimiter)) return@post
         val key = call.requireGroqKey() ?: return@post
-        val req = runCatching { call.receive<SuggestFromPantryRequest>() }.getOrElse {
+        val req = runCatching { call.receive<SuggestFromPantryRequest>() }.getOrElse { e ->
+            if (e is CancellationException) throw e
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post
         }
@@ -92,14 +93,12 @@ fun Route.suggestFromPantryRoute(groqService: GroqService) {
             val result = groqService.suggestFromPantry(pantry, key)
             call.respond(SuggestedRecipesResponse(
                 recipes = result.recipes.map { r ->
-                    SuggestedRecipeDto(r.name, r.description, r.cook_time_min, r.difficulty, r.main_ingredients)
+                    SuggestedRecipeDto(r.name, r.description, r.cookTimeMin, r.difficulty, r.mainIngredients)
                 },
                 warnings = result.warnings,
             ))
         } catch (e: Exception) {
-            log.error("[/api/suggest-from-pantry]", e)
-            val (status, body) = mapError(e)
-            call.respond(status, body)
+            call.handleRouteError(log, "[/api/suggest-from-pantry]", e)
         }
     }
 }

@@ -7,6 +7,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CancellationException
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("IdentifyMenuRoute")
@@ -24,7 +25,8 @@ fun Route.identifyMenuRoute(groqService: GroqService) {
         // calls Groq's paid vision API. See RateLimiter.kt.
         if (call.rejectIfRateLimited(llmRateLimiter)) return@post
         val key = call.requireGroqKey() ?: return@post
-        val req = runCatching { call.receive<ImagesRequest>() }.getOrElse {
+        val req = runCatching { call.receive<ImagesRequest>() }.getOrElse { e ->
+            if (e is CancellationException) throw e
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post
         }
@@ -40,16 +42,14 @@ fun Route.identifyMenuRoute(groqService: GroqService) {
                     MenuDishDto(
                         name          = d.name,
                         description   = d.description,
-                        estimatedKcal = d.estimated_kcal,
-                        proteinG      = d.protein_g,
+                        estimatedKcal = d.estimatedKcal,
+                        proteinG      = d.proteinG,
                     )
                 },
                 warnings = result.warnings,
             ))
         } catch (e: Exception) {
-            log.error("[/api/identify-menu]", e)
-            val (status, body) = mapError(e)
-            call.respond(status, body)
+            call.handleRouteError(log, "[/api/identify-menu]", e)
         }
     }
 }
@@ -67,7 +67,8 @@ fun Route.identifyRecipeRoute(groqService: GroqService) {
         // calls Groq's paid vision API. See RateLimiter.kt.
         if (call.rejectIfRateLimited(llmRateLimiter)) return@post
         val key = call.requireGroqKey() ?: return@post
-        val req = runCatching { call.receive<ImagesRequest>() }.getOrElse {
+        val req = runCatching { call.receive<ImagesRequest>() }.getOrElse { e ->
+            if (e is CancellationException) throw e
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post
         }
@@ -83,13 +84,11 @@ fun Route.identifyRecipeRoute(groqService: GroqService) {
                 servings    = result.servings,
                 ingredients = result.ingredients.map { i -> RecipeIngredientDto(i.name, i.quantity, i.unit) },
                 steps       = result.steps,
-                cookTimeMin = result.cook_time_min,
+                cookTimeMin = result.cookTimeMin,
                 warnings    = result.warnings,
             ))
         } catch (e: Exception) {
-            log.error("[/api/identify-recipe]", e)
-            val (status, body) = mapError(e)
-            call.respond(status, body)
+            call.handleRouteError(log, "[/api/identify-recipe]", e)
         }
     }
 }

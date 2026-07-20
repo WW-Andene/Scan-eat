@@ -337,6 +337,15 @@ fun normalizeForMatching(s: String): String =
 private val NOT_FOUND = AdditiveInfo("", emptyList(), AdditiveTier.THREE, AdditiveCategory.ANTICAKING, "", "")
 private val additiveLookupCache = ConcurrentHashMap<Triple<String?, String, IngredientCategory?>, AdditiveInfo>()
 
+// Guards the check-then-clear eviction in findAdditive() below - additiveLookupCache
+// being a ConcurrentHashMap only makes each individual get/put atomic, not the "if
+// size >= max then clear" sequence itself. Without this lock, many concurrent
+// findAdditive() calls near the size threshold could each observe the cache full and
+// all call clear() around the same time, repeatedly wiping entries other callers just
+// inserted (a cache-cold stampede) instead of evicting once. Mirrors OffService.kt's
+// identical fix for its own result cache.
+private val additiveCacheEvictionLock = Any()
+
 // Keyed on the raw ingredient `name` string from scanned products, which is
 // free-text and not drawn from a fixed, small vocabulary - distinct
 // spellings/languages/OCR variants accumulate over the process lifetime as
@@ -364,7 +373,9 @@ fun findAdditive(eNumber: String?, name: String, category: IngredientCategory?):
     val key = Triple(eNumber, name, category)
     additiveLookupCache[key]?.let { return if (it === NOT_FOUND) null else it }
     val result = computeFindAdditive(eNumber, name, category)
-    if (additiveLookupCache.size >= MAX_ADDITIVE_CACHE_ENTRIES) additiveLookupCache.clear()
+    synchronized(additiveCacheEvictionLock) {
+        if (additiveLookupCache.size >= MAX_ADDITIVE_CACHE_ENTRIES) additiveLookupCache.clear()
+    }
     additiveLookupCache[key] = result ?: NOT_FOUND
     return result
 }

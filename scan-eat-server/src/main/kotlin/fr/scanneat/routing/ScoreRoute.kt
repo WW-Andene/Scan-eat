@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CancellationException
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("ScoreRoute")
@@ -33,7 +34,8 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
         // paid vision API. Without a throttle, anyone who finds the server URL
         // could run up the operator's Groq bill for free. See RateLimiter.kt.
         if (call.rejectIfRateLimited(llmRateLimiter)) return@post
-        val req = runCatching { call.receive<ScoreRequest>() }.getOrElse {
+        val req = runCatching { call.receive<ScoreRequest>() }.getOrElse { e ->
+            if (e is CancellationException) throw e
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post
         }
@@ -71,9 +73,7 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
             call.respond(scoreService.scoreFromImages(images, key, lang, model))
 
         } catch (e: Exception) {
-            log.error("[/api/score]", e)
-            val (status, body) = mapError(e)
-            call.respond(status, body)
+            call.handleRouteError(log, "[/api/score]", e)
         }
     }
 }

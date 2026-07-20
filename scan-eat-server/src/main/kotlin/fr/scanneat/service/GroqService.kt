@@ -3,6 +3,7 @@ package fr.scanneat.service
 import fr.scanneat.model.ImageDto
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -10,6 +11,7 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.serialization.SerialName
@@ -83,7 +85,11 @@ private data class AssistantMsg(
 
 // ---- Service ----
 
-class GroqService {
+// engine defaults to the real CIO engine for every production call site
+// (Application.kt's `GroqService()`) - the parameter exists purely so tests can
+// substitute a MockEngine instead of hitting the real, paid Groq API over the
+// network. See GroqServiceTest.kt.
+class GroqService(engine: HttpClientEngine = CIO.create()) {
 
     // RateLimiter.kt bounds request *rate* per client IP, but not server-wide
     // *concurrency* - a Groq slowdown (degraded-but-not-fully-down, distinct from
@@ -95,7 +101,7 @@ class GroqService {
     // once the ceiling is hit instead of queuing an unbounded wait behind it.
     private val concurrencyLimiter = Semaphore(permits = 20)
 
-    private val client = HttpClient(CIO) {
+    private val client = HttpClient(engine) {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true; encodeDefaults = false })
         }
@@ -171,6 +177,12 @@ class GroqService {
                     return choice.message.content
                         ?: throw RuntimeException("Empty response from Groq")
                 }.onFailure { e ->
+                    // CancellationException (client disconnect, request scope closing) is a
+                    // subtype of Exception, so runCatching/onFailure catches it just like any
+                    // real failure - without rethrowing it first, a cancelled request fell
+                    // through to the retry logic below and got retried against the paid Groq
+                    // API, then logged as an ordinary failed attempt.
+                    if (e is CancellationException) throw e
                     // A 4xx other than 429 (bad key, malformed request) will fail
                     // identically on every retry and on the fallback model — fail
                     // fast instead of burning attempts against it.

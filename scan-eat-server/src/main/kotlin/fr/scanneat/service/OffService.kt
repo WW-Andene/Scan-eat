@@ -2,11 +2,13 @@ package fr.scanneat.service
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.SerialName
@@ -60,9 +62,13 @@ data class OffProductRaw(
     @SerialName("additives_tags")   val additivesTags: List<String>? = null,
 )
 
-class OffService {
+// engine defaults to the real CIO engine for every production call site
+// (Application.kt's `OffService()`) - the parameter exists purely so tests can
+// substitute a MockEngine instead of hitting the real Open Food Facts API over
+// the network. See OffServiceTest.kt.
+class OffService(engine: HttpClientEngine = CIO.create()) {
 
-    private val client = HttpClient(CIO) {
+    private val client = HttpClient(engine) {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }
@@ -85,6 +91,14 @@ class OffService {
     private data class CacheEntry(val product: OffProductRaw?, val expiresAtMs: Long)
     private val cache = ConcurrentHashMap<String, CacheEntry>()
     private val cacheTtlMs = 10 * 60 * 1000L // 10 minutes
+
+    // Guards the check-then-clear eviction below - `cache` being a ConcurrentHashMap
+    // only makes each individual get/put atomic, not the "if size >= max then clear"
+    // sequence itself. Without this lock, many concurrent fetchProduct() calls near
+    // the size threshold could each observe size >= maxCacheEntries and all call
+    // clear() around the same time, repeatedly wiping entries other coroutines just
+    // inserted (a cache-cold stampede) instead of evicting once.
+    private val cacheEvictionLock = Any()
 
     // /api/score accepts any 6-14 digit barcode string from anonymous callers, and a
     // distinct barcode never hits the TTL-based reuse above - only a size cap actually
@@ -124,7 +138,15 @@ class OffService {
             val result = deferred.await()
             if (result != null) { found = result; break }
         }
-        if (cache.size >= maxCacheEntries) cache.clear()
+        // coroutineScope only returns once every child job has completed - breaking
+        // out of the loop above on the first match still left every later candidate
+        // running to completion in the background, so fetchProduct didn't actually
+        // return until the slowest candidate finished too. Cancelling whatever's left
+        // (a no-op for jobs that already completed) lets a fast match return promptly.
+        pending.forEach { it.cancel() }
+        synchronized(cacheEvictionLock) {
+            if (cache.size >= maxCacheEntries) cache.clear()
+        }
         cache[digits] = CacheEntry(found, now + cacheTtlMs)
         found
     }
@@ -137,7 +159,15 @@ class OffService {
             header("Accept", "application/json")
         }.body()
         if (resp.status == 1) resp.product else null
-    }.onFailure { log.warn("OFF lookup failed for $code: ${it.message}") }.getOrNull()
+    }.onFailure { e ->
+        // Cancelling a losing candidate (see the first-match-wins cancel() above, or a
+        // client disconnect) must propagate as a real cancellation, not be swallowed
+        // into a plain "lookup failed" null - getOrNull() below would otherwise let the
+        // enclosing async{} job complete "successfully" with null instead of
+        // cooperatively cancelling like the rest of the coroutine tree expects.
+        if (e is CancellationException) throw e
+        log.warn("OFF lookup failed for $code: ${e.message}")
+    }.getOrNull()
 
     fun close() = client.close()
 }

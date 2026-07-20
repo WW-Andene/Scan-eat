@@ -67,6 +67,11 @@ dependencies {
     // Test
     testImplementation("io.ktor:ktor-server-test-host-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    // GroqService/OffService construct their real HttpClient(CIO) internally with no
+    // seam to intercept it - MockEngine lets tests substitute a scripted in-memory
+    // response instead of hitting the real, paid Groq API / Open Food Facts over the
+    // network. See GroqServiceTest.kt / OffServiceTest.kt.
+    testImplementation("io.ktor:ktor-client-mock-jvm:$ktor_version")
 }
 
 tasks.shadowJar {

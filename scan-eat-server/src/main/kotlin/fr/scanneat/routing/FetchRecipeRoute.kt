@@ -197,9 +197,7 @@ fun Route.fetchRecipeRoute() {
         } catch (e: UnsafeRedirectException) {
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("URL must be a public http(s) address"))
         } catch (e: Exception) {
-            log.error("[/api/fetch-recipe] $url", e)
-            val (status, body) = mapError(e)
-            call.respond(status, body)
+            call.handleRouteError(log, "[/api/fetch-recipe] $url", e)
         }
     }
 }

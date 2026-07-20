@@ -3,6 +3,7 @@ package fr.scanneat.service
 import fr.scanneat.model.ImageDto
 import fr.scanneat.model.ScoreResponse
 import fr.scanneat.shared.*
+import kotlinx.coroutines.CancellationException
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("ScoreService")
@@ -71,6 +72,11 @@ class ScoreService(
                         ),
                     )
                 }.onFailure { e ->
+                    // A cancelled request (client disconnect, coroutine scope closing) is not
+                    // an augmentation failure - without this rethrow it was mislabeled to the
+                    // caller as "invalid API key or model" and silently fell back to OFF-only
+                    // instead of letting the cancellation propagate.
+                    if (e is CancellationException) throw e
                     log.warn("LLM augmentation failed, falling back to OFF-only: ${e.message}")
                     augmentWarning = "AI augmentation failed (invalid API key or model) - showing Open Food Facts data only"
                 }.getOrNull()

@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CancellationException
 import org.slf4j.LoggerFactory
 
 private val log = LoggerFactory.getLogger("IdentifyRoute")
@@ -25,7 +26,8 @@ fun Route.identifyRoute(groqService: GroqService) {
         // calls Groq's paid vision API. See RateLimiter.kt.
         if (call.rejectIfRateLimited(llmRateLimiter)) return@post
         val key = call.requireGroqKey() ?: return@post
-        val req = runCatching { call.receive<ImagesRequest>() }.getOrElse {
+        val req = runCatching { call.receive<ImagesRequest>() }.getOrElse { e ->
+            if (e is CancellationException) throw e
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post
         }
@@ -38,9 +40,7 @@ fun Route.identifyRoute(groqService: GroqService) {
             val result = groqService.identifyFood(images, key, resolveLang(req.lang))
             call.respond(result.product.toIdentifiedDto(result.warnings))
         } catch (e: Exception) {
-            log.error("[/api/identify]", e)
-            val (status, body) = mapError(e)
-            call.respond(status, body)
+            call.handleRouteError(log, "[/api/identify]", e)
         }
     }
 }
@@ -58,7 +58,8 @@ fun Route.identifyMultiRoute(groqService: GroqService) {
         // calls Groq's paid vision API. See RateLimiter.kt.
         if (call.rejectIfRateLimited(llmRateLimiter)) return@post
         val key = call.requireGroqKey() ?: return@post
-        val req = runCatching { call.receive<ImagesRequest>() }.getOrElse {
+        val req = runCatching { call.receive<ImagesRequest>() }.getOrElse { e ->
+            if (e is CancellationException) throw e
             call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid JSON body"))
             return@post
         }
@@ -74,9 +75,7 @@ fun Route.identifyMultiRoute(groqService: GroqService) {
                 warnings = result.warnings,
             ))
         } catch (e: Exception) {
-            log.error("[/api/identify-multi]", e)
-            val (status, body) = mapError(e)
-            call.respond(status, body)
+            call.handleRouteError(log, "[/api/identify-multi]", e)
         }
     }
 }

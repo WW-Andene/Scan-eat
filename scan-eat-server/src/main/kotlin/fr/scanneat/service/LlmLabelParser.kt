@@ -2,6 +2,7 @@ package fr.scanneat.service
 
 import fr.scanneat.model.ImageDto
 import fr.scanneat.shared.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import org.slf4j.LoggerFactory
@@ -17,57 +18,61 @@ private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
 // ---- LLM DTO ----
 
+// Kotlin property names below are camelCase per codebase convention; @SerialName
+// pins each one to the snake_case key the label/identify prompts above actually
+// ask the LLM to emit, so the JSON wire casing doesn't leak into every call site
+// that reads these DTOs (mapToProduct, parseSingle below).
 @Serializable
 private data class LlmProductDto(
     val name: String? = null,
     val category: String? = null,
-    val nova_class: Int? = null,
+    @SerialName("nova_class") val novaClass: Int? = null,
     val ingredients: List<LlmIngredientDto>? = null,
     val nutrition: LlmNutritionDto? = null,
     val organic: Boolean? = null,
-    val whole_grain_primary: Boolean? = null,
+    @SerialName("whole_grain_primary") val wholeGrainPrimary: Boolean? = null,
     val fermented: Boolean? = null,
-    val has_health_claims: Boolean? = null,
-    val has_misleading_marketing: Boolean? = null,
-    val named_oils: Boolean? = null,
+    @SerialName("has_health_claims") val hasHealthClaims: Boolean? = null,
+    @SerialName("has_misleading_marketing") val hasMisleadingMarketing: Boolean? = null,
+    @SerialName("named_oils") val namedOils: Boolean? = null,
     val origin: String? = null,
-    val weight_g: Double? = null,
+    @SerialName("weight_g") val weightG: Double? = null,
     val barcode: String? = null,
-    val allergen_declarations: List<String>? = null,
+    @SerialName("allergen_declarations") val allergenDeclarations: List<String>? = null,
 )
 
 @Serializable
 private data class LlmIngredientDto(
     val name: String? = null,
     val percentage: Double? = null,
-    val e_number: String? = null,
+    @SerialName("e_number") val eNumber: String? = null,
     val category: String? = null,
-    val is_whole_food: Boolean? = null,
+    @SerialName("is_whole_food") val isWholeFood: Boolean? = null,
 )
 
 @Serializable
 private data class LlmNutritionDto(
-    val energy_kcal: Double? = null,
-    val fat_g: Double? = null,
-    val saturated_fat_g: Double? = null,
-    val carbs_g: Double? = null,
-    val sugars_g: Double? = null,
-    val added_sugars_g: Double? = null,
-    val fiber_g: Double? = null,
-    val protein_g: Double? = null,
-    val salt_g: Double? = null,
-    val trans_fat_g: Double? = null,
-    val iron_mg: Double? = null,
-    val calcium_mg: Double? = null,
-    val magnesium_mg: Double? = null,
-    val potassium_mg: Double? = null,
-    val zinc_mg: Double? = null,
-    val vit_a_ug: Double? = null,
-    val vit_c_mg: Double? = null,
-    val vit_d_ug: Double? = null,
-    val vit_e_mg: Double? = null,
-    val vit_k_ug: Double? = null,
-    val b12_ug: Double? = null,
+    @SerialName("energy_kcal") val energyKcal: Double? = null,
+    @SerialName("fat_g") val fatG: Double? = null,
+    @SerialName("saturated_fat_g") val saturatedFatG: Double? = null,
+    @SerialName("carbs_g") val carbsG: Double? = null,
+    @SerialName("sugars_g") val sugarsG: Double? = null,
+    @SerialName("added_sugars_g") val addedSugarsG: Double? = null,
+    @SerialName("fiber_g") val fiberG: Double? = null,
+    @SerialName("protein_g") val proteinG: Double? = null,
+    @SerialName("salt_g") val saltG: Double? = null,
+    @SerialName("trans_fat_g") val transFatG: Double? = null,
+    @SerialName("iron_mg") val ironMg: Double? = null,
+    @SerialName("calcium_mg") val calciumMg: Double? = null,
+    @SerialName("magnesium_mg") val magnesiumMg: Double? = null,
+    @SerialName("potassium_mg") val potassiumMg: Double? = null,
+    @SerialName("zinc_mg") val zincMg: Double? = null,
+    @SerialName("vit_a_ug") val vitAUg: Double? = null,
+    @SerialName("vit_c_mg") val vitCMg: Double? = null,
+    @SerialName("vit_d_ug") val vitDUg: Double? = null,
+    @SerialName("vit_e_mg") val vitEMg: Double? = null,
+    @SerialName("vit_k_ug") val vitKUg: Double? = null,
+    @SerialName("b12_ug") val b12Ug: Double? = null,
 )
 
 // ---- Prompts ----
@@ -197,61 +202,61 @@ private val ANNEX_II_KEY_TO_OFF_TAG: Map<String, String> = mapOf(
 private fun mapToProduct(dto: LlmProductDto): Product {
     val n = dto.nutrition
     val nutrition = NutritionPer100g(
-        energyKcal    = coerceNutrient(n?.energy_kcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
-        fatG          = coerceNutrient(n?.fat_g),
-        saturatedFatG = coerceNutrient(n?.saturated_fat_g),
-        carbsG        = coerceNutrient(n?.carbs_g),
-        sugarsG       = coerceNutrient(n?.sugars_g),
-        addedSugarsG  = n?.added_sugars_g,
-        fiberG        = coerceNutrient(n?.fiber_g),
-        proteinG      = coerceNutrient(n?.protein_g),
-        saltG         = coerceNutrient(n?.salt_g),
-        transFatG     = n?.trans_fat_g,
-        ironMg        = n?.iron_mg,
-        calciumMg     = n?.calcium_mg,
-        magnesiumMg   = n?.magnesium_mg,
-        potassiumMg   = n?.potassium_mg,
-        zincMg        = n?.zinc_mg,
-        vitAUg        = n?.vit_a_ug,
-        vitCMg        = n?.vit_c_mg,
-        vitDUg        = n?.vit_d_ug,
-        vitEMg        = n?.vit_e_mg,
-        b12Ug         = n?.b12_ug,
+        energyKcal    = coerceNutrient(n?.energyKcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
+        fatG          = coerceNutrient(n?.fatG),
+        saturatedFatG = coerceNutrient(n?.saturatedFatG),
+        carbsG        = coerceNutrient(n?.carbsG),
+        sugarsG       = coerceNutrient(n?.sugarsG),
+        addedSugarsG  = n?.addedSugarsG,
+        fiberG        = coerceNutrient(n?.fiberG),
+        proteinG      = coerceNutrient(n?.proteinG),
+        saltG         = coerceNutrient(n?.saltG),
+        transFatG     = n?.transFatG,
+        ironMg        = n?.ironMg,
+        calciumMg     = n?.calciumMg,
+        magnesiumMg   = n?.magnesiumMg,
+        potassiumMg   = n?.potassiumMg,
+        zincMg        = n?.zincMg,
+        vitAUg        = n?.vitAUg,
+        vitCMg        = n?.vitCMg,
+        vitDUg        = n?.vitDUg,
+        vitEMg        = n?.vitEMg,
+        b12Ug         = n?.b12Ug,
     )
     return Product(
         name      = dto.name?.trim() ?: "(produit sans nom)",
         category  = ProductCategory.fromKey(dto.category ?: "other"),
-        novaClass = NovaClass.fromInt(dto.nova_class ?: 4),
+        novaClass = NovaClass.fromInt(dto.novaClass ?: 4),
         ingredients = dto.ingredients?.mapNotNull { ing ->
             val name = ing.name?.trim()?.takeIf { it.isNotEmpty() } ?: return@mapNotNull null
             Ingredient(
                 name        = name,
                 percentage  = ing.percentage,
-                eNumber     = ing.e_number?.uppercase()?.takeIf { Regex("^E\\d{3}").containsMatchIn(it) },
+                eNumber     = ing.eNumber?.uppercase()?.takeIf { Regex("^E\\d{3}").containsMatchIn(it) },
                 category    = when (ing.category?.lowercase()) {
                     "additive"        -> IngredientCategory.ADDITIVE
                     "processing_aid"  -> IngredientCategory.PROCESSING_AID
                     else              -> IngredientCategory.FOOD
                 },
-                isWholeFood = ing.is_whole_food,
+                isWholeFood = ing.isWholeFood,
             )
         } ?: emptyList(),
         nutrition = nutrition,
         organic               = dto.organic ?: false,
-        wholeGrainPrimary     = dto.whole_grain_primary ?: false,
+        wholeGrainPrimary     = dto.wholeGrainPrimary ?: false,
         fermented             = dto.fermented ?: false,
-        hasHealthClaims       = dto.has_health_claims ?: false,
-        hasMisleadingMarketing = dto.has_misleading_marketing ?: false,
-        namedOils             = dto.named_oils,
+        hasHealthClaims       = dto.hasHealthClaims ?: false,
+        hasMisleadingMarketing = dto.hasMisleadingMarketing ?: false,
+        namedOils             = dto.namedOils,
         origin                = dto.origin?.takeIf { it.isNotBlank() },
-        weightG               = dto.weight_g,
+        weightG               = dto.weightG,
         declaredMicronutrients = declaredMicronutrientsOf(nutrition),
         // Previously always empty for every LLM/photo-sourced scan (unlike
         // OFF-sourced ones) - the label prompt never asked for the printed
         // allergen statement, so a Server-mode scan without an OFF barcode
         // match got no allergen-declaration signal at all. See the matching
         // fix in Android's OcrParser.kt.
-        declaredAllergenTags = dto.allergen_declarations.orEmpty().mapNotNull { ANNEX_II_KEY_TO_OFF_TAG[it] },
+        declaredAllergenTags = dto.allergenDeclarations.orEmpty().mapNotNull { ANNEX_II_KEY_TO_OFF_TAG[it] },
     )
 }
 
@@ -261,7 +266,7 @@ private fun parseSingle(raw: String): SingleParse {
     val jsonStr = extractJson(raw)
     val dto = runCatching { json.decodeFromString<LlmProductDto>(jsonStr) }.getOrNull()
         ?: return SingleParse(Product("(parse error)", ProductCategory.OTHER, NovaClass.ULTRA_PROCESSED, emptyList(), NutritionPer100g.EMPTY), null, null)
-    return SingleParse(mapToProduct(dto), dto.barcode, dto.nutrition?.energy_kcal)
+    return SingleParse(mapToProduct(dto), dto.barcode, dto.nutrition?.energyKcal)
 }
 
 // ============================================================================
@@ -327,8 +332,8 @@ private data class MenuResult(
 data class MenuDishRaw(
     val name: String = "",
     val description: String? = null,
-    val estimated_kcal: Int? = null,
-    val protein_g: Double? = null,
+    @SerialName("estimated_kcal") val estimatedKcal: Int? = null,
+    @SerialName("protein_g") val proteinG: Double? = null,
 )
 
 data class MenuParseResult(val dishes: List<MenuDishRaw>, val warnings: List<String>)
@@ -346,7 +351,7 @@ data class RecipeResult(
     val servings: Int? = null,
     val ingredients: List<RecipeIngRaw> = emptyList(),
     val steps: List<String> = emptyList(),
-    val cook_time_min: Int? = null,
+    @SerialName("cook_time_min") val cookTimeMin: Int? = null,
     val warnings: List<String> = emptyList(),
 )
 
@@ -408,9 +413,9 @@ data class SuggestResult(
 data class SuggestRecipeRaw(
     val name: String = "",
     val description: String = "",
-    val cook_time_min: Int? = null,
+    @SerialName("cook_time_min") val cookTimeMin: Int? = null,
     val difficulty: String? = null,
-    val main_ingredients: List<String> = emptyList(),
+    @SerialName("main_ingredients") val mainIngredients: List<String> = emptyList(),
 )
 
 suspend fun GroqService.suggestRecipes(ingredient: String, apiKey: String?): SuggestResult {

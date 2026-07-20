@@ -40,49 +40,80 @@ fun Ingredient.toDto() = IngredientDto(
     isWholeFood = isWholeFood,
 )
 
-fun Product.toDto() = ProductDto(
-    name          = name,
-    category      = category.key,
-    novaClass     = novaClass.value,
-    ingredients   = ingredients.map { it.toDto() },
-    nutrition     = nutrition.toDto(),
-    organic       = organic,
-    wholeGrainPrimary = wholeGrainPrimary,
-    fermented     = fermented,
-    hasHealthClaims = hasHealthClaims,
-    hasMisleadingMarketing = hasMisleadingMarketing,
-    namedOils     = namedOils,
-    origin        = origin,
-    weightG       = weightG,
-    ecoscoreGrade = ecoscoreGrade,
-    ecoscoreValue = ecoscoreValue,
-    nutriscoreGrade = nutriscoreGrade,
-    declaredMicronutrients = declaredMicronutrients,
-    declaredAllergenTags = declaredAllergenTags,
-)
+/**
+ * The ~15 fields ProductDto and IdentifiedFoodResponse both carry, computed once
+ * here instead of separately in toDto() and toIdentifiedDto() below - a new
+ * Product field previously had to be added to both mapping functions in lockstep,
+ * with nothing catching it if one was missed.
+ */
+private class CommonProductFields(p: Product) {
+    val name          = p.name
+    val category      = p.category.key
+    val novaClass     = p.novaClass.value
+    val ingredients   = p.ingredients.map { it.toDto() }
+    val nutrition     = p.nutrition.toDto()
+    val organic       = p.organic
+    val wholeGrainPrimary = p.wholeGrainPrimary
+    val fermented     = p.fermented
+    val hasHealthClaims = p.hasHealthClaims
+    val hasMisleadingMarketing = p.hasMisleadingMarketing
+    val namedOils     = p.namedOils
+    val origin        = p.origin
+    val weightG       = p.weightG
+    val ecoscoreGrade = p.ecoscoreGrade
+    val ecoscoreValue = p.ecoscoreValue
+    val nutriscoreGrade = p.nutriscoreGrade
+    val declaredMicronutrients = p.declaredMicronutrients
+    val declaredAllergenTags = p.declaredAllergenTags
+}
+
+fun Product.toDto(): ProductDto = CommonProductFields(this).let { f ->
+    ProductDto(
+        name          = f.name,
+        category      = f.category,
+        novaClass     = f.novaClass,
+        ingredients   = f.ingredients,
+        nutrition     = f.nutrition,
+        organic       = f.organic,
+        wholeGrainPrimary = f.wholeGrainPrimary,
+        fermented     = f.fermented,
+        hasHealthClaims = f.hasHealthClaims,
+        hasMisleadingMarketing = f.hasMisleadingMarketing,
+        namedOils     = f.namedOils,
+        origin        = f.origin,
+        weightG       = f.weightG,
+        ecoscoreGrade = f.ecoscoreGrade,
+        ecoscoreValue = f.ecoscoreValue,
+        nutriscoreGrade = f.nutriscoreGrade,
+        declaredMicronutrients = f.declaredMicronutrients,
+        declaredAllergenTags = f.declaredAllergenTags,
+    )
+}
 
 /** Same field set as Product.toDto(), plus the identify-only warnings list - see IdentifyRoute.kt. */
-fun Product.toIdentifiedDto(warnings: List<String> = emptyList()) = IdentifiedFoodResponse(
-    name          = name,
-    category      = category.key,
-    novaClass     = novaClass.value,
-    ingredients   = ingredients.map { it.toDto() },
-    nutrition     = nutrition.toDto(),
-    organic       = organic,
-    wholeGrainPrimary = wholeGrainPrimary,
-    fermented     = fermented,
-    hasHealthClaims = hasHealthClaims,
-    hasMisleadingMarketing = hasMisleadingMarketing,
-    namedOils     = namedOils,
-    origin        = origin,
-    weightG       = weightG,
-    ecoscoreGrade = ecoscoreGrade,
-    ecoscoreValue = ecoscoreValue,
-    nutriscoreGrade = nutriscoreGrade,
-    declaredMicronutrients = declaredMicronutrients,
-    declaredAllergenTags = declaredAllergenTags,
-    warnings      = warnings,
-)
+fun Product.toIdentifiedDto(warnings: List<String> = emptyList()): IdentifiedFoodResponse = CommonProductFields(this).let { f ->
+    IdentifiedFoodResponse(
+        name          = f.name,
+        category      = f.category,
+        novaClass     = f.novaClass,
+        ingredients   = f.ingredients,
+        nutrition     = f.nutrition,
+        organic       = f.organic,
+        wholeGrainPrimary = f.wholeGrainPrimary,
+        fermented     = f.fermented,
+        hasHealthClaims = f.hasHealthClaims,
+        hasMisleadingMarketing = f.hasMisleadingMarketing,
+        namedOils     = f.namedOils,
+        origin        = f.origin,
+        weightG       = f.weightG,
+        ecoscoreGrade = f.ecoscoreGrade,
+        ecoscoreValue = f.ecoscoreValue,
+        nutriscoreGrade = f.nutriscoreGrade,
+        declaredMicronutrients = f.declaredMicronutrients,
+        declaredAllergenTags = f.declaredAllergenTags,
+        warnings      = warnings,
+    )
+}
 
 fun Deduction.toDto() = DeductionDto(
     pillar   = pillar,
