@@ -13,6 +13,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
 import java.util.Locale
 
 @Composable
@@ -22,17 +23,17 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.S)) {
             Text(stringResource(R.string.biolism_energy_tdee_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), letterSpacing = 1.sp)
-            Text("%.1f".format(Locale.US, met.tdeeDay), style = HeroNumberStyle.copy(fontSize = 34.sp), color = Gold)
+            Text(met.tdeeDay.formatDecimal(), style = HeroNumberStyle.copy(fontSize = 34.sp), color = Gold)
             Text(stringResource(R.string.biolism_energy_tdee_sub, met.tdeeDay / met.bmrDay.coerceAtLeast(1.0)), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         }
         // Previously the bare English activityMeta.label/.note regardless of app language.
         InfoRow(stringResource(R.string.biolism_energy_activity_level), profile.activityMeta.label(lang), profile.activityMeta.note(lang), Gold)
         val kcalJ = stringResource(R.string.biolism_energy_kcal_j)
         MetCellGrid(listOf(
-            Triple(stringResource(R.string.biolism_energy_bmr_avg), "%.1f".format(Locale.US, met.bmrDay), stringResource(R.string.biolism_energy_bmr_avg_sub)),
-            Triple("Mifflin-St Jeor", "%.1f".format(Locale.US, met.bmrMsj), kcalJ),
-            Triple("Katch-McArdle", "%.1f".format(Locale.US, met.bmrKm), stringResource(R.string.biolism_energy_km_sub)),
-        ) + if (s.ketosisOn) listOf(Triple(stringResource(R.string.biolism_energy_bmr_suppressed), "%.1f".format(Locale.US, met.bmrDay * met.ketoSupprFactor), stringResource(R.string.biolism_energy_bmr_suppressed_sub))) else emptyList())
+            Triple(stringResource(R.string.biolism_energy_bmr_avg), met.bmrDay.formatDecimal(), stringResource(R.string.biolism_energy_bmr_avg_sub)),
+            Triple("Mifflin-St Jeor", met.bmrMsj.formatDecimal(), kcalJ),
+            Triple("Katch-McArdle", met.bmrKm.formatDecimal(), stringResource(R.string.biolism_energy_km_sub)),
+        ) + if (s.ketosisOn) listOf(Triple(stringResource(R.string.biolism_energy_bmr_suppressed), (met.bmrDay * met.ketoSupprFactor).formatDecimal(), stringResource(R.string.biolism_energy_bmr_suppressed_sub))) else emptyList())
         Spacer(Modifier.height(6.dp))
         InfoRow(stringResource(R.string.biolism_energy_deficit), stringResource(R.string.biolism_energy_kcal_per_day_value, met.tdeeDay - 500), stringResource(R.string.biolism_energy_deficit_sub), Teal)
         InfoRow(stringResource(R.string.biolism_energy_surplus), stringResource(R.string.biolism_energy_kcal_per_day_value, met.tdeeDay + 300), stringResource(R.string.biolism_energy_surplus_sub), Violet)

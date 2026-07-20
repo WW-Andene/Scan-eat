@@ -27,7 +27,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.CardRadius
-import java.util.Locale
+import fr.scanneat.util.formatDecimal
 
 /** [onSuggestionClick] logs the suggested food (see DashboardViewModel.logGapSuggestion) — previously these chips had no action at all. */
 @OptIn(ExperimentalLayoutApi::class)
@@ -42,7 +42,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggesti
         gaps.take(3).forEach { gap ->
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Text(
-                    stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, "%.1f".format(Locale.US, gap.deficit)),
+                    stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, gap.deficit.formatDecimal()),
                     style = MaterialTheme.typography.labelMedium, color = semanticAmber(),
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

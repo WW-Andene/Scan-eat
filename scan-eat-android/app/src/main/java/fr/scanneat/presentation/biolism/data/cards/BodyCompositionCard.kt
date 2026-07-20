@@ -13,13 +13,14 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
 import java.util.Locale
 
 @Composable
 fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
     BioCard(stringResource(R.string.biolism_body_title), defaultOpen = true, badge = { BmiChip(met) }) {
         MetCellGrid(listOf(
-            Triple(stringResource(R.string.biolism_body_bmi_label), "%.1f".format(Locale.US, met.bmi), stringResource(R.string.biolism_body_bmi_sub)),
+            Triple(stringResource(R.string.biolism_body_bmi_label), met.bmi.formatDecimal(), stringResource(R.string.biolism_body_bmi_sub)),
             Triple(stringResource(R.string.biolism_body_fat_label), "%.1f%%".format(Locale.US, met.bfPct), stringResource(R.string.biolism_body_fat_sub)),
             Triple(stringResource(R.string.biolism_body_lean_label), "%.1f kg".format(Locale.US, met.ffm), stringResource(R.string.biolism_body_lean_sub)),
             Triple(stringResource(R.string.biolism_body_fatmass_label), "%.1f kg".format(Locale.US, met.fm), stringResource(R.string.biolism_body_fatmass_sub)),
@@ -58,14 +59,14 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
             val riskHigh = stringResource(R.string.biolism_body_risk_high)
             val riskLow = stringResource(R.string.biolism_body_risk_low)
             met.whtr?.let { v ->
-                InfoRow(stringResource(R.string.biolism_body_whtr_label), "%.3f".format(Locale.US, v),
+                InfoRow(stringResource(R.string.biolism_body_whtr_label), v.formatDecimal(3),
                     if (v < 0.40) riskThin else if (v < 0.50) riskHealthy else if (v < 0.60) riskCentral else riskHigh,
                     if (v < 0.50) semanticGreen() else if (v < 0.60) semanticAmber() else semanticRed())
             } ?: Text(stringResource(R.string.biolism_body_whtr_prompt),
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
             met.whr?.let { v ->
                 val thresh = if (profile.sex == BiolismSex.MALE) 0.90 else 0.85
-                InfoRow(stringResource(R.string.biolism_body_whr_label), "%.3f".format(Locale.US, v),
+                InfoRow(stringResource(R.string.biolism_body_whr_label), v.formatDecimal(3),
                     if (v < thresh) riskLow else riskHigh,
                     if (v < thresh) semanticGreen() else semanticRed())
             }

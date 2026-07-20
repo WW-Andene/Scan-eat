@@ -20,7 +20,7 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SeparatorLight
 import fr.scanneat.presentation.ui.theme.Spacing
-import java.util.Locale
+import fr.scanneat.util.formatDecimal
 
 @Composable
 internal fun NutritionTable(nutrition: NutritionPer100g) {
@@ -57,7 +57,7 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
 // OFF-sourced doubles (e.g. sodium x1000 -> mg, cl/dl conversions) can carry
 // float-imprecision tails (12.339999999999999); round to 1 decimal so every
 // row displays with consistent precision, matching how energyKcal is rounded.
-private fun fmt1(value: Double): String = "%.1f".format(Locale.US, value)
+private fun fmt1(value: Double): String = value.formatDecimal()
 
 @Composable
 private fun NRow(label: String, value: String) {

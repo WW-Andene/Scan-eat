@@ -37,6 +37,7 @@ import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.presentation.reminders.WeightReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.ui.theme.dispWeight as sharedDispWeight
+import fr.scanneat.util.formatDecimal
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -175,7 +176,7 @@ fun WeightScreen(
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text(stringResource(R.string.weight_bmi_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("%.1f".format(Locale.US, bmi), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = bmiColor)
+                                    Text(bmi.formatDecimal(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = bmiColor)
                                     Surface(shape = RoundedCornerShape(4.dp), color = bmiColor.copy(0.15f)) {
                                         Text(bmiLabel, style = MaterialTheme.typography.labelSmall, color = bmiColor, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                     }
@@ -331,7 +332,7 @@ fun WeightScreen(
                             Surface(shape = RoundedCornerShape(50), color = dColor.copy(0.15f)) {
                                 val sign = if (delta >= 0) "+" else ""
                                 Text(
-                                    "$sign${"%.1f".format(Locale.US, if (useImperial) delta * KG_TO_LB else delta)} ${if (useImperial) "lb" else "kg"}",
+                                    "$sign${(if (useImperial) delta * KG_TO_LB else delta).formatDecimal()} ${if (useImperial) "lb" else "kg"}",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = dColor,
                                     fontWeight = FontWeight.Bold,
@@ -371,7 +372,7 @@ fun WeightScreen(
                             val dColor = if (delta < -0.05) semanticGreen() else if (delta > 0.05) semanticRed() else OnSurface.copy(0.4f)
                             val sign = if (delta >= 0) "+" else ""
                             Text(
-                                "$sign${"%.1f".format(Locale.US, if (useImperial) delta * KG_TO_LB else delta)}",
+                                "$sign${(if (useImperial) delta * KG_TO_LB else delta).formatDecimal()}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = dColor,
                                 fontWeight = FontWeight.SemiBold,

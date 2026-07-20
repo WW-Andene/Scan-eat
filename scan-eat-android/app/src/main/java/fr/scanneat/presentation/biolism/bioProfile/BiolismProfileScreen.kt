@@ -23,6 +23,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.ui.theme.dispWeight as sharedDispWeight
+import fr.scanneat.util.formatDecimal
 import java.util.Locale
 
 @Composable
@@ -80,7 +81,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         val totalIn = kotlin.math.round(cm / CM_TO_IN * 10) / 10.0
         val ft = (totalIn / 12).toInt()
         val inch = totalIn % 12
-        return "$ft′ ${"%.1f".format(Locale.US, inch)}″"
+        return "$ft′ ${inch.formatDecimal()}″"
     }
 
     Box(Modifier.fillMaxSize()) {

@@ -10,6 +10,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.biolism.data.*
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
 import java.util.Locale
 
 @Composable
@@ -17,10 +18,10 @@ fun BurnRateCard(met: MetabolicResult, s: TimerState, cum: SessionCumulative?) {
     BioCard(stringResource(R.string.biolism_burn_title),
         badge = { TealBadge(stringResource(R.string.biolism_burn_badge, met.sub.rq)) }) {
         MetCellGrid(listOf(
-            Triple(stringResource(R.string.biolism_burn_per_second), "%.6f".format(Locale.US, met.kcalSec), "kcal/s"),
-            Triple(stringResource(R.string.biolism_burn_per_minute), "%.4f".format(Locale.US, met.kcalSec * 60), "kcal/min"),
-            Triple(stringResource(R.string.biolism_burn_per_hour), "%.2f".format(Locale.US, met.kcalSec * 3600), "kcal/h"),
-            Triple(stringResource(R.string.biolism_burn_per_day), "%.1f".format(Locale.US, met.bmrDay), stringResource(R.string.biolism_burn_per_day_unit)),
+            Triple(stringResource(R.string.biolism_burn_per_second), met.kcalSec.formatDecimal(6), "kcal/s"),
+            Triple(stringResource(R.string.biolism_burn_per_minute), (met.kcalSec * 60).formatDecimal(4), "kcal/min"),
+            Triple(stringResource(R.string.biolism_burn_per_hour), (met.kcalSec * 3600).formatDecimal(2), "kcal/h"),
+            Triple(stringResource(R.string.biolism_burn_per_day), met.bmrDay.formatDecimal(), stringResource(R.string.biolism_burn_per_day_unit)),
         ))
         Spacer(Modifier.height(6.dp))
         InfoRow(stringResource(R.string.biolism_burn_substrate_split), "G %d%% · Gluc %d%% · P %d%%".format(Locale.US, 

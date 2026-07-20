@@ -19,7 +19,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.CardRadius
-import java.util.Locale
+import fr.scanneat.util.formatDecimal
 
 /** Reusable, stateless form primitives local to the Biolism profile edit screen. */
 
@@ -61,7 +61,7 @@ internal fun BioInputUnit(
     // with a decimal silently reset the field. Normalize comma->period before parsing,
     // and force Locale.US when formatting back so the displayed/stored value is always
     // period-based and re-parses correctly on the next edit.
-    val display = if (useImperial) metricValue.toDoubleOrNull()?.let { "%.1f".format(Locale.US, toImperial(it)) } ?: "" else metricValue
+    val display = if (useImperial) metricValue.toDoubleOrNull()?.let { toImperial(it).formatDecimal() } ?: "" else metricValue
     OutlinedTextField(
         value = display,
         onValueChange = { input ->
@@ -69,7 +69,7 @@ internal fun BioInputUnit(
             onMetricChange(when {
                 input.isBlank() -> ""
                 d == null -> metricValue
-                useImperial -> "%.2f".format(Locale.US, toMetric(d))
+                useImperial -> toMetric(d).formatDecimal(2)
                 else -> input
             })
         },
