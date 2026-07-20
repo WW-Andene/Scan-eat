@@ -31,12 +31,13 @@ import dev.chrisbanes.haze.hazeSource
  * library's default film-grain dithering risks reading as the same dot/grain
  * texture this rework was asked to remove, so it's off.
  */
-val FrostedGlassStyle = HazeStyle(
-    backgroundColor = SurfaceVariant,
-    tint            = HazeTint(SurfaceVariant.copy(alpha = 0.55f)),
-    blurRadius      = 20.dp,
-    noiseFactor     = 0f,
-)
+val FrostedGlassStyle: HazeStyle
+    @Composable get() = HazeStyle(
+        backgroundColor = SurfaceVariant,
+        tint            = HazeTint(SurfaceVariant.copy(alpha = 0.55f)),
+        blurRadius      = 20.dp,
+        noiseFactor     = 0f,
+    )
 
 /**
  * Shared [HazeState] for MainShell's bottom nav: created once in MainShell
