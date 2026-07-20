@@ -30,6 +30,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -212,6 +213,27 @@ class DiaryViewModel @Inject constructor(
                 )
             )
             _searchQuery.value = ""
+        }
+    }
+
+    /**
+     * Logs a copy of every entry from the day before [selectedDate] onto the
+     * currently viewed day - a MyFitnessPal/Cronometer staple this app never had:
+     * repeating a typical day meant re-searching and re-portioning every item by
+     * hand. Relative to the viewed day (not always literal "yesterday") so it
+     * still does something sensible while browsing a past date. No-ops silently
+     * if the previous day has nothing logged. logAll() writes atomically, same
+     * as a template/recipe expanding to several entries.
+     */
+    fun copyPreviousDayMeals() {
+        viewModelScope.launch {
+            val previousDay = _selectedDate.value.minusDays(1)
+            val previous = consumptionRepo.observeDay(previousDay).first()
+            if (previous.entries.isEmpty()) return@launch
+            val copies = previous.entries.map { entry ->
+                entry.copy(id = 0, date = _selectedDate.value, loggedAt = LocalDateTime.now())
+            }
+            consumptionRepo.logAll(copies)
         }
     }
 }

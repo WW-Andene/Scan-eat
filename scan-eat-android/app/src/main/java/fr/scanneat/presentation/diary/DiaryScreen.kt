@@ -74,9 +74,23 @@ fun DiaryScreen(
     onBack: () -> Unit,
     isTabRoot: Boolean = false,
     onOpenCalendar: () -> Unit = {},
+    // Calendar's "Open in Journal" action hands a date back through Navigation-Compose's
+    // SavedStateHandle result pattern (see AppNavGraph.kt) - there was previously no way
+    // to land on Journal already showing a specific past day picked from Calendar.
+    pendingSelectedDate: String? = null,
+    onPendingDateConsumed: () -> Unit = {},
 ) {
     var activeTab by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.MEALS) }
     var showAddEntry by remember { mutableStateOf(false) }
+
+    LaunchedEffect(pendingSelectedDate) {
+        val date = pendingSelectedDate?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
+        if (date != null) {
+            viewModel.selectDate(date)
+            activeTab = DiaryTab.MEALS
+        }
+        onPendingDateConsumed()
+    }
 
     Scaffold(
         topBar = {
@@ -208,6 +222,9 @@ private fun MealsTab(viewModel: DiaryViewModel) {
                     }
                     IconButton(onClick = { showCalendar = !showCalendar }) {
                         Icon(Icons.Default.CalendarMonth, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
+                    }
+                    IconButton(onClick = { viewModel.copyPreviousDayMeals() }) {
+                        Icon(Icons.Default.ContentCopy, stringResource(R.string.diary_cd_copy_previous_day), tint = OnBackground.copy(0.5f))
                     }
                 }
                 if (!isToday.value) {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -38,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.ActivityType
 import fr.scanneat.presentation.ui.theme.*
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
@@ -64,7 +66,7 @@ private fun colorFor(source: CalendarSource): Color = when (source) {
  * day plus one combined detail panel for whichever date is selected.
  */
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () -> Unit) {
+fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () -> Unit, onOpenDate: (LocalDate) -> Unit = {}) {
     val month = viewModel.month.collectAsStateWithLifecycle()
     val selected = viewModel.selectedDate.collectAsStateWithLifecycle()
     val markers = viewModel.markers.collectAsStateWithLifecycle()
@@ -118,7 +120,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             monthSummary.value?.let { ms ->
                 MonthSummaryBar(ms)
             }
-            DayDetailCard(detail.value, locale)
+            DayDetailCard(detail.value, locale, onOpenDate = onOpenDate)
             Spacer(Modifier.height(Spacing.XXL))
         }
     }
@@ -273,13 +275,23 @@ private fun MultiMarkerMonthGrid(
 }
 
 @Composable
-private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale) {
+private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, onOpenDate: (LocalDate) -> Unit = {}) {
     val dateFmt = DateTimeFormatter.ofPattern("EEEE d MMMM", locale)
     ScanEatCard(color = SurfaceVariant, contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-        Text(
-            detail.date.format(dateFmt).replaceFirstChar { it.uppercase() },
-            style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold,
-        )
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                detail.date.format(dateFmt).replaceFirstChar { it.uppercase() },
+                style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold,
+            )
+            // The month grid + this panel previously only ever displayed what
+            // happened on a day - spotting a gap here still meant manually
+            // navigating to Diary and re-selecting the same date by hand.
+            TextButton(onClick = { onOpenDate(detail.date) }) {
+                Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.calendar_open_in_diary), color = AccentCoral, style = MaterialTheme.typography.labelSmall)
+            }
+        }
         if (detail.isEmpty) {
             Text(stringResource(R.string.calendar_day_empty), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.5f))
         } else {

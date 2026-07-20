@@ -785,6 +785,7 @@
     <string name="diary_today_button">Aujourd\'hui</string>
     <string name="diary_cd_next_day">Jour suivant</string>
     <string name="diary_cd_calendar">Calendrier</string>
+    <string name="diary_cd_copy_previous_day">Copier les repas de la veille</string>
     <string name="diary_add_entry_title">Ajouter un aliment</string>
     <string name="diary_add_entry_search_hint">Rechercher un aliment…</string>
     <string name="diary_add_entry_no_results">Aucun résultat pour « %1$s »</string>
@@ -1337,6 +1338,7 @@
     <string name="calendar_legend_medication">Traitement</string>
     <string name="calendar_legend_note">Note</string>
     <string name="calendar_day_empty">Rien d\'enregistré ce jour-là</string>
+    <string name="calendar_open_in_diary">Ouvrir dans Journal</string>
     <string name="calendar_day_meals">%1$d repas · %2$d kcal</string>
     <string name="calendar_day_weight">%1$.1f kg</string>
     <string name="calendar_day_activity">%1$d activité(s) · %2$d min · %3$d kcal</string>

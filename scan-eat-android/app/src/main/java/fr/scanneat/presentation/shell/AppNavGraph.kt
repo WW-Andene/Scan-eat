@@ -106,9 +106,18 @@ fun AppNavGraph(
             ScanScreen(onResultReady = { id -> navController.navigate(AppRoutes.result(id, fresh = true)) })
         }
 
-        composable(TopTab.Diary.route) {
+        composable(TopTab.Diary.route) { backStackEntry ->
             // isTabRoot=true suppresses the back arrow inside DiaryScreen.
-            DiaryScreen(onBack = {}, isTabRoot = true, onOpenCalendar = { navController.navigate(AppRoutes.CALENDAR) })
+            // pendingSelectedDate: Calendar's "Open in Journal" hands a date back via
+            // this entry's own SavedStateHandle (see AppRoutes.CALENDAR below) - the
+            // standard Navigation-Compose "return a result" pattern.
+            DiaryScreen(
+                onBack = {},
+                isTabRoot = true,
+                onOpenCalendar = { navController.navigate(AppRoutes.CALENDAR) },
+                pendingSelectedDate = backStackEntry.savedStateHandle.get<String>("diary_selected_date"),
+                onPendingDateConsumed = { backStackEntry.savedStateHandle.remove<String>("diary_selected_date") },
+            )
         }
 
         composable(TopTab.Dashboard.route) {
@@ -193,7 +202,24 @@ fun AppNavGraph(
         composable(AppRoutes.CUSTOM_FOODS) {
             CustomFoodScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
         }
-        composable(AppRoutes.CALENDAR)     { CalendarScreen(onBack = { navController.popBackStack() }) }
+        composable(AppRoutes.CALENDAR)     {
+            CalendarScreen(
+                onBack = { navController.popBackStack() },
+                // Calendar can be reached from either Diary or Dashboard (both have
+                // onOpenCalendar) - always explicitly switching to the Diary tab (same
+                // pattern ResultScreen's onLog already uses) works from either entry
+                // point, unlike popBackStack() which would land back on Dashboard when
+                // that's where the user actually came from.
+                onOpenDate = { date ->
+                    navController.navigate(TopTab.Diary.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                    navController.getBackStackEntry(TopTab.Diary.route).savedStateHandle["diary_selected_date"] = date.toString()
+                },
+            )
+        }
         composable(AppRoutes.REMINDERS)    { RemindersScreen(onBack = { navController.popBackStack() }) }
         composable(AppRoutes.SCAN_HISTORY) {
             ScanHistoryScreen(

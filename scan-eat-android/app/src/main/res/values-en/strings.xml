@@ -784,6 +784,7 @@
     <string name="diary_today_button">Today</string>
     <string name="diary_cd_next_day">Next day</string>
     <string name="diary_cd_calendar">Calendar</string>
+    <string name="diary_cd_copy_previous_day">Copy previous day's meals</string>
     <string name="diary_add_entry_title">Add a food</string>
     <string name="diary_add_entry_search_hint">Search for a food…</string>
     <string name="diary_add_entry_no_results">No results for \"%1$s\"</string>
@@ -1336,6 +1337,7 @@
     <string name="calendar_legend_medication">Medication</string>
     <string name="calendar_legend_note">Note</string>
     <string name="calendar_day_empty">Nothing logged this day</string>
+    <string name="calendar_open_in_diary">Open in Journal</string>
     <string name="calendar_day_meals">%1$d meal(s) · %2$d kcal</string>
     <string name="calendar_day_weight">%1$.1f kg</string>
     <string name="calendar_day_activity">%1$d activity(ies) · %2$d min · %3$d kcal</string>
