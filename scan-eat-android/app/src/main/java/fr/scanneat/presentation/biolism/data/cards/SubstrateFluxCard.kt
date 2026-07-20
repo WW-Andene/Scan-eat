@@ -1,8 +1,11 @@
 package fr.scanneat.presentation.biolism.data.cards
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -17,7 +20,7 @@ fun SubstrateFluxCard(met: MetabolicResult, s: TimerState) {
     BioCard(stringResource(R.string.biolism_flux_title), badge = {
         if (s.ketosisOn) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Box(Modifier.size(6.dp).padding(top = 5.dp)); TealBadge(stringResource(R.string.biolism_flux_badge))
+                Box(Modifier.size(6.dp).clip(CircleShape).background(Teal)); TealBadge(stringResource(R.string.biolism_flux_badge))
             }
         }
     }) {

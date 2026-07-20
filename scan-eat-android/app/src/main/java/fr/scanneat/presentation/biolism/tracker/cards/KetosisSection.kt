@@ -18,8 +18,8 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun KetosisToggleRow(
-    active: Boolean, ketoAdapted: Boolean, fatPct: Int, npRq: Double,
-    ketoHours: Double, onToggle: () -> Unit, onAddHours: (Double) -> Unit,
+    active: Boolean, fatPct: Int, npRq: Double,
+    onToggle: () -> Unit, onAddHours: (Double) -> Unit,
 ) {
     val borderColor = if (active) TealBorder else TealTrace
     val bgColor     = if (active) TealHaze   else TealTrace

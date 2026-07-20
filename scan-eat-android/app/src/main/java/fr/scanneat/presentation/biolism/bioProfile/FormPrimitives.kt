@@ -19,6 +19,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.util.formatDecimal
 
 /** Reusable, stateless form primitives local to the Biolism profile edit screen. */
@@ -32,7 +33,7 @@ import fr.scanneat.util.formatDecimal
 // same ColumnScope signature this already had, so every call site is unaffected.
 @Composable
 internal fun ProfileSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
         Text(title, style = MaterialTheme.typography.titleSmall, color = Gold, fontWeight = FontWeight.SemiBold)
         content()
     }

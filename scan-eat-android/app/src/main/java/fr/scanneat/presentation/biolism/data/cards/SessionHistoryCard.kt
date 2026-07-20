@@ -37,9 +37,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
     BioCard(stringResource(R.string.biolism_sesshist_title), defaultOpen = false, badge = { TealBadge("${sessions.size}") }) {
         sessions.forEach { sess ->
             val date = sess.timestamp.take(10)
-            val hh   = (sess.elapsedSec / 3600).toInt()
-            val mm   = ((sess.elapsedSec % 3600) / 60).toInt()
-            val dur  = if (hh > 0) "${hh}h ${mm.toString().padStart(2, '0')}m" else "${mm}m ${(sess.elapsedSec % 60).toInt()}s"
+            val dur  = formatDuration(sess.elapsedSec.toLong() * 1000)
             val isExpanded = expandedId == sess.id
             val isConfirm  = confirmDeleteId == sess.id
             val isPRKcal = sess.kcalBurned >= prKcal && sessions.size > 1

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.domain.engine.biolism.KetoPhaseInfo
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import java.util.Locale
@@ -25,7 +26,7 @@ internal fun PhaseStrip(phase: KetoPhaseInfo, ketoHours: Double, color: Color) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(CardRadius.CONTROL))
             .background(color.copy(0.08f)),
     ) {
         // Progress underline

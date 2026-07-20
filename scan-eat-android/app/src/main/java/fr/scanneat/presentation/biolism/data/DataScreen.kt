@@ -27,6 +27,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.biolism.data.cards.*
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
@@ -55,7 +56,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     if (met == null) {
         Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(48.dp))
+                Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
                 Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
                 Text(stringResource(R.string.biolism_datascreen_empty_tab_hint), style = MaterialTheme.typography.bodySmall, color = Gold)
             }
@@ -65,7 +66,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+        contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { MetabolicHealthScoreCard(met, profile.value) }

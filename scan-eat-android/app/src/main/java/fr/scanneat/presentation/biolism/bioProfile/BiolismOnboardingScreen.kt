@@ -92,7 +92,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
         contentAlignment = Alignment.Center,
     ) {
         ScanEatCard(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(Spacing.XL),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             contentPadding = PaddingValues(Spacing.XL),
             accent = Gold,
@@ -124,7 +124,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                 }
 
                 when (step) {
-                    1 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    1 -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                             listOf(BiolismSex.MALE to stringResource(R.string.biolism_onboard_male), BiolismSex.FEMALE to stringResource(R.string.biolism_onboard_female)).forEach { (v, label) ->
                                 FilterChip(selected = sex == v, onClick = { sex = v }, label = { Text(label) },
@@ -156,7 +156,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                             }
                         }
                     }
-                    2 -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    2 -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                         OnboardField(stringResource(R.string.biolism_onboard_waist_label), waist, KeyboardType.Decimal) { waist = it }
                         OnboardField(stringResource(R.string.biolism_onboard_hip_label), hip, KeyboardType.Decimal) { hip = it }
                         OnboardField(stringResource(R.string.biolism_onboard_neck_label), neck, KeyboardType.Decimal) { neck = it }

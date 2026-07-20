@@ -31,6 +31,7 @@ import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ambientGloom
 import fr.scanneat.presentation.ui.theme.Gold
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -117,10 +118,8 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
             // ── Ketosis toggle ─────────────────────────────────────────────────
             KetosisToggleRow(
                 active        = s.ketosisOn,
-                ketoAdapted   = s.ketoAdapted,
                 fatPct        = fatPct,
                 npRq          = lm.npRq,
-                ketoHours     = ketoHours,
                 onToggle      = viewModel::toggleKetosis,
                 onAddHours    = viewModel::addKetoHours,
             )
@@ -245,13 +244,13 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
 
 @Composable
 private fun EmptyProfilePrompt() {
-    ScanEatCard(contentPadding = PaddingValues(32.dp)) {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.XXL)) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(48.dp))
+            Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
             Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall,
                 color = OnBackground, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
             Text(stringResource(R.string.biolism_tracker_empty_desc),

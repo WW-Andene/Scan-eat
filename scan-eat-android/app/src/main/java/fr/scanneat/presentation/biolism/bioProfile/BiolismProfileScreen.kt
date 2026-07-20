@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
+import fr.scanneat.presentation.biolism.data.TealBadge
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.ui.theme.dispWeight as sharedDispWeight
 import fr.scanneat.util.formatDecimal
@@ -102,7 +103,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         }
 
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
                     FilterChip(
                         selected = useImperial == imperial,
@@ -120,10 +121,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.bioprofile_overview_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-                    Surface(shape = RoundedCornerShape(4.dp), color = Teal.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f))) {
-                        Text(stringResource(R.string.bioprofile_overview_saved_badge), modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
-                            style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
-                    }
+                    TealBadge(stringResource(R.string.bioprofile_overview_saved_badge))
                 }
                 val activityLabel = ACTIVITY_LEVELS.firstOrNull { it.id == p.activityId }?.label(language.value) ?: "—"
                 val ethnicityLabel = ETHNICITY_OPTIONS.firstOrNull { it.id == p.ethnicityId }?.label(language.value) ?: "—"
