@@ -7,10 +7,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.backup.BackupImportError
 import fr.scanneat.data.backup.BackupMetadata
-import fr.scanneat.data.backup.BackupRepository
 import fr.scanneat.data.backup.BackupSummary
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.backup.BackupRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.health.HealthConnectRepository

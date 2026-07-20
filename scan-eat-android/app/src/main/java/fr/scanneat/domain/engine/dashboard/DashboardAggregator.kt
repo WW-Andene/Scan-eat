@@ -252,14 +252,28 @@ data class GapEntry(
     val suggestions: List<GapSuggestion>,
 )
 
+// Suggestion sizing below - empirical/heuristic, no single clinical guideline
+// dictates these (unlike e.g. PersonalScoreEngine's EFSA/WHO-sourced
+// thresholds). GAP_CLOSURE_SHARE: a suggestion targets closing roughly half
+// of the remaining deficit, not all of it - reads as "this genuinely helps,"
+// not "eat exactly this amount and you're done." The gram cap is split by
+// nutrient class rather than one flat number: protein/calcium are commonly
+// dense in foods eaten in large single servings (a chicken breast, a glass of
+// milk), so a portion up to 300g is a realistic suggestion; fiber/iron/
+// vitamin D/B12 sources that dense (bran, liver, fatty fish) would be an
+// unrealistic single portion much past 200g.
+private const val GAP_CLOSURE_SHARE = 0.5f
+private const val MACRO_GRAMS_CAP = 300
+private const val MICRO_GRAMS_CAP = 200
+
 // Nutrients where MORE is better, with [totalsKey, targetKey, label, share, gramsCap]
 private val GAP_NUTRIENTS = listOf(
-    GapNutrientDef("proteinG",   "proteinGTarget",  "protein",   0.5f, 300),
-    GapNutrientDef("fiberG",     "fiberGTarget",    "fiber",     0.5f, 200),
-    GapNutrientDef("ironMg",     "ironMgTarget",    "iron",      0.5f, 200),
-    GapNutrientDef("calciumMg",  "calciumMgTarget", "calcium",   0.5f, 300),
-    GapNutrientDef("vitDUg",     "vitDUgTarget",    "vit_d",     0.5f, 200),
-    GapNutrientDef("b12Ug",      "b12UgTarget",     "b12",       0.5f, 200),
+    GapNutrientDef("proteinG",   "proteinGTarget",  "protein",   GAP_CLOSURE_SHARE, MACRO_GRAMS_CAP),
+    GapNutrientDef("fiberG",     "fiberGTarget",    "fiber",     GAP_CLOSURE_SHARE, MICRO_GRAMS_CAP),
+    GapNutrientDef("ironMg",     "ironMgTarget",    "iron",      GAP_CLOSURE_SHARE, MICRO_GRAMS_CAP),
+    GapNutrientDef("calciumMg",  "calciumMgTarget", "calcium",   GAP_CLOSURE_SHARE, MACRO_GRAMS_CAP),
+    GapNutrientDef("vitDUg",     "vitDUgTarget",    "vit_d",     GAP_CLOSURE_SHARE, MICRO_GRAMS_CAP),
+    GapNutrientDef("b12Ug",      "b12UgTarget",     "b12",       GAP_CLOSURE_SHARE, MICRO_GRAMS_CAP),
 )
 
 private data class GapNutrientDef(

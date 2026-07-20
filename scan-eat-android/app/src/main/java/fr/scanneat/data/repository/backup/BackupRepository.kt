@@ -1,8 +1,17 @@
-package fr.scanneat.data.backup
+package fr.scanneat.data.repository.backup
 
 import androidx.room.withTransaction
 import com.squareup.moshi.Moshi
 import fr.scanneat.BuildConfig
+import fr.scanneat.data.backup.BACKUP_FORMAT_VERSION
+import fr.scanneat.data.backup.BackupBundle
+import fr.scanneat.data.backup.BackupImportError
+import fr.scanneat.data.backup.BackupMetadata
+import fr.scanneat.data.backup.BackupSummary
+import fr.scanneat.data.backup.DayNoteBackup
+import fr.scanneat.data.backup.HydrationEntryBackup
+import fr.scanneat.data.backup.ProfileBackup
+import fr.scanneat.data.backup.SettingsBackup
 import fr.scanneat.data.local.db.AppDatabase
 import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
@@ -43,6 +52,12 @@ import javax.inject.Singleton
 // device or a new one after reinstalling. Addresses the app's biggest single
 // data-loss risk: everything currently lives only in this app's private
 // storage, gone the moment the app is uninstalled or the device is lost.
+//
+// Lives in data/repository/backup/ (moved from the previously standalone
+// data/backup/ package) to match the data/repository/<feature>/ convention
+// every other repository follows - only this class moved; BackupModels.kt's
+// plain data/DTO types (BackupBundle, BackupSummary, etc.) stay in
+// data/backup/, imported above like any other cross-package model.
 // ============================================================================
 
 @Singleton

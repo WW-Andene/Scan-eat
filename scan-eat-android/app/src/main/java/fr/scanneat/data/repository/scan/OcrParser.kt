@@ -5,9 +5,12 @@ import fr.scanneat.data.remote.api.*
 import fr.scanneat.domain.engine.nutrition.declaredMicronutrientsOf
 import fr.scanneat.domain.engine.scoring.ANNEX_II_KEY_TO_OFF_TAG
 import fr.scanneat.domain.model.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import retrofit2.HttpException
 import java.io.IOException
+import kotlin.math.pow
+import kotlin.random.Random
 
 // ============================================================================
 // OCR PARSER — port of src/ocr-parser.ts
@@ -366,6 +369,16 @@ Output ONLY the JSON. No explanation.
     }
 
     /**
+     * Exponential backoff with jitter, replacing the old fixed `500L * attempt`
+     * linear delay - same rough magnitude for the single inter-attempt wait this
+     * file's 2-attempt-per-candidate budget ever actually takes (previously
+     * ~500ms), but avoids every retrying client landing on the same delay in
+     * lockstep against a momentarily-overloaded provider.
+     */
+    private fun backoffDelayMs(attempt: Int, baseDelayMs: Long = 250L, jitterMs: Long = 150L): Long =
+        (baseDelayMs * 2.0.pow(attempt)).toLong() + Random.nextLong(0, jitterMs)
+
+    /**
      * Ordered candidate list: every Groq model first (only if a Groq key is
      * configured), then Cerebras as a fallback provider (only if configured).
      * A blank key means "not configured" — that provider is skipped entirely
@@ -419,6 +432,12 @@ Output ONLY the JSON. No explanation.
             while (attempt < maxRetriesPerCandidate) {
                 val maxTokens = if (attempt > 0) 4000 else 2000
                 val result = runCatching { callOnce(candidate, apiKey, content, maxTokens) }
+                // runCatching also catches CancellationException — left unchecked, a
+                // user leaving the scan screen mid-call would otherwise be treated as
+                // just another retryable failure (isRetryable() returns false for it,
+                // so the loop below) and fall through to the NEXT provider, firing a
+                // brand-new billed network call instead of actually cancelling.
+                result.exceptionOrNull()?.let { if (it is CancellationException) throw it }
                 val (choice, truncated) = result.getOrNull() ?: (null to false)
                 if (result.isSuccess) {
                     if (truncated && attempt < maxRetriesPerCandidate - 1) {
@@ -435,7 +454,7 @@ Output ONLY the JSON. No explanation.
                     if (!isRetryable(err)) break
                 }
                 attempt++
-                if (attempt < maxRetriesPerCandidate) delay(500L * attempt)
+                if (attempt < maxRetriesPerCandidate) delay(backoffDelayMs(attempt))
             }
         }
         throw lastErr ?: RuntimeException("All AI provider/model candidates exhausted")

@@ -16,6 +16,7 @@ import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -29,6 +30,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.pow
+import kotlin.random.Random
 
 /** Thrown when a barcode has no Open Food Facts entry and no photos were supplied to fall back on. */
 class ProductNotFoundException(message: String) : Exception(message)
@@ -94,6 +97,32 @@ class ScanRepository @Inject constructor(
     private val warningsAdapter = moshi.adapter<List<String>>(
         com.squareup.moshi.Types.newParameterizedType(List::class.java, String::class.java)
     )
+
+    /**
+     * Like [runCatching], but never swallows cancellation - a bare `runCatching`
+     * wrapping a whole suspend function body also catches CancellationException,
+     * so a scan the user already navigated away from would be reported back as
+     * a caught "failure" (Result.failure) instead of the coroutine actually
+     * stopping, letting a caller's stale success/failure handling run anyway.
+     */
+    private inline fun <T> ioCatching(block: () -> T): Result<T> =
+        try {
+            Result.success(block())
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+
+    /**
+     * Exponential backoff with jitter, replacing the old fixed `400L * (attempt + 1)`
+     * linear delay used by every retry loop in this file (fetchOffProduct's lookup,
+     * scoreViaServer, identifyViaServer) - same rough magnitude (~400ms then ~800ms
+     * across this file's 3-attempt budget) but avoids concurrent clients retrying in
+     * lockstep against a momentarily-overloaded OFF/server endpoint.
+     */
+    private fun backoffDelayMs(attempt: Int, baseDelayMs: Long = 400L, jitterMs: Long = 200L): Long =
+        (baseDelayMs * 2.0.pow(attempt)).toLong() + Random.nextLong(0, jitterMs)
 
     @Volatile private var _serverApi: ServerScanApi? = null
     @Volatile private var _serverUrl: String = ""
@@ -230,7 +259,7 @@ class ScanRepository @Inject constructor(
         images: List<ImagePayload> = emptyList(),
         lang: String = "fr",
         online: Boolean = true,
-    ): Result<Pair<ScanResult, Long>> = runCatching {
+    ): Result<Pair<ScanResult, Long>> = ioCatching {
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
         val cerebrasKey = prefs.cerebrasApiKey.first()
@@ -259,7 +288,7 @@ class ScanRepository @Inject constructor(
                 val fresh = if (cached.audit.engineVersion != ENGINE_VERSION) {
                     cached.copy(audit = scoreProduct(cached.product, lang))
                 } else cached
-                return@runCatching Pair(fresh, persist(fresh))
+                return@ioCatching Pair(fresh, persist(fresh))
             }
         }
         if (!online) error(offlineMessage(lang))
@@ -270,6 +299,11 @@ class ScanRepository @Inject constructor(
                 ApiMode.DIRECT -> scoreDirectBarcode(barcode, images, apiKey, cerebrasKey, lang)
             }
         } catch (e: Exception) {
+            // A cancelled scan (user already left the screen) must propagate as
+            // cancellation, not be reinterpreted as "lookup failed" - otherwise a
+            // stale DB fallback lookup below could fabricate a "success" result
+            // for a scan nobody is waiting on anymore.
+            if (e is CancellationException) throw e
             // Last-resort fallback: neither OFF nor the vision LLM could identify
             // this barcode (or the lookup itself failed after exhausting its own
             // retries) — but the user may have already manually taught the app
@@ -303,7 +337,7 @@ class ScanRepository @Inject constructor(
         lang: String = "fr",
         online: Boolean = true,
         identifyMode: Boolean = false,
-    ): Result<Pair<ScanResult, Long>> = runCatching {
+    ): Result<Pair<ScanResult, Long>> = ioCatching {
         val result = identifyOrScoreFromImages(images, lang, online, identifyMode).getOrThrow()
         Pair(result, persist(result))
     }
@@ -325,7 +359,7 @@ class ScanRepository @Inject constructor(
         lang: String = "fr",
         online: Boolean = true,
         identifyMode: Boolean = false,
-    ): Result<ScanResult> = runCatching {
+    ): Result<ScanResult> = ioCatching {
         if (!online) error(offlineMessage(lang))
         val apiMode   = prefs.apiMode.first()
         val apiKey    = prefs.groqApiKey.first()
@@ -366,6 +400,29 @@ class ScanRepository @Inject constructor(
      * scan for SERVER-mode users with no retry, unlike every other network path
      * in this repository.
      */
+    /**
+     * Shared retry/backoff for scoreViaServer/identifyViaServer - both retried
+     * the identical class of transient error (429/5xx/IO) with the identical
+     * 3-attempt backoff loop, verbatim, differing only in which server call
+     * they make. Extracted here so that logic (and any future tuning of it)
+     * exists in exactly one place.
+     */
+    private suspend fun <T> retryServerCall(block: suspend () -> T): T {
+        var lastErr: Throwable? = null
+        repeat(SERVER_MAX_ATTEMPTS) { attempt ->
+            try {
+                return block()
+            } catch (e: HttpException) {
+                if (e.code() != 429 && e.code() !in 500..599) throw e
+                lastErr = e
+            } catch (e: IOException) {
+                lastErr = e
+            }
+            if (attempt < SERVER_MAX_ATTEMPTS - 1) delay(backoffDelayMs(attempt))
+        }
+        throw lastErr!!
+    }
+
     private suspend fun scoreViaServer(
         serverUrl: String,
         apiKey: String,
@@ -381,20 +438,9 @@ class ScanRepository @Inject constructor(
             lang    = lang,
             model   = model,
         )
-        var lastErr: Throwable? = null
-        repeat(SERVER_MAX_ATTEMPTS) { attempt ->
-            try {
-                val resp = serverApi(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
-                return resp.toDomain(lang)
-            } catch (e: HttpException) {
-                if (e.code() != 429 && e.code() !in 500..599) throw e
-                lastErr = e
-            } catch (e: IOException) {
-                lastErr = e
-            }
-            if (attempt < SERVER_MAX_ATTEMPTS - 1) delay(400L * (attempt + 1))
+        return retryServerCall {
+            serverApi(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request).toDomain(lang)
         }
-        throw lastErr!!
     }
 
     /**
@@ -415,20 +461,9 @@ class ScanRepository @Inject constructor(
     ): ScanResult {
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
         val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
-        var lastErr: Throwable? = null
-        repeat(SERVER_MAX_ATTEMPTS) { attempt ->
-            try {
-                val resp = serverApi(serverUrl).identify(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
-                return resp.toDomain(lang)
-            } catch (e: HttpException) {
-                if (e.code() != 429 && e.code() !in 500..599) throw e
-                lastErr = e
-            } catch (e: IOException) {
-                lastErr = e
-            }
-            if (attempt < SERVER_MAX_ATTEMPTS - 1) delay(400L * (attempt + 1))
+        return retryServerCall {
+            serverApi(serverUrl).identify(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request).toDomain(lang)
         }
-        throw lastErr!!
     }
 
     /**
@@ -441,7 +476,7 @@ class ScanRepository @Inject constructor(
      * this URL" tool). Needs no Groq key (see the route's own doc comment), so
      * unlike scoreViaServer/identifyViaServer this never checks apiKey.
      */
-    suspend fun fetchRecipeFromUrl(url: String, lang: String): Result<FetchedRecipeResult> = runCatching {
+    suspend fun fetchRecipeFromUrl(url: String, lang: String): Result<FetchedRecipeResult> = ioCatching {
         val serverUrl = prefs.serverUrl.first()
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
         val resp = serverApi(serverUrl).fetchRecipe(url)
@@ -475,7 +510,7 @@ class ScanRepository @Inject constructor(
      * doc comment on why ingredients are text, not RecipeComponents). No nutrition
      * block exists on this route's response, unlike fetch-recipe's optional one.
      */
-    suspend fun identifyRecipeFromPhotos(images: List<ImagePayload>, lang: String): Result<FetchedRecipeResult> = runCatching {
+    suspend fun identifyRecipeFromPhotos(images: List<ImagePayload>, lang: String): Result<FetchedRecipeResult> = ioCatching {
         val serverUrl = prefs.serverUrl.first()
         val apiKey = prefs.groqApiKey.first()
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
@@ -506,7 +541,7 @@ class ScanRepository @Inject constructor(
      * URL/photo import - "unverified external content the user reviews before
      * saving" describes an LLM-generated idea just as well as a scraped page.
      */
-    suspend fun suggestRecipes(ingredient: String, lang: String): Result<List<FetchedRecipeResult>> = runCatching {
+    suspend fun suggestRecipes(ingredient: String, lang: String): Result<List<FetchedRecipeResult>> = ioCatching {
         val serverUrl = prefs.serverUrl.first()
         val apiKey = prefs.groqApiKey.first()
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
@@ -560,7 +595,7 @@ class ScanRepository @Inject constructor(
                 } catch (e: IOException) {
                     lastErr = e
                 }
-                if (attempt < OFF_MAX_ATTEMPTS - 1) delay(400L * (attempt + 1))
+                if (attempt < OFF_MAX_ATTEMPTS - 1) delay(backoffDelayMs(attempt))
             }
             throw lastErr!!
         }

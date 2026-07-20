@@ -8,8 +8,9 @@ import kotlin.math.roundToInt
 //                       + public/data/profile.js helper functions
 //
 // AUTHORITATIVE anchors (preserved from original):
-//   Protein PRI: EFSA Scientific Opinion 2012;10(2):2557
-//     (0.83 g/kg adults; ≥65y 1.0 g/kg for sarcopenia prevention)
+//   Protein PRI: EFSA Scientific Opinion 2012;10(2):2557 (0.83 g/kg adults);
+//     ≥65y 1.0 g/kg for sarcopenia prevention: PROT-AGE Study Group
+//     (Bauer et al., J Am Med Dir Assoc 2013;14(8):542-559), not an EFSA figure
 //   Iron RNI: EFSA Scientific Opinion 2015;13(10):4254
 //     (men 11 mg/day; menstruating women 16 mg/day)
 //   Sodium / BMI: WHO Global Database on BMI (2000); WHO Salt Guideline (2012)
@@ -81,10 +82,15 @@ fun tdeeKcal(p: Profile): Double? {
     return (bmr * pal)
 }
 
-/** BMI = kg / m². Returns null if height/weight missing. */
+/** BMI = kg / m². Returns null if height/weight missing or non-positive. */
 fun bmi(p: Profile): Double? {
     val h = p.heightCm ?: return null
     val w = p.weightKg ?: return null
+    // Same non-positive guard as BiolismEngine.computeMetabolics() - height/weight
+    // are non-null Doubles here (not Int), so a stray 0.0 (or negative) passes the
+    // ?: return null above untouched and previously divided by zero silently
+    // producing Infinity instead of a clean "can't compute" null.
+    if (h <= 0.0 || w <= 0.0) return null
     val m = h / 100.0
     return (w / (m * m)).roundTo1Decimal()
 }
@@ -101,7 +107,7 @@ fun bmiCategory(value: Double?): BmiCategory? = when {
     else            -> BmiCategory.OBESE_3
 }
 
-/** EFSA PRI: 0.83 g/kg adults; 1.0 g/kg ≥65y. */
+/** EFSA PRI: 0.83 g/kg adults; 1.0 g/kg ≥65y (PROT-AGE Study Group, sarcopenia prevention). */
 fun proteinPriG(p: Profile): Double? {
     val w = p.weightKg ?: return null
     val age = p.ageYears ?: return null
@@ -179,8 +185,15 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     val ironTarget = if (p.sex == Sex.FEMALE && p.isMenstruating) 16.0 else 11.0
     // Sex-specific zinc: women 7.5 mg/day (EFSA 2014)
     val zincTarget = if (p.sex == Sex.FEMALE) 7.5 else 9.4
-    // Older adults: higher vitD target 20 µg/day (EFSA 2016 ≥75y)
+    // Older adults: higher vitD target 20 µg/day ≥75y. Value unchanged, but the
+    // source citation was wrong - this is the IOM/NAM Dietary Reference Intakes
+    // (2011) higher-elderly-RDA figure, not an EFSA one; EFSA's own 2016 DRV
+    // opinion sets a single flat 15 µg/day for all adults with no age bump.
     val vitDTarget = if ((p.ageYears ?: 0) >= 75) 20.0 else 15.0
+    // Sex-specific vitamin C: 110 mg/day men, 95 mg/day women (EFSA DRV 2013) -
+    // same sex-adjustment pattern as ironTarget/zincTarget/magnesiumMgTarget
+    // above/below; vitCMgTarget previously stayed a flat 95mg for everyone.
+    val vitCTarget = if (p.sex == Sex.FEMALE) 95.0 else 110.0
 
     // WHO guidance caps free sugars/salt harder for these conditions than the
     // general-population default - halved rather than a made-up clinical value,
@@ -216,7 +229,7 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
         magnesiumMgTarget = if (p.sex == Sex.FEMALE) 300.0 else 350.0,
         potassiumMgTarget = 3500.0,
         zincMgTarget      = zincTarget,
-        vitCMgTarget      = 95.0,
+        vitCMgTarget      = vitCTarget,
     )
 }
 
@@ -562,8 +575,8 @@ fun computePersonalScore(
             adjustments += PersonalAdjustment(
                 points   = 3.0,
                 reason   = if (lang == "en")
-                    "High protein (${product.nutrition.proteinG} g/100 g) — helps prevent sarcopenia (EFSA PRI 1.0 g/kg/day for ≥65)"
-                else "Protéines élevées (${product.nutrition.proteinG} g/100 g) — prévention de la sarcopénie (PRI EFSA 1,0 g/kg/j après 65 ans)",
+                    "High protein (${product.nutrition.proteinG} g/100 g) — helps prevent sarcopenia (PROT-AGE 1.0 g/kg/day for ≥65)"
+                else "Protéines élevées (${product.nutrition.proteinG} g/100 g) — prévention de la sarcopénie (PROT-AGE 1,0 g/kg/j après 65 ans)",
                 category = AdjustmentCategory.AGE,
             )
         }

@@ -6,6 +6,7 @@ import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.data.local.db.weight.WeightEntity
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.domain.model.roundTo1Decimal
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -98,7 +99,10 @@ class WeightRepository @Inject constructor(
     suspend fun delete(id: String) {
         val entry = dao.findById(id)
         dao.delete(id)
-        entry?.let { runCatching { healthConnect.deleteWeight(it.date.toLocalDate()) } }
+        entry?.let {
+            runCatching { healthConnect.deleteWeight(it.date.toLocalDate()) }
+                .onFailure { e -> if (e is CancellationException) throw e else android.util.Log.w("WeightRepository", "HC delete failed", e) }
+        }
     }
 
     /**

@@ -83,6 +83,11 @@ data class NutritionPer100g(
     val omega3G: Double? = null,
     val omega6G: Double? = null,
     val cholesterolMg: Double? = null,
+    // Persisted verbatim (via ConsumptionRepository's nutritionAdapter, and
+    // nested inside Product's own productJson) to DB columns. New fields must
+    // have a default value, or bump schemaVersion and add a migration branch
+    // in the parser.
+    val schemaVersion: Int = 1,
 ) {
     companion object {
         val EMPTY = NutritionPer100g(
@@ -128,6 +133,10 @@ data class Product(
     // free-text ingredient list. Empty when OFF has none declared or the
     // product came from the LLM/photo fallback path instead.
     val declaredAllergenTags: List<String> = emptyList(),
+    // Persisted verbatim (via ScanRepository's productAdapter) to scan_history's
+    // productJson column. New fields must have a default value, or bump
+    // schemaVersion and add a migration branch in the parser.
+    val schemaVersion: Int = 1,
 )
 
 // Score output types
@@ -179,6 +188,10 @@ data class ScoreAudit(
     val nutriscoreGrade: String? = null,
     val engineVersion: String,
     val warnings: List<String>,
+    // Persisted verbatim (via ScanRepository's auditAdapter) to scan_history's
+    // auditJson column. New fields must have a default value, or bump
+    // schemaVersion and add a migration branch in the parser.
+    val schemaVersion: Int = 1,
 ) {
     data class Pillars(
         val processing: PillarScore,

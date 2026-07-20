@@ -160,15 +160,22 @@ fun BiolismEngine.computeMetabolics(
     val netHydroMlHr   = metWaterMlHr - iwlMlHr
 
     // ── Navy tape BF% — Hodgdon & Beckett 1984 ───────────────────────────
+    // The published coefficients (86.010/70.041/36.76 for men,
+    // 163.205/97.684/78.387 for women) are fit to inches, not cm - wc/hc/nc/h
+    // are cm everywhere else in this app, so each is converted to inches
+    // right before this formula only (not reassigned) to avoid corrupting
+    // whtr/whr/bai/ibw below, which all expect the cm values.
     val wc = profile.waistCm; val hc = profile.hipCm; val nc = profile.neckCm
     var navyBfPct: Double? = null; var navyFfm: Double? = null; var navyFm: Double? = null
     val haveNavyM = g == BiolismSex.MALE   && wc > 0 && nc > 0 && h > 0 && (wc - nc) > 0
     val haveNavyF = g == BiolismSex.FEMALE && wc > 0 && hc > 0 && nc > 0 && h > 0 && (wc + hc - nc) > 0
     if (haveNavyM) {
-        val v = (86.010 * log10(wc - nc) - 70.041 * log10(h) + 36.76).coerceIn(3.0, 65.0)
+        val wcIn = wc / 2.54; val ncIn = nc / 2.54; val hIn = h / 2.54
+        val v = (86.010 * log10(wcIn - ncIn) - 70.041 * log10(hIn) + 36.76).coerceIn(3.0, 65.0)
         navyBfPct = v; navyFfm = w * (1 - v / 100); navyFm = w - navyFfm!!
     } else if (haveNavyF) {
-        val v = (163.205 * log10(wc + hc - nc) - 97.684 * log10(h) - 78.387).coerceIn(3.0, 65.0)
+        val wcIn = wc / 2.54; val hcIn = hc / 2.54; val ncIn = nc / 2.54; val hIn = h / 2.54
+        val v = (163.205 * log10(wcIn + hcIn - ncIn) - 97.684 * log10(hIn) - 78.387).coerceIn(3.0, 65.0)
         navyBfPct = v; navyFfm = w * (1 - v / 100); navyFm = w - navyFfm!!
     }
 
