@@ -459,6 +459,42 @@ class ScanRepository @Inject constructor(
         )
     }
 
+    /**
+     * IdentifyRecipeRoute.kt (recipe card / cookbook page photo → structured recipe
+     * via Groq vision) has existed on the server since it was added, with no Android
+     * caller — a user with a paper recipe or a photographed cookbook page had no way
+     * to import it short of retyping everything. Server-mode only, same reasoning as
+     * fetchRecipeFromUrl: there's no equivalent Direct-mode prompt/parser for this
+     * today. Unlike fetchRecipeFromUrl this does need a Groq key (the route calls
+     * Groq's vision API, see requireGroqKey() in IdentifyRecipeRoute.kt).
+     *
+     * Reuses [FetchedRecipeResult] rather than a separate result type - both are
+     * "unverified external content pre-filling AddRecipeDialog for review," and the
+     * structured ingredient quantity/unit/name here collapses to the exact same kind
+     * of free-text ingredient line a schema.org import produces (see that class's own
+     * doc comment on why ingredients are text, not RecipeComponents). No nutrition
+     * block exists on this route's response, unlike fetch-recipe's optional one.
+     */
+    suspend fun identifyRecipeFromPhotos(images: List<ImagePayload>, lang: String): Result<FetchedRecipeResult> = runCatching {
+        val serverUrl = prefs.serverUrl.first()
+        val apiKey = prefs.groqApiKey.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
+        val resp = serverApi(serverUrl).identifyRecipe(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
+        FetchedRecipeResult(
+            name            = resp.name,
+            servings        = resp.servings?.toString(),
+            ingredients     = resp.ingredients.map { i -> listOfNotNull(i.quantity, i.unit, i.name).joinToString(" ") },
+            steps           = resp.steps,
+            cookTimeMinutes = resp.cookTimeMin,
+            kcal            = null,
+            proteinG        = null,
+            fatG            = null,
+            carbsG          = null,
+            sourceUrl       = "",
+        )
+    }
+
     // ---- Direct mode ----
 
     /**

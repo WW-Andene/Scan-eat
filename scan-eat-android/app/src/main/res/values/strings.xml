@@ -1148,6 +1148,8 @@
     <string name="recipes_pairs_well_with">Se marie bien avec : %1$s</string>
     <string name="recipes_add_dialog_title">Nouvelle recette</string>
     <string name="recipes_cd_import_url">Importer depuis une URL</string>
+    <string name="recipes_cd_import_photo">Importer depuis une photo</string>
+    <string name="recipes_import_photo_loading">Analyse de la photo…</string>
     <string name="recipes_import_url_title">Importer une recette</string>
     <string name="recipes_import_url_hint">Collez le lien d\'une recette (blog, site de cuisine…)</string>
     <string name="recipes_import_url_placeholder">https://…</string>

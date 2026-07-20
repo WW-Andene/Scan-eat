@@ -29,6 +29,7 @@ import fr.scanneat.domain.model.IngredientCategory
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanSource
+import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.scan.FetchedRecipeResult
 import fr.scanneat.data.repository.scan.ScanRepository
 import kotlinx.coroutines.FlowPreview
@@ -294,6 +295,24 @@ class RecipesViewModel @Inject constructor(
             _importState.value = ImportUiState.Loading
             val lang = language.value
             scanRepo.fetchRecipeFromUrl(url, lang).fold(
+                onSuccess = { _importState.value = ImportUiState.Success(it) },
+                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
+            )
+        }
+    }
+
+    /**
+     * Photo counterpart to [importRecipeFromUrl] — wires up the server's
+     * identify-recipe route (recipe card / cookbook page photo → structured recipe
+     * via Groq vision), previously unreachable from the app. Shares the same
+     * ImportUiState/AddRecipeDialog prefill flow as the URL import.
+     */
+    fun importRecipeFromPhotos(images: List<ImagePayload>) {
+        if (images.isEmpty()) return
+        viewModelScope.launch {
+            _importState.value = ImportUiState.Loading
+            val lang = language.value
+            scanRepo.identifyRecipeFromPhotos(images, lang).fold(
                 onSuccess = { _importState.value = ImportUiState.Success(it) },
                 onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
             )

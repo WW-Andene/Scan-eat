@@ -1,5 +1,13 @@
 package fr.scanneat.presentation.recipes
 
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.util.Base64
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -10,15 +18,22 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.data.repository.scan.FetchedRecipeResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.recipes.components.AddRecipeDialog
@@ -62,6 +77,33 @@ private fun formatImportedNotes(result: FetchedRecipeResult): String = buildStri
     if (result.sourceUrl.isNotBlank()) appendLine(stringResource(R.string.recipes_import_notes_source, result.sourceUrl))
 }.trim()
 
+/**
+ * Decodes a gallery-picked photo into the same [ImagePayload] shape Scan already
+ * uses, scaled down for upload same as ScanViewModel.toPayload() (no OCR accuracy
+ * benefit past a moderate resolution, just wasted bandwidth). No EXIF-orientation
+ * correction on the API 26/27 fallback path (MediaStore.Images.Media.getBitmap
+ * predates ImageDecoder's automatic handling of it) - a real but minor limitation
+ * on a shrinking slice of devices, not a functional failure.
+ */
+private fun decodeImagePayload(context: android.content.Context, uri: Uri): ImagePayload? = runCatching {
+    val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri)) { decoder, _, _ ->
+            decoder.isMutableRequired = false
+        }
+    } else {
+        @Suppress("DEPRECATION")
+        MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+    }
+    val maxPx = 1024
+    val scale = maxPx.toFloat() / maxOf(bitmap.width, bitmap.height)
+    val scaled = if (scale < 1f) Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true) else bitmap
+    val out = ByteArrayOutputStream()
+    scaled.compress(Bitmap.CompressFormat.JPEG, 85, out)
+    if (scaled !== bitmap) bitmap.recycle()
+    scaled.recycle()
+    ImagePayload(base64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP))
+}.getOrNull()
+
 @Composable
 fun RecipesScreen(
     viewModel: RecipesViewModel = hiltViewModel(),
@@ -90,6 +132,17 @@ fun RecipesScreen(
     var saveAsTemplateTarget by remember { mutableStateOf<Recipe?>(null) }
     var logOfficialTarget by remember { mutableStateOf<OfficialRecipe?>(null) }
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val photoImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            coroutineScope.launch {
+                val payload = withContext(Dispatchers.IO) { decodeImagePayload(context, uri) }
+                if (payload != null) viewModel.importRecipeFromPhotos(listOf(payload))
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             FloatingTopBar(
@@ -98,6 +151,15 @@ fun RecipesScreen(
                 actions = {
                     PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
                     IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Default.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
+                    IconButton(onClick = {
+                        photoImportLauncher.launch(
+                            androidx.activity.result.PickVisualMediaRequest.Builder()
+                                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                .build()
+                        )
+                    }) {
+                        Icon(Icons.Default.PhotoCamera, stringResource(R.string.recipes_cd_import_photo), tint = OnBackground)
+                    }
                     IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
                 },
             )
@@ -221,6 +283,30 @@ fun RecipesScreen(
             onDismiss    = { showImportUrl = false; viewModel.clearImportState() },
             onFetch      = { url -> viewModel.importRecipeFromUrl(url) },
         )
+    } else {
+        // Photo import has no entry dialog of its own (the system photo picker is
+        // the whole "input" step) - loading/error feedback for that path surfaces
+        // here instead, distinguished from the URL flow by showImportUrl being false.
+        when (val state = importState.value) {
+            is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
+                onDismissRequest = {},
+                containerColor = SurfaceVariant,
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                        CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(20.dp))
+                        Text(stringResource(R.string.recipes_import_photo_loading), color = OnBackground)
+                    }
+                },
+                confirmButton = {},
+            )
+            is RecipesViewModel.ImportUiState.Error -> AlertDialog(
+                onDismissRequest = { viewModel.clearImportState() },
+                containerColor = SurfaceVariant,
+                text = { Text(state.message, color = semanticRed()) },
+                confirmButton = { TextButton(onClick = { viewModel.clearImportState() }) { Text(stringResource(R.string.common_ok), color = AccentCoral) } },
+            )
+            else -> {}
+        }
     }
 
     if (showAdd) {
