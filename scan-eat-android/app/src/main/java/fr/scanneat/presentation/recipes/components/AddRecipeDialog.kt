@@ -36,9 +36,14 @@ import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 internal fun AddRecipeDialog(
     onDismiss: () -> Unit, onConfirm: (String, List<RecipeComponent>, Int, String) -> Unit,
     searchResults: List<FoodEntry> = emptyList(), onQueryChange: (String) -> Unit = {},
+    // Pre-fill from a URL/photo recipe import (see RecipesViewModel.importRecipeFromUrl) —
+    // the fetched ingredient/step text has nowhere structured to go (see FetchedRecipeResult's
+    // own doc comment on why it isn't RecipeComponents), so it lands in initialNotes for the
+    // user to read and transcribe into tracked ingredients via the normal search flow below.
+    initialName: String = "", initialServings: Int = 1, initialNotes: String = "",
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var notes by rememberSaveable { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf(initialName) }
+    var notes by rememberSaveable { mutableStateOf(initialNotes) }
     var components by remember { mutableStateOf(listOf<RecipeComponent>()) }
     var newIngName by rememberSaveable { mutableStateOf("") }
     var newIngGrams by rememberSaveable { mutableStateOf("") }
@@ -54,7 +59,7 @@ internal fun AddRecipeDialog(
     // makes — the log dialog's "portion fraction" then had to be reverse-engineered by hand
     // (e.g. entering 0.25 for "1 of 4 servings"). Collecting it here is what makes the
     // servings-based logging in LogRecipeDialog below meaningful.
-    var servingsText by rememberSaveable { mutableStateOf("1") }
+    var servingsText by rememberSaveable { mutableStateOf(initialServings.coerceAtLeast(1).toString()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,

@@ -33,6 +33,28 @@ import javax.inject.Singleton
 /** Thrown when a barcode has no Open Food Facts entry and no photos were supplied to fall back on. */
 class ProductNotFoundException(message: String) : Exception(message)
 
+/**
+ * Result of a URL/photo recipe import (fetchRecipeFromUrl / identifyRecipeFromPhotos) —
+ * a plain preview the caller pre-fills into AddRecipeDialog for the user to review before
+ * saving, not something written to the database directly. Ingredients are free-text lines
+ * (a schema.org Recipe or a photo of a recipe card describes "2 cups flour", not a gram
+ * weight matched against FOOD_DB), so this intentionally does NOT produce RecipeComponents —
+ * only [kcal]/[proteinG]/[fatG]/[carbsG] (when the source actually declared them) carry real
+ * numbers; the rest is display text for the user to transcribe into tracked ingredients.
+ */
+data class FetchedRecipeResult(
+    val name: String,
+    val servings: String?,
+    val ingredients: List<String>,
+    val steps: List<String>,
+    val cookTimeMinutes: Int?,
+    val kcal: Double?,
+    val proteinG: Double?,
+    val fatG: Double?,
+    val carbsG: Double?,
+    val sourceUrl: String,
+)
+
 // These reach the user verbatim (ScanViewModel shows e.message directly in the
 // error banner) — "Groq API key not configured" was leaking straight to a
 // French-first UI in English, and neither message respected the [lang]
@@ -407,6 +429,34 @@ class ScanRepository @Inject constructor(
             if (attempt < SERVER_MAX_ATTEMPTS - 1) delay(400L * (attempt + 1))
         }
         throw lastErr!!
+    }
+
+    /**
+     * FetchRecipeRoute.kt (SSRF-guarded HTML fetch + schema.org Recipe JSON-LD
+     * extraction) has existed on the server since it was added, with no Android
+     * caller — every recipe had to be typed in by hand even when the user was
+     * looking at a recipe blog post right in front of them. Server-mode only:
+     * the SSRF-safe scraping this needs has no Direct-mode equivalent (there is
+     * no safe way to do it from the client, and Groq/Cerebras have no "fetch
+     * this URL" tool). Needs no Groq key (see the route's own doc comment), so
+     * unlike scoreViaServer/identifyViaServer this never checks apiKey.
+     */
+    suspend fun fetchRecipeFromUrl(url: String, lang: String): Result<FetchedRecipeResult> = runCatching {
+        val serverUrl = prefs.serverUrl.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val resp = serverApi(serverUrl).fetchRecipe(url)
+        FetchedRecipeResult(
+            name            = resp.name,
+            servings        = resp.servings,
+            ingredients     = resp.ingredients,
+            steps           = resp.steps,
+            cookTimeMinutes = resp.cookTimeMin,
+            kcal            = resp.nutrition?.kcal,
+            proteinG        = resp.nutrition?.proteinG,
+            fatG            = resp.nutrition?.fatG,
+            carbsG          = resp.nutrition?.carbsG,
+            sourceUrl       = resp.sourceUrl,
+        )
     }
 
     // ---- Direct mode ----

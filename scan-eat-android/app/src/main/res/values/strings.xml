@@ -1147,6 +1147,16 @@
     <string name="recipes_summary">%1$d kcal · %2$d ingrédients · %3$d g</string>
     <string name="recipes_pairs_well_with">Se marie bien avec : %1$s</string>
     <string name="recipes_add_dialog_title">Nouvelle recette</string>
+    <string name="recipes_cd_import_url">Importer depuis une URL</string>
+    <string name="recipes_import_url_title">Importer une recette</string>
+    <string name="recipes_import_url_hint">Collez le lien d\'une recette (blog, site de cuisine…)</string>
+    <string name="recipes_import_url_placeholder">https://…</string>
+    <string name="recipes_import_url_fetch_button">Récupérer</string>
+    <string name="recipes_import_notes_ingredients">Ingrédients (source)</string>
+    <string name="recipes_import_notes_steps">Étapes</string>
+    <string name="recipes_import_notes_cook_time">Temps de cuisson : %1$d min</string>
+    <string name="recipes_import_notes_nutrition">Nutrition indicative (source) : %1$d kcal, %2$dg protéines, %3$dg glucides, %4$dg lipides</string>
+    <string name="recipes_import_notes_source">Source : %1$s</string>
     <string name="recipes_field_name">Nom de la recette</string>
     <string name="recipes_ingredients_label">Ingrédients</string>
     <string name="recipes_ingredient_summary_compact">• %1$s %2$dg %3$dkcal</string>

@@ -18,9 +18,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
+import fr.scanneat.data.repository.scan.FetchedRecipeResult
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.recipes.components.AddRecipeDialog
+import fr.scanneat.presentation.recipes.components.ImportRecipeUrlDialog
 import fr.scanneat.presentation.recipes.components.LogOfficialRecipeDialog
 import fr.scanneat.presentation.recipes.components.LogRecipeDialog
 import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
@@ -30,6 +32,35 @@ import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
 import fr.scanneat.presentation.shell.PlanningDestination
 import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
+
+/**
+ * FetchedRecipeResult's ingredients/steps are free text (no gram weight to build a real
+ * RecipeComponent from — see that class's own doc comment), so an imported recipe's full
+ * detail lands here as pre-filled notes text instead of being silently dropped, while the
+ * user adds macro-tracked ingredients via the normal search flow in AddRecipeDialog.
+ */
+@Composable
+private fun formatImportedNotes(result: FetchedRecipeResult): String = buildString {
+    if (result.ingredients.isNotEmpty()) {
+        appendLine(stringResource(R.string.recipes_import_notes_ingredients))
+        result.ingredients.forEach { appendLine("- $it") }
+        appendLine()
+    }
+    if (result.steps.isNotEmpty()) {
+        appendLine(stringResource(R.string.recipes_import_notes_steps))
+        result.steps.forEachIndexed { i, step -> appendLine("${i + 1}. $step") }
+        appendLine()
+    }
+    result.cookTimeMinutes?.let { appendLine(stringResource(R.string.recipes_import_notes_cook_time, it)) }
+    val kcal = result.kcal
+    if (kcal != null) {
+        appendLine(stringResource(
+            R.string.recipes_import_notes_nutrition,
+            kcal.toInt(), (result.proteinG ?: 0.0).toInt(), (result.carbsG ?: 0.0).toInt(), (result.fatG ?: 0.0).toInt(),
+        ))
+    }
+    if (result.sourceUrl.isNotBlank()) appendLine(stringResource(R.string.recipes_import_notes_source, result.sourceUrl))
+}.trim()
 
 @Composable
 fun RecipesScreen(
@@ -48,6 +79,9 @@ fun RecipesScreen(
     val recipeQuery = viewModel.recipeQuery.collectAsStateWithLifecycle()
     val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
+    var showImportUrl by remember { mutableStateOf(false) }
+    var importPrefill by remember { mutableStateOf<FetchedRecipeResult?>(null) }
+    val importState = viewModel.importState.collectAsStateWithLifecycle()
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<Recipe?>(null) }
@@ -63,6 +97,7 @@ fun RecipesScreen(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
                     PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
+                    IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Default.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
                     IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
                 },
             )
@@ -166,13 +201,39 @@ fun RecipesScreen(
         }
     }
 
+    // A successful URL import hands off straight into the same AddRecipeDialog a manual
+    // "+" tap opens, pre-filled - one review-before-save step, not a silent auto-save of
+    // unverified external page content.
+    LaunchedEffect(importState.value) {
+        val state = importState.value
+        if (state is RecipesViewModel.ImportUiState.Success) {
+            importPrefill = state.result
+            showImportUrl = false
+            showAdd = true
+            viewModel.clearImportState()
+        }
+    }
+
+    if (showImportUrl) {
+        ImportRecipeUrlDialog(
+            isLoading    = importState.value is RecipesViewModel.ImportUiState.Loading,
+            errorMessage = (importState.value as? RecipesViewModel.ImportUiState.Error)?.message,
+            onDismiss    = { showImportUrl = false; viewModel.clearImportState() },
+            onFetch      = { url -> viewModel.importRecipeFromUrl(url) },
+        )
+    }
+
     if (showAdd) {
         val searchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
+        val prefill = importPrefill
         AddRecipeDialog(
-            onDismiss = { showAdd = false },
-            onConfirm = { name, comps, servings, notes -> viewModel.save(name, comps, servings, notes); showAdd = false },
+            onDismiss = { showAdd = false; importPrefill = null },
+            onConfirm = { name, comps, servings, notes -> viewModel.save(name, comps, servings, notes); showAdd = false; importPrefill = null },
             searchResults = searchResults.value,
             onQueryChange = viewModel::setIngredientQuery,
+            initialName     = prefill?.name ?: "",
+            initialServings = prefill?.servings?.toIntOrNull() ?: 1,
+            initialNotes    = prefill?.let { formatImportedNotes(it) } ?: "",
         )
     }
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }

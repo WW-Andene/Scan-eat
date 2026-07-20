@@ -29,11 +29,14 @@ import fr.scanneat.domain.model.IngredientCategory
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanSource
+import fr.scanneat.data.repository.scan.FetchedRecipeResult
+import fr.scanneat.data.repository.scan.ScanRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
+import retrofit2.HttpException
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
@@ -42,6 +45,7 @@ class RecipesViewModel @Inject constructor(
     private val templateRepo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
+    private val scanRepo: ScanRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
     enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
@@ -268,5 +272,43 @@ class RecipesViewModel @Inject constructor(
             )
         }
         save(recipe.nameFr, components)
+    }
+
+    // ── Import from URL — wires up the server's fetch-recipe route (SSRF-guarded
+    // HTML fetch + schema.org Recipe JSON-LD extraction), which existed with no
+    // Android caller at all: every recipe previously had to be typed in by hand.
+    // ────────────────────────────────────────────────────────────────────────
+    sealed class ImportUiState {
+        data object Idle : ImportUiState()
+        data object Loading : ImportUiState()
+        data class Success(val result: FetchedRecipeResult) : ImportUiState()
+        data class Error(val message: String) : ImportUiState()
+    }
+
+    private val _importState = MutableStateFlow<ImportUiState>(ImportUiState.Idle)
+    val importState: StateFlow<ImportUiState> = _importState.asStateFlow()
+
+    fun importRecipeFromUrl(url: String) {
+        if (url.isBlank()) return
+        viewModelScope.launch {
+            _importState.value = ImportUiState.Loading
+            val lang = language.value
+            scanRepo.fetchRecipeFromUrl(url, lang).fold(
+                onSuccess = { _importState.value = ImportUiState.Success(it) },
+                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
+            )
+        }
+    }
+
+    fun clearImportState() { _importState.value = ImportUiState.Idle }
+
+    private fun importErrorMessage(e: Throwable, lang: String): String = when {
+        e is HttpException && e.code() == 404 ->
+            if (lang == "en") "No recipe found on this page" else "Aucune recette trouvée sur cette page"
+        e is HttpException && e.code() == 429 ->
+            if (lang == "en") "Too many requests — try again in a minute" else "Trop de requêtes — réessayez dans une minute"
+        e is HttpException && e.code() == 400 ->
+            if (lang == "en") "Invalid or unreachable URL" else "URL invalide ou inaccessible"
+        else -> e.message ?: (if (lang == "en") "Import failed" else "Échec de l'import")
     }
 }

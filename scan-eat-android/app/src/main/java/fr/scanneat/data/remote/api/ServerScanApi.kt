@@ -3,8 +3,10 @@ package fr.scanneat.data.remote.api
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 // ============================================================================
 // SERVER SCAN API — Retrofit interface for the Ktor backend (Server mode)
@@ -30,7 +32,100 @@ interface ServerScanApi {
         @Header("X-Groq-Key") groqKey: String?,
         @Body request: ServerImagesRequest,
     ): ServerIdentifyResponse
+
+    /**
+     * FetchRecipeRoute.kt has carried this since it was added — SSRF-guarded HTML
+     * fetch + schema.org Recipe JSON-LD extraction — but nothing on the Android
+     * side ever called it, so a user could only ever build a recipe by hand.
+     * Needs no Groq key (pure HTML fetch/parse, see the route's own doc comment).
+     */
+    @GET("api/fetch-recipe")
+    suspend fun fetchRecipe(@Query("url") url: String): ServerFetchedRecipeResponse
+
+    /** IdentifyRecipeRoute.kt: recipe card / cookbook page photo → structured recipe. Also unreachable from the app until now. */
+    @POST("api/identify-recipe")
+    suspend fun identifyRecipe(
+        @Header("X-Groq-Key") groqKey: String?,
+        @Body request: ServerImagesRequest,
+    ): ServerIdentifiedRecipeResponse
+
+    /** SuggestRoute.kt: single ingredient → recipe ideas. Also unreachable from the app until now. */
+    @POST("api/suggest-recipes")
+    suspend fun suggestRecipes(
+        @Header("X-Groq-Key") groqKey: String?,
+        @Body request: ServerSuggestRecipesRequest,
+    ): ServerSuggestedRecipesResponse
+
+    /** SuggestRoute.kt: pantry items → recipe ideas using what's on hand. Also unreachable from the app until now. */
+    @POST("api/suggest-from-pantry")
+    suspend fun suggestFromPantry(
+        @Header("X-Groq-Key") groqKey: String?,
+        @Body request: ServerSuggestFromPantryRequest,
+    ): ServerSuggestedRecipesResponse
 }
+
+// ---- /api/fetch-recipe ----
+
+@JsonClass(generateAdapter = true)
+data class ServerFetchedRecipeResponse(
+    val name: String,
+    val servings: String? = null,
+    val ingredients: List<String> = emptyList(),
+    val steps: List<String> = emptyList(),
+    @Json(name = "cook_time_min") val cookTimeMin: Int? = null,
+    val nutrition: ServerFetchedNutritionDto? = null,
+    @Json(name = "source_url") val sourceUrl: String = "",
+)
+
+@JsonClass(generateAdapter = true)
+data class ServerFetchedNutritionDto(
+    val kcal: Double = 0.0,
+    @Json(name = "protein_g") val proteinG: Double = 0.0,
+    @Json(name = "fat_g") val fatG: Double = 0.0,
+    @Json(name = "carbs_g") val carbsG: Double = 0.0,
+)
+
+// ---- /api/identify-recipe ----
+
+@JsonClass(generateAdapter = true)
+data class ServerRecipeIngredientDto(
+    val name: String,
+    val quantity: String? = null,
+    val unit: String? = null,
+)
+
+@JsonClass(generateAdapter = true)
+data class ServerIdentifiedRecipeResponse(
+    val name: String,
+    val servings: Int? = null,
+    val ingredients: List<ServerRecipeIngredientDto> = emptyList(),
+    val steps: List<String> = emptyList(),
+    @Json(name = "cook_time_min") val cookTimeMin: Int? = null,
+    val warnings: List<String> = emptyList(),
+)
+
+// ---- /api/suggest-recipes / suggest-from-pantry ----
+
+@JsonClass(generateAdapter = true)
+data class ServerSuggestRecipesRequest(val ingredient: String)
+
+@JsonClass(generateAdapter = true)
+data class ServerSuggestFromPantryRequest(val pantry: List<String> = emptyList())
+
+@JsonClass(generateAdapter = true)
+data class ServerSuggestedRecipeDto(
+    val name: String,
+    val description: String,
+    @Json(name = "cook_time_min") val cookTimeMin: Int? = null,
+    val difficulty: String? = null,
+    @Json(name = "main_ingredients") val mainIngredients: List<String> = emptyList(),
+)
+
+@JsonClass(generateAdapter = true)
+data class ServerSuggestedRecipesResponse(
+    val recipes: List<ServerSuggestedRecipeDto> = emptyList(),
+    val warnings: List<String> = emptyList(),
+)
 
 @JsonClass(generateAdapter = true)
 data class ServerImagesRequest(
