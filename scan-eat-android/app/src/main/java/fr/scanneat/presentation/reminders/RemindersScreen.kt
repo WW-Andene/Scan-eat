@@ -7,7 +7,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -44,15 +43,10 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = hiltView
         }
     }
 
-    Scaffold(
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.reminders_title), color = OnBackground) },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.reminders_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-            )
-        },
-        containerColor = Background,
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding)

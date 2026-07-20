@@ -158,36 +158,32 @@ fun RecipesScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.recipes_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = {
-                    PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
-                    IconButton(onClick = { showSuggest = true }) { Icon(Icons.Default.Lightbulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
-                    IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Default.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
-                    IconButton(onClick = {
-                        photoImportLauncher.launch(
-                            androidx.activity.result.PickVisualMediaRequest.Builder()
-                                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                .build()
-                        )
-                    }) {
-                        Icon(Icons.Default.PhotoCamera, stringResource(R.string.recipes_cd_import_photo), tint = OnBackground)
-                    }
-                    IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
-                },
-            )
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.recipes_title), color = OnBackground) },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        actions = {
+            PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
+            IconButton(onClick = { showSuggest = true }) { Icon(Icons.Default.Lightbulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
+            IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Default.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
+            IconButton(onClick = {
+                photoImportLauncher.launch(
+                    androidx.activity.result.PickVisualMediaRequest.Builder()
+                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        .build()
+                )
+            }) {
+                Icon(Icons.Default.PhotoCamera, stringResource(R.string.recipes_cd_import_photo), tint = OnBackground)
+            }
+            IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
         },
-        containerColor = Background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding)
+            modifier = Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
                 .padding(horizontal = Spacing.L),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = padding,
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             // ---- Official starter recipes — real CIQUAL/ANSES-sourced nutrition,
             // built to the Santé publique France / PNNS "assiette-type" portion

@@ -11,7 +11,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -35,8 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.Background
-import fr.scanneat.presentation.ui.theme.FloatingTopBar
+import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -80,44 +78,39 @@ fun ResultScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.result_title), color = OnBackground) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
-                    }
-                },
-                actions = {
-                    state.value.scanResult?.let { scan ->
-                        IconButton(onClick = {
-                            val text = String.format(shareTemplate, scan.product.name, scan.audit.score, scan.audit.grade.label)
-                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, text)
-                            }
-                            context.startActivity(Intent.createChooser(sendIntent, null))
-                        }) {
-                            Icon(Icons.Default.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
-                        }
-                        HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value))
-                        IconButton(onClick = { showSaveMenu = true }) {
-                            Icon(
-                                if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
-                                stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
-                                tint = if (scan.favorite) Gold else OnBackground,
-                            )
-                        }
-                    }
-                    TextButton(onClick = { showSheet = true }) {
-                        Text(stringResource(R.string.result_log_it), color = AccentCoral, fontWeight = FontWeight.SemiBold)
-                    }
-                },
-            )
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.result_title), color = OnBackground) },
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+            }
         },
-        containerColor = Background,
+        actions = {
+            state.value.scanResult?.let { scan ->
+                IconButton(onClick = {
+                    val text = String.format(shareTemplate, scan.product.name, scan.audit.score, scan.audit.grade.label)
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, text)
+                    }
+                    context.startActivity(Intent.createChooser(sendIntent, null))
+                }) {
+                    Icon(Icons.Default.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
+                }
+                HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value))
+                IconButton(onClick = { showSaveMenu = true }) {
+                    Icon(
+                        if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                        stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                        tint = if (scan.favorite) Gold else OnBackground,
+                    )
+                }
+            }
+            TextButton(onClick = { showSheet = true }) {
+                Text(stringResource(R.string.result_log_it), color = AccentCoral, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         val s = state.value
         if (s.scanResult == null) {

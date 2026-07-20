@@ -85,41 +85,36 @@ fun ScanHistoryScreen(
     // needing a second favorites-only screen with its own list/delete/sort logic.
     LaunchedEffect(Unit) { if (startFavoritesOnly) viewModel.setFavoritesOnly(true) }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            FloatingTopBar(
-                title = { Text(stringResource(R.string.history_title), color = OnBackground) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-                actions = {
-                    Box {
-                        IconButton(onClick = { sortMenuExpanded = true }) {
-                            Icon(Icons.Default.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
-                        }
-                        DropdownMenu(expanded = sortMenuExpanded, onDismissRequest = { sortMenuExpanded = false }) {
-                            val options = listOf(
-                                HistorySort.RECENT to stringResource(R.string.history_sort_recent),
-                                HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),
-                                HistorySort.NAME_AZ to stringResource(R.string.history_sort_name),
-                                HistorySort.SCORE_DESC to stringResource(R.string.history_sort_score),
-                            )
-                            options.forEach { (value, label) ->
-                                val isSelected = sort.value == value
-                                DropdownMenuItem(
-                                    text = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
-                                    leadingIcon = {
-                                        if (isSelected) Icon(Icons.Default.Check, contentDescription = null, tint = AccentCoral)
-                                    },
-                                    modifier = Modifier.semantics { selected = isSelected; role = Role.RadioButton },
-                                    onClick = { viewModel.setSort(value); sortMenuExpanded = false },
-                                )
-                            }
-                        }
+    FloatingScreenScaffold(
+        title = { Text(stringResource(R.string.history_title), color = OnBackground) },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        actions = {
+            Box {
+                IconButton(onClick = { sortMenuExpanded = true }) {
+                    Icon(Icons.Default.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
+                }
+                DropdownMenu(expanded = sortMenuExpanded, onDismissRequest = { sortMenuExpanded = false }) {
+                    val options = listOf(
+                        HistorySort.RECENT to stringResource(R.string.history_sort_recent),
+                        HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),
+                        HistorySort.NAME_AZ to stringResource(R.string.history_sort_name),
+                        HistorySort.SCORE_DESC to stringResource(R.string.history_sort_score),
+                    )
+                    options.forEach { (value, label) ->
+                        val isSelected = sort.value == value
+                        DropdownMenuItem(
+                            text = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
+                            leadingIcon = {
+                                if (isSelected) Icon(Icons.Default.Check, contentDescription = null, tint = AccentCoral)
+                            },
+                            modifier = Modifier.semantics { selected = isSelected; role = Role.RadioButton },
+                            onClick = { viewModel.setSort(value); sortMenuExpanded = false },
+                        )
                     }
-                },
-            )
+                }
+            }
         },
-        containerColor = Background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
             // Search bar
@@ -186,7 +181,7 @@ fun ScanHistoryScreen(
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
-                verticalArrangement = Arrangement.spacedBy(Spacing.S),
+                verticalArrangement = Arrangement.spacedBy(Spacing.M),
             ) {
                 // New: frequently scanned section — top 3 products by scan count
                 if (topScanned.value.isNotEmpty()) {
