@@ -1150,6 +1150,11 @@
     <string name="recipes_cd_import_url">Importer depuis une URL</string>
     <string name="recipes_cd_import_photo">Importer depuis une photo</string>
     <string name="recipes_import_photo_loading">Analyse de la photo…</string>
+    <string name="recipes_cd_suggest">Suggérer des recettes</string>
+    <string name="recipes_suggest_title">Idées de recettes</string>
+    <string name="recipes_suggest_hint">Un ingrédient, et l\'IA propose quelques idées.</string>
+    <string name="recipes_suggest_placeholder">Ingrédient</string>
+    <string name="recipes_suggest_button">Suggérer</string>
     <string name="recipes_import_url_title">Importer une recette</string>
     <string name="recipes_import_url_hint">Collez le lien d\'une recette (blog, site de cuisine…)</string>
     <string name="recipes_import_url_placeholder">https://…</string>

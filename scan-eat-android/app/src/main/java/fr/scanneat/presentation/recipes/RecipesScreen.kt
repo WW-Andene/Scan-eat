@@ -44,6 +44,7 @@ import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
 import fr.scanneat.presentation.recipes.components.RecipeCard
 import fr.scanneat.presentation.recipes.components.SaveAsTemplateDialog
 import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
+import fr.scanneat.presentation.recipes.components.SuggestRecipesDialog
 import fr.scanneat.presentation.shell.PlanningDestination
 import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
@@ -122,6 +123,7 @@ fun RecipesScreen(
     val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var showImportUrl by remember { mutableStateOf(false) }
+    var showSuggest by remember { mutableStateOf(false) }
     var importPrefill by remember { mutableStateOf<FetchedRecipeResult?>(null) }
     val importState = viewModel.importState.collectAsStateWithLifecycle()
     var logTarget by remember { mutableStateOf<Recipe?>(null) }
@@ -150,6 +152,7 @@ fun RecipesScreen(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
                 actions = {
                     PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
+                    IconButton(onClick = { showSuggest = true }) { Icon(Icons.Default.Lightbulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
                     IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Default.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
                     IconButton(onClick = {
                         photoImportLauncher.launch(
@@ -271,6 +274,7 @@ fun RecipesScreen(
         if (state is RecipesViewModel.ImportUiState.Success) {
             importPrefill = state.result
             showImportUrl = false
+            showSuggest = false
             showAdd = true
             viewModel.clearImportState()
         }
@@ -283,10 +287,19 @@ fun RecipesScreen(
             onDismiss    = { showImportUrl = false; viewModel.clearImportState() },
             onFetch      = { url -> viewModel.importRecipeFromUrl(url) },
         )
+    } else if (showSuggest) {
+        SuggestRecipesDialog(
+            isLoading    = importState.value is RecipesViewModel.ImportUiState.Loading,
+            results      = (importState.value as? RecipesViewModel.ImportUiState.SuggestSuccess)?.results,
+            errorMessage = (importState.value as? RecipesViewModel.ImportUiState.Error)?.message,
+            onDismiss    = { showSuggest = false; viewModel.clearImportState() },
+            onSuggest    = { ingredient -> viewModel.suggestRecipes(ingredient) },
+            onPick       = { idea -> viewModel.pickSuggestion(idea) },
+        )
     } else {
         // Photo import has no entry dialog of its own (the system photo picker is
         // the whole "input" step) - loading/error feedback for that path surfaces
-        // here instead, distinguished from the URL flow by showImportUrl being false.
+        // here instead, distinguished from the URL/suggest flows by both being false.
         when (val state = importState.value) {
             is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
                 onDismissRequest = {},

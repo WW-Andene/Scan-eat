@@ -495,6 +495,41 @@ class ScanRepository @Inject constructor(
         )
     }
 
+    /**
+     * SuggestRoute.kt (single ingredient -> recipe ideas via Groq) has existed on
+     * the server since it was added, with no Android caller - Recipes had no "give
+     * me ideas" entry point at all, only manual/imported entry. Server-mode only
+     * and needs a Groq key, same reasoning as identifyRecipeFromPhotos. Reuses
+     * [FetchedRecipeResult] per idea (description folded into a single-entry
+     * [FetchedRecipeResult.steps] line, main_ingredients as the ingredient list) so
+     * picking a suggestion feeds the exact same AddRecipeDialog prefill path as a
+     * URL/photo import - "unverified external content the user reviews before
+     * saving" describes an LLM-generated idea just as well as a scraped page.
+     */
+    suspend fun suggestRecipes(ingredient: String, lang: String): Result<List<FetchedRecipeResult>> = runCatching {
+        val serverUrl = prefs.serverUrl.first()
+        val apiKey = prefs.groqApiKey.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val resp = serverApi(serverUrl).suggestRecipes(
+            groqKey = apiKey.takeIf { it.isNotBlank() },
+            request = ServerSuggestRecipesRequest(ingredient),
+        )
+        resp.recipes.map { s ->
+            FetchedRecipeResult(
+                name            = s.name,
+                servings        = null,
+                ingredients     = s.mainIngredients,
+                steps           = listOfNotNull(s.description.takeIf { it.isNotBlank() }),
+                cookTimeMinutes = s.cookTimeMin,
+                kcal            = null,
+                proteinG        = null,
+                fatG            = null,
+                carbsG          = null,
+                sourceUrl       = "",
+            )
+        }
+    }
+
     // ---- Direct mode ----
 
     /**

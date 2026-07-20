@@ -283,6 +283,8 @@ class RecipesViewModel @Inject constructor(
         data object Idle : ImportUiState()
         data object Loading : ImportUiState()
         data class Success(val result: FetchedRecipeResult) : ImportUiState()
+        /** suggestRecipes() returns several ideas to pick from, unlike the single-result URL/photo import. */
+        data class SuggestSuccess(val results: List<FetchedRecipeResult>) : ImportUiState()
         data class Error(val message: String) : ImportUiState()
     }
 
@@ -318,6 +320,22 @@ class RecipesViewModel @Inject constructor(
             )
         }
     }
+
+    /** Single-ingredient recipe ideas (SuggestRoute.kt) - shows a pickable list rather than pre-filling directly, unlike importRecipeFromUrl/Photos. */
+    fun suggestRecipes(ingredient: String) {
+        if (ingredient.isBlank()) return
+        viewModelScope.launch {
+            _importState.value = ImportUiState.Loading
+            val lang = language.value
+            scanRepo.suggestRecipes(ingredient, lang).fold(
+                onSuccess = { _importState.value = ImportUiState.SuggestSuccess(it) },
+                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
+            )
+        }
+    }
+
+    /** Picking one of suggestRecipes()'s ideas feeds the same Success -> AddRecipeDialog prefill path a URL/photo import uses. */
+    fun pickSuggestion(result: FetchedRecipeResult) { _importState.value = ImportUiState.Success(result) }
 
     fun clearImportState() { _importState.value = ImportUiState.Idle }
 
