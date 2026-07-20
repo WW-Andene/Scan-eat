@@ -121,7 +121,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                         Surface(
                             onClick = { selectedScan = scan },
                             shape = RoundedCornerShape(CardRadius.CONTROL),
-                            color = SurfaceVariant.copy(alpha = 0.62f),
+                            color = SurfaceVariant.copy(alpha = 0.42f),
                             modifier = Modifier.fillMaxWidth()
                                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                         ) {
@@ -141,7 +141,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                         Surface(
                             onClick = { selected = entry },
                             shape = RoundedCornerShape(CardRadius.CONTROL),
-                            color = SurfaceVariant.copy(alpha = 0.62f),
+                            color = SurfaceVariant.copy(alpha = 0.42f),
                             modifier = Modifier.fillMaxWidth()
                                 .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                         ) {

@@ -38,7 +38,7 @@ private fun Fasting7DayChart(history: List<FastCompletion>) {
     val byDate = history.associateBy { it.date }
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant.copy(alpha = 0.62f),
+        color = SurfaceVariant.copy(alpha = 0.42f),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
@@ -321,7 +321,7 @@ fun FastingScreen(
                             Surface(
                                 modifier = Modifier.weight(1f).glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                                 shape = RoundedCornerShape(CardRadius.CONTROL),
-                                color = SurfaceVariant.copy(alpha = 0.62f),
+                                color = SurfaceVariant.copy(alpha = 0.42f),
                             ) {
                                 Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(value, style = MaterialTheme.typography.titleSmall, color = AccentCoral, fontWeight = FontWeight.Bold)

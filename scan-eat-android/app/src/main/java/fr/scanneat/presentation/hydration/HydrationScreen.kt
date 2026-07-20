@@ -260,7 +260,7 @@ fun HydrationScreen(
                 val peak = weeklyIntake.value.maxOfOrNull { it.second }?.coerceAtLeast(goalMl) ?: goalMl
                 Surface(
                     shape = RoundedCornerShape(CardRadius.CONTROL),
-                    color = SurfaceVariant.copy(alpha = 0.62f),
+                    color = SurfaceVariant.copy(alpha = 0.42f),
                     modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                 ) {
                     Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {

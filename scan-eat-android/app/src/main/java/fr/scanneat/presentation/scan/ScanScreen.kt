@@ -476,7 +476,7 @@ fun ScanScreen(
                     if (s.needsPhoto) {
                         Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp)
                             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-                            color = SurfaceVariant.copy(alpha = 0.62f), shape = RoundedCornerShape(CardRadius.CONTROL)) {
+                            color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL)) {
                             Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
                                 Spacer(Modifier.width(Spacing.S))

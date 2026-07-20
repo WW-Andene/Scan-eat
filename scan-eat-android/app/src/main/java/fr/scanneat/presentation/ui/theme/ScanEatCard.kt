@@ -74,7 +74,7 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
 fun ScanEatCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(CardRadius.CARD),
-    color: Color = SurfaceVariant.copy(alpha = 0.62f),
+    color: Color = SurfaceVariant.copy(alpha = 0.42f),
     contentPadding: PaddingValues = PaddingValues(14.dp),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,

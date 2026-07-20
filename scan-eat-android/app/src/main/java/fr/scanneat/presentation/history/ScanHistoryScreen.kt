@@ -204,7 +204,7 @@ fun ScanHistoryScreen(
                                     modifier = Modifier.weight(1f)
                                         .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                                     shape    = RoundedCornerShape(CardRadius.CONTROL),
-                                    color    = SurfaceVariant.copy(alpha = 0.62f),
+                                    color    = SurfaceVariant.copy(alpha = 0.42f),
                                 ) {
                                     Column(
                                         modifier = Modifier.padding(Spacing.S),

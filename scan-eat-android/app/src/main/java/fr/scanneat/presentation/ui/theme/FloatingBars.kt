@@ -34,8 +34,8 @@ import dev.chrisbanes.haze.hazeSource
 val FrostedGlassStyle: HazeStyle
     @Composable get() = HazeStyle(
         backgroundColor = SurfaceVariant,
-        tint            = HazeTint(SurfaceVariant.copy(alpha = 0.55f)),
-        blurRadius      = 20.dp,
+        tint            = HazeTint(SurfaceVariant.copy(alpha = 0.38f)),
+        blurRadius      = 12.dp,
         noiseFactor     = 0f,
     )
 

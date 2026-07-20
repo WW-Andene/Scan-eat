@@ -144,7 +144,7 @@ fun MedicationScreen(
                     val allTaken = active.all { m -> todayTaken.value.any { it.medicationId == m.id } }
                     Surface(
                         shape = RoundedCornerShape(CardRadius.CONTROL),
-                        color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = 0.62f),
+                        color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = 0.42f),
                         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                     ) {
                         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
