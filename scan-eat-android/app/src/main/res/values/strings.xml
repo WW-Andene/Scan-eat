@@ -134,7 +134,33 @@
     <string name="biolism_subtitle">Métabolisme · Science · Précision</string>
     <string name="biolism_tab_tracker">Suivi</string>
     <string name="biolism_tab_data">Données</string>
+    <string name="biolism_tab_evolution">Évolution</string>
     <string name="biolism_tab_profile">Profil</string>
+
+    <!-- ── Biolism: Evolution tab ─────────────────────────────────────────── -->
+    <string name="biolism_evo_not_enough_data">Pas encore assez de données pour un graphique</string>
+    <string name="biolism_evo_chart_cd">Graphique de tendance : de %1$s à %2$s sur %3$d points</string>
+    <string name="biolism_evo_window_badge">90 jours</string>
+    <string name="biolism_evo_min_max">Min – Max</string>
+    <string name="biolism_evo_weight_title">Poids</string>
+    <string name="biolism_evo_weight_current">Poids actuel</string>
+    <string name="biolism_evo_weight_delta">%1$s%2$s sur la période</string>
+    <string name="biolism_evo_bodycomp_title">Composition corporelle</string>
+    <string name="biolism_evo_bodycomp_caption">Estimation à partir de ton historique de poids et de tes mensurations actuelles (taille/hanches/cou) — pas une mesure quotidienne réelle</string>
+    <string name="biolism_evo_bodycomp_fat_label">Masse grasse (%)</string>
+    <string name="biolism_evo_bodycomp_lean_label">Masse maigre (kg)</string>
+    <string name="biolism_evo_hydration_title">Hydratation</string>
+    <string name="biolism_evo_hydration_avg">Moyenne quotidienne</string>
+    <string name="biolism_evo_hydration_ml">%1$d ml</string>
+    <string name="biolism_evo_hydration_goal_hit">Objectif atteint %1$d/%2$d jours</string>
+    <string name="biolism_evo_macros_title">Apports nutritionnels</string>
+    <string name="biolism_evo_macro_sugar">Sucres</string>
+    <string name="biolism_evo_macro_avg">%1$s g/j en moyenne</string>
+    <string name="biolism_evo_ketosis_title">Cétose</string>
+    <string name="biolism_evo_ketosis_avg">Durée moyenne en cétose</string>
+    <string name="biolism_evo_ketosis_sessions">%1$d séances</string>
+    <string name="biolism_evo_hormones_today">Aujourd\'hui (référence)</string>
+    <string name="biolism_evo_hormones_caption">Estimations calculées à jeûne et cétose nuls (référence), indépendantes de ton état réel du jour. Les tendances ci-dessous ne suivent que l\'effet de l\'évolution de ta composition corporelle.</string>
 
     <!-- ── Biolism: Body Composition card ────────────────────────────────── -->
     <string name="biolism_body_title">Composition corporelle</string>

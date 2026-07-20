@@ -134,7 +134,33 @@
     <string name="biolism_subtitle">Metabolism · Science · Precision</string>
     <string name="biolism_tab_tracker">Tracker</string>
     <string name="biolism_tab_data">Data</string>
+    <string name="biolism_tab_evolution">Evolution</string>
     <string name="biolism_tab_profile">Profile</string>
+
+    <!-- ── Biolism: Evolution tab ─────────────────────────────────────────── -->
+    <string name="biolism_evo_not_enough_data">Not enough data yet for a chart</string>
+    <string name="biolism_evo_chart_cd">Trend chart: from %1$s to %2$s across %3$d points</string>
+    <string name="biolism_evo_window_badge">90 days</string>
+    <string name="biolism_evo_min_max">Min – Max</string>
+    <string name="biolism_evo_weight_title">Weight</string>
+    <string name="biolism_evo_weight_current">Current weight</string>
+    <string name="biolism_evo_weight_delta">%1$s%2$s over the period</string>
+    <string name="biolism_evo_bodycomp_title">Body composition</string>
+    <string name="biolism_evo_bodycomp_caption">Estimated from your weight history and current measurements (waist/hip/neck) — not a real day-to-day measurement</string>
+    <string name="biolism_evo_bodycomp_fat_label">Body fat (%)</string>
+    <string name="biolism_evo_bodycomp_lean_label">Lean mass (kg)</string>
+    <string name="biolism_evo_hydration_title">Hydration</string>
+    <string name="biolism_evo_hydration_avg">Daily average</string>
+    <string name="biolism_evo_hydration_ml">%1$d ml</string>
+    <string name="biolism_evo_hydration_goal_hit">Goal hit %1$d/%2$d days</string>
+    <string name="biolism_evo_macros_title">Nutrient intake</string>
+    <string name="biolism_evo_macro_sugar">Sugar</string>
+    <string name="biolism_evo_macro_avg">avg %1$s g/day</string>
+    <string name="biolism_evo_ketosis_title">Ketosis</string>
+    <string name="biolism_evo_ketosis_avg">Average time in ketosis</string>
+    <string name="biolism_evo_ketosis_sessions">%1$d sessions</string>
+    <string name="biolism_evo_hormones_today">Today (baseline)</string>
+    <string name="biolism_evo_hormones_caption">Estimated at zero fasting/ketosis (baseline), independent of your actual state today. The trends below track only the effect of your changing body composition.</string>
 
     <!-- ── Biolism: Body Composition card ────────────────────────────────── -->
     <string name="biolism_body_title">Body composition</string>

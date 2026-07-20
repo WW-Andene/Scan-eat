@@ -75,6 +75,14 @@ fun weeklyRollup(entries: List<DiaryEntry>, end: LocalDate = LocalDate.now()): R
 fun monthlyRollup(entries: List<DiaryEntry>, end: LocalDate = LocalDate.now()): RollupResult =
     rollup(entries, end, windowDays = 30)
 
+// ============================================================================
+// customRollup — same day-bucketing as weekly/monthlyRollup, arbitrary window.
+// Used by the Biolism Evolution tab's longer-range macro-intake trends.
+// ============================================================================
+
+fun customRollup(entries: List<DiaryEntry>, end: LocalDate = LocalDate.now(), windowDays: Int): RollupResult =
+    rollup(entries, end, windowDays)
+
 private fun rollup(entries: List<DiaryEntry>, end: LocalDate, windowDays: Int): RollupResult {
     val days = (windowDays - 1 downTo 0).map { i ->
         end.minusDays(i.toLong())

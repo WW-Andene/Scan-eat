@@ -22,11 +22,13 @@ import fr.scanneat.presentation.biolism.bioProfile.BiolismOnboardingScreen
 import fr.scanneat.presentation.biolism.bioProfile.BiolismProfileScreen
 import fr.scanneat.presentation.biolism.bioProfile.BiolismProfileViewModel
 import fr.scanneat.presentation.biolism.data.DataScreen
+import fr.scanneat.presentation.biolism.evolution.EvolutionScreen
 import fr.scanneat.presentation.biolism.tracker.TrackerScreen
 import fr.scanneat.presentation.ui.theme.*
 
 private enum class BiolismTab(@androidx.annotation.StringRes val labelRes: Int) {
-    TRACKER(R.string.biolism_tab_tracker), DATA(R.string.biolism_tab_data), PROFILE(R.string.biolism_tab_profile)
+    TRACKER(R.string.biolism_tab_tracker), DATA(R.string.biolism_tab_data),
+    EVOLUTION(R.string.biolism_tab_evolution), PROFILE(R.string.biolism_tab_profile)
 }
 
 @Composable
@@ -102,9 +104,10 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
         // ── Tab content ───────────────────────────────────────────────────────
         Box(modifier = Modifier.fillMaxSize()) {
             when (activeTab) {
-                BiolismTab.TRACKER -> TrackerScreen()
-                BiolismTab.DATA    -> DataScreen()
-                BiolismTab.PROFILE -> BiolismProfileScreen()
+                BiolismTab.TRACKER   -> TrackerScreen()
+                BiolismTab.DATA      -> DataScreen()
+                BiolismTab.EVOLUTION -> EvolutionScreen()
+                BiolismTab.PROFILE   -> BiolismProfileScreen()
             }
         }
     }

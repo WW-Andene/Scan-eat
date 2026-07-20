@@ -319,6 +319,7 @@ class TrackerViewModel @Inject constructor(
             endWeightKg   = snapshot.liveWeightKg,
             fatFrac       = snapshot.fatFrac,
             fatLostKg     = snapshot.fatLostKg,
+            ketoElapsedSec = _ketoElapsedMs.value / 1000.0,
         )
         viewModelScope.launch { runCatching { repo.saveSession(session) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
         _saved.value = true

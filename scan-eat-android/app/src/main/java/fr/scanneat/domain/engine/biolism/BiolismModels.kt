@@ -200,4 +200,10 @@ data class BiolismSession(
     val endWeightKg: Double,
     val fatFrac: Double,
     val fatLostKg: Double,
+    // How long ketosis was actually toggled on during this session — distinct from
+    // elapsedSec (the whole session's duration), since ketosis can be toggled on
+    // partway through. Defaults to 0.0 for sessions saved before this field existed
+    // (decodes cleanly from old JSON), so the Evolution tab's ketosis-average only
+    // counts sessions that actually carry a real duration.
+    val ketoElapsedSec: Double = 0.0,
 )

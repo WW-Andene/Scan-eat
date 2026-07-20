@@ -375,16 +375,18 @@ class BiolismRepository @Inject constructor(
         val bmrDay: Double, val tdeeDay: Double, val activityLabel: String,
         val ketosis: Boolean, val startWeightKg: Double, val endWeightKg: Double,
         val fatFrac: Double, val fatLostKg: Double,
+        val ketoElapsedSec: Double = 0.0,
     ) {
         fun toDomain() = BiolismSession(
             id, timestamp, elapsedSec, kcalBurned, kcalPerMin, bmrDay, tdeeDay,
             activityLabel, ketosis, startWeightKg, endWeightKg, fatFrac, fatLostKg,
+            ketoElapsedSec,
         )
         companion object {
             fun fromDomain(s: BiolismSession) = SerializableSession(
                 s.id, s.timestamp, s.elapsedSec, s.kcalBurned, s.kcalPerMin,
                 s.bmrDay, s.tdeeDay, s.activityLabel, s.ketosis, s.startWeightKg,
-                s.endWeightKg, s.fatFrac, s.fatLostKg,
+                s.endWeightKg, s.fatFrac, s.fatLostKg, s.ketoElapsedSec,
             )
         }
     }
