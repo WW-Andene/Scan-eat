@@ -2,9 +2,8 @@ package fr.scanneat.presentation.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -124,19 +123,19 @@ fun ProfileScreen(
             }
         },
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
-                .padding(horizontal = 20.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(horizontal = 20.dp),
+            contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            Spacer(Modifier.height(Spacing.XS))
+            item { Spacer(Modifier.height(Spacing.XS)) }
 
             // ---- BMI / TDEE preview ----
             if (bmi.value != null || tdee.value != null || tdeeGoal.value != null) {
+                item {
                 val currentProfile = profile.value
                 // Macro ratio: recommended P/G/L split by diet, expressed as display percentages.
                 val (pPct, cPct, fPct) = when (currentProfile.diet) {
@@ -235,20 +234,24 @@ fun ProfileScreen(
                                 }
                             }
                         }
+                }
             }
 
             // ---- Identity ----
-            ProfileSection(stringResource(R.string.profile_section_identity)) {
-                OutlinedInput(stringResource(R.string.profile_field_name), name) { name = it }
-                SexSelector(sex) { sex = it }
-                OutlinedInput(stringResource(R.string.profile_field_age), age, KeyboardType.Number) { age = it }
+            item {
+                ProfileSection(stringResource(R.string.profile_section_identity)) {
+                    OutlinedInput(stringResource(R.string.profile_field_name), name) { name = it }
+                    SexSelector(sex) { sex = it }
+                    OutlinedInput(stringResource(R.string.profile_field_age), age, KeyboardType.Number) { age = it }
+                }
             }
 
             // ---- Body ----
             // Same app-wide metric/imperial preference as the Weight tab (prefs.useImperialWeight)
             // - these fields previously always treated typed input as cm/kg regardless of that
             // setting, so a user in imperial mode could silently save a pound value as kilograms.
-            ProfileSection(stringResource(R.string.profile_section_body)) {
+            item {
+                ProfileSection(stringResource(R.string.profile_section_body)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
@@ -283,6 +286,7 @@ fun ProfileScreen(
                         Text(stringResource(R.string.profile_menstruating_checkbox), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
                     }
                 }
+                }
             }
 
             // ---- Body measurements (shared with Métabolisme > Mon Profil) ----
@@ -290,57 +294,67 @@ fun ProfileScreen(
             // both profile screens expose the same complete set of fields, and so a
             // user who never opens Métabolisme can still benefit from Navy BF%/WHtR
             // calculations that need these.
-            ProfileSection(stringResource(R.string.profile_section_measurements)) {
-                BioInputUnit(
-                    stringResource(R.string.profile_field_waist), stringResource(R.string.profile_field_waist_imperial),
-                    waistCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
-                ) { waistCm = it }
-                BioInputUnit(
-                    stringResource(R.string.profile_field_hip), stringResource(R.string.profile_field_hip_imperial),
-                    hipCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
-                ) { hipCm = it }
-                BioInputUnit(
-                    stringResource(R.string.profile_field_neck), stringResource(R.string.profile_field_neck_imperial),
-                    neckCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
-                ) { neckCm = it }
-                Text(stringResource(R.string.profile_field_ethnicity), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                val isFrench = Locale.current.language == "fr"
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    ETHNICITY_OPTIONS.forEach { opt ->
-                        FilterChip(
-                            selected = ethnicityId == opt.id,
-                            onClick  = { ethnicityId = opt.id },
-                            label    = { Text(if (isFrench) opt.labelFr else opt.label, maxLines = 1) },
-                            colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                            ),
-                        )
+            item {
+                ProfileSection(stringResource(R.string.profile_section_measurements)) {
+                    BioInputUnit(
+                        stringResource(R.string.profile_field_waist), stringResource(R.string.profile_field_waist_imperial),
+                        waistCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
+                    ) { waistCm = it }
+                    BioInputUnit(
+                        stringResource(R.string.profile_field_hip), stringResource(R.string.profile_field_hip_imperial),
+                        hipCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
+                    ) { hipCm = it }
+                    BioInputUnit(
+                        stringResource(R.string.profile_field_neck), stringResource(R.string.profile_field_neck_imperial),
+                        neckCm, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
+                    ) { neckCm = it }
+                    Text(stringResource(R.string.profile_field_ethnicity), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    val isFrench = Locale.current.language == "fr"
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        ETHNICITY_OPTIONS.forEach { opt ->
+                            FilterChip(
+                                selected = ethnicityId == opt.id,
+                                onClick  = { ethnicityId = opt.id },
+                                label    = { Text(if (isFrench) opt.labelFr else opt.label, maxLines = 1) },
+                                colors   = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                ),
+                            )
+                        }
                     }
                 }
             }
 
             // ---- Activity ----
-            ProfileSection(stringResource(R.string.profile_section_activity)) {
-                ActivitySelector(activity) { activity = it }
-                GoalSelector(goal) { goal = it }
+            item {
+                ProfileSection(stringResource(R.string.profile_section_activity)) {
+                    ActivitySelector(activity) { activity = it }
+                    GoalSelector(goal) { goal = it }
+                }
             }
 
             // ---- Allergens ----
-            ProfileSection(stringResource(R.string.profile_section_allergens)) {
-                AllergenSelector(allergens) { allergens = it }
+            item {
+                ProfileSection(stringResource(R.string.profile_section_allergens)) {
+                    AllergenSelector(allergens) { allergens = it }
+                }
             }
 
             // ---- Health conditions ----
-            ProfileSection(stringResource(R.string.profile_section_conditions)) {
-                ConditionsSelector(conditions) { conditions = it }
+            item {
+                ProfileSection(stringResource(R.string.profile_section_conditions)) {
+                    ConditionsSelector(conditions) { conditions = it }
+                }
             }
 
             // ---- Diet ----
-            ProfileSection(stringResource(R.string.profile_section_diet)) {
-                DietSelector(diet) { diet = it }
+            item {
+                ProfileSection(stringResource(R.string.profile_section_diet)) {
+                    DietSelector(diet) { diet = it }
+                }
             }
 
-            Spacer(Modifier.height(40.dp))
+            item { Spacer(Modifier.height(40.dp)) }
         }
     }
 

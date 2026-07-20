@@ -4,10 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -81,10 +81,20 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
         title = { Text(stringResource(R.string.calendar_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
     ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(horizontal = Spacing.L).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(Spacing.M),
+        // A single LazyColumn item wrapping this screen's whole (non-lazy) Column
+        // body — not worth decomposing into per-section items, but still gets the
+        // header true-scroll-under every other screen has via contentPadding
+        // (which content can visually pass under) instead of Modifier.padding
+        // (a hard inset content can never cross).
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(horizontal = Spacing.L),
+            contentPadding = padding,
         ) {
+            item {
+            // verticalArrangement lives here now (on this inner Column), not on the
+            // outer LazyColumn above — that only spaces between top-level items, and
+            // this whole body is deliberately kept as a single one.
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
             Spacer(Modifier.height(Spacing.XS))
             ScanEatCard(contentPadding = PaddingValues(Spacing.M)) {
                 MultiMarkerMonthGrid(
@@ -117,6 +127,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             }
             DayDetailCard(detail.value, locale, onOpenDate = onOpenDate)
             Spacer(Modifier.height(Spacing.XXL))
+            }
+            }
         }
     }
 

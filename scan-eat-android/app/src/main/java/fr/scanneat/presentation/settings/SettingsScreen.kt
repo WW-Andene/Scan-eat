@@ -4,10 +4,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.health.connect.client.PermissionController
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -185,24 +184,27 @@ fun SettingsScreen(
         },
         showBottomNavClearance = isTabRoot,
     ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Violet)
-                .padding(horizontal = 20.dp).verticalScroll(rememberScrollState()),
+                .padding(horizontal = 20.dp),
+            contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            Spacer(Modifier.height(Spacing.XS))
+            item { Spacer(Modifier.height(Spacing.XS)) }
 
             // ---- Profile — first thing in Réglages, not buried at the bottom ----
-            SettingsSection(stringResource(R.string.settings_section_profile)) {
-                Text(stringResource(R.string.settings_profile_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                ScanEatOutlinedButton(
-                    onClick = onOpenProfile,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(Icons.Default.Person, null, tint = OnBackground, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(Spacing.S))
-                    Text(stringResource(R.string.settings_profile_button), color = OnBackground)
+            item {
+                SettingsSection(stringResource(R.string.settings_section_profile)) {
+                    Text(stringResource(R.string.settings_profile_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    ScanEatOutlinedButton(
+                        onClick = onOpenProfile,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Person, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(Spacing.S))
+                        Text(stringResource(R.string.settings_profile_button), color = OnBackground)
+                    }
                 }
             }
 
@@ -210,57 +212,63 @@ fun SettingsScreen(
             // Diary and Medication, so there was no way to reach it from Settings
             // even though the underlying reminder system covers meals, hydration,
             // weigh-ins, activity, and fasting targets app-wide. ----
-            SettingsSection(stringResource(R.string.reminders_title)) {
-                Text(stringResource(R.string.settings_reminders_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                ScanEatOutlinedButton(
-                    onClick = onOpenReminders,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(Icons.Default.Notifications, null, tint = OnBackground, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(Spacing.S))
-                    Text(stringResource(R.string.settings_reminders_button), color = OnBackground)
+            item {
+                SettingsSection(stringResource(R.string.reminders_title)) {
+                    Text(stringResource(R.string.settings_reminders_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    ScanEatOutlinedButton(
+                        onClick = onOpenReminders,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Notifications, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(Spacing.S))
+                        Text(stringResource(R.string.settings_reminders_button), color = OnBackground)
+                    }
                 }
             }
 
             // ---- API Mode ----
-            SettingsSection(stringResource(R.string.settings_section_api_mode)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    ApiMode.entries.forEach { m ->
-                        FilterChip(
-                            selected = mode.value == m,
-                            onClick  = { viewModel.setMode(m) },
-                            label    = { Text(if (m == ApiMode.DIRECT) stringResource(R.string.settings_mode_direct) else stringResource(R.string.settings_mode_server)) },
-                            colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                            ),
-                        )
+            item {
+                SettingsSection(stringResource(R.string.settings_section_api_mode)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        ApiMode.entries.forEach { m ->
+                            FilterChip(
+                                selected = mode.value == m,
+                                onClick  = { viewModel.setMode(m) },
+                                label    = { Text(if (m == ApiMode.DIRECT) stringResource(R.string.settings_mode_direct) else stringResource(R.string.settings_mode_server)) },
+                                colors   = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                ),
+                            )
+                        }
                     }
+                    Text(
+                        if (mode.value == ApiMode.DIRECT) stringResource(R.string.settings_mode_direct_desc)
+                        else stringResource(R.string.settings_mode_server_desc),
+                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
+                    )
                 }
-                Text(
-                    if (mode.value == ApiMode.DIRECT) stringResource(R.string.settings_mode_direct_desc)
-                    else stringResource(R.string.settings_mode_server_desc),
-                    style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
-                )
             }
 
             // ---- Groq API key ----
             if (mode.value == ApiMode.DIRECT) {
-                SettingsSection(stringResource(R.string.settings_section_groq_key)) {
-                    OutlinedTextField(
-                        value = localKey, onValueChange = { localKey = it },
-                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_groq_key_placeholder)) },
-                        visualTransformation = if (keyVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { keyVisible = !keyVisible }) {
-                                Icon(if (keyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, stringResource(R.string.settings_toggle_key_visibility), tint = OnBackground.copy(0.6f))
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
-                        colors = scanEatTextFieldColors(),
-                    )
-                    Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
-                    SaveButtonRow(saved = savedField.value == "apiKey") { viewModel.saveApiKey(localKey) }
+                item {
+                    SettingsSection(stringResource(R.string.settings_section_groq_key)) {
+                        OutlinedTextField(
+                            value = localKey, onValueChange = { localKey = it },
+                            modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_groq_key_placeholder)) },
+                            visualTransformation = if (keyVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { keyVisible = !keyVisible }) {
+                                    Icon(if (keyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, stringResource(R.string.settings_toggle_key_visibility), tint = OnBackground.copy(0.6f))
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
+                            colors = scanEatTextFieldColors(),
+                        )
+                        Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+                        SaveButtonRow(saved = savedField.value == "apiKey") { viewModel.saveApiKey(localKey) }
+                    }
                 }
 
                 // ---- Cerebras API key — second provider, automatic fallback ----
@@ -270,73 +278,81 @@ fun SettingsScreen(
                 // The app now cycles through models/providers automatically (see
                 // OcrParser); the only thing left to configure here is a second
                 // provider's key so scanning survives Groq being down entirely.
-                SettingsSection(stringResource(R.string.settings_section_cerebras_key)) {
-                    Text(stringResource(R.string.settings_cerebras_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                    OutlinedTextField(
-                        value = localCerebrasKey, onValueChange = { localCerebrasKey = it },
-                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_cerebras_key_placeholder)) },
-                        visualTransformation = if (cerebrasKeyVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { cerebrasKeyVisible = !cerebrasKeyVisible }) {
-                                Icon(if (cerebrasKeyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, stringResource(R.string.settings_toggle_key_visibility), tint = OnBackground.copy(0.6f))
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
-                        colors = scanEatTextFieldColors(),
-                    )
-                    SaveButtonRow(saved = savedField.value == "cerebrasApiKey") { viewModel.saveCerebrasApiKey(localCerebrasKey) }
+                item {
+                    SettingsSection(stringResource(R.string.settings_section_cerebras_key)) {
+                        Text(stringResource(R.string.settings_cerebras_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                        OutlinedTextField(
+                            value = localCerebrasKey, onValueChange = { localCerebrasKey = it },
+                            modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_cerebras_key_placeholder)) },
+                            visualTransformation = if (cerebrasKeyVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { cerebrasKeyVisible = !cerebrasKeyVisible }) {
+                                    Icon(if (cerebrasKeyVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, stringResource(R.string.settings_toggle_key_visibility), tint = OnBackground.copy(0.6f))
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
+                            colors = scanEatTextFieldColors(),
+                        )
+                        SaveButtonRow(saved = savedField.value == "cerebrasApiKey") { viewModel.saveCerebrasApiKey(localCerebrasKey) }
+                    }
                 }
             }
 
             // ---- Server URL ----
             if (mode.value == ApiMode.SERVER) {
-                SettingsSection(stringResource(R.string.settings_server_url)) {
-                    OutlinedTextField(
-                        value = localUrl, onValueChange = { localUrl = it },
-                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_server_url_placeholder)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                        singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
-                        colors = scanEatTextFieldColors(),
-                    )
-                    SaveButtonRow(saved = savedField.value == "serverUrl") { viewModel.saveServerUrl(localUrl) }
+                item {
+                    SettingsSection(stringResource(R.string.settings_server_url)) {
+                        OutlinedTextField(
+                            value = localUrl, onValueChange = { localUrl = it },
+                            modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.settings_server_url_placeholder)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                            singleLine = true, shape = RoundedCornerShape(CardRadius.CONTROL),
+                            colors = scanEatTextFieldColors(),
+                        )
+                        SaveButtonRow(saved = savedField.value == "serverUrl") { viewModel.saveServerUrl(localUrl) }
+                    }
                 }
             }
 
             // Fix 4: Language toggle
-            SettingsSection(stringResource(R.string.settings_section_language)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    listOf("fr" to stringResource(R.string.settings_lang_fr), "en" to stringResource(R.string.settings_lang_en)).forEach { (code, label) ->
-                        FilterChip(
-                            selected = language.value == code,
-                            onClick  = { viewModel.setLanguage(code) },
-                            label    = { Text(label) },
-                            colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                            ),
-                        )
+            item {
+                SettingsSection(stringResource(R.string.settings_section_language)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        listOf("fr" to stringResource(R.string.settings_lang_fr), "en" to stringResource(R.string.settings_lang_en)).forEach { (code, label) ->
+                            FilterChip(
+                                selected = language.value == code,
+                                onClick  = { viewModel.setLanguage(code) },
+                                label    = { Text(label) },
+                                colors   = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                ),
+                            )
+                        }
                     }
                 }
             }
 
             // Fix 4: Theme toggle
-            SettingsSection(stringResource(R.string.settings_section_theme)) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    listOf(
-                        "oled" to stringResource(R.string.settings_theme_oled),
-                        "dark" to stringResource(R.string.settings_theme_dark),
-                        "light" to stringResource(R.string.settings_theme_light),
-                        "high_contrast" to stringResource(R.string.settings_theme_high_contrast),
-                        "low_contrast" to stringResource(R.string.settings_theme_low_contrast),
-                    ).forEach { (key, label) ->
-                        FilterChip(
-                            selected = theme.value == key,
-                            onClick  = { viewModel.setTheme(key) },
-                            label    = { Text(label) },
-                            colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                            ),
-                        )
+            item {
+                SettingsSection(stringResource(R.string.settings_section_theme)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        listOf(
+                            "oled" to stringResource(R.string.settings_theme_oled),
+                            "dark" to stringResource(R.string.settings_theme_dark),
+                            "light" to stringResource(R.string.settings_theme_light),
+                            "high_contrast" to stringResource(R.string.settings_theme_high_contrast),
+                            "low_contrast" to stringResource(R.string.settings_theme_low_contrast),
+                        ).forEach { (key, label) ->
+                            FilterChip(
+                                selected = theme.value == key,
+                                onClick  = { viewModel.setTheme(key) },
+                                label    = { Text(label) },
+                                colors   = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                ),
+                            )
+                        }
                     }
                 }
             }
@@ -344,258 +360,272 @@ fun SettingsScreen(
             // ---- Units — was only reachable from Profile despite being an app-wide
             // preference also consumed by Weight/Biolism; users looking for it under
             // Réglages (where every other display preference lives) found nothing. ----
-            SettingsSection(stringResource(R.string.settings_section_units)) {
-                Text(stringResource(R.string.settings_units_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
-                        FilterChip(
-                            selected = useImperialWeight.value == imperial,
-                            onClick  = { viewModel.setUseImperialWeight(imperial) },
-                            label    = { Text(label) },
-                            colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                            ),
-                        )
-                    }
-                }
-            }
-
-            // ---- Accessibility ----
-            SettingsSection(stringResource(R.string.settings_section_accessibility)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.settings_dyslexic_font), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-                        Text(stringResource(R.string.settings_dyslexic_font_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                    }
-                    Switch(
-                        checked = dyslexicFont.value,
-                        onCheckedChange = { viewModel.setDyslexicFont(it) },
-                        colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
-                    )
-                }
-                Spacer(Modifier.height(Spacing.XS))
-                Text(stringResource(R.string.settings_colorblind_mode), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    listOf(
-                        "none" to stringResource(R.string.settings_colorblind_none),
-                        "deuteranopia" to stringResource(R.string.settings_colorblind_deuteranopia),
-                        "protanopia" to stringResource(R.string.settings_colorblind_protanopia),
-                        "tritanopia" to stringResource(R.string.settings_colorblind_tritanopia),
-                    ).forEach { (key, label) ->
-                        FilterChip(
-                            selected = colorblindMode.value == key,
-                            onClick  = { viewModel.setColorblindMode(key) },
-                            label    = { Text(label, maxLines = 1) },
-                            colors   = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                            ),
-                        )
-                    }
-                }
-                Spacer(Modifier.height(6.dp))
-                // Live preview so the effect of the chosen mode is visible right here,
-                // not just later on a scan result.
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Grade.entries.forEach { grade ->
-                        val c = gradeColor(grade)
-                        Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f)) {
-                            Text(
-                                grade.label,
-                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
-                                style = MaterialTheme.typography.labelSmall, color = c, fontWeight = FontWeight.Bold,
+            item {
+                SettingsSection(stringResource(R.string.settings_section_units)) {
+                    Text(stringResource(R.string.settings_units_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
+                            FilterChip(
+                                selected = useImperialWeight.value == imperial,
+                                onClick  = { viewModel.setUseImperialWeight(imperial) },
+                                label    = { Text(label) },
+                                colors   = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                ),
                             )
                         }
                     }
                 }
             }
 
-            // Backup — local export/import, no cloud account required
-            SettingsSection(stringResource(R.string.settings_section_backup)) {
-                Text(stringResource(R.string.settings_backup_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                val working = backupState.value is BackupUiState.Working
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    ScanEatPrimaryButton(
-                        onClick = { viewModel.prepareExport() },
-                        enabled = !working,
-                    ) {
-                        Icon(Icons.Default.Upload, null, tint = Color.Black, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.settings_backup_export_button))
-                    }
-                    ScanEatOutlinedButton(
-                        onClick = { importLauncher.launch(arrayOf("application/json")) },
-                        enabled = !working,
-                    ) {
-                        Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.settings_backup_import_button), color = OnBackground)
-                    }
-                }
-                when (val s = backupState.value) {
-                    is BackupUiState.Working -> Text(stringResource(R.string.settings_backup_working), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                    is BackupUiState.ImportSuccess -> Text(stringResource(R.string.settings_backup_import_success, s.summary.total), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
-                    is BackupUiState.Error -> ErrorBanner(
-                        message   = stringResource(
-                            when (s.messageKey) {
-                                BackupErrorKey.UNSUPPORTED_VERSION -> R.string.settings_backup_error_unsupported_version
-                                BackupErrorKey.MALFORMED           -> R.string.settings_backup_error_malformed
-                                BackupErrorKey.IO                  -> R.string.settings_backup_error_io
-                            },
-                        ),
-                        onDismiss = { viewModel.clearBackupState() },
-                    )
-                    is BackupUiState.ImportPreview -> {
-                        val dateFmt = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
-                        val exportedDate = Instant.ofEpochMilli(s.metadata.exportedAtMs).atZone(ZoneId.systemDefault()).toLocalDate().format(dateFmt)
-                        AlertDialog(
-                            onDismissRequest = { viewModel.clearBackupState() },
-                            title = { Text(stringResource(R.string.settings_backup_import_confirm_title), color = OnBackground) },
-                            text = {
-                                Text(
-                                    stringResource(R.string.settings_backup_import_confirm_body, exportedDate, s.metadata.appVersionName, s.metadata.summary.total),
-                                    color = OnBackground.copy(0.8f),
-                                )
-                            },
-                            confirmButton = {
-                                TextButton(onClick = { viewModel.confirmImport(s.json) }) {
-                                    Text(stringResource(R.string.settings_backup_import_confirm_button), color = AccentCoral)
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { viewModel.clearBackupState() }) {
-                                    Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
-                                }
-                            },
-                            containerColor = SurfaceVariant,
+            // ---- Accessibility ----
+            item {
+                SettingsSection(stringResource(R.string.settings_section_accessibility)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_dyslexic_font), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                            Text(stringResource(R.string.settings_dyslexic_font_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                        }
+                        Switch(
+                            checked = dyslexicFont.value,
+                            onCheckedChange = { viewModel.setDyslexicFont(it) },
+                            colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
                         )
                     }
-                    else -> {}
+                    Spacer(Modifier.height(Spacing.XS))
+                    Text(stringResource(R.string.settings_colorblind_mode), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        listOf(
+                            "none" to stringResource(R.string.settings_colorblind_none),
+                            "deuteranopia" to stringResource(R.string.settings_colorblind_deuteranopia),
+                            "protanopia" to stringResource(R.string.settings_colorblind_protanopia),
+                            "tritanopia" to stringResource(R.string.settings_colorblind_tritanopia),
+                        ).forEach { (key, label) ->
+                            FilterChip(
+                                selected = colorblindMode.value == key,
+                                onClick  = { viewModel.setColorblindMode(key) },
+                                label    = { Text(label, maxLines = 1) },
+                                colors   = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                ),
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    // Live preview so the effect of the chosen mode is visible right here,
+                    // not just later on a scan result.
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Grade.entries.forEach { grade ->
+                            val c = gradeColor(grade)
+                            Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f)) {
+                                Text(
+                                    grade.label,
+                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                                    style = MaterialTheme.typography.labelSmall, color = c, fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
                 }
-                // CSV diary export — spreadsheet-friendly complement to the JSON backup
-                HorizontalDivider(color = OnBackground.copy(0.08f))
-                ScanEatOutlinedButton(
-                    onClick = { viewModel.prepareCsvExport() },
-                    enabled = backupState.value !is BackupUiState.Working,
-                ) {
-                    Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.settings_csv_export_button), color = OnBackground)
-                }
-                // CSV Biolism export — same spreadsheet-friendly complement, for workout
-                // sessions, which previously only ever left the app via the full JSON backup.
-                ScanEatOutlinedButton(
-                    onClick = { viewModel.prepareBiolismCsvExport() },
-                    enabled = backupState.value !is BackupUiState.Working,
-                ) {
-                    Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.settings_biolism_csv_export_button), color = OnBackground)
-                }
-                // Weight/Activity/Hydration/Medication/Fasting previously had no CSV export at
-                // all (only Diary and Biolism did) - grouped behind one overflow menu rather
-                // than 5 more stacked full-width buttons, same MoreVert/DropdownMenu pattern
-                // already used to consolidate a long action list elsewhere (RecipeCard etc.).
-                var moreCsvExpanded by remember { mutableStateOf(false) }
-                Box {
+            }
+
+            // Backup — local export/import, no cloud account required
+            item {
+                SettingsSection(stringResource(R.string.settings_section_backup)) {
+                    Text(stringResource(R.string.settings_backup_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    val working = backupState.value is BackupUiState.Working
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        ScanEatPrimaryButton(
+                            onClick = { viewModel.prepareExport() },
+                            enabled = !working,
+                        ) {
+                            Icon(Icons.Default.Upload, null, tint = Color.Black, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.settings_backup_export_button))
+                        }
+                        ScanEatOutlinedButton(
+                            onClick = { importLauncher.launch(arrayOf("application/json")) },
+                            enabled = !working,
+                        ) {
+                            Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.settings_backup_import_button), color = OnBackground)
+                        }
+                    }
+                    when (val s = backupState.value) {
+                        is BackupUiState.Working -> Text(stringResource(R.string.settings_backup_working), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                        is BackupUiState.ImportSuccess -> Text(stringResource(R.string.settings_backup_import_success, s.summary.total), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
+                        is BackupUiState.Error -> ErrorBanner(
+                            message   = stringResource(
+                                when (s.messageKey) {
+                                    BackupErrorKey.UNSUPPORTED_VERSION -> R.string.settings_backup_error_unsupported_version
+                                    BackupErrorKey.MALFORMED           -> R.string.settings_backup_error_malformed
+                                    BackupErrorKey.IO                  -> R.string.settings_backup_error_io
+                                },
+                            ),
+                            onDismiss = { viewModel.clearBackupState() },
+                        )
+                        is BackupUiState.ImportPreview -> {
+                            val dateFmt = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
+                            val exportedDate = Instant.ofEpochMilli(s.metadata.exportedAtMs).atZone(ZoneId.systemDefault()).toLocalDate().format(dateFmt)
+                            AlertDialog(
+                                onDismissRequest = { viewModel.clearBackupState() },
+                                title = { Text(stringResource(R.string.settings_backup_import_confirm_title), color = OnBackground) },
+                                text = {
+                                    Text(
+                                        stringResource(R.string.settings_backup_import_confirm_body, exportedDate, s.metadata.appVersionName, s.metadata.summary.total),
+                                        color = OnBackground.copy(0.8f),
+                                    )
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = { viewModel.confirmImport(s.json) }) {
+                                        Text(stringResource(R.string.settings_backup_import_confirm_button), color = AccentCoral)
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { viewModel.clearBackupState() }) {
+                                        Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
+                                    }
+                                },
+                                containerColor = SurfaceVariant,
+                            )
+                        }
+                        else -> {}
+                    }
+                    // CSV diary export — spreadsheet-friendly complement to the JSON backup
+                    HorizontalDivider(color = OnBackground.copy(0.08f))
                     ScanEatOutlinedButton(
-                        onClick = { moreCsvExpanded = true },
+                        onClick = { viewModel.prepareCsvExport() },
                         enabled = backupState.value !is BackupUiState.Working,
                     ) {
                         Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
+                        Text(stringResource(R.string.settings_csv_export_button), color = OnBackground)
                     }
-                    DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }) {
-                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
-                            onClick = { moreCsvExpanded = false; viewModel.prepareWeightCsvExport() })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },
-                            onClick = { moreCsvExpanded = false; viewModel.prepareActivityCsvExport() })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_hydration_csv_export_button)) },
-                            onClick = { moreCsvExpanded = false; viewModel.prepareHydrationCsvExport() })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_medication_csv_export_button)) },
-                            onClick = { moreCsvExpanded = false; viewModel.prepareMedicationCsvExport() })
-                        DropdownMenuItem(text = { Text(stringResource(R.string.settings_fasting_csv_export_button)) },
-                            onClick = { moreCsvExpanded = false; viewModel.prepareFastingCsvExport() })
-                    }
-                }
-                // Data stats — show what's stored so the user knows what they'd export or reset
-                val (scanCount, diaryCount) = dataStats.value
-                if (scanCount > 0 || diaryCount > 0) {
-                    HorizontalDivider(color = OnBackground.copy(0.08f))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                    // CSV Biolism export — same spreadsheet-friendly complement, for workout
+                    // sessions, which previously only ever left the app via the full JSON backup.
+                    ScanEatOutlinedButton(
+                        onClick = { viewModel.prepareBiolismCsvExport() },
+                        enabled = backupState.value !is BackupUiState.Working,
                     ) {
-                        DataStatChip(
-                            icon = Icons.Default.QrCodeScanner,
-                            label = stringResource(R.string.settings_data_stats_scans, scanCount),
-                            modifier = Modifier.weight(1f),
-                        )
-                        DataStatChip(
-                            icon = Icons.AutoMirrored.Filled.MenuBook,
-                            label = stringResource(R.string.settings_data_stats_diary, diaryCount),
-                            modifier = Modifier.weight(1f),
-                        )
+                        Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.settings_biolism_csv_export_button), color = OnBackground)
+                    }
+                    // Weight/Activity/Hydration/Medication/Fasting previously had no CSV export at
+                    // all (only Diary and Biolism did) - grouped behind one overflow menu rather
+                    // than 5 more stacked full-width buttons, same MoreVert/DropdownMenu pattern
+                    // already used to consolidate a long action list elsewhere (RecipeCard etc.).
+                    var moreCsvExpanded by remember { mutableStateOf(false) }
+                    Box {
+                        ScanEatOutlinedButton(
+                            onClick = { moreCsvExpanded = true },
+                            enabled = backupState.value !is BackupUiState.Working,
+                        ) {
+                            Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
+                        }
+                        DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }) {
+                            DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
+                                onClick = { moreCsvExpanded = false; viewModel.prepareWeightCsvExport() })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },
+                                onClick = { moreCsvExpanded = false; viewModel.prepareActivityCsvExport() })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.settings_hydration_csv_export_button)) },
+                                onClick = { moreCsvExpanded = false; viewModel.prepareHydrationCsvExport() })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.settings_medication_csv_export_button)) },
+                                onClick = { moreCsvExpanded = false; viewModel.prepareMedicationCsvExport() })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.settings_fasting_csv_export_button)) },
+                                onClick = { moreCsvExpanded = false; viewModel.prepareFastingCsvExport() })
+                        }
+                    }
+                    // Data stats — show what's stored so the user knows what they'd export or reset
+                    val (scanCount, diaryCount) = dataStats.value
+                    if (scanCount > 0 || diaryCount > 0) {
+                        HorizontalDivider(color = OnBackground.copy(0.08f))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                        ) {
+                            DataStatChip(
+                                icon = Icons.Default.QrCodeScanner,
+                                label = stringResource(R.string.settings_data_stats_scans, scanCount),
+                                modifier = Modifier.weight(1f),
+                            )
+                            DataStatChip(
+                                icon = Icons.AutoMirrored.Filled.MenuBook,
+                                label = stringResource(R.string.settings_data_stats_diary, diaryCount),
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
                 }
             }
 
             // Data reset section
-            SettingsSection(stringResource(R.string.settings_section_reset)) {
-                Text(stringResource(R.string.settings_reset_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                ScanEatOutlinedButton(onClick = { showResetDialog = true }) {
-                    Icon(Icons.Default.DeleteForever, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.settings_reset_button), color = semanticRed())
+            item {
+                SettingsSection(stringResource(R.string.settings_section_reset)) {
+                    Text(stringResource(R.string.settings_reset_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    ScanEatOutlinedButton(onClick = { showResetDialog = true }) {
+                        Icon(Icons.Default.DeleteForever, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.settings_reset_button), color = semanticRed())
+                    }
                 }
             }
 
             // Health Connect — platform weight sync
-            SettingsSection(stringResource(R.string.settings_section_health_connect)) {
-                Text(stringResource(R.string.settings_healthconnect_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                when (healthConnectAvailability.value) {
-                    HealthConnectAvailability.AVAILABLE -> {
-                        if (healthConnectConnected.value) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
-                                Text(stringResource(R.string.settings_healthconnect_connected), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
-                            }
-                        } else {
-                            ScanEatOutlinedButton(
-                                onClick = { healthConnectLauncher.launch(viewModel.healthConnectPermissions) },
-                            ) {
-                                Icon(Icons.Default.MonitorHeart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
-                                Spacer(Modifier.width(6.dp))
-                                Text(stringResource(R.string.settings_healthconnect_connect_button), color = OnBackground)
+            item {
+                SettingsSection(stringResource(R.string.settings_section_health_connect)) {
+                    Text(stringResource(R.string.settings_healthconnect_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    when (healthConnectAvailability.value) {
+                        HealthConnectAvailability.AVAILABLE -> {
+                            if (healthConnectConnected.value) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                                    Text(stringResource(R.string.settings_healthconnect_connected), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
+                                }
+                            } else {
+                                ScanEatOutlinedButton(
+                                    onClick = { healthConnectLauncher.launch(viewModel.healthConnectPermissions) },
+                                ) {
+                                    Icon(Icons.Default.MonitorHeart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(stringResource(R.string.settings_healthconnect_connect_button), color = OnBackground)
+                                }
                             }
                         }
+                        HealthConnectAvailability.NOT_INSTALLED -> Text(stringResource(R.string.settings_healthconnect_not_installed), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+                        HealthConnectAvailability.UNSUPPORTED   -> Text(stringResource(R.string.settings_healthconnect_unsupported), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                     }
-                    HealthConnectAvailability.NOT_INSTALLED -> Text(stringResource(R.string.settings_healthconnect_not_installed), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
-                    HealthConnectAvailability.UNSUPPORTED   -> Text(stringResource(R.string.settings_healthconnect_unsupported), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
                 }
             }
 
             // About
-            SettingsSection(stringResource(R.string.settings_section_about)) {
-                Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+            item {
+                SettingsSection(stringResource(R.string.settings_section_about)) {
+                    Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+                }
             }
 
             // Legal — every claim this app makes (scores, personal adjustments, hints,
             // metabolisme estimates, medication tracking) is a heuristic or a published
             // formula substituted with the user's own numbers, not a medical opinion.
-            SettingsSection(stringResource(R.string.settings_section_legal)) {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text(stringResource(R.string.settings_legal_medical_disclaimer), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                    Text(stringResource(R.string.settings_legal_data_accuracy), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                    Text(stringResource(R.string.settings_legal_nutrition_recs), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                    Text(stringResource(R.string.settings_legal_medication), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                    Text(stringResource(R.string.settings_legal_liability), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                    Text(stringResource(R.string.settings_legal_privacy), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+            item {
+                SettingsSection(stringResource(R.string.settings_section_legal)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        Text(stringResource(R.string.settings_legal_medical_disclaimer), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                        Text(stringResource(R.string.settings_legal_data_accuracy), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                        Text(stringResource(R.string.settings_legal_nutrition_recs), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                        Text(stringResource(R.string.settings_legal_medication), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                        Text(stringResource(R.string.settings_legal_liability), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                        Text(stringResource(R.string.settings_legal_privacy), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                    }
                 }
             }
 
-            Spacer(Modifier.height(40.dp))
+            item { Spacer(Modifier.height(40.dp)) }
         }
     }
 

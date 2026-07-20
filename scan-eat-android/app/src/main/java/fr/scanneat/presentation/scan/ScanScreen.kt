@@ -160,15 +160,18 @@ fun ScanScreen(
         if (barcode.value != null) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
     }
 
-    // No Scaffold here — MainShell provides the outer Scaffold + NavigationBar.
-    // Full-bleed *within the safe content area*: MainShell's own Scaffold already
-    // consumes systemBars insets (contentWindowInsets) before AppNavGraph renders,
-    // so this doesn't actually extend behind the status/nav bars — but within the
-    // space it does get, the camera preview is the base layer for the whole tab;
-    // header, photo queue, error banner, and both action buttons float on top of
-    // it instead of sharing the screen as stacked siblings (the previous layout
-    // left the camera only the leftover space between a header row and a
-    // separate button row below it).
+    // No Scaffold here — Scan is a genuine TOP_TAB, so MainShell's own floating
+    // bottom nav renders on top of this whole screen exactly like it does over
+    // every other tab. MainShell itself is a plain Box now (no Scaffold, no
+    // contentWindowInsets consumption) — every other screen either goes through
+    // FloatingScreenScaffold (which handles its own status-bar/bottom-nav insets)
+    // or, like this one, needs to do it by hand since the camera preview is the
+    // base layer for the whole tab with everything else floating on top of it
+    // rather than sharing the screen as stacked siblings. topInset/bottomNavClearance
+    // below are that hand-rolled equivalent — omitting them would let the header sit
+    // under the status bar and the FABs/banners sit directly behind the floating nav.
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottomNavClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
     Box(modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
         // barcodeBounds: (rect, rotatedImgW, rotatedImgH) — updated on every frame that contains a barcode
         var barcodeBounds by remember { mutableStateOf<Triple<android.graphics.Rect, Int, Int>?>(null) }
@@ -254,7 +257,7 @@ fun ScanScreen(
             Column(
                 modifier = Modifier.fillMaxWidth().align(Alignment.TopStart)
                     .background(Brush.verticalGradient(listOf(Color.Black.copy(0.55f), Color.Transparent)))
-                    .padding(horizontal = 20.dp).padding(top = Spacing.L, bottom = 28.dp),
+                    .padding(horizontal = 20.dp).padding(top = topInset + Spacing.L, bottom = 28.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
@@ -288,7 +291,7 @@ fun ScanScreen(
 
             barcode.value?.let { bc ->
                 Box(
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 96.dp)
+                    modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + 96.dp)
                         .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
                 ) {
                 Surface(
@@ -324,7 +327,7 @@ fun ScanScreen(
             // ── Photo queue — floats below the header, distinct corner from the button cluster ──
             if (images.value.isNotEmpty()) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = 88.dp)
+                    modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = topInset + 88.dp)
                         .padding(horizontal = Spacing.L),
                 ) {
                     Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(10.dp))) {
@@ -384,7 +387,7 @@ fun ScanScreen(
             // ── Score FAB — bottom-end ──
             FloatingActionButton(
                 onClick = { viewModel.score() },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomNavClearance + 20.dp),
                 containerColor = AccentCoral,
                 shape = CircleShape,
             ) {
@@ -406,7 +409,7 @@ fun ScanScreen(
             // anywhere in the app despite already being implemented. ──
             if (images.value.isNotEmpty() && barcode.value == null && state.value !is ScanUiState.Scanning) {
                 Box(
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = 28.dp)
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = bottomNavClearance + 28.dp)
                         .glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f),
                 ) {
                 Surface(
@@ -427,7 +430,7 @@ fun ScanScreen(
             if (recentBarcodes.value.isNotEmpty() && state.value is ScanUiState.Idle) {
                 Column(
                     modifier = Modifier.align(Alignment.BottomStart)
-                        .padding(start = 20.dp, bottom = 84.dp),
+                        .padding(start = 20.dp, bottom = bottomNavClearance + 84.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     recentBarcodes.value.takeLast(3).reversed().forEach { bc ->
@@ -450,7 +453,7 @@ fun ScanScreen(
             // ── Instant mode FAB — bottom-start ──
             FloatingActionButton(
                 onClick = { viewModel.toggleInstantMode() },
-                modifier       = Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = 20.dp),
+                modifier       = Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = bottomNavClearance + 20.dp),
                 containerColor = if (instantMode.value) AccentCoral else SurfaceVariant,
                 shape          = CircleShape,
             ) {
@@ -474,7 +477,7 @@ fun ScanScreen(
             is ScanUiState.Error -> {
                 if (hasCamera && !cameraUnavailable) {
                     if (s.needsPhoto) {
-                        Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp)
+                        Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp)
                             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                             color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL)) {
                             Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
@@ -490,7 +493,7 @@ fun ScanScreen(
                     } else {
                         ErrorBanner(
                             message     = s.message,
-                            modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp),
+                            modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp),
                             actionLabel = stringResource(R.string.common_retry),
                             onAction    = { viewModel.score() },
                             onDismiss   = { viewModel.dismissError() },
@@ -504,7 +507,7 @@ fun ScanScreen(
                     // somewhere to show up instead of silently going nowhere.
                     ErrorBanner(
                         message     = s.message,
-                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = 24.dp),
+                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 24.dp),
                         actionLabel = stringResource(R.string.common_retry),
                         onAction    = { viewModel.score() },
                         onDismiss   = { viewModel.dismissError() },

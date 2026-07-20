@@ -77,7 +77,20 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
     val onboardSteps = rememberOnboardSteps()
     val s = onboardSteps[step]
 
-    Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal), contentAlignment = Alignment.Center) {
+    // Biolism's own tab route is still the active MainShell destination while
+    // this onboarding gate is showing (BiolismScreen early-returns into this
+    // composable before rendering its own floating header/tabs), so MainShell's
+    // floating bottom nav is still overlaid on top of the whole screen. Centering
+    // this card in the *full* screen let its bottom edge — Back/Skip/Next —
+    // render underneath that nav on shorter screens, making Next look missing.
+    // Reserving the nav's own footprint here keeps the whole card, buttons
+    // included, above it.
+    val bottomNavClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
+    Box(
+        Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal)
+            .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(), bottom = bottomNavClearance),
+        contentAlignment = Alignment.Center,
+    ) {
         ScanEatCard(
             modifier = Modifier.padding(20.dp),
             shape = RoundedCornerShape(CardRadius.PROMINENT),

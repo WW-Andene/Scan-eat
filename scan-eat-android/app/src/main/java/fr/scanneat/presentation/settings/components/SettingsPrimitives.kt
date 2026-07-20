@@ -20,16 +20,26 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
 import fr.scanneat.presentation.ui.theme.Spacing
 
 /** Reusable, stateless layout primitives local to the Settings screen. */
 
+/**
+ * Each Settings section now renders as its own [ScanEatCard], the same glass
+ * card primitive Dashboard's widgets use, instead of a bare title-plus-Column
+ * sitting directly on the ambient background — previously every section on
+ * this screen (and Profile's) was the one place in the app that never got
+ * the card treatment everywhere else already has.
+ */
 @Composable
 internal fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-        Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-        content()
+    ScanEatCard {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+            content()
+        }
     }
 }
 

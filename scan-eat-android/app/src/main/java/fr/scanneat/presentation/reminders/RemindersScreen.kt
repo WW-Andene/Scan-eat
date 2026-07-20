@@ -1,8 +1,7 @@
 package fr.scanneat.presentation.reminders
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
@@ -48,15 +47,16 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = hiltView
         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Teal)
-                .padding(horizontal = Spacing.L).verticalScroll(rememberScrollState()),
+                .padding(horizontal = Spacing.L),
+            contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            Spacer(Modifier.height(Spacing.XS))
-            MealRemindersCard()
-            Spacer(Modifier.height(Spacing.XL))
+            item { Spacer(Modifier.height(Spacing.XS)) }
+            item { MealRemindersCard() }
+            item { Spacer(Modifier.height(Spacing.XL)) }
         }
     }
 }
