@@ -56,11 +56,14 @@ fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language
             NotEnoughDataNote()
             return@BioCard
         }
+        // Bound to a fresh local instead of relying on the null-check above to smart-cast
+        // `today` across the nested valueLabel lambda below.
+        val current = today
         Label(stringResource(R.string.biolism_evo_hormones_today), Gold)
-        HormoneRow(stringResource(R.string.biolism_hormones_cortisol), today.cortisol, "Bjorntorp 2000")
+        HormoneRow(stringResource(R.string.biolism_hormones_cortisol), current.cortisol, "Bjorntorp 2000")
         when (trends.sexPrimaryKind) {
-            SexPrimaryHormone.TESTOSTERONE -> HormoneRow(stringResource(R.string.biolism_hormones_testosterone), today.testosterone, "Harman 2001")
-            SexPrimaryHormone.ESTRADIOL    -> HormoneRow(stringResource(R.string.biolism_hormones_estradiol), today.estradiol, "Santoro 2008")
+            SexPrimaryHormone.TESTOSTERONE -> HormoneRow(stringResource(R.string.biolism_hormones_testosterone), current.testosterone, "Harman 2001")
+            SexPrimaryHormone.ESTRADIOL    -> HormoneRow(stringResource(R.string.biolism_hormones_estradiol), current.estradiol, "Santoro 2008")
             null -> {}
         }
         Spacer(Modifier.height(Spacing.S))
@@ -70,7 +73,7 @@ fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language
                 points = trends.cortisol,
                 color = Teal,
                 dateFmt = fmt,
-                valueLabel = { v -> "${v.formatDecimal()} ${today.cortisol.unit}" },
+                valueLabel = { v -> "${v.formatDecimal()} ${current.cortisol.unit}" },
             )
             Spacer(Modifier.height(Spacing.M))
         }
