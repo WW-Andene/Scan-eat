@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.util.Size
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.lifecycle.Observer
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Modifier
@@ -186,6 +187,24 @@ fun CameraPreview(
                         // (e.g. retrying after onCameraError) silently turned the torch off
                         // while the FAB kept showing its "on" (coral) state until the next tap.
                         if (torchOn && hasFlash) camera?.cameraControl?.enableTorch(true)
+                        // bindToLifecycle only throws for *synchronous* bind failures (no
+                        // camera, bad config). A camera that opens fine and then dies at
+                        // runtime - reclaimed by another app/the system camera service,
+                        // a thermal shutdown, a driver fault - is reported asynchronously
+                        // via cameraState, not as an exception here, so it was previously
+                        // invisible to this runCatching entirely: the preview just froze on
+                        // its last frame forever with no error, no fallback, and a shutter
+                        // button that looked present but did nothing - indistinguishable
+                        // from "the camera closed" to anyone looking at it. A CLOSED state
+                        // that carries a StateError (as opposed to the error-free CLOSED a
+                        // normal lifecycle-driven unbind produces) is CameraX's own signal
+                        // that this was an unrequested failure, not an intentional stop.
+                        camera?.cameraInfo?.cameraState?.observe(
+                            lifecycleOwner,
+                            Observer { state ->
+                                if (state.type == CameraState.Type.CLOSED && state.error != null) onCameraError()
+                            },
+                        )
                     }.onFailure { onCameraError() }
                 }, ContextCompat.getMainExecutor(ctx))
                 previewView
