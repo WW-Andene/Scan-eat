@@ -155,6 +155,10 @@ class ActivityRepository @Inject constructor(
     suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =
         dao.getRange(from.toIsoString(), to.toIsoString(), profileId).map { it.toDomain() }
 
+    /** Observing counterpart to [getRange] — lets a live view (e.g. Calendar's month markers) stay fresh while activity is logged elsewhere, instead of only refreshing on the next one-shot read. */
+    fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
+        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.map { it.toDomain() } }
+
     /**
      * Pulls in workouts Health Connect has from an *external* source (a
      * fitness tracker's own app, etc.) that aren't already imported - sync

@@ -193,8 +193,8 @@ fun CustomFoodScreen(
     if (showAdd) {
         AddFoodDialog(
             onDismiss = { showAdd = false },
-            onConfirm = { name, kcal, prot, carb, fat, fib, salt, aliases ->
-                viewModel.save(name, kcal, prot, carb, fat, fib, salt, aliases)
+            onConfirm = { name, kcal, prot, carb, fat, fib, salt, aliases, barcode ->
+                viewModel.save(name, kcal, prot, carb, fat, fib, salt, aliases, barcode)
                 showAdd = false
             },
         )

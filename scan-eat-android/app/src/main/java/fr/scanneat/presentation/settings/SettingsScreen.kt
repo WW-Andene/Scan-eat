@@ -71,6 +71,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     isTabRoot: Boolean = false,
     onOpenProfile: () -> Unit = {},
+    onOpenReminders: () -> Unit = {},
 ) {
     val apiKey    = viewModel.apiKey.collectAsStateWithLifecycle()
     val cerebrasApiKey = viewModel.cerebrasApiKey.collectAsStateWithLifecycle()
@@ -80,6 +81,7 @@ fun SettingsScreen(
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
+    val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val savedField = viewModel.savedField.collectAsStateWithLifecycle()
     val backupState = viewModel.backupState.collectAsStateWithLifecycle()
     val healthConnectAvailability = viewModel.healthConnectAvailability.collectAsStateWithLifecycle()
@@ -208,6 +210,22 @@ fun SettingsScreen(
                 }
             }
 
+            // ---- Reminders — MealRemindersCard was only ever embedded inline in
+            // Diary and Medication, so there was no way to reach it from Settings
+            // even though the underlying reminder system covers meals, hydration,
+            // weigh-ins, activity, and fasting targets app-wide. ----
+            SettingsSection(stringResource(R.string.reminders_title)) {
+                Text(stringResource(R.string.settings_reminders_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                ScanEatOutlinedButton(
+                    onClick = onOpenReminders,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Default.Notifications, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(Spacing.S))
+                    Text(stringResource(R.string.settings_reminders_button), color = OnBackground)
+                }
+            }
+
             // ---- API Mode ----
             SettingsSection(stringResource(R.string.settings_section_api_mode)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -318,6 +336,25 @@ fun SettingsScreen(
                         FilterChip(
                             selected = theme.value == key,
                             onClick  = { viewModel.setTheme(key) },
+                            label    = { Text(label) },
+                            colors   = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                            ),
+                        )
+                    }
+                }
+            }
+
+            // ---- Units — was only reachable from Profile despite being an app-wide
+            // preference also consumed by Weight/Biolism; users looking for it under
+            // Réglages (where every other display preference lives) found nothing. ----
+            SettingsSection(stringResource(R.string.settings_section_units)) {
+                Text(stringResource(R.string.settings_units_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
+                        FilterChip(
+                            selected = useImperialWeight.value == imperial,
+                            onClick  = { viewModel.setUseImperialWeight(imperial) },
                             label    = { Text(label) },
                             colors   = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,

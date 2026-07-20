@@ -723,6 +723,7 @@
     <string name="customfood_field_fiber">Fiber g</string>
     <string name="customfood_field_salt">Salt g</string>
     <string name="customfood_field_aliases">Also known as (comma-separated)</string>
+    <string name="customfood_field_barcode">Barcode (optional)</string>
     <string name="customfood_import_from_scan">Import "%1$s" from last scan</string>
     <string name="customfood_stats_count">%1$d food(s)</string>
     <string name="customfood_stats_avg_kcal">~%1$d kcal avg.</string>
@@ -939,6 +940,8 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_high_contrast">High contrast</string>
+    <string name="settings_section_units">Units</string>
+    <string name="settings_units_hint">Used in Weight, Profile, and Biolism</string>
     <string name="settings_theme_low_contrast">Low contrast</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
@@ -953,6 +956,8 @@
     <string name="settings_saved_confirmation">Saved</string>
     <string name="settings_profile_hint">Sex, age, height, weight, diet, allergens — required for the personal score.</string>
     <string name="settings_profile_button">Edit my profile</string>
+    <string name="settings_reminders_hint">Meals, hydration, weigh-ins, activity, fasting, and custom reminders.</string>
+    <string name="settings_reminders_button">Manage reminders</string>
     <string name="settings_section_about">About</string>
     <string name="settings_section_legal">Legal</string>
     <string name="settings_legal_medical_disclaimer">This app does not provide medical advice. Scores, estimates and recommendations are informational and don\'t replace guidance from a healthcare professional.</string>

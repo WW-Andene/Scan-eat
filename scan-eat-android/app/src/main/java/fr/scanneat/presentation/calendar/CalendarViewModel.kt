@@ -116,11 +116,11 @@ class CalendarViewModel @Inject constructor(
     }
 
     /**
-     * Per-source marker set for every day in the visible month. Activity's
-     * range read is a one-shot suspend call (ActivityRepository has no
-     * month-range Flow), refetched whenever [month] changes but not live
-     * while the screen stays open on the same month - an acceptable trade-off
-     * for an aggregated overview versus threading five more Flows through it.
+     * Per-source marker set for every day in the visible month. Activity now
+     * uses ActivityRepository.observeRange (a real Flow, not a one-shot
+     * suspend read), so activity logged elsewhere while Calendar stays open
+     * on the same month refreshes its dots immediately instead of only on
+     * the next month change.
      */
     val markers: StateFlow<Map<LocalDate, Set<CalendarSource>>> = _month.flatMapLatest { m ->
         val start = m.atDay(1)
@@ -129,7 +129,7 @@ class CalendarViewModel @Inject constructor(
             consumptionRepo.observeRange(start, end),
             weightRepo.observeAll(),
             fastingRepo.history,
-            flow { emit(activityRepo.getRange(start, end)) },
+            activityRepo.observeRange(start, end),
             flow { emit(medicationRepo.getLogRange(start, end)) },
         ) { diaryEntries, weights, fastHistory, activities, medicationLog ->
             val out = mutableMapOf<LocalDate, MutableSet<CalendarSource>>()
@@ -162,7 +162,7 @@ class CalendarViewModel @Inject constructor(
         val end = m.atEndOfMonth()
         combine(
             consumptionRepo.observeRange(start, end),
-            flow { emit(activityRepo.getRange(start, end)) },
+            activityRepo.observeRange(start, end),
             flow { emit(hydrationRepo.exportAll().toMap()) },
             // markers already correctly tracks all six sources (meals, weight,
             // activity, hydration, fasting, medication) - activeDays below

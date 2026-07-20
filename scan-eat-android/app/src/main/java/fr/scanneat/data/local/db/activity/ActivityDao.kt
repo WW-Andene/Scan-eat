@@ -14,6 +14,10 @@ interface ActivityDao {
     @Query("SELECT * FROM activity_log WHERE date BETWEEN :from AND :to AND profileId = :profileId ORDER BY date ASC")
     suspend fun getRange(from: String, to: String, profileId: String = "default"): List<ActivityEntity>
 
+    /** Observing counterpart to [getRange] — CalendarViewModel's month markers previously used a one-shot read here, so activity logged elsewhere while Calendar stayed open on the same month never refreshed its dots until the month changed. */
+    @Query("SELECT * FROM activity_log WHERE date BETWEEN :from AND :to AND profileId = :profileId ORDER BY date ASC")
+    fun observeRange(from: String, to: String, profileId: String = "default"): Flow<List<ActivityEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ActivityEntity): Long
 

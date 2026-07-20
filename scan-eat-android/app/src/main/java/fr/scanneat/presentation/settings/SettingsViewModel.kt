@@ -50,6 +50,11 @@ class SettingsViewModel @Inject constructor(
     val theme     = prefs.theme.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "oled")
     val dyslexicFont   = prefs.dyslexicFont.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val colorblindMode = prefs.colorblindMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
+    // Was only reachable from Profile despite being an app-wide preference also
+    // consumed by the Weight tab and Biolism's body-measurement fields — a user
+    // expecting a units setting under Réglages (where every other display
+    // preference lives) wouldn't find it there.
+    val useImperialWeight = prefs.useImperialWeight.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private val _savedField = MutableStateFlow<String?>(null)
     /** Which field was just saved — SettingsScreen shows a brief confirmation, then clears it. */
@@ -74,6 +79,7 @@ class SettingsViewModel @Inject constructor(
     fun setTheme(t: String)        = viewModelScope.launch { prefs.setTheme(t) }
     fun setDyslexicFont(v: Boolean)     = viewModelScope.launch { prefs.setDyslexicFont(v) }
     fun setColorblindMode(mode: String) = viewModelScope.launch { prefs.setColorblindMode(mode) }
+    fun setUseImperialWeight(v: Boolean) = viewModelScope.launch { prefs.setUseImperialWeight(v) }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Backup export/import

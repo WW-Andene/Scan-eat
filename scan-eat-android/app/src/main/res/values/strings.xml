@@ -724,6 +724,7 @@
     <string name="customfood_field_fiber">Fibres g</string>
     <string name="customfood_field_salt">Sel g</string>
     <string name="customfood_field_aliases">Autres noms (séparés par des virgules)</string>
+    <string name="customfood_field_barcode">Code-barres (optionnel)</string>
     <string name="customfood_import_from_scan">Importer « %1$s » depuis le dernier scan</string>
     <string name="customfood_stats_count">%1$d aliment(s)</string>
     <string name="customfood_stats_avg_kcal">~%1$d kcal moy.</string>
@@ -975,6 +976,8 @@
     <string name="settings_theme_light">Clair</string>
     <string name="settings_theme_high_contrast">Contraste élevé</string>
     <string name="settings_theme_low_contrast">Contraste faible</string>
+    <string name="settings_section_units">Unités</string>
+    <string name="settings_units_hint">Utilisée dans Poids, Profil et Biolism</string>
     <string name="settings_section_profile">Profil nutritionnel</string>
     <string name="settings_section_accessibility">Accessibilité</string>
     <string name="settings_section_reminders">Rappels</string>
@@ -988,6 +991,8 @@
     <string name="settings_saved_confirmation">Enregistré</string>
     <string name="settings_profile_hint">Sexe, âge, taille, poids, régime, allergènes — requis pour le score personnalisé.</string>
     <string name="settings_profile_button">Modifier mon profil</string>
+    <string name="settings_reminders_hint">Repas, hydratation, pesée, activité, jeûne et rappels personnalisés.</string>
+    <string name="settings_reminders_button">Gérer les rappels</string>
     <string name="settings_section_about">À propos</string>
     <string name="settings_section_legal">Mentions légales</string>
     <string name="settings_legal_medical_disclaimer">Cette application ne fournit pas d\'avis médical. Les scores, estimations et recommandations sont informatifs et ne remplacent pas l\'avis d\'un professionnel de santé.</string>

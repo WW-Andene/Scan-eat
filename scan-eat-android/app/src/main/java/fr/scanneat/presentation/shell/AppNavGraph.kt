@@ -26,6 +26,7 @@ import fr.scanneat.presentation.mealplan.MealPlanScreen
 import fr.scanneat.presentation.onboarding.OnboardingScreen
 import fr.scanneat.presentation.profile.ProfileScreen
 import fr.scanneat.presentation.recipes.RecipesScreen
+import fr.scanneat.presentation.reminders.RemindersScreen
 import fr.scanneat.presentation.result.ResultScreen
 import fr.scanneat.presentation.scan.ScanScreen
 import fr.scanneat.presentation.settings.SettingsScreen
@@ -133,6 +134,7 @@ fun AppNavGraph(
                 onBack = {},
                 isTabRoot = true,
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
+                onOpenReminders = { navController.navigate(AppRoutes.REMINDERS) },
             )
         }
 
@@ -192,6 +194,7 @@ fun AppNavGraph(
             CustomFoodScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
         }
         composable(AppRoutes.CALENDAR)     { CalendarScreen(onBack = { navController.popBackStack() }) }
+        composable(AppRoutes.REMINDERS)    { RemindersScreen(onBack = { navController.popBackStack() }) }
         composable(AppRoutes.SCAN_HISTORY) {
             ScanHistoryScreen(
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },

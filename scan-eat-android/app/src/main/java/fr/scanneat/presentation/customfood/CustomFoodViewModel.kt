@@ -74,10 +74,14 @@ class CustomFoodViewModel @Inject constructor(
         // way (searchFoodDB is alias-aware), but nothing here ever forwarded a
         // value, so every custom food a user creates was permanently alias-less.
         aliases: List<String> = emptyList(),
+        // Also already accepted/persisted by the repository (used for scan-import
+        // via importFromScan below) but never collectible on a manually-typed food
+        // until AddFoodDialog gained a barcode field - see that dialog's own comment.
+        barcode: String? = null,
     ) {
         viewModelScope.launch {
             repo.save(name = name, kcal = kcal, proteinG = proteinG,
-                      carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases)
+                      carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases, barcode = barcode)
         }
     }
 

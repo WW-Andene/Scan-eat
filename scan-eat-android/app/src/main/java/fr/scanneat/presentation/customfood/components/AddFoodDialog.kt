@@ -32,7 +32,7 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 @Composable
 internal fun AddFoodDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, Double, Double, Double, Double, Double, Double, List<String>) -> Unit,
+    onConfirm: (String, Double, Double, Double, Double, Double, Double, List<String>, String?) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var kcal by rememberSaveable { mutableStateOf("") }
@@ -46,6 +46,13 @@ internal fun AddFoodDialog(
     // but this dialog never collected any - every custom food a user created
     // was permanently unreachable by an alternate spelling/translation.
     var aliases by rememberSaveable { mutableStateOf("") }
+    // CustomFoodRepository.save() also already accepted a barcode (used when saving
+    // a scanned product as a custom food, see ResultViewModel.saveToDestinations),
+    // but a manually-typed custom food had no way to attach one - so a food someone
+    // typed in by hand could never be recognized again on a future rescan of the
+    // same product. Optional: most manual entries (a homemade dish, a market item)
+    // genuinely have no barcode.
+    var barcode by rememberSaveable { mutableStateOf("") }
 
     // Blank macro fields default to 0.0 at save time - only reject a field that's
     // actually filled in, and only accept values in a physically plausible range
@@ -78,6 +85,7 @@ internal fun AddFoodDialog(
                     FoodField(stringResource(R.string.customfood_field_salt), salt, KeyboardType.Decimal, Modifier.weight(1f)) { salt = it }
                 }
                 FoodField(stringResource(R.string.customfood_field_aliases), aliases, KeyboardType.Text) { aliases = it }
+                FoodField(stringResource(R.string.customfood_field_barcode), barcode, KeyboardType.Number) { barcode = it.filter(Char::isDigit) }
             }
         },
         confirmButton = {
@@ -92,6 +100,7 @@ internal fun AddFoodDialog(
                         fib.replace(',', '.').toDoubleOrNull()  ?: 0.0,
                         salt.replace(',', '.').toDoubleOrNull() ?: 0.0,
                         aliases.split(',').map { it.trim() }.filter { it.isNotBlank() },
+                        barcode.trim().ifBlank { null },
                     )
                 },
                 enabled = valid,

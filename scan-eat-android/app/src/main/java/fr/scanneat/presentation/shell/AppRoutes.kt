@@ -22,6 +22,7 @@ object AppRoutes {
     const val SCAN_HISTORY  = "scan_history"
     const val FAVORITES     = "favorites"
     const val CALENDAR      = "calendar"
+    const val REMINDERS     = "reminders"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }
