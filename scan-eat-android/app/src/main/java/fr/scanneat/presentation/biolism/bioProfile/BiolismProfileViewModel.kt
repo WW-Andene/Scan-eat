@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.domain.engine.biolism.BiolismProfile
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -45,9 +46,25 @@ class BiolismProfileViewModel @Inject constructor(
     val onboarded: StateFlow<Boolean> = repo.onboarded
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    fun save(p: BiolismProfile) = viewModelScope.launch { repo.saveProfile(p); _saved.value = true }
+    // save()/completeOnboarding()/skipOnboarding() previously called repo's DataStore
+    // writes completely unguarded - unlike every sibling tracker ViewModel (Weight/
+    // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
+    // write failure here wasn't just silent, it was an uncaught exception that would
+    // crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed save, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
+    fun save(p: BiolismProfile) = viewModelScope.launch {
+        runCatching { repo.saveProfile(p) }.onSuccess { _saved.value = true }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
     fun clearSaved() { _saved.value = false }
 
-    fun completeOnboarding(p: BiolismProfile) = viewModelScope.launch { repo.saveProfile(p); repo.setOnboarded(true) }
-    fun skipOnboarding() = viewModelScope.launch { repo.setOnboarded(true) }
+    fun completeOnboarding(p: BiolismProfile) = viewModelScope.launch {
+        runCatching { repo.saveProfile(p); repo.setOnboarded(true) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
+    fun skipOnboarding() = viewModelScope.launch {
+        runCatching { repo.setOnboarded(true) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
 }

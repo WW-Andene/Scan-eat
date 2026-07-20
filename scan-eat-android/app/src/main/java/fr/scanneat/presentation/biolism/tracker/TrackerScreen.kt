@@ -9,7 +9,11 @@ import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -57,6 +61,21 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     val realFastHours  = viewModel.realFastHours.collectAsStateWithLifecycle()
     val goalWeightKg   = viewModel.goalWeightKg.collectAsStateWithLifecycle()
 
+    // Same pattern as WeightScreen - saveSession()/startOrPause()/reset()/etc.
+    // previously called repo's DataStore writes completely unguarded; a failed
+    // write now surfaces here as a one-shot snackbar instead of going back to
+    // silent. No Scaffold on this screen (it's always embedded as a BiolismScreen
+    // tab), so the host is overlaid directly like WeightScreen's embedded=true path.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     val s    = timer.value
     val p    = profile.value
     val live = viewModel.liveMetabolic.collectAsStateWithLifecycle()
@@ -80,6 +99,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
         "Warm"   -> Warm;    "Severe"-> semanticRed();  else -> Teal
     }
 
+    Box(Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -220,6 +240,8 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 onReset  = viewModel::reset,
             )
         }
+    }
+    SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 

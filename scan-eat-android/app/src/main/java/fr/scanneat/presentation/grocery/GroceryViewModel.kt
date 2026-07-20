@@ -16,6 +16,7 @@ import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -205,13 +206,24 @@ class GroceryViewModel @Inject constructor(
     // recipe) rather than the possibly-scoped rawItems, so switching scopeToPlanned
     // on doesn't itself get treated as "these ingredients no longer exist" and wipe
     // their checked state.
+    // Every write below previously called checkedRepo's/manualGroceryRepo's DataStore/
+    // Room writes completely unguarded - unlike every sibling tracker ViewModel (Weight/
+    // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a write
+    // failure here wasn't just silent, it was an uncaught exception that would crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed write, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     init {
         viewModelScope.launch {
             // drop(1): allRecipeItems is a StateFlow seeded with emptyList() before the
             // underlying Room query has actually run - acting on that placeholder
             // would prune every persisted checked key away the instant this
             // ViewModel is created, before the real recipe list even loads.
-            allRecipeItems.drop(1).collect { items -> checkedRepo.pruneToKeys(items.map { it.key }.toSet()) }
+            allRecipeItems.drop(1).collect { items ->
+                runCatching { checkedRepo.pruneToKeys(items.map { it.key }.toSet()) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            }
         }
     }
 
@@ -221,11 +233,11 @@ class GroceryViewModel @Inject constructor(
         // aggregate to the same item, or a renamed recipe changing which spelling
         // gets picked as `name`, would otherwise silently orphan the persisted
         // checked-state key and un-check a previously-checked item.
-        viewModelScope.launch { checkedRepo.setChecked(item.key, checked) }
+        viewModelScope.launch { runCatching { checkedRepo.setChecked(item.key, checked) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun clearAllChecked() {
-        viewModelScope.launch { checkedRepo.clearAll() }
+        viewModelScope.launch { runCatching { checkedRepo.clearAll() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     // ManualGroceryRepository.remove() previously had zero callers anywhere in the
@@ -244,15 +256,17 @@ class GroceryViewModel @Inject constructor(
     /** Add a free-text item directly from the grocery screen's inline input row. */
     fun quickAdd(name: String) {
         if (name.isBlank()) return
-        viewModelScope.launch { manualGroceryRepo.add(name.trim(), 0.0) }
+        viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun deleteManualContribution(groceryKey: String) {
         viewModelScope.launch {
-            val existingKeys = rawItems.value.map { it.key }.toSet()
-            manualGroceryRepo.items.first()
-                .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
-                .forEach { manualGroceryRepo.remove(it.id) }
+            runCatching {
+                val existingKeys = rawItems.value.map { it.key }.toSet()
+                manualGroceryRepo.items.first()
+                    .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
+                    .forEach { manualGroceryRepo.remove(it.id) }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }

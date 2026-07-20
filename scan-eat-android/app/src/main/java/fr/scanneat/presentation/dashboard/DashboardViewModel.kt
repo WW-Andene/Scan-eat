@@ -23,6 +23,7 @@ import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.result.defaultMealForHour
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -359,7 +360,7 @@ class DashboardViewModel @Inject constructor(
                     )
                 )
             }.onSuccess { _gapLoggedName.value = food.name }
-                .onFailure { _actionFailed.value = true }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -381,7 +382,7 @@ class DashboardViewModel @Inject constructor(
                         ingredients = scan.product.ingredients,
                     )
                 )
-            }.onFailure { _actionFailed.value = true }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 

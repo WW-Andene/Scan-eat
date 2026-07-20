@@ -8,10 +8,16 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
@@ -23,8 +29,23 @@ import fr.scanneat.presentation.ui.theme.*
  * thin dedicated screen so Settings can link to one place that manages all of them.
  */
 @Composable
-fun RemindersScreen(onBack: () -> Unit) {
+fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = hiltViewModel()) {
+    // Same pattern as WeightScreen - every setter (setBreakfast/setHydration/
+    // addCustomReminder/etc., all called by MealRemindersCard below) previously
+    // called repo's DataStore writes completely unguarded; a failed write now
+    // surfaces here as a one-shot snackbar instead of going back to silent.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             FloatingTopBar(
                 title = { Text(stringResource(R.string.reminders_title), color = OnBackground) },

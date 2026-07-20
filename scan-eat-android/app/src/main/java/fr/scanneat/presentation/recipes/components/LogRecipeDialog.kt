@@ -14,7 +14,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.domain.model.MealSlot
+import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
@@ -39,8 +40,8 @@ import kotlin.math.roundToInt
 // gram weight as a sanity check.
 @Composable
 internal fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (MealSlot, Double) -> Unit) {
-    var slot by remember { mutableStateOf(MealSlot.LUNCH) }
-    var servingsText by remember { mutableStateOf("1") }
+    var slot by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
+    var servingsText by rememberSaveable { mutableStateOf("1") }
     val gramsPerServing = recipe.totalGrams / recipe.servings
     AlertDialog(
         onDismissRequest = onDismiss,

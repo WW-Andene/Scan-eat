@@ -59,6 +59,18 @@ fun ScanHistoryScreen(
     val avgScore = viewModel.avgScore.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
+    // Same pattern as WeightScreen - toggleFavorite()/delete() previously called
+    // repo's Room writes completely unguarded; a failed write now surfaces here
+    // as a one-shot snackbar instead of going back to silent.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
 
     // Score range filter options: null = all, else (min, max) inclusive
     val scoreRangeOptions = listOf(
@@ -74,6 +86,7 @@ fun ScanHistoryScreen(
     LaunchedEffect(Unit) { if (startFavoritesOnly) viewModel.setFavoritesOnly(true) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             FloatingTopBar(
                 title = { Text(stringResource(R.string.history_title), color = OnBackground) },

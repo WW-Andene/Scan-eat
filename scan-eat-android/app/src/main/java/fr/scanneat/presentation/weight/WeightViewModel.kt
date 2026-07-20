@@ -9,6 +9,7 @@ import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.health.WeightSummary
 import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.domain.engine.dashboard.weightForecast
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -118,15 +119,15 @@ class WeightViewModel @Inject constructor(
     fun clearActionFailed() { _actionFailed.value = false }
 
     fun log(kg: Double, notes: String = "", date: LocalDate = LocalDate.now()) {
-        viewModelScope.launch { runCatching { repo.log(date, kg, notes) }.onFailure { _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.log(date, kg, notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun delete(id: String) {
-        viewModelScope.launch { runCatching { repo.delete(id) }.onFailure { _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original date/weight/notes. */
     fun restore(entry: WeightEntry) {
-        viewModelScope.launch { runCatching { repo.log(entry.date, entry.weightKg, entry.notes) }.onFailure { _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.log(entry.date, entry.weightKg, entry.notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 }

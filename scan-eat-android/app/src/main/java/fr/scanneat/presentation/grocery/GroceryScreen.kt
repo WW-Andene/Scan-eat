@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,7 +43,7 @@ fun GroceryScreen(
     onBack: () -> Unit,
     onNavigateToPlanning: (PlanningDestination) -> Unit = {},
 ) {
-    var quickAddText by remember { mutableStateOf("") }
+    var quickAddText by rememberSaveable { mutableStateOf("") }
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
     val checkable = viewModel.checkableItems.collectAsStateWithLifecycle()
     val manualItemKeys = viewModel.manualItemKeys.collectAsStateWithLifecycle()
@@ -60,6 +61,14 @@ fun GroceryScreen(
     val clearedMessage = stringResource(R.string.grocery_cleared_confirmation)
     var copyMenuExpanded by remember { mutableStateOf(false) }
     var showClearConfirm by remember { mutableStateOf(false) }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },

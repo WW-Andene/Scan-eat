@@ -145,7 +145,21 @@ fun RecipesScreen(
         }
     }
 
+    // Same pattern as WeightScreen - toggleFavorite/save/delete/log/etc. previously
+    // called repo's Room writes completely unguarded; a failed write now surfaces
+    // here as a one-shot snackbar instead of going back to silent.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             FloatingTopBar(
                 title = { Text(stringResource(R.string.recipes_title), color = OnBackground) },

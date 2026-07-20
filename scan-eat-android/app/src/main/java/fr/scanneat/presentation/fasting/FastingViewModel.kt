@@ -7,6 +7,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.FastCompletion
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.FastingState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -43,8 +44,8 @@ class FastingViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
-    fun start(hours: Int) = viewModelScope.launch { runCatching { repo.start(hours) }.onFailure { _actionFailed.value = true } }
-    fun stop()            = viewModelScope.launch { runCatching { repo.stop() }.onFailure { _actionFailed.value = true } }
-    fun cancel()           = viewModelScope.launch { runCatching { repo.cancel() }.onFailure { _actionFailed.value = true } }
+    fun start(hours: Int) = viewModelScope.launch { runCatching { repo.start(hours) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun stop()            = viewModelScope.launch { runCatching { repo.stop() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun cancel()           = viewModelScope.launch { runCatching { repo.cancel() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
 }
 

@@ -92,7 +92,21 @@ fun DiaryScreen(
         onPendingDateConsumed()
     }
 
+    // Same pattern as WeightScreen - a failed Room write (delete/update/log/note) now
+    // surfaces as a one-shot snackbar instead of going back to silent once the crash
+    // was fixed.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             FloatingTopBar(
                 title = { Text(stringResource(R.string.diary_header), color = OnBackground, fontWeight = FontWeight.Bold) },

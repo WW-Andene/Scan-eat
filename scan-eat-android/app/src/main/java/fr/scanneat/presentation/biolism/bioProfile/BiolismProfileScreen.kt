@@ -53,6 +53,21 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
 
     LaunchedEffect(saved.value) { if (saved.value) viewModel.clearSaved() }
 
+    // Same pattern as WeightScreen - save()/completeOnboarding()/skipOnboarding()
+    // previously called repo's DataStore writes completely unguarded; a failed
+    // write now surfaces here as a one-shot snackbar instead of going back to
+    // silent. No Scaffold on this screen (it's always embedded as a BiolismScreen
+    // tab), so the host is overlaid directly like WeightScreen's embedded=true path.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     fun dispWeight(kg: Double): String = sharedDispWeight(kg, useImperial)
     fun dispCirc(cm: Double): String =
         if (useImperial) "%.1f in".format(Locale.US, cm / CM_TO_IN) else "%.1f cm".format(Locale.US, cm)
@@ -68,6 +83,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         return "$ft′ ${"%.1f".format(Locale.US, inch)}″"
     }
 
+    Box(Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -266,6 +282,8 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         ) {
             Text(stringResource(R.string.bioprofile_save_button), color = Color.Black, fontWeight = FontWeight.Bold)
         }
+    }
+    SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 

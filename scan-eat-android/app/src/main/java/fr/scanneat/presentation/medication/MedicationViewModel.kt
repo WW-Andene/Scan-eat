@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.data.repository.health.MedicationLogEntry
 import fr.scanneat.data.repository.health.MedicationRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -196,17 +197,17 @@ class MedicationViewModel @Inject constructor(
     fun clearActionFailed() { _actionFailed.value = false }
 
     fun markTaken(medication: Medication) {
-        viewModelScope.launch { runCatching { repo.logTaken(medication) }.onFailure { _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.logTaken(medication) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun undoTaken(entry: MedicationLogEntry) {
-        viewModelScope.launch { runCatching { repo.deleteLogEntry(entry.id) }.onFailure { _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.deleteLogEntry(entry.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun save(name: String, dosage: String, scheduleNote: String, reminderOn: Boolean = false, reminderTime: String = "08:00") {
         if (name.isBlank()) return
         viewModelScope.launch {
-            runCatching { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime) }.onFailure { _actionFailed.value = true }
+            runCatching { repo.save(name, dosage, scheduleNote, reminderOn = reminderOn, reminderTime = reminderTime) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -216,7 +217,7 @@ class MedicationViewModel @Inject constructor(
             runCatching {
                 repo.save(newName, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
                     reminderOn = medication.reminderOn, reminderTime = medication.reminderTime)
-            }.onFailure { _actionFailed.value = true }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -226,15 +227,15 @@ class MedicationViewModel @Inject constructor(
             runCatching {
                 repo.save(medication.name, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
                     reminderOn = on, reminderTime = time)
-            }.onFailure { _actionFailed.value = true }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun setActive(medication: Medication, active: Boolean) {
-        viewModelScope.launch { runCatching { repo.setActive(medication, active) }.onFailure { _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.setActive(medication, active) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun delete(id: String) = viewModelScope.launch {
-        runCatching { repo.delete(id) }.onFailure { _actionFailed.value = true }
+        runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 }

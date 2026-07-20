@@ -18,6 +18,7 @@ import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.MealSlot
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -49,7 +50,7 @@ class TemplatesViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun toggleFavorite(template: MealTemplate) = viewModelScope.launch {
-        repo.setFavorite(template.id, !template.favorite)
+        runCatching { repo.setFavorite(template.id, !template.favorite) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     /** Sum of all items' kcal across every template — shown as a library-level stat, unaffected by the meal-slot filter. */
@@ -106,14 +107,16 @@ class TemplatesViewModel @Inject constructor(
 
     fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
 
-    fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
+    fun delete(id: String) = viewModelScope.launch {
+        runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
 
     /** Templates and Recipes carry near-identical component shapes but had no
      *  way to convert between the two - a "quick weeknight combo" built as a
      *  template couldn't become a proper named Recipe without re-entering
      *  every ingredient by hand, and vice versa. */
     fun saveAsRecipe(template: MealTemplate) = viewModelScope.launch {
-        recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1)
+        runCatching { recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     // logTemplate's runCatching below prevented a crash on Room write failure but had
@@ -126,12 +129,16 @@ class TemplatesViewModel @Inject constructor(
 
     fun create(name: String, meal: MealSlot) {
         if (name.isBlank()) return
-        viewModelScope.launch { repo.save(name, meal, items = emptyList<TemplateItem>()) }
+        viewModelScope.launch {
+            runCatching { repo.save(name, meal, items = emptyList<TemplateItem>()) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     fun rename(template: MealTemplate, newName: String) {
         if (newName.isBlank()) return
-        viewModelScope.launch { repo.save(newName, template.meal, template.items, id = template.id) }
+        viewModelScope.launch {
+            runCatching { repo.save(newName, template.meal, template.items, id = template.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     fun logTemplate(template: MealTemplate, date: LocalDate = LocalDate.now(), mealOverride: MealSlot? = null, portionScale: Double = 1.0) {
@@ -142,7 +149,7 @@ class TemplatesViewModel @Inject constructor(
             // Guarded like DashboardViewModel.logGapSuggestion/ResultViewModel.log -
             // a Room insert failure (disk-full, constraint violation) here previously
             // crashed the app instead of just failing to log this template.
-            runCatching { consumptionRepo.logAll(scaled) }.onFailure { _actionFailed.value = true }
+            runCatching { consumptionRepo.logAll(scaled) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -152,11 +159,15 @@ class TemplatesViewModel @Inject constructor(
     // stayed a permanent 0-item, 0-kcal template; "Log" just planted nothing.
     // Mirrors Recipes' own add-ingredient pattern (RecipeComponent).
     fun addItem(template: MealTemplate, item: TemplateItem) {
-        viewModelScope.launch { repo.save(template.name, template.meal, template.items + item, id = template.id) }
+        viewModelScope.launch {
+            runCatching { repo.save(template.name, template.meal, template.items + item, id = template.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     fun removeItem(template: MealTemplate, index: Int) {
         val items = template.items.toMutableList().also { if (index in it.indices) it.removeAt(index) }
-        viewModelScope.launch { repo.save(template.name, template.meal, items, id = template.id) }
+        viewModelScope.launch {
+            runCatching { repo.save(template.name, template.meal, items, id = template.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 }

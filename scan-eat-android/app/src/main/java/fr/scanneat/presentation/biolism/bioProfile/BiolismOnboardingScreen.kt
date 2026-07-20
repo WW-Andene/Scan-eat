@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
+import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.ui.theme.*
 
 private data class OnboardStep(val icon: ImageVector, val title: String, val sub: String, val optional: Boolean = false)
@@ -40,15 +42,18 @@ private fun rememberOnboardSteps(): List<OnboardStep> = listOf(
 @Composable
 fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
     val language = viewModel.language.collectAsStateWithLifecycle()
-    var step by remember { mutableStateOf(0) }
-    var sex by remember { mutableStateOf(BiolismSex.NOT_SPECIFIED) }
-    var age by remember { mutableStateOf("") }
-    var height by remember { mutableStateOf("") }
-    var weight by remember { mutableStateOf("") }
-    var waist by remember { mutableStateOf("") }
-    var hip by remember { mutableStateOf("") }
-    var neck by remember { mutableStateOf("") }
-    var activityId by remember { mutableStateOf("sedentary") }
+    // Previously plain remember{} - rotation/process death (see OnboardingScreen's
+    // identical fix) silently wiped the whole wizard back to step 0 with every
+    // field blanked, losing anything already typed.
+    var step by rememberSaveable { mutableStateOf(0) }
+    var sex by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(BiolismSex.NOT_SPECIFIED) }
+    var age by rememberSaveable { mutableStateOf("") }
+    var height by rememberSaveable { mutableStateOf("") }
+    var weight by rememberSaveable { mutableStateOf("") }
+    var waist by rememberSaveable { mutableStateOf("") }
+    var hip by rememberSaveable { mutableStateOf("") }
+    var neck by rememberSaveable { mutableStateOf("") }
+    var activityId by rememberSaveable { mutableStateOf("sedentary") }
 
     // No bound at all previously - an errant value here (e.g. a typo'd extra
     // digit) silently propagates into BiolismEngine's TDEE/BMI/body-fat% math.

@@ -39,8 +39,10 @@ import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 
 /** Bundle only natively round-trips a handful of types - an enum needs an explicit
- *  Saver (stored as its .name) to survive rememberSaveable's process-death restore. */
-private inline fun <reified T : Enum<T>> enumSaver() = Saver<T, String>(
+ *  Saver (stored as its .name) to survive rememberSaveable's process-death restore.
+ *  internal (not private) so BiolismOnboardingScreen's identical enum-field fix can
+ *  reuse this instead of duplicating it. */
+internal inline fun <reified T : Enum<T>> enumSaver() = Saver<T, String>(
     save = { it.name },
     restore = { enumValueOf<T>(it) },
 )

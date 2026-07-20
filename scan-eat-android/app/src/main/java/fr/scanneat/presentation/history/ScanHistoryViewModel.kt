@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.ScanResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.Collator
@@ -136,6 +137,15 @@ class ScanHistoryViewModel @Inject constructor(
     fun setSort(value: HistorySort) { _sort.value = value }
     fun setScoreRange(range: Pair<Int, Int>?) { _scoreRange.value = range }
 
+    // toggleFavorite()/delete() previously called repo's Room writes completely
+    // unguarded - unlike every sibling tracker ViewModel (Weight/Activity/Dashboard/
+    // MealPlan/Templates all wrap theirs in runCatching), so a write failure here
+    // wasn't just silent, it was an uncaught exception that would crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed write, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun toggleFavorite(scan: ScanResult) {
         if (scan.dbId <= 0) return
         viewModelScope.launch {
@@ -151,11 +161,11 @@ class ScanHistoryViewModel @Inject constructor(
             val current = allScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite
                 ?: favoriteScans.value.firstOrNull { it.dbId == scan.dbId }?.favorite
                 ?: scan.favorite
-            repo.setFavorite(scan.dbId, !current)
+            runCatching { repo.setFavorite(scan.dbId, !current) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun delete(id: Long) {
-        viewModelScope.launch { repo.delete(id) }
+        viewModelScope.launch { runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 }

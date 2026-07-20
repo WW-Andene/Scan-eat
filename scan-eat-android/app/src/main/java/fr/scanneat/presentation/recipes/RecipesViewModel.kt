@@ -32,6 +32,7 @@ import fr.scanneat.domain.model.ScanSource
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.scan.FetchedRecipeResult
 import fr.scanneat.data.repository.scan.ScanRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -84,8 +85,18 @@ class RecipesViewModel @Inject constructor(
         searched.sortedByDescending { it.favorite }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // Every write below previously called repo's/templateRepo's/consumptionRepo's Room
+    // writes completely unguarded - unlike every sibling tracker ViewModel (Weight/
+    // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
+    // write failure here wasn't just silent, it was an uncaught exception that would
+    // crash the app.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed write, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun toggleFavorite(recipe: Recipe) = viewModelScope.launch {
-        repo.setFavorite(recipe.id, !recipe.favorite)
+        runCatching { repo.setFavorite(recipe.id, !recipe.favorite) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     val language: StateFlow<String> = prefs.language
@@ -187,15 +198,17 @@ class RecipesViewModel @Inject constructor(
     fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
 
     fun save(name: String, components: List<RecipeComponent>, servings: Int = 1, notes: String = "") {
-        viewModelScope.launch { repo.save(name, components, servings, notes = notes) }
+        viewModelScope.launch { runCatching { repo.save(name, components, servings, notes = notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
-    fun delete(id: String) = viewModelScope.launch { repo.delete(id) }
+    fun delete(id: String) = viewModelScope.launch {
+        runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
 
     /** Inverse of TemplatesViewModel.saveAsRecipe() - a Recipe has no meal of its own,
      *  so the screen must ask which slot before this can be saved as a Saved Meal. */
     fun saveAsTemplate(recipe: Recipe, meal: MealSlot) = viewModelScope.launch {
-        templateRepo.save(recipe.name, meal, recipe.toTemplateItems(meal))
+        runCatching { templateRepo.save(recipe.name, meal, recipe.toTemplateItems(meal)) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     fun rename(recipe: Recipe, newName: String) {
@@ -203,25 +216,29 @@ class RecipesViewModel @Inject constructor(
         // notes = recipe.notes - without this, renaming (a distinct UI action from
         // editing notes) would silently wipe any notes already saved on the recipe,
         // since save() otherwise defaults an unpassed notes to "".
-        viewModelScope.launch { repo.save(newName, recipe.components, recipe.servings, id = recipe.id, notes = recipe.notes) }
+        viewModelScope.launch { runCatching { repo.save(newName, recipe.components, recipe.servings, id = recipe.id, notes = recipe.notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     /** Edits a recipe's prep notes/instructions independently of rename. */
     fun updateNotes(recipe: Recipe, notes: String) {
-        viewModelScope.launch { repo.save(recipe.name, recipe.components, recipe.servings, id = recipe.id, notes = notes) }
+        viewModelScope.launch { runCatching { repo.save(recipe.name, recipe.components, recipe.servings, id = recipe.id, notes = notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     /** Permanently rescales every component's stored quantity (grams/kcal/macros) for a new serving count. */
     fun scale(recipe: Recipe, newServings: Int) {
         if (newServings <= 0) return
         viewModelScope.launch {
-            repo.save(recipe.name, recipe.scaledComponents(newServings), newServings, id = recipe.id, notes = recipe.notes)
+            runCatching {
+                repo.save(recipe.name, recipe.scaledComponents(newServings), newServings, id = recipe.id, notes = recipe.notes)
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun log(recipe: Recipe, mealSlot: MealSlot, portionFraction: Double = 1.0) {
         viewModelScope.launch {
-            consumptionRepo.log(repo.collapse(recipe, LocalDate.now(), mealSlot, portionFraction))
+            runCatching {
+                consumptionRepo.log(repo.collapse(recipe, LocalDate.now(), mealSlot, portionFraction))
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -230,31 +247,33 @@ class RecipesViewModel @Inject constructor(
         viewModelScope.launch {
             val basis = recipe.totalGrams.takeIf { it > 0 } ?: 100.0
             fun per100(v: Double) = v * 100.0 / basis
-            consumptionRepo.log(
-                DiaryEntry(
-                    date        = LocalDate.now(),
-                    mealSlot    = mealSlot,
-                    productName = recipe.nameFr,
-                    barcode     = null,
-                    portionG    = basis,
-                    nutrition   = NutritionPer100g(
-                        energyKcal    = per100(recipe.totalKcal),
-                        fatG          = per100(recipe.totalFatG),
-                        saturatedFatG = 0.0,
-                        carbsG        = per100(recipe.totalCarbsG),
-                        sugarsG       = 0.0,
-                        fiberG        = per100(recipe.totalFiberG),
-                        proteinG      = per100(recipe.totalProteinG),
-                        saltG         = 0.0,
-                    ),
-                    source = ScanSource.MANUAL,
-                    // Previously omitted, defaulting to emptyList() - DiaryViewModel.diaryWarnings
-                    // runs entry.toCheckProduct() against this list to surface allergen/diet
-                    // warnings, so logging an official recipe never got a warning even when
-                    // this same screen's officialRecipeWarnings already flagged it pre-log.
-                    ingredients = recipe.ingredients.map { i -> Ingredient(name = i.foodName, category = IngredientCategory.FOOD) },
+            runCatching {
+                consumptionRepo.log(
+                    DiaryEntry(
+                        date        = LocalDate.now(),
+                        mealSlot    = mealSlot,
+                        productName = recipe.nameFr,
+                        barcode     = null,
+                        portionG    = basis,
+                        nutrition   = NutritionPer100g(
+                            energyKcal    = per100(recipe.totalKcal),
+                            fatG          = per100(recipe.totalFatG),
+                            saturatedFatG = 0.0,
+                            carbsG        = per100(recipe.totalCarbsG),
+                            sugarsG       = 0.0,
+                            fiberG        = per100(recipe.totalFiberG),
+                            proteinG      = per100(recipe.totalProteinG),
+                            saltG         = 0.0,
+                        ),
+                        source = ScanSource.MANUAL,
+                        // Previously omitted, defaulting to emptyList() - DiaryViewModel.diaryWarnings
+                        // runs entry.toCheckProduct() against this list to surface allergen/diet
+                        // warnings, so logging an official recipe never got a warning even when
+                        // this same screen's officialRecipeWarnings already flagged it pre-log.
+                        ingredients = recipe.ingredients.map { i -> Ingredient(name = i.foodName, category = IngredientCategory.FOOD) },
+                    )
                 )
-            )
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 

@@ -8,6 +8,7 @@ import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.domain.model.ActivityLevel
 import java.time.LocalDate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -42,7 +43,9 @@ class HydrationViewModel @Inject constructor(
     val goal: StateFlow<Int> = combine(formulaGoal, repo.customGoalMl) { formula, custom -> custom ?: formula }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
 
-    fun setCustomGoal(ml: Int?) = viewModelScope.launch { repo.setCustomGoalMl(ml) }
+    fun setCustomGoal(ml: Int?) = viewModelScope.launch {
+        runCatching { repo.setCustomGoalMl(ml) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
 
     // Dates with at least one glass logged — drives the calendar marker dots.
     // Re-derived off `intake` (not a one-shot fetch) so logging a glass today
@@ -105,6 +108,6 @@ class HydrationViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
-    fun addGlass()    = viewModelScope.launch { runCatching { repo.addGlass() }.onFailure { _actionFailed.value = true } }
-    fun removeGlass() = viewModelScope.launch { runCatching { repo.removeGlass() }.onFailure { _actionFailed.value = true } }
+    fun addGlass()    = viewModelScope.launch { runCatching { repo.addGlass() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun removeGlass() = viewModelScope.launch { runCatching { repo.removeGlass() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
 }

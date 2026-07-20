@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -327,7 +328,7 @@ fun HydrationScreen(
     // match the EFSA formula. Weight already has this exact capability via its
     // own explicit goalWeightKg profile field.
     if (showGoalEditor) {
-        var goalText by remember { mutableStateOf((customGoal.value ?: goal.value).toString()) }
+        var goalText by rememberSaveable { mutableStateOf((customGoal.value ?: goal.value).toString()) }
         AlertDialog(
             onDismissRequest = { showGoalEditor = false },
             containerColor = SurfaceVariant,

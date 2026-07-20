@@ -388,10 +388,15 @@ fun ScanScreen(
                 containerColor = AccentCoral,
                 shape = CircleShape,
             ) {
+                // Exhaustive over all 6 ScanUiState variants (no `else`) - a future
+                // 7th variant now fails to compile here instead of silently falling
+                // through to the generic search icon unnoticed.
                 when (state.value) {
                     is ScanUiState.Scanning -> CircularProgressIndicator(
                         color = Color.Black, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                    else -> Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
+                    is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
+                    is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound ->
+                        Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
                 }
             }
 
@@ -452,87 +457,98 @@ fun ScanScreen(
                 Icon(Icons.Default.Bolt, stringResource(R.string.scan_instant_toggle), tint = if (instantMode.value) Color.Black else OnSurface)
             }
 
-            // ── Error — floats just above the button cluster ──
-            if (state.value is ScanUiState.Error) {
-                val error = state.value as ScanUiState.Error
-                if (error.needsPhoto) {
-                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp),
-                        color = SurfaceVariant, shape = RoundedCornerShape(CardRadius.CONTROL)) {
-                        Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
-                            Spacer(Modifier.width(Spacing.S))
-                            Text(stringResource(R.string.scan_needs_photo),
-                                Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
-                            IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface)
+        }
+
+        // ── Result of the last scan attempt — a single exhaustive `when` over all 6
+        // ScanUiState variants (no `else`), so a future 7th variant fails to compile
+        // here instead of silently rendering nothing. Previously scattered across an
+        // `if (hasCamera...) {...} else if (state.value is Error) {...}` pair (each
+        // half re-deriving its own `error` via an `as` cast) plus two independent
+        // `(state.value as? X)?.let{}` dialog checks below the Box. Kept inside Box (not moved
+        // after it) because the Error banners still need BoxScope's Modifier.align;
+        // the two dialogs don't need it but sit here too now for one single dispatch
+        // point - AlertDialog renders in its own window regardless of tree position,
+        // so this is a pure dispatch-structure change with identical rendered output. ──
+        when (val s = state.value) {
+            is ScanUiState.Idle, is ScanUiState.Scanning, is ScanUiState.Success -> Unit
+            is ScanUiState.Error -> {
+                if (hasCamera && !cameraUnavailable) {
+                    if (s.needsPhoto) {
+                        Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp),
+                            color = SurfaceVariant, shape = RoundedCornerShape(CardRadius.CONTROL)) {
+                            Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
+                                Spacer(Modifier.width(Spacing.S))
+                                Text(stringResource(R.string.scan_needs_photo),
+                                    Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
+                                IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
+                                    Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface)
+                                }
                             }
                         }
+                    } else {
+                        ErrorBanner(
+                            message     = s.message,
+                            modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp),
+                            actionLabel = stringResource(R.string.common_retry),
+                            onAction    = { viewModel.score() },
+                            onDismiss   = { viewModel.dismissError() },
+                        )
                     }
                 } else {
+                    // Same error surface as the camera path above, but reachable from the
+                    // no-camera/camera-unavailable fallbacks too - those flows call
+                    // viewModel.score() straight from manual barcode entry, with no FAB or
+                    // camera preview underneath, so a scoring failure there still needs
+                    // somewhere to show up instead of silently going nowhere.
                     ErrorBanner(
-                        message     = error.message,
-                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = 96.dp),
+                        message     = s.message,
+                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = 24.dp),
                         actionLabel = stringResource(R.string.common_retry),
                         onAction    = { viewModel.score() },
                         onDismiss   = { viewModel.dismissError() },
                     )
                 }
             }
-        } else if (state.value is ScanUiState.Error) {
-            // Same error surface as the camera path above, but reachable from the
-            // no-camera/camera-unavailable fallbacks too - those flows call
-            // viewModel.score() straight from manual barcode entry, with no FAB or
-            // camera preview underneath, so a scoring failure there still needs
-            // somewhere to show up instead of silently going nowhere.
-            val error = state.value as ScanUiState.Error
-            ErrorBanner(
-                message     = error.message,
-                modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = 24.dp),
-                actionLabel = stringResource(R.string.common_retry),
-                onAction    = { viewModel.score() },
-                onDismiss   = { viewModel.dismissError() },
-            )
+            is ScanUiState.MedicationFound -> {
+                val hints = remember(s.entry, language.value, healthConditions.value) {
+                    generateMedicationHints(s.entry, healthConditions.value, language.value)
+                }
+                AlertDialog(
+                    onDismissRequest = { viewModel.dismissFound() },
+                    containerColor = SurfaceVariant,
+                    title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            Text(stringResource(R.string.scan_medication_found_body, s.entry.name), color = OnBackground.copy(0.7f))
+                            FactsCautionsColumn(hints.facts, hints.cautions)
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { viewModel.saveDetectedMedication(s.entry) }) {
+                            Text(stringResource(R.string.scan_medication_found_add), color = Teal)
+                        }
+                    },
+                    dismissButton = { TextButton(onClick = { viewModel.dismissFound() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+                )
+            }
+            is ScanUiState.NonConsumableFound -> {
+                val hints = remember(s.entry, language.value) { generateNonConsumableHints(s.entry.category, language.value) }
+                AlertDialog(
+                    onDismissRequest = { viewModel.dismissFound() },
+                    containerColor = SurfaceVariant,
+                    title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            Text(stringResource(R.string.scan_nonconsumable_found_body, s.entry.name, s.entry.brand), color = OnBackground.copy(0.8f))
+                            Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
+                            FactsCautionsColumn(hints.facts, hints.cautions)
+                        }
+                    },
+                    confirmButton = { TextButton(onClick = { viewModel.dismissFound() }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
+                )
+            }
         }
-    }
-
-    (state.value as? ScanUiState.MedicationFound)?.let { found ->
-        val hints = remember(found.entry, language.value, healthConditions.value) {
-            generateMedicationHints(found.entry, healthConditions.value, language.value)
-        }
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissFound() },
-            containerColor = SurfaceVariant,
-            title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text(stringResource(R.string.scan_medication_found_body, found.entry.name), color = OnBackground.copy(0.7f))
-                    FactsCautionsColumn(hints.facts, hints.cautions)
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { viewModel.saveDetectedMedication(found.entry) }) {
-                    Text(stringResource(R.string.scan_medication_found_add), color = Teal)
-                }
-            },
-            dismissButton = { TextButton(onClick = { viewModel.dismissFound() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        )
-    }
-
-    (state.value as? ScanUiState.NonConsumableFound)?.let { found ->
-        val hints = remember(found.entry, language.value) { generateNonConsumableHints(found.entry.category, language.value) }
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissFound() },
-            containerColor = SurfaceVariant,
-            title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text(stringResource(R.string.scan_nonconsumable_found_body, found.entry.name, found.entry.brand), color = OnBackground.copy(0.8f))
-                    Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
-                    FactsCautionsColumn(hints.facts, hints.cautions)
-                }
-            },
-            confirmButton = { TextButton(onClick = { viewModel.dismissFound() }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
-        )
     }
 }
 

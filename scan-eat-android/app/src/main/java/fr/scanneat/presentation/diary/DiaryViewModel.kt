@@ -25,6 +25,7 @@ import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.domain.model.ScanSource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -120,13 +121,23 @@ class DiaryViewModel @Inject constructor(
     fun goToToday()       { _selectedDate.value = LocalDate.now() }
     fun selectDate(date: LocalDate) { _selectedDate.value = date }
 
+    // Every write below previously called consumptionRepo's/notesRepo's Room/DataStore
+    // writes completely unguarded - unlike every sibling tracker ViewModel (Weight/
+    // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
+    // write failure here wasn't just silent, it was an uncaught exception that would
+    // crash the app (e.g. disk-full or a Room constraint violation while deleting an entry).
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed write, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     // Delete and edit wired to repository
     fun deleteEntry(id: Long) {
-        viewModelScope.launch { consumptionRepo.delete(id) }
+        viewModelScope.launch { runCatching { consumptionRepo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun updateEntry(entry: DiaryEntry) {
-        viewModelScope.launch { consumptionRepo.update(entry) }
+        viewModelScope.launch { runCatching { consumptionRepo.update(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     /** Reactive — safe across midnight. */
@@ -138,7 +149,7 @@ class DiaryViewModel @Inject constructor(
     }
 
     fun saveNote(text: String) {
-        viewModelScope.launch { notesRepo.set(_selectedDate.value, text) }
+        viewModelScope.launch { runCatching { notesRepo.set(_selectedDate.value, text) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     // ── Manual add: search + log ─────────────────────────────────────────────
@@ -175,19 +186,21 @@ class DiaryViewModel @Inject constructor(
     fun addEntry(entry: FoodEntry, portionG: Double, mealSlot: MealSlot) {
         viewModelScope.launch {
             val product = customFoodRepo.toProduct(entry)
-            consumptionRepo.log(
-                DiaryEntry(
-                    date        = _selectedDate.value,
-                    mealSlot    = mealSlot,
-                    productName = entry.name,
-                    barcode     = null,
-                    portionG    = portionG,
-                    nutrition   = product.nutrition,
-                    source      = ScanSource.MANUAL,
-                    ingredients = product.ingredients,
+            runCatching {
+                consumptionRepo.log(
+                    DiaryEntry(
+                        date        = _selectedDate.value,
+                        mealSlot    = mealSlot,
+                        productName = entry.name,
+                        barcode     = null,
+                        portionG    = portionG,
+                        nutrition   = product.nutrition,
+                        source      = ScanSource.MANUAL,
+                        ingredients = product.ingredients,
+                    )
                 )
-            )
-            _searchQuery.value = ""
+            }.onSuccess { _searchQuery.value = "" }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -200,19 +213,21 @@ class DiaryViewModel @Inject constructor(
      */
     fun addEntryFromScan(scan: ScanResult, portionG: Double, mealSlot: MealSlot) {
         viewModelScope.launch {
-            consumptionRepo.log(
-                DiaryEntry(
-                    date        = _selectedDate.value,
-                    mealSlot    = mealSlot,
-                    productName = scan.product.name,
-                    barcode     = scan.barcode,
-                    portionG    = portionG,
-                    nutrition   = scan.product.nutrition,
-                    source      = scan.source,
-                    ingredients = scan.product.ingredients,
+            runCatching {
+                consumptionRepo.log(
+                    DiaryEntry(
+                        date        = _selectedDate.value,
+                        mealSlot    = mealSlot,
+                        productName = scan.product.name,
+                        barcode     = scan.barcode,
+                        portionG    = portionG,
+                        nutrition   = scan.product.nutrition,
+                        source      = scan.source,
+                        ingredients = scan.product.ingredients,
+                    )
                 )
-            )
-            _searchQuery.value = ""
+            }.onSuccess { _searchQuery.value = "" }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -233,7 +248,7 @@ class DiaryViewModel @Inject constructor(
             val copies = previous.entries.map { entry ->
                 entry.copy(id = 0, date = _selectedDate.value, loggedAt = LocalDateTime.now())
             }
-            consumptionRepo.logAll(copies)
+            runCatching { consumptionRepo.logAll(copies) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }

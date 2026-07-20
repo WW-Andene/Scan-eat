@@ -13,6 +13,7 @@ import fr.scanneat.data.repository.planning.MealTemplateRepository
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.model.MealSlot
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -143,35 +144,6 @@ class MealPlanViewModel @Inject constructor(
         }
     }
 
-    fun setNote(date: LocalDate, meal: String, text: String) {
-        // Entries are newline-delimited in storage (see MealPlanRepository.serialize) —
-        // strip any embedded newline (e.g. from pasted clipboard text) so a note can't
-        // split across "lines" and corrupt the following entry.
-        val sanitized = text.replace("\n", " ")
-        viewModelScope.launch { repo.setSlot(date, meal, if (sanitized.isBlank()) null else MealPlanSlot.NoteSlot(sanitized)) }
-    }
-
-    fun clear(date: LocalDate, meal: String) {
-        viewModelScope.launch { repo.setSlot(date, meal, null) }
-    }
-
-    /** Clear every slot for a day in one action instead of one tap per meal. */
-    fun clearDay(date: LocalDate) {
-        viewModelScope.launch { repo.clearDay(date) }
-    }
-
-    /** Duplicates a day's whole plan onto the same weekday next week - the
-     *  common "same as this week" case, without needing a date picker. */
-    fun duplicateDay(date: LocalDate) {
-        viewModelScope.launch { repo.copyDay(date, date.plusDays(7)) }
-    }
-
-    /** Duplicates the entire displayed week onto the next 7 days. */
-    fun duplicateWeek() {
-        val start = weekDates.value.firstOrNull() ?: return
-        viewModelScope.launch { repo.copyWeek(start, start.plusDays(7)) }
-    }
-
     // logSlot's runCatching below prevented a crash on Room write failure but had no
     // failure path at all - a user tapping a planned slot's log icon got zero visible
     // effect if the write failed, unable to tell whether it had actually logged.
@@ -180,12 +152,62 @@ class MealPlanViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
+    // setNote/clear/clearDay/duplicateDay/duplicateWeek/setRecipe/setTemplate below
+    // previously called repo's Room writes completely unguarded - same F-HIGH-01 bug
+    // as every other unguarded ViewModel write, just missed here since logSlot already
+    // had the guard pattern and looked like full coverage for this file.
+    fun setNote(date: LocalDate, meal: String, text: String) {
+        // Entries are newline-delimited in storage (see MealPlanRepository.serialize) —
+        // strip any embedded newline (e.g. from pasted clipboard text) so a note can't
+        // split across "lines" and corrupt the following entry.
+        val sanitized = text.replace("\n", " ")
+        viewModelScope.launch {
+            runCatching { repo.setSlot(date, meal, if (sanitized.isBlank()) null else MealPlanSlot.NoteSlot(sanitized)) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    fun clear(date: LocalDate, meal: String) {
+        viewModelScope.launch {
+            runCatching { repo.setSlot(date, meal, null) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Clear every slot for a day in one action instead of one tap per meal. */
+    fun clearDay(date: LocalDate) {
+        viewModelScope.launch {
+            runCatching { repo.clearDay(date) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Duplicates a day's whole plan onto the same weekday next week - the
+     *  common "same as this week" case, without needing a date picker. */
+    fun duplicateDay(date: LocalDate) {
+        viewModelScope.launch {
+            runCatching { repo.copyDay(date, date.plusDays(7)) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Duplicates the entire displayed week onto the next 7 days. */
+    fun duplicateWeek() {
+        val start = weekDates.value.firstOrNull() ?: return
+        viewModelScope.launch {
+            runCatching { repo.copyWeek(start, start.plusDays(7)) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     fun setRecipe(date: LocalDate, meal: String, recipe: Recipe) {
-        viewModelScope.launch { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name)) }
+        viewModelScope.launch {
+            runCatching { repo.setSlot(date, meal, MealPlanSlot.RecipeSlot(recipe.id, recipe.name)) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     fun setTemplate(date: LocalDate, meal: String, template: MealTemplate) {
-        viewModelScope.launch { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name)) }
+        viewModelScope.launch {
+            runCatching { repo.setSlot(date, meal, MealPlanSlot.TemplateSlot(template.id, template.name)) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     // A planned RecipeSlot/TemplateSlot only ever persisted the plan itself -
@@ -216,7 +238,7 @@ class MealPlanViewModel @Inject constructor(
                     }
                     is MealPlanSlot.NoteSlot -> Unit
                 }
-            }.onFailure { _actionFailed.value = true }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }

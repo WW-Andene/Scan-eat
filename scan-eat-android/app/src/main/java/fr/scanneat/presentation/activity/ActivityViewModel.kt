@@ -7,6 +7,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.ActivityEntry
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.ActivityType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -155,12 +156,12 @@ class ActivityViewModel @Inject constructor(
                     type, minutes, weightKg.value ?: 70.0,
                     subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
                 )
-            }.onFailure { _actionFailed.value = true }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun delete(id: String) = viewModelScope.launch {
-        runCatching { repo.delete(id) }.onFailure { _actionFailed.value = true }
+        runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original stats. */
@@ -172,7 +173,7 @@ class ActivityViewModel @Inject constructor(
                     subType = entry.subType, sets = entry.sets, reps = entry.reps,
                     distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg,
                 )
-            }.onFailure { _actionFailed.value = true }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }
