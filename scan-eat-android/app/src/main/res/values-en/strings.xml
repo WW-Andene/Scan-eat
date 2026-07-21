@@ -73,10 +73,8 @@
     <string name="hydration_suggested_goal_hint">Based on your profile, a goal of %1$d mL may suit you better.</string>
     <string name="hydration_7day_chart_title">Last 7 days</string>
     <string name="hydration_weekly_goal_met">%1$d/7 goals met</string>
-    <string name="settings_groq_key">Groq API Key</string>
     <string name="settings_server_url">Server URL</string>
     <string name="result_log_it">Log it</string>
-    <string name="diary_title">Today\'s Diary</string>
     <string name="dashboard_title">Dashboard</string>
 
     <!-- ── Common actions, shared across screens ─────────────────────────── -->
@@ -462,8 +460,6 @@
     <string name="biolism_sesshist_bmr_tdee_value">%1$.0f / %2$.0f kcal/day</string>
     <string name="biolism_sesshist_weight_start_end">Weight start → end</string>
     <string name="biolism_sesshist_fat_fraction">Fat fraction</string>
-    <string name="biolism_sesshist_confirm_delete">Confirm deletion?</string>
-    <string name="biolism_sesshist_yes">Yes</string>
 
     <!-- ── Biolism: Tracker — Ketosis section ─────────────────────────────── -->
     <string name="biolism_ketosis_label">Ketosis</string>
@@ -701,7 +697,6 @@
     <string name="logsheet_quantity_label">Quantity (g)</string>
     <string name="logsheet_preset_grams">%1$d g</string>
     <string name="logsheet_preset_package">%1$d g (pack)</string>
-    <string name="logsheet_preset_half">%1$d g (½)</string>
     <string name="logsheet_meal_label">Meal</string>
     <string name="logsheet_confirm_plain">Confirm</string>
     <string name="logsheet_confirm_with_kcal">Confirm · %1$d kcal</string>
@@ -744,8 +739,6 @@
     <string name="customfood_search_placeholder">Search FOOD_DB + your foods…</string>
     <string name="customfood_empty_body">No custom foods yet.\nTap + to create one.</string>
     <string name="customfood_empty_query">No results for “%1$s”</string>
-    <string name="customfood_delete_confirm_title">Delete “%1$s”?</string>
-    <string name="customfood_delete_confirm_body">This food will be removed from your custom foods.</string>
     <string name="customfood_macro_summary">%1$d kcal · P %2$dg · C %3$dg · F %4$dg / 100g</string>
     <string name="customfood_custom_badge">custom</string>
     <string name="customfood_add_title">New food (per 100 g)</string>
@@ -793,7 +786,6 @@
     <string name="weight_field_lb">Weight (lb)</string>
     <string name="weight_field_notes">Notes (optional)</string>
     <string name="weight_field_date">Date</string>
-    <string name="weight_date_future_error">Date can\'t be in the future</string>
     <string name="weight_goal_label">Goal</string>
     <string name="weight_goal_delta">%1$s toward %2$s</string>
     <string name="weight_trend_caption">Trend — last %1$d weigh-ins</string>
@@ -841,8 +833,6 @@
     <string name="diary_filter_all">All</string>
     <string name="diary_filter_empty">No entries for this meal slot.</string>
     <string name="diary_meal_breakfast">Breakfast</string>
-    <string name="diary_delete_confirm_title">Delete this entry?</string>
-    <string name="diary_delete_confirm_body">This action cannot be undone.</string>
     <string name="common_delete_confirm_title">Delete?</string>
     <string name="common_delete_confirm_body">This action cannot be undone.</string>
     <string name="common_delete_confirm_body_named">"%1$s" will be permanently deleted. This action cannot be undone.</string>
@@ -1056,15 +1046,10 @@
         <item quantity="other">Record: %1$d days</item>
     </plurals>
     <string name="dashboard_features_title">Features</string>
-    <string name="dashboard_tile_weight">Weight</string>
-    <string name="dashboard_tile_fasting">Fasting</string>
-    <string name="dashboard_tile_water">Water</string>
-    <string name="dashboard_tile_activity">Activity</string>
     <string name="dashboard_tile_recipes">Recipes</string>
     <string name="dashboard_tile_templates">Templates</string>
     <string name="dashboard_tile_mealplan">Meal Plan</string>
     <string name="dashboard_tile_grocery">Grocery</string>
-    <string name="dashboard_tile_profile">My Profile</string>
     <string name="dashboard_tile_customfoods">My Foods</string>
     <string name="dashboard_tile_favorites">Favorites</string>
     <string name="planning_switcher_cd">Go to…</string>
@@ -1074,7 +1059,6 @@
     <string name="dashboard_recent_scans_empty">No scans yet.</string>
     <string name="dashboard_view_all">View all</string>
     <string name="dashboard_today_label">Today</string>
-    <string name="dashboard_macro_target">/ %1$d</string>
     <string name="dashboard_week_title">This Week</string>
     <string name="dashboard_week_avg_kcal">%1$d kcal/day avg.</string>
     <string name="dashboard_best_worst_title">Best / Worst Day</string>
@@ -1110,7 +1094,6 @@
     <string name="dashboard_calorie_balance_title">Caloric Balance</string>
     <string name="dashboard_calorie_in_out">%1$d / %2$d kcal</string>
     <string name="dashboard_calorie_exercise">+%1$d kcal burned (Activity)</string>
-    <string name="dashboard_calorie_net">Net balance</string>
     <string name="dashboard_calorie_surplus">SURPLUS</string>
     <string name="dashboard_calorie_deficit">DEFICIT</string>
     <string name="dashboard_calorie_balanced">BALANCED</string>
@@ -1187,7 +1170,6 @@
     <string name="recipes_field_ingredient">Ingredient</string>
     <string name="recipes_add_ingredient_button">+ Add ingredient</string>
     <string name="recipes_log_dialog_title">Log “%1$s”</string>
-    <string name="recipes_portion_label">Portion (1.0 = whole)</string>
     <string name="recipes_field_servings">Servings (count)</string>
     <string name="recipes_field_notes">Instructions / notes</string>
     <string name="recipes_cd_notes">Edit instructions</string>
@@ -1204,7 +1186,6 @@
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>
-    <string name="result_not_found_title">Scan not found</string>
     <string name="result_not_found_body">This scan no longer exists or was deleted.</string>
     <string name="result_cd_share">Share score</string>
     <string name="result_cd_save_options">Save options</string>

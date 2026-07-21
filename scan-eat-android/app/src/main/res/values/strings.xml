@@ -73,10 +73,8 @@
     <string name="hydration_suggested_goal_hint">Selon votre profil, un objectif de %1$d mL pourrait mieux vous convenir.</string>
     <string name="hydration_7day_chart_title">7 derniers jours</string>
     <string name="hydration_weekly_goal_met">%1$d/7 objectifs atteints</string>
-    <string name="settings_groq_key">Clé Groq API</string>
     <string name="settings_server_url">URL du serveur</string>
     <string name="result_log_it">Logger</string>
-    <string name="diary_title">Journal du jour</string>
     <string name="dashboard_title">Tableau de bord</string>
 
     <!-- ── Common actions, shared across screens ─────────────────────────── -->
@@ -463,8 +461,6 @@
     <string name="biolism_sesshist_bmr_tdee_value">%1$.0f / %2$.0f kcal/j</string>
     <string name="biolism_sesshist_weight_start_end">Poids début → fin</string>
     <string name="biolism_sesshist_fat_fraction">Fraction graisse</string>
-    <string name="biolism_sesshist_confirm_delete">Confirmer la suppression ?</string>
-    <string name="biolism_sesshist_yes">Oui</string>
 
     <!-- ── Biolism: Tracker — Ketosis section ─────────────────────────────── -->
     <string name="biolism_ketosis_label">Cétose</string>
@@ -702,7 +698,6 @@
     <string name="logsheet_quantity_label">Quantité (g)</string>
     <string name="logsheet_preset_grams">%1$d g</string>
     <string name="logsheet_preset_package">%1$d g (paquet)</string>
-    <string name="logsheet_preset_half">%1$d g (½)</string>
     <string name="logsheet_meal_label">Repas</string>
     <string name="logsheet_confirm_plain">Confirmer</string>
     <string name="logsheet_confirm_with_kcal">Confirmer · %1$d kcal</string>
@@ -745,8 +740,6 @@
     <string name="customfood_search_placeholder">Rechercher dans FOOD_DB + vos aliments…</string>
     <string name="customfood_empty_body">Aucun aliment personnalisé.\nAppuyez sur + pour en créer un.</string>
     <string name="customfood_empty_query">Aucun résultat pour « %1$s »</string>
-    <string name="customfood_delete_confirm_title">Supprimer « %1$s » ?</string>
-    <string name="customfood_delete_confirm_body">Cet aliment sera retiré de vos aliments personnalisés.</string>
     <string name="customfood_macro_summary">%1$d kcal · P %2$dg · G %3$dg · L %4$dg / 100g</string>
     <string name="customfood_custom_badge">perso</string>
     <string name="customfood_add_title">Nouvel aliment (pour 100 g)</string>
@@ -794,7 +787,6 @@
     <string name="weight_field_lb">Poids (lb)</string>
     <string name="weight_field_notes">Notes (optionnel)</string>
     <string name="weight_field_date">Date</string>
-    <string name="weight_date_future_error">La date ne peut pas être dans le futur</string>
     <string name="weight_goal_label">Objectif</string>
     <string name="weight_goal_delta">%1$s vers %2$s</string>
     <string name="weight_trend_caption">Tendance — %1$d dernières pesées</string>
@@ -842,8 +834,6 @@
     <string name="diary_filter_all">Tout</string>
     <string name="diary_filter_empty">Aucune entrée pour ce repas.</string>
     <string name="diary_meal_breakfast">Petit-déjeuner</string>
-    <string name="diary_delete_confirm_title">Supprimer cette entrée ?</string>
-    <string name="diary_delete_confirm_body">Cette action est irréversible.</string>
     <string name="common_delete_confirm_title">Supprimer ?</string>
     <string name="common_delete_confirm_body">Cette action est irréversible.</string>
     <string name="common_delete_confirm_body_named">« %1$s » sera définitivement supprimé. Cette action est irréversible.</string>
@@ -1092,15 +1082,10 @@
         <item quantity="other">Record : %1$d jours</item>
     </plurals>
     <string name="dashboard_features_title">Fonctionnalités</string>
-    <string name="dashboard_tile_weight">Poids</string>
-    <string name="dashboard_tile_fasting">Jeûne</string>
-    <string name="dashboard_tile_water">Eau</string>
-    <string name="dashboard_tile_activity">Activité</string>
     <string name="dashboard_tile_recipes">Recettes</string>
     <string name="dashboard_tile_templates">Modèles</string>
     <string name="dashboard_tile_mealplan">Planning</string>
     <string name="dashboard_tile_grocery">Courses</string>
-    <string name="dashboard_tile_profile">Mon Profil</string>
     <string name="dashboard_tile_customfoods">Mes aliments</string>
     <string name="dashboard_tile_favorites">Favoris</string>
     <string name="planning_switcher_cd">Aller à…</string>
@@ -1110,7 +1095,6 @@
     <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant.</string>
     <string name="dashboard_view_all">Voir tout</string>
     <string name="dashboard_today_label">Aujourd\'hui</string>
-    <string name="dashboard_macro_target">/ %1$d</string>
     <string name="dashboard_week_title">Cette semaine</string>
     <string name="dashboard_week_avg_kcal">%1$d kcal/j moy.</string>
     <string name="dashboard_best_worst_title">Meilleur / Pire jour</string>
@@ -1146,7 +1130,6 @@
     <string name="dashboard_calorie_balance_title">Bilan calorique</string>
     <string name="dashboard_calorie_in_out">%1$d / %2$d kcal</string>
     <string name="dashboard_calorie_exercise">+%1$d kcal brûlées (Activité)</string>
-    <string name="dashboard_calorie_net">Bilan net</string>
     <string name="dashboard_calorie_surplus">EXCÉDENT</string>
     <string name="dashboard_calorie_deficit">DÉFICIT</string>
     <string name="dashboard_calorie_balanced">ÉQUILIBRÉ</string>
@@ -1223,7 +1206,6 @@
     <string name="recipes_field_ingredient">Ingrédient</string>
     <string name="recipes_add_ingredient_button">+ Ajouter ingrédient</string>
     <string name="recipes_log_dialog_title">Logger « %1$s »</string>
-    <string name="recipes_portion_label">Portion (1.0 = entière)</string>
     <string name="recipes_field_servings">Portions (nombre)</string>
     <string name="recipes_field_notes">Préparation / notes</string>
     <string name="recipes_cd_notes">Modifier la préparation</string>
@@ -1240,7 +1222,6 @@
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
     <string name="result_title">Score</string>
-    <string name="result_not_found_title">Scan introuvable</string>
     <string name="result_not_found_body">Ce scan n\'existe plus ou a été supprimé.</string>
     <string name="result_cd_share">Partager le score</string>
     <string name="result_cd_save_options">Options d\'enregistrement</string>
