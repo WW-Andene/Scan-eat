@@ -35,6 +35,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -48,8 +49,10 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.domain.engine.medication.generateMedicationHints
 import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
+import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.result.FactsCautionsColumn
 import fr.scanneat.presentation.scan.components.CameraPreview
 import fr.scanneat.presentation.scan.components.ManualBarcodeEntry
@@ -215,252 +218,66 @@ fun ScanScreen(
             )
         } else {
             // Camera permission request UI — no camera feed behind it, so this fills the screen itself.
-            Column(
-                modifier = Modifier.fillMaxSize().padding(Spacing.XXL),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Icon(Icons.Default.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
-                Spacer(Modifier.height(Spacing.L))
-                Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
-                    color = OnBackground, textAlign = TextAlign.Center)
-                Spacer(Modifier.height(Spacing.S))
-                Text(stringResource(R.string.camera_permission_rationale),
-                    style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
-                Spacer(Modifier.height(Spacing.XL))
-                if (permanentlyDenied) {
-                    ScanEatPrimaryButton(
-                        onClick = {
-                            context.startActivity(
-                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
-                            )
-                        },
-                    ) {
-                        Text(stringResource(R.string.scan_open_settings_button))
-                    }
-                } else {
-                    ScanEatPrimaryButton(onClick = { permLauncher.launch(Manifest.permission.CAMERA) }) {
-                        Text(stringResource(R.string.common_allow))
-                    }
-                }
-                Spacer(Modifier.height(Spacing.L))
-                if (!manualEntryOpen) {
-                    TextButton(onClick = { manualEntryOpen = true }) {
-                        Text(stringResource(R.string.scan_manual_entry_toggle), color = OnBackground.copy(0.8f))
-                    }
-                } else {
-                    ManualBarcodeEntry(onSubmit = { viewModel.quickScan(it) })
-                }
-            }
+            ScanPermissionRequestColumn(
+                permanentlyDenied = permanentlyDenied,
+                manualEntryOpen = manualEntryOpen,
+                onOpenAppSettings = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                    )
+                },
+                onRequestPermission = { permLauncher.launch(Manifest.permission.CAMERA) },
+                onOpenManualEntry = { manualEntryOpen = true },
+                onQuickScan = { viewModel.quickScan(it) },
+            )
         }
 
         if (hasCamera && !cameraUnavailable) {
             // ── Header — top-start, scrimmed so it stays legible over any camera scene ──
-            Column(
-                modifier = Modifier.fillMaxWidth().align(Alignment.TopStart)
-                    .background(Brush.verticalGradient(listOf(Color.Black.copy(0.55f), Color.Transparent)))
-                    .padding(horizontal = 20.dp).padding(top = topInset + Spacing.L, bottom = 28.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
-                    // New: today's scan count badge — previously there was no way to know how
-                    // many products you'd already scanned today without leaving the scan tab.
-                    if (todayScanCount.value > 0) {
-                        Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.85f)) {
-                            Text(
-                                "${todayScanCount.value}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.Black,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
-                            )
-                        }
-                    }
-                }
-                // Improvement: state-aware subtitle instead of static hint — previously the
-                // text never changed between Idle, Scanning, and photos-queued-no-barcode states,
-                // so users had no text feedback that analysis was happening or what to do next.
-                Text(
-                    when {
-                        state.value is ScanUiState.Scanning -> stringResource(R.string.scan_analyzing)
-                        barcode.value != null -> stringResource(R.string.scan_barcode_prefix, barcode.value!!)
-                        images.value.isNotEmpty() && barcode.value == null -> stringResource(R.string.scan_hint_photos_ready)
-                        else -> stringResource(R.string.scan_hint)
-                    },
-                    style = MaterialTheme.typography.bodySmall, color = Color.White.copy(0.8f),
-                )
-            }
+            ScanHeaderBar(
+                topInset = topInset,
+                todayScanCount = todayScanCount.value,
+                isScanning = state.value is ScanUiState.Scanning,
+                barcode = barcode.value,
+                hasQueuedPhotosNoBarcode = images.value.isNotEmpty() && barcode.value == null,
+            )
 
-            barcode.value?.let { bc ->
-                Box(
-                    modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + 96.dp)
-                        .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
-                ) {
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = SurfaceVariant.copy(0.9f),
-                ) {
-                    Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(Spacing.S))
-                        Text(bc, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
-                        // "Already scanned this" cue — the local-cache lookup
-                        // scoreBarcode() already does to skip the network on a
-                        // rescan, surfaced here for the first time so the user
-                        // sees it's a known product before even tapping the score
-                        // FAB, instead of only finding out after the round-trip.
-                        cachedPreview.value?.takeIf { it.barcode == bc }?.let { cached ->
-                            Spacer(Modifier.width(Spacing.S))
-                            Surface(shape = RoundedCornerShape(12.dp), color = gradeColor(cached.audit.grade).copy(alpha = 0.2f)) {
-                                Text(
-                                    "${cached.audit.score} ${cached.audit.grade.label}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = gradeColor(cached.audit.grade),
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
-                                )
-                            }
-                        }
-                    }
-                }
-                }
-            }
+            barcode.value?.let { bc -> ScanBarcodeChip(barcode = bc, topInset = topInset, cachedPreview = cachedPreview.value) }
 
             // ── Photo queue — floats below the header, distinct corner from the button cluster ──
             if (images.value.isNotEmpty()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = topInset + 88.dp)
-                        .padding(horizontal = Spacing.L),
-                ) {
-                    Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(10.dp))) {
-                    Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f)) {
-                        Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
-                            Text(pluralStringResource(R.plurals.scan_photo_count, images.value.size, images.value.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
-                            Spacer(Modifier.height(6.dp))
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                                itemsIndexed(images.value) { index, payload ->
-                                    Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
-                                        .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
-                                        val bmp = remember(payload) { payload.thumbnail }
-                                        if (bmp != null) {
-                                            Image(bitmap = bmp.asImageBitmap(), contentDescription = stringResource(R.string.scan_photo_index, index + 1),
-                                                modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                                        } else {
-                                            Box(Modifier.fillMaxSize().background(SurfaceVariant), contentAlignment = Alignment.Center) {
-                                                Icon(Icons.Default.Image, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
-                                            }
-                                        }
-                                        IconButton(onClick = { viewModel.removePhoto(index) },
-                                            modifier = Modifier.align(Alignment.TopEnd).size(20.dp).background(Background.copy(0.6f), CircleShape)) {
-                                            Icon(Icons.Default.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    }
-                }
+                ScanPhotoQueue(images = images.value, topInset = topInset, onRemovePhoto = { viewModel.removePhoto(it) })
             }
 
             // ── Bounding box overlay — drawn in image→screen mapped coordinates ──
-            barcodeBounds?.let { (rect, imgW, imgH) ->
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val scaleX = size.width / imgW.toFloat()
-                    val scaleY = size.height / imgH.toFloat()
-                    val scale  = maxOf(scaleX, scaleY)
-                    val offX   = (size.width  - imgW  * scale) / 2f
-                    val offY   = (size.height - imgH * scale) / 2f
-                    val left   = offX + rect.left   * scale
-                    val top    = offY + rect.top    * scale
-                    val right  = offX + rect.right  * scale
-                    val bottom = offY + rect.bottom * scale
-                    drawRoundRect(
-                        color        = AccentCoral,
-                        topLeft      = Offset(left, top),
-                        size         = androidx.compose.ui.geometry.Size(right - left, bottom - top),
-                        cornerRadius = CornerRadius(8f, 8f),
-                        style        = Stroke(width = 3f),
-                        alpha        = 0.85f,
-                    )
-                }
-            }
+            barcodeBounds?.let { (rect, imgW, imgH) -> ScanBoundingBoxOverlay(rect, imgW, imgH) }
 
             // ── Score FAB — bottom-end ──
-            FloatingActionButton(
-                onClick = { viewModel.score() },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomNavClearance + 20.dp),
-                containerColor = AccentCoral,
-                shape = CircleShape,
-            ) {
-                // Exhaustive over all 6 ScanUiState variants (no `else`) - a future
-                // 7th variant now fails to compile here instead of silently falling
-                // through to the generic search icon unnoticed.
-                when (state.value) {
-                    is ScanUiState.Scanning -> CircularProgressIndicator(
-                        color = Color.Black, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                    is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
-                    is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound ->
-                        Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
-                }
-            }
+            ScanScoreFab(scanState = state.value, bottomNavClearance = bottomNavClearance, onClick = { viewModel.score() })
 
             // ── Identify-without-label action — only relevant with photos queued and
             // no barcode held (fresh produce, a plated dish: nothing to OCR a label
             // from). Routes to OcrParser.identifyFood, which previously had no caller
             // anywhere in the app despite already being implemented. ──
             if (images.value.isNotEmpty() && barcode.value == null && state.value !is ScanUiState.Scanning) {
-                Box(
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = bottomNavClearance + 28.dp)
-                        .glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f),
-                ) {
-                Surface(
-                    shape = RoundedCornerShape(CardRadius.PROMINENT),
-                    color = SurfaceVariant.copy(0.9f),
-                    onClick = { viewModel.identifyFromPhotos() },
-                ) {
-                    Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
-                    }
-                }
-                }
+                ScanIdentifyFoodAction(bottomNavClearance = bottomNavClearance, onClick = { viewModel.identifyFromPhotos() })
             }
 
             // ── Recent barcodes quick-rescan chips — bottom-start, above instant FAB ──
             if (recentBarcodes.value.isNotEmpty() && state.value is ScanUiState.Idle) {
-                Column(
-                    modifier = Modifier.align(Alignment.BottomStart)
-                        .padding(start = 20.dp, bottom = bottomNavClearance + 84.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    recentBarcodes.value.takeLast(3).reversed().forEach { bc ->
-                        Box(Modifier.glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(20.dp), glowAlpha = 0f, reliefAlpha = 0f)) {
-                        Surface(
-                            onClick = { viewModel.quickScan(bc) },
-                            shape = RoundedCornerShape(20.dp),
-                            color = SurfaceVariant.copy(0.85f),
-                        ) {
-                            Row(Modifier.padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Icon(Icons.Default.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
-                                Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
-                            }
-                        }
-                        }
-                    }
-                }
+                ScanRecentBarcodesRow(
+                    recentBarcodes = recentBarcodes.value,
+                    bottomNavClearance = bottomNavClearance,
+                    onQuickScan = { viewModel.quickScan(it) },
+                )
             }
 
             // ── Instant mode FAB — bottom-start ──
-            FloatingActionButton(
+            ScanInstantModeFab(
+                instantMode = instantMode.value,
+                bottomNavClearance = bottomNavClearance,
                 onClick = { viewModel.toggleInstantMode() },
-                modifier       = Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = bottomNavClearance + 20.dp),
-                containerColor = if (instantMode.value) AccentCoral else SurfaceVariant,
-                shape          = CircleShape,
-            ) {
-                Icon(Icons.Default.Bolt, stringResource(R.string.scan_instant_toggle), tint = if (instantMode.value) Color.Black else OnSurface)
-            }
+            )
 
         }
 
@@ -474,87 +291,372 @@ fun ScanScreen(
         // the two dialogs don't need it but sit here too now for one single dispatch
         // point - AlertDialog renders in its own window regardless of tree position,
         // so this is a pure dispatch-structure change with identical rendered output. ──
-        when (val s = state.value) {
-            is ScanUiState.Idle, is ScanUiState.Scanning, is ScanUiState.Success -> Unit
-            is ScanUiState.Error -> {
-                if (hasCamera && !cameraUnavailable) {
-                    if (s.needsPhoto) {
-                        Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp)
-                            .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-                            color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL)) {
-                            Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
-                                Spacer(Modifier.width(Spacing.S))
-                                Text(stringResource(R.string.scan_needs_photo),
-                                    Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
-                                IconButton(onClick = { viewModel.dismissError() }, modifier = Modifier.size(32.dp)) {
-                                    Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface)
-                                }
-                            }
-                        }
-                    } else {
-                        ErrorBanner(
-                            message     = s.message,
-                            modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp),
-                            actionLabel = stringResource(R.string.common_retry),
-                            onAction    = { viewModel.score() },
-                            onDismiss   = { viewModel.dismissError() },
-                        )
-                    }
-                } else {
-                    // Same error surface as the camera path above, but reachable from the
-                    // no-camera/camera-unavailable fallbacks too - those flows call
-                    // viewModel.score() straight from manual barcode entry, with no FAB or
-                    // camera preview underneath, so a scoring failure there still needs
-                    // somewhere to show up instead of silently going nowhere.
-                    ErrorBanner(
-                        message     = s.message,
-                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 24.dp),
-                        actionLabel = stringResource(R.string.common_retry),
-                        onAction    = { viewModel.score() },
-                        onDismiss   = { viewModel.dismissError() },
+        ScanStateOverlay(
+            state = state.value,
+            hasCamera = hasCamera,
+            cameraUnavailable = cameraUnavailable,
+            bottomNavClearance = bottomNavClearance,
+            language = language.value,
+            healthConditions = healthConditions.value,
+            onRetryScore = { viewModel.score() },
+            onDismissError = { viewModel.dismissError() },
+            onDismissFound = { viewModel.dismissFound() },
+            onSaveDetectedMedication = { entry -> viewModel.saveDetectedMedication(entry) },
+        )
+    }
+}
+
+@Composable
+private fun ScanPermissionRequestColumn(
+    permanentlyDenied: Boolean,
+    manualEntryOpen: Boolean,
+    onOpenAppSettings: () -> Unit,
+    onRequestPermission: () -> Unit,
+    onOpenManualEntry: () -> Unit,
+    onQuickScan: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(Spacing.XXL),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(Icons.Default.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
+        Spacer(Modifier.height(Spacing.L))
+        Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
+            color = OnBackground, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(Spacing.S))
+        Text(stringResource(R.string.camera_permission_rationale),
+            style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f), textAlign = TextAlign.Center)
+        Spacer(Modifier.height(Spacing.XL))
+        if (permanentlyDenied) {
+            ScanEatPrimaryButton(onClick = onOpenAppSettings) {
+                Text(stringResource(R.string.scan_open_settings_button))
+            }
+        } else {
+            ScanEatPrimaryButton(onClick = onRequestPermission) {
+                Text(stringResource(R.string.common_allow))
+            }
+        }
+        Spacer(Modifier.height(Spacing.L))
+        if (!manualEntryOpen) {
+            TextButton(onClick = onOpenManualEntry) {
+                Text(stringResource(R.string.scan_manual_entry_toggle), color = OnBackground.copy(0.8f))
+            }
+        } else {
+            ManualBarcodeEntry(onSubmit = onQuickScan)
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.ScanHeaderBar(
+    topInset: Dp,
+    todayScanCount: Int,
+    isScanning: Boolean,
+    barcode: String?,
+    hasQueuedPhotosNoBarcode: Boolean,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth().align(Alignment.TopStart)
+            .background(Brush.verticalGradient(listOf(Color.Black.copy(0.55f), Color.Transparent)))
+            .padding(horizontal = 20.dp).padding(top = topInset + Spacing.L, bottom = 28.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
+            // New: today's scan count badge — previously there was no way to know how
+            // many products you'd already scanned today without leaving the scan tab.
+            if (todayScanCount > 0) {
+                Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.85f)) {
+                    Text(
+                        "$todayScanCount",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
                     )
                 }
             }
-            is ScanUiState.MedicationFound -> {
-                val hints = remember(s.entry, language.value, healthConditions.value) {
-                    generateMedicationHints(s.entry, healthConditions.value, language.value)
+        }
+        // Improvement: state-aware subtitle instead of static hint — previously the
+        // text never changed between Idle, Scanning, and photos-queued-no-barcode states,
+        // so users had no text feedback that analysis was happening or what to do next.
+        Text(
+            when {
+                isScanning -> stringResource(R.string.scan_analyzing)
+                barcode != null -> stringResource(R.string.scan_barcode_prefix, barcode)
+                hasQueuedPhotosNoBarcode -> stringResource(R.string.scan_hint_photos_ready)
+                else -> stringResource(R.string.scan_hint)
+            },
+            style = MaterialTheme.typography.bodySmall, color = Color.White.copy(0.8f),
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPreview: ScanResult?) {
+    Box(
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + 96.dp)
+            .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = SurfaceVariant.copy(0.9f),
+        ) {
+            Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(Spacing.S))
+                Text(barcode, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
+                // "Already scanned this" cue — the local-cache lookup
+                // scoreBarcode() already does to skip the network on a
+                // rescan, surfaced here for the first time so the user
+                // sees it's a known product before even tapping the score
+                // FAB, instead of only finding out after the round-trip.
+                cachedPreview?.takeIf { it.barcode == barcode }?.let { cached ->
+                    Spacer(Modifier.width(Spacing.S))
+                    Surface(shape = RoundedCornerShape(12.dp), color = gradeColor(cached.audit.grade).copy(alpha = 0.2f)) {
+                        Text(
+                            "${cached.audit.score} ${cached.audit.grade.label}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = gradeColor(cached.audit.grade),
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+                        )
+                    }
                 }
-                AlertDialog(
-                    onDismissRequest = { viewModel.dismissFound() },
-                    containerColor = SurfaceVariant,
-                    title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                            Text(stringResource(R.string.scan_medication_found_body, s.entry.name), color = OnBackground.copy(0.7f))
-                            FactsCautionsColumn(hints.facts, hints.cautions)
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { viewModel.saveDetectedMedication(s.entry) }) {
-                            Text(stringResource(R.string.scan_medication_found_add), color = Teal)
-                        }
-                    },
-                    dismissButton = { TextButton(onClick = { viewModel.dismissFound() }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-                )
-            }
-            is ScanUiState.NonConsumableFound -> {
-                val hints = remember(s.entry, language.value) { generateNonConsumableHints(s.entry.category, language.value) }
-                AlertDialog(
-                    onDismissRequest = { viewModel.dismissFound() },
-                    containerColor = SurfaceVariant,
-                    title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                            Text(stringResource(R.string.scan_nonconsumable_found_body, s.entry.name, s.entry.brand), color = OnBackground.copy(0.8f))
-                            Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
-                            FactsCautionsColumn(hints.facts, hints.cautions)
-                        }
-                    },
-                    confirmButton = { TextButton(onClick = { viewModel.dismissFound() }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
-                )
             }
         }
     }
 }
 
+@Composable
+private fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, onRemovePhoto: (Int) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = topInset + 88.dp)
+            .padding(horizontal = Spacing.L),
+    ) {
+        Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(10.dp))) {
+            Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f)) {
+                Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                    Text(pluralStringResource(R.plurals.scan_photo_count, images.size, images.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
+                    Spacer(Modifier.height(6.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        itemsIndexed(images) { index, payload ->
+                            Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
+                                .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
+                                val bmp = remember(payload) { payload.thumbnail }
+                                if (bmp != null) {
+                                    Image(bitmap = bmp.asImageBitmap(), contentDescription = stringResource(R.string.scan_photo_index, index + 1),
+                                        modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                                } else {
+                                    Box(Modifier.fillMaxSize().background(SurfaceVariant), contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Default.Image, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
+                                    }
+                                }
+                                IconButton(onClick = { onRemovePhoto(index) },
+                                    modifier = Modifier.align(Alignment.TopEnd).size(20.dp).background(Background.copy(0.6f), CircleShape)) {
+                                    Icon(Icons.Default.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScanBoundingBoxOverlay(rect: android.graphics.Rect, imgW: Int, imgH: Int) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val scaleX = size.width / imgW.toFloat()
+        val scaleY = size.height / imgH.toFloat()
+        val scale  = maxOf(scaleX, scaleY)
+        val offX   = (size.width  - imgW  * scale) / 2f
+        val offY   = (size.height - imgH * scale) / 2f
+        val left   = offX + rect.left   * scale
+        val top    = offY + rect.top    * scale
+        val right  = offX + rect.right  * scale
+        val bottom = offY + rect.bottom * scale
+        drawRoundRect(
+            color        = AccentCoral,
+            topLeft      = Offset(left, top),
+            size         = androidx.compose.ui.geometry.Size(right - left, bottom - top),
+            cornerRadius = CornerRadius(8f, 8f),
+            style        = Stroke(width = 3f),
+            alpha        = 0.85f,
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: Dp, onClick: () -> Unit) {
+    FloatingActionButton(
+        onClick = onClick,
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomNavClearance + 20.dp),
+        containerColor = AccentCoral,
+        shape = CircleShape,
+    ) {
+        // Exhaustive over all 6 ScanUiState variants (no `else`) - a future
+        // 7th variant now fails to compile here instead of silently falling
+        // through to the generic search icon unnoticed.
+        when (scanState) {
+            is ScanUiState.Scanning -> CircularProgressIndicator(
+                color = Color.Black, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+            is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
+            is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound ->
+                Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = bottomNavClearance + 28.dp)
+            .glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(CardRadius.PROMINENT),
+            color = SurfaceVariant.copy(0.9f),
+            onClick = onClick,
+        ) {
+            Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottomNavClearance: Dp, onQuickScan: (String) -> Unit) {
+    Column(
+        modifier = Modifier.align(Alignment.BottomStart)
+            .padding(start = 20.dp, bottom = bottomNavClearance + 84.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        recentBarcodes.takeLast(3).reversed().forEach { bc ->
+            Box(Modifier.glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(20.dp), glowAlpha = 0f, reliefAlpha = 0f)) {
+                Surface(
+                    onClick = { onQuickScan(bc) },
+                    shape = RoundedCornerShape(20.dp),
+                    color = SurfaceVariant.copy(0.85f),
+                ) {
+                    Row(Modifier.padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(Icons.Default.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
+                        Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.ScanInstantModeFab(instantMode: Boolean, bottomNavClearance: Dp, onClick: () -> Unit) {
+    FloatingActionButton(
+        onClick = onClick,
+        modifier       = Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = bottomNavClearance + 20.dp),
+        containerColor = if (instantMode) AccentCoral else SurfaceVariant,
+        shape          = CircleShape,
+    ) {
+        Icon(Icons.Default.Bolt, stringResource(R.string.scan_instant_toggle), tint = if (instantMode) Color.Black else OnSurface)
+    }
+}
+
+@Composable
+private fun BoxScope.ScanStateOverlay(
+    state: ScanUiState,
+    hasCamera: Boolean,
+    cameraUnavailable: Boolean,
+    bottomNavClearance: Dp,
+    language: String,
+    healthConditions: Set<String>,
+    onRetryScore: () -> Unit,
+    onDismissError: () -> Unit,
+    onDismissFound: () -> Unit,
+    onSaveDetectedMedication: (fr.scanneat.domain.engine.medication.MedicationDbEntry) -> Unit,
+) {
+    when (val s = state) {
+        is ScanUiState.Idle, is ScanUiState.Scanning, is ScanUiState.Success -> Unit
+        is ScanUiState.Error -> {
+            if (hasCamera && !cameraUnavailable) {
+                if (s.needsPhoto) {
+                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp)
+                        .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+                        color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL)) {
+                        Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
+                            Spacer(Modifier.width(Spacing.S))
+                            Text(stringResource(R.string.scan_needs_photo),
+                                Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
+                            IconButton(onClick = onDismissError, modifier = Modifier.size(32.dp)) {
+                                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface)
+                            }
+                        }
+                    }
+                } else {
+                    ErrorBanner(
+                        message     = s.message,
+                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp),
+                        actionLabel = stringResource(R.string.common_retry),
+                        onAction    = onRetryScore,
+                        onDismiss   = onDismissError,
+                    )
+                }
+            } else {
+                // Same error surface as the camera path above, but reachable from the
+                // no-camera/camera-unavailable fallbacks too - those flows call
+                // viewModel.score() straight from manual barcode entry, with no FAB or
+                // camera preview underneath, so a scoring failure there still needs
+                // somewhere to show up instead of silently going nowhere.
+                ErrorBanner(
+                    message     = s.message,
+                    modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 24.dp),
+                    actionLabel = stringResource(R.string.common_retry),
+                    onAction    = onRetryScore,
+                    onDismiss   = onDismissError,
+                )
+            }
+        }
+        is ScanUiState.MedicationFound -> {
+            val hints = remember(s.entry, language, healthConditions) {
+                generateMedicationHints(s.entry, healthConditions, language)
+            }
+            AlertDialog(
+                onDismissRequest = onDismissFound,
+                containerColor = SurfaceVariant,
+                title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        Text(stringResource(R.string.scan_medication_found_body, s.entry.name), color = OnBackground.copy(0.7f))
+                        FactsCautionsColumn(hints.facts, hints.cautions)
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { onSaveDetectedMedication(s.entry) }) {
+                        Text(stringResource(R.string.scan_medication_found_add), color = Teal)
+                    }
+                },
+                dismissButton = { TextButton(onClick = onDismissFound) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+            )
+        }
+        is ScanUiState.NonConsumableFound -> {
+            val hints = remember(s.entry, language) { generateNonConsumableHints(s.entry.category, language) }
+            AlertDialog(
+                onDismissRequest = onDismissFound,
+                containerColor = SurfaceVariant,
+                title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        Text(stringResource(R.string.scan_nonconsumable_found_body, s.entry.name, s.entry.brand), color = OnBackground.copy(0.8f))
+                        Text(stringResource(R.string.scan_nonconsumable_safety_line), color = semanticRed(), fontWeight = FontWeight.SemiBold)
+                        FactsCautionsColumn(hints.facts, hints.cautions)
+                    }
+                },
+                confirmButton = { TextButton(onClick = onDismissFound) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
+            )
+        }
+    }
+}
