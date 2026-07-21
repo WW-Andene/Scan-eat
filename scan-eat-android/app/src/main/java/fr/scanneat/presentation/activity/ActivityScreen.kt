@@ -147,143 +147,25 @@ fun ActivityScreen(
             // Previously an inline single-domain MonthCalendar toggled here;
             // now routes to the unified Calendar (Dashboard), which shows
             // activity alongside every other tracker.
-            item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    // New: consecutive-days activity streak badge
-                    if (streak.value > 0) {
-                        Surface(shape = RoundedCornerShape(50), color = semanticRed().copy(0.15f)) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
-                            ) {
-                                Icon(Icons.Default.LocalFireDepartment, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
-                                // stringResource, not a hardcoded "j" (French "jour") suffix -
-                                // an English-language user saw this exact French fragment
-                                // regardless of the app's own in-app language setting.
-                                Text(stringResource(R.string.common_streak_days_compact, streak.value), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    } else {
-                        Spacer(Modifier.width(1.dp))
-                    }
-                    IconButton(onClick = onOpenCalendar) {
-                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
-                    }
-                }
-            }
+            item { ActivityStreakRow(streakDays = streak.value, onOpenCalendar = onOpenCalendar) }
 
             // Daily burned summary
             val totalKcal = entries.value.sumOf { it.kcalBurned }
             val totalMin  = entries.value.sumOf { it.minutes }
             if (totalKcal > 0) {
-                item {
-                    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(16.dp)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("$totalKcal", style = MaterialTheme.typography.titleLarge, color = semanticRed(), fontWeight = FontWeight.Bold)
-                                Text(stringResource(R.string.activity_kcal_burned_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("$totalMin", style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
-                                Text(stringResource(R.string.activity_minutes_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
-                            }
-                        }
-                    }
-                }
+                item { ActivityDailyTotalsCard(totalKcal = totalKcal, totalMin = totalMin) }
             }
 
             // Improvement: 7-day kcal burn bar chart
             if (weeklyBurn.value.any { it.second > 0 }) {
-                item {
-                    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
-                        val peak = weeklyBurn.value.maxOf { it.second }.coerceAtLeast(1)
-                        val barColor = semanticRed()
-                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                            Text(stringResource(R.string.activity_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
-                                weeklyBurn.value.forEach { (date, kcal) ->
-                                    val frac = kcal.toFloat() / peak
-                                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
-                                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.02f)).background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)))
-                                    }
-                                }
-                            }
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                weeklyBurn.value.forEach { (date, _) ->
-                                    Text(
-                                        date.dayOfWeek.name.take(1),
-                                        modifier = Modifier.weight(1f),
-                                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
-                                        color = OnSurface.copy(if (date == LocalDate.now()) 0.8f else 0.4f),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                item { ActivityWeeklyBurnChart(weeklyBurn.value) }
             }
 
             // New: weekly active minutes vs WHO 150 min/week goal + week-over-week trend
-            item {
-                val whoGoal = 150
-                val pct = (weeklyMinutes.value.toFloat() / whoGoal).coerceIn(0f, 1f)
-                ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.activity_weekly_minutes_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
-                                weekTrendPct.value?.let { trend ->
-                                    val (trendColor, trendIcon) = when {
-                                        trend > 0  -> semanticGreen() to "↑"
-                                        trend < 0  -> semanticRed()   to "↓"
-                                        else       -> OnSurface.copy(0.5f) to "→"
-                                    }
-                                    Text("$trendIcon${kotlin.math.abs(trend)}%", style = MaterialTheme.typography.labelSmall, color = trendColor)
-                                }
-                                Text("${weeklyMinutes.value}/$whoGoal min", style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = if (pct >= 1f) semanticGreen() else AccentCoral, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        LinearProgressIndicator(
-                            progress    = { pct },
-                            modifier    = Modifier.fillMaxWidth(),
-                            color       = if (pct >= 1f) semanticGreen() else AccentCoral,
-                            trackColor  = SurfaceVariant,
-                        )
-                        if (pct >= 1f) Text(stringResource(R.string.activity_who_goal_reached), style = MaterialTheme.typography.labelSmall, color = semanticGreen())
-                        else Text(stringResource(R.string.activity_who_goal_hint), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
-                    }
-                }
-            }
+            item { ActivityWeeklyMinutesCard(weeklyMinutes = weeklyMinutes.value, weekTrendPct = weekTrendPct.value) }
 
             items(entries.value, key = { it.id }) { e ->
-                ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            val subLabel = e.subType?.let { subTypeLabels[it] ?: it }
-                            Text(
-                                if (subLabel != null) "${typeLabels[e.type] ?: e.type.name} · $subLabel" else typeLabels[e.type] ?: e.type.name,
-                                style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium,
-                            )
-                            Text(stringResource(R.string.activity_entry_summary, e.minutes, e.kcalBurned), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                            val metricsParts = buildList {
-                                if (e.sets != null && e.reps != null) add(stringResource(R.string.activity_entry_sets_reps, e.sets, e.reps))
-                                e.weightUsedKg?.let { add(stringResource(R.string.activity_entry_weight, it)) }
-                                e.distanceKm?.let { add(stringResource(R.string.activity_entry_distance, it)) }
-                            }
-                            if (metricsParts.isNotEmpty()) {
-                                Text(metricsParts.joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                            }
-                        }
-                        IconButton(onClick = { deleteTarget = e.id }) {
-                            Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
-                        }
-                    }
-                }
+                ActivityEntryRow(entry = e, typeLabels = typeLabels, subTypeLabels = subTypeLabels, onDelete = { deleteTarget = e.id })
             }
 
             if (entries.value.isEmpty()) {
@@ -320,143 +202,35 @@ fun ActivityScreen(
     }
 
     if (showAdd) {
-        AlertDialog(
-            onDismissRequest = { showAdd = false },
-            containerColor = SurfaceVariant,
-            title = { Text(stringResource(R.string.activity_add_dialog_title), color = OnBackground) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                    // Type picker — Improvement: sorted by most recently used first
-                    Text(stringResource(R.string.activity_type_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        sortedTypes.value.forEach { type ->
-                            val label = typeLabels[type] ?: type.name
-                            FilterChip(
-                                selected = selectedType == type,
-                                onClick = { selectedType = type; selectedSubType = null; customSubTypeText = "" },
-                                label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                                    labelColor = OnBackground.copy(0.7f),
-                                ),
-                            )
-                        }
-                    }
-                    val availableSubTypes = ACTIVITY_SUB_TYPES[selectedType].orEmpty()
-                    if (availableSubTypes.isNotEmpty()) {
-                        Text(stringResource(R.string.activity_subtype_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            availableSubTypes.forEach { key ->
-                                FilterChip(
-                                    selected = selectedSubType == key,
-                                    onClick = { selectedSubType = if (selectedSubType == key) null else key; customSubTypeText = "" },
-                                    label = { Text(subTypeLabels[key] ?: key, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
-                                        labelColor = OnBackground.copy(0.7f),
-                                    ),
-                                )
-                            }
-                        }
-                    }
-                    // Free-text sub-type — the fixed chip lists above only cover a
-                    // handful of common exercises per type; there was previously no
-                    // way to log something like "rowing" or "pilates" at all.
-                    // Suggestions drawn from the user's own past entries (no new
-                    // data source), excluding names already offered as fixed chips.
-                    val pastForType = remember(selectedType, pastSubTypes.value) {
-                        pastSubTypes.value[selectedType].orEmpty().filter { it !in availableSubTypes }
-                    }
-                    if (pastForType.isNotEmpty()) {
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            pastForType.forEach { suggestion ->
-                                FilterChip(
-                                    selected = selectedSubType == suggestion,
-                                    onClick = { selectedSubType = suggestion; customSubTypeText = suggestion },
-                                    label = { Text(suggestion, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
-                                        labelColor = OnBackground.copy(0.7f),
-                                    ),
-                                )
-                            }
-                        }
-                    }
-                    OutlinedTextField(
-                        value = customSubTypeText,
-                        onValueChange = { customSubTypeText = it; selectedSubType = it.ifBlank { null } },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.activity_subtype_custom_label)) },
-                        singleLine = true,
-                        colors = scanEatTextFieldColors(),
+        AddActivityDialog(
+            sortedTypes = sortedTypes.value,
+            typeLabels = typeLabels,
+            subTypeLabels = subTypeLabels,
+            pastSubTypes = pastSubTypes.value,
+            selectedType = selectedType, onSelectedTypeChange = { selectedType = it; selectedSubType = null; customSubTypeText = "" },
+            selectedSubType = selectedSubType,
+            onSelectedSubTypeChange = { selectedSubType = it },
+            customSubTypeText = customSubTypeText, onCustomSubTypeTextChange = { customSubTypeText = it; selectedSubType = it.ifBlank { null } },
+            setsText = setsText, onSetsTextChange = { setsText = it },
+            repsText = repsText, onRepsTextChange = { repsText = it },
+            distanceText = distanceText, onDistanceTextChange = { distanceText = it },
+            weightUsedText = weightUsedText, onWeightUsedTextChange = { weightUsedText = it },
+            minutesText = minutesText, onMinutesTextChange = { minutesText = it },
+            onDismiss = { showAdd = false },
+            onAdd = {
+                minutesText.toIntOrNull()?.let { min ->
+                    viewModel.log(
+                        selectedType, min,
+                        subType = selectedSubType,
+                        sets = setsText.toIntOrNull(),
+                        reps = repsText.toIntOrNull(),
+                        distanceKm = distanceText.replace(',', '.').toDoubleOrNull(),
+                        weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull(),
                     )
-                    if (selectedType == ActivityType.STRENGTH) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                            OutlinedTextField(
-                                value = setsText, onValueChange = { setsText = it }, modifier = Modifier.weight(1f),
-                                label = { Text(stringResource(R.string.activity_sets_label)) }, singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                colors = scanEatTextFieldColors(),
-                            )
-                            OutlinedTextField(
-                                value = repsText, onValueChange = { repsText = it }, modifier = Modifier.weight(1f),
-                                label = { Text(stringResource(R.string.activity_reps_label)) }, singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                colors = scanEatTextFieldColors(),
-                            )
-                        }
-                        OutlinedTextField(
-                            value = weightUsedText, onValueChange = { weightUsedText = it }, modifier = Modifier.fillMaxWidth(),
-                            label = { Text(stringResource(R.string.activity_weight_used_label)) }, singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            colors = scanEatTextFieldColors(),
-                        )
-                    }
-                    if (selectedType == ActivityType.RUNNING || selectedType == ActivityType.CYCLING || selectedType == ActivityType.SWIMMING) {
-                        OutlinedTextField(
-                            value = distanceText, onValueChange = { distanceText = it }, modifier = Modifier.fillMaxWidth(),
-                            label = { Text(stringResource(R.string.activity_distance_label)) }, singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                            colors = scanEatTextFieldColors(),
-                        )
-                    }
-                    val minutes = minutesText.toIntOrNull()
-                    val minutesValid = minutes != null && minutes in 1..1440
-                    OutlinedTextField(
-                        value = minutesText, onValueChange = { minutesText = it },
-                        label = { Text(stringResource(R.string.activity_duration_label)) }, singleLine = true,
-                        isError = minutesText.isNotBlank() && !minutesValid,
-                        supportingText = {
-                            if (minutesText.isNotBlank() && !minutesValid) {
-                                Text(stringResource(R.string.activity_duration_invalid), color = semanticRed())
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = scanEatTextFieldColors(),
-                    )
+                    showAdd = false
+                    selectedSubType = null; customSubTypeText = ""; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
                 }
             },
-            confirmButton = {
-                val minutesValid = (minutesText.toIntOrNull() ?: 0) in 1..1440
-                TextButton(
-                    onClick = {
-                        minutesText.toIntOrNull()?.let { min ->
-                            viewModel.log(
-                                selectedType, min,
-                                subType = selectedSubType,
-                                sets = setsText.toIntOrNull(),
-                                reps = repsText.toIntOrNull(),
-                                distanceKm = distanceText.replace(',', '.').toDoubleOrNull(),
-                                weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull(),
-                            )
-                            showAdd = false
-                            selectedSubType = null; customSubTypeText = ""; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
-                        }
-                    },
-                    enabled = minutesValid,
-                ) { Text(stringResource(R.string.common_add), color = if (minutesValid) AccentCoral else OnBackground.copy(0.3f)) }
-            },
-            dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
         )
     }
 
@@ -479,4 +253,285 @@ fun ActivityScreen(
         )
     }
 
+}
+
+@Composable
+private fun ActivityStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        // New: consecutive-days activity streak badge
+        if (streakDays > 0) {
+            Surface(shape = RoundedCornerShape(50), color = semanticRed().copy(0.15f)) {
+                Row(
+                    modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                ) {
+                    Icon(Icons.Default.LocalFireDepartment, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                    // stringResource, not a hardcoded "j" (French "jour") suffix -
+                    // an English-language user saw this exact French fragment
+                    // regardless of the app's own in-app language setting.
+                    Text(stringResource(R.string.common_streak_days_compact, streakDays), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
+                }
+            }
+        } else {
+            Spacer(Modifier.width(1.dp))
+        }
+        IconButton(onClick = onOpenCalendar) {
+            Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
+        }
+    }
+}
+
+@Composable
+private fun ActivityDailyTotalsCard(totalKcal: Int, totalMin: Int) {
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(16.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("$totalKcal", style = MaterialTheme.typography.titleLarge, color = semanticRed(), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.activity_kcal_burned_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("$totalMin", style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.activity_minutes_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>) {
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+        val peak = weeklyBurn.maxOf { it.second }.coerceAtLeast(1)
+        val barColor = semanticRed()
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            Text(stringResource(R.string.activity_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
+                weeklyBurn.forEach { (date, kcal) ->
+                    val frac = kcal.toFloat() / peak
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
+                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.02f)).background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)))
+                    }
+                }
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                weeklyBurn.forEach { (date, _) ->
+                    Text(
+                        date.dayOfWeek.name.take(1),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                        color = OnSurface.copy(if (date == LocalDate.now()) 0.8f else 0.4f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActivityWeeklyMinutesCard(weeklyMinutes: Int, weekTrendPct: Int?) {
+    val whoGoal = 150
+    val pct = (weeklyMinutes.toFloat() / whoGoal).coerceIn(0f, 1f)
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.activity_weekly_minutes_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
+                    weekTrendPct?.let { trend ->
+                        val (trendColor, trendIcon) = when {
+                            trend > 0  -> semanticGreen() to "↑"
+                            trend < 0  -> semanticRed()   to "↓"
+                            else       -> OnSurface.copy(0.5f) to "→"
+                        }
+                        Text("$trendIcon${kotlin.math.abs(trend)}%", style = MaterialTheme.typography.labelSmall, color = trendColor)
+                    }
+                    Text("$weeklyMinutes/$whoGoal min", style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = if (pct >= 1f) semanticGreen() else AccentCoral, fontWeight = FontWeight.Bold)
+                }
+            }
+            LinearProgressIndicator(
+                progress    = { pct },
+                modifier    = Modifier.fillMaxWidth(),
+                color       = if (pct >= 1f) semanticGreen() else AccentCoral,
+                trackColor  = SurfaceVariant,
+            )
+            if (pct >= 1f) Text(stringResource(R.string.activity_who_goal_reached), style = MaterialTheme.typography.labelSmall, color = semanticGreen())
+            else Text(stringResource(R.string.activity_who_goal_hint), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+        }
+    }
+}
+
+@Composable
+private fun ActivityEntryRow(entry: ActivityEntry, typeLabels: Map<ActivityType, String>, subTypeLabels: Map<String, String>, onDelete: () -> Unit) {
+    val e = entry
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Column(Modifier.weight(1f)) {
+                val subLabel = e.subType?.let { subTypeLabels[it] ?: it }
+                Text(
+                    if (subLabel != null) "${typeLabels[e.type] ?: e.type.name} · $subLabel" else typeLabels[e.type] ?: e.type.name,
+                    style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium,
+                )
+                Text(stringResource(R.string.activity_entry_summary, e.minutes, e.kcalBurned), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                val metricsParts = buildList {
+                    if (e.sets != null && e.reps != null) add(stringResource(R.string.activity_entry_sets_reps, e.sets, e.reps))
+                    e.weightUsedKg?.let { add(stringResource(R.string.activity_entry_weight, it)) }
+                    e.distanceKm?.let { add(stringResource(R.string.activity_entry_distance, it)) }
+                }
+                if (metricsParts.isNotEmpty()) {
+                    Text(metricsParts.joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                }
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AddActivityDialog(
+    sortedTypes: List<ActivityType>,
+    typeLabels: Map<ActivityType, String>,
+    subTypeLabels: Map<String, String>,
+    pastSubTypes: Map<ActivityType, List<String>>,
+    selectedType: ActivityType, onSelectedTypeChange: (ActivityType) -> Unit,
+    selectedSubType: String?, onSelectedSubTypeChange: (String?) -> Unit,
+    customSubTypeText: String, onCustomSubTypeTextChange: (String) -> Unit,
+    setsText: String, onSetsTextChange: (String) -> Unit,
+    repsText: String, onRepsTextChange: (String) -> Unit,
+    distanceText: String, onDistanceTextChange: (String) -> Unit,
+    weightUsedText: String, onWeightUsedTextChange: (String) -> Unit,
+    minutesText: String, onMinutesTextChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onAdd: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.activity_add_dialog_title), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                // Type picker — Improvement: sorted by most recently used first
+                Text(stringResource(R.string.activity_type_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    sortedTypes.forEach { type ->
+                        val label = typeLabels[type] ?: type.name
+                        FilterChip(
+                            selected = selectedType == type,
+                            onClick = { onSelectedTypeChange(type) },
+                            label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                labelColor = OnBackground.copy(0.7f),
+                            ),
+                        )
+                    }
+                }
+                val availableSubTypes = ACTIVITY_SUB_TYPES[selectedType].orEmpty()
+                if (availableSubTypes.isNotEmpty()) {
+                    Text(stringResource(R.string.activity_subtype_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        availableSubTypes.forEach { key ->
+                            FilterChip(
+                                selected = selectedSubType == key,
+                                onClick = { onSelectedSubTypeChange(if (selectedSubType == key) null else key); onCustomSubTypeTextChange("") },
+                                label = { Text(subTypeLabels[key] ?: key, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                                    labelColor = OnBackground.copy(0.7f),
+                                ),
+                            )
+                        }
+                    }
+                }
+                // Free-text sub-type — the fixed chip lists above only cover a
+                // handful of common exercises per type; there was previously no
+                // way to log something like "rowing" or "pilates" at all.
+                // Suggestions drawn from the user's own past entries (no new
+                // data source), excluding names already offered as fixed chips.
+                val pastForType = remember(selectedType, pastSubTypes) {
+                    pastSubTypes[selectedType].orEmpty().filter { it !in availableSubTypes }
+                }
+                if (pastForType.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        pastForType.forEach { suggestion ->
+                            FilterChip(
+                                selected = selectedSubType == suggestion,
+                                onClick = { onSelectedSubTypeChange(suggestion); onCustomSubTypeTextChange(suggestion) },
+                                label = { Text(suggestion, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                                    labelColor = OnBackground.copy(0.7f),
+                                ),
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = customSubTypeText,
+                    onValueChange = { onCustomSubTypeTextChange(it); onSelectedSubTypeChange(it.ifBlank { null }) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.activity_subtype_custom_label)) },
+                    singleLine = true,
+                    colors = scanEatTextFieldColors(),
+                )
+                if (selectedType == ActivityType.STRENGTH) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        OutlinedTextField(
+                            value = setsText, onValueChange = onSetsTextChange, modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.activity_sets_label)) }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = scanEatTextFieldColors(),
+                        )
+                        OutlinedTextField(
+                            value = repsText, onValueChange = onRepsTextChange, modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.activity_reps_label)) }, singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = scanEatTextFieldColors(),
+                        )
+                    }
+                    OutlinedTextField(
+                        value = weightUsedText, onValueChange = onWeightUsedTextChange, modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.activity_weight_used_label)) }, singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        colors = scanEatTextFieldColors(),
+                    )
+                }
+                if (selectedType == ActivityType.RUNNING || selectedType == ActivityType.CYCLING || selectedType == ActivityType.SWIMMING) {
+                    OutlinedTextField(
+                        value = distanceText, onValueChange = onDistanceTextChange, modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.activity_distance_label)) }, singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        colors = scanEatTextFieldColors(),
+                    )
+                }
+                val minutes = minutesText.toIntOrNull()
+                val minutesValid = minutes != null && minutes in 1..1440
+                OutlinedTextField(
+                    value = minutesText, onValueChange = onMinutesTextChange,
+                    label = { Text(stringResource(R.string.activity_duration_label)) }, singleLine = true,
+                    isError = minutesText.isNotBlank() && !minutesValid,
+                    supportingText = {
+                        if (minutesText.isNotBlank() && !minutesValid) {
+                            Text(stringResource(R.string.activity_duration_invalid), color = semanticRed())
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = scanEatTextFieldColors(),
+                )
+            }
+        },
+        confirmButton = {
+            val minutesValid = (minutesText.toIntOrNull() ?: 0) in 1..1440
+            TextButton(
+                onClick = onAdd,
+                enabled = minutesValid,
+            ) { Text(stringResource(R.string.common_add), color = if (minutesValid) AccentCoral else OnBackground.copy(0.3f)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
 }
