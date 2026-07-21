@@ -1112,6 +1112,7 @@
     <string name="dashboard_budget_title">Today\'s Budgets</string>
     <string name="dashboard_budget_satfat">Sat. fat</string>
     <string name="dashboard_budget_sugars">Sugars</string>
+    <string name="dashboard_budget_ideal">ideal: %1$dg (WHO)</string>
     <string name="dashboard_budget_salt">Salt</string>
 
     <!-- ── Recipes screen ─────────────────────────────────────────────────── -->

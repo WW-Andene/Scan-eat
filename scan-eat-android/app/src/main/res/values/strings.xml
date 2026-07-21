@@ -1148,6 +1148,7 @@
     <string name="dashboard_budget_title">Budgets du jour</string>
     <string name="dashboard_budget_satfat">AG saturés</string>
     <string name="dashboard_budget_sugars">Sucres</string>
+    <string name="dashboard_budget_ideal">idéal : %1$dg (OMS)</string>
     <string name="dashboard_budget_salt">Sel</string>
 
     <!-- ── Recipes screen ─────────────────────────────────────────────────── -->
