@@ -22,6 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.FastCompletion
+import fr.scanneat.data.repository.health.FastingState
 import fr.scanneat.presentation.biolism.hmsFromSeconds
 import fr.scanneat.presentation.ui.theme.*
 
@@ -80,6 +81,160 @@ private fun Fasting7DayChart(history: List<FastCompletion>) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ActiveFastCard(fastingState: FastingState, language: String, personalRecord: Double, onCancel: () -> Unit, onStop: () -> Unit) {
+    val fs = fastingState
+    val pct = fs.progressFraction.coerceIn(0f, 1f)
+    CircularProgressIndicator(
+        progress = { pct }, modifier = Modifier.size(140.dp),
+        color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
+        trackColor = SurfaceVariant, strokeWidth = 10.dp,
+    )
+    val (h, m, _) = hmsFromSeconds(fs.elapsedMs / 1000)
+    Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
+    Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+
+    // Metabolic phase indicator (now bilingual)
+    val phase = metabolicPhase(h.toInt())
+    val nextPhase = METABOLIC_PHASES.firstOrNull { it.minHours > h }
+    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.1f)) {
+        Column(modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(stringResource(R.string.fasting_phase_label, phase.label(language)), style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
+            Text(phase.description(language), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
+            if (nextPhase != null) {
+                Text(stringResource(R.string.fasting_phase_next, nextPhase.label(language), nextPhase.minHours), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+            }
+        }
+    }
+    // Personal-record chip — shown when the current fast already
+    // beats the user's longest historically completed fast.
+    if (personalRecord > 0 && h >= personalRecord) {
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Gold.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Gold.copy(0.4f))) {
+            Row(
+                modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                // Icon, not the 🏆 emoji baked into the string before.
+                Icon(Icons.Default.EmojiEvents, null, tint = Gold, modifier = Modifier.size(16.dp))
+                Text(stringResource(R.string.fasting_new_record), style = MaterialTheme.typography.labelMedium, color = Gold, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+        ScanEatOutlinedButton(onClick = onCancel) {
+            Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.7f))
+        }
+        ScanEatPrimaryButton(onClick = onStop) {
+            Text(stringResource(R.string.fasting_finish_button))
+        }
+    }
+}
+
+@Composable
+private fun StartFastForm(
+    targetHours: Int, onTargetHoursChange: (Int) -> Unit,
+    customMode: Boolean, onCustomModeChange: (Boolean) -> Unit,
+    customStart: String, onCustomStartChange: (String) -> Unit,
+    customEnd: String, onCustomEndChange: (String) -> Unit,
+    customHours: Double?,
+    onStart: (Int) -> Unit,
+) {
+    Text(stringResource(R.string.fasting_start_title), style = MaterialTheme.typography.titleMedium, color = OnSurface, fontWeight = FontWeight.SemiBold)
+    Text(stringResource(R.string.fasting_target_duration_label), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        listOf(12, 16, 18, 20, 24).forEach { h ->
+            FilterChip(
+                selected = !customMode && targetHours == h, onClick = { onCustomModeChange(false); onTargetHoursChange(h) },
+                label = { Text(stringResource(R.string.fasting_hours_chip, h), style = MaterialTheme.typography.labelMedium) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                    labelColor = OnBackground.copy(0.7f),
+                ),
+            )
+        }
+        FilterChip(
+            selected = customMode, onClick = { onCustomModeChange(true) },
+            label = { Text(stringResource(R.string.fasting_custom_chip), style = MaterialTheme.typography.labelMedium) },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                labelColor = OnBackground.copy(0.7f),
+            ),
+        )
+    }
+    if (customMode) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = customStart, onValueChange = onCustomStartChange,
+                label = { Text(stringResource(R.string.fasting_custom_start_label)) },
+                singleLine = true, modifier = Modifier.width(110.dp),
+                textStyle = MaterialTheme.typography.bodySmall,
+            )
+            Text("→", style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
+            OutlinedTextField(
+                value = customEnd, onValueChange = onCustomEndChange,
+                label = { Text(stringResource(R.string.fasting_custom_end_label)) },
+                singleLine = true, modifier = Modifier.width(110.dp),
+                textStyle = MaterialTheme.typography.bodySmall,
+            )
+        }
+        if (customHours != null) {
+            Text(stringResource(R.string.fasting_target_progress, customHours.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+        }
+    }
+    val effectiveHours = if (customMode) customHours?.toInt() else targetHours
+    ScanEatPrimaryButton(
+        onClick = { effectiveHours?.let(onStart) },
+        enabled = effectiveHours != null,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(stringResource(R.string.fasting_start_button, effectiveHours ?: targetHours))
+    }
+}
+
+@Composable
+private fun FastingHistoryStatsCard(history: List<FastCompletion>) {
+    val completed = history
+    val successCount = completed.count { it.reached }
+    val avgHours = completed.map { it.achievedHours }.average()
+    val longestH = completed.maxOf { it.achievedHours }
+    Text(stringResource(R.string.fasting_history_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+    Spacer(Modifier.height(Spacing.S))
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        listOf(
+            stringResource(R.string.fasting_stat_total)   to "${completed.size}",
+            stringResource(R.string.fasting_stat_success) to "$successCount/${completed.size}",
+            stringResource(R.string.fasting_stat_avg)     to "${String.format(Locale.US, "%.1f", avgHours)}h",
+            stringResource(R.string.fasting_stat_record)  to "${longestH}h",
+        ).forEach { (label, value) ->
+            Surface(
+                modifier = Modifier.weight(1f).glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+                shape = RoundedCornerShape(CardRadius.CONTROL),
+                color = SurfaceVariant.copy(alpha = 0.42f),
+            ) {
+                Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(value, style = MaterialTheme.typography.titleSmall, color = AccentCoral, fontWeight = FontWeight.Bold)
+                    Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                }
+            }
+        }
+    }
+    Spacer(Modifier.height(Spacing.M))
+    // 7-day consistency mini-chart: one bar per day, height = achieved/target
+    Fasting7DayChart(completed)
+}
+
+@Composable
+private fun FastingHistoryRow(completion: FastCompletion) {
+    val c = completion
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+        Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) semanticGreen() else semanticAmber())
+        Icon(if (c.reached) Icons.Default.CheckCircle else Icons.Default.Close, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
     }
 }
 
@@ -201,107 +356,22 @@ fun FastingScreen(
                     ) {
                         val fs = state.value
                         if (fs != null) {
-                            // Active fast
-                            val pct = fs.progressFraction.coerceIn(0f, 1f)
-                            CircularProgressIndicator(
-                                progress = { pct }, modifier = Modifier.size(140.dp),
-                                color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
-                                trackColor = SurfaceVariant, strokeWidth = 10.dp,
+                            ActiveFastCard(
+                                fastingState = fs,
+                                language = language.value,
+                                personalRecord = personalRecord.value,
+                                onCancel = { showCancelConfirm = true },
+                                onStop = { viewModel.stop() },
                             )
-                            val (h, m, _) = hmsFromSeconds(fs.elapsedMs / 1000)
-                            Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
-                            Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-
-                            // Metabolic phase indicator (now bilingual)
-                            val phase = metabolicPhase(h.toInt())
-                            val nextPhase = METABOLIC_PHASES.firstOrNull { it.minHours > h }
-                            val lang = language.value
-                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.1f)) {
-                                Column(modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(stringResource(R.string.fasting_phase_label, phase.label(lang)), style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
-                                    Text(phase.description(lang), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
-                                    if (nextPhase != null) {
-                                        Text(stringResource(R.string.fasting_phase_next, nextPhase.label(lang), nextPhase.minHours), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
-                                    }
-                                }
-                            }
-                            // Personal-record chip — shown when the current fast already
-                            // beats the user's longest historically completed fast.
-                            val pr = personalRecord.value
-                            if (pr > 0 && h >= pr) {
-                                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Gold.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Gold.copy(0.4f))) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    ) {
-                                        // Icon, not the 🏆 emoji baked into the string before.
-                                        Icon(Icons.Default.EmojiEvents, null, tint = Gold, modifier = Modifier.size(16.dp))
-                                        Text(stringResource(R.string.fasting_new_record), style = MaterialTheme.typography.labelMedium, color = Gold, fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                            }
-
-                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                                ScanEatOutlinedButton(onClick = { showCancelConfirm = true }) {
-                                    Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.7f))
-                                }
-                                ScanEatPrimaryButton(onClick = { viewModel.stop() }) {
-                                    Text(stringResource(R.string.fasting_finish_button))
-                                }
-                            }
                         } else {
-                            // Not active
-                            Text(stringResource(R.string.fasting_start_title), style = MaterialTheme.typography.titleMedium, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                            Text(stringResource(R.string.fasting_target_duration_label), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                                listOf(12, 16, 18, 20, 24).forEach { h ->
-                                    FilterChip(
-                                        selected = !customMode && targetHours == h, onClick = { customMode = false; targetHours = h },
-                                        label = { Text(stringResource(R.string.fasting_hours_chip, h), style = MaterialTheme.typography.labelMedium) },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                                            labelColor = OnBackground.copy(0.7f),
-                                        ),
-                                    )
-                                }
-                                FilterChip(
-                                    selected = customMode, onClick = { customMode = true },
-                                    label = { Text(stringResource(R.string.fasting_custom_chip), style = MaterialTheme.typography.labelMedium) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
-                                        labelColor = OnBackground.copy(0.7f),
-                                    ),
-                                )
-                            }
-                            if (customMode) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                                    OutlinedTextField(
-                                        value = customStart, onValueChange = { customStart = it },
-                                        label = { Text(stringResource(R.string.fasting_custom_start_label)) },
-                                        singleLine = true, modifier = Modifier.width(110.dp),
-                                        textStyle = MaterialTheme.typography.bodySmall,
-                                    )
-                                    Text("→", style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
-                                    OutlinedTextField(
-                                        value = customEnd, onValueChange = { customEnd = it },
-                                        label = { Text(stringResource(R.string.fasting_custom_end_label)) },
-                                        singleLine = true, modifier = Modifier.width(110.dp),
-                                        textStyle = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                                if (customHours != null) {
-                                    Text(stringResource(R.string.fasting_target_progress, customHours.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                                }
-                            }
-                            val effectiveHours = if (customMode) customHours?.toInt() else targetHours
-                            ScanEatPrimaryButton(
-                                onClick = { effectiveHours?.let { viewModel.start(it) } },
-                                enabled = effectiveHours != null,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(stringResource(R.string.fasting_start_button, effectiveHours ?: targetHours))
-                            }
+                            StartFastForm(
+                                targetHours = targetHours, onTargetHoursChange = { targetHours = it },
+                                customMode = customMode, onCustomModeChange = { customMode = it },
+                                customStart = customStart, onCustomStartChange = { customStart = it },
+                                customEnd = customEnd, onCustomEndChange = { customEnd = it },
+                                customHours = customHours,
+                                onStart = { hours -> viewModel.start(hours) },
+                            )
                         }
                     }
                 }
@@ -309,47 +379,12 @@ fun FastingScreen(
 
             // History stats summary card
             if (history.value.isNotEmpty()) {
-                item {
-                    val completed = history.value
-                    val successCount = completed.count { it.reached }
-                    val avgHours = completed.map { it.achievedHours }.average()
-                    val longestH = completed.maxOf { it.achievedHours }
-                    Text(stringResource(R.string.fasting_history_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.height(Spacing.S))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        listOf(
-                            stringResource(R.string.fasting_stat_total)   to "${completed.size}",
-                            stringResource(R.string.fasting_stat_success) to "$successCount/${completed.size}",
-                            stringResource(R.string.fasting_stat_avg)     to "${String.format(Locale.US, "%.1f", avgHours)}h",
-                            stringResource(R.string.fasting_stat_record)  to "${longestH}h",
-                        ).forEach { (label, value) ->
-                            Surface(
-                                modifier = Modifier.weight(1f).glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-                                shape = RoundedCornerShape(CardRadius.CONTROL),
-                                color = SurfaceVariant.copy(alpha = 0.42f),
-                            ) {
-                                Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(value, style = MaterialTheme.typography.titleSmall, color = AccentCoral, fontWeight = FontWeight.Bold)
-                                    Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(Spacing.M))
-                    // 7-day consistency mini-chart: one bar per day, height = achieved/target
-                    Fasting7DayChart(completed)
-                }
+                item { FastingHistoryStatsCard(history.value) }
             }
 
             // History list
             if (history.value.isNotEmpty()) {
-                items(history.value.take(20), key = { it.endMs }) { c ->
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                        Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) semanticGreen() else semanticAmber())
-                        Icon(if (c.reached) Icons.Default.CheckCircle else Icons.Default.Close, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
-                    }
-                }
+                items(history.value.take(20), key = { it.endMs }) { c -> FastingHistoryRow(c) }
             }
 
             item { Spacer(Modifier.height(Spacing.XXL)) }
