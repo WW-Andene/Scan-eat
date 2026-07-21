@@ -116,7 +116,16 @@ private fun ReasonRow(d: Deduction) {
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold,
             modifier = Modifier.width(32.dp),
         )
-        Text(d.reason, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.7f), modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(d.reason, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.7f))
+            // AdditiveRiskPillar populates this with a per-substance citation
+            // (e.g. "E250 (Sodium nitrite): Linked to increased colorectal
+            // cancer risk") - previously computed and silently dropped, the
+            // ReasonRow above never rendered anything beyond the flat reason.
+            d.evidence?.let { evidence ->
+                Text(evidence, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+            }
+        }
     }
 }
 
