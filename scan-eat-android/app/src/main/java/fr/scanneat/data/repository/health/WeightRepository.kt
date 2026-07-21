@@ -147,14 +147,25 @@ class WeightRepository @Inject constructor(
         }
     }
 
-    /** Reactive summary — recomputes whenever any weight entry changes. */
+    /**
+     * Reactive summary — recomputes whenever any weight entry changes, reusing
+     * observeAll()'s own emission instead of re-fetching. Previously ignored the
+     * emitted list entirely (map { _ -> summarize(...) }) and had summarize() run
+     * its own independent suspend DB query on every single emission — doubling
+     * every weight-triggered query for no reason, since observeAll() had already
+     * just loaded the exact same rows.
+     */
     fun observeSummary(days: Int = 30, profileId: String = "default"): Flow<WeightSummary?> =
-        observeAll(profileId).map { _ -> summarize(days, profileId) }
+        observeAll(profileId).map { all -> summarizeFrom(all.sortedBy { it.date }, days) }
 
     suspend fun summarize(days: Int = 30, profileId: String = "default"): WeightSummary? {
         val all = dao.getRecent(Int.MAX_VALUE, profileId)
             .map { it.toDomain() }
             .sortedBy { it.date }
+        return summarizeFrom(all, days)
+    }
+
+    private fun summarizeFrom(all: List<WeightEntry>, days: Int): WeightSummary? {
         if (all.isEmpty()) return null
 
         val latest  = all.last()

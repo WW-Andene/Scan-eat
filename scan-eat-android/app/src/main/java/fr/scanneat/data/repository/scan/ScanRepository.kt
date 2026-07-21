@@ -17,11 +17,15 @@ import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import okhttp3.OkHttpClient
 import retrofit2.HttpException
@@ -165,12 +169,25 @@ class ScanRepository @Inject constructor(
 
     suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
 
-    fun observeTodayScanCount(profileId: String = "default"): Flow<Int> {
-        val startOfDay = java.time.LocalDate.now()
-            .atStartOfDay(java.time.ZoneId.systemDefault())
-            .toInstant().toEpochMilli()
-        return dao.observeCountSince(startOfDay, profileId)
-    }
+    // ScanViewModel.todayScanCount collects this once at property-init time and keeps
+    // it for the ViewModel's whole lifetime - startOfDay computed once here (the
+    // previous shape) stayed pinned to whichever day the ViewModel happened to be
+    // constructed on, so a session left open across midnight kept accumulating into
+    // "today"'s count forever instead of resetting for the new day (observeCountSince
+    // is an open-ended >= bound, not a same-day window). Polling + flatMapLatest
+    // re-derives startOfDay and re-subscribes exactly when the day rolls over, same
+    // fix already applied to DiaryViewModel/CalendarViewModel/DashboardViewModel.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeTodayScanCount(profileId: String = "default"): Flow<Int> =
+        flow {
+            while (true) {
+                emit(java.time.LocalDate.now())
+                delay(60_000)
+            }
+        }.distinctUntilChanged().flatMapLatest { today ->
+            val startOfDay = today.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+            dao.observeCountSince(startOfDay, profileId)
+        }
 
     suspend fun delete(id: Long) = dao.delete(id)
 
