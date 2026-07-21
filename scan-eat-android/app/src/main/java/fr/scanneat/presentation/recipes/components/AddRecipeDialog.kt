@@ -13,16 +13,25 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.domain.engine.nutrition.FoodEntry
@@ -31,6 +40,17 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+
+// RecipeComponent isn't a type rememberSaveable's default Bundle-backed Saver knows
+// how to store - round-tripping through the same Moshi JSON adapter shape
+// RecipeRepository already uses for persistence keeps the in-progress ingredient
+// list alive across rotation/process death, same as every other field in this dialog.
+private val componentsListAdapter = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+    .adapter<List<RecipeComponent>>(Types.newParameterizedType(List::class.java, RecipeComponent::class.java))
+private val componentsSaver = Saver<List<RecipeComponent>, String>(
+    save = { componentsListAdapter.toJson(it) },
+    restore = { componentsListAdapter.fromJson(it) ?: emptyList() },
+)
 
 @Composable
 internal fun AddRecipeDialog(
@@ -44,7 +64,7 @@ internal fun AddRecipeDialog(
 ) {
     var name by rememberSaveable { mutableStateOf(initialName) }
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
-    var components by remember { mutableStateOf(listOf<RecipeComponent>()) }
+    var components by rememberSaveable(stateSaver = componentsSaver) { mutableStateOf(listOf<RecipeComponent>()) }
     var newIngName by rememberSaveable { mutableStateOf("") }
     var newIngGrams by rememberSaveable { mutableStateOf("") }
     var newIngKcal by rememberSaveable { mutableStateOf("") }
@@ -74,8 +94,13 @@ internal fun AddRecipeDialog(
                     colors = scanEatTextFieldColors())
                 HorizontalDivider(color = OnBackground.copy(0.1f))
                 Text(stringResource(R.string.recipes_ingredients_label), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
-                components.forEach { c ->
-                    Text(stringResource(R.string.recipes_ingredient_summary_compact, c.productName, c.grams.toInt(), c.kcal.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface)
+                components.forEachIndexed { index, c ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(stringResource(R.string.recipes_ingredient_summary_compact, c.productName, c.grams.toInt(), c.kcal.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { components = components.filterIndexed { i, _ -> i != index } }) {
+                            Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
+                        }
+                    }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(
@@ -156,7 +181,7 @@ internal fun AddRecipeDialog(
                     onConfirm(name, components, servings, notes.trim())
                 }
             }, enabled = name.isNotBlank() && components.isNotEmpty()) {
-                Text(stringResource(R.string.common_create), color = AccentCoral)
+                Text(stringResource(R.string.common_create), color = if (name.isNotBlank() && components.isNotEmpty()) AccentCoral else OnBackground.copy(0.3f))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },

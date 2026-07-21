@@ -68,12 +68,9 @@ internal fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (Meal
         confirmButton = {
             // A zero/negative servings-to-log would log negative kcal/macros via
             // consumptionRepo.log - same numeric-entry guard as Weight/CustomFood.
-            TextButton(onClick = {
-                servingsText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }?.let { servingsToLog ->
-                    onLog(slot, servingsToLog / recipe.servings)
-                }
-            }) {
-                Text(stringResource(R.string.common_log), color = AccentCoral)
+            val servingsToLog = servingsText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0.0 }
+            TextButton(onClick = { servingsToLog?.let { onLog(slot, it / recipe.servings) } }, enabled = servingsToLog != null) {
+                Text(stringResource(R.string.common_log), color = if (servingsToLog != null) AccentCoral else OnBackground.copy(0.3f))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },

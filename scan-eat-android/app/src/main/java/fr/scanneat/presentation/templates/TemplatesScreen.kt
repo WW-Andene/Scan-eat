@@ -27,6 +27,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.domain.model.MealSlot
+import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.result.HintPanel
 import fr.scanneat.presentation.shell.PlanningDestination
 import fr.scanneat.presentation.shell.PlanningSwitcherMenu
@@ -245,7 +246,7 @@ fun TemplatesScreen(
     }
 
     logTarget?.let { t ->
-        var slot by remember { mutableStateOf(t.meal) }
+        var slot by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(t.meal) }
         var portion by rememberSaveable { mutableFloatStateOf(1f) }
         AlertDialog(
             onDismissRequest = { logTarget = null },
@@ -310,7 +311,7 @@ fun TemplatesScreen(
 
     if (showAdd) {
         var name by rememberSaveable { mutableStateOf("") }
-        var meal by remember { mutableStateOf(MealSlot.LUNCH) }
+        var meal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
         AlertDialog(
             onDismissRequest = { showAdd = false },
             containerColor = SurfaceVariant,
@@ -330,7 +331,7 @@ fun TemplatesScreen(
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.create(name, meal); showAdd = false }, enabled = name.isNotBlank()) {
-                    Text(stringResource(R.string.common_create), color = AccentCoral)
+                    Text(stringResource(R.string.common_create), color = if (name.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
                 }
             },
             dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
@@ -371,7 +372,7 @@ private fun EditTemplateItemsDialog(
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(stringResource(R.string.recipes_ingredient_summary_compact, item.productName, item.grams.toInt(), item.kcal.toInt()),
                             style = MaterialTheme.typography.bodySmall, color = OnSurface, modifier = Modifier.weight(1f))
-                        IconButton(onClick = { onRemove(index) }, modifier = Modifier.size(28.dp)) {
+                        IconButton(onClick = { onRemove(index) }) {
                             Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
                         }
                     }

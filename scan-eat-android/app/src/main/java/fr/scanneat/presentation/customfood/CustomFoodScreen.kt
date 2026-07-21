@@ -43,6 +43,19 @@ fun CustomFoodScreen(
 
     val displayList = if (query.value.isBlank()) foods.value else results.value
 
+    // Same pattern as Recipes/Templates - save/delete/rename/import previously called
+    // repo's Room writes completely unguarded, so a write failure now surfaces here as
+    // a one-shot snackbar instead of crashing or silently discarding the action.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val actionFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(actionFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.customfood_title), color = OnBackground) },
         navigationIcon = {
@@ -56,6 +69,7 @@ fun CustomFoodScreen(
                 Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral)
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = CalorieOrange)) {
             // Search bar

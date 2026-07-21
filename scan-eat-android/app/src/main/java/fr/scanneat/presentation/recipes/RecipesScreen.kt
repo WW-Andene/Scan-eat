@@ -263,10 +263,14 @@ fun RecipesScreen(
 
             if (recipes.value.isEmpty()) {
                 item {
-                    EmptyListState(
-                        Icons.Default.RestaurantMenu, stringResource(R.string.recipes_empty_body),
-                        ctaLabel = stringResource(R.string.recipes_cd_new), onCta = { showAdd = true },
-                    )
+                    if (recipeQuery.value.isBlank() && goalFilter.value == RecipesViewModel.GoalFilter.ALL) {
+                        EmptyListState(
+                            Icons.Default.RestaurantMenu, stringResource(R.string.recipes_empty_body),
+                            ctaLabel = stringResource(R.string.recipes_cd_new), onCta = { showAdd = true },
+                        )
+                    } else {
+                        EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.recipes_empty_query, recipeQuery.value))
+                    }
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
@@ -316,7 +320,7 @@ fun RecipesScreen(
                 containerColor = SurfaceVariant,
                 text = {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                        CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(20.dp))
+                        CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                         Text(stringResource(R.string.recipes_import_photo_loading), color = OnBackground)
                     }
                 },

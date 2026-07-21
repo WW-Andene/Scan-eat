@@ -14,6 +14,14 @@ import androidx.room.PrimaryKey
         // history screen (added for the unbounded favorites view) that otherwise
         // full-table-scans on every insert/update to a table that grows unbounded.
         Index("profileId", "favorite", "scannedAt"),
+        // MIGRATION_15_16 creates this index on the real database (for
+        // findBetterInCategory's WHERE profileId = ? AND category = ? ORDER BY
+        // score) but it was never declared here - Room validates a migrated DB's
+        // on-disk schema against the schema it derives from these annotations, so
+        // the mismatch would fail that validation and crash every upgrading user
+        // on next launch, while fresh installs (which never run the migration)
+        // silently never got the index at all.
+        Index("profileId", "category", "score"),
     ],
 )
 data class ScanHistoryEntity(

@@ -11,6 +11,7 @@ import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.domain.model.ScanResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -61,6 +62,15 @@ class CustomFoodViewModel @Inject constructor(
         _query.value = q
     }
 
+    // Same pattern as RecipesViewModel/TemplatesViewModel - save/delete/rename/
+    // importFromScan previously called repo's Room writes completely unguarded,
+    // so an I/O failure (disk full, corrupt row) crashed the app instead of
+    // surfacing here as a one-shot snackbar.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed write, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun save(
         name: String,
         kcal: Double,
@@ -80,19 +90,31 @@ class CustomFoodViewModel @Inject constructor(
         barcode: String? = null,
     ) {
         viewModelScope.launch {
-            repo.save(name = name, kcal = kcal, proteinG = proteinG,
-                      carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases, barcode = barcode)
+            runCatching {
+                repo.save(name = name, kcal = kcal, proteinG = proteinG,
+                          carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG, aliases = aliases, barcode = barcode)
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     /** Deletes by stable row id (not name) so two custom foods sharing a name can't cause one delete to remove both. */
     fun delete(id: String) {
-        viewModelScope.launch { repo.delete(id) }
+        viewModelScope.launch {
+            runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     fun rename(id: String, newName: String) {
         if (newName.isBlank()) return
-        viewModelScope.launch { repo.rename(id, newName) }
+        viewModelScope.launch {
+            // repo.rename() returns false (rather than throwing) on a name collision -
+            // surface that the same way as any other failed write, since the dialog
+            // otherwise closes as if the rename had succeeded while the food silently
+            // keeps its old name.
+            runCatching { repo.rename(id, newName) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                .onSuccess { renamed -> if (!renamed) _actionFailed.value = true }
+        }
     }
 
     // New: expose the most recent scan so the user can import its nutrition directly
@@ -110,7 +132,7 @@ class CustomFoodViewModel @Inject constructor(
     fun importFromScan(scan: ScanResult) {
         val n = scan.product.nutrition
         viewModelScope.launch {
-            repo.save(
+            runCatching { repo.save(
                 name     = scan.product.name,
                 kcal     = n.energyKcal,
                 proteinG = n.proteinG,
@@ -127,7 +149,7 @@ class CustomFoodViewModel @Inject constructor(
                 // generic display name (e.g. two brands both "Yaourt nature").
                 barcode  = scan.barcode,
                 category = scan.product.category,
-            )
+            ) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }

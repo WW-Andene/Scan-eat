@@ -1150,6 +1150,7 @@
     <string name="templates_stats_count">%1$d template(s)</string>
     <string name="templates_stats_total_kcal">%1$d kcal total</string>
     <string name="recipes_empty_body">No recipes yet. Create your first multi-ingredient recipe.</string>
+    <string name="recipes_empty_query">No results for “%1$s”</string>
     <string name="recipes_search_placeholder">Search recipes…</string>
     <string name="recipes_filter_all">All</string>
     <string name="recipes_filter_high_protein">High protein</string>

@@ -75,6 +75,9 @@ internal fun SuggestRecipesDialog(
                     CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                 }
                 errorMessage?.let { Text(it, color = semanticRed()) }
+                if (results != null && results.isEmpty()) {
+                    Text(stringResource(R.string.recipes_suggest_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                }
                 if (!results.isNullOrEmpty()) {
                     HorizontalDivider(color = OnBackground.copy(0.1f))
                     LazyColumn(modifier = Modifier.heightIn(max = 280.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -99,8 +102,9 @@ internal fun SuggestRecipesDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSuggest(ingredient.trim()) }, enabled = !isLoading && ingredient.isNotBlank()) {
-                Text(stringResource(R.string.recipes_suggest_button), color = AccentCoral)
+            val suggestEnabled = !isLoading && ingredient.isNotBlank()
+            TextButton(onClick = { onSuggest(ingredient.trim()) }, enabled = suggestEnabled) {
+                Text(stringResource(R.string.recipes_suggest_button), color = if (suggestEnabled) AccentCoral else OnBackground.copy(0.3f))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss, enabled = !isLoading) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },

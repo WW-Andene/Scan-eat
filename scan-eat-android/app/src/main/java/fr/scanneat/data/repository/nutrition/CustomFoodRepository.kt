@@ -136,7 +136,8 @@ class CustomFoodRepository @Inject constructor(
      * snapshotted independently at creation time, so they're unaffected by
      * this — only the searchable/displayed name changes going forward).
      */
-    suspend fun rename(id: String, newName: String) {
+    /** @return false if [newName] collides with another custom food's name (rename skipped, not applied). */
+    suspend fun rename(id: String, newName: String): Boolean {
         require(newName.isNotBlank()) { "Custom food name must not be blank" }
         // Renaming onto another custom food's name would leave two rows sharing a
         // name (the same crash/over-deletion hazard save() guards against) — the
@@ -144,7 +145,7 @@ class CustomFoodRepository @Inject constructor(
         // @Transaction, so two concurrent renames can't both pass the check and
         // both write, and skips silently (rather than create the duplicate) if a
         // real collision exists.
-        dao.renameIfNoCollision(id, newName.trim())
+        return dao.renameIfNoCollision(id, newName.trim())
     }
 
     /**
