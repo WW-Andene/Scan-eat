@@ -156,7 +156,7 @@ fun OnboardingScreen(
 }
 
 @Composable
-private fun WelcomePage(onNext: () -> Unit) {
+private fun ColumnScope.WelcomePage(onNext: () -> Unit) {
     Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(64.dp))
     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = OnBackground, fontWeight = FontWeight.Bold)
     Text(
@@ -173,7 +173,7 @@ private fun WelcomePage(onNext: () -> Unit) {
 }
 
 @Composable
-private fun ValuePropositionPage(onNext: () -> Unit) {
+private fun ColumnScope.ValuePropositionPage(onNext: () -> Unit) {
     Text(stringResource(R.string.onboarding_value_title), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
 
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
@@ -202,7 +202,7 @@ private fun ValuePropositionPage(onNext: () -> Unit) {
 }
 
 @Composable
-private fun ApiModePage(
+private fun ColumnScope.ApiModePage(
     selectedMode: ApiMode, onModeChange: (ApiMode) -> Unit,
     apiKey: String, onApiKeyChange: (String) -> Unit,
     apiKeyVisible: Boolean, onToggleApiKeyVisible: () -> Unit,
@@ -271,15 +271,15 @@ private fun ApiModePage(
 }
 
 @Composable
-private fun ProfileCapturePage(
+private fun ColumnScope.ProfileCapturePage(
     sex: Sex, onSexChange: (Sex) -> Unit,
     ageText: String, onAgeTextChange: (String) -> Unit,
     heightText: String, onHeightTextChange: (String) -> Unit,
     weightText: String, onWeightTextChange: (String) -> Unit,
     activity: ActivityLevel, onActivityChange: (ActivityLevel) -> Unit,
     goal: Goal, onGoalChange: (Goal) -> Unit,
-    onSaveAndContinue: (Sex, Int?, Double?, Double?, ActivityLevel, Goal) -> Unit,
-    onSaveAndGoToProfile: (Sex, Int?, Double?, Double?, ActivityLevel, Goal) -> Unit,
+    onSaveAndContinue: suspend (Sex, Int?, Double?, Double?, ActivityLevel, Goal) -> Unit,
+    onSaveAndGoToProfile: suspend (Sex, Int?, Double?, Double?, ActivityLevel, Goal) -> Unit,
     onGoToProfileWithoutSaving: () -> Unit,
     onSkip: () -> Unit,
 ) {
