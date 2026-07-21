@@ -11,6 +11,7 @@ import fr.scanneat.data.backup.BackupSummary
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.backup.BackupRepository
+import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.health.HealthConnectRepository
@@ -39,6 +40,7 @@ enum class BackupErrorKey { UNSUPPORTED_VERSION, MALFORMED, IO }
 class SettingsViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val backupRepository: BackupRepository,
+    private val csvExportRepository: CsvExportRepository,
     private val healthConnect: HealthConnectRepository,
     private val fastingRepo: FastingRepository,
 ) : ViewModel() {
@@ -128,7 +130,7 @@ class SettingsViewModel @Inject constructor(
     fun prepareCsvExport() {
         _backupState.value = BackupUiState.Working
         viewModelScope.launch {
-            val csv = backupRepository.exportDiaryCsv()
+            val csv = csvExportRepository.exportDiaryCsv()
             _backupState.value = BackupUiState.CsvExportReady(csv)
         }
     }
@@ -137,7 +139,7 @@ class SettingsViewModel @Inject constructor(
     fun prepareBiolismCsvExport() {
         _backupState.value = BackupUiState.Working
         viewModelScope.launch {
-            val csv = backupRepository.exportBiolismSessionsCsv()
+            val csv = csvExportRepository.exportBiolismSessionsCsv()
             _backupState.value = BackupUiState.CsvExportReady(csv, filenamePrefix = "biolism")
         }
     }
@@ -147,23 +149,23 @@ class SettingsViewModel @Inject constructor(
     // equivalent JSON-backup dataset with no lightweight spreadsheet path.
     fun prepareWeightCsvExport() {
         _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportWeightCsv(), filenamePrefix = "poids") }
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportWeightCsv(), filenamePrefix = "poids") }
     }
     fun prepareActivityCsvExport() {
         _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportActivityCsv(), filenamePrefix = "activite") }
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportActivityCsv(), filenamePrefix = "activite") }
     }
     fun prepareHydrationCsvExport() {
         _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportHydrationCsv(), filenamePrefix = "hydratation") }
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportHydrationCsv(), filenamePrefix = "hydratation") }
     }
     fun prepareMedicationCsvExport() {
         _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportMedicationCsv(), filenamePrefix = "traitement") }
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportMedicationCsv(), filenamePrefix = "traitement") }
     }
     fun prepareFastingCsvExport() {
         _backupState.value = BackupUiState.Working
-        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(backupRepository.exportFastingCsv(), filenamePrefix = "jeune") }
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportFastingCsv(), filenamePrefix = "jeune") }
     }
 
     fun clearScanHistory() = viewModelScope.launch { backupRepository.clearScanHistory() }
