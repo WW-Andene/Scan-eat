@@ -100,6 +100,7 @@
     <string name="common_copy">Copier</string>
     <string name="common_create">Créer</string>
     <string name="common_dash">—</string>
+    <string name="common_streak_days_compact">%1$dj</string>
 
     <!-- ── Meal slots, shared across Diary / Result / MealPlan ───────────── -->
     <string name="meal_breakfast">Petit-dej</string>
@@ -981,6 +982,9 @@
     <string name="fasting_phase_label">Phase · %1$s</string>
     <string name="fasting_phase_next">Prochain : %1$s à %2$dh</string>
     <string name="fasting_new_record">Nouveau record !</string>
+    <string name="fasting_cancel_confirm_title">Annuler le jeûne ?</string>
+    <string name="fasting_cancel_confirm_body">Ce jeûne en cours sera abandonné sans être enregistré dans l\'historique. Cette action est irréversible.</string>
+    <string name="fasting_cancel_confirm_action">Abandonner</string>
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Paramètres</string>

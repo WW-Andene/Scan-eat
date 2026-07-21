@@ -33,10 +33,10 @@ private val CATEGORY_KEYWORDS: List<Pair<GroceryCategory, List<String>>> = listO
         "milk", "cream", "butter", "yogurt", "cheese",
     ),
     GroceryCategory.MEAT_FISH to listOf(
-        "boeuf", "porc", "agneau", "poulet", "canard", "dinde", "jambon", "bacon", "lardons",
+        "boeuf", "veau", "porc", "agneau", "poulet", "canard", "dinde", "jambon", "bacon", "lardons",
         "saucisse", "saucisson", "steak", "viande", "oeuf", "œuf",
         "saumon", "thon", "crevette", "crabe", "homard", "anchois", "poisson", "coquille",
-        "beef", "pork", "lamb", "chicken", "duck", "turkey", "ham", "sausage", "egg",
+        "beef", "veal", "pork", "lamb", "chicken", "duck", "turkey", "ham", "sausage", "egg",
         "salmon", "tuna", "shrimp", "crab", "lobster", "anchovy", "fish",
     ),
     GroceryCategory.BAKERY to listOf(
@@ -48,7 +48,12 @@ private val CATEGORY_KEYWORDS: List<Pair<GroceryCategory, List<String>>> = listO
         "frozen", "ice cream",
     ),
     GroceryCategory.BEVERAGES to listOf(
-        "eau", "jus", "vin", "biere", "cafe", "the ", "soda", "limonade",
+        // "the" (tea), not "the " with a trailing-space hack - that manual boundary
+        // guard is now redundant with (and weaker than) wordBoundaryMatch() below,
+        // which correctly treats end-of-string as a boundary too, unlike the old
+        // hack (which required a literal trailing space, missing "the" as the very
+        // last word in a product name).
+        "eau", "jus", "vin", "biere", "cafe", "the", "soda", "limonade",
         "water", "juice", "wine", "beer", "coffee", "tea", "soda",
     ),
     GroceryCategory.PANTRY to listOf(
@@ -60,10 +65,19 @@ private val CATEGORY_KEYWORDS: List<Pair<GroceryCategory, List<String>>> = listO
     ),
 )
 
+// Word-boundary match, not a raw substring - unbounded key.contains(it) let an
+// earlier-checked category's short keyword false-positive-match inside an unrelated
+// word: "vinaigre" (vinegar, PANTRY) starts with "vin" (wine, BEVERAGES, checked
+// first), and "veau" (veal) contains "eau" (water, BEVERAGES) - so vinegar and veal
+// both landed in the Beverages aisle instead of Pantry/Meat & Fish. Same fix already
+// applied to AllergenDetector/DietChecker/IngredientMatcher for this exact bug class.
+private fun wordBoundaryMatch(key: String, needle: String): Boolean =
+    Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(key)
+
 fun groceryCategoryFor(name: String): GroceryCategory {
     val key = normalizeKey(name)
     for ((category, keywords) in CATEGORY_KEYWORDS) {
-        if (keywords.any { key.contains(it) }) return category
+        if (keywords.any { wordBoundaryMatch(key, it) }) return category
     }
     return GroceryCategory.OTHER
 }

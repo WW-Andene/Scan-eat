@@ -100,6 +100,7 @@
     <string name="common_copy">Copy</string>
     <string name="common_create">Create</string>
     <string name="common_dash">—</string>
+    <string name="common_streak_days_compact">%1$dd</string>
 
     <!-- ── Meal slots, shared across Diary / Result / MealPlan ───────────── -->
     <string name="meal_breakfast">Breakfast</string>
@@ -945,6 +946,9 @@
     <string name="fasting_phase_label">Phase · %1$s</string>
     <string name="fasting_phase_next">Next: %1$s at %2$dh</string>
     <string name="fasting_new_record">New personal record!</string>
+    <string name="fasting_cancel_confirm_title">Cancel fast?</string>
+    <string name="fasting_cancel_confirm_body">This fast in progress will be discarded without being saved to your history. This action cannot be undone.</string>
+    <string name="fasting_cancel_confirm_action">Discard</string>
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Settings</string>

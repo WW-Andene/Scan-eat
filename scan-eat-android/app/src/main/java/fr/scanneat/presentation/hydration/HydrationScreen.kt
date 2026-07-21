@@ -111,8 +111,11 @@ fun HydrationScreen(
                             horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                         ) {
                             Icon(Icons.Default.LocalFireDepartment, null, tint = semanticBlue(), modifier = Modifier.size(16.dp))
+                            // stringResource, not a hardcoded "j" (French "jour") suffix - an
+                            // English-language user saw this exact French fragment regardless
+                            // of the app's own in-app language setting.
                             Text(
-                                "${streak.value}j",
+                                stringResource(R.string.common_streak_days_compact, streak.value),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = semanticBlue(),
                                 fontWeight = FontWeight.Bold,

@@ -140,6 +140,11 @@ fun FastingScreen(
         }
     }
 
+    // cancel() (unlike stop()) discards the in-progress fast with no history record
+    // at all - a misclick on a button sitting right next to Finish previously threw
+    // away hours of progress with zero confirmation and no way to undo it.
+    var showCancelConfirm by remember { mutableStateOf(false) }
+
     var targetHours by remember { mutableIntStateOf(16) }
     var customMode by remember { mutableStateOf(false) }
     var customStart by remember { mutableStateOf("18:00") }
@@ -238,7 +243,7 @@ fun FastingScreen(
                             }
 
                             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                                ScanEatOutlinedButton(onClick = { viewModel.cancel() }) {
+                                ScanEatOutlinedButton(onClick = { showCancelConfirm = true }) {
                                     Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.7f))
                                 }
                                 ScanEatPrimaryButton(onClick = { viewModel.stop() }) {
@@ -362,5 +367,19 @@ fun FastingScreen(
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
+    }
+
+    if (showCancelConfirm) {
+        ConfirmDialog(
+            title = stringResource(R.string.fasting_cancel_confirm_title),
+            body = stringResource(R.string.fasting_cancel_confirm_body),
+            // Not common_cancel - ConfirmDialog's own dismiss button already shows
+            // that same generic "Cancel" label (to back out of *this* dialog), which
+            // would've meant two buttons on the same dialog both reading "Cancel"
+            // with opposite effects.
+            confirmLabel = stringResource(R.string.fasting_cancel_confirm_action),
+            onConfirm = { viewModel.cancel(); showCancelConfirm = false },
+            onDismiss = { showCancelConfirm = false },
+        )
     }
 }

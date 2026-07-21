@@ -91,7 +91,10 @@ fun MedicationScreen(
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                             ) {
                                 Icon(Icons.Default.LocalFireDepartment, null, tint = Teal, modifier = Modifier.size(16.dp))
-                                Text("${adherenceStreak.value}j", style = MaterialTheme.typography.labelMedium, color = Teal, fontWeight = FontWeight.Bold)
+                                // stringResource, not a hardcoded "j" (French "jour") suffix -
+                                // an English-language user saw this exact French fragment
+                                // regardless of the app's own in-app language setting.
+                                Text(stringResource(R.string.common_streak_days_compact, adherenceStreak.value), style = MaterialTheme.typography.labelMedium, color = Teal, fontWeight = FontWeight.Bold)
                             }
                         }
                     } else {

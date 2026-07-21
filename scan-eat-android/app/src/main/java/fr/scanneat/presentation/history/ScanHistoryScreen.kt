@@ -281,23 +281,32 @@ fun ScanHistoryScreen(
                         onClick = { if (scan.dbId > 0) onOpenResult(scan.dbId) },
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clearAndSetSemantics { contentDescription = summary },
+                            modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(Spacing.M),
                         ) {
-                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
-                                Text(
-                                    scan.audit.grade.label,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = gradeColor, fontWeight = FontWeight.Bold,
-                                )
-                            }
-                            Column(Modifier.weight(1f)) {
-                                Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                            // clearAndSetSemantics scoped to just the grade+name/category portion,
+                            // not the whole row - it previously wrapped the IconButtons below too,
+                            // wiping their own semantics along with everything else it merges. A
+                            // TalkBack user could no longer reach the favorite/delete buttons on
+                            // any scan history row at all, only hear this row's single summary.
+                            Row(
+                                modifier = Modifier.weight(1f).clearAndSetSemantics { contentDescription = summary },
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                            ) {
+                                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
+                                    Text(
+                                        scan.audit.grade.label,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = gradeColor, fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                                }
                             }
                             IconButton(onClick = { viewModel.toggleFavorite(scan) }) {
                                 Icon(
