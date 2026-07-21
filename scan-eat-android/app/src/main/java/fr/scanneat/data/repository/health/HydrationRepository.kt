@@ -148,16 +148,20 @@ class HydrationRepository @Inject constructor(
 
     // ---- Backup export/import ----
 
-    /** All (date, mL) entries currently stored, for BackupRepository. */
-    suspend fun exportAll(): List<Pair<LocalDate, Int>> {
-        val prefs = storeData.first()
-        return prefs.asMap().entries.mapNotNull { (pref, value) ->
+    /** Reactive equivalent of [exportAll] — for screens (e.g. the Evolution tab)
+     * that must reflect hydration logged elsewhere while they stay open, unlike
+     * a one-shot suspend read taken once at construction. */
+    fun observeAll(): Flow<List<Pair<LocalDate, Int>>> = storeData.map { prefs ->
+        prefs.asMap().entries.mapNotNull { (pref, value) ->
             if (!pref.name.startsWith(KEY_PREFIX)) return@mapNotNull null
             val date = runCatching { LocalDate.parse(pref.name.removePrefix(KEY_PREFIX)) }.getOrNull() ?: return@mapNotNull null
             val ml = value as? Int ?: return@mapNotNull null
             date to ml
         }
     }
+
+    /** All (date, mL) entries currently stored, for BackupRepository. */
+    suspend fun exportAll(): List<Pair<LocalDate, Int>> = observeAll().first()
 
     /** Restores entries from a backup — overwrites any existing value for the same date. */
     suspend fun importAll(entries: List<Pair<LocalDate, Int>>) {

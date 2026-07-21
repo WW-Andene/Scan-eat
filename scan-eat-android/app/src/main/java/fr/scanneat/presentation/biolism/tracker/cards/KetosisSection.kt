@@ -99,7 +99,17 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.weight(1f).padding(end = Spacing.S),
             ) {
-                Checkbox(checked = active, onCheckedChange = { onToggle() },
+                // onCheckedChange = null, not { onToggle() } - unlike KetosisToggleRow
+                // above (whose Checkbox is the row's only actionable element), this
+                // Surface's whole modifier chain is already .clickable { onToggle() }
+                // (see below), so the nested Checkbox previously duplicated that same
+                // action as its own separately-focusable target: TalkBack announced
+                // both the row and the checkbox as independently tappable for the
+                // identical toggle, splitting one action into two confusing stops.
+                // null makes the checkbox purely decorative, letting the Surface own
+                // the single actionable region (the officially recommended Compose
+                // pattern for a checkbox embedded in a larger clickable row).
+                Checkbox(checked = active, onCheckedChange = null,
                     colors = CheckboxDefaults.colors(checkedColor = Gold, uncheckedColor = Gold.copy(0.4f)))
                 Column {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

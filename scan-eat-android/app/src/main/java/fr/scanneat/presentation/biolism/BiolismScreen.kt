@@ -119,19 +119,23 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                     val isActive = tab == activeTab
                     Surface(
                         onClick = { activeTab = tab },
-                        modifier = Modifier.weight(1f).semantics { role = Role.Tab; selected = isActive },
+                        // heightIn(min = 48.dp) - without it this Surface wrapped its
+                        // content height (label text + Spacing.S padding ≈ 32dp), well
+                        // under the 48dp Material/WCAG minimum touch target.
+                        modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
                         shape = RoundedCornerShape(8.dp),
                         color = if (isActive) GoldHaze else OnBackground.copy(0.03f),
                         border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, GoldBorder) else null,
                     ) {
-                        Text(
-                            stringResource(tab.labelRes),
-                            modifier = Modifier.padding(vertical = Spacing.S),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (isActive) LocalGoldAccent.current else fgColor.copy(0.5f),
-                            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                            textAlign = TextAlign.Center,
-                        )
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                stringResource(tab.labelRes),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (isActive) LocalGoldAccent.current else fgColor.copy(0.5f),
+                                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     }
                 }
             }

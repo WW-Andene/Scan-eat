@@ -141,8 +141,13 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                         val w = weight.replace(',', '.').toDoubleOrNull() ?: 0.0
                         if (h > 0 && w > 0) {
                             val bmi = w / ((h / 100.0) * (h / 100.0))
+                            // semanticBlue(), not the raw Teal literal - WeightScreen's
+                            // identical BMI-color logic already correctly uses
+                            // semanticBlue() for this same underweight tier so it adapts
+                            // under colorblind mode; this preview drifted to a hardcoded
+                            // brand color instead.
                             val bmiColor = when {
-                                bmi < 18.5 -> fr.scanneat.presentation.ui.theme.Teal
+                                bmi < 18.5 -> semanticBlue()
                                 bmi < 25.0 -> semanticGreen()
                                 bmi < 30.0 -> semanticAmber()
                                 else       -> semanticRed()

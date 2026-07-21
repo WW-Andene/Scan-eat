@@ -78,7 +78,11 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
                         InfoRow(stringResource(R.string.biolism_sesshist_weight_start_end), "%.1f → %.1f kg".format(Locale.US, sess.startWeightKg, sess.endWeightKg), "", TextSecondary)
                         InfoRow(stringResource(R.string.biolism_sesshist_fat_fraction), "%.0f%%".format(Locale.US, sess.fatFrac * 100), "", Warm)
                         TextButton(onClick = { confirmDeleteId = sess.id }) {
-                            Text(stringResource(R.string.common_delete), color = Danger, style = MaterialTheme.typography.labelSmall)
+                            // semanticRed(), not the raw Danger literal - matches the
+                            // DeleteConfirmDialog this button opens (ConfirmDialog's own
+                            // confirmColor already defaults to semanticRed()), so the
+                            // trigger and the confirmation agree under colorblind mode.
+                            Text(stringResource(R.string.common_delete), color = semanticRed(), style = MaterialTheme.typography.labelSmall)
                         }
                         if (isConfirm) {
                             DeleteConfirmDialog(

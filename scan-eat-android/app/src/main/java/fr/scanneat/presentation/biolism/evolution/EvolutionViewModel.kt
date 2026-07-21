@@ -14,9 +14,7 @@ import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.domain.engine.dashboard.RollupResult
 import fr.scanneat.domain.engine.dashboard.customRollup
 import fr.scanneat.domain.model.Profile
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -96,9 +94,14 @@ class EvolutionViewModel @Inject constructor(
         HormoneTrends(cortisol, sexPrimary, kind)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HormoneTrends())
 
-    // ── Hydration — real per-day history (capped at 90 days at the source) ──
-    private val _hydrationHistory = MutableStateFlow<List<Pair<LocalDate, Int>>>(emptyList())
-    val hydrationHistory: StateFlow<List<Pair<LocalDate, Int>>> = _hydrationHistory.asStateFlow()
+    // ── Hydration — real per-day history (capped at 90 days at the source).
+    // observeAll(), not a one-shot suspend read - unlike weightEntries/macroRollup
+    // above (both real Flows), this previously only read hydration once at
+    // construction, so water logged elsewhere while the Evolution tab stayed
+    // open never showed up here without leaving and re-entering the tab. ──
+    val hydrationHistory: StateFlow<List<Pair<LocalDate, Int>>> = hydrationRepo.observeAll()
+        .map { all -> all.filter { !it.first.isBefore(windowStart) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     val hydrationGoalMl: StateFlow<Int> = mainProfile.map { p ->
         hydrationRepo.goalMl(p.sex, p.activityLevel, p.healthConditions)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HYD_DEFAULT_GOAL_ML)
@@ -108,13 +111,6 @@ class EvolutionViewModel @Inject constructor(
         .observeRange(windowStart, LocalDate.now())
         .map { entries -> customRollup(entries, LocalDate.now(), EVOLUTION_WINDOW_DAYS) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    init {
-        viewModelScope.launch {
-            runCatching { _hydrationHistory.value = hydrationRepo.exportAll().filter { !it.first.isBefore(windowStart) } }
-                .onFailure { e -> if (e is CancellationException) throw e }
-        }
-    }
 }
 
 data class BodyCompPoint(val date: LocalDate, val bfPct: Double, val ffmKg: Double)

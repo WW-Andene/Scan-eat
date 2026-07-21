@@ -96,9 +96,9 @@ class TrackerViewModel @Inject constructor(
 
         val kcalTotal   = m.kcalSec * elapsedSec
         val fatKcal     = kcalTotal * sub.fatFrac
-        val glycoKcal   = if (s.ketosisOn) kotlin.math.min(kcalTotal * sub.carbFrac, GLYCOGEN_KCAL) else 0.0
-        val glycoFrac   = if (s.ketosisOn) kotlin.math.min(1.0, glycoKcal / GLYCOGEN_KCAL) else 0.0
-        val kcalPerKgFat = if (s.ketosisOn) 7700.0 + (9300.0 - 7700.0) * glycoFrac else 7700.0
+        val burn        = BiolismEngine.computeGlycogenFatBurn(kcalTotal, sub.carbFrac, s.ketosisOn)
+        val glycoKcal   = burn.glycogenDepletedKcal
+        val kcalPerKgFat = burn.kcalPerKgFat
         val fatLostKg   = fatKcal / kcalPerKgFat
         val glycoLostKg = (glycoKcal / 4.0) * (1.0 + WATER_PER_GLYC) / 1000.0
         val phase       = if (s.ketosisOn) BiolismEngine.ketoPhaseInfo(ketoHours, s.ketoAdapted, lang) else null

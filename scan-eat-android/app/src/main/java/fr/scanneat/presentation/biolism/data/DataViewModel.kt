@@ -75,11 +75,9 @@ class DataViewModel @Inject constructor(
         val kcalTotal = m.kcalSec * elapsedSec
         val kcalFromProtein = kcalTotal * m.sub.protFrac
         val kcalFromFat = kcalTotal * m.sub.fatFrac
-        val glycogenDepletedKcal = if (ketosis) {
-            kotlin.math.min(kcalTotal * m.sub.carbFrac, GLYCOGEN_KCAL)
-        } else 0.0
-        val glycogenFraction = if (ketosis) kotlin.math.min(1.0, glycogenDepletedKcal / GLYCOGEN_KCAL) else 0.0
-        val kcalPerKgFat = if (ketosis) 7700.0 + (9300.0 - 7700.0) * glycogenFraction else 7700.0
+        val burn = BiolismEngine.computeGlycogenFatBurn(kcalTotal, m.sub.carbFrac, ketosis)
+        val glycogenDepletedKcal = burn.glycogenDepletedKcal
+        val kcalPerKgFat = burn.kcalPerKgFat
         val atpPerKcal = m.sub.fatFrac * 0.0453 + m.sub.carbFrac * 0.0453 + m.sub.protFrac * 0.0444
         SessionCumulative(
             kcalTotal = kcalTotal,
