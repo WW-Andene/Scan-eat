@@ -121,6 +121,13 @@ fun mapError(err: Throwable): Pair<HttpStatusCode, ErrorResponse> {
             HttpStatusCode.Unauthorized, ErrorResponse("invalid_api_key"))
         "service_unavailable" in msg.lowercase() -> Pair(
             HttpStatusCode.ServiceUnavailable, ErrorResponse("service_unavailable"))
+        // GroqService's retry logic (see GroqService.complete) fails fast on any
+        // 4xx-except-429 - a genuine caller-fixable problem (malformed/oversized
+        // image Groq itself rejects) - and propagates the raw exception. Without
+        // this case it fell through to the generic 500 below, misreporting a
+        // caller error as an opaque server bug.
+        "400" in msg -> Pair(
+            HttpStatusCode.BadRequest, ErrorResponse("bad_request"))
         else -> Pair(HttpStatusCode.InternalServerError, ErrorResponse("Internal error"))
     }
 }

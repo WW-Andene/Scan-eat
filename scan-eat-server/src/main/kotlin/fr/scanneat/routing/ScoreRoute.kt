@@ -52,6 +52,15 @@ fun Route.scoreRoute(groqService: GroqService, offService: OffService) {
             return@post
         }
         val model = requestedModel ?: DEFAULT_GROQ_MODEL
+        // FALLBACK_GROQ_MODEL is text-only (GroqService.complete only ever picks it
+        // itself as a last-retry fallback for text-only calls) - a caller explicitly
+        // requesting it on a request that also carries images would otherwise run 3
+        // guaranteed-failing Groq attempts (each holding a concurrencyLimiter permit
+        // and retry backoff) before erroring out, instead of a clean, immediate 400.
+        if (model == FALLBACK_GROQ_MODEL && images.isNotEmpty()) {
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse("Unsupported model"))
+            return@post
+        }
 
         try {
             // ---- Barcode path ----

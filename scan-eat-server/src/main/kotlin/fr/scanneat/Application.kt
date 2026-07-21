@@ -117,6 +117,14 @@ fun Application.module() {
     }
     install(StatusPages) {
         exception<Throwable> { call, cause ->
+            // Every route/service in this codebase rethrows CancellationException
+            // before logging/handling (see RouteHelpers.handleRouteError,
+            // GroqService.complete, OffService.fetchExact) - this top-level handler
+            // is the one remaining spot that didn't. A legitimate client-disconnect
+            // cancellation propagating up past a route's own correct rethrow would
+            // otherwise be caught here, logged as a spurious "Unhandled exception",
+            // and attempt to respond on an already-dead connection.
+            if (cause is kotlinx.coroutines.CancellationException) throw cause
             call.application.log.error("Unhandled exception", cause)
             call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Internal server error"))
         }

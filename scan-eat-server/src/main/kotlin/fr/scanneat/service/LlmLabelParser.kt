@@ -339,7 +339,11 @@ data class MenuDishRaw(
 data class MenuParseResult(val dishes: List<MenuDishRaw>, val warnings: List<String>)
 
 suspend fun GroqService.identifyMenu(images: List<ImageDto>, apiKey: String?, lang: String = "fr"): MenuParseResult {
-    val raw = complete(identifyMenuPrompt(lang), images, apiKey)
+    // A real restaurant menu commonly lists 15-40+ dishes - same "many free-text
+    // items" shape that motivated raising identifyMultiFood/suggestRecipes/
+    // suggestFromPantry to 4000, missed here. See GroqService.complete()'s
+    // maxTokens doc.
+    val raw = complete(identifyMenuPrompt(lang), images, apiKey, maxTokens = 4000)
     val jsonStr = extractJson(raw)
     val result = runCatching { json.decodeFromString<MenuResult>(jsonStr) }.getOrNull() ?: MenuResult()
     return MenuParseResult(result.dishes, if (result.dishes.isEmpty()) listOf("No dishes found") else emptyList())
@@ -363,7 +367,11 @@ data class RecipeIngRaw(
 )
 
 suspend fun GroqService.identifyRecipe(images: List<ImageDto>, apiKey: String?, lang: String = "fr"): RecipeResult {
-    val raw = complete(identifyRecipePrompt(lang), images, apiKey)
+    // A real recipe commonly has 10-20 ingredients plus multi-sentence steps -
+    // same "many free-text items" shape that motivated raising identifyMultiFood/
+    // suggestRecipes/suggestFromPantry to 4000, missed here. See
+    // GroqService.complete()'s maxTokens doc.
+    val raw = complete(identifyRecipePrompt(lang), images, apiKey, maxTokens = 4000)
     val jsonStr = extractJson(raw)
     // Unlike identifyMenu/identifyMultiFood, this previously carried no warnings at
     // all - a truncated/malformed Groq response (e.g. hitting maxTokens) returned an

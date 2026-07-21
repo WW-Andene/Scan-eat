@@ -38,6 +38,7 @@ import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.domain.model.Sex
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import javax.inject.Inject
@@ -162,7 +163,24 @@ class BackupRepository @Inject constructor(
      * device or another." Resetting id=0 makes Room assign fresh,
      * non-colliding ids for these two tables on every import.
      */
-    suspend fun importFromJson(json: String): Result<BackupSummary> = runCatching {
+    // Kotlin's bare stdlib runCatching also catches CancellationException - the
+    // same anti-pattern ScanRepository.ioCatching's own doc comment already fixed
+    // ("a scan the user already navigated away from would be reported back as a
+    // caught 'failure' ... instead of the coroutine actually stopping"). This
+    // function has genuine suspension points (db.withTransaction, ~9 sequential
+    // DataStore calls in restoreDataStoreData), so a user backing out of the
+    // restore screen mid-import previously got a swallowed cancellation converted
+    // into Result.failure(CancellationException(...)).
+    private inline fun <T> ioCatching(block: () -> T): Result<T> =
+        try {
+            Result.success(block())
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+
+    suspend fun importFromJson(json: String): Result<BackupSummary> = ioCatching {
         val bundle = parseBundle(json)
         var importedScans = 0
         var importedConsumption = 0

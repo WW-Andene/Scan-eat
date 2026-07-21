@@ -42,6 +42,16 @@ class RateLimiter(private val maxRequests: Int, private val windowMs: Long) {
     private val callCount = AtomicLong(0)
     private val sweepInterval = 200L
 
+    // sweepExpired only removes entries whose window has already elapsed - a
+    // clientKey still within its live window is never evicted regardless of map
+    // size. Since the key space is attacker-reachable, a caller varying its
+    // apparent client key (see rejectIfRateLimited's own comment on remoteHost
+    // trust) could otherwise grow `state` without bound *within* a single window,
+    // before any entry becomes sweep-eligible - the same size-capped clear-on-full
+    // pattern OffService/AdditivesDb already use for their own attacker-reachable
+    // caches, applied here too.
+    private val maxClients = 20_000
+
     private fun sweepExpired(nowMs: Long) {
         state.entries.removeIf { (_, window) -> nowMs - window.windowStartMs >= windowMs }
     }
@@ -51,6 +61,7 @@ class RateLimiter(private val maxRequests: Int, private val windowMs: Long) {
         if (callCount.incrementAndGet() % sweepInterval == 0L) {
             sweepExpired(nowMs)
         }
+        if (state.size >= maxClients) state.clear()
         var limited = false
         state.compute(clientKey) { _, existing ->
             if (existing == null || nowMs - existing.windowStartMs >= windowMs) {
