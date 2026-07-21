@@ -89,95 +89,28 @@ fun ScanHistoryScreen(
         title = { Text(stringResource(R.string.history_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
-            Box {
-                IconButton(onClick = { sortMenuExpanded = true }) {
-                    Icon(Icons.Default.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
-                }
-                DropdownMenu(expanded = sortMenuExpanded, onDismissRequest = { sortMenuExpanded = false }) {
-                    val options = listOf(
-                        HistorySort.RECENT to stringResource(R.string.history_sort_recent),
-                        HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),
-                        HistorySort.NAME_AZ to stringResource(R.string.history_sort_name),
-                        HistorySort.SCORE_DESC to stringResource(R.string.history_sort_score),
-                    )
-                    options.forEach { (value, label) ->
-                        val isSelected = sort.value == value
-                        DropdownMenuItem(
-                            text = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
-                            leadingIcon = {
-                                if (isSelected) Icon(Icons.Default.Check, contentDescription = null, tint = AccentCoral)
-                            },
-                            modifier = Modifier.semantics { selected = isSelected; role = Role.RadioButton },
-                            onClick = { viewModel.setSort(value); sortMenuExpanded = false },
-                        )
-                    }
-                }
-            }
+            HistorySortMenu(
+                expanded = sortMenuExpanded,
+                onExpandedChange = { sortMenuExpanded = it },
+                currentSort = sort.value,
+                onSortChange = { viewModel.setSort(it) },
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
-            // Search bar
-            OutlinedTextField(
-                value = query.value,
-                onValueChange = { viewModel.setQuery(it) },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.S),
-                placeholder = { Text(stringResource(R.string.history_search_placeholder), color = OnBackground.copy(0.4f)) },
-                leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
-                trailingIcon = {
-                    if (query.value.isNotEmpty()) IconButton(onClick = { viewModel.setQuery("") }) {
-                        Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(CardRadius.CONTROL),
-                colors = scanEatTextFieldColors(),
-            )
+            HistorySearchBar(query = query.value, onQueryChange = { viewModel.setQuery(it) })
 
             // Improvement: score-range filter chips so users can drill into a grade band
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = Spacing.L, vertical = Spacing.XS),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-            ) {
-                item {
-                    FilterChip(
-                        selected = favoritesOnly.value,
-                        onClick  = { viewModel.setFavoritesOnly(!favoritesOnly.value) },
-                        label    = { Text(stringResource(R.string.history_favorites_only)) },
-                        leadingIcon = { Icon(Icons.Default.Star, null, tint = if (favoritesOnly.value) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
-                        colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
-                    )
-                }
-                items(scoreRangeOptions) { (range, label) ->
-                    val isSelected = scoreRange.value == range
-                    FilterChip(
-                        selected = isSelected,
-                        onClick  = { viewModel.setScoreRange(if (isSelected) null else range) },
-                        label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                        colors   = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentCoral.copy(0.15f),
-                            selectedLabelColor     = AccentCoral,
-                        ),
-                    )
-                }
-            }
+            HistoryFilterChipsRow(
+                favoritesOnly = favoritesOnly.value,
+                onToggleFavoritesOnly = { viewModel.setFavoritesOnly(!favoritesOnly.value) },
+                scoreRangeOptions = scoreRangeOptions,
+                scoreRange = scoreRange.value,
+                onScoreRangeChange = { viewModel.setScoreRange(it) },
+            )
 
-            avgScore.value?.let { avg ->
-                Row(
-                    modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-                ) {
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
-                        Text(
-                            stringResource(R.string.history_avg_score, avg),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AccentCoral,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
-                        )
-                    }
-                }
-            }
+            avgScore.value?.let { avg -> HistoryAvgScoreBanner(avg) }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
@@ -193,135 +126,24 @@ fun ScanHistoryScreen(
                             modifier = Modifier.padding(top = Spacing.S, bottom = Spacing.XS),
                         )
                     }
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-                        ) {
-                            topScanned.value.forEach { (name, count, dbId) ->
-                                Surface(
-                                    onClick  = { if (dbId > 0) onOpenResult(dbId) },
-                                    modifier = Modifier.weight(1f)
-                                        .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-                                    shape    = RoundedCornerShape(CardRadius.CONTROL),
-                                    color    = SurfaceVariant.copy(alpha = 0.42f),
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(Spacing.S),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                    ) {
-                                        Text(
-                                            count.toString(),
-                                            style      = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color      = AccentCoral,
-                                        )
-                                        Text(
-                                            name,
-                                            style    = MaterialTheme.typography.labelSmall,
-                                            color    = OnSurface.copy(0.7f),
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    item { HistoryTopScannedRow(topScanned.value, onOpenResult) }
                 }
 
                 // Grade distribution — A/B/C/D breakdown across full scan history
                 if (gradeDistribution.value.isNotEmpty()) {
-                    item {
-                        val total = gradeDistribution.value.sumOf { it.second }.coerceAtLeast(1)
-                        Text(
-                            stringResource(R.string.history_grade_distribution_title),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = OnBackground.copy(0.5f),
-                            modifier = Modifier.padding(top = Spacing.S, bottom = Spacing.XS),
-                        )
-                        Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
-                            gradeDistribution.value.forEach { (grade, count) ->
-                                val color = when (grade) {
-                                    "A" -> semanticGreen()
-                                    "B" -> semanticAmber()
-                                    "C" -> AccentCoral
-                                    else -> semanticRed()
-                                }
-                                Box(Modifier.weight(count.toFloat() / total).fillMaxHeight().background(color))
-                            }
-                        }
-                        Spacer(Modifier.height(4.dp))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                            gradeDistribution.value.forEach { (grade, count) ->
-                                val color = when (grade) {
-                                    "A" -> semanticGreen()
-                                    "B" -> semanticAmber()
-                                    "C" -> AccentCoral
-                                    else -> semanticRed()
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                    Box(Modifier.size(6.dp).background(color, RoundedCornerShape(3.dp)))
-                                    Text("$grade $count", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
-                                }
-                            }
-                        }
-                    }
+                    item { HistoryGradeDistributionSection(gradeDistribution.value) }
                     item {
                         HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.S), color = OnBackground.copy(0.08f))
                     }
                 }
 
                 items(scans.value, key = { it.dbId }) { scan ->
-                    val gradeColor = gradeColor(scan.audit.grade)
-                    val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
-                    ScanEatCard(
-                        shape = RoundedCornerShape(CardRadius.CONTROL),
-                        contentPadding = PaddingValues(Spacing.M),
-                        onClick = { if (scan.dbId > 0) onOpenResult(scan.dbId) },
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
-                        ) {
-                            // clearAndSetSemantics scoped to just the grade+name/category portion,
-                            // not the whole row - it previously wrapped the IconButtons below too,
-                            // wiping their own semantics along with everything else it merges. A
-                            // TalkBack user could no longer reach the favorite/delete buttons on
-                            // any scan history row at all, only hear this row's single summary.
-                            Row(
-                                modifier = Modifier.weight(1f).clearAndSetSemantics { contentDescription = summary },
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(Spacing.M),
-                            ) {
-                                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
-                                    Text(
-                                        scan.audit.grade.label,
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = gradeColor, fontWeight = FontWeight.Bold,
-                                    )
-                                }
-                                Column(Modifier.weight(1f)) {
-                                    Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                                }
-                            }
-                            IconButton(onClick = { viewModel.toggleFavorite(scan) }) {
-                                Icon(
-                                    if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
-                                    stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
-                                    tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            }
-                            IconButton(onClick = { deleteTarget = scan.dbId }) {
-                                Icon(Icons.Default.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
-                            }
-                            Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
-                        }
-                    }
+                    ScanHistoryRow(
+                        scan = scan,
+                        onOpen = { if (scan.dbId > 0) onOpenResult(scan.dbId) },
+                        onToggleFavorite = { viewModel.toggleFavorite(scan) },
+                        onDelete = { deleteTarget = scan.dbId },
+                    )
                 }
                 if (scans.value.isEmpty()) {
                     item {
@@ -354,6 +176,234 @@ fun ScanHistoryScreen(
             onConfirm = { viewModel.delete(id); deleteTarget = null },
             onDismiss = { deleteTarget = null },
         )
+    }
+}
+
+@Composable
+private fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> Unit, currentSort: HistorySort, onSortChange: (HistorySort) -> Unit) {
+    Box {
+        IconButton(onClick = { onExpandedChange(true) }) {
+            Icon(Icons.Default.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
+            val options = listOf(
+                HistorySort.RECENT to stringResource(R.string.history_sort_recent),
+                HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),
+                HistorySort.NAME_AZ to stringResource(R.string.history_sort_name),
+                HistorySort.SCORE_DESC to stringResource(R.string.history_sort_score),
+            )
+            options.forEach { (value, label) ->
+                val isSelected = currentSort == value
+                DropdownMenuItem(
+                    text = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
+                    leadingIcon = {
+                        if (isSelected) Icon(Icons.Default.Check, contentDescription = null, tint = AccentCoral)
+                    },
+                    modifier = Modifier.semantics { selected = isSelected; role = Role.RadioButton },
+                    onClick = { onSortChange(value); onExpandedChange(false) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HistorySearchBar(query: String, onQueryChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.S),
+        placeholder = { Text(stringResource(R.string.history_search_placeholder), color = OnBackground.copy(0.4f)) },
+        leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
+        trailingIcon = {
+            if (query.isNotEmpty()) IconButton(onClick = { onQueryChange("") }) {
+                Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        colors = scanEatTextFieldColors(),
+    )
+}
+
+@Composable
+private fun HistoryFilterChipsRow(
+    favoritesOnly: Boolean,
+    onToggleFavoritesOnly: () -> Unit,
+    scoreRangeOptions: List<Pair<Pair<Int, Int>?, String>>,
+    scoreRange: Pair<Int, Int>?,
+    onScoreRangeChange: (Pair<Int, Int>?) -> Unit,
+) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = Spacing.L, vertical = Spacing.XS),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        item {
+            FilterChip(
+                selected = favoritesOnly,
+                onClick  = onToggleFavoritesOnly,
+                label    = { Text(stringResource(R.string.history_favorites_only)) },
+                leadingIcon = { Icon(Icons.Default.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
+                colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
+            )
+        }
+        items(scoreRangeOptions) { (range, label) ->
+            val isSelected = scoreRange == range
+            FilterChip(
+                selected = isSelected,
+                onClick  = { onScoreRangeChange(if (isSelected) null else range) },
+                label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                colors   = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = AccentCoral.copy(0.15f),
+                    selectedLabelColor     = AccentCoral,
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun HistoryAvgScoreBanner(avgScore: Int) {
+    Row(
+        modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
+            Text(
+                stringResource(R.string.history_avg_score, avgScore),
+                style = MaterialTheme.typography.labelSmall,
+                color = AccentCoral,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+            )
+        }
+    }
+}
+
+@Composable
+private fun HistoryTopScannedRow(topScanned: List<Triple<String, Int, Long>>, onOpenResult: (Long) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        topScanned.forEach { (name, count, dbId) ->
+            Surface(
+                onClick  = { if (dbId > 0) onOpenResult(dbId) },
+                modifier = Modifier.weight(1f)
+                    .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+                shape    = RoundedCornerShape(CardRadius.CONTROL),
+                color    = SurfaceVariant.copy(alpha = 0.42f),
+            ) {
+                Column(
+                    modifier = Modifier.padding(Spacing.S),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        count.toString(),
+                        style      = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color      = AccentCoral,
+                    )
+                    Text(
+                        name,
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = OnSurface.copy(0.7f),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HistoryGradeDistributionSection(gradeDistribution: List<Pair<String, Int>>) {
+    val total = gradeDistribution.sumOf { it.second }.coerceAtLeast(1)
+    Text(
+        stringResource(R.string.history_grade_distribution_title),
+        style = MaterialTheme.typography.labelMedium,
+        color = OnBackground.copy(0.5f),
+        modifier = Modifier.padding(top = Spacing.S, bottom = Spacing.XS),
+    )
+    Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
+        gradeDistribution.forEach { (grade, count) ->
+            val color = when (grade) {
+                "A" -> semanticGreen()
+                "B" -> semanticAmber()
+                "C" -> AccentCoral
+                else -> semanticRed()
+            }
+            Box(Modifier.weight(count.toFloat() / total).fillMaxHeight().background(color))
+        }
+    }
+    Spacer(Modifier.height(4.dp))
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        gradeDistribution.forEach { (grade, count) ->
+            val color = when (grade) {
+                "A" -> semanticGreen()
+                "B" -> semanticAmber()
+                "C" -> AccentCoral
+                else -> semanticRed()
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                Box(Modifier.size(6.dp).background(color, RoundedCornerShape(3.dp)))
+                Text("$grade $count", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScanHistoryRow(scan: ScanResult, onOpen: () -> Unit, onToggleFavorite: () -> Unit, onDelete: () -> Unit) {
+    val gradeColor = gradeColor(scan.audit.grade)
+    val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        contentPadding = PaddingValues(Spacing.M),
+        onClick = onOpen,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+        ) {
+            // clearAndSetSemantics scoped to just the grade+name/category portion,
+            // not the whole row - it previously wrapped the IconButtons below too,
+            // wiping their own semantics along with everything else it merges. A
+            // TalkBack user could no longer reach the favorite/delete buttons on
+            // any scan history row at all, only hear this row's single summary.
+            Row(
+                modifier = Modifier.weight(1f).clearAndSetSemantics { contentDescription = summary },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+            ) {
+                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
+                    Text(
+                        scan.audit.grade.label,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = gradeColor, fontWeight = FontWeight.Bold,
+                    )
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                }
+            }
+            IconButton(onClick = onToggleFavorite) {
+                Icon(
+                    if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                    stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                    tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
+            }
+            Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
+        }
     }
 }
 
