@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,6 +55,7 @@ fun MealPlanScreen(
     // (date, meal) of the slot currently being assigned a recipe/template, or null.
     var assignTarget by remember { mutableStateOf<Pair<LocalDate, String>?>(null) }
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val lastPrunedOrphanCount = viewModel.lastPrunedOrphanCount.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     // "Duplicate week" was gated on weeklyTotalKcal > 0, which only counts assigned
     // Recipe/Template slots - a week planned entirely with free-text notes has
@@ -68,6 +70,18 @@ fun MealPlanScreen(
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
             viewModel.clearActionFailed()
+        }
+    }
+
+    // MealPlanViewModel silently drops any plan slot pointing at a deleted
+    // recipe/template (see its own doc comment) - previously invisible, this
+    // surfaces the count as a one-shot snackbar instead of the cleanup
+    // happening with zero user-visible trace.
+    val prunedCount = lastPrunedOrphanCount.value
+    val prunedMessage = pluralStringResource(R.plurals.mealplan_orphan_pruned, prunedCount, prunedCount)
+    LaunchedEffect(prunedCount) {
+        if (prunedCount > 0) {
+            snackbarHostState.showSnackbar(prunedMessage)
         }
     }
 

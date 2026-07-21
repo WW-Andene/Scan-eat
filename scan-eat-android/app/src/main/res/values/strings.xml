@@ -124,6 +124,10 @@
     <string name="mealplan_clear_day">Vider la journée</string>
     <string name="mealplan_duplicate_day">Dupliquer vers la semaine prochaine</string>
     <string name="mealplan_duplicate_week">Dupliquer la semaine vers la suivante</string>
+    <plurals name="mealplan_orphan_pruned">
+        <item quantity="one">%1$d entrée obsolète supprimée du planning</item>
+        <item quantity="other">%1$d entrées obsolètes supprimées du planning</item>
+    </plurals>
     <string name="mealplan_recipe_prefix">%1$s</string>
     <string name="mealplan_template_prefix">%1$s</string>
     <string name="mealplan_assign_cd">Choisir une recette ou un modèle</string>

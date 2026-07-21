@@ -124,6 +124,10 @@
     <string name="mealplan_clear_day">Clear day</string>
     <string name="mealplan_duplicate_day">Duplicate to next week</string>
     <string name="mealplan_duplicate_week">Duplicate week to next week</string>
+    <plurals name="mealplan_orphan_pruned">
+        <item quantity="one">%1$d stale plan entry removed</item>
+        <item quantity="other">%1$d stale plan entries removed</item>
+    </plurals>
     <string name="mealplan_recipe_prefix">%1$s</string>
     <string name="mealplan_template_prefix">%1$s</string>
     <string name="mealplan_assign_cd">Pick a recipe or template</string>
