@@ -85,199 +85,35 @@ fun TemplatesScreen(
                 // Templates had zero list-level filtering despite MealTemplate.meal being
                 // the exact same ready-made filter dimension Recipes already uses for its
                 // own GoalFilter chips.
-                val mealOptions = listOf<MealSlot?>(null) + MealSlot.values().toList()
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    items(mealOptions) { slot ->
-                        FilterChip(
-                            selected = mealFilter.value == slot,
-                            onClick = { viewModel.setMealFilter(slot) },
-                            label = { Text(slot?.label() ?: stringResource(R.string.recipes_filter_all)) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-                        )
-                    }
-                }
+                TemplatesMealFilterRow(selected = mealFilter.value, onSelect = { viewModel.setMealFilter(it) })
             }
             if (templates.value.isNotEmpty()) {
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f)) {
-                            Text(
-                                stringResource(R.string.templates_stats_count, templates.value.size),
-                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
-                                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
-                            )
-                        }
-                        if (libraryTotalKcal.value > 0) {
-                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
-                                Text(
-                                    stringResource(R.string.templates_stats_total_kcal, libraryTotalKcal.value),
-                                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
-                                    style = MaterialTheme.typography.labelSmall, color = AccentCoral,
-                                )
-                            }
-                        }
-                    }
-                }
+                item { TemplatesStatsRow(count = templates.value.size, totalKcal = libraryTotalKcal.value) }
             } else {
                 item { EmptyListState(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_empty_body)) }
             }
             items(templates.value, key = { it.id }) { template ->
-                val hints = templateHints.value[template.id] ?: ProductHints.EMPTY
-                val hintsRiskCount = hints.risks.size + hints.conditionRisks.size
-                val hintsHaveRisks = hintsRiskCount > 0
-                var showHints by remember { mutableStateOf(false) }
-                ScanEatCard(
-                    shape = RoundedCornerShape(CardRadius.CONTROL),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.S),
-                ) {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(template.name, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
-                                    Text(stringResource(R.string.templates_summary, template.totalKcal, template.items.size, template.meal.name.lowercase()),
-                                        style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                                }
-                                Row {
-                                    // Templates had no equivalent to Recipes'/ScanHistory's favorite
-                                    // pin at all - same Star/StarBorder pattern as RecipeCard.
-                                    // Left at IconButton's default 48dp touch target (Material/WCAG
-                                    // minimum) - a UI/UX audit found 6 icon-sized controls competing
-                                    // for width in this row, each forced below the 48dp minimum.
-                                    IconButton(onClick = { viewModel.toggleFavorite(template) }) {
-                                        Icon(
-                                            if (template.favorite) Icons.Default.Star else Icons.Default.StarBorder,
-                                            stringResource(if (template.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
-                                            tint = if (template.favorite) Gold else OnSurface.copy(0.3f),
-                                        )
-                                    }
-                                    // Previously the only way a template could get items was
-                                    // never - create() always built one with an empty list and
-                                    // there was no UI anywhere to add to it afterward.
-                                    IconButton(onClick = { itemsTarget = template }) {
-                                        Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_manage_items_cd), tint = Teal)
-                                    }
-                                    IconButton(onClick = { logTarget = template }, enabled = template.items.isNotEmpty()) {
-                                        Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
-                                    }
-                                    // Save-as-Recipe/Rename/Delete moved into an overflow menu -
-                                    // Favorite/Manage-items/Log are the frequent actions and stay
-                                    // directly visible at full size.
-                                    var menuExpanded by remember { mutableStateOf(false) }
-                                    IconButton(onClick = { menuExpanded = true }) {
-                                        Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
-                                    }
-                                    DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                                        // The "💡 Bon à savoir" hint panel was previously reachable
-                                        // only from a scanned product's Result screen - a template's
-                                        // items already carry real per-100g nutrition (see
-                                        // MealTemplateRepository.nutritionPer100g), so the same
-                                        // benefits/risks/facts apply. Placed in the overflow menu
-                                        // rather than as a 5th always-visible icon, since this row
-                                        // already sits at the app's established 4-icon max density
-                                        // (Favorite/Manage-items/Log/More).
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.hint_panel_title)) },
-                                            leadingIcon = { Icon(Icons.Default.Lightbulb, contentDescription = null, tint = if (hintsHaveRisks) semanticRed() else semanticAmber()) },
-                                            trailingIcon = { if (hintsHaveRisks) Badge(containerColor = semanticRed()) { Text("$hintsRiskCount") } },
-                                            onClick = { menuExpanded = false; showHints = true },
-                                        )
-                                        HorizontalDivider(color = OnBackground.copy(0.08f))
-                                        // Templates/Recipes had no way to convert between the two -
-                                        // this saves a copy into the user's Recipes library.
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.templates_cd_save_as_recipe)) },
-                                            leadingIcon = { Icon(Icons.Default.RestaurantMenu, contentDescription = null) },
-                                            enabled = template.items.isNotEmpty(),
-                                            onClick = { menuExpanded = false; viewModel.saveAsRecipe(template) },
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.common_rename)) },
-                                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                                            onClick = { menuExpanded = false; renameTarget = template },
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text(stringResource(R.string.common_delete)) },
-                                            leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
-                                            onClick = { menuExpanded = false; deleteTarget = template.id },
-                                        )
-                                    }
-                                }
-                            }
-                            if (showHints) {
-                                HintPanel(hints = hints, onDismiss = { showHints = false })
-                            }
-                            template.items.take(3).forEach { item ->
-                                Text(stringResource(R.string.templates_item_summary, item.productName, item.grams.toInt(), item.kcal.toInt()),
-                                    style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
-                            }
-                            if (template.items.size > 3) {
-                                Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
-                            }
-                            // Diet/allergen check previously only ever ran on Recipes/Grocery -
-                            // a template built from ingredients the user's own profile forbids
-                            // had no warning anywhere in this screen, despite being logged
-                            // repeatedly.
-                            templateWarnings.value[template.id]?.let { warning ->
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                                    Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
-                                    Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
-                                }
-                            }
-                            // Macro summary — protein/carbs/fat totals were only available
-                            // in the log dialog; here on the card a user had no quick read
-                            // on whether the template fits their current macro targets.
-                            if (template.items.isNotEmpty()) {
-                                HorizontalDivider(color = OnSurface.copy(0.07f))
-                                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                                    @Composable fun M(label: String, v: Int, color: androidx.compose.ui.graphics.Color) {
-                                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f))
-                                            Text("${v}g", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
-                                        }
-                                    }
-                                    M(stringResource(R.string.macro_protein_abbr), template.totalProteinG, semanticGreen())
-                                    M(stringResource(R.string.macro_carbs_abbr), template.totalCarbsG, AccentCoral)
-                                    M(stringResource(R.string.macro_fat_abbr), template.totalFatG, Gold)
-                                }
-                            }
-                        }
+                TemplateCard(
+                    template = template,
+                    hints = templateHints.value[template.id] ?: ProductHints.EMPTY,
+                    warning = templateWarnings.value[template.id],
+                    onToggleFavorite = { viewModel.toggleFavorite(template) },
+                    onManageItems = { itemsTarget = template },
+                    onLog = { logTarget = template },
+                    onSaveAsRecipe = { viewModel.saveAsRecipe(template) },
+                    onRename = { renameTarget = template },
+                    onDelete = { deleteTarget = template.id },
+                )
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
 
     logTarget?.let { t ->
-        var slot by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(t.meal) }
-        var portion by rememberSaveable { mutableFloatStateOf(1f) }
-        AlertDialog(
-            onDismissRequest = { logTarget = null },
-            containerColor = SurfaceVariant,
-            title = { Text(stringResource(R.string.templates_log_dialog_title, t.name), color = OnBackground) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MealSlot.values().forEach { s ->
-                            FilterChip(selected = slot == s, onClick = { slot = s },
-                                label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
-                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
-                        }
-                    }
-                    // Portion scale slider — previously the template was always logged at
-                    // 100% with no way to adjust for a half portion or a double serving.
-                    HorizontalDivider(color = OnBackground.copy(0.08f))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.templates_log_portion_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                        Text(stringResource(R.string.templates_log_portion_value, String.format(Locale.US, "%.1f", portion), (t.totalKcal * portion).toInt()), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
-                    }
-                    Slider(
-                        value = portion, onValueChange = { portion = it },
-                        valueRange = 0.25f..3f, steps = 10,
-                        colors = SliderDefaults.colors(thumbColor = AccentCoral, activeTrackColor = AccentCoral),
-                    )
-                }
-            },
-            confirmButton = { TextButton(onClick = { viewModel.logTemplate(t, mealOverride = slot, portionScale = portion.toDouble()); logTarget = null }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
-            dismissButton = { TextButton(onClick = { logTarget = null }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        LogTemplateDialog(
+            template = t,
+            onDismiss = { logTarget = null },
+            onConfirm = { slot, portion -> viewModel.logTemplate(t, mealOverride = slot, portionScale = portion.toDouble()); logTarget = null },
         )
     }
 
@@ -310,34 +146,248 @@ fun TemplatesScreen(
     }
 
     if (showAdd) {
-        var name by rememberSaveable { mutableStateOf("") }
-        var meal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
-        AlertDialog(
-            onDismissRequest = { showAdd = false },
-            containerColor = SurfaceVariant,
-            title = { Text(stringResource(R.string.templates_add_dialog_title), color = OnBackground) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                    OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
-                    Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        MealSlot.values().forEach { s ->
-                            FilterChip(selected = meal == s, onClick = { meal = s },
-                                label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
-                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { viewModel.create(name, meal); showAdd = false }, enabled = name.isNotBlank()) {
-                    Text(stringResource(R.string.common_create), color = if (name.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
-                }
-            },
-            dismissButton = { TextButton(onClick = { showAdd = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        AddTemplateDialog(
+            onDismiss = { showAdd = false },
+            onCreate = { name, meal -> viewModel.create(name, meal); showAdd = false },
         )
     }
 
+}
+
+@Composable
+private fun TemplatesMealFilterRow(selected: MealSlot?, onSelect: (MealSlot?) -> Unit) {
+    val mealOptions = listOf<MealSlot?>(null) + MealSlot.values().toList()
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        items(mealOptions) { slot ->
+            FilterChip(
+                selected = selected == slot,
+                onClick = { onSelect(slot) },
+                label = { Text(slot?.label() ?: stringResource(R.string.recipes_filter_all)) },
+                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+            )
+        }
+    }
+}
+
+@Composable
+private fun TemplatesStatsRow(count: Int, totalKcal: Int) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f)) {
+            Text(
+                stringResource(R.string.templates_stats_count, count),
+                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+            )
+        }
+        if (totalKcal > 0) {
+            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
+                Text(
+                    stringResource(R.string.templates_stats_total_kcal, totalKcal),
+                    modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
+                    style = MaterialTheme.typography.labelSmall, color = AccentCoral,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TemplateCard(
+    template: MealTemplate,
+    hints: ProductHints,
+    warning: String?,
+    onToggleFavorite: () -> Unit,
+    onManageItems: () -> Unit,
+    onLog: () -> Unit,
+    onSaveAsRecipe: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val hintsRiskCount = hints.risks.size + hints.conditionRisks.size
+    val hintsHaveRisks = hintsRiskCount > 0
+    var showHints by remember { mutableStateOf(false) }
+    ScanEatCard(
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        verticalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(template.name, style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.templates_summary, template.totalKcal, template.items.size, template.meal.name.lowercase()),
+                    style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+            }
+            Row {
+                // Templates had no equivalent to Recipes'/ScanHistory's favorite
+                // pin at all - same Star/StarBorder pattern as RecipeCard.
+                // Left at IconButton's default 48dp touch target (Material/WCAG
+                // minimum) - a UI/UX audit found 6 icon-sized controls competing
+                // for width in this row, each forced below the 48dp minimum.
+                IconButton(onClick = onToggleFavorite) {
+                    Icon(
+                        if (template.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                        stringResource(if (template.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                        tint = if (template.favorite) Gold else OnSurface.copy(0.3f),
+                    )
+                }
+                // Previously the only way a template could get items was
+                // never - create() always built one with an empty list and
+                // there was no UI anywhere to add to it afterward.
+                IconButton(onClick = onManageItems) {
+                    Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_manage_items_cd), tint = Teal)
+                }
+                IconButton(onClick = onLog, enabled = template.items.isNotEmpty()) {
+                    Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
+                }
+                // Save-as-Recipe/Rename/Delete moved into an overflow menu -
+                // Favorite/Manage-items/Log are the frequent actions and stay
+                // directly visible at full size.
+                var menuExpanded by remember { mutableStateOf(false) }
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                }
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                    // The "💡 Bon à savoir" hint panel was previously reachable
+                    // only from a scanned product's Result screen - a template's
+                    // items already carry real per-100g nutrition (see
+                    // MealTemplateRepository.nutritionPer100g), so the same
+                    // benefits/risks/facts apply. Placed in the overflow menu
+                    // rather than as a 5th always-visible icon, since this row
+                    // already sits at the app's established 4-icon max density
+                    // (Favorite/Manage-items/Log/More).
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.hint_panel_title)) },
+                        leadingIcon = { Icon(Icons.Default.Lightbulb, contentDescription = null, tint = if (hintsHaveRisks) semanticRed() else semanticAmber()) },
+                        trailingIcon = { if (hintsHaveRisks) Badge(containerColor = semanticRed()) { Text("$hintsRiskCount") } },
+                        onClick = { menuExpanded = false; showHints = true },
+                    )
+                    HorizontalDivider(color = OnBackground.copy(0.08f))
+                    // Templates/Recipes had no way to convert between the two -
+                    // this saves a copy into the user's Recipes library.
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.templates_cd_save_as_recipe)) },
+                        leadingIcon = { Icon(Icons.Default.RestaurantMenu, contentDescription = null) },
+                        enabled = template.items.isNotEmpty(),
+                        onClick = { menuExpanded = false; onSaveAsRecipe() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.common_rename)) },
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                        onClick = { menuExpanded = false; onRename() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.common_delete)) },
+                        leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                        onClick = { menuExpanded = false; onDelete() },
+                    )
+                }
+            }
+        }
+        if (showHints) {
+            HintPanel(hints = hints, onDismiss = { showHints = false })
+        }
+        template.items.take(3).forEach { item ->
+            Text(stringResource(R.string.templates_item_summary, item.productName, item.grams.toInt(), item.kcal.toInt()),
+                style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.7f))
+        }
+        if (template.items.size > 3) {
+            Text(stringResource(R.string.templates_more_items, template.items.size - 3), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.4f))
+        }
+        // Diet/allergen check previously only ever ran on Recipes/Grocery -
+        // a template built from ingredients the user's own profile forbids
+        // had no warning anywhere in this screen, despite being logged
+        // repeatedly.
+        warning?.let {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
+            }
+        }
+        // Macro summary — protein/carbs/fat totals were only available
+        // in the log dialog; here on the card a user had no quick read
+        // on whether the template fits their current macro targets.
+        if (template.items.isNotEmpty()) {
+            HorizontalDivider(color = OnSurface.copy(0.07f))
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                @Composable fun M(label: String, v: Int, color: androidx.compose.ui.graphics.Color) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.45f))
+                        Text("${v}g", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                M(stringResource(R.string.macro_protein_abbr), template.totalProteinG, semanticGreen())
+                M(stringResource(R.string.macro_carbs_abbr), template.totalCarbsG, AccentCoral)
+                M(stringResource(R.string.macro_fat_abbr), template.totalFatG, Gold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogTemplateDialog(template: MealTemplate, onDismiss: () -> Unit, onConfirm: (slot: MealSlot, portion: Float) -> Unit) {
+    val t = template
+    var slot by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(t.meal) }
+    var portion by rememberSaveable { mutableFloatStateOf(1f) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.templates_log_dialog_title, t.name), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    MealSlot.values().forEach { s ->
+                        FilterChip(selected = slot == s, onClick = { slot = s },
+                            label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
+                    }
+                }
+                // Portion scale slider — previously the template was always logged at
+                // 100% with no way to adjust for a half portion or a double serving.
+                HorizontalDivider(color = OnBackground.copy(0.08f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.templates_log_portion_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                    Text(stringResource(R.string.templates_log_portion_value, String.format(Locale.US, "%.1f", portion), (t.totalKcal * portion).toInt()), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                }
+                Slider(
+                    value = portion, onValueChange = { portion = it },
+                    valueRange = 0.25f..3f, steps = 10,
+                    colors = SliderDefaults.colors(thumbColor = AccentCoral, activeTrackColor = AccentCoral),
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = { onConfirm(slot, portion) }) { Text(stringResource(R.string.common_log), color = AccentCoral) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
+}
+
+@Composable
+private fun AddTemplateDialog(onDismiss: () -> Unit, onCreate: (name: String, meal: MealSlot) -> Unit) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var meal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.templates_add_dialog_title), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
+                Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    MealSlot.values().forEach { s ->
+                        FilterChip(selected = meal == s, onClick = { meal = s },
+                            label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral, labelColor = OnBackground.copy(0.7f)))
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onCreate(name, meal) }, enabled = name.isNotBlank()) {
+                Text(stringResource(R.string.common_create), color = if (name.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
 }
 
 /** Same ingredient-adding shape as RecipesScreen's AddRecipeDialog — templates never had an equivalent, so items could only ever be added by directly editing the database. */
