@@ -93,7 +93,12 @@ fun LogSheet(
                     label         = { Text(stringResource(R.string.logsheet_quantity_label)) },
                     suffix        = { Text("g", color = OnSurface.copy(0.5f)) },
                     singleLine    = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    // Decimal, not Number - the field explicitly accepts a decimal portion
+                    // (onValueChange above filters for '.'/',' too, and kcalPreview divides
+                    // by 100.0), but KeyboardType.Number requests a plain digit-only numeric
+                    // keyboard on many IMEs with no decimal-point key at all, making a
+                    // fractional gram value (e.g. a small "12,5 g" garnish) unenterable.
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier      = Modifier.weight(1f),
                     shape         = RoundedCornerShape(CardRadius.CONTROL),
                     colors        = OutlinedTextFieldDefaults.colors(

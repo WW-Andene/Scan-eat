@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,8 +59,12 @@ fun ResultScreen(
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
     val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var showSheet   by remember { mutableStateOf(false) }
-    var showSaveMenu by remember { mutableStateOf(false) }
+    // rememberSaveable, not remember - a process death while either dialog was open
+    // (backgrounding the app is enough on a low-memory device) previously reset both
+    // flags to false on restoration, silently closing the LogSheet/SaveDestinationsPopup
+    // with zero indication anything happened, rather than restoring them open.
+    var showSheet   by rememberSaveable { mutableStateOf(false) }
+    var showSaveMenu by rememberSaveable { mutableStateOf(false) }
     val context      = LocalContext.current
     val shareTemplate = stringResource(R.string.result_share_text)
     val snackbarHostState = remember { SnackbarHostState() }

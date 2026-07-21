@@ -107,6 +107,7 @@ class RemindersRepository @Inject constructor(
         // doesn't repeat every worker run.
         val K_LAST_FASTING_NOTIFIED_START = longPreferencesKey("rem_last_fasting_notified_start")
         val K_DAILY_DIGEST_ON = booleanPreferencesKey("rem_daily_digest_on")
+        val K_CUSTOM_NEXT_ID = intPreferencesKey("rem_custom_next_id")
     }
 
     val settings: Flow<ReminderSettings> = storeData.map { p ->
@@ -148,9 +149,19 @@ class RemindersRepository @Inject constructor(
     private fun customs(p: Preferences): List<CustomReminder> =
         runCatching { Json.decodeFromString<List<CustomReminder>>(p[K_CUSTOM_REMINDERS] ?: "[]") }.getOrElse { emptyList() }
 
+    // K_CUSTOM_NEXT_ID, not max(existing ids)+1 - the latter reused an id once every
+    // custom reminder had been deleted (list back to empty, so maxOfOrNull was null
+    // again), and this id doubles as both the notification ID AND the
+    // customLastFiredKey(id) suffix below - a brand-new reminder could silently
+    // inherit a deleted reminder's stale "already fired today" key for the same
+    // reused id, suppressing its first day's notification with no explanation.
+    // Falls back to seeding from the current list's max only when the counter has
+    // never been persisted yet (a fresh install, or a pre-existing install upgrading
+    // from the old scheme with reminders already using ids from that scheme).
     suspend fun addCustomReminder(label: String, time: String) = store.edit { p ->
         val list = customs(p)
-        val nextId = (list.maxOfOrNull { it.id } ?: 909) + 1
+        val nextId = p[K_CUSTOM_NEXT_ID] ?: ((list.maxOfOrNull { it.id } ?: 909) + 1)
+        p[K_CUSTOM_NEXT_ID] = nextId + 1
         p[K_CUSTOM_REMINDERS] = Json.encodeToString(list + CustomReminder(nextId, label, time, false))
     }
 
@@ -161,6 +172,10 @@ class RemindersRepository @Inject constructor(
 
     suspend fun deleteCustomReminder(id: Int) = store.edit { p ->
         p[K_CUSTOM_REMINDERS] = Json.encodeToString(customs(p).filter { it.id != id })
+        // Ids are never reused now (see addCustomReminder above), so this key can
+        // never be inherited by a future reminder either way - removed anyway so a
+        // deleted reminder doesn't leave a permanent orphaned key behind.
+        p.remove(customLastFiredKey(id))
     }
 
     val customLastFiredKey: (Int) -> Preferences.Key<String> = { id -> stringPreferencesKey("rem_custom_${id}_last") }

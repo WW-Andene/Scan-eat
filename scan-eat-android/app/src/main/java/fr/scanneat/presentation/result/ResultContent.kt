@@ -163,26 +163,34 @@ internal fun ResultContent(
 /** Compact card showing how much of the EU daily reference values (per 100 g) this product covers. */
 @Composable
 private fun MacroContributionCard(nutrition: NutritionPer100g) {
+    // positiveWhenHigh - protein/fiber are nutrients the rest of this app's own scoring
+    // (NutritionalDensityPillar's protein/fiber bonuses) treats as GOOD when high; kcal/
+    // carbs/fat are the opposite. This row previously colored all five identically
+    // (semanticAmber() "caution" past 50% of the daily reference), so a product covering
+    // half a day's protein or fiber in one 100g serving - a genuine positive - got the
+    // exact same warning color as one covering half a day's fat or sugar.
+    data class MacroRow(val label: String, val value: Double, val ref: Double, val positiveWhenHigh: Boolean)
     val rows = listOf(
-        Triple(stringResource(R.string.result_macro_kcal),   nutrition.energyKcal, 2000.0),
-        Triple(stringResource(R.string.result_macro_protein), nutrition.proteinG,    50.0),
-        Triple(stringResource(R.string.result_macro_carbs),  nutrition.carbsG,     260.0),
-        Triple(stringResource(R.string.result_macro_fat),    nutrition.fatG,        70.0),
-        Triple(stringResource(R.string.result_macro_fiber),  nutrition.fiberG, 25.0),
-    ).filter { (_, value, _) -> value > 0.0 }
+        MacroRow(stringResource(R.string.result_macro_kcal),    nutrition.energyKcal, 2000.0, positiveWhenHigh = false),
+        MacroRow(stringResource(R.string.result_macro_protein), nutrition.proteinG,     50.0, positiveWhenHigh = true),
+        MacroRow(stringResource(R.string.result_macro_carbs),   nutrition.carbsG,      260.0, positiveWhenHigh = false),
+        MacroRow(stringResource(R.string.result_macro_fat),     nutrition.fatG,         70.0, positiveWhenHigh = false),
+        MacroRow(stringResource(R.string.result_macro_fiber),   nutrition.fiberG,       25.0, positiveWhenHigh = true),
+    ).filter { it.value > 0.0 }
     if (rows.isEmpty()) return
     ScanEatCard(
         contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         Text(stringResource(R.string.result_macro_contribution_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-        rows.forEach { (label, value, ref) ->
-            val pct = (value / ref).coerceIn(0.0, 1.0).toFloat()
+        rows.forEach { row ->
+            val pct = (row.value / row.ref).coerceIn(0.0, 1.0).toFloat()
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Text(label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(56.dp))
+                Text(row.label, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.7f), modifier = Modifier.width(56.dp))
                 LinearProgressIndicator(
                     progress = { pct },
                     modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)),
                     color = when {
+                        pct >= 0.5f && row.positiveWhenHigh -> semanticGreen()
                         pct >= 0.5f -> semanticAmber()
                         else -> AccentCoral.copy(0.7f)
                     },
