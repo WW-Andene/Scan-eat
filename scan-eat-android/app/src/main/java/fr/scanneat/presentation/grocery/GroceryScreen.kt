@@ -75,67 +75,36 @@ fun GroceryScreen(
         title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
-                PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
-                if (checkable.value.any { it.checked }) {
-                    IconButton(onClick = { showClearConfirm = true }) {
-                        Icon(Icons.Default.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))
+            GroceryTopBarActions(
+                onNavigateToPlanning = onNavigateToPlanning,
+                hasCheckedItems = checkable.value.any { it.checked },
+                onShowClearConfirm = { showClearConfirm = true },
+                hasItems = items.value.isNotEmpty(),
+                sortAlpha = sortAlpha.value,
+                onToggleSortAlpha = { viewModel.toggleSortAlpha() },
+                groupByAisle = groupByAisle.value,
+                onToggleGroupByAisle = { viewModel.toggleGroupByAisle() },
+                onShare = {
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, formatGroceryList(items.value))
                     }
-                }
-                if (items.value.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.toggleSortAlpha() }) {
-                        Icon(
-                            Icons.Default.SortByAlpha,
-                            stringResource(R.string.grocery_sort_alpha),
-                            tint = if (sortAlpha.value) AccentCoral else OnBackground.copy(0.6f),
-                        )
-                    }
-                    // Previously a flat unsorted/alphabetical-only list with no
-                    // produce/dairy/pantry sectioning at all.
-                    IconButton(onClick = { viewModel.toggleGroupByAisle() }) {
-                        Icon(
-                            Icons.Default.Category,
-                            stringResource(R.string.grocery_group_by_aisle),
-                            tint = if (groupByAisle.value) AccentCoral else OnBackground.copy(0.6f),
-                        )
-                    }
-                    // Previously the only way out of the app was clipboard copy-then-paste -
-                    // mirrors ResultScreen's existing ACTION_SEND share pattern.
-                    IconButton(onClick = {
-                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, formatGroceryList(items.value))
-                        }
-                        context.startActivity(Intent.createChooser(sendIntent, null))
-                    }) {
-                        Icon(Icons.Default.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
-                    }
-                    Box {
-                        IconButton(onClick = { copyMenuExpanded = true }) {
-                            Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
-                        }
-                        DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { copyMenuExpanded = false }) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.grocery_copy_plain)) },
-                                onClick = {
-                                    copyMenuExpanded = false
-                                    clipboard.setText(AnnotatedString(formatGroceryList(items.value)))
-                                    scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
-                                },
-                            )
-                            // formatGroceryList's markdown param existed since the original JS
-                            // port but had no UI entry point at all - a real feature dropped
-                            // in translation, not a deliberate scope cut.
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.grocery_copy_checklist)) },
-                                onClick = {
-                                    copyMenuExpanded = false
-                                    clipboard.setText(AnnotatedString(formatGroceryList(items.value, markdown = true)))
-                                    scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
-                                },
-                            )
-                        }
-                    }
-                }
+                    context.startActivity(Intent.createChooser(sendIntent, null))
+                },
+                copyMenuExpanded = copyMenuExpanded,
+                onCopyMenuExpandedChange = { copyMenuExpanded = it },
+                onCopyPlain = {
+                    clipboard.setText(AnnotatedString(formatGroceryList(items.value)))
+                    scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
+                },
+                onCopyChecklist = {
+                    // formatGroceryList's markdown param existed since the original JS
+                    // port but had no UI entry point at all - a real feature dropped
+                    // in translation, not a deliberate scope cut.
+                    clipboard.setText(AnnotatedString(formatGroceryList(items.value, markdown = true)))
+                    scope.launch { snackbarHostState.showSnackbar(copiedMessage) }
+                },
+            )
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = CalorieOrange, secondary = AccentCoral)) {
@@ -173,53 +142,13 @@ fun GroceryScreen(
                 item {
                     // Inline quick-add — previously the only way to add a manual
                     // item was via a "Save to grocery" button in an unrelated screen.
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        OutlinedTextField(
-                            value = quickAddText,
-                            onValueChange = { quickAddText = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text(stringResource(R.string.grocery_quick_add_placeholder), color = OnBackground.copy(0.4f)) },
-                            singleLine = true,
-                            shape = RoundedCornerShape(CardRadius.CONTROL),
-                            colors = scanEatTextFieldColors(),
-                        )
-                        IconButton(
-                            onClick = { viewModel.quickAdd(quickAddText); quickAddText = "" },
-                            enabled = quickAddText.isNotBlank(),
-                            modifier = Modifier.size(40.dp),
-                        ) {
-                            Icon(Icons.Default.Add, stringResource(R.string.grocery_quick_add_cd), tint = if (quickAddText.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
-                        }
-                    }
+                    GroceryQuickAddRow(
+                        quickAddText = quickAddText,
+                        onQuickAddTextChange = { quickAddText = it },
+                        onAdd = { viewModel.quickAdd(quickAddText); quickAddText = "" },
+                    )
                 }
-                item {
-                    val (checked, total) = checkedProgress.value
-                    Text(pluralStringResource(R.plurals.grocery_item_count, items.value.size, items.value.size),
-                        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-                    if (total > 0 && checked > 0) {
-                        Spacer(Modifier.height(4.dp))
-                        androidx.compose.material3.LinearProgressIndicator(
-                            progress = { (checked.toFloat() / total).coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth().height(4.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(2.dp)),
-                            color = semanticGreen(),
-                            trackColor = OnBackground.copy(0.08f),
-                        )
-                        if (checked == total) {
-                            Text(
-                                stringResource(R.string.grocery_all_done),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = semanticGreen(),
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-                            )
-                        } else {
-                            Text(
-                                stringResource(R.string.grocery_checked_progress, checked, total),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = OnBackground.copy(0.4f),
-                            )
-                        }
-                    }
-                }
+                item { GroceryProgressRow(itemCount = items.value.size, checkedProgress = checkedProgress.value) }
                 if (groupByAisle.value) {
                     // Previously a flat alphabetical/unsorted list with no produce/dairy/
                     // pantry sectioning at all. Fixed display order regardless of which
@@ -275,6 +204,120 @@ fun GroceryScreen(
             },
             onDismiss = { showClearConfirm = false },
         )
+    }
+}
+
+@Composable
+private fun GroceryTopBarActions(
+    onNavigateToPlanning: (PlanningDestination) -> Unit,
+    hasCheckedItems: Boolean,
+    onShowClearConfirm: () -> Unit,
+    hasItems: Boolean,
+    sortAlpha: Boolean,
+    onToggleSortAlpha: () -> Unit,
+    groupByAisle: Boolean,
+    onToggleGroupByAisle: () -> Unit,
+    onShare: () -> Unit,
+    copyMenuExpanded: Boolean,
+    onCopyMenuExpandedChange: (Boolean) -> Unit,
+    onCopyPlain: () -> Unit,
+    onCopyChecklist: () -> Unit,
+) {
+    PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
+    if (hasCheckedItems) {
+        IconButton(onClick = onShowClearConfirm) {
+            Icon(Icons.Default.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))
+        }
+    }
+    if (hasItems) {
+        IconButton(onClick = onToggleSortAlpha) {
+            Icon(
+                Icons.Default.SortByAlpha,
+                stringResource(R.string.grocery_sort_alpha),
+                tint = if (sortAlpha) AccentCoral else OnBackground.copy(0.6f),
+            )
+        }
+        // Previously a flat unsorted/alphabetical-only list with no
+        // produce/dairy/pantry sectioning at all.
+        IconButton(onClick = onToggleGroupByAisle) {
+            Icon(
+                Icons.Default.Category,
+                stringResource(R.string.grocery_group_by_aisle),
+                tint = if (groupByAisle) AccentCoral else OnBackground.copy(0.6f),
+            )
+        }
+        // Previously the only way out of the app was clipboard copy-then-paste -
+        // mirrors ResultScreen's existing ACTION_SEND share pattern.
+        IconButton(onClick = onShare) {
+            Icon(Icons.Default.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
+        }
+        Box {
+            IconButton(onClick = { onCopyMenuExpandedChange(true) }) {
+                Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
+            }
+            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.grocery_copy_plain)) },
+                    onClick = { onCopyMenuExpandedChange(false); onCopyPlain() },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.grocery_copy_checklist)) },
+                    onClick = { onCopyMenuExpandedChange(false); onCopyChecklist() },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GroceryQuickAddRow(quickAddText: String, onQuickAddTextChange: (String) -> Unit, onAdd: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        OutlinedTextField(
+            value = quickAddText,
+            onValueChange = onQuickAddTextChange,
+            modifier = Modifier.weight(1f),
+            placeholder = { Text(stringResource(R.string.grocery_quick_add_placeholder), color = OnBackground.copy(0.4f)) },
+            singleLine = true,
+            shape = RoundedCornerShape(CardRadius.CONTROL),
+            colors = scanEatTextFieldColors(),
+        )
+        IconButton(
+            onClick = onAdd,
+            enabled = quickAddText.isNotBlank(),
+            modifier = Modifier.size(40.dp),
+        ) {
+            Icon(Icons.Default.Add, stringResource(R.string.grocery_quick_add_cd), tint = if (quickAddText.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
+        }
+    }
+}
+
+@Composable
+private fun GroceryProgressRow(itemCount: Int, checkedProgress: Pair<Int, Int>) {
+    val (checked, total) = checkedProgress
+    Text(pluralStringResource(R.plurals.grocery_item_count, itemCount, itemCount),
+        style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+    if (total > 0 && checked > 0) {
+        Spacer(Modifier.height(4.dp))
+        androidx.compose.material3.LinearProgressIndicator(
+            progress = { (checked.toFloat() / total).coerceIn(0f, 1f) },
+            modifier = Modifier.fillMaxWidth().height(4.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(2.dp)),
+            color = semanticGreen(),
+            trackColor = OnBackground.copy(0.08f),
+        )
+        if (checked == total) {
+            Text(
+                stringResource(R.string.grocery_all_done),
+                style = MaterialTheme.typography.labelSmall,
+                color = semanticGreen(),
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+            )
+        } else {
+            Text(
+                stringResource(R.string.grocery_checked_progress, checked, total),
+                style = MaterialTheme.typography.labelSmall,
+                color = OnBackground.copy(0.4f),
+            )
+        }
     }
 }
 
