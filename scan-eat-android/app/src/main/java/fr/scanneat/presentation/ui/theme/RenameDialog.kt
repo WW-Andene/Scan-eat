@@ -27,8 +27,14 @@ fun RenameDialog(currentName: String, onConfirm: (String) -> Unit, onDismiss: ()
             )
         },
         confirmButton = {
-            TextButton(onClick = { if (name.isNotBlank()) onConfirm(name) }, enabled = name.isNotBlank()) {
-                Text(stringResource(R.string.common_save), color = AccentCoral)
+            // Same "explicit Text color overrides disabled state" bug already fixed
+            // in ScanEatButton.kt - a hardcoded, non-Unspecified color always wins
+            // over Material's disabled-content dimming, so a blank name left this
+            // "disabled" button rendering at full-opacity AccentCoral with no visual
+            // cue that tapping it does nothing.
+            val enabled = name.isNotBlank()
+            TextButton(onClick = { if (enabled) onConfirm(name) }, enabled = enabled) {
+                Text(stringResource(R.string.common_save), color = if (enabled) AccentCoral else OnBackground.copy(0.3f))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },

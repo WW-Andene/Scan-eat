@@ -215,6 +215,9 @@ fun semanticAmber(): Color = when (LocalColorblindMode.current) {
 /** Hydration / water indicator. */
 @Composable
 fun semanticBlue(): Color = when (LocalColorblindMode.current) {
-    "tritanopia" -> Color(0xFF009E73) // tritanopia can't distinguish blue well; use bluish-green
+    // Was the same 0x009E73 as semanticGreen()'s tritanopia value - a hard hex
+    // collision between two distinct meanings (success vs. hydration). Okabe-Ito's
+    // "blue" isn't claimed by any other semantic accessor under this mode.
+    "tritanopia" -> Color(0xFF0072B2)
     else         -> HydrationBlue     // blue is fine for protan/deutan and normal
 }

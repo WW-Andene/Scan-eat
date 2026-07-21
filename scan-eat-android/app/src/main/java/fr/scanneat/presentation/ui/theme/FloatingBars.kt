@@ -160,7 +160,13 @@ fun FloatingScreenScaffold(
     val bottomNavHazeState = LocalBottomNavHazeState.current
     Box(modifier.fillMaxSize()) {
         val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-        val bottomInset = if (showBottomNavClearance) WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() else 0.dp
+        // Reserved unconditionally, mirroring topInset above - showBottomNavClearance
+        // only gates the app's OWN FloatingBottomNavHeight pill. Previously the raw
+        // system nav-bar inset was never reserved at all on push/detail screens (the
+        // majority of screens, not just bottom-nav-tab destinations), so content and
+        // bottom-anchored buttons on those screens could render underneath a gesture/
+        // 3-button navigation bar.
+        val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
         // Nested so each hazeSource attaches to its own layout node — the
         // outer one only exists (and only feeds MainShell's shared nav
         // state) on genuine bottom-nav-tab screens.
@@ -171,7 +177,7 @@ fun FloatingScreenScaffold(
                 content(
                     PaddingValues(
                         top    = topInset + FloatingTopBarHeight,
-                        bottom = if (showBottomNavClearance) bottomInset + FloatingBottomNavHeight else 0.dp,
+                        bottom = bottomInset + if (showBottomNavClearance) FloatingBottomNavHeight else 0.dp,
                     ),
                 )
             }
@@ -184,7 +190,11 @@ fun FloatingScreenScaffold(
             accent         = accent,
             modifier       = Modifier.align(Alignment.TopCenter),
         )
-        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = if (showBottomNavClearance) FloatingBottomNavHeight else 0.dp)) {
+        // Previously omitted "+ bottomInset" here even though content's own
+        // calculation above includes it - a Snackbar on a bottom-nav-tab screen
+        // with a gesture nav bar rendered bottomInset pixels too low, appearing to
+        // sit underneath/behind the floating bottom nav instead of above it.
+        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = bottomInset + if (showBottomNavClearance) FloatingBottomNavHeight else 0.dp)) {
             snackbarHost()
         }
     }

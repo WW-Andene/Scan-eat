@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -40,7 +41,12 @@ val ScoreRevealEasing: Easing = CubicBezierEasing(0.16f, 0.84f, 0.28f, 1f)
 @Composable
 fun rememberReducedMotion(): Boolean {
     val context = LocalContext.current
-    return Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    // Was missing remember{} despite the name - every call (pressScale is applied to
+    // every clickable ScanEatCard app-wide) performed a fresh synchronous
+    // ContentResolver/Binder round trip on every single recomposition.
+    return remember(context) {
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
 }
 
 /**
