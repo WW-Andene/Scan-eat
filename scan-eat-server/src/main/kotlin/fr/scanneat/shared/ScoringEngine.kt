@@ -689,7 +689,15 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
         val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
         eNum == "E249" || eNum == "E250" || ing.name.lowercase().let { it.contains("nitrite") || it.contains("e249") || it.contains("e250") }
     }
-    val highSalt = n.saltG > 1.5
+    // Category-relative, not a flat bar: PROCESSED_MEAT's own thresholds (dry-cured
+    // meat is structurally ~2.5-6g/100g salt) put "moderate" at 4.0g, not the
+    // generic-food 1.5g this veto used to hard-code - a flat 1.5 was stricter than
+    // even that category's own "minor" tier (2.5g), so nearly every typical
+    // nitrite-cured product (ham ~1.6-2g, bacon ~2.5g, salami ~3-4g) combined with
+    // any refined-starch filler tripped this veto even when its own category-aware
+    // salt scoring would call the same salt level merely "typical." Mirrors the
+    // identical fix on the Android side (see Scoring Drift Check).
+    val highSalt = n.saltG > getThresholds(ProductCategory.PROCESSED_MEAT).saltThresholds.second
     val refined = product.ingredients.any { Regex("""farine de blé|farine raffinée|amidon|dextrose""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
         candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", 40)
