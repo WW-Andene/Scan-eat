@@ -424,6 +424,37 @@ class ScanRepository @Inject constructor(
         }
     }
 
+    /**
+     * SERVER-mode counterpart to identifyViaServer(), for a plate holding several
+     * distinct foods - calls the server's own POST /api/identify-multi (see
+     * scan-eat-server's IdentifyRoute), which already existed but was never
+     * called from here: a user photographing a plate with several different
+     * foods could previously only ever identify one item at a time via
+     * identifyOrScoreFromImages/identify. DIRECT mode's ocrParser.identifyFood()
+     * has no multi-item equivalent (it always returns a single Product), so this
+     * skips the ApiMode branch entirely and goes straight to the server - same
+     * "Server-mode only import" shape as RecipeRepository's fetchRecipeFromUrl/
+     * identifyRecipeFromPhotos, which likewise have no DIRECT-mode counterpart
+     * and never check prefs.apiMode either. Same retry/backoff policy as
+     * scoreViaServer/identifyViaServer. Each returned item is rescored locally
+     * via ServerIdentifyResponse.toDomain(), same as the single-item path.
+     */
+    suspend fun identifyMultiFromImages(
+        images: List<ImagePayload>,
+        lang: String = "fr",
+        online: Boolean = true,
+    ): Result<List<ScanResult>> = ioCatching {
+        if (!online) error(offlineMessage(lang))
+        val serverUrl = prefs.serverUrl.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val apiKey = prefs.groqApiKey.first()
+        val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
+        val response = retryServerCall {
+            serverApiProvider.get(serverUrl).identifyMulti(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
+        }
+        response.items.map { it.toDomain(lang) }
+    }
+
     // ---- Direct mode ----
 
     /**

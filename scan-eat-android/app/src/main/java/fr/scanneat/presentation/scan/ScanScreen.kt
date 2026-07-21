@@ -9,10 +9,13 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -43,6 +46,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -260,7 +264,14 @@ fun ScanScreen(
             // from). Routes to OcrParser.identifyFood, which previously had no caller
             // anywhere in the app despite already being implemented. ──
             if (images.value.isNotEmpty() && barcode.value == null && state.value !is ScanUiState.Scanning) {
-                ScanIdentifyFoodAction(bottomNavClearance = bottomNavClearance, onClick = { viewModel.identifyFromPhotos() })
+                ScanIdentifyFoodAction(
+                    bottomNavClearance = bottomNavClearance,
+                    onClick = { viewModel.identifyFromPhotos() },
+                    // Long-press: same photos, but routes to /api/identify-multi so a
+                    // plate with several distinct foods returns one item per food
+                    // instead of collapsing the whole plate into a single result.
+                    onLongClick = { viewModel.identifyMultiFromPhotos() },
+                )
             }
 
             // ── Recent barcodes quick-rescan chips — bottom-start, above instant FAB ──
@@ -281,8 +292,8 @@ fun ScanScreen(
 
         }
 
-        // ── Result of the last scan attempt — a single exhaustive `when` over all 6
-        // ScanUiState variants (no `else`), so a future 7th variant fails to compile
+        // ── Result of the last scan attempt — a single exhaustive `when` over all 7
+        // ScanUiState variants (no `else`), so a future 8th variant fails to compile
         // here instead of silently rendering nothing. Previously scattered across an
         // `if (hasCamera...) {...} else if (state.value is Error) {...}` pair (each
         // half re-deriving its own `error` via an `as` cast) plus two independent
@@ -302,6 +313,11 @@ fun ScanScreen(
             onDismissError = { viewModel.dismissError() },
             onDismissFound = { viewModel.dismissFound() },
             onSaveDetectedMedication = { entry -> viewModel.saveDetectedMedication(entry) },
+            // Same "consumed" cleanup the single-item Success path runs after
+            // navigating (see the LaunchedEffect(state.value) above) - without it,
+            // MultiFoodFound would stay current and the picked item's dialog (or a
+            // stale photo queue) would still be there on returning to this screen.
+            onPickMultiFood = { id -> onResultReady(id); viewModel.resultConsumed() },
         )
     }
 }
@@ -496,34 +512,53 @@ private fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: Dp
         containerColor = AccentCoral,
         shape = CircleShape,
     ) {
-        // Exhaustive over all 6 ScanUiState variants (no `else`) - a future
-        // 7th variant now fails to compile here instead of silently falling
+        // Exhaustive over all 7 ScanUiState variants (no `else`) - a future
+        // 8th variant now fails to compile here instead of silently falling
         // through to the generic search icon unnoticed.
         when (scanState) {
             is ScanUiState.Scanning -> CircularProgressIndicator(
                 color = Color.Black, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
             is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
-            is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound ->
+            is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound,
+            is ScanUiState.MultiFoodFound ->
                 Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = bottomNavClearance + 28.dp)
-            .glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f),
+private fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: () -> Unit, onLongClick: () -> Unit) {
+    // Long-press is a hidden gesture by nature — this one-line caption (shown only
+    // while the pill itself is, i.e. photos queued / no barcode / not scanning,
+    // same gate the caller already applies) is what makes identifyMultiFromPhotos()
+    // discoverable at all, instead of a feature nobody ever stumbles onto.
+    val multiHint = stringResource(R.string.scan_identify_multi_hint)
+    Column(
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = bottomNavClearance + 28.dp),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Surface(
-            shape = RoundedCornerShape(CardRadius.PROMINENT),
-            color = SurfaceVariant.copy(0.9f),
-            onClick = onClick,
-        ) {
-            Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
+        Text(
+            multiHint,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(0.75f),
+        )
+        Box(modifier = Modifier.glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f)) {
+            Surface(
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
+                color = SurfaceVariant.copy(0.9f),
+                modifier = Modifier.combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                    onLongClickLabel = multiHint,
+                ),
+            ) {
+                Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
+                }
             }
         }
     }
@@ -577,6 +612,7 @@ private fun BoxScope.ScanStateOverlay(
     onDismissError: () -> Unit,
     onDismissFound: () -> Unit,
     onSaveDetectedMedication: (fr.scanneat.domain.engine.medication.MedicationDbEntry) -> Unit,
+    onPickMultiFood: (Long) -> Unit,
 ) {
     when (val s = state) {
         is ScanUiState.Idle, is ScanUiState.Scanning, is ScanUiState.Success -> Unit
@@ -658,5 +694,72 @@ private fun BoxScope.ScanStateOverlay(
                 confirmButton = { TextButton(onClick = onDismissFound) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
             )
         }
+        is ScanUiState.MultiFoodFound -> {
+            MultiFoodFoundDialog(items = s.items, onPick = onPickMultiFood, onDismiss = onDismissFound)
+        }
     }
+}
+
+/**
+ * identifyMultiFromPhotos() success dialog - a plate photo returned several
+ * distinct foods, each already scored and persisted (see ScanViewModel's
+ * ScanUiState.MultiFoodFound doc comment), so this is purely a picker: tapping
+ * a row hands its scan_history id to [onPick], which navigates straight to the
+ * existing Result screen exactly like the single-item Success path does.
+ * Styled like the sibling MedicationFound/NonConsumableFound AlertDialogs above,
+ * with a pickable-row list modeled on SuggestRecipesDialog's LazyColumn-in-an-
+ * AlertDialog pattern and a grade badge matching ScanHistoryScreen's ScanHistoryRow.
+ */
+@Composable
+private fun MultiFoodFoundDialog(
+    items: List<Pair<ScanResult, Long>>,
+    onPick: (Long) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.scan_identify_multi_found_title), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                Text(stringResource(R.string.scan_identify_multi_found_body), color = OnBackground.copy(0.7f))
+                HorizontalDivider(color = OnBackground.copy(0.1f))
+                LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    itemsIndexed(items) { _, (result, persistedId) ->
+                        val grade = gradeColor(result.audit.grade)
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = OnBackground.copy(0.05f),
+                            onClick = { onPick(persistedId) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.M),
+                            ) {
+                                Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = grade.copy(0.2f)) {
+                                    Text(
+                                        result.audit.grade.label,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = grade, fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        result.product.name, style = MaterialTheme.typography.bodyMedium,
+                                        color = OnSurface, fontWeight = FontWeight.Medium,
+                                        maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text("${result.audit.score}", style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
+    )
 }

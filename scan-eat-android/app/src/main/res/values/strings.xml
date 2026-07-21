@@ -52,6 +52,9 @@
     <string name="scan_capture">Capturer</string>
     <string name="scan_capture_error">Échec de la capture photo — réessayez</string>
     <string name="scan_instant_toggle">Mode instantané</string>
+    <string name="scan_identify_multi_hint">Appui long : plusieurs aliments</string>
+    <string name="scan_identify_multi_found_title">Plusieurs aliments détectés</string>
+    <string name="scan_identify_multi_found_body">Sélectionnez l\'aliment à consulter :</string>
 
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
     <string name="hydration_title">Hydratation</string>

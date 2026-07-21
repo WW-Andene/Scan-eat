@@ -52,6 +52,9 @@
     <string name="scan_capture">Capture</string>
     <string name="scan_capture_error">Photo capture failed — try again</string>
     <string name="scan_instant_toggle">Instant mode</string>
+    <string name="scan_identify_multi_hint">Long-press: multiple foods</string>
+    <string name="scan_identify_multi_found_title">Multiple foods detected</string>
+    <string name="scan_identify_multi_found_body">Select the food to view:</string>
 
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
     <string name="hydration_title">Hydration</string>

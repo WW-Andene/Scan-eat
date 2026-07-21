@@ -94,6 +94,16 @@ private fun genericErrorMessage(lang: String) =
     if (lang == "en") "Unknown error"
     else "Erreur inconnue"
 
+/**
+ * identifyMultiFromPhotos()'s empty-list fallback - the server can legitimately
+ * return zero items (no distinct food detected on the plate) without that being
+ * a request failure, so this needs its own message rather than reusing
+ * genericErrorMessage's "Unknown error", which would be actively misleading.
+ */
+private fun noFoodsDetectedMessage(lang: String) =
+    if (lang == "en") "No distinct foods were detected in the photo(s) — try a clearer shot"
+    else "Aucun aliment distinct détecté sur la ou les photos — essayez une photo plus nette"
+
 sealed class ScanUiState {
     data object Idle     : ScanUiState()
     data object Scanning : ScanUiState()
@@ -103,6 +113,8 @@ sealed class ScanUiState {
     data class  MedicationFound(val entry: MedicationDbEntry) : ScanUiState()
     /** Barcode matched a household/chemical product - not something to run through food scoring, and never something to imply is safe to consume. */
     data class  NonConsumableFound(val entry: NonConsumableDbEntry) : ScanUiState()
+    /** Photo(s) held multiple distinct foods (a plate) - identifyMultiFromPhotos() already scored+persisted every one; the user picks which to view. */
+    data class  MultiFoodFound(val items: List<Pair<ScanResult, Long>>) : ScanUiState()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -290,6 +302,49 @@ class ScanViewModel @Inject constructor(
                                 val id = scanRepo.persist(scanResult)
                                 _state.value = ScanUiState.Success(scanResult, id)
                             }
+                        }
+                    },
+                    onFailure = { e -> _state.value = ScanUiState.Error(e.message ?: genericErrorMessage(lang)) },
+                )
+            } finally {
+                scoreMutex.unlock()
+            }
+        }
+    }
+
+    /**
+     * Server-only counterpart to identifyFromPhotos() for a plate holding several
+     * distinct foods - ScanRepository.identifyMultiFromImages() (wired to the
+     * server's POST /api/identify-multi, previously unreachable from the app)
+     * returns one ScanResult per detected item instead of collapsing the whole
+     * plate into a single one. Every returned result is persisted immediately,
+     * same as the single-item path's success branch, so MultiFoodFoundDialog can
+     * navigate straight to the existing Result screen for whichever item the
+     * user taps without a second network round-trip. Unlike identifyFromPhotos,
+     * this doesn't cross-check the medication/non-consumable name DBs per item -
+     * those lookups exist for a single scanned barcode/label, not a multi-item
+     * plate photo, which is never going to be a pill box or a cleaning product.
+     */
+    fun identifyMultiFromPhotos() {
+        val imgs = _images.value
+        if (imgs.isEmpty()) return
+        if (!scoreMutex.tryLock()) return
+        viewModelScope.launch {
+            try {
+                _state.value = ScanUiState.Scanning
+                val lang   = prefs.language.first()
+                val online = isOnline()
+                if (!online) {
+                    _state.value = ScanUiState.Error(offlineMessage(lang))
+                    return@launch
+                }
+                val identified = scanRepo.identifyMultiFromImages(imgs, lang, online)
+                identified.fold(
+                    onSuccess = { results ->
+                        _state.value = if (results.isEmpty()) {
+                            ScanUiState.Error(noFoodsDetectedMessage(lang))
+                        } else {
+                            ScanUiState.MultiFoodFound(items = results.map { it to scanRepo.persist(it) })
                         }
                     },
                     onFailure = { e -> _state.value = ScanUiState.Error(e.message ?: genericErrorMessage(lang)) },
