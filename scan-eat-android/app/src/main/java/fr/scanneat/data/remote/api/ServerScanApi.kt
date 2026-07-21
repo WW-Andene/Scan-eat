@@ -33,6 +33,20 @@ interface ServerScanApi {
         @Body request: ServerImagesRequest,
     ): ServerIdentifyResponse
 
+    /** IdentifyRoute.kt: plate with multiple distinct foods → one entry per food. Also unreachable from the app until now. */
+    @POST("api/identify-multi")
+    suspend fun identifyMulti(
+        @Header("X-Groq-Key") groqKey: String?,
+        @Body request: ServerImagesRequest,
+    ): ServerIdentifyMultiResponse
+
+    /** IdentifyMenuRoute.kt: restaurant menu photo → dishes with estimated macros. Also unreachable from the app until now. */
+    @POST("api/identify-menu")
+    suspend fun identifyMenu(
+        @Header("X-Groq-Key") groqKey: String?,
+        @Body request: ServerImagesRequest,
+    ): ServerIdentifyMenuResponse
+
     /**
      * FetchRecipeRoute.kt has carried this since it was added — SSRF-guarded HTML
      * fetch + schema.org Recipe JSON-LD extraction — but nothing on the Android
@@ -159,6 +173,29 @@ data class ServerIdentifyResponse(
     @Json(name = "nutriscore_grade") val nutriscoreGrade: String? = null,
     @Json(name = "declared_micronutrients") val declaredMicronutrients: List<String> = emptyList(),
     @Json(name = "declared_allergen_tags") val declaredAllergenTags: List<String> = emptyList(),
+    val warnings: List<String> = emptyList(),
+)
+
+/** Mirrors IdentifiedMultiFoodResponse - one [ServerIdentifyResponse]-shaped entry per detected food on the plate. */
+@JsonClass(generateAdapter = true)
+data class ServerIdentifyMultiResponse(
+    val items: List<ServerIdentifyResponse> = emptyList(),
+    val warnings: List<String> = emptyList(),
+)
+
+/** Mirrors MenuDishDto - a restaurant menu photo → one entry per dish, estimates only (no scoring, no ingredients). */
+@JsonClass(generateAdapter = true)
+data class ServerMenuDishDto(
+    val name: String,
+    val description: String? = null,
+    @Json(name = "estimated_kcal") val estimatedKcal: Int? = null,
+    @Json(name = "protein_g") val proteinG: Double? = null,
+)
+
+/** Mirrors IdentifiedMenuResponse. */
+@JsonClass(generateAdapter = true)
+data class ServerIdentifyMenuResponse(
+    val dishes: List<ServerMenuDishDto> = emptyList(),
     val warnings: List<String> = emptyList(),
 )
 
