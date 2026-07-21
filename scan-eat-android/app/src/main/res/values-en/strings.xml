@@ -1134,6 +1134,7 @@
     <string name="recipes_suggest_hint">Give it one ingredient, and the AI proposes a few ideas.</string>
     <string name="recipes_suggest_placeholder">Ingredient</string>
     <string name="recipes_suggest_button">Suggest</string>
+    <string name="recipes_suggest_empty">No ideas found for that ingredient.</string>
     <string name="recipes_import_url_title">Import a recipe</string>
     <string name="recipes_import_url_hint">Paste a recipe link (blog, cooking site…)</string>
     <string name="recipes_import_url_placeholder">https://…</string>
