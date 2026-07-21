@@ -22,6 +22,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.temporal.WeekFields
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 data class MonthSummary(val totalKcal: Int, val activeMinutes: Int, val hydrationMl: Int, val activeDays: Int)
 
@@ -130,7 +131,11 @@ class CalendarViewModel @Inject constructor(
             weightRepo.observeAll(),
             fastingRepo.history,
             activityRepo.observeRange(start, end),
-            flow { emit(medicationRepo.getLogRange(start, end)) },
+            // Was a one-shot flow{ emit(getLogRange(...)) } - unlike activityRepo.observeRange
+            // above (a real Flow), medication dots never refreshed while Calendar stayed
+            // open on the same month; dayDetail elsewhere in this file already correctly
+            // uses medicationRepo.observeLogByDate for the same reason.
+            medicationRepo.observeLogRange(start, end),
         ) { diaryEntries, weights, fastHistory, activities, medicationLog ->
             val out = mutableMapOf<LocalDate, MutableSet<CalendarSource>>()
             fun mark(date: LocalDate, source: CalendarSource) {
@@ -184,7 +189,7 @@ class CalendarViewModel @Inject constructor(
                     date.minusDays(dow.toLong() - 1)
                 }
             weekStarts.forEach { (weekStart, days) ->
-                val kcal = diaryEntries.filter { it.date in days }.sumOf { it.nutrition.energyKcal * it.portionG / 100 }.toInt()
+                val kcal = diaryEntries.filter { it.date in days }.sumOf { it.nutrition.energyKcal * it.portionG / 100 }.roundToInt()
                 val activeMin = activities.filter { it.date in days }.sumOf { it.minutes }
                 val hydration = days.sumOf { hydrationMap[it] ?: 0 }
                 val activeDays = days.count { d -> markerMap[d]?.isNotEmpty() == true }

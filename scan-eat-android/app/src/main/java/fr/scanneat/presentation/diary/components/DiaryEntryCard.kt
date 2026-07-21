@@ -23,12 +23,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.DiaryEntry
-import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.semanticAmber
+import kotlin.math.roundToInt
 
 @Composable
 internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, onDelete: () -> Unit, onEdit: () -> Unit) {
@@ -42,15 +43,19 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, onDelete
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(stringResource(R.string.diary_entry_summary, entry.portionG.toInt(), entry.consumed.energyKcal.toInt()),
+                Text(stringResource(R.string.diary_entry_summary, entry.portionG.roundToInt(), entry.consumed.energyKcal.roundToInt()),
                     style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
                 // Same checkUserAllergens()/checkDiet() warning Recipes/Grocery/
                 // Templates already show live - previously nothing in the Diary
                 // ever surfaced this, so a logged allergen never resurfaced here.
+                // semanticAmber(), not the generic brand accent - this is a
+                // safety-relevant allergen/diet-violation message (the icon is
+                // literally WarningAmber), exactly what the colorblind-safe
+                // accessor exists for; AccentCoral doesn't adapt under colorblind mode.
                 if (warning != null) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Default.WarningAmber, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(14.dp))
-                        Text(warning, style = MaterialTheme.typography.bodySmall, color = AccentCoral, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
+                        Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }

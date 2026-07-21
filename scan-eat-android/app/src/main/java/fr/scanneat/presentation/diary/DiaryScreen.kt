@@ -33,6 +33,7 @@ import fr.scanneat.presentation.activity.ActivityScreen
 import fr.scanneat.presentation.dashboard.cards.NutrientBudgetCard
 import fr.scanneat.presentation.diary.components.AddDiaryEntryDialog
 import fr.scanneat.presentation.diary.components.DiaryEntryCard
+import kotlin.math.roundToInt
 import fr.scanneat.presentation.diary.components.EditPortionDialog
 import fr.scanneat.presentation.diary.components.MacroSummaryCard
 import fr.scanneat.presentation.fasting.FastingScreen
@@ -307,7 +308,7 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                                     Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(3.dp)))
                                     Text(
-                                        "${slot.shortLabel()} ${slotKcal.toInt()}kcal",
+                                        "${slot.shortLabel()} ${slotKcal.roundToInt()}kcal",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = OnSurface.copy(0.55f),
                                     )
@@ -343,7 +344,7 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
                                     color = AccentCoral,
                                     trackColor = OnSurface.copy(0.08f),
                                 )
-                                Text("${prot.toInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(30.dp))
+                                Text("${prot.roundToInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(30.dp))
                             }
                         }
                     }

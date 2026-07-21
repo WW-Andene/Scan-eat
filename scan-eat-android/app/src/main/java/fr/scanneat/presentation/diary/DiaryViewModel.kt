@@ -28,6 +28,7 @@ import fr.scanneat.domain.model.ScanSource
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -140,8 +141,21 @@ class DiaryViewModel @Inject constructor(
         viewModelScope.launch { runCatching { consumptionRepo.update(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
-    /** Reactive — safe across midnight. */
-    val isToday: Flow<Boolean> = _selectedDate.map { it == LocalDate.now() }
+    // Was `_selectedDate.map { it == LocalDate.now() }` - despite the "safe across
+    // midnight" comment, that only re-evaluates when _selectedDate itself changes,
+    // never from real time passing. A session left open on "today" across midnight
+    // kept isToday == true forever (until the user manually navigated), disabling
+    // the next-day chevron and misfiling anything logged via "+" under the now-
+    // stale previous day. Same 60s-poll fix already applied to CalendarViewModel/
+    // MealPlanViewModel for this exact bug class.
+    private val currentDate: Flow<LocalDate> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+
+    val isToday: Flow<Boolean> = combine(_selectedDate, currentDate) { selected, today -> selected == today }
 
     // ── Day notes ─────────────────────────────────────────────────────────────
     val dayNote: Flow<String> = _selectedDate.flatMapLatest { date ->

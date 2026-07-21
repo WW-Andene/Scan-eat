@@ -98,9 +98,17 @@ class MealPlanViewModel @Inject constructor(
     // New: for each day that still has at least two empty meal slots, suggest the
     // highest-protein recipe not yet assigned anywhere on that day — so a user
     // building a weekly plan gets a concrete fill recommendation instead of a blank.
-    val gapSuggestions: StateFlow<Map<LocalDate, Recipe?>> = combine(weekPlan, recipes) { plan, recipeList ->
+    val gapSuggestions: StateFlow<Map<LocalDate, Recipe?>> = combine(weekPlan, recipes, weekDates) { plan, recipeList, dates ->
         if (recipeList.isEmpty()) return@combine emptyMap()
-        plan.mapValues { (_, dayPlan) ->
+        // Iterate the real week dates, not plan.mapValues - weekPlan only holds an
+        // entry for a date once at least one slot has ever been set for it, so a
+        // brand-new untouched week (weekPlan has no keys at all) previously produced
+        // zero suggestions for any of its days, silently defeating this feature for
+        // its most common use case: opening MealPlan on a fresh future week. Missing
+        // days default to an empty DayPlan, same as dayCalories's own dates-driven
+        // iteration above.
+        dates.associateWith { date ->
+            val dayPlan = plan[date] ?: DayPlan(date)
             val assignedIds = listOf("breakfast", "lunch", "dinner", "snack")
                 .mapNotNull { (dayPlan[it] as? MealPlanSlot.RecipeSlot)?.id }.toSet()
             val emptySlots = listOf("breakfast", "lunch", "dinner", "snack").count { dayPlan[it] == null }

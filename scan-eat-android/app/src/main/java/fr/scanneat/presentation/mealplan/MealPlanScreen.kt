@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private val MEALS = listOf("breakfast", "lunch", "dinner", "snack")
 
@@ -54,6 +55,12 @@ fun MealPlanScreen(
     var assignTarget by remember { mutableStateOf<Pair<LocalDate, String>?>(null) }
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    // "Duplicate week" was gated on weeklyTotalKcal > 0, which only counts assigned
+    // Recipe/Template slots - a week planned entirely with free-text notes has
+    // weeklyTotalKcal == 0, so the action disappeared even though there's a full
+    // week of plan data to duplicate. Per-day duplicate/clear (below) correctly
+    // gates on "any slot type"; this applies the same logic at the week level.
+    val weekHasAnyPlan = weekDates.value.any { date -> MEALS.any { (plan.value[date] ?: DayPlan(date))[it] != null } }
     // logSlot previously failed completely silently - see MealPlanViewModel
     // .actionFailed's own comment.
     val logFailedMessage = stringResource(R.string.common_log_failed)
@@ -72,7 +79,7 @@ fun MealPlanScreen(
         // week onto the next 7 days in one tap.
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.MEAL_PLAN, onNavigate = onNavigateToPlanning)
-            if (weeklyTotalKcal.value > 0) {
+            if (weekHasAnyPlan) {
                 IconButton(onClick = { viewModel.duplicateWeek() }) {
                     Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_week), tint = OnBackground)
                 }
@@ -162,8 +169,18 @@ fun MealPlanScreen(
                             horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                         ) {
                             Icon(Icons.Default.Lightbulb, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                            // Per-serving, not the recipe's whole-batch total - a single
+                            // planned meal slot only ever represents 1/servings of
+                            // suggestion.totalKcal/totalProteinG (same division logSlot()
+                            // and dayCalories both already apply), so a 4-serving recipe
+                            // previously showed 4x the real per-meal numbers here.
+                            val servings = suggestion.servings.coerceAtLeast(1)
                             Text(
-                                stringResource(R.string.mealplan_gap_suggestion, suggestion.name, suggestion.totalKcal.toInt(), suggestion.totalProteinG.toInt()),
+                                stringResource(
+                                    R.string.mealplan_gap_suggestion, suggestion.name,
+                                    (suggestion.totalKcal / servings).roundToInt(),
+                                    (suggestion.totalProteinG / servings).roundToInt(),
+                                ),
                                 style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f), modifier = Modifier.weight(1f),
                             )
                         }

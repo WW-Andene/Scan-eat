@@ -19,6 +19,7 @@ import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @Composable
 internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?, goalTargets: DailyTargets? = null, goalWeightKg: Double? = null) {
@@ -47,11 +48,15 @@ private fun formatWeight(kg: Double): String =
 
 @Composable
 private fun MacroRow(totals: ConsumedNutrition, targets: DailyTargets?, accent: androidx.compose.ui.graphics.Color) {
+    // .roundToInt(), not .toInt() - .toInt() always truncates toward zero, biasing
+    // every figure on the app's primary "how am I doing" display down. The
+    // codebase already has an explicit rule against this exact anti-pattern
+    // (MealPlanViewModel.dayCalories's own comment), just never applied here.
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-        MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.toInt()}", "kcal", targets?.kcal?.toInt(), accent)
-        MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.toInt()}", "g", targets?.proteinGTarget?.takeIf { it > 0 }?.toInt(), accent)
-        MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.toInt()}", "g", targets?.carbsGTarget?.takeIf { it > 0 }?.toInt(), accent)
-        MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.toInt()}", "g", targets?.fatGTarget?.takeIf { it > 0 }?.toInt(), accent)
+        MacroItem(stringResource(R.string.diary_macro_calories), "${totals.energyKcal.roundToInt()}", "kcal", targets?.kcal?.roundToInt(), accent)
+        MacroItem(stringResource(R.string.diary_macro_protein), "${totals.proteinG.roundToInt()}", "g", targets?.proteinGTarget?.takeIf { it > 0 }?.roundToInt(), accent)
+        MacroItem(stringResource(R.string.diary_macro_carbs), "${totals.carbsG.roundToInt()}", "g", targets?.carbsGTarget?.takeIf { it > 0 }?.roundToInt(), accent)
+        MacroItem(stringResource(R.string.diary_macro_fat), "${totals.fatG.roundToInt()}", "g", targets?.fatGTarget?.takeIf { it > 0 }?.roundToInt(), accent)
     }
 }
 
