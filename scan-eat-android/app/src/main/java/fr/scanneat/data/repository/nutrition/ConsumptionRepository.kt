@@ -1,7 +1,10 @@
 package fr.scanneat.data.repository.nutrition
 
+import android.content.Context
+import androidx.glance.appwidget.updateAll
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.consumption.ConsumptionEntity
 import fr.scanneat.data.local.db.toEpochMillisUtc
@@ -10,6 +13,7 @@ import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.toLocalDateTimeUtc
 import fr.scanneat.data.repository.health.HealthConnectRepository
 import fr.scanneat.domain.model.*
+import fr.scanneat.presentation.widget.TodayWidget
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -22,6 +26,7 @@ class ConsumptionRepository @Inject constructor(
     private val dao: ConsumptionDao,
     private val moshi: Moshi,
     private val healthConnect: HealthConnectRepository,
+    @ApplicationContext private val context: Context,
 ) {
     private val nutritionAdapter = moshi.adapter(NutritionPer100g::class.java)
     private val ingredientsAdapter = moshi.adapter<List<Ingredient>>(
@@ -41,12 +46,26 @@ class ConsumptionRepository @Inject constructor(
     suspend fun log(entry: DiaryEntry) {
         dao.insert(entry.toEntity())
         mirrorToHealthConnect(entry)
+        refreshWidget()
     }
 
     /** Atomic multi-entry write — use when logging a template or recipe that expands to several entries. */
     suspend fun logAll(entries: List<DiaryEntry>) {
         dao.insertAll(entries.map { it.toEntity() })
         entries.forEach { mirrorToHealthConnect(it) }
+        refreshWidget()
+    }
+
+    // TodayWidget's kcal/streak/macro figures previously only refreshed on the platform's
+    // own 30-minute updatePeriodMillis (see today_widget_info.xml) or an explicit resize/
+    // re-add - logging food from anywhere in the app (Diary, Result, Recipes, Templates,
+    // Dashboard's gap suggestions) left the home-screen widget showing stale numbers for up
+    // to half an hour. Every logging/edit path funnels through this repository, so refreshing
+    // here (rather than hunting down every ViewModel call site) can't miss one. Best-effort:
+    // no widget instance on the home screen is the common case, not an error worth surfacing.
+    private suspend fun refreshWidget() {
+        runCatching { TodayWidget().updateAll(context) }
+            .onFailure { e -> if (e is kotlinx.coroutines.CancellationException) throw e }
     }
 
     private suspend fun mirrorToHealthConnect(entry: DiaryEntry) {
@@ -80,13 +99,23 @@ class ConsumptionRepository @Inject constructor(
 
     suspend fun update(entry: DiaryEntry) {
         dao.update(entry.toEntity())
+        refreshWidget()
     }
 
-    suspend fun delete(id: Long) = dao.delete(id)
+    suspend fun delete(id: Long) {
+        dao.delete(id)
+        refreshWidget()
+    }
 
     fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<DiaryEntry>> =
         dao.observeRange(from.toString(), to.toString(), profileId)
             .map { list -> list.mapNotNull { it.toDomain() } }
+
+    /** All distinct dates with at least one logged entry, across full history — for
+     * logStreakDays/longestLogStreak, which need every date ever logged, not just
+     * whatever a fixed-size observeRange window happens to cover. */
+    suspend fun getAllLoggedDates(profileId: String = "default"): Set<LocalDate> =
+        dao.getAllLoggedDates(profileId).mapNotNullTo(mutableSetOf()) { runCatching { it.toLocalDate() }.getOrNull() }
 
     // ---- Mapping ----
 

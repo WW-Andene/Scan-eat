@@ -91,7 +91,12 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             rollup.days.forEach { day ->
                 Text(
-                    day.date.dayOfWeek.getDisplayName(TextStyle.NARROW, locale)
+                    // SHORT, not NARROW - NARROW collapses to a single letter that's
+                    // ambiguous in both supported languages (FR: Mardi/Mercredi both "M";
+                    // EN: Tuesday/Thursday both "T", Saturday/Sunday both "S"), so a user
+                    // couldn't tell which bar was which day. SHORT ("Mar"/"Mer", "Tue"/
+                    // "Thu") is what BestWorstItem below already uses for the same data.
+                    day.date.dayOfWeek.getDisplayName(TextStyle.SHORT, locale)
                         .replaceFirstChar { it.uppercaseChar() },
                     modifier  = Modifier.weight(1f),
                     style     = MaterialTheme.typography.labelSmall,

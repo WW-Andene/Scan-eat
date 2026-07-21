@@ -242,12 +242,19 @@ class DashboardViewModel @Inject constructor(
                         )
                     }
 
+                    // allEntries is only ever a 30-day window (observeRange above) - passing
+                    // it to logStreakDays/longestLogStreak silently capped both at 30 even
+                    // when the user's real streak/record ran longer. getAllLoggedDates() is
+                    // a cheap DISTINCT-date query (no row hydration), so this stays correct
+                    // no matter how long the actual streak or logging history is.
+                    val loggedDates = consumptionRepo.getAllLoggedDates()
+
                     emit(DashboardUiState(
                         todayTotals    = todayData.totals,
                         targets        = targets,
                         calorieBalance = calorieBalance,
-                        streak         = logStreakDays(allEntries),
-                        longestStreak  = longestLogStreak(allEntries),
+                        streak         = logStreakDays(loggedDates, date),
+                        longestStreak  = longestLogStreak(loggedDates),
                         weekly         = thisWeek,
                         monthly        = thisMonth,
                         weekDelta      = weekOverWeekDelta(thisWeek, priorWeek),
@@ -338,29 +345,42 @@ class DashboardViewModel @Inject constructor(
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
 
+    // logGapSuggestion/logNeverLoggedScan both previously had no re-entrancy guard - a fast
+    // double-tap (or a second tap landing before the first log's suspend DB write finished)
+    // fired the whole function twice, silently creating two duplicate diary entries for the
+    // same suggestion/scan. Keyed by the same suggestion.name/scan matchKey a tap is already
+    // logically about, so a duplicate tap on the SAME item while it's still in flight is a
+    // no-op, but a tap on a DIFFERENT item is never blocked by an unrelated one in progress.
+    private val loggingKeys = mutableSetOf<String>()
+
     fun logGapSuggestion(suggestion: GapSuggestion) {
+        if (!loggingKeys.add(suggestion.name)) return
         viewModelScope.launch {
-            // Previously only ever searched raw FOOD_DB - a suggestion built from a
-            // user's own custom food (now possible since closeTheGap/chronicNutrientGaps
-            // are given FOOD_DB + custom foods) would silently no-op here otherwise.
-            val food = (FOOD_DB + customFoodRepo.observeAll().first()).find { it.name == suggestion.name } ?: return@launch
-            // Unguarded suspend DB write previously crashed the app on any Room insert
-            // failure (disk-full, constraint violation) — ResultViewModel.log() guards
-            // its equivalent call the same way.
-            runCatching {
-                consumptionRepo.log(
-                    DiaryEntry(
-                        date        = LocalDate.now(),
-                        mealSlot    = defaultMealForHour(LocalTime.now().hour),
-                        productName = food.name,
-                        barcode     = null,
-                        portionG    = suggestion.grams.toDouble(),
-                        nutrition   = food.toProduct(suggestion.grams.toDouble()).nutrition,
-                        source      = ScanSource.MANUAL,
+            try {
+                // Previously only ever searched raw FOOD_DB - a suggestion built from a
+                // user's own custom food (now possible since closeTheGap/chronicNutrientGaps
+                // are given FOOD_DB + custom foods) would silently no-op here otherwise.
+                val food = (FOOD_DB + customFoodRepo.observeAll().first()).find { it.name == suggestion.name } ?: return@launch
+                // Unguarded suspend DB write previously crashed the app on any Room insert
+                // failure (disk-full, constraint violation) — ResultViewModel.log() guards
+                // its equivalent call the same way.
+                runCatching {
+                    consumptionRepo.log(
+                        DiaryEntry(
+                            date        = LocalDate.now(),
+                            mealSlot    = defaultMealForHour(LocalTime.now().hour),
+                            productName = food.name,
+                            barcode     = null,
+                            portionG    = suggestion.grams.toDouble(),
+                            nutrition   = food.toProduct(suggestion.grams.toDouble()).nutrition,
+                            source      = ScanSource.MANUAL,
+                        )
                     )
-                )
-            }.onSuccess { _gapLoggedName.value = food.name }
-                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                }.onSuccess { _gapLoggedName.value = food.name }
+                    .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            } finally {
+                loggingKeys.remove(suggestion.name)
+            }
         }
     }
 
@@ -368,21 +388,27 @@ class DashboardViewModel @Inject constructor(
 
     /** Logs a never-logged scan straight from its real product/barcode/source — see [DashboardUiState.neverLoggedScans]. */
     fun logNeverLoggedScan(scan: ScanResult, portionG: Double, mealSlot: MealSlot) {
+        val key = "scan:" + (scan.barcode ?: scan.product.name.lowercase())
+        if (!loggingKeys.add(key)) return
         viewModelScope.launch {
-            runCatching {
-                consumptionRepo.log(
-                    DiaryEntry(
-                        date        = LocalDate.now(),
-                        mealSlot    = mealSlot,
-                        productName = scan.product.name,
-                        barcode     = scan.barcode,
-                        portionG    = portionG,
-                        nutrition   = scan.product.nutrition,
-                        source      = scan.source,
-                        ingredients = scan.product.ingredients,
+            try {
+                runCatching {
+                    consumptionRepo.log(
+                        DiaryEntry(
+                            date        = LocalDate.now(),
+                            mealSlot    = mealSlot,
+                            productName = scan.product.name,
+                            barcode     = scan.barcode,
+                            portionG    = portionG,
+                            nutrition   = scan.product.nutrition,
+                            source      = scan.source,
+                            ingredients = scan.product.ingredients,
+                        )
                     )
-                )
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            } finally {
+                loggingKeys.remove(key)
+            }
         }
     }
 

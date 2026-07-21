@@ -41,7 +41,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggesti
         gaps.take(3).forEach { gap ->
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Text(
-                    stringResource(R.string.dashboard_gap_entry, gap.nutrient.replaceFirstChar { it.uppercase() }, gap.deficit.formatDecimal()),
+                    stringResource(R.string.dashboard_gap_entry, nutrientLabel(gap.nutrient), gap.deficit.formatDecimal()),
                     style = MaterialTheme.typography.labelMedium, color = semanticAmber(),
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -63,4 +63,23 @@ internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggesti
             }
         }
   }
+}
+
+/**
+ * Maps a GapEntry/ChronicGap.nutrient raw key (e.g. "vit_d", from DashboardAggregator's
+ * GAP_NUTRIENTS/defs lists) to its localized display label. Previously interpolated directly
+ * as gap.nutrient.replaceFirstChar { it.uppercase() }, which showed the raw internal key
+ * itself regardless of app language — "Vit_d" (not even a real word) for a French user, or
+ * "Protein" for either language since the key was never actually translated. Reuses the
+ * same labels MicronutrientCard/MacroSummaryCard already have for these six nutrients.
+ */
+@Composable
+internal fun nutrientLabel(key: String): String = when (key) {
+    "protein" -> stringResource(R.string.diary_macro_protein)
+    "fiber"   -> stringResource(R.string.dashboard_micro_fiber)
+    "iron"    -> stringResource(R.string.dashboard_micro_iron)
+    "calcium" -> stringResource(R.string.dashboard_micro_calcium)
+    "vit_d"   -> stringResource(R.string.dashboard_micro_vitd)
+    "b12"     -> stringResource(R.string.dashboard_micro_b12)
+    else      -> key.replaceFirstChar { it.uppercase() }
 }

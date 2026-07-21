@@ -203,16 +203,25 @@ fun monthOverMonthDelta(current: RollupResult, prior: RollupResult): WeekOverWee
 // Port of logStreakDays() from presenters.js
 // ============================================================================
 
-fun logStreakDays(entries: List<DiaryEntry>, today: LocalDate = LocalDate.now()): Int {
-    if (entries.isEmpty()) return 0
-    val days = entries.map { it.date }.toHashSet()
+fun logStreakDays(entries: List<DiaryEntry>, today: LocalDate = LocalDate.now()): Int =
+    logStreakDays(entries.mapTo(mutableSetOf()) { it.date }, today)
+
+/**
+ * Same as the [List]<[DiaryEntry]> overload above, but takes the logged-date set directly -
+ * callers computing "current streak" should pass every date ever logged (e.g.
+ * ConsumptionRepository.getAllLoggedDates()), not a fixed-size window's entries. A streak
+ * longer than whatever window the caller happened to query would otherwise silently cap at
+ * that window's length (e.g. a real 45-day streak reported as 30 by a 30-day-windowed caller).
+ */
+fun logStreakDays(loggedDates: Set<LocalDate>, today: LocalDate = LocalDate.now()): Int {
+    if (loggedDates.isEmpty()) return 0
     var cursor = today
-    if (!days.contains(cursor)) {
+    if (!loggedDates.contains(cursor)) {
         cursor = cursor.minusDays(1)
-        if (!days.contains(cursor)) return 0
+        if (!loggedDates.contains(cursor)) return 0
     }
     var streak = 0
-    while (days.contains(cursor)) {
+    while (loggedDates.contains(cursor)) {
         streak++
         cursor = cursor.minusDays(1)
     }
@@ -230,9 +239,17 @@ fun logStreakDays(entries: List<DiaryEntry>, today: LocalDate = LocalDate.now())
 // anywhere in the history (no grace period — a genuine gap ends the run).
 // ============================================================================
 
-fun longestLogStreak(entries: List<DiaryEntry>): Int {
-    if (entries.isEmpty()) return 0
-    val days = entries.map { it.date }.toSortedSet()
+fun longestLogStreak(entries: List<DiaryEntry>): Int = longestLogStreak(entries.mapTo(mutableSetOf()) { it.date })
+
+/**
+ * Same as the [List]<[DiaryEntry]> overload above, but takes the logged-date set directly.
+ * Same window-capping risk as [logStreakDays]'s overload - callers should pass every date
+ * ever logged, not a fixed-window's entries, or this can never report a record longer than
+ * that window even though its whole purpose is finding the longest run anywhere in history.
+ */
+fun longestLogStreak(loggedDates: Set<LocalDate>): Int {
+    if (loggedDates.isEmpty()) return 0
+    val days = loggedDates.toSortedSet()
     var best = 1
     var current = 1
     var prev: LocalDate? = null

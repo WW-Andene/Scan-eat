@@ -100,10 +100,12 @@ class TodayWidget : GlanceAppWidget() {
         val baseTargets = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
         val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
         val targets = baseTargets?.let { if (bioTdee != null) it.withKcalOverride(bioTdee, profile.goal) else it }
-        // 30 days is enough to establish "today extends yesterday's streak" without
-        // an unbounded range query every time a widget host asks for a refresh.
-        val recentEntries = consumptionRepo.observeRange(today.minusDays(30), today).first()
-        val streak = logStreakDays(recentEntries, today)
+        // getAllLoggedDates() is a cheap DISTINCT-date query (no row hydration, no
+        // nutrition JSON parsing) - unlike a bounded observeRange(), it can't silently
+        // cap a real streak longer than whatever window was queried (see Dashboard's
+        // identical fix for the same bug).
+        val loggedDates = consumptionRepo.getAllLoggedDates()
+        val streak = logStreakDays(loggedDates, today)
         val hydrationMl = hydrationRepo.observe(today).first()
 
         val kcal = summary.totals.energyKcal.roundToInt()

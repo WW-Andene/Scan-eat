@@ -26,6 +26,11 @@ interface ConsumptionDao {
     @Query("SELECT * FROM consumption_log WHERE profileId = :profileId")
     suspend fun getAllForBackup(profileId: String = "default"): List<ConsumptionEntity>
 
+    /** Distinct logged dates across all history — for streak calculations, which need the
+     * true unbroken run length rather than whatever a fixed lookback window happens to contain. */
+    @Query("SELECT DISTINCT date FROM consumption_log WHERE profileId = :profileId")
+    suspend fun getAllLoggedDates(profileId: String = "default"): List<String>
+
     @Update
     suspend fun update(entity: ConsumptionEntity)
 

@@ -47,7 +47,7 @@ internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSugge
                 Text(
                     stringResource(
                         R.string.dashboard_chronic_gap_entry,
-                        gap.nutrient.replaceFirstChar { it.uppercase() },
+                        nutrientLabel(gap.nutrient),
                         gap.daysBelowTarget, gap.daysLogged, gap.avgPctOfTarget,
                     ),
                     style = MaterialTheme.typography.labelMedium, color = semanticAmber(),
