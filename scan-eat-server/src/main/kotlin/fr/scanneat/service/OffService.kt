@@ -9,7 +9,12 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -107,6 +112,19 @@ class OffService(engine: HttpClientEngine = CIO.create()) {
     // are never looked up again).
     private val maxCacheEntries = 20_000
 
+    // Owns in-flight fetches independently of any individual caller's own request
+    // coroutine - a caller cancelling (client disconnect) must not tear down a fetch
+    // other concurrent callers for the SAME barcode are still awaiting the result of.
+    private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    // A burst of simultaneous callers for the same not-yet-cached barcode (e.g. a
+    // trending product hit by many clients in the same instant, all arriving before
+    // the first one has finished and populated `cache`) previously each independently
+    // fired their own ~4-candidate OFF fan-out - the TTL cache above only helps
+    // *sequential* repeat lookups, not concurrent ones racing before any result
+    // exists yet. This coalesces them into one shared underlying fetch.
+    private val inFlight = ConcurrentHashMap<String, Deferred<OffProductRaw?>>()
+
     /**
      * Fetch a product from OFF by barcode, retrying against every plausible
      * alternate encoding of the same GTIN on a miss. Scanners hand back the
@@ -121,17 +139,27 @@ class OffService(engine: HttpClientEngine = CIO.create()) {
      * an earlier, more-likely one. Returns null on miss or network error.
      *
      * Results (hits and misses) are cached for [cacheTtlMs] to avoid refiring
-     * the whole candidate fan-out for repeat lookups of the same barcode.
+     * the whole candidate fan-out for repeat lookups of the same barcode, and
+     * concurrent lookups of the same not-yet-cached barcode share one fetch.
      */
-    suspend fun fetchProduct(barcode: String): OffProductRaw? = coroutineScope {
+    suspend fun fetchProduct(barcode: String): OffProductRaw? {
         val digits = barcode.filter { it.isDigit() }
-        if (digits.length !in 6..14) return@coroutineScope null
+        if (digits.length !in 6..14) return null
 
         val now = System.currentTimeMillis()
         cache[digits]?.let { entry ->
-            if (entry.expiresAtMs > now) return@coroutineScope entry.product
+            if (entry.expiresAtMs > now) return entry.product
         }
 
+        val deferred = inFlight.computeIfAbsent(digits) { backgroundScope.async { fetchAndCache(digits, now) } }
+        return try {
+            deferred.await()
+        } finally {
+            inFlight.remove(digits, deferred)
+        }
+    }
+
+    private suspend fun fetchAndCache(digits: String, now: Long): OffProductRaw? = coroutineScope {
         val pending = barcodeCandidates(digits).map { code -> async { fetchExact(code) } }
         var found: OffProductRaw? = null
         for (deferred in pending) {
@@ -169,7 +197,10 @@ class OffService(engine: HttpClientEngine = CIO.create()) {
         log.warn("OFF lookup failed for $code: ${e.message}")
     }.getOrNull()
 
-    fun close() = client.close()
+    fun close() {
+        backgroundScope.cancel()
+        client.close()
+    }
 }
 
 // ============================================================================

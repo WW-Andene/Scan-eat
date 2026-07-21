@@ -143,7 +143,16 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
         vitEMg        = numOrNull(nm["vitamin-e_100g"])?.times(1000),
         vitKUg        = numOrNull(nm["vitamin-k_100g"])?.times(1_000_000),
         b12Ug         = numOrNull(nm["vitamin-b12_100g"])?.times(1_000_000),
+        // b1/b2/b3/b9 were missing here even though NutritionPer100g already carries
+        // all of them (and OffMapper.kt on Android — "kept in sync manually" per this
+        // file's own header — already maps them) - Server-mode users could never see
+        // these four vitamins populated, only Direct-mode ones could. "vitamin-pp" is
+        // OFF's French-pharmacopoeia name for niacin/B3.
+        b1Mg          = numOrNull(nm["vitamin-b1_100g"])?.times(1000),
+        b2Mg          = numOrNull(nm["vitamin-b2_100g"])?.times(1000),
+        b3Mg          = numOrNull(nm["vitamin-pp_100g"])?.times(1000),
         b6Mg          = numOrNull(nm["vitamin-b6_100g"])?.times(1000),
+        b9Ug          = numOrNull(nm["vitamin-b9_100g"])?.times(1_000_000),
         omega3G       = numOrNull(nm["omega-3-fat_100g"]),
     )
 

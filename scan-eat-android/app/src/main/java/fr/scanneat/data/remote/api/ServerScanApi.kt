@@ -240,13 +240,27 @@ data class ServerNutritionDto(
     @Json(name = "magnesium_mg")    val magnesiumMg: Double? = null,
     @Json(name = "potassium_mg")    val potassiumMg: Double? = null,
     @Json(name = "zinc_mg")         val zincMg: Double? = null,
+    @Json(name = "sodium_mg")       val sodiumMg: Double? = null,
     @Json(name = "vit_c_mg")        val vitCMg: Double? = null,
     @Json(name = "vit_d_ug")        val vitDUg: Double? = null,
     @Json(name = "vit_a_ug")        val vitAUg: Double? = null,
     @Json(name = "vit_e_mg")        val vitEMg: Double? = null,
     @Json(name = "vit_k_ug")        val vitKUg: Double? = null,
+    // b1/b2/b3/b6/b9 - matches the server's NutritionDto (ApiModels.kt), which
+    // previously had nowhere to carry these five vitamins across the wire either;
+    // both sides needed the matching fields for a Server-mode scan to ever surface
+    // the same micronutrients Direct-mode's OffMapper.kt already maps.
+    @Json(name = "b1_mg")           val b1Mg: Double? = null,
+    @Json(name = "b2_mg")           val b2Mg: Double? = null,
+    @Json(name = "b3_mg")           val b3Mg: Double? = null,
+    @Json(name = "b6_mg")           val b6Mg: Double? = null,
+    @Json(name = "b9_ug")           val b9Ug: Double? = null,
     @Json(name = "b12_ug")          val b12Ug: Double? = null,
     @Json(name = "omega_3_g")       val omega3G: Double? = null,
+    @Json(name = "omega_6_g")       val omega6G: Double? = null,
+    @Json(name = "cholesterol_mg")  val cholesterolMg: Double? = null,
+    @Json(name = "polyunsaturated_fat_g") val polyunsaturatedFatG: Double? = null,
+    @Json(name = "monounsaturated_fat_g") val monounsaturatedFatG: Double? = null,
 )
 
 @JsonClass(generateAdapter = true)

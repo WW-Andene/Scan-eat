@@ -83,13 +83,28 @@ data class NutritionDto(
     @SerialName("magnesium_mg")    val magnesiumMg: Double? = null,
     @SerialName("potassium_mg")    val potassiumMg: Double? = null,
     @SerialName("zinc_mg")         val zincMg: Double? = null,
+    @SerialName("sodium_mg")       val sodiumMg: Double? = null,
     @SerialName("vit_a_ug")        val vitAUg: Double? = null,
     @SerialName("vit_c_mg")        val vitCMg: Double? = null,
     @SerialName("vit_d_ug")        val vitDUg: Double? = null,
     @SerialName("vit_e_mg")        val vitEMg: Double? = null,
     @SerialName("vit_k_ug")        val vitKUg: Double? = null,
+    // b1/b2/b3/b6/b9 were all missing from this DTO even though the server's own
+    // internal NutritionPer100g/ServerOffMapper carry them - a Server-mode user
+    // (vs Direct-mode, which maps these correctly via Android's OffMapper.kt) could
+    // never see any of these five vitamins populated, since the wire schema itself
+    // had nowhere to carry them across the HTTP boundary.
+    @SerialName("b1_mg")           val b1Mg: Double? = null,
+    @SerialName("b2_mg")           val b2Mg: Double? = null,
+    @SerialName("b3_mg")           val b3Mg: Double? = null,
+    @SerialName("b6_mg")           val b6Mg: Double? = null,
+    @SerialName("b9_ug")           val b9Ug: Double? = null,
     @SerialName("b12_ug")          val b12Ug: Double? = null,
     @SerialName("omega_3_g")       val omega3G: Double? = null,
+    @SerialName("omega_6_g")       val omega6G: Double? = null,
+    @SerialName("cholesterol_mg")  val cholesterolMg: Double? = null,
+    @SerialName("polyunsaturated_fat_g") val polyunsaturatedFatG: Double? = null,
+    @SerialName("monounsaturated_fat_g") val monounsaturatedFatG: Double? = null,
 )
 
 @Serializable

@@ -23,13 +23,23 @@ fun NutritionPer100g.toDto() = NutritionDto(
     magnesiumMg   = magnesiumMg,
     potassiumMg   = potassiumMg,
     zincMg        = zincMg,
+    sodiumMg      = sodiumMg,
     vitAUg        = vitAUg,
     vitCMg        = vitCMg,
     vitDUg        = vitDUg,
     vitEMg        = vitEMg,
     vitKUg        = vitKUg,
+    b1Mg          = b1Mg,
+    b2Mg          = b2Mg,
+    b3Mg          = b3Mg,
+    b6Mg          = b6Mg,
+    b9Ug          = b9Ug,
     b12Ug         = b12Ug,
     omega3G       = omega3G,
+    omega6G       = omega6G,
+    cholesterolMg = cholesterolMg,
+    polyunsaturatedFatG = polyunsaturatedFatG,
+    monounsaturatedFatG = monounsaturatedFatG,
 )
 
 fun Ingredient.toDto() = IngredientDto(
