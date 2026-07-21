@@ -127,7 +127,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                         color = if (isActive) GoldHaze else OnBackground.copy(0.03f),
                         border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, GoldBorder) else null,
                     ) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                             Text(
                                 stringResource(tab.labelRes),
                                 style = MaterialTheme.typography.labelMedium,
