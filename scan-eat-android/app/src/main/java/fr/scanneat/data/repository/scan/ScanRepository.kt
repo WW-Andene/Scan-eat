@@ -27,10 +27,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import okhttp3.OkHttpClient
+import fr.scanneat.util.barcodeCandidates
+import fr.scanneat.util.ioCatching
+import fr.scanneat.util.serverUrlMissingMessage
 import retrofit2.HttpException
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,28 +39,6 @@ import kotlin.random.Random
 
 /** Thrown when a barcode has no Open Food Facts entry and no photos were supplied to fall back on. */
 class ProductNotFoundException(message: String) : Exception(message)
-
-/**
- * Result of a URL/photo recipe import (fetchRecipeFromUrl / identifyRecipeFromPhotos) —
- * a plain preview the caller pre-fills into AddRecipeDialog for the user to review before
- * saving, not something written to the database directly. Ingredients are free-text lines
- * (a schema.org Recipe or a photo of a recipe card describes "2 cups flour", not a gram
- * weight matched against FOOD_DB), so this intentionally does NOT produce RecipeComponents —
- * only [kcal]/[proteinG]/[fatG]/[carbsG] (when the source actually declared them) carry real
- * numbers; the rest is display text for the user to transcribe into tracked ingredients.
- */
-data class FetchedRecipeResult(
-    val name: String,
-    val servings: String?,
-    val ingredients: List<String>,
-    val steps: List<String>,
-    val cookTimeMinutes: Int?,
-    val kcal: Double?,
-    val proteinG: Double?,
-    val fatG: Double?,
-    val carbsG: Double?,
-    val sourceUrl: String,
-)
 
 // These reach the user verbatim (ScanViewModel shows e.message directly in the
 // error banner) — "Groq API key not configured" was leaking straight to a
@@ -72,10 +50,6 @@ private fun offlineMessage(lang: String) =
 private fun missingApiKeyMessage(lang: String) =
     if (lang == "en") "Missing Groq API key — set it up in Settings"
     else "Clé API Groq manquante — configurez-la dans Réglages"
-
-private fun serverUrlMissingMessage(lang: String) =
-    if (lang == "en") "Server URL not configured — set it up in Settings"
-    else "URL du serveur non configurée — configurez-la dans Réglages"
 
 private fun productNotFoundMessage(lang: String) =
     if (lang == "en") "Product not found in Open Food Facts — add a photo to continue"
@@ -92,31 +66,15 @@ class ScanRepository @Inject constructor(
     private val scoreHistoryDao: ScanScoreHistoryDao,
     private val prefs: UserPreferences,
     private val ocrParser: OcrParser,
-    private val okHttpClient: OkHttpClient,   // injected directly — no unsafe cast
     private val moshi: Moshi,                  // singleton from AppModule
     private val customFoodRepo: CustomFoodRepository,
+    private val serverApiProvider: ServerScanApiProvider,
 ) {
     private val productAdapter = moshi.adapter(Product::class.java)
     private val auditAdapter   = moshi.adapter(ScoreAudit::class.java)
     private val warningsAdapter = moshi.adapter<List<String>>(
         com.squareup.moshi.Types.newParameterizedType(List::class.java, String::class.java)
     )
-
-    /**
-     * Like [runCatching], but never swallows cancellation - a bare `runCatching`
-     * wrapping a whole suspend function body also catches CancellationException,
-     * so a scan the user already navigated away from would be reported back as
-     * a caught "failure" (Result.failure) instead of the coroutine actually
-     * stopping, letting a caller's stale success/failure handling run anyway.
-     */
-    private inline fun <T> ioCatching(block: () -> T): Result<T> =
-        try {
-            Result.success(block())
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
 
     /**
      * Exponential backoff with jitter, replacing the old fixed `400L * (attempt + 1)`
@@ -127,23 +85,6 @@ class ScanRepository @Inject constructor(
      */
     private fun backoffDelayMs(attempt: Int, baseDelayMs: Long = 400L, jitterMs: Long = 200L): Long =
         (baseDelayMs * 2.0.pow(attempt)).toLong() + Random.nextLong(0, jitterMs)
-
-    @Volatile private var _serverApi: ServerScanApi? = null
-    @Volatile private var _serverUrl: String = ""
-
-    private fun serverApi(url: String): ServerScanApi {
-        val normUrl = if (url.endsWith("/")) url else "$url/"
-        if (_serverApi == null || _serverUrl != normUrl) {
-            _serverApi = Retrofit.Builder()
-                .baseUrl(normUrl)
-                .client(okHttpClient)          // safe: directly injected OkHttpClient
-                .addConverterFactory(MoshiConverterFactory.create(moshi))
-                .build()
-                .create(ServerScanApi::class.java)
-            _serverUrl = normUrl
-        }
-        return _serverApi!!
-    }
 
     // ---- History ----
 
@@ -456,7 +397,7 @@ class ScanRepository @Inject constructor(
             model   = model,
         )
         return retryServerCall {
-            serverApi(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request).toDomain(lang)
+            serverApiProvider.get(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request).toDomain(lang)
         }
     }
 
@@ -479,106 +420,7 @@ class ScanRepository @Inject constructor(
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
         val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
         return retryServerCall {
-            serverApi(serverUrl).identify(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request).toDomain(lang)
-        }
-    }
-
-    /**
-     * FetchRecipeRoute.kt (SSRF-guarded HTML fetch + schema.org Recipe JSON-LD
-     * extraction) has existed on the server since it was added, with no Android
-     * caller — every recipe had to be typed in by hand even when the user was
-     * looking at a recipe blog post right in front of them. Server-mode only:
-     * the SSRF-safe scraping this needs has no Direct-mode equivalent (there is
-     * no safe way to do it from the client, and Groq/Cerebras have no "fetch
-     * this URL" tool). Needs no Groq key (see the route's own doc comment), so
-     * unlike scoreViaServer/identifyViaServer this never checks apiKey.
-     */
-    suspend fun fetchRecipeFromUrl(url: String, lang: String): Result<FetchedRecipeResult> = ioCatching {
-        val serverUrl = prefs.serverUrl.first()
-        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
-        val resp = serverApi(serverUrl).fetchRecipe(url)
-        FetchedRecipeResult(
-            name            = resp.name,
-            servings        = resp.servings,
-            ingredients     = resp.ingredients,
-            steps           = resp.steps,
-            cookTimeMinutes = resp.cookTimeMin,
-            kcal            = resp.nutrition?.kcal,
-            proteinG        = resp.nutrition?.proteinG,
-            fatG            = resp.nutrition?.fatG,
-            carbsG          = resp.nutrition?.carbsG,
-            sourceUrl       = resp.sourceUrl,
-        )
-    }
-
-    /**
-     * IdentifyRecipeRoute.kt (recipe card / cookbook page photo → structured recipe
-     * via Groq vision) has existed on the server since it was added, with no Android
-     * caller — a user with a paper recipe or a photographed cookbook page had no way
-     * to import it short of retyping everything. Server-mode only, same reasoning as
-     * fetchRecipeFromUrl: there's no equivalent Direct-mode prompt/parser for this
-     * today. Unlike fetchRecipeFromUrl this does need a Groq key (the route calls
-     * Groq's vision API, see requireGroqKey() in IdentifyRecipeRoute.kt).
-     *
-     * Reuses [FetchedRecipeResult] rather than a separate result type - both are
-     * "unverified external content pre-filling AddRecipeDialog for review," and the
-     * structured ingredient quantity/unit/name here collapses to the exact same kind
-     * of free-text ingredient line a schema.org import produces (see that class's own
-     * doc comment on why ingredients are text, not RecipeComponents). No nutrition
-     * block exists on this route's response, unlike fetch-recipe's optional one.
-     */
-    suspend fun identifyRecipeFromPhotos(images: List<ImagePayload>, lang: String): Result<FetchedRecipeResult> = ioCatching {
-        val serverUrl = prefs.serverUrl.first()
-        val apiKey = prefs.groqApiKey.first()
-        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
-        val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
-        val resp = serverApi(serverUrl).identifyRecipe(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
-        FetchedRecipeResult(
-            name            = resp.name,
-            servings        = resp.servings?.toString(),
-            ingredients     = resp.ingredients.map { i -> listOfNotNull(i.quantity, i.unit, i.name).joinToString(" ") },
-            steps           = resp.steps,
-            cookTimeMinutes = resp.cookTimeMin,
-            kcal            = null,
-            proteinG        = null,
-            fatG            = null,
-            carbsG          = null,
-            sourceUrl       = "",
-        )
-    }
-
-    /**
-     * SuggestRoute.kt (single ingredient -> recipe ideas via Groq) has existed on
-     * the server since it was added, with no Android caller - Recipes had no "give
-     * me ideas" entry point at all, only manual/imported entry. Server-mode only
-     * and needs a Groq key, same reasoning as identifyRecipeFromPhotos. Reuses
-     * [FetchedRecipeResult] per idea (description folded into a single-entry
-     * [FetchedRecipeResult.steps] line, main_ingredients as the ingredient list) so
-     * picking a suggestion feeds the exact same AddRecipeDialog prefill path as a
-     * URL/photo import - "unverified external content the user reviews before
-     * saving" describes an LLM-generated idea just as well as a scraped page.
-     */
-    suspend fun suggestRecipes(ingredient: String, lang: String): Result<List<FetchedRecipeResult>> = ioCatching {
-        val serverUrl = prefs.serverUrl.first()
-        val apiKey = prefs.groqApiKey.first()
-        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
-        val resp = serverApi(serverUrl).suggestRecipes(
-            groqKey = apiKey.takeIf { it.isNotBlank() },
-            request = ServerSuggestRecipesRequest(ingredient),
-        )
-        resp.recipes.map { s ->
-            FetchedRecipeResult(
-                name            = s.name,
-                servings        = null,
-                ingredients     = s.mainIngredients,
-                steps           = listOfNotNull(s.description.takeIf { it.isNotBlank() }),
-                cookTimeMinutes = s.cookTimeMin,
-                kcal            = null,
-                proteinG        = null,
-                fatG            = null,
-                carbsG          = null,
-                sourceUrl       = "",
-            )
+            serverApiProvider.get(serverUrl).identify(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request).toDomain(lang)
         }
     }
 
@@ -633,84 +475,6 @@ class ScanRepository @Inject constructor(
         null
     }
 
-    /** Every plausible GTIN encoding for [barcode], most-likely-first, deduplicated. */
-    private fun barcodeCandidates(barcode: String): List<String> {
-        val candidates = LinkedHashSet<String>()
-        candidates += barcode
-
-        upcEToUpcA(barcode)?.let { upcA ->
-            candidates += upcA
-            candidates += "0$upcA" // EAN-13 form of the expanded UPC-A
-        }
-
-        gtin14ToEan13(barcode)?.let { ean13 ->
-            candidates += ean13
-            if (ean13.startsWith("0")) candidates += ean13.substring(1) // UPC-A form
-        }
-
-        when {
-            barcode.length == 12 -> candidates += "0$barcode"
-            barcode.length == 13 && barcode.startsWith("0") -> candidates += barcode.substring(1)
-        }
-
-        return candidates.toList()
-    }
-
-    /**
-     * Strips a GTIN-14 case/pallet code's leading packaging-indicator digit
-     * (0–8) down to the consumer-unit EAN-13, recomputing the check digit
-     * over the remaining payload — case codes on bulk/wholesale packaging
-     * aren't indexed in OFF under their 14-digit form, only under the
-     * underlying retail GTIN.
-     */
-    private fun gtin14ToEan13(code: String): String? {
-        if (code.length != 14 || !code.all { it.isDigit() }) return null
-        val payload12 = code.substring(1, 13)
-        return "0$payload12" + ean13CheckDigit(payload12)
-    }
-
-    /** Standard mod-10 EAN-13 check digit for a 12-digit payload. */
-    private fun ean13CheckDigit(payload12: String): Int {
-        val sum = payload12.mapIndexed { i, c -> (c - '0') * if (i % 2 == 0) 1 else 3 }.sum()
-        return (10 - (sum % 10)) % 10
-    }
-
-    /**
-     * Expands a compressed UPC-E code (6 core digits, optionally with a
-     * leading number-system digit and/or trailing check digit — 6, 7, or 8
-     * chars total) to its 12-digit UPC-A form, per the standard GS1
-     * expansion rules keyed on the last core digit. Only called as a
-     * fallback after the code as printed already 404'd, so a false-positive
-     * guess (e.g. an EAN-8 code that happens to also parse as UPC-E) just
-     * fails its own lookup too — it can't return the wrong product.
-     */
-    private fun upcEToUpcA(code: String): String? {
-        if (!code.all { it.isDigit() }) return null
-        val (numberSystem, core) = when (code.length) {
-            6 -> '0' to code
-            7 -> '0' to code.take(6)
-            8 -> code[0] to code.substring(1, 7)
-            else -> return null
-        }
-        if (numberSystem != '0' && numberSystem != '1') return null
-
-        val d = core.map { it - '0' }
-        val (manufacturer, product) = when (d[5]) {
-            0, 1, 2 -> "${d[0]}${d[1]}${d[5]}00" to "00${d[2]}${d[3]}${d[4]}"
-            3       -> "${d[0]}${d[1]}${d[2]}00" to "000${d[3]}${d[4]}"
-            4       -> "${d[0]}${d[1]}${d[2]}${d[3]}0" to "0000${d[4]}"
-            else    -> "${d[0]}${d[1]}${d[2]}${d[3]}${d[4]}" to "0000${d[5]}"
-        }
-        val upcA11 = "$numberSystem$manufacturer$product"
-        return upcA11 + upcCheckDigit(upcA11)
-    }
-
-    /** Standard mod-10 UPC/EAN check digit for an 11-digit UPC-A payload. */
-    private fun upcCheckDigit(payload11: String): Int {
-        val sum = payload11.mapIndexed { i, c -> (c - '0') * if (i % 2 == 0) 3 else 1 }.sum()
-        return (10 - (sum % 10)) % 10
-    }
-
     private suspend fun scoreDirectBarcode(
         barcode: String,
         images: List<ImagePayload>,
@@ -761,106 +525,6 @@ class ScanRepository @Inject constructor(
 
         val audit = scoreProduct(finalProduct, lang)
         return ScanResult(product = finalProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
-    }
-
-    // ---- Server response → domain ----
-
-    private fun ServerNutritionDto.toDomain() = NutritionPer100g(
-        energyKcal    = energyKcal,
-        fatG          = fatG,
-        saturatedFatG = saturatedFatG,
-        carbsG        = carbsG,
-        sugarsG       = sugarsG,
-        addedSugarsG  = addedSugarsG,
-        fiberG        = fiberG,
-        proteinG      = proteinG,
-        saltG         = saltG,
-        transFatG     = transFatG,
-        ironMg        = ironMg,
-        calciumMg     = calciumMg,
-        magnesiumMg   = magnesiumMg,
-        potassiumMg   = potassiumMg,
-        zincMg        = zincMg,
-        sodiumMg      = sodiumMg,
-        vitCMg        = vitCMg,
-        vitDUg        = vitDUg,
-        vitAUg        = vitAUg,
-        vitEMg        = vitEMg,
-        vitKUg        = vitKUg,
-        b1Mg          = b1Mg,
-        b2Mg          = b2Mg,
-        b3Mg          = b3Mg,
-        b6Mg          = b6Mg,
-        b9Ug          = b9Ug,
-        b12Ug         = b12Ug,
-        omega3G       = omega3G,
-        omega6G       = omega6G,
-        cholesterolMg = cholesterolMg,
-        polyunsaturatedFatG = polyunsaturatedFatG,
-        monounsaturatedFatG = monounsaturatedFatG,
-    )
-
-    private fun List<ServerIngredientDto>.toDomainIngredients() = map { i ->
-        Ingredient(name = i.name, percentage = i.percentage, eNumber = i.eNumber,
-            category = when (i.category?.lowercase()) {
-                "additive"       -> IngredientCategory.ADDITIVE
-                "processing_aid" -> IngredientCategory.PROCESSING_AID
-                else             -> IngredientCategory.FOOD
-            })
-    }
-
-    private fun ServerScoreResponse.toDomain(lang: String = "fr"): ScanResult {
-        val p = product
-        val product = Product(
-            name          = p.name,
-            category      = ProductCategory.fromKey(p.category),
-            novaClass     = NovaClass.fromInt(p.novaClass),
-            ingredients   = p.ingredients.toDomainIngredients(),
-            nutrition     = p.nutrition.toDomain(),
-            organic       = p.organic, wholeGrainPrimary = p.wholeGrainPrimary,
-            fermented     = p.fermented, hasHealthClaims = p.hasHealthClaims,
-            hasMisleadingMarketing = p.hasMisleadingMarketing,
-            namedOils     = p.namedOils, origin = p.origin, weightG = p.weightG,
-            ecoscoreGrade = p.ecoscoreGrade, ecoscoreValue = p.ecoscoreValue,
-            nutriscoreGrade = p.nutriscoreGrade,
-            // Previously dropped here even after the server started sending them -
-            // this reconstruction is the only place a server-mode Product is ever
-            // built, so omitting them silently disabled AllergenDetector's OFF-tag
-            // augmentation and the iron-declared SEX bonus for every server-mode scan.
-            declaredMicronutrients = p.declaredMicronutrients,
-            declaredAllergenTags = p.declaredAllergenTags,
-        )
-        // Trust the locally recomputed audit wholesale — flags are derived from
-        // the same pillars the UI renders, so overlaying the server's flags here
-        // risked showing red/green flags that don't match the deductions next to
-        // them if the two engines ever disagree.
-        val fullAudit = scoreProduct(product, lang)
-        return ScanResult(product = product, audit = fullAudit, warnings = warnings,
-            source = when (source) {
-                "openfoodfacts" -> ScanSource.OPEN_FOOD_FACTS
-                "merged"        -> ScanSource.MERGED
-                else            -> ScanSource.LLM
-            }, barcode = barcode)
-    }
-
-    /** Same recompute-locally approach as ServerScoreResponse.toDomain() - see identifyViaServer(). */
-    private fun ServerIdentifyResponse.toDomain(lang: String = "fr"): ScanResult {
-        val product = Product(
-            name        = name,
-            category    = ProductCategory.fromKey(category),
-            novaClass   = NovaClass.fromInt(novaClass),
-            ingredients = ingredients.toDomainIngredients(),
-            nutrition   = nutrition.toDomain(),
-            organic       = organic, wholeGrainPrimary = wholeGrainPrimary,
-            fermented     = fermented, hasHealthClaims = hasHealthClaims,
-            hasMisleadingMarketing = hasMisleadingMarketing,
-            namedOils     = namedOils, origin = origin, weightG = weightG,
-            ecoscoreGrade = ecoscoreGrade, ecoscoreValue = ecoscoreValue,
-            nutriscoreGrade = nutriscoreGrade,
-            declaredMicronutrients = declaredMicronutrients,
-            declaredAllergenTags = declaredAllergenTags,
-        )
-        return ScanResult(product = product, audit = scoreProduct(product, lang), warnings = warnings, source = ScanSource.LLM)
     }
 
     // ---- Entity → domain ----

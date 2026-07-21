@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
-import fr.scanneat.data.repository.scan.FetchedRecipeResult
+import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground

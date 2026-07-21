@@ -29,7 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.planning.*
-import fr.scanneat.data.repository.scan.FetchedRecipeResult
+import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

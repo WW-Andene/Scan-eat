@@ -5,8 +5,13 @@ import fr.scanneat.data.local.db.recipe.RecipeEntity
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.remote.api.*
 import fr.scanneat.domain.model.*
+import fr.scanneat.util.ioCatching
+import fr.scanneat.util.serverUrlMissingMessage
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.util.UUID
@@ -145,11 +150,35 @@ fun Recipe.formatShareText(): String = buildString {
     }
 }.trim()
 
+/**
+ * Result of a URL/photo recipe import (fetchRecipeFromUrl / identifyRecipeFromPhotos) —
+ * a plain preview the caller pre-fills into AddRecipeDialog for the user to review before
+ * saving, not something written to the database directly. Ingredients are free-text lines
+ * (a schema.org Recipe or a photo of a recipe card describes "2 cups flour", not a gram
+ * weight matched against FOOD_DB), so this intentionally does NOT produce RecipeComponents —
+ * only [kcal]/[proteinG]/[fatG]/[carbsG] (when the source actually declared them) carry real
+ * numbers; the rest is display text for the user to transcribe into tracked ingredients.
+ */
+data class FetchedRecipeResult(
+    val name: String,
+    val servings: String?,
+    val ingredients: List<String>,
+    val steps: List<String>,
+    val cookTimeMinutes: Int?,
+    val kcal: Double?,
+    val proteinG: Double?,
+    val fatG: Double?,
+    val carbsG: Double?,
+    val sourceUrl: String,
+)
+
 // ---- Repository ----
 
 @Singleton
 class RecipeRepository @Inject constructor(private val dao: RecipeDao,
     private val moshi: Moshi,
+    private val prefs: UserPreferences,
+    private val serverApiProvider: ServerScanApiProvider,
 ) {
     private val componentsType = com.squareup.moshi.Types.newParameterizedType(List::class.java, RecipeComponent::class.java)
     private val componentsAdapter = moshi.adapter<List<RecipeComponent>>(componentsType)
@@ -212,6 +241,107 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             // got a warning even when the same recipe's own recipeWarnings flagged it.
             ingredients = recipe.components.map { c -> Ingredient(name = c.productName, category = IngredientCategory.FOOD) },
         )
+    }
+
+    // ---- Server-mode import (URL / photo / AI suggestion) ----
+
+    /**
+     * FetchRecipeRoute.kt (SSRF-guarded HTML fetch + schema.org Recipe JSON-LD
+     * extraction) has existed on the server since it was added, with no Android
+     * caller — every recipe had to be typed in by hand even when the user was
+     * looking at a recipe blog post right in front of them. Server-mode only:
+     * the SSRF-safe scraping this needs has no Direct-mode equivalent (there is
+     * no safe way to do it from the client, and Groq/Cerebras have no "fetch
+     * this URL" tool). Needs no Groq key (see the route's own doc comment), so
+     * unlike identifyRecipeFromPhotos/suggestRecipes this never checks apiKey.
+     */
+    suspend fun fetchRecipeFromUrl(url: String, lang: String): Result<FetchedRecipeResult> = ioCatching {
+        val serverUrl = prefs.serverUrl.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val resp = serverApiProvider.get(serverUrl).fetchRecipe(url)
+        FetchedRecipeResult(
+            name            = resp.name,
+            servings        = resp.servings,
+            ingredients     = resp.ingredients,
+            steps           = resp.steps,
+            cookTimeMinutes = resp.cookTimeMin,
+            kcal            = resp.nutrition?.kcal,
+            proteinG        = resp.nutrition?.proteinG,
+            fatG            = resp.nutrition?.fatG,
+            carbsG          = resp.nutrition?.carbsG,
+            sourceUrl       = resp.sourceUrl,
+        )
+    }
+
+    /**
+     * IdentifyRecipeRoute.kt (recipe card / cookbook page photo → structured recipe
+     * via Groq vision) has existed on the server since it was added, with no Android
+     * caller — a user with a paper recipe or a photographed cookbook page had no way
+     * to import it short of retyping everything. Server-mode only, same reasoning as
+     * fetchRecipeFromUrl: there's no equivalent Direct-mode prompt/parser for this
+     * today. Unlike fetchRecipeFromUrl this does need a Groq key (the route calls
+     * Groq's vision API, see requireGroqKey() in IdentifyRecipeRoute.kt).
+     *
+     * Reuses [FetchedRecipeResult] rather than a separate result type - both are
+     * "unverified external content pre-filling AddRecipeDialog for review," and the
+     * structured ingredient quantity/unit/name here collapses to the exact same kind
+     * of free-text ingredient line a schema.org import produces (see that class's own
+     * doc comment on why ingredients are text, not RecipeComponents). No nutrition
+     * block exists on this route's response, unlike fetch-recipe's optional one.
+     */
+    suspend fun identifyRecipeFromPhotos(images: List<ImagePayload>, lang: String): Result<FetchedRecipeResult> = ioCatching {
+        val serverUrl = prefs.serverUrl.first()
+        val apiKey = prefs.groqApiKey.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
+        val resp = serverApiProvider.get(serverUrl).identifyRecipe(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
+        FetchedRecipeResult(
+            name            = resp.name,
+            servings        = resp.servings?.toString(),
+            ingredients     = resp.ingredients.map { i -> listOfNotNull(i.quantity, i.unit, i.name).joinToString(" ") },
+            steps           = resp.steps,
+            cookTimeMinutes = resp.cookTimeMin,
+            kcal            = null,
+            proteinG        = null,
+            fatG            = null,
+            carbsG          = null,
+            sourceUrl       = "",
+        )
+    }
+
+    /**
+     * SuggestRoute.kt (single ingredient -> recipe ideas via Groq) has existed on
+     * the server since it was added, with no Android caller - Recipes had no "give
+     * me ideas" entry point at all, only manual/imported entry. Server-mode only
+     * and needs a Groq key, same reasoning as identifyRecipeFromPhotos. Reuses
+     * [FetchedRecipeResult] per idea (description folded into a single-entry
+     * [FetchedRecipeResult.steps] line, main_ingredients as the ingredient list) so
+     * picking a suggestion feeds the exact same AddRecipeDialog prefill path as a
+     * URL/photo import - "unverified external content the user reviews before
+     * saving" describes an LLM-generated idea just as well as a scraped page.
+     */
+    suspend fun suggestRecipes(ingredient: String, lang: String): Result<List<FetchedRecipeResult>> = ioCatching {
+        val serverUrl = prefs.serverUrl.first()
+        val apiKey = prefs.groqApiKey.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val resp = serverApiProvider.get(serverUrl).suggestRecipes(
+            groqKey = apiKey.takeIf { it.isNotBlank() },
+            request = ServerSuggestRecipesRequest(ingredient),
+        )
+        resp.recipes.map { s ->
+            FetchedRecipeResult(
+                name            = s.name,
+                servings        = null,
+                ingredients     = s.mainIngredients,
+                steps           = listOfNotNull(s.description.takeIf { it.isNotBlank() }),
+                cookTimeMinutes = s.cookTimeMin,
+                kcal            = null,
+                proteinG        = null,
+                fatG            = null,
+                carbsG          = null,
+                sourceUrl       = "",
+            )
+        }
     }
 
     private fun Recipe.toEntity(profileId: String) = RecipeEntity(

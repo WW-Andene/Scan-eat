@@ -30,8 +30,7 @@ import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanSource
 import fr.scanneat.data.remote.api.ImagePayload
-import fr.scanneat.data.repository.scan.FetchedRecipeResult
-import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -47,7 +46,6 @@ class RecipesViewModel @Inject constructor(
     private val templateRepo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
-    private val scanRepo: ScanRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
     enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
@@ -315,7 +313,7 @@ class RecipesViewModel @Inject constructor(
         viewModelScope.launch {
             _importState.value = ImportUiState.Loading
             val lang = language.value
-            scanRepo.fetchRecipeFromUrl(url, lang).fold(
+            repo.fetchRecipeFromUrl(url, lang).fold(
                 onSuccess = { _importState.value = ImportUiState.Success(it) },
                 onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
             )
@@ -333,7 +331,7 @@ class RecipesViewModel @Inject constructor(
         viewModelScope.launch {
             _importState.value = ImportUiState.Loading
             val lang = language.value
-            scanRepo.identifyRecipeFromPhotos(images, lang).fold(
+            repo.identifyRecipeFromPhotos(images, lang).fold(
                 onSuccess = { _importState.value = ImportUiState.Success(it) },
                 onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
             )
@@ -346,7 +344,7 @@ class RecipesViewModel @Inject constructor(
         viewModelScope.launch {
             _importState.value = ImportUiState.Loading
             val lang = language.value
-            scanRepo.suggestRecipes(ingredient, lang).fold(
+            repo.suggestRecipes(ingredient, lang).fold(
                 onSuccess = { _importState.value = ImportUiState.SuggestSuccess(it) },
                 onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
             )
