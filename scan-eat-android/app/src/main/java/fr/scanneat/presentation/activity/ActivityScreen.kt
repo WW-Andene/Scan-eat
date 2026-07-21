@@ -211,6 +211,7 @@ fun ActivityScreen(
             selectedSubType = selectedSubType,
             onSelectedSubTypeChange = { selectedSubType = it },
             customSubTypeText = customSubTypeText, onCustomSubTypeTextChange = { customSubTypeText = it; selectedSubType = it.ifBlank { null } },
+            onClearCustomSubTypeText = { customSubTypeText = "" },
             setsText = setsText, onSetsTextChange = { setsText = it },
             repsText = repsText, onRepsTextChange = { repsText = it },
             distanceText = distanceText, onDistanceTextChange = { distanceText = it },
@@ -401,6 +402,7 @@ private fun AddActivityDialog(
     selectedType: ActivityType, onSelectedTypeChange: (ActivityType) -> Unit,
     selectedSubType: String?, onSelectedSubTypeChange: (String?) -> Unit,
     customSubTypeText: String, onCustomSubTypeTextChange: (String) -> Unit,
+    onClearCustomSubTypeText: () -> Unit,
     setsText: String, onSetsTextChange: (String) -> Unit,
     repsText: String, onRepsTextChange: (String) -> Unit,
     distanceText: String, onDistanceTextChange: (String) -> Unit,
@@ -438,7 +440,7 @@ private fun AddActivityDialog(
                         availableSubTypes.forEach { key ->
                             FilterChip(
                                 selected = selectedSubType == key,
-                                onClick = { onSelectedSubTypeChange(if (selectedSubType == key) null else key); onCustomSubTypeTextChange("") },
+                                onClick = { onSelectedSubTypeChange(if (selectedSubType == key) null else key); onClearCustomSubTypeText() },
                                 label = { Text(subTypeLabels[key] ?: key, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
