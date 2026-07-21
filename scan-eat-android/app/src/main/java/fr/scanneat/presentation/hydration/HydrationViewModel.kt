@@ -47,14 +47,6 @@ class HydrationViewModel @Inject constructor(
         runCatching { repo.setCustomGoalMl(ml) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
-    // Dates with at least one glass logged — drives the calendar marker dots.
-    // Re-derived off `intake` (not a one-shot fetch) so logging a glass today
-    // updates today's dot immediately instead of only after the screen is
-    // left and reopened (WhileSubscribed would otherwise cache a stale set).
-    val markedDates: StateFlow<Set<LocalDate>> = intake.map {
-        repo.exportAll().filter { it.second > 0 }.map { it.first }.toSet()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
-
     // Improvement: consecutive-days streak — counts backwards from yesterday
     // (today is still in progress, so excluding it avoids a misleading "1-day
     // streak" that resets every morning before the first glass).

@@ -250,11 +250,6 @@ class BiolismRepository @Inject constructor(
         p[K_LAST_MEAL_TS]    = state.lastMealTs
     }
 
-    suspend fun logMealNow() = store.edit { p ->
-        p[K_LAST_MEAL_TS] = System.currentTimeMillis()
-        p[K_FASTING_ACTIVE] = true
-    }
-
     val manualHR: Flow<Int?> = storeData.map { p -> p[K_MANUAL_HR] }.distinctUntilChanged()
     suspend fun saveManualHR(bpm: Int?) = store.edit { p ->
         if (bpm != null) p[K_MANUAL_HR] = bpm else p.remove(K_MANUAL_HR)
