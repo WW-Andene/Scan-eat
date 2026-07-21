@@ -31,9 +31,13 @@ import kotlin.math.roundToInt
 @Composable
 fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
     val subScores = buildList {
-        // BMI sub-score: peak at 22, linear decay to 0 at <16 or >35
+        // BMI sub-score: peak at 22, linear decay to 0 at <16 or >35. abs(), not a
+        // bare subtraction - (met.bmi - 22.0) is negative for any BMI below 22, and
+        // the coerceIn(0f, 20f) floor was silently clamping that negative deduction
+        // to 0, so every BMI from 18.5 to 22.0 scored a flat 100 instead of decaying
+        // toward 18.5 as this file's own doc comment says it should.
         val bmiScore = when {
-            met.bmi in 18.5..25.0 -> 100f - ((met.bmi - 22.0) / 3.0 * 20).toFloat().coerceIn(0f, 20f)
+            met.bmi in 18.5..25.0 -> 100f - (kotlin.math.abs(met.bmi - 22.0) / 3.0 * 20).toFloat().coerceIn(0f, 20f)
             met.bmi < 18.5        -> ((met.bmi - 16.0) / 2.5 * 100).toFloat().coerceIn(0f, 100f)
             else                  -> ((35.0 - met.bmi) / 10.0 * 100).toFloat().coerceIn(0f, 100f)
         }
@@ -59,10 +63,15 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
 
         // WHtR sub-score: <0.4 = excellent, >0.6 = high risk (Ashwell 2012)
         met.whtr?.let { w ->
+            // The else branch's multiplier is *50 (continuing the descent from 50 at
+            // w=0.50 down to 0 at w=0.60), not *100 - that would jump the score from
+            // 50 to ~100 right at w=0.5001, inverting the risk signal at exactly the
+            // clinically meaningful "keep waist under half your height" threshold
+            // (a higher WHtR is strictly worse, it should never score better).
             val whtrScore = when {
                 w <= 0.40 -> 100f
                 w <= 0.50 -> ((0.60 - w) / 0.20 * 100).toFloat().coerceIn(0f, 100f)
-                else      -> ((0.60 - w) / 0.10 * 100).toFloat().coerceIn(0f, 100f)
+                else      -> ((0.60 - w) / 0.10 * 50).toFloat().coerceIn(0f, 100f)
             }
             add(stringResource(R.string.biolism_health_score_whtr) to whtrScore)
         }
@@ -75,7 +84,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
     val overallScore = subScores.map { it.second }.average().roundToInt()
     val scoreColor = when {
         overallScore >= 75 -> semanticGreen()
-        overallScore >= 50 -> Gold
+        overallScore >= 50 -> semanticAmber()
         else               -> semanticRed()
     }
     val scoreLabel = when {
@@ -122,7 +131,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
 private fun SubScoreChip(label: String, score: Float, modifier: Modifier = Modifier) {
     val color = when {
         score >= 75 -> semanticGreen()
-        score >= 50 -> Gold
+        score >= 50 -> semanticAmber()
         else        -> semanticRed()
     }
     Surface(shape = RoundedCornerShape(8.dp), color = color.copy(0.1f), modifier = modifier) {

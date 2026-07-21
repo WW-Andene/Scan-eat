@@ -76,9 +76,10 @@ class ReminderWorker @AssistedInject constructor(
             val lastDate = weightRepo.observeAll().first().maxByOrNull { it.date }?.date
             val daysSince = lastDate?.let { ChronoUnit.DAYS.between(it, LocalDate.now()) } ?: Long.MAX_VALUE
             if (daysSince >= s.weightThresholdDays && !remindersRepo.wasFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)) {
-                NotificationHelper.show(applicationContext, 105,
-                    localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body), NotifChannel.WEIGHT)
-                remindersRepo.markFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)
+                if (NotificationHelper.show(applicationContext, 105,
+                    localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body), NotifChannel.WEIGHT)) {
+                    remindersRepo.markFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)
+                }
             }
         }
         checkMeal(s.weightCustomOn, s.weightCustomTime, RemindersRepository.K_LAST_WEIGHT_CUSTOM_DATE, now, 108,
@@ -88,9 +89,10 @@ class ReminderWorker @AssistedInject constructor(
             val lastDate = activityRepo.getRange(LocalDate.now().minusDays(90), LocalDate.now()).maxByOrNull { it.date }?.date
             val daysSince = lastDate?.let { ChronoUnit.DAYS.between(it, LocalDate.now()) } ?: Long.MAX_VALUE
             if (daysSince >= s.activityThresholdDays && !remindersRepo.wasFiredToday(RemindersRepository.K_LAST_ACTIVITY_NUDGE_DATE)) {
-                NotificationHelper.show(applicationContext, 111,
-                    localizedString(lang, R.string.reminders_notif_activity_title), localizedString(lang, R.string.reminders_notif_activity_body), NotifChannel.ACTIVITY)
-                remindersRepo.markFiredToday(RemindersRepository.K_LAST_ACTIVITY_NUDGE_DATE)
+                if (NotificationHelper.show(applicationContext, 111,
+                    localizedString(lang, R.string.reminders_notif_activity_title), localizedString(lang, R.string.reminders_notif_activity_body), NotifChannel.ACTIVITY)) {
+                    remindersRepo.markFiredToday(RemindersRepository.K_LAST_ACTIVITY_NUDGE_DATE)
+                }
             }
         }
 
@@ -117,9 +119,10 @@ class ReminderWorker @AssistedInject constructor(
 
         fastingRepo.state.first()?.let { fast ->
             if (fast.elapsedHours >= fast.targetHours && !remindersRepo.fastingTargetAlreadyNotified(fast.startMs)) {
-                NotificationHelper.show(applicationContext, 109,
-                    localizedString(lang, R.string.reminders_notif_fasting_title), localizedString(lang, R.string.reminders_notif_fasting_body), NotifChannel.FASTING)
-                remindersRepo.markFastingTargetNotified(fast.startMs)
+                if (NotificationHelper.show(applicationContext, 109,
+                    localizedString(lang, R.string.reminders_notif_fasting_title), localizedString(lang, R.string.reminders_notif_fasting_body), NotifChannel.FASTING)) {
+                    remindersRepo.markFastingTargetNotified(fast.startMs)
+                }
             }
         }
 
@@ -132,9 +135,10 @@ class ReminderWorker @AssistedInject constructor(
             val totalKcal = dayData.totals.energyKcal.toInt()
             val mealCount = dayData.entries.size
             val body = String.format(localizedString(lang, R.string.notif_summary_body), totalKcal, mealCount)
-            NotificationHelper.show(applicationContext, 110,
-                localizedString(lang, R.string.notif_summary_title), body, NotifChannel.SUMMARY)
-            remindersRepo.markFiredToday(K_LAST_DIGEST_DATE)
+            if (NotificationHelper.show(applicationContext, 110,
+                localizedString(lang, R.string.notif_summary_title), body, NotifChannel.SUMMARY)) {
+                remindersRepo.markFiredToday(K_LAST_DIGEST_DATE)
+            }
         }
 
         return Result.success()
@@ -154,8 +158,14 @@ class ReminderWorker @AssistedInject constructor(
         val secondsSinceTarget = (now.toSecondOfDay() - target.toSecondOfDay()).let { if (it < 0) it + 86400 else it }
         val dueNow = secondsSinceTarget < 3 * 3600 && !remindersRepo.wasFiredToday(lastFiredKey)
         if (dueNow) {
-            NotificationHelper.show(applicationContext, notifId, title, text, channel)
-            remindersRepo.markFiredToday(lastFiredKey)
+            // Only mark "fired today" if the notification actually posted (not
+            // silently skipped for a denied POST_NOTIFICATIONS permission) -
+            // otherwise a day with permission denied permanently lost this reminder
+            // with no way to recover, since wasFiredToday would then suppress every
+            // later check on the same day even once permission is granted.
+            if (NotificationHelper.show(applicationContext, notifId, title, text, channel)) {
+                remindersRepo.markFiredToday(lastFiredKey)
+            }
         }
         return dueNow
     }

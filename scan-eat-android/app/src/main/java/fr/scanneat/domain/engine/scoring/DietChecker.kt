@@ -75,7 +75,12 @@ private val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.VEGETARIAN to DietDef(
         forbidden = listOf(
-            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|pat[eé]|pâté|foie gras|cro[uû]te de viande|g[eé]lati?ne(?! halal)|pr[eé]sure animale|collag[eè]ne|pepsine"),
+            // (?! v[eé]g[eé]tale), not (?! halal) - halal certification says nothing about
+            // whether gelatin is animal-derived (it's orthogonal to vegetarianism), so the
+            // earlier (?! halal) lookahead let "gélatine halal" - still animal, just
+            // halal-slaughtered - silently pass as vegetarian-compliant. Same exception
+            // VEGAN uses two definitions below, for the same reason.
+            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|pat[eé]|pâté|foie gras|cro[uû]te de viande|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine"),
             b("poisson|saumon|thon|cabillaud|sardine|maquereau|anchois|hareng|crustac[eé]|crevette|homard|crabe|hu[iî]tre|moule|calmar|poulpe"),
         ),
         noteFr = "Exclut viande, poisson, crustacés, mollusques, gélatine et présure animale.",
@@ -107,7 +112,11 @@ private val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.PESCATARIAN to DietDef(
         forbidden = listOf(
-            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|pat[eé]|pâté|foie gras"),
+            // Standard pescatarian diets exclude land-animal derivatives the same as
+            // vegetarian ones - gelatin/rennet/collagen/pepsin are typically bovine or
+            // porcine, so without this a product whose only violation is bovine gelatin
+            // previously passed as pescatarian-compliant.
+            b("viande|porc|b[oœ]euf|poulet|dinde|canard|agneau|veau|lard|lardon|jambon|saucisse|chorizo|merguez|bacon|boudin|confit|rillette|pat[eé]|pâté|foie gras|g[eé]lati?ne(?! v[eé]g[eé]tale)|pr[eé]sure animale|collag[eè]ne|pepsine"),
         ),
         noteFr = "Végétarien autorisant poisson et fruits de mer.",
         noteEn = "Vegetarian that still allows fish and seafood.",

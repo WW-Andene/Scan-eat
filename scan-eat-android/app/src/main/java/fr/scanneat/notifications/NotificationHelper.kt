@@ -51,11 +51,19 @@ object NotificationHelper {
         }
     }
 
-    fun show(context: Context, id: Int, title: String, text: String, channel: NotifChannel? = null) {
+    /**
+     * @return true if the notification was actually posted, false if it was
+     * silently skipped (POST_NOTIFICATIONS denied on API 33+). Callers that also
+     * mark a reminder "fired today" (see ReminderWorker) must check this first -
+     * previously every reminder type was marked done for the day regardless of
+     * whether the user ever saw a notification, so a day with permission denied
+     * silently lost every reminder with no way to recover until the next day.
+     */
+    fun show(context: Context, id: Int, title: String, text: String, channel: NotifChannel? = null): Boolean {
         ensureChannels(context)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        ) return
+        ) return false
         val channelId = channel?.id ?: CHANNEL_ID
         // Previously absent - every notification this app posts (meal/hydration/
         // weight/activity/fasting-target/daily digest, and critically the
@@ -75,5 +83,6 @@ object NotificationHelper {
             .setContentIntent(contentIntent)
             .build()
         NotificationManagerCompat.from(context).notify(id, notification)
+        return true
     }
 }

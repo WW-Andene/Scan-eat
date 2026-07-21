@@ -187,6 +187,8 @@ fun ScanScreen(
                 onCaptureError    = { Toast.makeText(context, captureErrorMessage, Toast.LENGTH_SHORT).show() },
                 onBarcodeBounds   = { rect, w, h -> barcodeBounds = Triple(rect, w, h) },
                 onBoundsCleared   = { barcodeBounds = null; viewModel.onBarcodeLost() },
+                bottomNavClearance = bottomNavClearance,
+                topInset          = topInset,
             )
         } else if (!hasCameraHardware) {
             // Camera-less device (manifest declares both <uses-feature> entries

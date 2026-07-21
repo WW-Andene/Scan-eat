@@ -173,6 +173,14 @@ fun mapOffProduct(off: OffProductResponse): Product? {
         vitKUg        = numOrNull(nm["vitamin-k_100g"])?.times(1_000_000),
         b12Ug         = numOrNull(nm["vitamin-b12_100g"])?.times(1_000_000),
         b6Mg          = numOrNull(nm["vitamin-b6_100g"])?.times(1000),
+        // Previously never mapped from OFF at all, despite ProductHints.kt's own
+        // benefit checks for all four - same "structurally dead for every real
+        // scan" gap already fixed once here for declaredMicronutrients. OFF uses
+        // "vitamin-pp" (vitamine PP, the French pharmacopoeia name) for niacin/B3.
+        b1Mg          = numOrNull(nm["vitamin-b1_100g"])?.times(1000),
+        b2Mg          = numOrNull(nm["vitamin-b2_100g"])?.times(1000),
+        b3Mg          = numOrNull(nm["vitamin-pp_100g"])?.times(1000),
+        b9Ug          = numOrNull(nm["vitamin-b9_100g"])?.times(1_000_000),
         omega3G       = numOrNull(nm["omega-3-fat_100g"]),
     )
 

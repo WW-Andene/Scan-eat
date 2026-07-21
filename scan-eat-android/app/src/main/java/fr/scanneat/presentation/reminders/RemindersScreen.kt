@@ -56,6 +56,15 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = hiltView
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
             item { MealRemindersCard() }
+            // Previously the only card rendered here, despite this screen's own doc
+            // comment promising "one place that manages all of them" - the reminder
+            // system (ReminderWorker) covers hydration/weigh-ins/activity too, but
+            // those cards (already built below in this same file) were never added
+            // to this screen, leaving no way to reach them except via a repeat
+            // Save button embedded in Diary/Weight/Activity themselves.
+            item { HydrationReminderCard() }
+            item { WeightReminderCard() }
+            item { ActivityReminderCard() }
             item { Spacer(Modifier.height(Spacing.XL)) }
         }
     }

@@ -21,9 +21,20 @@ import fr.scanneat.domain.model.Ingredient
 // parameters most callers don't need rather than simplifying anything.
 // ============================================================================
 
+// normalizeForMatching reduces everything to [a-z0-9\s-], so a plain-ASCII word
+// boundary is enough here - same (?<!...)/(?!...) lookaround shape AllergenDetector's
+// a() and DietChecker's b() already use for their own (regex-authored) patterns.
+// Without this, a raw .contains() let short synonyms match inside unrelated words -
+// e.g. "mate" (yerba mate, a caffeine source) matched inside "tomate", firing a
+// false EFSA caffeine-claim benefit on any product listing tomatoes as an ingredient.
+private fun wordBoundaryMatch(haystack: String, needle: String): Boolean {
+    if (needle.isEmpty()) return false
+    return Regex("(?<![a-z0-9])${Regex.escape(needle)}(?![a-z0-9])").containsMatchIn(haystack)
+}
+
 /**
  * Returns every entry (at most [limit]) whose synonym list ([namesOf]) has a
- * substring match against some name in [queryNames], each entry appearing
+ * word-boundary match against some name in [queryNames], each entry appearing
  * at most once even if several query names would trigger it. Preserves
  * query-list order, so the first-mentioned name's match comes first.
  */
@@ -40,7 +51,7 @@ fun <T> matchNameDictionary(
         val normName = normalizeForMatching(queryName)
         for (entry in entries) {
             if (entry in seen) continue
-            if (namesOf(entry).any { normName.contains(normalizeForMatching(it)) }) {
+            if (namesOf(entry).any { wordBoundaryMatch(normName, normalizeForMatching(it)) }) {
                 seen += entry
                 result += entry
                 break

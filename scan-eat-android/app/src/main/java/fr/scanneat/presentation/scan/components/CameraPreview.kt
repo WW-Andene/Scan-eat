@@ -129,6 +129,13 @@ fun CameraPreview(
     onCaptureError: () -> Unit = {},
     onBarcodeBounds: ((android.graphics.Rect, Int, Int) -> Unit)? = null,
     onBoundsCleared: (() -> Unit)? = null,
+    // The floating bottom nav is a separate, later z-layer drawn on top of the
+    // whole screen - every other overlay on ScanScreen was given this same
+    // clearance for exactly that reason. Without it, the capture FAB's ~16-72dp
+    // band sits inside that danger zone and can render partially/fully hidden
+    // behind the nav bar.
+    bottomNavClearance: androidx.compose.ui.unit.Dp = 0.dp,
+    topInset: androidx.compose.ui.unit.Dp = 0.dp,
 ) {
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -217,7 +224,7 @@ fun CameraPreview(
                     torchOn = !torchOn
                     camera?.cameraControl?.enableTorch(torchOn)
                 },
-                modifier       = Modifier.align(Alignment.TopEnd).padding(Spacing.L).size(40.dp),
+                modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L, end = Spacing.L).size(40.dp),
                 containerColor = if (torchOn) AccentCoral else SurfaceVariant,
             ) {
                 Icon(
@@ -235,7 +242,17 @@ fun CameraPreview(
                 // window previously no-op'd via the safe call with zero feedback, the
                 // same silently-does-nothing class of bug onCaptureError below exists
                 // to prevent for every *other* capture failure.
-                imageCapture?.takePicture(executor, object : ImageCapture.OnImageCapturedCallback() {
+                // ContextCompat.getMainExecutor, not the analyzer's background `executor` -
+                // takePicture's executor param only controls which thread the callback runs
+                // on, not where the actual capture work happens, and onCaptureError() below
+                // calls Toast.makeText(...).show(), which requires a prepared Looper. The
+                // background analyzer executor has none, so every real capture failure (the
+                // exact case this callback exists to surface) crashed with "Can't create
+                // handler inside thread that has not called Looper.prepare()" instead of
+                // showing the intended error toast. Running on Main also serializes every
+                // onPhotoCaptured()/onCaptureError() call with the click-handler thread that
+                // reads/writes ScanViewModel's photo queue, closing a cross-thread race on it.
+                imageCapture?.takePicture(ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         val bmp = image.toBitmap(); image.close(); onPhotoCaptured(bmp)
                     }
@@ -249,7 +266,7 @@ fun CameraPreview(
                     }
                 }) ?: onCaptureError()
             },
-            modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = Spacing.L),
+            modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = bottomNavClearance + Spacing.L),
             containerColor = SurfaceVariant,
         ) {
             Icon(Icons.Default.CameraAlt, stringResource(R.string.scan_capture), tint = OnSurface)
