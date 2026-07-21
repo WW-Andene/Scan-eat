@@ -230,24 +230,16 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
         // Journal tabs (weight, water, activity, fasting) manage their own
         // date context internally, so this row is Meals-only.
         item {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { saveNoteIfDirty(); viewModel.goToPreviousDay() }) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
-                    Text(selectedDate.value.format(dateFmt), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                    IconButton(onClick = { saveNoteIfDirty(); viewModel.goToNextDay() }, enabled = !isToday.value) {
-                        Icon(Icons.Default.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday.value) OnBackground else OnBackground.copy(0.3f))
-                    }
-                    IconButton(onClick = { showCalendar = !showCalendar }) {
-                        Icon(Icons.Default.CalendarMonth, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
-                    }
-                    IconButton(onClick = { viewModel.copyPreviousDayMeals() }) {
-                        Icon(Icons.Default.ContentCopy, stringResource(R.string.diary_cd_copy_previous_day), tint = OnBackground.copy(0.5f))
-                    }
-                }
-                if (!isToday.value) {
-                    TextButton(onClick = { saveNoteIfDirty(); viewModel.goToToday() }) { Text(stringResource(R.string.diary_today_button), color = AccentCoral, style = MaterialTheme.typography.labelMedium) }
-                }
-            }
+            DiaryDayNavigationRow(
+                dateLabel = selectedDate.value.format(dateFmt),
+                isToday = isToday.value,
+                showCalendar = showCalendar,
+                onPrevDay = { saveNoteIfDirty(); viewModel.goToPreviousDay() },
+                onNextDay = { saveNoteIfDirty(); viewModel.goToNextDay() },
+                onToggleCalendar = { showCalendar = !showCalendar },
+                onCopyPreviousDay = { viewModel.copyPreviousDayMeals() },
+                onToday = { saveNoteIfDirty(); viewModel.goToToday() },
+            )
         }
 
         if (showCalendar) {
@@ -274,128 +266,27 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
 
         // Calorie intake breakdown bar — each meal slot's contribution as a colored segment
         if (s.entries.isNotEmpty()) {
-            item {
-                val totalKcal = s.totals.energyKcal.coerceAtLeast(1.0)
-                val slotColors = mapOf(
-                    MealSlot.BREAKFAST to AccentCoral.copy(0.7f),
-                    MealSlot.LUNCH     to Gold.copy(0.8f),
-                    MealSlot.SNACK     to semanticAmber().copy(0.6f),
-                    MealSlot.DINNER    to semanticBlue().copy(0.6f),
-                )
-                ScanEatCard(
-                    emphasis = CardEmphasis.SECONDARY,
-                    shape = RoundedCornerShape(CardRadius.CONTROL),
-                    contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
-                ) {
-                    Text(stringResource(R.string.diary_kcal_breakdown_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                    Row(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))) {
-                        MealSlot.values().forEach { slot ->
-                            val slotKcal = bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0
-                            val frac = (slotKcal / totalKcal).toFloat().coerceAtLeast(0f)
-                            if (frac > 0f) {
-                                Box(Modifier.weight(frac).fillMaxHeight().background(slotColors[slot] ?: OnSurface.copy(0.3f)))
-                            }
-                        }
-                        val loggedFrac = MealSlot.values().sumOf { slot -> bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0 } / totalKcal
-                        if (loggedFrac < 0.99f) {
-                            Box(Modifier.weight((1f - loggedFrac.toFloat()).coerceAtLeast(0f)).fillMaxHeight().background(OnSurface.copy(0.08f)))
-                        }
-                    }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                        MealSlot.values().forEach { slot ->
-                            val slotKcal = (bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0)
-                            if (slotKcal > 0) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                                    Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(3.dp)))
-                                    Text(
-                                        "${slot.shortLabel()} ${slotKcal.roundToInt()}kcal",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = OnSurface.copy(0.55f),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            item { DiaryKcalBreakdownCard(totalKcal = s.totals.energyKcal, bySlot = bySlot) }
         }
 
         // Per-slot protein distribution — shows how protein is spread across meals.
         // Nothing in the current UI shows this; the totals card shows only the day sum.
         if (s.entries.isNotEmpty()) {
-            item {
-                val maxSlotProt = MealSlot.values().maxOfOrNull { slot ->
-                    bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
-                }?.coerceAtLeast(1.0) ?: 1.0
-                ScanEatCard(
-                    emphasis = CardEmphasis.SECONDARY,
-                    shape = RoundedCornerShape(CardRadius.CONTROL),
-                    contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
-                ) {
-                    Text(stringResource(R.string.diary_protein_per_slot_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                    MealSlot.values().forEach { slot ->
-                        val prot = bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
-                        if (prot > 0.0) {
-                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                                Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(36.dp))
-                                androidx.compose.material3.LinearProgressIndicator(
-                                    progress = { (prot / maxSlotProt).toFloat().coerceIn(0f, 1f) },
-                                    modifier = Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)),
-                                    color = AccentCoral,
-                                    trackColor = OnSurface.copy(0.08f),
-                                )
-                                Text("${prot.roundToInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(30.dp))
-                            }
-                        }
-                    }
-                }
-            }
+            item { DiaryProteinPerSlotCard(bySlot) }
         }
 
         // Meal slot filter chips
         if (s.entries.isNotEmpty()) {
-            item {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    item {
-                        FilterChip(
-                            selected = slotFilter == null,
-                            onClick = { slotFilter = null },
-                            label = { Text(stringResource(R.string.diary_filter_all), style = MaterialTheme.typography.labelSmall) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-                        )
-                    }
-                    items(MealSlot.values()) { slot ->
-                        FilterChip(
-                            selected = slotFilter == slot,
-                            onClick = { slotFilter = if (slotFilter == slot) null else slot },
-                            label = { Text(slot.diaryLabel(), style = MaterialTheme.typography.labelSmall) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-                        )
-                    }
-                }
-            }
+            item { DiarySlotFilterRow(slotFilter = slotFilter, onFilterChange = { slotFilter = it }) }
         }
 
         item {
-            // Day note field
-            OutlinedTextField(
-                value = noteText,
-                onValueChange = { noteText = it },
-                label = { Text(stringResource(R.string.diary_note_label)) },
-                modifier = Modifier.fillMaxWidth().padding(top = Spacing.S, bottom = Spacing.XS),
-                singleLine = false,
-                maxLines = 3,
-                trailingIcon = {
-                    if (noteText != dayNote.value) {
-                        IconButton(onClick = { viewModel.saveNote(noteText) }) {
-                            Icon(Icons.Default.Check, stringResource(R.string.diary_cd_save_note), tint = AccentCoral)
-                        }
-                    }
-                },
-                shape = RoundedCornerShape(CardRadius.CONTROL),
-                colors = scanEatTextFieldColors(),
+            DiaryNoteField(
+                noteText = noteText,
+                onNoteTextChange = { noteText = it },
+                isDirty = noteText != dayNote.value,
+                onSave = { viewModel.saveNote(noteText) },
             )
-
             Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.titleSmall, color = OnBackground,
                 fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.S))
         }
@@ -451,6 +342,155 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
             onDismiss = { editTarget = null },
         )
     }
+}
+
+@Composable
+private fun DiaryDayNavigationRow(
+    dateLabel: String,
+    isToday: Boolean,
+    showCalendar: Boolean,
+    onPrevDay: () -> Unit,
+    onNextDay: () -> Unit,
+    onToggleCalendar: () -> Unit,
+    onCopyPreviousDay: () -> Unit,
+    onToday: () -> Unit,
+) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onPrevDay) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
+            Text(dateLabel, style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+            IconButton(onClick = onNextDay, enabled = !isToday) {
+                Icon(Icons.Default.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday) OnBackground else OnBackground.copy(0.3f))
+            }
+            IconButton(onClick = onToggleCalendar) {
+                Icon(Icons.Default.CalendarMonth, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
+            }
+            IconButton(onClick = onCopyPreviousDay) {
+                Icon(Icons.Default.ContentCopy, stringResource(R.string.diary_cd_copy_previous_day), tint = OnBackground.copy(0.5f))
+            }
+        }
+        if (!isToday) {
+            TextButton(onClick = onToday) { Text(stringResource(R.string.diary_today_button), color = AccentCoral, style = MaterialTheme.typography.labelMedium) }
+        }
+    }
+}
+
+@Composable
+private fun DiaryKcalBreakdownCard(totalKcal: Double, bySlot: Map<MealSlot, List<DiaryEntry>>) {
+    val total = totalKcal.coerceAtLeast(1.0)
+    val slotColors = mapOf(
+        MealSlot.BREAKFAST to AccentCoral.copy(0.7f),
+        MealSlot.LUNCH     to Gold.copy(0.8f),
+        MealSlot.SNACK     to semanticAmber().copy(0.6f),
+        MealSlot.DINNER    to semanticBlue().copy(0.6f),
+    )
+    ScanEatCard(
+        emphasis = CardEmphasis.SECONDARY,
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+    ) {
+        Text(stringResource(R.string.diary_kcal_breakdown_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+        Row(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp))) {
+            MealSlot.values().forEach { slot ->
+                val slotKcal = bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0
+                val frac = (slotKcal / total).toFloat().coerceAtLeast(0f)
+                if (frac > 0f) {
+                    Box(Modifier.weight(frac).fillMaxHeight().background(slotColors[slot] ?: OnSurface.copy(0.3f)))
+                }
+            }
+            val loggedFrac = MealSlot.values().sumOf { slot -> bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0 } / total
+            if (loggedFrac < 0.99f) {
+                Box(Modifier.weight((1f - loggedFrac.toFloat()).coerceAtLeast(0f)).fillMaxHeight().background(OnSurface.copy(0.08f)))
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+            MealSlot.values().forEach { slot ->
+                val slotKcal = (bySlot[slot]?.sumOf { it.consumed.energyKcal } ?: 0.0)
+                if (slotKcal > 0) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Box(Modifier.size(6.dp).background(slotColors[slot] ?: OnSurface.copy(0.3f), RoundedCornerShape(3.dp)))
+                        Text(
+                            "${slot.shortLabel()} ${slotKcal.roundToInt()}kcal",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = OnSurface.copy(0.55f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiaryProteinPerSlotCard(bySlot: Map<MealSlot, List<DiaryEntry>>) {
+    val maxSlotProt = MealSlot.values().maxOfOrNull { slot ->
+        bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
+    }?.coerceAtLeast(1.0) ?: 1.0
+    ScanEatCard(
+        emphasis = CardEmphasis.SECONDARY,
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+    ) {
+        Text(stringResource(R.string.diary_protein_per_slot_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+        MealSlot.values().forEach { slot ->
+            val prot = bySlot[slot]?.sumOf { it.consumed.proteinG } ?: 0.0
+            if (prot > 0.0) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    Text(slot.shortLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.width(36.dp))
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { (prot / maxSlotProt).toFloat().coerceIn(0f, 1f) },
+                        modifier = Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)),
+                        color = AccentCoral,
+                        trackColor = OnSurface.copy(0.08f),
+                    )
+                    Text("${prot.roundToInt()}g", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.55f), modifier = Modifier.width(30.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiarySlotFilterRow(slotFilter: MealSlot?, onFilterChange: (MealSlot?) -> Unit) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        item {
+            FilterChip(
+                selected = slotFilter == null,
+                onClick = { onFilterChange(null) },
+                label = { Text(stringResource(R.string.diary_filter_all), style = MaterialTheme.typography.labelSmall) },
+                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+            )
+        }
+        items(MealSlot.values()) { slot ->
+            FilterChip(
+                selected = slotFilter == slot,
+                onClick = { onFilterChange(if (slotFilter == slot) null else slot) },
+                label = { Text(slot.diaryLabel(), style = MaterialTheme.typography.labelSmall) },
+                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+            )
+        }
+    }
+}
+
+@Composable
+private fun DiaryNoteField(noteText: String, onNoteTextChange: (String) -> Unit, isDirty: Boolean, onSave: () -> Unit) {
+    OutlinedTextField(
+        value = noteText,
+        onValueChange = onNoteTextChange,
+        label = { Text(stringResource(R.string.diary_note_label)) },
+        modifier = Modifier.fillMaxWidth().padding(top = Spacing.S, bottom = Spacing.XS),
+        singleLine = false,
+        maxLines = 3,
+        trailingIcon = {
+            if (isDirty) {
+                IconButton(onClick = onSave) {
+                    Icon(Icons.Default.Check, stringResource(R.string.diary_cd_save_note), tint = AccentCoral)
+                }
+            }
+        },
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        colors = scanEatTextFieldColors(),
+    )
 }
 
 @Composable
