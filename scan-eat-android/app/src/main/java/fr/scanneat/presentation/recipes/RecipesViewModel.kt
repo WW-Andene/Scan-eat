@@ -7,6 +7,7 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.MealTemplateRepository
+import fr.scanneat.data.repository.planning.MenuDish
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.RecipeRepository
@@ -300,8 +301,14 @@ class RecipesViewModel @Inject constructor(
         data object Idle : ImportUiState()
         data object Loading : ImportUiState()
         data class Success(val result: FetchedRecipeResult) : ImportUiState()
-        /** suggestRecipes() returns several ideas to pick from, unlike the single-result URL/photo import. */
+        /** suggestRecipes()/suggestFromPantry() return several ideas to pick from, unlike the single-result URL/photo import. */
         data class SuggestSuccess(val results: List<FetchedRecipeResult>) : ImportUiState()
+        /**
+         * identifyMenuFromPhotos() result — unlike [Success]/[SuggestSuccess], these dishes
+         * are external restaurant items with nothing to save/log, so they get their own
+         * variant rather than reusing [Success]'s AddRecipeDialog-prefill handoff.
+         */
+        data class MenuSuccess(val dishes: List<MenuDish>) : ImportUiState()
         data class Error(val message: String) : ImportUiState()
     }
 
@@ -338,6 +345,25 @@ class RecipesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Restaurant menu photo -> estimated dishes (IdentifyMenuRoute.kt), previously
+     * unreachable from the app. Unlike [importRecipeFromPhotos], a successful result
+     * lands in [ImportUiState.MenuSuccess] rather than [ImportUiState.Success] - these
+     * dishes are external restaurant items with nothing to save/log, so they never
+     * feed AddRecipeDialog's prefill.
+     */
+    fun identifyMenuFromPhotos(images: List<ImagePayload>) {
+        if (images.isEmpty()) return
+        viewModelScope.launch {
+            _importState.value = ImportUiState.Loading
+            val lang = language.value
+            repo.identifyMenuFromPhotos(images, lang).fold(
+                onSuccess = { _importState.value = ImportUiState.MenuSuccess(it) },
+                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
+            )
+        }
+    }
+
     /** Single-ingredient recipe ideas (SuggestRoute.kt) - shows a pickable list rather than pre-filling directly, unlike importRecipeFromUrl/Photos. */
     fun suggestRecipes(ingredient: String) {
         if (ingredient.isBlank()) return
@@ -345,6 +371,19 @@ class RecipesViewModel @Inject constructor(
             _importState.value = ImportUiState.Loading
             val lang = language.value
             repo.suggestRecipes(ingredient, lang).fold(
+                onSuccess = { _importState.value = ImportUiState.SuggestSuccess(it) },
+                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
+            )
+        }
+    }
+
+    /** Pantry variant of [suggestRecipes] (SuggestRoute.kt's suggest-from-pantry) - same [ImportUiState.SuggestSuccess] rendering, just a different set of inputs to the same idea-picking flow. */
+    fun suggestFromPantry(items: List<String>) {
+        if (items.isEmpty()) return
+        viewModelScope.launch {
+            _importState.value = ImportUiState.Loading
+            val lang = language.value
+            repo.suggestFromPantry(items, lang).fold(
                 onSuccess = { _importState.value = ImportUiState.SuggestSuccess(it) },
                 onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
             )

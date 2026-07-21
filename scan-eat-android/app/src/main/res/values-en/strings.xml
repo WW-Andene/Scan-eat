@@ -1142,6 +1142,15 @@
     <string name="recipes_suggest_placeholder">Ingredient</string>
     <string name="recipes_suggest_button">Suggest</string>
     <string name="recipes_suggest_empty">No ideas found for that ingredient.</string>
+    <string name="recipes_suggest_mode_ingredient">One ingredient</string>
+    <string name="recipes_suggest_mode_pantry">My pantry</string>
+    <string name="recipes_suggest_pantry_hint">List what you have on hand (comma or one item per line), and the AI proposes a few ideas.</string>
+    <string name="recipes_suggest_pantry_placeholder">E.g. chicken, rice, broccoli…</string>
+    <string name="recipes_cd_menu_scan">Scan a restaurant menu</string>
+    <string name="recipes_menu_dialog_title">Menu dishes</string>
+    <string name="recipes_menu_empty">No dishes detected in this photo.</string>
+    <string name="recipes_menu_kcal_value">%1$d kcal</string>
+    <string name="recipes_menu_protein_value">%1$dg protein</string>
     <string name="recipes_import_url_title">Import a recipe</string>
     <string name="recipes_import_url_hint">Paste a recipe link (blog, cooking site…)</string>
     <string name="recipes_import_url_placeholder">https://…</string>

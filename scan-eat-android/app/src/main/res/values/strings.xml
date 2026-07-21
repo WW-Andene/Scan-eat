@@ -1195,6 +1195,15 @@
     <string name="recipes_suggest_placeholder">Ingrédient</string>
     <string name="recipes_suggest_button">Suggérer</string>
     <string name="recipes_suggest_empty">Aucune idée trouvée pour cet ingrédient.</string>
+    <string name="recipes_suggest_mode_ingredient">Un ingrédient</string>
+    <string name="recipes_suggest_mode_pantry">Mon garde-manger</string>
+    <string name="recipes_suggest_pantry_hint">Listez ce que vous avez sous la main (virgule ou une ligne par ingrédient), et l\'IA propose quelques idées.</string>
+    <string name="recipes_suggest_pantry_placeholder">Ex. : poulet, riz, brocolis…</string>
+    <string name="recipes_cd_menu_scan">Scanner un menu de restaurant</string>
+    <string name="recipes_menu_dialog_title">Plats du menu</string>
+    <string name="recipes_menu_empty">Aucun plat détecté sur cette photo.</string>
+    <string name="recipes_menu_kcal_value">%1$d kcal</string>
+    <string name="recipes_menu_protein_value">%1$dg protéines</string>
     <string name="recipes_import_url_title">Importer une recette</string>
     <string name="recipes_import_url_hint">Collez le lien d\'une recette (blog, site de cuisine…)</string>
     <string name="recipes_import_url_placeholder">https://…</string>

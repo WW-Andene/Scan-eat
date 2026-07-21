@@ -172,6 +172,20 @@ data class FetchedRecipeResult(
     val sourceUrl: String,
 )
 
+/**
+ * One dish from a restaurant menu photo (IdentifyMenuRoute.kt via [identifyMenuFromPhotos]) —
+ * an estimate only, not a scored/trackable Product: there's no barcode, no ingredient list,
+ * nothing to save as a recipe or log to the diary, just enough to help the user pick a dish
+ * before ordering. estimatedKcal/proteinG are nullable because the LLM may not always be able
+ * to estimate them for a given menu line.
+ */
+data class MenuDish(
+    val name: String,
+    val description: String?,
+    val estimatedKcal: Int?,
+    val proteinG: Double?,
+)
+
 // ---- Repository ----
 
 @Singleton
@@ -310,6 +324,24 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
     }
 
     /**
+     * IdentifyMenuRoute.kt (restaurant menu photo -> dishes with estimated macros via
+     * Groq vision) has existed on the server since it was added, with no Android caller —
+     * a user photographing a restaurant menu had no way to see estimated kcal/protein per
+     * dish before ordering. Server-mode only, same reasoning as identifyRecipeFromPhotos:
+     * needs a Groq key (vision API), no Direct-mode equivalent. Unlike the recipe-import
+     * paths above, [MenuDish] is purely informational - there's nothing to save/log, so it
+     * does not reuse [FetchedRecipeResult].
+     */
+    suspend fun identifyMenuFromPhotos(images: List<ImagePayload>, lang: String): Result<List<MenuDish>> = ioCatching {
+        val serverUrl = prefs.serverUrl.first()
+        val apiKey = prefs.groqApiKey.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
+        val resp = serverApiProvider.get(serverUrl).identifyMenu(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
+        resp.dishes.map { d -> MenuDish(name = d.name, description = d.description, estimatedKcal = d.estimatedKcal, proteinG = d.proteinG) }
+    }
+
+    /**
      * SuggestRoute.kt (single ingredient -> recipe ideas via Groq) has existed on
      * the server since it was added, with no Android caller - Recipes had no "give
      * me ideas" entry point at all, only manual/imported entry. Server-mode only
@@ -328,20 +360,43 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
             groqKey = apiKey.takeIf { it.isNotBlank() },
             request = ServerSuggestRecipesRequest(ingredient),
         )
-        resp.recipes.map { s ->
-            FetchedRecipeResult(
-                name            = s.name,
-                servings        = null,
-                ingredients     = s.mainIngredients,
-                steps           = listOfNotNull(s.description.takeIf { it.isNotBlank() }),
-                cookTimeMinutes = s.cookTimeMin,
-                kcal            = null,
-                proteinG        = null,
-                fatG            = null,
-                carbsG          = null,
-                sourceUrl       = "",
-            )
-        }
+        resp.recipes.toFetchedRecipeResults()
+    }
+
+    /**
+     * SuggestRoute.kt's pantry variant (list of on-hand items -> recipe ideas via Groq) -
+     * same route family as [suggestRecipes], same [ServerSuggestedRecipesResponse] shape,
+     * so it shares that function's mapping via [toFetchedRecipeResults]. The app has no
+     * persisted "pantry inventory" feature (elsewhere "pantry" only names a grocery-aisle
+     * category), so this takes free-typed items rather than reading from storage - the
+     * caller (SuggestRecipesDialog's pantry mode) is responsible for splitting user text
+     * into [items].
+     */
+    suspend fun suggestFromPantry(items: List<String>, lang: String): Result<List<FetchedRecipeResult>> = ioCatching {
+        val serverUrl = prefs.serverUrl.first()
+        val apiKey = prefs.groqApiKey.first()
+        if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
+        val resp = serverApiProvider.get(serverUrl).suggestFromPantry(
+            groqKey = apiKey.takeIf { it.isNotBlank() },
+            request = ServerSuggestFromPantryRequest(pantry = items),
+        )
+        resp.recipes.toFetchedRecipeResults()
+    }
+
+    /** Shared response->domain mapping for [suggestRecipes]/[suggestFromPantry] - both return the identical [ServerSuggestedRecipesResponse] shape. */
+    private fun List<ServerSuggestedRecipeDto>.toFetchedRecipeResults(): List<FetchedRecipeResult> = map { s ->
+        FetchedRecipeResult(
+            name            = s.name,
+            servings        = null,
+            ingredients     = s.mainIngredients,
+            steps           = listOfNotNull(s.description.takeIf { it.isNotBlank() }),
+            cookTimeMinutes = s.cookTimeMin,
+            kcal            = null,
+            proteinG        = null,
+            fatG            = null,
+            carbsG          = null,
+            sourceUrl       = "",
+        )
     }
 
     private fun Recipe.toEntity(profileId: String) = RecipeEntity(

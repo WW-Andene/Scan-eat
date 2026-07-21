@@ -144,6 +144,18 @@ fun RecipesScreen(
             }
         }
     }
+    // Restaurant menu photo -> estimated dishes (IdentifyMenuRoute.kt), previously
+    // unreachable from the app. Mirrors photoImportLauncher exactly - the system photo
+    // picker is the whole "input" step, loading/result/error surface via importState,
+    // same as the recipe-photo-import path above.
+    val menuScanLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            coroutineScope.launch {
+                val payload = withContext(Dispatchers.IO) { decodeImagePayload(context, uri) }
+                if (payload != null) viewModel.identifyMenuFromPhotos(listOf(payload)) else viewModel.photoDecodeFailed()
+            }
+        }
+    }
 
     // Same pattern as WeightScreen - toggleFavorite/save/delete/log/etc. previously
     // called repo's Room writes completely unguarded; a failed write now surfaces
@@ -173,6 +185,15 @@ fun RecipesScreen(
                 )
             }) {
                 Icon(Icons.Default.PhotoCamera, stringResource(R.string.recipes_cd_import_photo), tint = OnBackground)
+            }
+            IconButton(onClick = {
+                menuScanLauncher.launch(
+                    androidx.activity.result.PickVisualMediaRequest.Builder()
+                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        .build()
+                )
+            }) {
+                Icon(Icons.Default.Restaurant, stringResource(R.string.recipes_cd_menu_scan), tint = OnBackground)
             }
             IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
         },
@@ -265,6 +286,7 @@ fun RecipesScreen(
         onFetchUrl = { url -> viewModel.importRecipeFromUrl(url) },
         onDismissSuggest = { showSuggest = false; viewModel.clearImportState() },
         onSuggest = { ingredient -> viewModel.suggestRecipes(ingredient) },
+        onSuggestFromPantry = { items -> viewModel.suggestFromPantry(items) },
         onPickSuggestion = { idea -> viewModel.pickSuggestion(idea) },
         onClearImportState = { viewModel.clearImportState() },
     )
@@ -390,6 +412,7 @@ private fun RecipesImportStateDialogs(
     onFetchUrl: (String) -> Unit,
     onDismissSuggest: () -> Unit,
     onSuggest: (String) -> Unit,
+    onSuggestFromPantry: (List<String>) -> Unit,
     onPickSuggestion: (FetchedRecipeResult) -> Unit,
     onClearImportState: () -> Unit,
 ) {
@@ -407,12 +430,15 @@ private fun RecipesImportStateDialogs(
             errorMessage = (importState as? RecipesViewModel.ImportUiState.Error)?.message,
             onDismiss    = onDismissSuggest,
             onSuggest    = onSuggest,
+            onSuggestFromPantry = onSuggestFromPantry,
             onPick       = onPickSuggestion,
         )
     } else {
         // Photo import has no entry dialog of its own (the system photo picker is
         // the whole "input" step) - loading/error feedback for that path surfaces
         // here instead, distinguished from the URL/suggest flows by both being false.
+        // Menu-scan photos share this same no-entry-dialog shape - its MenuSuccess
+        // is the one branch here with real content to show, unlike Loading/Error.
         when (importState) {
             is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
                 onDismissRequest = {},
@@ -431,8 +457,60 @@ private fun RecipesImportStateDialogs(
                 text = { Text(importState.message, color = semanticRed()) },
                 confirmButton = { TextButton(onClick = onClearImportState) { Text(stringResource(R.string.common_ok), color = AccentCoral) } },
             )
+            is RecipesViewModel.ImportUiState.MenuSuccess -> MenuScanResultDialog(
+                dishes    = importState.dishes,
+                onDismiss = onClearImportState,
+            )
             else -> {}
         }
     }
+}
+
+/**
+ * Renders IdentifyMenuRoute.kt's dishes — purely informational, unlike every other
+ * ImportUiState success above: a menu dish has no barcode/ingredients to score and
+ * nothing to save as a recipe or log to the diary (it's someone else's kitchen, not
+ * a product the user owns), so this is a plain list with a close button only, styled
+ * consistently with SuggestRecipesDialog's idea list (Surface row, name/description/
+ * macro line) but with no onClick since there's nothing to pick into.
+ */
+@Composable
+private fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.recipes_menu_dialog_title), color = OnBackground) },
+        text = {
+            if (dishes.isEmpty()) {
+                Text(stringResource(R.string.recipes_menu_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            } else {
+                LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(dishes) { dish ->
+                        Surface(
+                            shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.05f),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(dish.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
+                                dish.description?.let {
+                                    Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), maxLines = 3)
+                                }
+                                val kcal = dish.estimatedKcal
+                                val protein = dish.proteinG
+                                if (kcal != null || protein != null) {
+                                    val macros = listOfNotNull(
+                                        kcal?.let { stringResource(R.string.recipes_menu_kcal_value, it) },
+                                        protein?.let { stringResource(R.string.recipes_menu_protein_value, it.toInt()) },
+                                    ).joinToString(" · ")
+                                    Text(macros, style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = AccentCoral) } },
+    )
 }
 
