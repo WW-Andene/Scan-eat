@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -87,10 +88,14 @@ fun SettingsScreen(
     val dataStats = viewModel.dataStats.collectAsStateWithLifecycle()
 
     var keyVisible  by remember { mutableStateOf(false) }
-    var localKey    by remember(apiKey.value)    { mutableStateOf(apiKey.value) }
-    var localUrl    by remember(serverUrl.value) { mutableStateOf(serverUrl.value) }
+    // rememberSaveable, not remember - these hold a typed/pasted-but-not-yet-saved API
+    // key/URL, exactly the kind of input a user carefully pastes from another app and
+    // would be frustrated to retype. A process death before tapping Save (backgrounding
+    // to copy the key is the common flow) previously discarded it silently on return.
+    var localKey    by rememberSaveable(apiKey.value)    { mutableStateOf(apiKey.value) }
+    var localUrl    by rememberSaveable(serverUrl.value) { mutableStateOf(serverUrl.value) }
     var cerebrasKeyVisible by remember { mutableStateOf(false) }
-    var localCerebrasKey   by remember(cerebrasApiKey.value) { mutableStateOf(cerebrasApiKey.value) }
+    var localCerebrasKey   by rememberSaveable(cerebrasApiKey.value) { mutableStateOf(cerebrasApiKey.value) }
 
     LaunchedEffect(savedField.value) {
         if (savedField.value != null) {

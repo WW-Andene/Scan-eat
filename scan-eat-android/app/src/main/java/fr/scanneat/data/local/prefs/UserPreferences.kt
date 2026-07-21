@@ -29,6 +29,10 @@ class UserPreferences @Inject constructor(
         if (e is IOException) emit(emptyPreferences()) else throw e
     }
 
+    /** "fr" if the device's own locale is French, "en" otherwise — the two languages this app ships. */
+    private fun defaultLanguage(): String =
+        if (java.util.Locale.getDefault().language == "fr") "fr" else "en"
+
     companion object {
         val KEY_API_KEY              = stringPreferencesKey("groq_api_key")
         val KEY_CEREBRAS_API_KEY     = stringPreferencesKey("cerebras_api_key")
@@ -92,7 +96,12 @@ class UserPreferences @Inject constructor(
     }.distinctUntilChanged()
     val apiMode: Flow<ApiMode>    = storeData.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }.distinctUntilChanged()
     val serverUrl: Flow<String>   = storeData.map { it[KEY_SERVER_URL] ?: "" }.distinctUntilChanged()
-    val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE]   ?: "fr" }.distinctUntilChanged()
+    // Only fr/en are shipped (values/ and values-en/), so a device locale other than
+    // French previously still got forced into French UI on first launch - the hardcoded
+    // "fr" fallback ignored the device's own language entirely. Falls back to the
+    // device's actual current locale (not a value captured once at process start),
+    // same reasoning DateTimeConversions/formatDecimal already apply to Locale.
+    val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE] ?: defaultLanguage() }.distinctUntilChanged()
     val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "oled" }.distinctUntilChanged()
     val onboardingComplete: Flow<Boolean> = storeData.map { it[KEY_ONBOARDING_COMPLETE] ?: false }.distinctUntilChanged()
     val dyslexicFont: Flow<Boolean>       = storeData.map { it[KEY_DYSLEXIC_FONT] ?: false }.distinctUntilChanged()

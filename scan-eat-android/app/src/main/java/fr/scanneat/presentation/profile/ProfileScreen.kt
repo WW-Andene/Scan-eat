@@ -9,6 +9,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,9 +36,18 @@ import fr.scanneat.presentation.profile.components.MetricChip
 import fr.scanneat.presentation.profile.components.OutlinedInput
 import fr.scanneat.presentation.profile.components.ProfileSection
 import fr.scanneat.presentation.profile.components.SexSelector
+import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
+
+/** Bundle doesn't natively round-trip a raw Set<String> - same gap enumSaver() (see
+ *  fr.scanneat.presentation.onboarding.OnboardingScreen) fixes for enums, via an
+ *  ArrayList<String> (which IS Bundle-safe) instead. */
+private val stringSetSaver = Saver<Set<String>, ArrayList<String>>(
+    save = { ArrayList(it) },
+    restore = { it.toSet() },
+)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -64,25 +75,30 @@ fun ProfileScreen(
     // saved data streamed in a moment later, and saving from that state wrote
     // those blanks back over the real data. Matches the already-correct
     // biolismProfile.value-keyed pattern used 4 lines below in this same file.
-    var name       by remember(profile.value) { mutableStateOf(profile.value.name) }
-    var sex        by remember(profile.value) { mutableStateOf(profile.value.sex) }
-    var age        by remember(profile.value) { mutableStateOf(profile.value.ageYears?.toString() ?: "") }
-    var heightCm   by remember(profile.value) { mutableStateOf(profile.value.heightCm?.toString() ?: "") }
-    var weightKg   by remember(profile.value) { mutableStateOf(profile.value.weightKg?.toString() ?: "") }
-    var goalWeightKg by remember(profile.value) { mutableStateOf(profile.value.goalWeightKg?.toString() ?: "") }
-    var activity   by remember(profile.value) { mutableStateOf(profile.value.activityLevel) }
-    var goal       by remember(profile.value) { mutableStateOf(profile.value.goal) }
-    var diet       by remember(profile.value) { mutableStateOf(profile.value.diet) }
-    var allergens  by remember(profile.value) { mutableStateOf(profile.value.allergens) }
-    var conditions by remember(profile.value) { mutableStateOf(profile.value.healthConditions) }
-    var isMenstruating by remember(profile.value) { mutableStateOf(profile.value.isMenstruating) }
+    // rememberSaveable (not remember) below - this is a long form (15 fields) a user
+    // can easily spend a minute or more filling in; a process death mid-edit (the app
+    // backgrounded to check a scale/tape measure is a completely plausible flow here)
+    // previously discarded every unsaved field silently on return, re-deriving from
+    // the still-stale saved profile instead of restoring what was actually typed.
+    var name       by rememberSaveable(profile.value) { mutableStateOf(profile.value.name) }
+    var sex        by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.sex) }
+    var age        by rememberSaveable(profile.value) { mutableStateOf(profile.value.ageYears?.toString() ?: "") }
+    var heightCm   by rememberSaveable(profile.value) { mutableStateOf(profile.value.heightCm?.toString() ?: "") }
+    var weightKg   by rememberSaveable(profile.value) { mutableStateOf(profile.value.weightKg?.toString() ?: "") }
+    var goalWeightKg by rememberSaveable(profile.value) { mutableStateOf(profile.value.goalWeightKg?.toString() ?: "") }
+    var activity   by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.activityLevel) }
+    var goal       by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.goal) }
+    var diet       by rememberSaveable(profile.value, stateSaver = enumSaver()) { mutableStateOf(profile.value.diet) }
+    var allergens  by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.allergens) }
+    var conditions by rememberSaveable(profile.value, stateSaver = stringSetSaver) { mutableStateOf(profile.value.healthConditions) }
+    var isMenstruating by rememberSaveable(profile.value) { mutableStateOf(profile.value.isMenstruating) }
     // Circumferences + ethnicity — previously only editable from Métabolisme >
     // Mon Profil (BiolismProfileScreen), even though they live in the same
     // BiolismRepository already synced with this screen's shared fields.
-    var waistCm    by remember(biolismProfile.value) { mutableStateOf(biolismProfile.value.waistCm.takeIf { it > 0 }?.toString() ?: "") }
-    var hipCm      by remember(biolismProfile.value) { mutableStateOf(biolismProfile.value.hipCm.takeIf { it > 0 }?.toString() ?: "") }
-    var neckCm     by remember(biolismProfile.value) { mutableStateOf(biolismProfile.value.neckCm.takeIf { it > 0 }?.toString() ?: "") }
-    var ethnicityId by remember(biolismProfile.value) { mutableStateOf(biolismProfile.value.ethnicityId) }
+    var waistCm    by rememberSaveable(biolismProfile.value) { mutableStateOf(biolismProfile.value.waistCm.takeIf { it > 0 }?.toString() ?: "") }
+    var hipCm      by rememberSaveable(biolismProfile.value) { mutableStateOf(biolismProfile.value.hipCm.takeIf { it > 0 }?.toString() ?: "") }
+    var neckCm     by rememberSaveable(biolismProfile.value) { mutableStateOf(biolismProfile.value.neckCm.takeIf { it > 0 }?.toString() ?: "") }
+    var ethnicityId by rememberSaveable(biolismProfile.value) { mutableStateOf(biolismProfile.value.ethnicityId) }
 
     LaunchedEffect(saved.value) {
         if (saved.value) { viewModel.clearSaved(); onBack() }
