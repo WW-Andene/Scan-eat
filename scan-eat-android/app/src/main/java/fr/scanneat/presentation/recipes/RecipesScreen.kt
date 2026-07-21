@@ -213,52 +213,15 @@ fun RecipesScreen(
             item {
                 // Recipes previously had no way to search by name - only the macro-based
                 // filter chips below - unlike History/CustomFood's real text search.
-                OutlinedTextField(
-                    value = recipeQuery.value,
-                    onValueChange = { viewModel.setRecipeQuery(it) },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(stringResource(R.string.recipes_search_placeholder), color = OnBackground.copy(0.4f)) },
-                    leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
-                    trailingIcon = {
-                        if (recipeQuery.value.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.setRecipeQuery("") }) {
-                                Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(CardRadius.CONTROL),
-                    colors = scanEatTextFieldColors(),
-                )
+                RecipesSearchField(query = recipeQuery.value, onQueryChange = { viewModel.setRecipeQuery(it) })
             }
             item {
-                val filterOptions = listOf(
-                    RecipesViewModel.GoalFilter.ALL         to stringResource(R.string.recipes_filter_all),
-                    RecipesViewModel.GoalFilter.HIGH_PROTEIN to stringResource(R.string.recipes_filter_high_protein),
-                    RecipesViewModel.GoalFilter.LOW_CARB    to stringResource(R.string.recipes_filter_low_carb),
-                    RecipesViewModel.GoalFilter.LOW_FAT     to stringResource(R.string.recipes_filter_low_fat),
+                RecipesFilterChipsRow(
+                    goalFilter = goalFilter.value,
+                    onFilterChange = { viewModel.setGoalFilter(it) },
+                    filtered = recipes.value.size,
+                    total = totalRecipesCount.value,
                 )
-                val total = totalRecipesCount.value
-                val filtered = recipes.value.size
-                Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        items(filterOptions) { (filter, label) ->
-                            FilterChip(
-                                selected = goalFilter.value == filter,
-                                onClick = { viewModel.setGoalFilter(filter) },
-                                label = { Text(label) },
-                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-                            )
-                        }
-                    }
-                    if (goalFilter.value != RecipesViewModel.GoalFilter.ALL && total > 0) {
-                        Text(
-                            stringResource(R.string.recipes_filter_results, filtered, total),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = OnBackground.copy(0.5f),
-                        )
-                    }
-                }
             }
 
             if (recipes.value.isEmpty()) {
@@ -294,47 +257,17 @@ fun RecipesScreen(
         }
     }
 
-    if (showImportUrl) {
-        ImportRecipeUrlDialog(
-            isLoading    = importState.value is RecipesViewModel.ImportUiState.Loading,
-            errorMessage = (importState.value as? RecipesViewModel.ImportUiState.Error)?.message,
-            onDismiss    = { showImportUrl = false; viewModel.clearImportState() },
-            onFetch      = { url -> viewModel.importRecipeFromUrl(url) },
-        )
-    } else if (showSuggest) {
-        SuggestRecipesDialog(
-            isLoading    = importState.value is RecipesViewModel.ImportUiState.Loading,
-            results      = (importState.value as? RecipesViewModel.ImportUiState.SuggestSuccess)?.results,
-            errorMessage = (importState.value as? RecipesViewModel.ImportUiState.Error)?.message,
-            onDismiss    = { showSuggest = false; viewModel.clearImportState() },
-            onSuggest    = { ingredient -> viewModel.suggestRecipes(ingredient) },
-            onPick       = { idea -> viewModel.pickSuggestion(idea) },
-        )
-    } else {
-        // Photo import has no entry dialog of its own (the system photo picker is
-        // the whole "input" step) - loading/error feedback for that path surfaces
-        // here instead, distinguished from the URL/suggest flows by both being false.
-        when (val state = importState.value) {
-            is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
-                onDismissRequest = {},
-                containerColor = SurfaceVariant,
-                text = {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                        CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
-                        Text(stringResource(R.string.recipes_import_photo_loading), color = OnBackground)
-                    }
-                },
-                confirmButton = {},
-            )
-            is RecipesViewModel.ImportUiState.Error -> AlertDialog(
-                onDismissRequest = { viewModel.clearImportState() },
-                containerColor = SurfaceVariant,
-                text = { Text(state.message, color = semanticRed()) },
-                confirmButton = { TextButton(onClick = { viewModel.clearImportState() }) { Text(stringResource(R.string.common_ok), color = AccentCoral) } },
-            )
-            else -> {}
-        }
-    }
+    RecipesImportStateDialogs(
+        showImportUrl = showImportUrl,
+        showSuggest = showSuggest,
+        importState = importState.value,
+        onDismissImportUrl = { showImportUrl = false; viewModel.clearImportState() },
+        onFetchUrl = { url -> viewModel.importRecipeFromUrl(url) },
+        onDismissSuggest = { showSuggest = false; viewModel.clearImportState() },
+        onSuggest = { ingredient -> viewModel.suggestRecipes(ingredient) },
+        onPickSuggestion = { idea -> viewModel.pickSuggestion(idea) },
+        onClearImportState = { viewModel.clearImportState() },
+    )
 
     if (showAdd) {
         val searchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
@@ -391,5 +324,115 @@ fun RecipesScreen(
         DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 
+}
+
+@Composable
+private fun RecipesSearchField(query: String, onQueryChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text(stringResource(R.string.recipes_search_placeholder), color = OnBackground.copy(0.4f)) },
+        leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
+                }
+            }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        colors = scanEatTextFieldColors(),
+    )
+}
+
+@Composable
+private fun RecipesFilterChipsRow(
+    goalFilter: RecipesViewModel.GoalFilter,
+    onFilterChange: (RecipesViewModel.GoalFilter) -> Unit,
+    filtered: Int,
+    total: Int,
+) {
+    val filterOptions = listOf(
+        RecipesViewModel.GoalFilter.ALL         to stringResource(R.string.recipes_filter_all),
+        RecipesViewModel.GoalFilter.HIGH_PROTEIN to stringResource(R.string.recipes_filter_high_protein),
+        RecipesViewModel.GoalFilter.LOW_CARB    to stringResource(R.string.recipes_filter_low_carb),
+        RecipesViewModel.GoalFilter.LOW_FAT     to stringResource(R.string.recipes_filter_low_fat),
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            items(filterOptions) { (filter, label) ->
+                FilterChip(
+                    selected = goalFilter == filter,
+                    onClick = { onFilterChange(filter) },
+                    label = { Text(label) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                )
+            }
+        }
+        if (goalFilter != RecipesViewModel.GoalFilter.ALL && total > 0) {
+            Text(
+                stringResource(R.string.recipes_filter_results, filtered, total),
+                style = MaterialTheme.typography.labelSmall,
+                color = OnBackground.copy(0.5f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecipesImportStateDialogs(
+    showImportUrl: Boolean,
+    showSuggest: Boolean,
+    importState: RecipesViewModel.ImportUiState?,
+    onDismissImportUrl: () -> Unit,
+    onFetchUrl: (String) -> Unit,
+    onDismissSuggest: () -> Unit,
+    onSuggest: (String) -> Unit,
+    onPickSuggestion: (FetchedRecipeResult) -> Unit,
+    onClearImportState: () -> Unit,
+) {
+    if (showImportUrl) {
+        ImportRecipeUrlDialog(
+            isLoading    = importState is RecipesViewModel.ImportUiState.Loading,
+            errorMessage = (importState as? RecipesViewModel.ImportUiState.Error)?.message,
+            onDismiss    = onDismissImportUrl,
+            onFetch      = onFetchUrl,
+        )
+    } else if (showSuggest) {
+        SuggestRecipesDialog(
+            isLoading    = importState is RecipesViewModel.ImportUiState.Loading,
+            results      = (importState as? RecipesViewModel.ImportUiState.SuggestSuccess)?.results,
+            errorMessage = (importState as? RecipesViewModel.ImportUiState.Error)?.message,
+            onDismiss    = onDismissSuggest,
+            onSuggest    = onSuggest,
+            onPick       = onPickSuggestion,
+        )
+    } else {
+        // Photo import has no entry dialog of its own (the system photo picker is
+        // the whole "input" step) - loading/error feedback for that path surfaces
+        // here instead, distinguished from the URL/suggest flows by both being false.
+        when (importState) {
+            is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
+                onDismissRequest = {},
+                containerColor = SurfaceVariant,
+                text = {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                        CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
+                        Text(stringResource(R.string.recipes_import_photo_loading), color = OnBackground)
+                    }
+                },
+                confirmButton = {},
+            )
+            is RecipesViewModel.ImportUiState.Error -> AlertDialog(
+                onDismissRequest = onClearImportState,
+                containerColor = SurfaceVariant,
+                text = { Text(importState.message, color = semanticRed()) },
+                confirmButton = { TextButton(onClick = onClearImportState) { Text(stringResource(R.string.common_ok), color = AccentCoral) } },
+            )
+            else -> {}
+        }
+    }
 }
 
