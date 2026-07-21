@@ -298,90 +298,67 @@ data class PersonalScoreResult(
 )
 
 // ============================================================================
-// Main function
+// Personal score sub-computations — one rule category per function, each a
+// direct extraction of one `===== SECTION =====` block from the original
+// monolithic computePersonalScore(). Behavior is unchanged; only the grouping
+// into named functions is new.
 // ============================================================================
 
-/**
- * Compute the personal score overlay on top of the classic ScoreAudit.
- * Port of computePersonalScore() from personal-score.js.
- *
- * @param audit   Output of scoreProduct()
- * @param product The same product that was scored
- * @param profile User profile (diet, allergens, sex, age, weight, activity)
- * @param lang    "fr" or "en" for reason strings
- */
-fun computePersonalScore(
-    audit: ScoreAudit,
-    product: Product,
-    profile: Profile,
-    lang: String = "fr",
-): PersonalScoreResult {
+/** Diet compliance and (where applicable) a hard veto + reason for it. */
+private data class ConditionalAdjustments(
+    val adjustments: List<PersonalAdjustment>,
+    val veto: Boolean = false,
+    val dietReason: String? = null,
+)
 
-    val applicable = (profile.diet != DietKey.NONE) ||
-        hasMinimalProfile(profile) ||
-        profile.allergens.isNotEmpty() ||
-        profile.healthConditions.isNotEmpty()
-
-    if (!applicable) {
-        return PersonalScoreResult(
-            personalScore = audit.score,
-            delta         = 0,
-            adjustments   = emptyList(),
-            applicable    = false,
-            dietReason    = null,
-            veto          = false,
+// ===== DIET COMPLIANCE (HARD) =====
+private fun checkDietCompliance(product: Product, profile: Profile, lang: String): ConditionalAdjustments {
+    if (profile.diet == DietKey.NONE) return ConditionalAdjustments(emptyList())
+    val adjustments = mutableListOf<PersonalAdjustment>()
+    var veto = false
+    var dietReason: String? = null
+    val r = checkDiet(product, profile.diet, lang)
+    if (!r.compliant) {
+        veto = true
+        dietReason = r.reason
+        adjustments += PersonalAdjustment(0.0, r.reason ?: "", AdjustmentCategory.DIET, veto = true)
+    } else if (r.certified) {
+        val label = if (lang == "en") profile.diet.labelEn else profile.diet.labelFr
+        adjustments += PersonalAdjustment(
+            points   = 5.0,
+            reason   = if (lang == "en") "$label certification detected: ${r.preferredHits.take(2).joinToString()}"
+                       else "Certification $label détectée : ${r.preferredHits.take(2).joinToString()}",
+            category = AdjustmentCategory.DIET,
+        )
+    } else if (r.preferredHits.isNotEmpty()) {
+        val label = if (lang == "en") profile.diet.labelEn else profile.diet.labelFr
+        adjustments += PersonalAdjustment(
+            points   = 3.0,
+            reason   = if (lang == "en") "$label-friendly ingredients: ${r.preferredHits.take(2).joinToString()}"
+                       else "Conforme $label : ${r.preferredHits.take(2).joinToString()}",
+            category = AdjustmentCategory.DIET,
         )
     }
+    return ConditionalAdjustments(adjustments, veto, dietReason)
+}
 
-    val adjustments = mutableListOf<PersonalAdjustment>()
-    var dietReason: String? = null
-    var veto = false
-
-    // ===== DIET COMPLIANCE (HARD) =====
-    if (profile.diet != DietKey.NONE) {
-        val r = checkDiet(product, profile.diet, lang)
-        if (!r.compliant) {
-            veto = true
-            dietReason = r.reason
-            adjustments += PersonalAdjustment(0.0, r.reason ?: "", AdjustmentCategory.DIET, veto = true)
-        } else if (r.certified) {
-            val label = if (lang == "en") profile.diet.labelEn else profile.diet.labelFr
-            adjustments += PersonalAdjustment(
-                points   = 5.0,
-                reason   = if (lang == "en") "$label certification detected: ${r.preferredHits.take(2).joinToString()}"
-                           else "Certification $label détectée : ${r.preferredHits.take(2).joinToString()}",
-                category = AdjustmentCategory.DIET,
-            )
-        } else if (r.preferredHits.isNotEmpty()) {
-            val label = if (lang == "en") profile.diet.labelEn else profile.diet.labelFr
-            adjustments += PersonalAdjustment(
-                points   = 3.0,
-                reason   = if (lang == "en") "$label-friendly ingredients: ${r.preferredHits.take(2).joinToString()}"
-                           else "Conforme $label : ${r.preferredHits.take(2).joinToString()}",
-                category = AdjustmentCategory.DIET,
-            )
-        }
-    }
-
-    // ===== ALLERGEN CHECK =====
-    val allergenHits = if (profile.allergens.isNotEmpty())
-        checkUserAllergens(product, profile.allergens, lang)
-    else emptyList()
-
-    // ===== HEALTH CONDITIONS =====
-    // Only the conditions with an established, simple nutrition-level rule get a
-    // scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
-    // alcohol veto, WCRF/NHS alcohol caution for cancer/depression). "thyroid_disorder",
-    // "food_allergies", "intolerances" and "digestive_disorders" are still selectable
-    // in ProfileSelectors.kt (Profile.healthConditions is free-form) but have no
-    // dedicated nutrition-threshold rule reliable enough to code here yet, and are
-    // NOT surfaced anywhere else either - this comment previously claimed they were
-    // ("surfaced elsewhere, e.g. the hint system"), but neither ProductHints.kt nor
-    // HealthConditionGuidanceDb.kt (whose own header explains why digestive_disorders
-    // specifically is too heterogeneous a bucket to map to ingredients) ever reads
-    // these 4 keys - a user can select any of them expecting some product-specific
-    // guidance and gets none, identically to not having selected it at all.
-    val conditions = profile.healthConditions
+// ===== HEALTH CONDITIONS =====
+// Only the conditions with an established, simple nutrition-level rule get a
+// scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
+// alcohol veto, WCRF/NHS alcohol caution for cancer/depression). "thyroid_disorder",
+// "food_allergies", "intolerances" and "digestive_disorders" are still selectable
+// in ProfileSelectors.kt (Profile.healthConditions is free-form) but have no
+// dedicated nutrition-threshold rule reliable enough to code here yet, and are
+// NOT surfaced anywhere else either - this comment previously claimed they were
+// ("surfaced elsewhere, e.g. the hint system"), but neither ProductHints.kt nor
+// HealthConditionGuidanceDb.kt (whose own header explains why digestive_disorders
+// specifically is too heterogeneous a bucket to map to ingredients) ever reads
+// these 4 keys - a user can select any of them expecting some product-specific
+// guidance and gets none, identically to not having selected it at all.
+private fun checkHealthConditions(
+    product: Product,
+    profile: Profile,
+    lang: String,
     // The base engine's own NegativeNutrientsPillar judges sat-fat/sugar against
     // category-relative thresholds (cheese tolerates far more sat fat than a
     // sandwich; a condiment far more sugar than a beverage - see
@@ -398,26 +375,20 @@ fun computePersonalScore(
     // the same category-relative thresholds here (computed once, since diabetes/
     // age/BMI all need them) fixes the false positive; the new refined-carb/
     // energy-density check below fixes the false negative.
-    val catThresholds = getThresholds(product.category)
+    catThresholds: CategoryThresholds,
     // Sugar-sweetened beverages (SSB) need their own, much lower bar - not the
     // ~15g/100g that would flag a solid snack. Matches checkVeto's own already-
     // established SSB definition exactly (BEVERAGE_SOFT, sugar>5g, protein<1g,
     // fiber<1g), so the veto and every condition/BMI check below agree on what
     // counts as one, instead of the veto silently using a different (and much
-    // stricter) bar than diabetes/age/depression/BMI ever did. Liquid sugar has
-    // a well-established distinctly higher obesity/diabetes-risk profile than
-    // the same sugar in solid food - no fiber, no satiety signal, faster
-    // absorption (WHO Sugars Intake Guideline 2015; Malik et al., Circulation
-    // 2010; Hu FB, Obes Rev 2013) - and a typical can/bottle is drunk in one
-    // sitting at several times a 100g reference amount, so a per-100g figure
-    // that looks moderate (a regular cola is ~10.6g/100g, under every one of
-    // the flat/category "major" bars below) still means a real sugar dose.
-    // Without this, a regular soda and its zero-sugar variant were previously
-    // indistinguishable to every condition/BMI check in this function even
-    // though only one of them actually contains sugar.
-    val isSugarSweetenedBeverage = product.category == ProductCategory.BEVERAGE_SOFT &&
-        (product.nutrition.addedSugarsG ?: product.nutrition.sugarsG) > 5.0 &&
-        product.nutrition.proteinG < 1.0 && product.nutrition.fiberG < 1.0
+    // stricter) bar than diabetes/age/depression/BMI ever did.
+    isSugarSweetenedBeverage: Boolean,
+): ConditionalAdjustments {
+    val conditions = profile.healthConditions
+    val adjustments = mutableListOf<PersonalAdjustment>()
+    var veto = false
+    var dietReason: String? = null
+
     if ("diabetes" in conditions) {
         val sugars = product.nutrition.sugarsG
         if (isSugarSweetenedBeverage) {
@@ -568,7 +539,18 @@ fun computePersonalScore(
         )
     }
 
-    // ===== AGE-BASED =====
+    return ConditionalAdjustments(adjustments, veto, dietReason)
+}
+
+// ===== AGE-BASED =====
+private fun computeAgeAdjustments(
+    product: Product,
+    profile: Profile,
+    catThresholds: CategoryThresholds,
+    isSugarSweetenedBeverage: Boolean,
+    lang: String,
+): List<PersonalAdjustment> {
+    val adjustments = mutableListOf<PersonalAdjustment>()
     val age = profile.ageYears
     if (age != null && age > 0) {
         if (age >= 65 && product.nutrition.proteinG >= 12) {
@@ -621,8 +603,12 @@ fun computePersonalScore(
             }
         }
     }
+    return adjustments
+}
 
-    // ===== SEX =====
+// ===== SEX =====
+private fun computeSexAdjustments(product: Product, profile: Profile, lang: String): List<PersonalAdjustment> {
+    val adjustments = mutableListOf<PersonalAdjustment>()
     // Gated on the profile's own isMenstruating answer, not an age-range
     // guess — see dailyTargets()'s ironTarget for why the guess was wrong.
     if (profile.sex == Sex.FEMALE && profile.isMenstruating) {
@@ -639,8 +625,12 @@ fun computePersonalScore(
             )
         }
     }
+    return adjustments
+}
 
-    // ===== ACTIVITY =====
+// ===== ACTIVITY =====
+private fun computeActivityAdjustments(product: Product, profile: Profile, lang: String): List<PersonalAdjustment> {
+    val adjustments = mutableListOf<PersonalAdjustment>()
     val activity = profile.activityLevel
     if (activity == ActivityLevel.VERY_ACTIVE || activity == ActivityLevel.EXTRA_ACTIVE) {
         if (product.nutrition.proteinG >= 15) {
@@ -684,11 +674,20 @@ fun computePersonalScore(
             )
         }
     }
+    return adjustments
+}
 
-    // ===== GOAL =====
-    // profile.goal (lose/maintain/gain) was captured at onboarding and stored,
-    // but never read anywhere in scoring — a user who set a weight goal saw
-    // zero effect from it on the products they scan.
+// ===== GOAL =====
+// profile.goal (lose/maintain/gain) was captured at onboarding and stored,
+// but never read anywhere in scoring — a user who set a weight goal saw
+// zero effect from it on the products they scan.
+private fun computeGoalAdjustments(
+    product: Product,
+    profile: Profile,
+    catThresholds: CategoryThresholds,
+    lang: String,
+): List<PersonalAdjustment> {
+    val adjustments = mutableListOf<PersonalAdjustment>()
     when (profile.goal) {
         Goal.LOSE -> {
             // maxOf against the original flat 10g - same category-relative fix
@@ -720,8 +719,12 @@ fun computePersonalScore(
         }
         Goal.MAINTAIN -> {}
     }
+    return adjustments
+}
 
-    // ===== PROTEIN PRI =====
+// ===== PROTEIN PRI =====
+private fun computeProteinPriAdjustments(product: Product, profile: Profile, lang: String): List<PersonalAdjustment> {
+    val adjustments = mutableListOf<PersonalAdjustment>()
     val priTarget = proteinPriG(profile)
     if (priTarget != null && priTarget > 0) {
         val pctOfPRI = (product.nutrition.proteinG / priTarget) * 100.0
@@ -735,8 +738,12 @@ fun computePersonalScore(
             )
         }
     }
+    return adjustments
+}
 
-    // ===== DAILY TARGET CONTEXT =====
+// ===== DAILY TARGET CONTEXT =====
+private fun computeDailyTargetAdjustments(product: Product, profile: Profile, lang: String): List<PersonalAdjustment> {
+    val adjustments = mutableListOf<PersonalAdjustment>()
     val targets = dailyTargets(profile)
     if (targets != null) {
         val satFatPct = (product.nutrition.saturatedFatG / targets.satFatGMax.coerceAtLeast(1.0)) * 100.0
@@ -771,8 +778,18 @@ fun computePersonalScore(
             )
         }
     }
+    return adjustments
+}
 
-    // ===== BMI =====
+// ===== BMI =====
+private fun computeBmiAdjustments(
+    product: Product,
+    profile: Profile,
+    catThresholds: CategoryThresholds,
+    isSugarSweetenedBeverage: Boolean,
+    lang: String,
+): List<PersonalAdjustment> {
+    val adjustments = mutableListOf<PersonalAdjustment>()
     val bmiValue = bmi(profile)
     val bmiCat   = bmiCategory(bmiValue)
     if (bmiCat == BmiCategory.OVERWEIGHT || bmiCat?.name?.startsWith("OBESE") == true) {
@@ -849,6 +866,80 @@ fun computePersonalScore(
             )
         }
     }
+    return adjustments
+}
+
+// ============================================================================
+// Main function
+// ============================================================================
+
+/**
+ * Compute the personal score overlay on top of the classic ScoreAudit.
+ * Port of computePersonalScore() from personal-score.js.
+ *
+ * @param audit   Output of scoreProduct()
+ * @param product The same product that was scored
+ * @param profile User profile (diet, allergens, sex, age, weight, activity)
+ * @param lang    "fr" or "en" for reason strings
+ */
+fun computePersonalScore(
+    audit: ScoreAudit,
+    product: Product,
+    profile: Profile,
+    lang: String = "fr",
+): PersonalScoreResult {
+
+    val applicable = (profile.diet != DietKey.NONE) ||
+        hasMinimalProfile(profile) ||
+        profile.allergens.isNotEmpty() ||
+        profile.healthConditions.isNotEmpty()
+
+    if (!applicable) {
+        return PersonalScoreResult(
+            personalScore = audit.score,
+            delta         = 0,
+            adjustments   = emptyList(),
+            applicable    = false,
+            dietReason    = null,
+            veto          = false,
+        )
+    }
+
+    val catThresholds = getThresholds(product.category)
+    // Matches checkVeto's own already-established SSB definition exactly
+    // (BEVERAGE_SOFT, sugar>5g, protein<1g, fiber<1g) - see checkHealthConditions'
+    // own parameter doc for why every condition/BMI check needs to agree on
+    // this instead of re-deriving a subtly different bar each time.
+    val isSugarSweetenedBeverage = product.category == ProductCategory.BEVERAGE_SOFT &&
+        (product.nutrition.addedSugarsG ?: product.nutrition.sugarsG) > 5.0 &&
+        product.nutrition.proteinG < 1.0 && product.nutrition.fiberG < 1.0
+
+    val adjustments = mutableListOf<PersonalAdjustment>()
+    var dietReason: String? = null
+    var veto = false
+
+    val dietResult = checkDietCompliance(product, profile, lang)
+    adjustments += dietResult.adjustments
+    veto = veto || dietResult.veto
+    dietReason = dietReason ?: dietResult.dietReason
+
+    // ===== ALLERGEN CHECK =====
+    val allergenHits = if (profile.allergens.isNotEmpty())
+        checkUserAllergens(product, profile.allergens, lang)
+    else emptyList()
+
+    val conditionsResult = checkHealthConditions(product, profile, lang, catThresholds, isSugarSweetenedBeverage)
+    adjustments += conditionsResult.adjustments
+    veto = veto || conditionsResult.veto
+    dietReason = dietReason ?: conditionsResult.dietReason
+
+    adjustments += computeAgeAdjustments(product, profile, catThresholds, isSugarSweetenedBeverage, lang)
+    adjustments += computeSexAdjustments(product, profile, lang)
+    adjustments += computeActivityAdjustments(product, profile, lang)
+    adjustments += computeGoalAdjustments(product, profile, catThresholds, lang)
+    adjustments += computeProteinPriAdjustments(product, profile, lang)
+    adjustments += computeDailyTargetAdjustments(product, profile, lang)
+    adjustments += computeBmiAdjustments(product, profile, catThresholds, isSugarSweetenedBeverage, lang)
 
     val delta = adjustments.sumOf { it.points }
 
