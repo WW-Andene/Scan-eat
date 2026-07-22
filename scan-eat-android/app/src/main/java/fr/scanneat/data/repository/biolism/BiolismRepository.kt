@@ -105,12 +105,27 @@ class BiolismRepository @Inject constructor(
         val neckCm       = p[K_NECK]?.toDouble()  ?: 0.0
         val cycleDay     = p[K_CYCLE_DAY] ?: 14
 
+        // Weight always prefers the main Profile's value (kept fresh by every real
+        // weigh-in via WeightRepository.log()) over a frozen override snapshot, even
+        // when hasOwnOverride is true for the other shared fields. Unlike sex/height/
+        // activity - which have no other continuously-updated source and can
+        // legitimately diverge if the user intentionally set them differently here -
+        // weight has a dedicated tracking feature that's the ground truth for "the
+        // user's actual current weight." Previously, the instant an override existed,
+        // every subsequent weigh-in silently updated Profile.weightKg while Biolism's
+        // BMR/TDEE/body-fat%/hormone estimates kept using the stale frozen number
+        // forever, with no UI indication this had happened - and that staleness then
+        // cascaded into Dashboard/Diary/Widget's calorie/macro targets, which all
+        // prefer Biolism's richer body-composition-aware TDEE whenever a valid
+        // Biolism profile exists.
+        val liveWeightKg = mainProfile.weightKg?.takeIf { it > 0.0 } ?: (p[K_WEIGHT]?.toDouble() ?: 0.0)
+
         if (hasOwnOverride) {
             BiolismProfile(
                 sex         = BiolismSex.values().firstOrNull { it.name == p[K_SEX] } ?: BiolismSex.NOT_SPECIFIED,
                 ageYears    = p[K_AGE] ?: 0,
                 heightCm    = p[K_HEIGHT]?.toDouble() ?: 0.0,
-                weightKg    = p[K_WEIGHT]?.toDouble() ?: 0.0,
+                weightKg    = liveWeightKg,
                 activityId  = p[K_ACTIVITY] ?: "sedentary",
                 ethnicityId = ethnicityId,
                 waistCm     = waistCm, hipCm = hipCm, neckCm = neckCm, cycleDay = cycleDay,
@@ -120,7 +135,7 @@ class BiolismRepository @Inject constructor(
                 sex         = mainProfile.sex.toBiolismSex(),
                 ageYears    = mainProfile.ageYears ?: 0,
                 heightCm    = mainProfile.heightCm ?: 0.0,
-                weightKg    = mainProfile.weightKg ?: 0.0,
+                weightKg    = liveWeightKg,
                 activityId  = mainProfile.activityLevel.toBiolismActivityId(),
                 ethnicityId = ethnicityId,
                 waistCm     = waistCm, hipCm = hipCm, neckCm = neckCm, cycleDay = cycleDay,

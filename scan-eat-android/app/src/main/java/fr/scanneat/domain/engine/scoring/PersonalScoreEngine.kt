@@ -742,9 +742,18 @@ private fun computeProteinPriAdjustments(product: Product, profile: Profile, lan
 }
 
 // ===== DAILY TARGET CONTEXT =====
-private fun computeDailyTargetAdjustments(product: Product, profile: Profile, lang: String): List<PersonalAdjustment> {
+// [bioTdeeKcal], when supplied, rescales the sat-fat/sugar budgets onto
+// Biolism's richer body-composition-aware TDEE the same way Dashboard/Diary/
+// Widget already do via DailyTargets.withKcalOverride() - previously this was
+// the one remaining consumer of dailyTargets() that never received it, so a
+// user with a valid Biolism profile saw their scanned product's "100 g uses
+// X% of your daily sat-fat budget" adjustment computed from the plain PAL-
+// based estimate while every other screen already agreed on the richer
+// number, the exact "same fact, different daily budget" split the app had
+// otherwise eliminated everywhere else.
+private fun computeDailyTargetAdjustments(product: Product, profile: Profile, lang: String, bioTdeeKcal: Double? = null): List<PersonalAdjustment> {
     val adjustments = mutableListOf<PersonalAdjustment>()
-    val targets = dailyTargets(profile)
+    val targets = dailyTargets(profile)?.let { t -> bioTdeeKcal?.let { t.withKcalOverride(it, profile.goal) } ?: t }
     if (targets != null) {
         val satFatPct = (product.nutrition.saturatedFatG / targets.satFatGMax.coerceAtLeast(1.0)) * 100.0
         if (satFatPct >= 50) {
@@ -877,16 +886,21 @@ private fun computeBmiAdjustments(
  * Compute the personal score overlay on top of the classic ScoreAudit.
  * Port of computePersonalScore() from personal-score.js.
  *
- * @param audit   Output of scoreProduct()
- * @param product The same product that was scored
- * @param profile User profile (diet, allergens, sex, age, weight, activity)
- * @param lang    "fr" or "en" for reason strings
+ * @param audit       Output of scoreProduct()
+ * @param product     The same product that was scored
+ * @param profile     User profile (diet, allergens, sex, age, weight, activity)
+ * @param lang        "fr" or "en" for reason strings
+ * @param bioTdeeKcal Optional Biolism-computed TDEE (BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay)
+ *   to rescale the daily sat-fat/sugar budget adjustment onto, matching what
+ *   Dashboard/Diary/Widget already show for the same day - see
+ *   computeDailyTargetAdjustments's own doc comment.
  */
 fun computePersonalScore(
     audit: ScoreAudit,
     product: Product,
     profile: Profile,
     lang: String = "fr",
+    bioTdeeKcal: Double? = null,
 ): PersonalScoreResult {
 
     val applicable = (profile.diet != DietKey.NONE) ||
@@ -938,7 +952,7 @@ fun computePersonalScore(
     adjustments += computeActivityAdjustments(product, profile, lang)
     adjustments += computeGoalAdjustments(product, profile, catThresholds, lang)
     adjustments += computeProteinPriAdjustments(product, profile, lang)
-    adjustments += computeDailyTargetAdjustments(product, profile, lang)
+    adjustments += computeDailyTargetAdjustments(product, profile, lang, bioTdeeKcal)
     adjustments += computeBmiAdjustments(product, profile, catThresholds, isSugarSweetenedBeverage, lang)
 
     val delta = adjustments.sumOf { it.points }

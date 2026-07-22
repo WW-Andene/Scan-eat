@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.scan.ComparisonRepository
 import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
@@ -13,6 +14,8 @@ import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.domain.engine.biolism.BiolismEngine
+import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -85,6 +88,7 @@ class ResultViewModel @Inject constructor(
     private val consumptionRepo: ConsumptionRepository,
     private val comparisonRepo: ComparisonRepository,
     private val prefs: UserPreferences,
+    private val biolismRepo: BiolismRepository,
     private val customFoodRepo: CustomFoodRepository,
     private val recipeRepo: RecipeRepository,
     private val manualGroceryRepo: ManualGroceryRepository,
@@ -130,7 +134,7 @@ class ResultViewModel @Inject constructor(
     private var cachedComparison: ComparisonResult? = null
 
     // Fix 2: Use a typed sealed class instead of Pair<Triple<...>> — clean and null-safe
-    private val scanLoad: Flow<ScanLoad> = combine(prefs.profile, prefs.language) { profile, lang -> profile to lang }.flatMapLatest { (profile, lang) ->
+    private val scanLoad: Flow<ScanLoad> = combine(prefs.profile, prefs.language, biolismRepo.profile) { profile, lang, bioProfile -> Triple(profile, lang, bioProfile) }.flatMapLatest { (profile, lang, bioProfile) ->
         flow {
             val scan = if (scanId > 0L) scanRepo.getById(scanId)
                        else scanRepo.observeHistory(limit = 1).first().firstOrNull()
@@ -140,7 +144,12 @@ class ResultViewModel @Inject constructor(
             // Was previously called with the default lang="fr", so an
             // English-language user still got all personal-score adjustment
             // reasons (diet/allergen/health-condition call-outs) in French.
-            val personal   = computePersonalScore(scan.audit, scan.product, profile, lang)
+            // bioTdeeKcal: same "prefer Biolism's richer TDEE when a valid
+            // Biolism profile exists" pattern Dashboard/Diary/Widget already
+            // use, so this screen's "100 g uses X% of your daily budget"
+            // adjustment agrees with what those screens show for the same day.
+            val bioTdeeKcal = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
+            val personal   = computePersonalScore(scan.audit, scan.product, profile, lang, bioTdeeKcal)
             if (!comparisonResolved && isFreshScan) {
                 comparisonResolved = true
                 cachedComparison = if (comparisonRepo.isArmed.first()) comparisonRepo.compare(scan)
