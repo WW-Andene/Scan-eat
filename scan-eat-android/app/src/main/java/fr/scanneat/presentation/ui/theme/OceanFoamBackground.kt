@@ -1,6 +1,12 @@
 package fr.scanneat.presentation.ui.theme
 
 import android.graphics.Bitmap
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
@@ -12,6 +18,7 @@ import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.sin
+import kotlinx.coroutines.delay
 
 // ============================================================================
 // OCEAN FOAM BACKGROUND — procedural bottom-view wave-foam simulation.
@@ -41,12 +48,16 @@ import kotlin.math.sin
 //     a foam mask (smoothstepped high band of the warped fbm) blended
 //     toward near-white for the actual foam patches.
 //
-// Deliberately STATIC once generated (recomputed only when the container's
-// size changes, same drawWithCache pattern as ambientGloom/glassSheen in
-// this same package) — continuously re-animating a per-pixel procedural
-// texture at 60fps would be a real, needless battery cost for a decorative
-// background, and nothing else in this app's design system animates a
-// background at all (see glassSheen's own "no real-time blur" note).
+// Animated, but throttled — not a real-time 60fps redraw. A coroutine ticks
+// a "time" value a few times a second (see OceanFoamTickMs below) and only
+// THAT tick regenerates the offscreen bitmap; ordinary frames in between
+// just recomposite the same cached bitmap, same as the fully-static version
+// this replaced. Depth/foam drifts slowly (a swell moving), caustics shimmer
+// faster on top of it (each of the 4 ripple layers at a slightly different
+// rate, so the light doesn't visibly slide in lockstep) — full per-pixel
+// noise regeneration at display refresh rate would be a real, needless
+// battery cost for a decorative background; a handful of regenerations per
+// second reads as continuous motion at a small fraction of that cost.
 // [seed] varies the exact pattern — the same seed always reproduces the same
 // pattern, so the app has one stable, recognizable "look" rather than a
 // different random result on every recomposition or app restart.
@@ -107,15 +118,20 @@ private fun warpedFbm(x: Float, y: Float, seed: Int, warpStrength: Float = 1.6f)
  * abs(sin(...)) alone reads as a soft plaid, not the thin, high-contrast
  * filaments real caustics show — the power curve is what compresses the
  * mid-tones down to leave only the sharpest ridges bright.
+ *
+ * [timePhase] shifts each ripple layer by a different multiple of itself
+ * (1x, 1.35x, 1.7x, 2.05x) so the whole filament web visibly crawls/
+ * flickers over time rather than four layers sliding in perfect lockstep,
+ * which would read as one slab moving instead of light shimmering.
  */
-private fun caustics(x: Float, y: Float, seed: Int): Float {
+private fun caustics(x: Float, y: Float, seed: Int, timePhase: Float = 0f): Float {
     val angles = floatArrayOf(0.3f, 1.1f, 2.0f, 2.7f)
     var sum = 0f
     angles.forEachIndexed { i, angle ->
         val dx = cos(angle); val dy = sin(angle)
         val freq = 3.5f + i * 1.3f
         val phase = hash(seed, i, 7) * 6.2831853f
-        sum += abs(sin((x * dx + y * dy) * freq + phase))
+        sum += abs(sin((x * dx + y * dy) * freq + phase + timePhase * (1f + i * 0.35f)))
     }
     val avg = sum / angles.size
     return (1f - avg).coerceIn(0f, 1f).pow(3f)
@@ -151,20 +167,29 @@ private fun Color.toArgbInt(): Int {
  * caller upscales with bilinear filtering, which both keeps this cheap and
  * gives the soft, painterly edge real foam/water photography has, rather
  * than a crisp per-pixel-accurate but sample-limited texture).
+ *
+ * [time] drives the animation: the depth/foam layer drifts through the
+ * noise field slowly (a swell moving), while the caustic layer shimmers
+ * several times faster on top of it (see [caustics]'s own doc comment) —
+ * two different speeds read as "light flickering over moving water"
+ * instead of the whole image sliding as one flat plane.
  */
-private fun renderOceanFoamBitmap(gridW: Int, gridH: Int, seed: Int): Bitmap {
+private fun renderOceanFoamBitmap(gridW: Int, gridH: Int, seed: Int, time: Float): Bitmap {
     val bitmap = Bitmap.createBitmap(gridW, gridH, Bitmap.Config.ARGB_8888)
     val pixels = IntArray(gridW * gridH)
     // Noise-space scale: how many noise "cells" the grid spans. Lower =
     // larger, softer blobs (bigger swells); higher = busier, choppier foam.
     val scaleX = 3.4f
     val scaleY = 5.2f
+    val driftX = time * 0.22f
+    val driftY = time * 0.13f
+    val causticPhase = time * 1.6f
     for (gy in 0 until gridH) {
         val ny = gy.toFloat() / gridH * scaleY
         for (gx in 0 until gridW) {
             val nx = gx.toFloat() / gridW * scaleX
-            val depth = warpedFbm(nx, ny, seed)
-            val light = caustics(nx, ny, seed)
+            val depth = warpedFbm(nx + driftX, ny + driftY, seed)
+            val light = caustics(nx, ny, seed, causticPhase)
 
             var color = if (depth < 0.5f) lerpColor(OceanFoamDeep, OceanFoamMid, depth / 0.5f)
                         else lerpColor(OceanFoamMid, OceanFoamShallow, (depth - 0.5f) / 0.5f)
@@ -179,6 +204,10 @@ private fun renderOceanFoamBitmap(gridW: Int, gridH: Int, seed: Int): Bitmap {
     return bitmap
 }
 
+/** How often [oceanFoamBackground] regenerates its bitmap — a deliberate few-times-a-second tick, not a real-time 60fps redraw (see this file's header comment). */
+private const val OceanFoamTickMs = 160L
+private const val OceanFoamTimeStep = 0.05f
+
 /**
  * Full-bleed procedural "bottom view" ocean foam background — see this
  * file's header comment for the algorithm. Drop-in alternative to
@@ -189,18 +218,32 @@ private fun renderOceanFoamBitmap(gridW: Int, gridH: Int, seed: Int): Bitmap {
  * time, for a stable, recognizable "look" rather than a different random
  * result on every recomposition/app restart).
  */
-fun Modifier.oceanFoamBackground(seed: Int = 1): Modifier = this.drawWithCache {
-    // ~1 sample per 6dp — dense enough that the bilinear upscale below reads
-    // as smooth, organic turbulence rather than visible grid cells, while
-    // staying at most a few thousand samples even on a large tablet screen.
-    val gridW = (size.width / 6f).toInt().coerceIn(24, 160)
-    val gridH = (size.height / 6f).toInt().coerceIn(32, 220)
-    val bitmap = renderOceanFoamBitmap(gridW, gridH, seed).asImageBitmap()
-    onDrawBehind {
-        drawImage(
-            image = bitmap,
-            dstSize = IntSize(size.width.toInt(), size.height.toInt()),
-            filterQuality = FilterQuality.Medium,
-        )
+@Composable
+fun Modifier.oceanFoamBackground(seed: Int = 1): Modifier {
+    var time by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(OceanFoamTickMs)
+            time += OceanFoamTimeStep
+        }
+    }
+    return this.drawWithCache {
+        // Reading `time` here (not inside onDrawBehind) is what makes this
+        // cache-invalidate — and so regenerate the bitmap — only on the
+        // throttled ticks above, instead of on every actual display frame.
+        val t = time
+        // ~1 sample per 6dp — dense enough that the bilinear upscale below reads
+        // as smooth, organic turbulence rather than visible grid cells, while
+        // staying at most a few thousand samples even on a large tablet screen.
+        val gridW = (size.width / 6f).toInt().coerceIn(24, 160)
+        val gridH = (size.height / 6f).toInt().coerceIn(32, 220)
+        val bitmap = renderOceanFoamBitmap(gridW, gridH, seed, t).asImageBitmap()
+        onDrawBehind {
+            drawImage(
+                image = bitmap,
+                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                filterQuality = FilterQuality.Medium,
+            )
+        }
     }
 }
