@@ -62,7 +62,10 @@ fun MainShell(
     else
         Modifier.fillMaxSize().background(Background)
     Box(rootBackgroundModifier) {
-        CompositionLocalProvider(LocalBottomNavHazeState provides bottomNavHazeState) {
+        CompositionLocalProvider(
+            LocalBottomNavHazeState provides bottomNavHazeState,
+            LocalDecorativeBackgroundActive provides (backgroundTheme.value != "default"),
+        ) {
             AppNavGraph(
                 navController    = navController,
                 startDestination = when {

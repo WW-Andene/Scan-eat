@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
@@ -63,6 +65,16 @@ fun Modifier.glassSheen(
     }
 
 /**
+ * True while MainShell's root Box is painting a decorative background
+ * pattern (e.g. the ocean-foam theme, see OceanFoamBackground.kt) behind
+ * every screen instead of a flat color fill. [ambientGloom] reads this to
+ * skip its own opaque base paint so that root-level pattern can actually
+ * reach the screen instead of being fully hidden behind an identical-
+ * looking opaque re-paint on every single screen.
+ */
+val LocalDecorativeBackgroundActive = staticCompositionLocalOf { false }
+
+/**
  * Full-bleed ambient background wash — the screen's own flat [base] color
  * plus two soft, low-alpha radial "glow" blobs in [primary]/[secondary],
  * positioned off-center for a volumetric, non-flat feel instead of a
@@ -75,25 +87,35 @@ fun Modifier.glassSheen(
  * effects. Intended as the outermost layer behind a screen's Scaffold/
  * Column/LazyColumn content — apply directly to that container's own
  * modifier in place of a plain `.background(Background)`.
+ *
+ * [base] is skipped while [LocalDecorativeBackgroundActive] is true —
+ * MainShell's root Box already painted a decorative pattern behind every
+ * screen in that case, and re-painting [base] opaquely on top of it here
+ * would hide that pattern completely rather than letting it read through
+ * under the two glow washes above.
  */
+@Composable
 fun Modifier.ambientGloom(
     base: Color,
     primary: Color,
     secondary: Color = primary,
-): Modifier = this.drawWithCache {
-    val primaryBrush = Brush.radialGradient(
-        colors = listOf(primary.copy(alpha = 0.10f), Color.Transparent),
-        center = Offset(size.width * 0.88f, size.height * 0.04f),
-        radius = size.width * 0.9f,
-    )
-    val secondaryBrush = Brush.radialGradient(
-        colors = listOf(secondary.copy(alpha = 0.07f), Color.Transparent),
-        center = Offset(size.width * 0.08f, size.height * 0.7f),
-        radius = size.width * 1.1f,
-    )
-    onDrawBehind {
-        drawRect(base)
-        drawRect(primaryBrush)
-        drawRect(secondaryBrush)
+): Modifier {
+    val paintBase = !LocalDecorativeBackgroundActive.current
+    return this.drawWithCache {
+        val primaryBrush = Brush.radialGradient(
+            colors = listOf(primary.copy(alpha = 0.10f), Color.Transparent),
+            center = Offset(size.width * 0.88f, size.height * 0.04f),
+            radius = size.width * 0.9f,
+        )
+        val secondaryBrush = Brush.radialGradient(
+            colors = listOf(secondary.copy(alpha = 0.07f), Color.Transparent),
+            center = Offset(size.width * 0.08f, size.height * 0.7f),
+            radius = size.width * 1.1f,
+        )
+        onDrawBehind {
+            if (paintBase) drawRect(base)
+            drawRect(primaryBrush)
+            drawRect(secondaryBrush)
+        }
     }
 }
