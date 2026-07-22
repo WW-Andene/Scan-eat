@@ -967,6 +967,10 @@
     <string name="settings_section_units">Units</string>
     <string name="settings_units_hint">Used in Weight, Profile, and Biolism</string>
     <string name="settings_theme_low_contrast">Low contrast</string>
+    <string name="settings_section_background_theme">Background theme</string>
+    <string name="settings_background_theme_hint">Decorative background pattern, separate from the light/dark theme above</string>
+    <string name="settings_background_theme_default">Default</string>
+    <string name="settings_background_theme_ocean_foam">Ocean foam</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
     <string name="settings_section_reminders">Reminders</string>

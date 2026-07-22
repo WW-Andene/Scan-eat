@@ -78,6 +78,7 @@ fun SettingsScreen(
     val serverUrl = viewModel.serverUrl.collectAsStateWithLifecycle()
     val language  = viewModel.language.collectAsStateWithLifecycle()
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
+    val backgroundTheme = viewModel.backgroundTheme.collectAsStateWithLifecycle()
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
@@ -250,6 +251,10 @@ fun SettingsScreen(
 
             // Fix 4: Theme toggle
             item { ThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
+
+            // Decorative background pattern — separate from ThemeSection above
+            // (light/dark/contrast color scheme, unaffected by this).
+            item { BackgroundThemeSection(backgroundTheme.value, onThemeChange = viewModel::setBackgroundTheme) }
 
             // ---- Units — was only reachable from Profile despite being an app-wide
             // preference also consumed by Weight/Biolism; users looking for it under
@@ -485,6 +490,49 @@ private fun ThemeSection(theme: String, onThemeChange: (String) -> Unit) {
                     ),
                 )
             }
+        }
+    }
+}
+
+/**
+ * Decorative full-bleed background pattern shown behind the app's own flat
+ * color (see MainShell's root Box) — distinct from ThemeSection above, which
+ * only controls the light/dark/contrast color scheme. "ocean_foam" is the
+ * first pattern: a procedural bottom-view wave-foam simulation, see
+ * OceanFoamBackground.kt for the full algorithm. Defaults to "default"
+ * (today's plain background, unchanged) so nothing looks different unless a
+ * user explicitly opts in.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun BackgroundThemeSection(theme: String, onThemeChange: (String) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_background_theme)) {
+        Text(stringResource(R.string.settings_background_theme_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            listOf(
+                "default" to stringResource(R.string.settings_background_theme_default),
+                "ocean_foam" to stringResource(R.string.settings_background_theme_ocean_foam),
+            ).forEach { (key, label) ->
+                FilterChip(
+                    selected = theme == key,
+                    onClick  = { onThemeChange(key) },
+                    label    = { Text(label) },
+                    colors   = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                    ),
+                )
+            }
+        }
+        // Live preview of the algorithm itself (not a static screenshot) so
+        // this setting shows what it actually does before committing to it.
+        if (theme == "ocean_foam") {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(96.dp)
+                    .clip(RoundedCornerShape(CardRadius.CONTROL))
+                    .oceanFoamBackground(),
+            )
         }
     }
 }

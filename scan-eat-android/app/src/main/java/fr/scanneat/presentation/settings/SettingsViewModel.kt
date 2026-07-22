@@ -50,6 +50,7 @@ class SettingsViewModel @Inject constructor(
     val serverUrl = prefs.serverUrl.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val language  = prefs.language.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     val theme     = prefs.theme.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "oled")
+    val backgroundTheme = prefs.backgroundTheme.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
     val dyslexicFont   = prefs.dyslexicFont.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val colorblindMode = prefs.colorblindMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
     // Was only reachable from Profile despite being an app-wide preference also
@@ -79,6 +80,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { prefs.setLanguage(lang) }
     }
     fun setTheme(t: String)        = viewModelScope.launch { prefs.setTheme(t) }
+    fun setBackgroundTheme(t: String) = viewModelScope.launch { prefs.setBackgroundTheme(t) }
     fun setDyslexicFont(v: Boolean)     = viewModelScope.launch { prefs.setDyslexicFont(v) }
     fun setColorblindMode(mode: String) = viewModelScope.launch { prefs.setColorblindMode(mode) }
     fun setUseImperialWeight(v: Boolean) = viewModelScope.launch { prefs.setUseImperialWeight(v) }

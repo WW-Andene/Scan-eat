@@ -1001,6 +1001,10 @@
     <string name="settings_theme_light">Clair</string>
     <string name="settings_theme_high_contrast">Contraste élevé</string>
     <string name="settings_theme_low_contrast">Contraste faible</string>
+    <string name="settings_section_background_theme">Ambiance visuelle</string>
+    <string name="settings_background_theme_hint">Motif décoratif en fond d\'écran, distinct du thème clair/sombre ci-dessus</string>
+    <string name="settings_background_theme_default">Par défaut</string>
+    <string name="settings_background_theme_ocean_foam">Écume océan</string>
     <string name="settings_section_units">Unités</string>
     <string name="settings_units_hint">Utilisée dans Poids, Profil et Biolism</string>
     <string name="settings_section_profile">Profil nutritionnel</string>

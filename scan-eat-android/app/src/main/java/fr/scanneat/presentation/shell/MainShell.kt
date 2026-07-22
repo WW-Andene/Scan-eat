@@ -17,6 +17,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.chrisbanes.haze.HazeState
@@ -24,13 +26,18 @@ import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
+fun MainShell(
+    startOnboarding: Boolean = false,
+    startRoute: String? = null,
+    shellViewModel: MainShellViewModel = hiltViewModel(),
+) {
     val navController   = rememberNavController()
     val backStack       = navController.currentBackStackEntryAsState()
     val currentRoute    = backStack.value?.destination?.route
 
     val showNav = HIDDEN_NAV_ROUTES.none { currentRoute == it }
     val bottomNavHazeState = remember { HazeState() }
+    val backgroundTheme = shellViewModel.backgroundTheme.collectAsStateWithLifecycle()
 
     // True floating chrome: a Box, not a Scaffold, so AppNavGraph's own screens
     // fill the entire frame and the bottom nav is a z-ordered overlay on top of
@@ -43,7 +50,18 @@ fun MainShell(startOnboarding: Boolean = false, startRoute: String? = null) {
     // own scrolling content as this nav's blur source via the same
     // LocalBottomNavHazeState provided below (a different composable subtree
     // than this one, hence the CompositionLocal instead of a direct param).
-    Box(Modifier.fillMaxSize().background(Background)) {
+    // Root background behind every screen — each screen's own translucent
+    // ambientGloom()/ScanEatCard fills let a hint of whatever's drawn here
+    // bleed through (see ambientGloom's own doc comment), so this is the one
+    // place a decorative background theme needs to apply to affect the whole
+    // app without touching every individual screen's own background modifier.
+    // Defaults to "default" (today's plain flat fill, unchanged) unless the
+    // user opts into a pattern from Settings.
+    val rootBackgroundModifier = if (backgroundTheme.value == "ocean_foam")
+        Modifier.fillMaxSize().oceanFoamBackground()
+    else
+        Modifier.fillMaxSize().background(Background)
+    Box(rootBackgroundModifier) {
         CompositionLocalProvider(LocalBottomNavHazeState provides bottomNavHazeState) {
             AppNavGraph(
                 navController    = navController,
