@@ -53,7 +53,7 @@ fun ScanHistoryScreen(
     val favoritesOnly = viewModel.favoritesOnly.collectAsStateWithLifecycle()
     val sort = viewModel.sort.collectAsStateWithLifecycle()
     val canLoadMore = viewModel.canLoadMore.collectAsStateWithLifecycle()
-    val scoreRange = viewModel.scoreRange.collectAsStateWithLifecycle()
+    val gradeFilter = viewModel.gradeFilter.collectAsStateWithLifecycle()
     val topScanned = viewModel.topScanned.collectAsStateWithLifecycle()
     val gradeDistribution = viewModel.gradeDistribution.collectAsStateWithLifecycle()
     val avgScore = viewModel.avgScore.collectAsStateWithLifecycle()
@@ -72,14 +72,12 @@ fun ScanHistoryScreen(
         }
     }
 
-    // Score range filter options: null = all, else (min, max) inclusive
-    val scoreRangeOptions = listOf(
-        null to stringResource(R.string.history_score_range_all),
-        (80 to 100) to stringResource(R.string.history_score_range_a),
-        (60 to 79)  to stringResource(R.string.history_score_range_b),
-        (40 to 59)  to stringResource(R.string.history_score_range_c),
-        (0  to 39)  to stringResource(R.string.history_score_range_d),
-    )
+    // Grade filter options: null = all, else the exact Grade every row's own
+    // badge already uses (Grade.label) - see ScanHistoryViewModel.gradeFilter's
+    // doc comment for why this replaced a hand-maintained numeric score range
+    // that had drifted out of sync with scoreToGrade's real breakpoints.
+    val gradeFilterOptions = listOf(null to stringResource(R.string.history_score_range_all)) +
+        Grade.entries.map { grade -> grade to grade.label }
 
     // Dashboard's "Favoris" shortcut opens History pre-filtered, rather than
     // needing a second favorites-only screen with its own list/delete/sort logic.
@@ -105,9 +103,9 @@ fun ScanHistoryScreen(
             HistoryFilterChipsRow(
                 favoritesOnly = favoritesOnly.value,
                 onToggleFavoritesOnly = { viewModel.setFavoritesOnly(!favoritesOnly.value) },
-                scoreRangeOptions = scoreRangeOptions,
-                scoreRange = scoreRange.value,
-                onScoreRangeChange = { viewModel.setScoreRange(it) },
+                gradeFilterOptions = gradeFilterOptions,
+                gradeFilter = gradeFilter.value,
+                onGradeFilterChange = { viewModel.setGradeFilter(it) },
             )
 
             avgScore.value?.let { avg -> HistoryAvgScoreBanner(avg) }
@@ -230,9 +228,9 @@ private fun HistorySearchBar(query: String, onQueryChange: (String) -> Unit) {
 private fun HistoryFilterChipsRow(
     favoritesOnly: Boolean,
     onToggleFavoritesOnly: () -> Unit,
-    scoreRangeOptions: List<Pair<Pair<Int, Int>?, String>>,
-    scoreRange: Pair<Int, Int>?,
-    onScoreRangeChange: (Pair<Int, Int>?) -> Unit,
+    gradeFilterOptions: List<Pair<Grade?, String>>,
+    gradeFilter: Grade?,
+    onGradeFilterChange: (Grade?) -> Unit,
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = Spacing.L, vertical = Spacing.XS),
@@ -247,11 +245,11 @@ private fun HistoryFilterChipsRow(
                 colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
             )
         }
-        items(scoreRangeOptions) { (range, label) ->
-            val isSelected = scoreRange == range
+        items(gradeFilterOptions) { (grade, label) ->
+            val isSelected = gradeFilter == grade
             FilterChip(
                 selected = isSelected,
-                onClick  = { onScoreRangeChange(if (isSelected) null else range) },
+                onClick  = { onGradeFilterChange(if (isSelected) null else grade) },
                 label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
                 colors   = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = AccentCoral.copy(0.15f),

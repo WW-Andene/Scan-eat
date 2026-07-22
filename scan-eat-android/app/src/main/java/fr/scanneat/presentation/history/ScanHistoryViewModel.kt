@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.scan.ScanRepository
+import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
@@ -63,9 +64,16 @@ class ScanHistoryViewModel @Inject constructor(
     private val favoriteScans = repo.observeFavorites()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Score-range filter: null = all, else pair of (min, max) inclusive
-    private val _scoreRange = MutableStateFlow<Pair<Int, Int>?>(null)
-    val scoreRange: StateFlow<Pair<Int, Int>?> = _scoreRange.asStateFlow()
+    // Grade filter: null = all, else the exact Grade to match. Filters by the
+    // same Grade enum every row's badge is derived from (grade.label), rather
+    // than a hand-maintained numeric score range - the two previously used
+    // different breakpoints (80/60/40 here vs scoreToGrade's real 85/70/55/40/25),
+    // so a product scoring 62 (real grade B) had no chip that agreed with its
+    // own badge: invisible under "C (40-59)", visible under "B (60-79)", while a
+    // 58 (also grade B) was the reverse. Filtering by Grade directly can't drift
+    // from the badge again since it's the same enum value.
+    private val _gradeFilter = MutableStateFlow<Grade?>(null)
+    val gradeFilter: StateFlow<Grade?> = _gradeFilter.asStateFlow()
 
     // kotlinx.coroutines' typed combine() overloads stop at 5 flows, so _sort
     // and nameCollator are paired up-front to keep this at 5 arguments.
@@ -92,9 +100,9 @@ class ScanHistoryViewModel @Inject constructor(
                     HistorySort.SCORE_DESC  -> list.sortedByDescending { it.audit.score }
                 }
             }
-    }.combine(_scoreRange) { list, range ->
-        if (range == null) list
-        else list.filter { it.audit.score in range.first..range.second }
+    }.combine(_gradeFilter) { list, grade ->
+        if (grade == null) list
+        else list.filter { it.audit.grade == grade }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Top 3 most-scanned products: name, count, and latest dbId for tap-to-open.
@@ -135,7 +143,7 @@ class ScanHistoryViewModel @Inject constructor(
     fun setQuery(q: String) { _query.value = q }
     fun setFavoritesOnly(value: Boolean) { _favoritesOnly.value = value }
     fun setSort(value: HistorySort) { _sort.value = value }
-    fun setScoreRange(range: Pair<Int, Int>?) { _scoreRange.value = range }
+    fun setGradeFilter(grade: Grade?) { _gradeFilter.value = grade }
 
     // toggleFavorite()/delete() previously called repo's Room writes completely
     // unguarded - unlike every sibling tracker ViewModel (Weight/Activity/Dashboard/
