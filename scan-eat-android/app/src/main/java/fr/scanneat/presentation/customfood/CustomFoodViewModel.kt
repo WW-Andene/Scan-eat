@@ -140,6 +140,12 @@ class CustomFoodViewModel @Inject constructor(
                 fatG     = n.fatG,
                 fiberG   = n.fiberG,
                 saltG    = n.saltG,
+                // Also previously omitted here (same gap ResultViewModel.saveToDestinations
+                // had) - CustomFoodRepository.save() had no params for these at all.
+                ironMg    = n.ironMg ?: 0.0,
+                calciumMg = n.calciumMg ?: 0.0,
+                vitDUg    = n.vitDUg ?: 0.0,
+                b12Ug     = n.b12Ug ?: 0.0,
                 // Previously omitted here (unlike ResultViewModel.saveToDestinations,
                 // already fixed to pass both) - without the barcode, upsertFood's
                 // fallback match is name-only, so a scan whose name happens to

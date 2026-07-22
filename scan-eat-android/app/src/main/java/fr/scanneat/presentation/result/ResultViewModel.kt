@@ -259,6 +259,14 @@ class ResultViewModel @Inject constructor(
                         fatG     = n.fatG,
                         fiberG   = n.fiberG,
                         saltG    = n.saltG,
+                        // Previously dropped here too - CustomFoodRepository.save() had
+                        // no params for these at all, so every custom food saved from a
+                        // scan permanently reported zero iron/calcium/vitD/B12 regardless
+                        // of what the source product actually contained.
+                        ironMg    = n.ironMg ?: 0.0,
+                        calciumMg = n.calciumMg ?: 0.0,
+                        vitDUg    = n.vitDUg ?: 0.0,
+                        b12Ug     = n.b12Ug ?: 0.0,
                         // Previously dropped here - the only dedup key left was the
                         // display name, which two differently-barcoded products can
                         // share (e.g. two brands both "Yaourt nature"), silently

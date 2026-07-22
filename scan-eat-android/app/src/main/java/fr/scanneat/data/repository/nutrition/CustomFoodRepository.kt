@@ -56,6 +56,16 @@ class CustomFoodRepository @Inject constructor(
         fatG: Double    = 0.0,
         fiberG: Double  = 0.0,
         saltG: Double   = 0.0,
+        // Previously dropped here even when a caller (ResultViewModel.saveToDestinations,
+        // CustomFoodViewModel.importFromScan) had real values from a scanned product's
+        // NutritionPer100g - every custom food saved from a scan permanently reported
+        // zero iron/calcium/vitD/B12 regardless of what the source product actually
+        // contained, corrupting MicronutrientCard's bars and chronic-gap detection for
+        // exactly the foods a user saved because they're good sources of one of these.
+        ironMg: Double = 0.0,
+        calciumMg: Double = 0.0,
+        vitDUg: Double = 0.0,
+        b12Ug: Double = 0.0,
         aliases: List<String> = emptyList(),
         id: String? = null,
         profileId: String = "default",
@@ -96,6 +106,10 @@ class CustomFoodRepository @Inject constructor(
             fatG      = fatG.coerceIn(0.0, 100.0),
             fiberG    = fiberG.coerceIn(0.0, 100.0),
             saltG     = saltG.coerceIn(0.0, 100.0),
+            ironMg    = ironMg.coerceIn(0.0, 100.0),
+            calciumMg = calciumMg.coerceIn(0.0, 2500.0),
+            vitDUg    = vitDUg.coerceIn(0.0, 250.0),
+            b12Ug     = b12Ug.coerceIn(0.0, 100.0),
             aliases   = aliases.filter { it.isNotBlank() },
         )
         // Two custom foods sharing a name break Compose's LazyColumn key uniqueness in
@@ -116,6 +130,8 @@ class CustomFoodRepository @Inject constructor(
                 nutritionJson = jsonAdapter.toJson(CustomFoodJson(
                     kcal = entry.kcal, proteinG = entry.proteinG, carbsG = entry.carbsG,
                     fatG = entry.fatG, fiberG = entry.fiberG, saltG = entry.saltG,
+                    ironMg = entry.ironMg, calciumMg = entry.calciumMg,
+                    vitDUg = entry.vitDUg, b12Ug = entry.b12Ug,
                     aliases = entry.aliases,
                 )),
                 createdAt     = System.currentTimeMillis(),
@@ -205,6 +221,10 @@ class CustomFoodRepository @Inject constructor(
         val fatG: Double = 0.0,
         val fiberG: Double = 0.0,
         val saltG: Double = 0.0,
+        val ironMg: Double = 0.0,
+        val calciumMg: Double = 0.0,
+        val vitDUg: Double = 0.0,
+        val b12Ug: Double = 0.0,
         val aliases: List<String> = emptyList(),
     )
 
@@ -219,14 +239,18 @@ class CustomFoodRepository @Inject constructor(
             .onFailure { android.util.Log.w("CustomFoodRepository", "Failed to parse nutrition JSON for '$name'", it) }
             .getOrNull() ?: return null
         return FoodEntry(
-            name     = name,
-            kcal     = j.kcal,
-            proteinG = j.proteinG,
-            carbsG   = j.carbsG,
-            fatG     = j.fatG,
-            fiberG   = j.fiberG,
-            saltG    = j.saltG,
-            aliases  = j.aliases,
+            name      = name,
+            kcal      = j.kcal,
+            proteinG  = j.proteinG,
+            carbsG    = j.carbsG,
+            fatG      = j.fatG,
+            fiberG    = j.fiberG,
+            saltG     = j.saltG,
+            ironMg    = j.ironMg,
+            calciumMg = j.calciumMg,
+            vitDUg    = j.vitDUg,
+            b12Ug     = j.b12Ug,
+            aliases   = j.aliases,
         )
     }
 }
