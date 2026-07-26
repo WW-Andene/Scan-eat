@@ -154,6 +154,11 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
         b6Mg          = numOrNull(nm["vitamin-b6_100g"])?.times(1000),
         b9Ug          = numOrNull(nm["vitamin-b9_100g"])?.times(1_000_000),
         omega3G       = numOrNull(nm["omega-3-fat_100g"]),
+        // Mirrors OffMapper.kt on Android — caffeine is a real hypertension risk
+        // factor (see PersonalScoreEngine's checkHealthConditions) that was never
+        // mapped from OFF on either side before. OFF stores it in grams like the
+        // other minerals above.
+        caffeineMg    = numOrNull(nm["caffeine_100g"])?.times(1000),
     )
 
     return Product(
@@ -230,6 +235,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         omega3G       = o.omega3G       ?: l.omega3G,
         omega6G       = o.omega6G       ?: l.omega6G,
         cholesterolMg = o.cholesterolMg ?: l.cholesterolMg,
+        caffeineMg    = o.caffeineMg    ?: l.caffeineMg,
         polyunsaturatedFatG = o.polyunsaturatedFatG ?: l.polyunsaturatedFatG,
         monounsaturatedFatG = o.monounsaturatedFatG ?: l.monounsaturatedFatG,
     )

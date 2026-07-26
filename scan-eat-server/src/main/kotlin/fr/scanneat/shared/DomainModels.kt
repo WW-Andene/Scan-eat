@@ -83,6 +83,7 @@ data class NutritionPer100g(
     val omega3G: Double? = null,
     val omega6G: Double? = null,
     val cholesterolMg: Double? = null,
+    val caffeineMg: Double? = null,
 ) {
     companion object {
         val EMPTY = NutritionPer100g(
