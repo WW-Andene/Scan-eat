@@ -123,6 +123,13 @@ PAIRS = [
     ("gtin14ToEan13", SERVER_SERVICE_DIR / "OffService.kt", ANDROID_UTIL_DIR / "BarcodeNormalizer.kt"),
     ("ean13CheckDigit", SERVER_SERVICE_DIR / "OffService.kt", ANDROID_UTIL_DIR / "BarcodeNormalizer.kt"),
     ("upcCheckDigit", SERVER_SERVICE_DIR / "OffService.kt", ANDROID_UTIL_DIR / "BarcodeNormalizer.kt"),
+    # Allergen tag vocabulary - LlmLabelParser.kt's ANNEX_II_KEY_TO_OFF_TAG used to
+    # be its own independently hand-written reversed literal (drift risk squared:
+    # against the Android original AND against its own file's reverse direction).
+    # Refactored to derive from this same OFF_ALLERGEN_TAG_MAP the way
+    # AllergenDetector.kt's own ANNEX_II_KEY_TO_OFF_TAG already does, so only the
+    # one canonical (tag -> key) direction needs checking here.
+    ("OFF_ALLERGEN_TAG_MAP", SERVER_SERVICE_DIR / "LlmLabelParser.kt", ANDROID_SCORING_DIR / "AllergenDetector.kt"),
 ]
 
 FUNC_START_RE_TMPL = r"^(?:private |internal |public )?fun {name}\b"

@@ -176,29 +176,40 @@ private object NutritionLimits {
     val BARCODE_DIGITS_REGEX = Regex("\\d{8,14}")
 }
 
+// OFF-style "en:xxx" tag -> ANNEX_II short key. Hand-maintained copy of
+// AllergenDetector.kt's own OFF_ALLERGEN_TAG_MAP (now covered by
+// check_scoring_drift.py) - previously this file only kept the *reversed*
+// map as its own independent literal, which meant the two directions could
+// silently disagree with each other without any check catching it, on top
+// of nothing verifying either side against the Android original.
+private val OFF_ALLERGEN_TAG_MAP: Map<String, String> = mapOf(
+    "en:gluten" to "gluten",
+    "en:crustaceans" to "crustaceans",
+    "en:eggs" to "eggs",
+    "en:fish" to "fish",
+    "en:peanuts" to "peanuts",
+    "en:soybeans" to "soy",
+    "en:milk" to "lactose",
+    "en:nuts" to "nuts",
+    "en:celery" to "celery",
+    "en:mustard" to "mustard",
+    "en:sesame-seeds" to "sesame",
+    "en:sulphur-dioxide-and-sulphites" to "sulfites",
+    "en:lupin" to "lupin",
+    "en:molluscs" to "molluscs",
+)
+
 // ANNEX_II short key -> OFF-style "en:xxx" tag, matching OFF's own
 // allergens_tags vocabulary so Product.declaredAllergenTags stays in one
 // consistent format regardless of source (OFF lookup vs LLM label reading).
 // No AllergenDetector.detectAllergens() equivalent exists server-side (that
 // logic is Android-only, run client-side after this Product crosses the
 // wire) - this map exists purely to keep the LLM-sourced tags in the same
-// vocabulary the Android client's own OFF_ALLERGEN_TAG_MAP expects.
-private val ANNEX_II_KEY_TO_OFF_TAG: Map<String, String> = mapOf(
-    "gluten" to "en:gluten",
-    "crustaceans" to "en:crustaceans",
-    "eggs" to "en:eggs",
-    "fish" to "en:fish",
-    "peanuts" to "en:peanuts",
-    "soy" to "en:soybeans",
-    "lactose" to "en:milk",
-    "nuts" to "en:nuts",
-    "celery" to "en:celery",
-    "mustard" to "en:mustard",
-    "sesame" to "en:sesame-seeds",
-    "sulfites" to "en:sulphur-dioxide-and-sulphites",
-    "lupin" to "en:lupin",
-    "molluscs" to "en:molluscs",
-)
+// vocabulary the Android client's own ANNEX_II_KEY_TO_OFF_TAG expects.
+// Derived, not hand-written, for the same reason Android's own copy is: so
+// this can never disagree with OFF_ALLERGEN_TAG_MAP above.
+private val ANNEX_II_KEY_TO_OFF_TAG: Map<String, String> =
+    OFF_ALLERGEN_TAG_MAP.entries.associate { (tag, key) -> key to tag }
 
 private fun mapToProduct(dto: LlmProductDto): Product {
     val n = dto.nutrition
