@@ -43,11 +43,18 @@ interface ScanHistoryDao {
      * productJson at all). Surfacing only the single top score meant a
      * "better alternative" could — and did — recommend a product containing
      * the user's own allergen, since nothing downstream ever re-checked it.
+     *
+     * nonFoodChecked = 1 excludes a legacy pre-classifyNonFood() row the user
+     * hasn't personally rescanned yet - otherwise a stale lubricant/cosmetic
+     * entry sitting in someone's history (score irrelevant, since it was never
+     * really "scored" as food) could get recommended as the healthy pick over
+     * a real product, right up until its own barcode happens to get rescanned.
      */
     @Query("""
         SELECT * FROM scan_history
         WHERE profileId = :profileId AND category = :category AND score > :minScore
           AND (:excludeBarcode IS NULL OR barcode IS NULL OR barcode != :excludeBarcode)
+          AND nonFoodChecked = 1
         ORDER BY score DESC LIMIT 5
     """)
     suspend fun findBetterInCategory(
