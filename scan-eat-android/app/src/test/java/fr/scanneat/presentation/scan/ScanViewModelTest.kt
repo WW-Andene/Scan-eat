@@ -82,10 +82,32 @@ class ScanViewModelTest {
         return bmp
     }
 
+    /**
+     * onBarcodeDetected() now requires the same *new* barcode to win several
+     * consecutive detections before committing to it (see its own doc comment -
+     * added to reject two barcodes' camera-frame detection order flickering the
+     * held target back and forth when both are simultaneously in frame). A
+     * single call - which was enough before that fix - no longer adopts a fresh
+     * barcode, so every test simulating "this barcode is now the live-detected
+     * one" needs to call it repeatedly, exactly like the real analyzer would
+     * across several consecutive frames of the same physical barcode.
+     */
+    private fun detectStably(barcode: String) {
+        repeat(3) { viewModel.onBarcodeDetected(barcode) }
+    }
+
     @Test
     fun `barcode detected before any photo is held for later scoring`() {
-        viewModel.onBarcodeDetected("3017620422003")
+        detectStably("3017620422003")
         assertEquals("3017620422003", viewModel.scannedBarcode.value)
+    }
+
+    @Test
+    fun `a single detection does not yet adopt a fresh barcode`() {
+        // Guards the debounce itself: two products simultaneously in frame
+        // must not flicker the held target after just one frame's detection.
+        viewModel.onBarcodeDetected("3017620422003")
+        assertNull(viewModel.scannedBarcode.value)
     }
 
     @Test
@@ -106,7 +128,7 @@ class ScanViewModelTest {
         // working: a barcode detected first is the legitimate case for
         // scoreBarcode() to combine with follow-up photos when OFF's own
         // entry for it is sparse.
-        viewModel.onBarcodeDetected("3017620422003")
+        detectStably("3017620422003")
         viewModel.addPhoto(fakeBitmap())
         assertEquals(
             "a barcode already held before photos existed must be kept",
@@ -117,11 +139,11 @@ class ScanViewModelTest {
     @Test
     fun `clearQueue lets a fresh barcode be adopted again`() {
         viewModel.addPhoto(fakeBitmap())
-        viewModel.onBarcodeDetected("111")
+        detectStably("111")
         assertNull(viewModel.scannedBarcode.value)
 
         viewModel.clearQueue()
-        viewModel.onBarcodeDetected("222")
+        detectStably("222")
         assertEquals(
             "after the photo queue is cleared, a new barcode should be adopted again",
             "222", viewModel.scannedBarcode.value,
@@ -130,6 +152,9 @@ class ScanViewModelTest {
 
     @Test
     fun `repeated detection of the same barcode does not re-set it`() {
+        detectStably("111")
+        // Already held - further detections of the same code must be a no-op,
+        // not restart the stability count or otherwise disturb the held value.
         viewModel.onBarcodeDetected("111")
         viewModel.onBarcodeDetected("111")
         assertEquals("111", viewModel.scannedBarcode.value)
@@ -149,10 +174,26 @@ class ScanViewModelTest {
             0, viewModel.images.value.size,
         )
 
-        viewModel.onBarcodeDetected("444")
+        detectStably("444")
         assertEquals(
             "a new barcode must be adoptable again after resultConsumed()",
             "444", viewModel.scannedBarcode.value,
+        )
+    }
+
+    @Test
+    fun `onBarcodeLost resets the in-progress stability streak`() {
+        // A candidate barcode that hasn't yet won BARCODE_STABILITY_FRAMES
+        // detections and then leaves frame must not silently "continue" its
+        // count if the same digits reappear later by coincidence - it should
+        // need a fresh full streak, same as any other first-time detection.
+        viewModel.onBarcodeDetected("555")
+        viewModel.onBarcodeDetected("555")
+        viewModel.onBarcodeLost()
+        viewModel.onBarcodeDetected("555")
+        assertNull(
+            "a streak interrupted by onBarcodeLost() must restart, not resume",
+            viewModel.scannedBarcode.value,
         )
     }
 }
