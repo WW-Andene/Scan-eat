@@ -83,6 +83,7 @@ data class NutritionPer100g(
     val omega3G: Double? = null,
     val omega6G: Double? = null,
     val cholesterolMg: Double? = null,
+    val caffeineMg: Double? = null,
     // Persisted verbatim (via ConsumptionRepository's nutritionAdapter, and
     // nested inside Product's own productJson) to DB columns. New fields must
     // have a default value, or bump schemaVersion and add a migration branch

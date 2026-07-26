@@ -27,6 +27,10 @@ data class ProductHints(
      *  very different things to a reader without a diabetes diagnosis. */
     val conditionRisks: List<String>,
     val facts: List<String>,
+    /** NOVA processing class + energy density — shown in their own section
+     *  ahead of risks/benefits (see generateProductHints's own comment on
+     *  why these two are split out of [facts] rather than folded into it). */
+    val keyInfo: List<String> = emptyList(),
     /** What complements this product nutritionally or gastronomically — flavor
      *  pairings (Ahn et al. flavor-network co-occurrence, same PairingsDb the
      *  standalone PairingsCard already uses) plus absorption-enhancer pairings
@@ -194,6 +198,14 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
         if (n.saltG >= hypertensionSaltBar) conditionRisks += if (en) "High salt (${n.saltG} g/100 g) — caution advised for hypertension"
                                      else "Sel élevé (${n.saltG} g/100 g) — prudence recommandée en cas d'hypertension"
         else if (n.saltG <= 0.3) benefits += if (en) "Low salt — hypertension-friendly" else "Faible en sel — adapté à l'hypertension"
+        // Mirrors PersonalScoreEngine's own caffeine/hypertension check exactly
+        // (same 20 mg/100g bar) - see that check's own doc comment for why.
+        n.caffeineMg?.let { caffeine ->
+            if (caffeine >= 20.0) {
+                conditionRisks += if (en) "Contains caffeine (${caffeine.toInt()} mg/100 g) — can raise blood pressure acutely, caution advised for hypertension"
+                                   else "Contient de la caféine (${caffeine.toInt()} mg/100 g) — peut élever la tension artérielle de façon aiguë, prudence recommandée en cas d'hypertension"
+            }
+        }
     }
     val kidneyProteinBar = maxOf(15.0, catThresholds.proteinG.third)
     if ("kidney_disease" in conditions && n.proteinG >= kidneyProteinBar) {
@@ -249,9 +261,16 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
                  else "Ultra-transformé (NOVA 4) — associé de façon prospective à l'apparition de symptômes dépressifs (Adjibade et al., cohorte NutriNet-Santé, BMC Medicine 2019)"
     }
 
+    // ---- Key info (NOVA class, energy) — shown as their own section ahead of
+    // Points de vigilance, not folded into the generic Facts/"Le saviez-vous ?"
+    // list at the bottom: these two apply to every product unconditionally and
+    // read as baseline context the user should see before the risk/benefit
+    // lines below, not curiosity-tier trivia alongside origin/cholesterol.
+    val keyInfo = mutableListOf<String>()
+    keyInfo += if (en) "NOVA processing class: ${product.novaClass.value}/4" else "Classe de transformation NOVA : ${product.novaClass.value}/4"
+    keyInfo += if (en) "Energy: ${n.energyKcal} kcal/100 g" else "Énergie : ${n.energyKcal} kcal/100 g"
+
     // ---- Facts ----
-    facts += if (en) "NOVA processing class: ${product.novaClass.value}/4" else "Classe de transformation NOVA : ${product.novaClass.value}/4"
-    facts += if (en) "Energy: ${n.energyKcal} kcal/100 g" else "Énergie : ${n.energyKcal} kcal/100 g"
     if (product.origin != null) facts += if (en) "Origin: ${product.origin}" else "Origine : ${product.origin}"
     n.cholesterolMg?.let { facts += if (en) "Cholesterol: ${it} mg/100 g" else "Cholestérol : ${it} mg/100 g" }
     // Trivia matched against the actual ingredient list — see IngredientFactsDb
@@ -308,5 +327,5 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
                         else "Les aliments très riches en fibres peuvent réduire l'absorption de certains minéraux et médicaments oraux en cas de prise simultanée — espacez de 1 à 2 heures la prise d'un complément ou d'un médicament"
     }
 
-    return ProductHints(benefits, risks, conditionRisks, facts, pairWell, avoidPairing)
+    return ProductHints(benefits, risks, conditionRisks, facts, keyInfo, pairWell, avoidPairing)
 }

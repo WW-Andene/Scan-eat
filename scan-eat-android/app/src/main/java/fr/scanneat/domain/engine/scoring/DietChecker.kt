@@ -278,7 +278,16 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
         val fatKcal = product.nutrition.fatG * 9.0
         val fatFrac = if (kcal > 0) fatKcal / kcal else 0.0
         val minFat  = def.minFatFractionOfKcal ?: 0.60
-        if (kcal > 50 && fatFrac < minFat) {
+        // A whole-food protein source (meat/fish/eggs, roughly >=20g protein/100g)
+        // fails this ratio on its own even when genuinely fatty by any normal
+        // standard - e.g. braised chicken thigh (~16g fat, ~24g protein, ~230kcal)
+        // lands at ~58% fat-of-calories, just under the 60% bar, because its own
+        // high protein content dilutes the ratio. Keto diners pair meat with added
+        // fat rather than expecting the meat itself to hit a fat-ratio threshold,
+        // so this check only makes sense for a product claiming to BE a complete
+        // keto meal/snack - skip it here rather than flag ordinary keto-staple
+        // proteins as "not enough fat."
+        if (kcal > 50 && fatFrac < minFat && product.nutrition.proteinG < 20.0) {
             val fatPct = (fatFrac * 100).toInt()
             violations += if (lang == "en") "only $fatPct% from fat" else "seulement $fatPct % de lipides"
         }
@@ -301,7 +310,8 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
     val reason = if (compliant) null else {
         val unverifiableNote = if (dietKey in UNVERIFIABLE_DIETS) {
             val note = if (lang == "en") def.noteEn else def.noteFr
-            " — Note: $note"
+            val connector = if (lang == "en") " — Note: " else " — Remarque : "
+            "$connector$note"
         } else ""
         val labelStr = if (lang == "en") dietKey.labelEn else dietKey.labelFr
         val prefix   = if (lang == "en") "Not" else "Non"

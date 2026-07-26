@@ -182,6 +182,13 @@ fun mapOffProduct(off: OffProductResponse): Product? {
         b3Mg          = numOrNull(nm["vitamin-pp_100g"])?.times(1000),
         b9Ug          = numOrNull(nm["vitamin-b9_100g"])?.times(1_000_000),
         omega3G       = numOrNull(nm["omega-3-fat_100g"]),
+        // Previously never mapped from OFF at all, despite caffeine being a real
+        // hypertension risk factor (see PersonalScoreEngine's checkHealthConditions)
+        // — every caffeinated soda/energy drink read as "safe" for hypertension
+        // purely because this app never had the data to check, not because the
+        // product actually is low-caffeine. OFF stores it in grams like the other
+        // minerals above.
+        caffeineMg    = numOrNull(nm["caffeine_100g"])?.times(1000),
     )
 
     return Product(
@@ -289,6 +296,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         omega3G       = o.omega3G       ?: l.omega3G,
         omega6G       = o.omega6G       ?: l.omega6G,
         cholesterolMg = o.cholesterolMg ?: l.cholesterolMg,
+        caffeineMg    = o.caffeineMg    ?: l.caffeineMg,
         polyunsaturatedFatG = o.polyunsaturatedFatG ?: l.polyunsaturatedFatG,
         monounsaturatedFatG = o.monounsaturatedFatG ?: l.monounsaturatedFatG,
     )

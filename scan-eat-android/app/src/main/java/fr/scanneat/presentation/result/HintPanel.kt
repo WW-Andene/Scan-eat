@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ThumbUp
@@ -92,7 +93,7 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
     val red = semanticRed()
     val neutral = OnBackground.copy(0.7f)
     val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.conditionRisks.isEmpty() && hints.facts.isEmpty() &&
-        hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty()
+        hints.keyInfo.isEmpty() && hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty()
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
@@ -116,6 +117,7 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
                     HintSection(title, lines, accent, icon)
                     shownAny = true
                 }
+                section(stringResource(R.string.hint_section_information), hints.keyInfo, neutral, Icons.Default.Info)
                 section(stringResource(R.string.hint_section_risks), hints.risks, amber, Icons.Default.WarningAmber)
                 section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, Icons.Default.ErrorOutline)
                 section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Default.ThumbUp)

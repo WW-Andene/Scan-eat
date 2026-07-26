@@ -445,6 +445,24 @@ private fun checkHealthConditions(
                 category = AdjustmentCategory.CONDITION,
             )
         }
+        // Previously no caffeine check existed for hypertension at all — a
+        // caffeinated zero-sugar soda/energy drink (e.g. Monster Zero, Coca-Cola
+        // Zero) passed every hypertension rule cleanly and read as fully "safe"
+        // purely because caffeine was never modeled as data, not because it
+        // genuinely poses no risk. Caffeine causes an acute BP rise (Mesas et al.,
+        // meta-analysis, Am J Clin Nutr 2011); 20 mg/100g/mL is roughly typical
+        // cola/energy-drink level and well below what a null (undeclared) value
+        // would ever wrongly match, so this only fires on a real declared amount.
+        product.nutrition.caffeineMg?.let { caffeine ->
+            if (caffeine >= 20.0) {
+                adjustments += PersonalAdjustment(
+                    points = -2.0,
+                    reason = if (lang == "en") "Contains caffeine (${caffeine.toInt()} mg/100 g) — can raise blood pressure acutely, caution advised for hypertension"
+                             else "Contient de la caféine (${caffeine.toInt()} mg/100 g) — peut élever la tension artérielle de façon aiguë, prudence recommandée en cas d'hypertension",
+                    category = AdjustmentCategory.CONDITION,
+                )
+            }
+        }
     }
     // maxOf against the original flat 15.0g - never lowers the bar, only raises
     // it for FRESH_MEAT/FISH/CHEESE/PROCESSED_MEAT etc. whose own category norm
