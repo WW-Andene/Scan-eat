@@ -95,6 +95,7 @@ fun ScanScreen(
     val recentBarcodes = viewModel.recentBarcodes.collectAsStateWithLifecycle()
     val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
     val cachedPreview  = viewModel.cachedPreview.collectAsStateWithLifecycle()
+    val cachedPreviewWarning = viewModel.cachedPreviewWarning.collectAsStateWithLifecycle()
     val captureErrorMessage = stringResource(R.string.scan_capture_error)
 
     // ── Shelf-scan mode (hybrid live-boxes/tap-to-identify) ──────────────────
@@ -272,7 +273,9 @@ fun ScanScreen(
                 hasQueuedPhotosNoBarcode = images.value.isNotEmpty() && barcode.value == null,
             )
 
-            barcode.value?.let { bc -> ScanBarcodeChip(barcode = bc, topInset = topInset, cachedPreview = cachedPreview.value) }
+            barcode.value?.let { bc ->
+                ScanBarcodeChip(barcode = bc, topInset = topInset, cachedPreview = cachedPreview.value, warning = cachedPreviewWarning.value)
+            }
 
             // ── Photo queue — floats below the header, distinct corner from the button cluster ──
             if (images.value.isNotEmpty()) {
@@ -496,7 +499,7 @@ private fun BoxScope.ScanHeaderBar(
 }
 
 @Composable
-private fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPreview: ScanResult?) {
+private fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPreview: ScanResult?, warning: String? = null) {
     Box(
         modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + 96.dp)
             .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
@@ -505,25 +508,43 @@ private fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevie
             shape = RoundedCornerShape(24.dp),
             color = SurfaceVariant.copy(0.9f),
         ) {
-            Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(Spacing.S))
-                Text(barcode, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
-                // "Already scanned this" cue — the local-cache lookup
-                // scoreBarcode() already does to skip the network on a
-                // rescan, surfaced here for the first time so the user
-                // sees it's a known product before even tapping the score
-                // FAB, instead of only finding out after the round-trip.
-                cachedPreview?.takeIf { it.barcode == barcode }?.let { cached ->
+            Column {
+                Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(Spacing.S))
-                    Surface(shape = RoundedCornerShape(12.dp), color = gradeColor(cached.audit.grade).copy(alpha = 0.2f)) {
-                        Text(
-                            "${cached.audit.score} ${cached.audit.grade.label}",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = gradeColor(cached.audit.grade),
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
-                        )
+                    Text(barcode, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
+                    // "Already scanned this" cue — the local-cache lookup
+                    // scoreBarcode() already does to skip the network on a
+                    // rescan, surfaced here for the first time so the user
+                    // sees it's a known product before even tapping the score
+                    // FAB, instead of only finding out after the round-trip.
+                    cachedPreview?.takeIf { it.barcode == barcode }?.let { cached ->
+                        Spacer(Modifier.width(Spacing.S))
+                        Surface(shape = RoundedCornerShape(12.dp), color = gradeColor(cached.audit.grade).copy(alpha = 0.2f)) {
+                            Text(
+                                "${cached.audit.score} ${cached.audit.grade.label}",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = gradeColor(cached.audit.grade),
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+                            )
+                        }
+                    }
+                }
+                // Same allergen/diet warning already shown on History/Dashboard/
+                // Diary/MealPlan/Grocery/Recipes/Templates for this exact product -
+                // previously this quick "already scanned" preview was the one
+                // remaining place showing a familiar product's score with no hint
+                // it conflicts with the user's own profile, ahead of even tapping
+                // Score to reach the Result screen that does check it.
+                if (warning != null && cachedPreview?.barcode == barcode) {
+                    Row(
+                        Modifier.padding(start = Spacing.L, end = Spacing.L, bottom = Spacing.S),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                    ) {
+                        Icon(Icons.Default.WarningAmber, null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
+                        Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber())
                     }
                 }
             }

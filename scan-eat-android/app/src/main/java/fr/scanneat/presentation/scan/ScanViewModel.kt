@@ -22,6 +22,8 @@ import fr.scanneat.domain.engine.nonconsumable.NonConsumableCategory
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByName
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,6 +31,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -166,6 +169,22 @@ class ScanViewModel @Inject constructor(
     val cachedPreview: StateFlow<ScanResult?> = _scannedBarcode
         .flatMapLatest { barcode -> flow { emit(barcode?.let { scanRepo.getCachedByBarcode(it) }) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Same allergen/diet warning already surfaced on History/Dashboard/Diary/
+    // MealPlan/Grocery/Recipes/Templates (see e.g. ScanHistoryViewModel.historyWarnings) -
+    // this "already scanned" preview chip was the one remaining screen showing a
+    // familiar product's score with no hint that it conflicts with the user's own
+    // allergens/diet, before they've even tapped Score to reach the full Result
+    // screen that *does* check it.
+    val cachedPreviewWarning: StateFlow<String?> = combine(cachedPreview, prefs.profile, language) { cached, profile, lang ->
+        val product = cached?.product ?: return@combine null
+        val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+        val dietResult = checkDiet(product, profile.diet, lang)
+        val parts = mutableListOf<String>()
+        allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+        dietResult.reason?.let { parts += it }
+        if (parts.isEmpty()) null else parts.joinToString(" · ")
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _recentBarcodes = MutableStateFlow<List<String>>(emptyList())
     val recentBarcodes: StateFlow<List<String>> = _recentBarcodes.asStateFlow()
