@@ -94,7 +94,9 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             .padding(bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
-        Spacer(Modifier.height(Spacing.S))
+        // Matches DataScreen/EvolutionScreen's top clearance under the same
+        // shared BiolismScreen header (see TrackerScreen's identical fix).
+        Spacer(Modifier.height(Spacing.L))
 
         if (saved.value) {
             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Teal.copy(0.1f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f)), modifier = Modifier.fillMaxWidth()) {

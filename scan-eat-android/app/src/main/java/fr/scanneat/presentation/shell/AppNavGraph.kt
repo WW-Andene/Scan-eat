@@ -103,7 +103,11 @@ fun AppNavGraph(
 
         // ── Tab roots ─────────────────────────────────────────────────────
         composable(TopTab.Scan.route) {
-            ScanScreen(onResultReady = { id -> navController.navigate(AppRoutes.result(id, fresh = true)) })
+            // launchSingleTop avoids stacking a second "result" entry if
+            // onResultReady somehow fires twice for the same scan (e.g. a
+            // double-tap/duplicate callback) - without it, popping back would
+            // need two presses to actually leave Result instead of one.
+            ScanScreen(onResultReady = { id -> navController.navigate(AppRoutes.result(id, fresh = true)) { launchSingleTop = true } })
         }
 
         composable(TopTab.Diary.route) { backStackEntry ->

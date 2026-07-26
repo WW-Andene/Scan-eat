@@ -119,28 +119,42 @@ fun DiaryScreen(
         val bottomClearance = padding.calculateBottomPadding()
         Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
             Column(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L).padding(bottom = Spacing.S),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                // Wrapped in ScanEatCard: this file's own doc comment claims
+                // this tab row "mirrors BiolismScreen's" — true of the layout
+                // only, not the look. Biolism's equivalent tab row lives inside
+                // its own floating glass header, while this one used to be a
+                // plain flat Row directly on the screen's ambientGloom wash,
+                // reading as flat chrome rather than floating like the rest of
+                // the app's tab bars/cards.
+                ScanEatCard(
+                    modifier = Modifier.padding(horizontal = Spacing.L).padding(bottom = Spacing.S),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    contentPadding = PaddingValues(Spacing.XS),
+                    accent = AccentCoral,
                 ) {
-                    DiaryTab.entries.forEach { tab ->
-                        val isActive = tab == activeTab
-                        Surface(
-                            onClick = { activeTab = tab },
-                            modifier = Modifier.weight(1f).semantics { role = Role.Tab; selected = isActive },
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (isActive) AccentCoral.copy(0.15f) else OnBackground.copy(0.03f),
-                            border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
-                        ) {
-                            Text(
-                                stringResource(tab.labelRes),
-                                modifier = Modifier.padding(vertical = Spacing.S),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
-                                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                            )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        DiaryTab.entries.forEach { tab ->
+                            val isActive = tab == activeTab
+                            Surface(
+                                onClick = { activeTab = tab },
+                                modifier = Modifier.weight(1f).semantics { role = Role.Tab; selected = isActive },
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (isActive) AccentCoral.copy(0.15f) else Color.Transparent,
+                                border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
+                            ) {
+                                Text(
+                                    stringResource(tab.labelRes),
+                                    modifier = Modifier.padding(vertical = Spacing.S),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
+                                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                )
+                            }
                         }
                     }
                 }

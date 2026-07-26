@@ -47,6 +47,12 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
     LaunchedEffect(Unit) { started = true }
     val entrance = rememberHeroEntrance(visible = started)
 
+    // Outer wrapper carries NO clip of its own — glassSheen()'s clip(shape) is
+    // scoped to the inner Box below, so the streak badge (a sibling of that
+    // inner Box, not a child inside it) can poke above the card's top edge via
+    // its negative Y offset instead of being clipped off at the card boundary
+    // it used to sit inside of.
+    Box {
     Box(
         modifier = Modifier.fillMaxWidth().glassSheen(
             edgeAlpha = HeroGlassSpec.edgeAlpha,
@@ -118,27 +124,28 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 }
             }
         }
+    }
 
-        if (streak > 0) {
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 8.dp, y = (-10).dp)
-                    .size(46.dp),
-                shape = RoundedCornerShape(50),
-                color = AccentCoral,
-                shadowElevation = 6.dp,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("$streak", style = HeroNumberStyle.copy(fontSize = 14.sp), color = Color.Black)
-                        Text(
-                            pluralStringResource(R.plurals.dashboard_streak_unit, streak),
-                            style = MaterialTheme.typography.labelSmall, color = Color.Black.copy(0.7f), fontSize = 9.sp, lineHeight = 10.sp,
-                        )
-                    }
+    if (streak > 0) {
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = 8.dp, y = (-10).dp)
+                .size(46.dp),
+            shape = RoundedCornerShape(50),
+            color = AccentCoral,
+            shadowElevation = 6.dp,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("$streak", style = HeroNumberStyle.copy(fontSize = 14.sp), color = Color.Black)
+                    Text(
+                        pluralStringResource(R.plurals.dashboard_streak_unit, streak),
+                        style = MaterialTheme.typography.labelSmall, color = Color.Black.copy(0.7f), fontSize = 9.sp, lineHeight = 10.sp,
+                    )
                 }
             }
         }
+    }
     }
 }

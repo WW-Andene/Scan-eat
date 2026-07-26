@@ -110,7 +110,14 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
             .padding(bottom = Spacing.XXL),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
-        Spacer(Modifier.height(Spacing.S))
+        // Matches DataScreen/EvolutionScreen's LazyColumn contentPadding =
+        // PaddingValues(Spacing.L) top clearance under the same shared
+        // BiolismScreen header — this screen isn't a LazyColumn (it's a
+        // scrolling Column with no top padding of its own), so this Spacer
+        // is the only thing standing in for that gap; it previously used
+        // half that value, making Tracker read as stuck to the header while
+        // its sibling tabs didn't.
+        Spacer(Modifier.height(Spacing.L))
 
         if (!p.isValid) {
             EmptyProfilePrompt()
