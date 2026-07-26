@@ -300,6 +300,30 @@ class DashboardViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    /**
+     * dbId -> short personal-safety warning, same checkUserAllergens()/
+     * checkDiet() pattern as DiaryViewModel.diaryWarnings and
+     * ScanHistoryViewModel.historyWarnings. Dashboard's recentScans card
+     * (ScanHistoryCard) previously showed a bare grade badge with no trace of
+     * an allergen/diet conflict the Result screen had already flagged for
+     * that exact product — the very first screen a user sees after opening
+     * the app, silently disagreeing with the personalized warning they saw
+     * moments earlier when they scanned it.
+     */
+    val recentScanWarnings: StateFlow<Map<Long, String>> = combine(
+        scanRepo.observeHistory(limit = 20), prefs.profile, language,
+    ) { scans, profile, lang ->
+        scans.mapNotNull { scan ->
+            if (scan.dbId <= 0) return@mapNotNull null
+            val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(scan.product, profile.allergens, lang) else emptyList()
+            val dietResult = checkDiet(scan.product, profile.diet, lang)
+            val parts = mutableListOf<String>()
+            allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+            dietResult.reason?.let { parts += it }
+            if (parts.isEmpty()) null else scan.dbId to parts.joinToString(" · ")
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     // Dashboard previously showed nutrition + weight only - a user relying on it as
     // their single daily view had no idea they were behind on water, mid-fast, or had
     // an unlogged dose due, despite all three already being tracked elsewhere (behind

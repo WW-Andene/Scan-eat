@@ -163,7 +163,7 @@ class ResultViewModel @Inject constructor(
             val pairs      = if (scan.product.category in NON_PAIRABLE_CATEGORIES) emptyList()
                               else findPairings(scan.product.name, limit = 5)
             val alternative = if (scan.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES)
-                scanRepo.findBetterAlternative(scan) else null
+                scanRepo.findBetterAlternative(scan, allergens = profile.allergens, dietKey = profile.diet, lang = lang) else null
 
             // Prior scans of the same product (matched by barcode when present, else
             // case-insensitive name) — used for the score delta badge and history

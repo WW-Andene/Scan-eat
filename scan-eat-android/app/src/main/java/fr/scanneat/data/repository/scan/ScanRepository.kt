@@ -132,14 +132,35 @@ class ScanRepository @Inject constructor(
 
     suspend fun delete(id: Long) = dao.delete(id)
 
-    /** A better-scoring product from the user's own history, same category — or null if none beats [scan]. */
-    suspend fun findBetterAlternative(scan: ScanResult, profileId: String = "default"): ScanResult? =
-        dao.findBetterInCategory(
+    /**
+     * A better-scoring product from the user's own history, same category —
+     * or null if none beats [scan] once the user's own allergens/diet are
+     * respected. Previously took only the single best-scoring DB row with no
+     * regard for the current profile at all — a peanut-allergic user could
+     * be shown "here's a better alternative" pointing at a product that
+     * itself contains peanuts, since nothing downstream ever re-checked it.
+     * findBetterInCategory now returns a small pool (best-score-first) so
+     * this can walk past any candidate that fails either check instead of
+     * being stuck with the single row the old query returned.
+     */
+    suspend fun findBetterAlternative(
+        scan: ScanResult,
+        allergens: Set<String> = emptySet(),
+        dietKey: DietKey = DietKey.NONE,
+        lang: String = "fr",
+        profileId: String = "default",
+    ): ScanResult? {
+        val candidates = dao.findBetterInCategory(
             category       = scan.product.category.key,
             minScore       = scan.audit.score,
             excludeBarcode = scan.barcode,
             profileId      = profileId,
-        )?.toDomain()
+        ).mapNotNull { it.toDomain() }
+        return candidates.firstOrNull { candidate ->
+            val allergenHits = if (allergens.isNotEmpty()) checkUserAllergens(candidate.product, allergens, lang) else emptyList()
+            allergenHits.isEmpty() && checkDiet(candidate.product, dietKey, lang).compliant
+        }
+    }
 
     /**
      * Upserts by barcode instead of always inserting — rescanning the same product

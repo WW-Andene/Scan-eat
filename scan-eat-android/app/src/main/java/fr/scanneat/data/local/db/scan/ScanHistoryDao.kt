@@ -30,23 +30,32 @@ interface ScanHistoryDao {
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanHistoryEntity>>
 
     /**
-     * Best-scoring product previously scanned in the same category, if any beats
-     * the current score. Only Scan'eat's own history is queried — not a live
-     * product-database search — so the suggestion is always something the user
-     * has actually already found, never a fabricated "somewhere near you" claim.
+     * Up to 5 best-scoring products previously scanned in the same category
+     * that beat the current score, best first. Only Scan'eat's own history is
+     * queried — not a live product-database search — so the suggestion is
+     * always something the user has actually already found, never a
+     * fabricated "somewhere near you" claim.
+     *
+     * Returns a small pool rather than the single best match (LIMIT 1, the
+     * previous shape) — ScanRepository.findBetterAlternative() needs to skip
+     * over any candidate that itself conflicts with the user's declared
+     * allergens/diet, which this query has no way to check (it doesn't decode
+     * productJson at all). Surfacing only the single top score meant a
+     * "better alternative" could — and did — recommend a product containing
+     * the user's own allergen, since nothing downstream ever re-checked it.
      */
     @Query("""
         SELECT * FROM scan_history
         WHERE profileId = :profileId AND category = :category AND score > :minScore
           AND (:excludeBarcode IS NULL OR barcode IS NULL OR barcode != :excludeBarcode)
-        ORDER BY score DESC LIMIT 1
+        ORDER BY score DESC LIMIT 5
     """)
     suspend fun findBetterInCategory(
         category: String,
         minScore: Int,
         excludeBarcode: String?,
         profileId: String = "default",
-    ): ScanHistoryEntity?
+    ): List<ScanHistoryEntity>
 
     @Query("UPDATE scan_history SET favorite = :favorite WHERE id = :id")
     suspend fun setFavorite(id: Long, favorite: Boolean)

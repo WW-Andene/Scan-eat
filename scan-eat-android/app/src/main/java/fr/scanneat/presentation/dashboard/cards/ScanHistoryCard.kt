@@ -2,6 +2,9 @@ package fr.scanneat.presentation.dashboard.cards
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -17,7 +20,7 @@ import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun ScanHistoryCard(scan: ScanResult, onItemClick: ((Long) -> Unit)? = null) {
+internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemClick: ((Long) -> Unit)? = null) {
     val gradeColor = gradeColor(scan.audit.grade)
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL),
@@ -42,6 +45,16 @@ internal fun ScanHistoryCard(scan: ScanResult, onItemClick: ((Long) -> Unit)? = 
                 Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')),
                     style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                // Same checkUserAllergens()/checkDiet() warning Diary/History already show -
+                // this card is the very first place a user sees a past scan again after
+                // opening the app, and previously showed a bare grade badge with no trace
+                // of a conflict the Result screen had already flagged for that product.
+                if (warning != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                        Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
             }
             Text("${scan.audit.score}", style = MaterialTheme.typography.titleMedium, color = gradeColor, fontWeight = FontWeight.Bold)
         }

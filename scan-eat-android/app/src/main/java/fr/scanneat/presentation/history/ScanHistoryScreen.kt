@@ -57,6 +57,7 @@ fun ScanHistoryScreen(
     val topScanned = viewModel.topScanned.collectAsStateWithLifecycle()
     val gradeDistribution = viewModel.gradeDistribution.collectAsStateWithLifecycle()
     val avgScore = viewModel.avgScore.collectAsStateWithLifecycle()
+    val historyWarnings = viewModel.historyWarnings.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
     // Same pattern as WeightScreen - toggleFavorite()/delete() previously called
@@ -138,6 +139,7 @@ fun ScanHistoryScreen(
                 items(scans.value, key = { it.dbId }) { scan ->
                     ScanHistoryRow(
                         scan = scan,
+                        warning = historyWarnings.value[scan.dbId],
                         onOpen = { if (scan.dbId > 0) onOpenResult(scan.dbId) },
                         onToggleFavorite = { viewModel.toggleFavorite(scan) },
                         onDelete = { deleteTarget = scan.dbId },
@@ -353,9 +355,14 @@ private fun HistoryGradeDistributionSection(gradeDistribution: List<Pair<String,
 }
 
 @Composable
-private fun ScanHistoryRow(scan: ScanResult, onOpen: () -> Unit, onToggleFavorite: () -> Unit, onDelete: () -> Unit) {
+private fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Unit, onToggleFavorite: () -> Unit, onDelete: () -> Unit) {
     val gradeColor = gradeColor(scan.audit.grade)
-    val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score)
+    // Appended rather than a new formatted string resource — the warning text
+    // itself already comes pre-localized out of checkUserAllergens()/checkDiet().
+    // Without this, a TalkBack user would never hear about the same allergen/
+    // diet conflict a sighted user now sees on this row (visual-only otherwise).
+    val summary = stringResource(R.string.history_item_summary, scan.product.name, scan.audit.grade.label, scan.audit.score) +
+        (warning?.let { ", $it" } ?: "")
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         contentPadding = PaddingValues(Spacing.M),
@@ -387,6 +394,18 @@ private fun ScanHistoryRow(scan: ScanResult, onOpen: () -> Unit, onToggleFavorit
                 Column(Modifier.weight(1f)) {
                     Text(scan.product.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(stringResource(R.string.history_score_category, scan.audit.score, scan.product.category.key.replace('_', ' ')), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                    // Same checkUserAllergens()/checkDiet() warning Diary/Recipes/Grocery/
+                    // Templates already show live - previously the grade badge here was the
+                    // only thing this row ever showed, with no trace of an allergen/diet
+                    // conflict the Result screen flagged the moment this same product was
+                    // originally scanned. semanticAmber(), not the brand accent - matches
+                    // DiaryEntryCard's identical safety-relevant warning styling.
+                    if (warning != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                            Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
                 }
             }
             IconButton(onClick = onToggleFavorite) {

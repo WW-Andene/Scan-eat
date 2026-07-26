@@ -78,6 +78,7 @@ fun DashboardScreen(
     val s        = state.value
     val language = viewModel.language.collectAsStateWithLifecycle()
     val otherTrackers = viewModel.otherTrackers.collectAsStateWithLifecycle()
+    val recentScanWarnings = viewModel.recentScanWarnings.collectAsStateWithLifecycle()
     val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -247,7 +248,9 @@ fun DashboardScreen(
                     EmptyListState(Icons.Default.History, stringResource(R.string.dashboard_recent_scans_empty))
                 }
             } else {
-                items(s.recentScans, key = { it.dbId }) { scan -> ScanHistoryCard(scan, onItemClick = onOpenResult) }
+                items(s.recentScans, key = { it.dbId }) { scan ->
+                    ScanHistoryCard(scan, warning = recentScanWarnings.value[scan.dbId], onItemClick = onOpenResult)
+                }
             }
 
             item { Spacer(Modifier.height(Spacing.XXL)) }
