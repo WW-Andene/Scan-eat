@@ -200,6 +200,7 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
     val goalTargets  = viewModel.goalTargets.collectAsStateWithLifecycle()
     val goalWeightKg = viewModel.goalWeightKg.collectAsStateWithLifecycle()
     val diaryWarnings = viewModel.diaryWarnings.collectAsStateWithLifecycle()
+    val useImperial  = viewModel.useImperial.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show the day name in the wrong language.
     val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
@@ -272,7 +273,7 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
             }
         }
 
-        item { MacroSummaryCard(totals = s.totals, targets = targets.value, goalTargets = goalTargets.value, goalWeightKg = goalWeightKg.value) }
+        item { MacroSummaryCard(totals = s.totals, targets = targets.value, goalTargets = goalTargets.value, goalWeightKg = goalWeightKg.value, useImperial = useImperial.value) }
 
         // "Don't exceed" budgets (sat-fat/sugars/salt) - same card as Dashboard, so the
         // Journal's per-day view has the same feedback loop the Dashboard's today view does.

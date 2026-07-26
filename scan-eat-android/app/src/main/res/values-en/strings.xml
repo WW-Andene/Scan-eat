@@ -538,7 +538,7 @@
     <string name="biolism_liveweight_base">Base: %1$s kg</string>
     <string name="biolism_liveweight_fat_lost">%1$s g fat</string>
     <string name="biolism_liveweight_glyco_lost">%1$s g glycogen+H₂O</string>
-    <string name="biolism_tracker_goal_label">Goal → %1$.1f kg</string>
+    <string name="biolism_tracker_goal_label">Goal → %1$s</string>
     <string name="biolism_tracker_goal_eta">~%1$dh at this rate</string>
     <string name="biolism_tracker_tdee_budget_title">Today\'s energy budget</string>
     <string name="biolism_tracker_tdee_budget_note">%1$d kcal burned / %2$d kcal TDEE</string>
@@ -836,7 +836,7 @@
     <string name="diary_macro_protein">Protein</string>
     <string name="diary_macro_carbs">Carbs</string>
     <string name="diary_macro_fat">Fat</string>
-    <string name="diary_goal_targets_title">Goal (target weight: %1$s kg)</string>
+    <string name="diary_goal_targets_title">Goal (target weight: %1$s)</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
     <string name="diary_edit_portion_label">Portion (g)</string>
 

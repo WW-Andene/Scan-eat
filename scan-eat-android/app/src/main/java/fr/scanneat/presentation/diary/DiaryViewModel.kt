@@ -52,6 +52,8 @@ class DiaryViewModel @Inject constructor(
 
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+    val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     // Flat-map so the observation restarts whenever the date changes
     val summary: StateFlow<DailySummary> = _selectedDate

@@ -44,6 +44,8 @@ class TrackerViewModel @Inject constructor(
 
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+    val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     // ── Timer state from DataStore (source of truth on resume) ───────────────
     private val _timerState = MutableStateFlow(TimerState())

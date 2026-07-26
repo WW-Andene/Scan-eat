@@ -18,11 +18,11 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import java.util.Locale
+import fr.scanneat.presentation.ui.theme.dispWeight
 import kotlin.math.roundToInt
 
 @Composable
-internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?, goalTargets: DailyTargets? = null, goalWeightKg: Double? = null) {
+internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?, goalTargets: DailyTargets? = null, goalWeightKg: Double? = null, useImperial: Boolean = false) {
     ScanEatCard(
         contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
@@ -35,16 +35,17 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
         // back, since goalWeightKg was collected but never used here.
         if (goalTargets != null && goalWeightKg != null) {
             Text(
-                stringResource(R.string.diary_goal_targets_title, formatWeight(goalWeightKg)),
+                // dispWeight(), not a private formatWeight() that hardcoded kg and
+                // used Locale.getDefault() (comma decimal separator on FR devices) -
+                // same bug class already fixed for every other weight display in
+                // the app (see UnitConversion.kt's own doc comment).
+                stringResource(R.string.diary_goal_targets_title, dispWeight(goalWeightKg, useImperial)),
                 style = MaterialTheme.typography.titleSmall, color = Gold, fontWeight = FontWeight.SemiBold,
             )
             MacroRow(totals, goalTargets, Gold)
         }
     }
 }
-
-private fun formatWeight(kg: Double): String =
-    if (kg == kg.toInt().toDouble()) kg.toInt().toString() else String.format(Locale.getDefault(), "%.1f", kg)
 
 @Composable
 private fun MacroRow(totals: ConsumedNutrition, targets: DailyTargets?, accent: androidx.compose.ui.graphics.Color) {

@@ -37,6 +37,7 @@ import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.dispWeight
 import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.Violet
@@ -61,6 +62,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     val language     = viewModel.language.collectAsStateWithLifecycle()
     val realFastHours  = viewModel.realFastHours.collectAsStateWithLifecycle()
     val goalWeightKg   = viewModel.goalWeightKg.collectAsStateWithLifecycle()
+    val useImperial    = viewModel.useImperial.collectAsStateWithLifecycle()
 
     // Same pattern as WeightScreen - saveSession()/startOrPause()/reset()/etc.
     // previously called repo's DataStore writes completely unguarded; a failed
@@ -203,7 +205,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
                     ) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.biolism_tracker_goal_label, gw), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.biolism_tracker_goal_label, dispWeight(gw, useImperial.value)), style = MaterialTheme.typography.bodySmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
                             Text(stringResource(R.string.biolism_tracker_goal_eta, etaHours), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                         }
                     }
