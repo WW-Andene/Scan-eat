@@ -107,6 +107,12 @@ class ScanRepository @Inject constructor(
             entities.mapNotNull { it.toDomain() }
         }
 
+    /** See ScanHistoryDao.observeRecentChecked's own doc comment. */
+    fun observeHistoryChecked(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
+        dao.observeRecentChecked(profileId = profileId, limit = limit).map { entities ->
+            entities.mapNotNull { it.toDomain() }
+        }
+
     suspend fun getById(id: Long): ScanResult? = dao.findById(id)?.toDomain()
 
     suspend fun getCachedByBarcode(barcode: String, profileId: String = "default"): ScanResult? =

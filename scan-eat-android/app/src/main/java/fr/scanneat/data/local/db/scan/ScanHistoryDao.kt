@@ -15,6 +15,19 @@ interface ScanHistoryDao {
     @Query("SELECT * FROM scan_history WHERE profileId = :profileId ORDER BY scannedAt DESC LIMIT :limit")
     fun observeRecent(profileId: String = "default", limit: Int = 50): Flow<List<ScanHistoryEntity>>
 
+    /**
+     * Same as [observeRecent] but excludes a legacy pre-classifyNonFood() row the
+     * user hasn't personally rescanned yet - for CustomFoodViewModel.latestScan,
+     * whose "import this scan's nutrition as a custom food" affordance would
+     * otherwise happily turn a stale lubricant/cosmetic entry's meaningless
+     * "nutrition" into a permanent custom_foods row. Unlike observeRecent (the
+     * plain History feed, which should keep showing everything scanned,
+     * verified or not), this call site actively creates new data FROM the row,
+     * so it needs the same guard findBetterInCategory already has.
+     */
+    @Query("SELECT * FROM scan_history WHERE profileId = :profileId AND nonFoodChecked = 1 ORDER BY scannedAt DESC LIMIT :limit")
+    fun observeRecentChecked(profileId: String = "default", limit: Int = 50): Flow<List<ScanHistoryEntity>>
+
     @Query("SELECT * FROM scan_history WHERE id = :id LIMIT 1")
     suspend fun findById(id: Long): ScanHistoryEntity?
 

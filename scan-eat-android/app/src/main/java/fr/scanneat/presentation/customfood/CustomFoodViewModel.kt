@@ -120,7 +120,14 @@ class CustomFoodViewModel @Inject constructor(
     // New: expose the most recent scan so the user can import its nutrition directly
     // as a custom food — previously every custom food had to be entered from scratch
     // even when the user had just scanned the exact same product.
-    val latestScan: StateFlow<ScanResult?> = scanRepo.observeHistory(limit = 1)
+    //
+    // observeHistoryChecked (not observeHistory) - unlike just browsing History, this
+    // actively turns a row's "nutrition" into a permanent custom_foods entry, so it
+    // needs the same nonFoodChecked guard findBetterInCategory already has: a legacy
+    // pre-classifyNonFood() row that's still sitting unverified shouldn't get its
+    // meaningless data immortalized as a custom food just because it happens to be
+    // the most recent scan.
+    val latestScan: StateFlow<ScanResult?> = scanRepo.observeHistoryChecked(limit = 1)
         .map { it.firstOrNull() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
