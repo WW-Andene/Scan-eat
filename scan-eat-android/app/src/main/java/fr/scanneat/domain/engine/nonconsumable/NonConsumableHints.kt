@@ -88,10 +88,14 @@ fun generateNonConsumableHints(category: NonConsumableCategory, lang: String): N
         }
     }
 
-    if (category != NonConsumableCategory.OTHER) {
-        cautions += if (en) "This is not a food product — refer to the label's own hazard pictograms and safety data sheet for complete handling information."
-                    else "Ceci n'est pas un produit alimentaire — reportez-vous aux pictogrammes de danger et à la fiche de données de sécurité du produit pour des informations complètes."
-    }
+    // OTHER included too, not just every specific category - classifyNonFood()
+    // (a live OFF-category-tag signal, unlike this file's original curated-CSV-
+    // only categories) genuinely produces OTHER for a real non-food product
+    // whose tags didn't map to any more specific bucket here, and that dialog
+    // deserves the same baseline safety line as every other category rather
+    // than showing nothing at all beyond the name/brand.
+    cautions += if (en) "This is not a food product — refer to the label's own hazard pictograms and safety data sheet for complete handling information."
+                else "Ceci n'est pas un produit alimentaire — reportez-vous aux pictogrammes de danger et à la fiche de données de sécurité du produit pour des informations complètes."
 
     return NonConsumableHints(facts, cautions)
 }

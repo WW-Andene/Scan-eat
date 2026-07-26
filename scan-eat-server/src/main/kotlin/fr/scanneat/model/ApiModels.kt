@@ -35,6 +35,17 @@ data class ScoreResponse(
     val warnings: List<String>,
     val source: String,
     val barcode: String? = null,
+    // Set when the barcode's own OFF category tags indicate it isn't actually
+    // food/beverage/supplement/medicine at all (see ServerOffMapper.classifyNonFood) -
+    // a NonConsumableCategory key string. [audit] above is still a complete,
+    // valid score for backward compatibility with any client that ignores this
+    // field, but a client that understands it should show its own "not a food
+    // product" UI instead of the score.
+    val nonFoodCategory: String? = null,
+    // Only set alongside nonFoodCategory - Product/ProductDto have no brand field
+    // (OFF's brands string is discarded during mapOffProduct's normal mapping),
+    // but the non-food dialog wants it for a "Name (Brand)" line.
+    val nonFoodBrand: String? = null,
 )
 
 // ---- /api/identify / identify-multi / identify-menu ----

@@ -75,6 +75,53 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
     }
 }
 
+/**
+ * Best-effort "this probably isn't a food/beverage/supplement/medicine product
+ * at all" signal from OFF's own category tags. mapCategory() above only knows
+ * how to recognize specific FOOD sub-categories and silently buckets anything
+ * else - including a lubricant, shampoo, or cigarette pack - into
+ * ProductCategory.OTHER, which then runs through the exact same nutrition-based
+ * scoring as a genuine "other" food product, producing a meaningless grade.
+ *
+ * Returns a NonConsumableCategory key (as a plain string - this file has no
+ * dependency on the Android-only nonconsumable-lookup package, and the server
+ * mirrors this exact function with no such package at all) or null when
+ * nothing non-food-like matched.
+ *
+ * Deliberately conservative, same rule NonConsumableLookupDb's own curated
+ * OPF snapshot already applies: any tag that also plausibly indicates a real
+ * food/beverage/supplement/medicine wins over a non-food match - a missed
+ * obscure non-food item is a minor imprecision, wrongly telling someone their
+ * actual food isn't food would not be.
+ */
+fun classifyNonFood(tags: List<String>?): String? {
+    if (tags.isNullOrEmpty()) return null
+    val tag = tags.joinToString(" ")
+    // Checked before the generic "looks like food" safety net below - pet food
+    // literally contains the substring "food" (pet-food, cat-food, dog-food),
+    // which would otherwise always disqualify it from ever being flagged here.
+    if ("pet-food" in tag || "animal-feed" in tag || "cat-food" in tag || "dog-food" in tag) return "PET_SUPPLY"
+    val looksLikeFood = listOf(
+        "food", "beverage", "drink", "supplement", "dietary-supplement",
+        "medicine", "medication", "meal", "snack", "dairy", "cereal",
+    ).any { it in tag }
+    if (looksLikeFood) return null
+    return when {
+        "sex-toy" in tag || "lubricant" in tag -> "PERSONAL_CARE"
+        "feminine-hygiene" in tag || "sanitary-protection" in tag ||
+            "diaper" in tag || "baby-hygiene" in tag -> "HYGIENE_PRODUCT"
+        "tobacco" in tag || "cigarette" in tag || "e-cigarette" in tag -> "TOBACCO"
+        "battery" in tag || "batteries" in tag -> "BATTERY"
+        "bleach" in tag || "javel" in tag -> "BLEACH"
+        "laundry" in tag || "lessive" in tag -> "LAUNDRY"
+        "cleaning-product" in tag || "detergent" in tag || "nettoyant" in tag -> "CLEANING_PRODUCT"
+        "household-chemical" in tag || "solvent" in tag -> "HOUSEHOLD_CHEMICAL"
+        "cosmetic" in tag || "beauty" in tag || "personal-care" in tag || "hygiene" in tag -> "PERSONAL_CARE"
+        "non-food" in tag -> "OTHER"
+        else -> null
+    }
+}
+
 private fun parseIngredients(text: String?): List<Ingredient> {
     if (text.isNullOrBlank()) return emptyList()
     // Split on commas and semicolons that are not inside parentheses

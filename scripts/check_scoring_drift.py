@@ -86,6 +86,7 @@ PAIRS = [
     # previously unchecked despite ServerOffMapper.kt/OffMapper.kt being two
     # hand-maintained copies of the exact same barcode-lookup normalization.
     ("mapCategory", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
+    ("classifyNonFood", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
     ("parseIngredients", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
     ("additiveTagsToIngredients", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),
     ("parseWeightG", SERVER_DIR / "ServerOffMapper.kt", ANDROID_NUTRITION_DIR / "OffMapper.kt"),

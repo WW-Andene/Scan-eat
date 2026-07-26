@@ -12,11 +12,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.health.MedicationRepository
+import fr.scanneat.data.repository.scan.NonFoodProductException
 import fr.scanneat.data.repository.scan.ProductNotFoundException
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.medication.MedicationDbEntry
 import fr.scanneat.domain.engine.medication.findMedicationByBarcode
 import fr.scanneat.domain.engine.medication.findMedicationByName
+import fr.scanneat.domain.engine.nonconsumable.NonConsumableCategory
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByName
@@ -147,6 +149,10 @@ class ScanViewModel @Inject constructor(
     val images: StateFlow<List<ImagePayload>> = _images.asStateFlow()
 
     private val _scannedBarcode = MutableStateFlow<String?>(null)
+    // Debounce state for onBarcodeDetected() - see its own doc comment for why
+    // this exists (two barcodes simultaneously in frame).
+    private var pendingBarcode: String? = null
+    private var pendingBarcodeStreak = 0
     val scannedBarcode: StateFlow<String?> = _scannedBarcode.asStateFlow()
 
     /**
@@ -196,7 +202,31 @@ class ScanViewModel @Inject constructor(
         // already held before any photo was taken (the deliberate combo flow)
         // is untouched - this only blocks picking up a *new* one afterward.
         if (_images.value.isNotEmpty()) return
-        if (_scannedBarcode.value == barcode) return
+        if (_scannedBarcode.value == barcode) {
+            pendingBarcode = null; pendingBarcodeStreak = 0
+            return
+        }
+        // Debounce before adopting a *different* barcode than the one currently held
+        // (or none at all yet). With two products' barcodes simultaneously in frame,
+        // ML Kit's per-frame detection order isn't stable across frames — analyzeFrame
+        // reports whichever one happens to decode first that frame, so naively adopting
+        // it every time flickered the held target back and forth between both barcodes
+        // at camera frame rate, which is exactly what made both a single scan and the
+        // scan-several-in-a-row (instant mode) flow unreliable around cluttered shelves.
+        // Requiring the same candidate to win BARCODE_STABILITY_FRAMES consecutive
+        // detections before committing rejects that flicker outright — a single, genuinely
+        // isolated barcode still decodes identically every frame, so it "wins" almost
+        // instantly, while two alternating candidates never reach the threshold until
+        // the user isolates one in frame.
+        if (pendingBarcode == barcode) {
+            pendingBarcodeStreak++
+        } else {
+            pendingBarcode = barcode
+            pendingBarcodeStreak = 1
+        }
+        if (pendingBarcodeStreak < BARCODE_STABILITY_FRAMES) return
+        pendingBarcode = null
+        pendingBarcodeStreak = 0
         _scannedBarcode.value = barcode
         if (_instantMode.value) score()
     }
@@ -212,6 +242,8 @@ class ScanViewModel @Inject constructor(
      */
     fun onBarcodeLost() {
         if (_state.value is ScanUiState.Idle) _scannedBarcode.value = null
+        pendingBarcode = null
+        pendingBarcodeStreak = 0
     }
 
     /**
@@ -404,6 +436,21 @@ class ScanViewModel @Inject constructor(
                     },
                     onFailure = { e ->
                         _state.value = when {
+                            // Same UI as the static-CSV NonConsumableLookupDb match above,
+                            // reached instead via a live signal from the barcode's own OFF
+                            // category tags (see ScanRepository.scoreDirectBarcode/
+                            // scoreViaServer's NonFoodProductException) - covers whatever
+                            // that point-in-time asset snapshot doesn't (yet).
+                            e is NonFoodProductException ->
+                                ScanUiState.NonConsumableFound(
+                                    NonConsumableDbEntry(
+                                        barcode = barcode ?: "",
+                                        name    = e.productName,
+                                        brand   = e.brand,
+                                        category = runCatching { NonConsumableCategory.valueOf(e.category) }
+                                            .getOrDefault(NonConsumableCategory.OTHER),
+                                    ),
+                                )
                             e is ProductNotFoundException ->
                                 ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
                             // A rejected API key (invalid/revoked, not just missing — that
@@ -520,5 +567,7 @@ class ScanViewModel @Inject constructor(
         const val UPLOAD_MAX_PX = 1024   // ample for label OCR - well under the raw 1600x1200 capture
         /** Mirrors the server's RouteHelpers.MAX_IMAGES - see addPhoto()'s doc comment. */
         const val MAX_QUEUED_PHOTOS = 8
+        /** See onBarcodeDetected()'s own doc comment. */
+        const val BARCODE_STABILITY_FRAMES = 3
     }
 }

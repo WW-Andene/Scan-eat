@@ -221,6 +221,11 @@ data class ServerScoreResponse(
     val warnings: List<String> = emptyList(),
     val source: String,
     val barcode: String? = null,
+    // Mirrors the server's ScoreResponse.nonFoodCategory/nonFoodBrand - see
+    // ScanRepository's NonFoodProductException / scoreViaServer for how this
+    // is consumed.
+    val nonFoodCategory: String? = null,
+    val nonFoodBrand: String? = null,
 )
 
 @JsonClass(generateAdapter = true)

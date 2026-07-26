@@ -40,6 +40,17 @@ import kotlin.random.Random
 /** Thrown when a barcode has no Open Food Facts entry and no photos were supplied to fall back on. */
 class ProductNotFoundException(message: String) : Exception(message)
 
+/**
+ * Thrown when a barcode's own OFF category tags (checked via classifyNonFood)
+ * indicate it isn't actually food/beverage/supplement/medicine at all - a
+ * lubricant, shampoo, or cigarette pack scored as "food" produces a
+ * meaningless nutrition-based grade instead of no grade at all. [category] is
+ * a NonConsumableCategory key string (matches the Android-only asset-backed
+ * NonConsumableLookupDb's own enum names exactly), kept as a plain string here
+ * so this file has no dependency on that package.
+ */
+class NonFoodProductException(val productName: String, val brand: String, val category: String) : Exception()
+
 // These reach the user verbatim (ScanViewModel shows e.message directly in the
 // error banner) — "Groq API key not configured" was leaking straight to a
 // French-first UI in English, and neither message respected the [lang]
@@ -417,9 +428,22 @@ class ScanRepository @Inject constructor(
             lang    = lang,
             model   = model,
         )
-        return retryServerCall {
-            serverApiProvider.get(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request).toDomain(lang)
+        val response = retryServerCall {
+            serverApiProvider.get(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
         }
+        // Same check as DIRECT mode's scoreDirectBarcode - the server already ran
+        // classifyNonFood() against the barcode's own OFF category tags and skipped
+        // LLM augmentation, but still returns a (unused) fallback score for backward
+        // compatibility. This client understands the flag, so it shows the same
+        // NonConsumableFound UI instead of that score.
+        response.nonFoodCategory?.let { category ->
+            throw NonFoodProductException(
+                productName = response.product.name,
+                brand       = response.nonFoodBrand ?: "",
+                category    = category,
+            )
+        }
+        return response.toDomain(lang)
     }
 
     /**
@@ -535,6 +559,21 @@ class ScanRepository @Inject constructor(
         lang: String,
     ): ScanResult {
         val offResponse = fetchOffProduct(barcode)
+        // Checked before mapOffProduct (which only preserves the coarse
+        // ProductCategory food-subcategory enum, not the raw tags) and before any
+        // LLM augmentation - running a vision-LLM label parse against something
+        // like a lubricant or bleach bottle to "fill in missing nutrition facts"
+        // would fabricate nutrition data for a product that was never meant to
+        // carry any, not just under-serve a sparse but genuine food record.
+        offResponse?.product?.let { dto ->
+            classifyNonFood(dto.categoriesTags)?.let { category ->
+                throw NonFoodProductException(
+                    productName = dto.productNameFr ?: dto.productName ?: dto.genericNameFr ?: "",
+                    brand       = dto.brands ?: "",
+                    category    = category,
+                )
+            }
+        }
         val offProduct  = offResponse?.product?.let { dto ->
             mapOffProduct(OffProductResponse(
                 productName       = dto.productName,

@@ -125,4 +125,58 @@ class ServerOffMapperTest {
         val product = mapOffProduct(raw)
         assertEquals(1000.0, product?.weightG)
     }
+
+    // ---- classifyNonFood() ---------------------------------------------------
+    // A lubricant/cosmetic/tobacco/etc. barcode running through the same
+    // nutrition-based food scoring as a real "other" food product produces a
+    // meaningless grade - this is the live (per-scan) counterpart to
+    // NonConsumableLookupDb's curated, point-in-time OPF CSV snapshot.
+
+    @Test
+    fun `personal lubricant tags classify as PERSONAL_CARE`() {
+        assertEquals("PERSONAL_CARE", classifyNonFood(listOf("en:sex-toys", "en:personal-lubricants")))
+    }
+
+    @Test
+    fun `cosmetic and hygiene tags classify as PERSONAL_CARE`() {
+        assertEquals("PERSONAL_CARE", classifyNonFood(listOf("en:cosmetics", "en:beauty")))
+        assertEquals("PERSONAL_CARE", classifyNonFood(listOf("en:hygiene-products")))
+    }
+
+    @Test
+    fun `feminine and baby hygiene tags classify as HYGIENE_PRODUCT, not PERSONAL_CARE`() {
+        assertEquals("HYGIENE_PRODUCT", classifyNonFood(listOf("en:feminine-hygiene-products")))
+        assertEquals("HYGIENE_PRODUCT", classifyNonFood(listOf("en:diapers")))
+    }
+
+    @Test
+    fun `tobacco, pet-food, battery and cleaning tags classify to their own categories`() {
+        assertEquals("TOBACCO", classifyNonFood(listOf("en:cigarettes")))
+        assertEquals("PET_SUPPLY", classifyNonFood(listOf("en:dog-food")))
+        assertEquals("BATTERY", classifyNonFood(listOf("en:batteries")))
+        assertEquals("BLEACH", classifyNonFood(listOf("en:bleaches")))
+        assertEquals("LAUNDRY", classifyNonFood(listOf("en:laundry-detergents")))
+        assertEquals("CLEANING_PRODUCT", classifyNonFood(listOf("en:cleaning-products")))
+    }
+
+    @Test
+    fun `real food and beverage tags never classify as non-food`() {
+        assertNull(classifyNonFood(listOf("en:beverages", "en:sodas")))
+        assertNull(classifyNonFood(listOf("en:dairy", "en:yogurts")))
+        assertNull(classifyNonFood(listOf("en:dietary-supplements")))
+    }
+
+    @Test
+    fun `a tag that also indicates real food wins over a non-food match`() {
+        // A magnesium supplement filed under OPF's Health & Beauty tree is still
+        // meant to be swallowed - see NonConsumableLookupDb's own header for why
+        // this exact conservative rule exists on the curated-CSV side too.
+        assertNull(classifyNonFood(listOf("en:beauty", "en:dietary-supplements")))
+    }
+
+    @Test
+    fun `null or empty tags never classify as non-food`() {
+        assertNull(classifyNonFood(null))
+        assertNull(classifyNonFood(emptyList()))
+    }
 }

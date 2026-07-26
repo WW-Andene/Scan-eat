@@ -50,6 +50,37 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
     }
 }
 
+// Mirrors OffMapper.kt's classifyNonFood on the Android project — kept in sync
+// manually, same as mapCategory above. See that copy's own doc comment for
+// the full rationale.
+fun classifyNonFood(tags: List<String>?): String? {
+    if (tags.isNullOrEmpty()) return null
+    val tag = tags.joinToString(" ")
+    // Checked before the generic "looks like food" safety net below - pet food
+    // literally contains the substring "food" (pet-food, cat-food, dog-food),
+    // which would otherwise always disqualify it from ever being flagged here.
+    if ("pet-food" in tag || "animal-feed" in tag || "cat-food" in tag || "dog-food" in tag) return "PET_SUPPLY"
+    val looksLikeFood = listOf(
+        "food", "beverage", "drink", "supplement", "dietary-supplement",
+        "medicine", "medication", "meal", "snack", "dairy", "cereal",
+    ).any { it in tag }
+    if (looksLikeFood) return null
+    return when {
+        "sex-toy" in tag || "lubricant" in tag -> "PERSONAL_CARE"
+        "feminine-hygiene" in tag || "sanitary-protection" in tag ||
+            "diaper" in tag || "baby-hygiene" in tag -> "HYGIENE_PRODUCT"
+        "tobacco" in tag || "cigarette" in tag || "e-cigarette" in tag -> "TOBACCO"
+        "battery" in tag || "batteries" in tag -> "BATTERY"
+        "bleach" in tag || "javel" in tag -> "BLEACH"
+        "laundry" in tag || "lessive" in tag -> "LAUNDRY"
+        "cleaning-product" in tag || "detergent" in tag || "nettoyant" in tag -> "CLEANING_PRODUCT"
+        "household-chemical" in tag || "solvent" in tag -> "HOUSEHOLD_CHEMICAL"
+        "cosmetic" in tag || "beauty" in tag || "personal-care" in tag || "hygiene" in tag -> "PERSONAL_CARE"
+        "non-food" in tag -> "OTHER"
+        else -> null
+    }
+}
+
 private fun parseIngredients(text: String?): List<Ingredient> {
     if (text.isNullOrBlank()) return emptyList()
     // Split on commas and semicolons that are not inside parentheses

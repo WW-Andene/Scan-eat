@@ -48,6 +48,28 @@ class ScoreService(
         val offRaw = offService.fetchProduct(barcode)
         val offProduct = offRaw?.let { mapOffProduct(it) } ?: return BarcodeScoreOutcome.OffMiss
 
+        // A product whose own OFF category tags indicate it isn't food/beverage/
+        // supplement/medicine at all (cosmetics, tobacco, household chemicals, ...)
+        // skips LLM augmentation entirely - running a vision-LLM label parse against
+        // something like a lubricant or bleach bottle to "fill in missing nutrition
+        // facts" would fabricate nutrition data for a product that was never meant
+        // to carry any, not just under-serve a sparse but genuine food record.
+        val nonFoodCategory = classifyNonFood(offRaw.categoriesTags)
+        if (nonFoodCategory != null) {
+            val audit = scoreProduct(offProduct, lang)
+            return BarcodeScoreOutcome.Success(
+                ScoreResponse(
+                    product  = offProduct.toDto(),
+                    audit    = audit.toDto(),
+                    warnings = emptyList(),
+                    source   = "openfoodfacts",
+                    barcode  = barcode,
+                    nonFoodCategory = nonFoodCategory,
+                    nonFoodBrand = offRaw.brands,
+                ),
+            )
+        }
+
         // Sparse + have images -> augment with LLM. A key that's absent (no
         // augmentation attempted) and a key that's present but rejected by Groq
         // both used to fall back to OFF-only identically - a user who
