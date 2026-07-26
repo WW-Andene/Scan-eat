@@ -551,6 +551,14 @@ class ScanRepository @Inject constructor(
                 val parsed = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
                 Triple(parsed.product, ScanSource.LLM, parsed.warnings)
             }
+            // The user DID take a photo here (images.isNotEmpty() true, hasAnyKey
+            // false is why the branch above didn't match) - falling through to
+            // productNotFoundMessage's "add a photo to continue" told them to do
+            // the one thing they'd already done, with no hint that label-scanning
+            // is an opt-in feature gated behind Settings' AI key field. Barcode
+            // scanning itself never needed a key (see the offProduct != null
+            // branch above); this message only fires for the label-scan path.
+            images.isNotEmpty() -> throw ProductNotFoundException(missingApiKeyMessage(lang))
             else -> throw ProductNotFoundException(productNotFoundMessage(lang))
         }
 

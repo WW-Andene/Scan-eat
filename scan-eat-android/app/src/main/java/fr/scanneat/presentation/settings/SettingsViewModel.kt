@@ -1,10 +1,13 @@
 package fr.scanneat.presentation.settings
 
+import android.app.ActivityManager
+import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.backup.BackupImportError
 import fr.scanneat.data.backup.BackupMetadata
 import fr.scanneat.data.backup.BackupSummary
@@ -43,6 +46,7 @@ class SettingsViewModel @Inject constructor(
     private val csvExportRepository: CsvExportRepository,
     private val healthConnect: HealthConnectRepository,
     private val fastingRepo: FastingRepository,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
     val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val cerebrasApiKey = prefs.cerebrasApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -175,6 +179,22 @@ class SettingsViewModel @Inject constructor(
     /** clearHistory() was fully implemented with zero callers — FastingScreen shows the full
      *  history/streak but had no way to reset it. Mirrors clearScanHistory()'s reset entry point. */
     fun clearFastingHistory() = viewModelScope.launch { fastingRepo.clearHistory() }
+
+    /**
+     * Full wipe — the exact same OS-level operation as Settings > App > Clear
+     * Data, exposed in-app instead of sending users out to system settings
+     * (which is all the reset dialog previously offered for a full erase).
+     * One call handles every Room table, every DataStore key, and any cached
+     * file at once; hand-enumerating each repository's own clear function
+     * the way clearScanHistory/clearFastingHistory do would silently miss
+     * whatever gets added next without a matching update here. Available
+     * since API 19, well under this app's minSdk 26, so no version gate is
+     * needed. Kills and restarts the process — there's nothing to do after
+     * calling this, the app relaunches into onboarding on its own.
+     */
+    fun eraseAllData() {
+        context.getSystemService(ActivityManager::class.java)?.clearApplicationUserData()
+    }
 
     /** Also used for import read/size failures, not just export writes — name says "IO" for that reason. */
     fun reportBackupIoFailed() { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) }
