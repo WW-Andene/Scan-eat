@@ -136,8 +136,18 @@ class ResultViewModel @Inject constructor(
     // Fix 2: Use a typed sealed class instead of Pair<Triple<...>> — clean and null-safe
     private val scanLoad: Flow<ScanLoad> = combine(prefs.profile, prefs.language, biolismRepo.profile) { profile, lang, bioProfile -> Triple(profile, lang, bioProfile) }.flatMapLatest { (profile, lang, bioProfile) ->
         flow {
+            // observeHistoryChecked, not observeHistory - every real navigation call
+            // site passes an explicit id (see AppNavGraph.kt), so this fallback only
+            // fires for a malformed/argument-less entry into this screen. Same guard
+            // as CustomFoodViewModel.latestScan: an id-less "just show me whatever's
+            // most recent" fallback shouldn't be able to land on a legacy
+            // pre-classifyNonFood() row and run full personalized scoring against it.
+            // getById(scanId) - the normal, explicit-id path (tapping a specific row
+            // in History, say) - deliberately isn't filtered the same way: the user
+            // asked to see that exact row's stored data, which is a different
+            // guarantee than "silently pick something recent for me."
             val scan = if (scanId > 0L) scanRepo.getById(scanId)
-                       else scanRepo.observeHistory(limit = 1).first().firstOrNull()
+                       else scanRepo.observeHistoryChecked(limit = 1).first().firstOrNull()
 
             if (scan == null) { emit(ScanLoad.Empty); return@flow }
 
