@@ -323,6 +323,7 @@ fun closeTheGap(
     totals: ConsumedNutrition,
     targets: DailyTargets,
     foodDB: List<FoodEntry>,
+    date: LocalDate = LocalDate.now(),
 ): List<GapEntry> {
     val out = mutableListOf<GapEntry>()
 
@@ -356,10 +357,24 @@ fun closeTheGap(
         ranked.sortByDescending { nv.foodDensity(it.first) }
         if (ranked.isEmpty()) continue
 
+        // Previously always `ranked.take(3)` — the same handful of highest-
+        // density foods (e.g. maquereau/saumon/sardine for vitamin D, every
+        // single day, for every user with the same deficit) regardless of
+        // what the user actually eats, since this ranking has zero rotation.
+        // Widening to the top 6 and picking 3 with a day-seeded shuffle keeps
+        // suggestions nutritionally sound (still drawn from the strongest
+        // sources for this nutrient, never the weak tail of the list) while
+        // rotating day to day instead of freezing on one fixed top-3 forever.
+        // Seeded by date + nutrient (not just date) so different nutrients
+        // don't all reshuffle in lockstep on the same day.
+        val pool = ranked.take(6)
+        val seed = date.toEpochDay() * 31 + def.label.hashCode()
+        val chosen = pool.shuffled(kotlin.random.Random(seed)).take(3)
+
         out += GapEntry(
             nutrient    = def.label,
             deficit     = deficit.roundTo1Decimal(),
-            suggestions = ranked.take(3).map { (f, g, c) -> GapSuggestion(f.name, g, c) },
+            suggestions = chosen.map { (f, g, c) -> GapSuggestion(f.name, g, c) },
         )
     }
     return out
@@ -474,7 +489,12 @@ fun chronicNutrientGaps(
             ranked += food to density
         }
         ranked.sortByDescending { it.second }
-        val suggestions = ranked.take(3).map { (food, density) ->
+        // Same top-6/day-seeded-shuffle rotation as closeTheGap() above, and
+        // for the same reason - this recurring (weekly) gap previously showed
+        // the identical top-3 foods every time it fired for a given nutrient.
+        val pool = ranked.take(6)
+        val seed = end.toEpochDay() * 31 + def.label.hashCode()
+        val suggestions = pool.shuffled(kotlin.random.Random(seed)).take(3).map { (food, density) ->
             val grams = ((avgDeficit * 0.5 / density) * 100).roundToInt().coerceAtLeast(1)
             val contribution = (density * (grams / 100.0)).roundTo1Decimal()
             GapSuggestion(food.name, grams, contribution)

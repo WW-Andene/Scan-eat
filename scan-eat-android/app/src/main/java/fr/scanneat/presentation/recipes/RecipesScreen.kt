@@ -121,6 +121,7 @@ fun RecipesScreen(
     val goalFilter = viewModel.goalFilter.collectAsStateWithLifecycle()
     val recipeQuery = viewModel.recipeQuery.collectAsStateWithLifecycle()
     val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
+    val historyItems = viewModel.historyItems.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var showImportUrl by remember { mutableStateOf(false) }
     var showSuggest by remember { mutableStateOf(false) }
@@ -282,6 +283,7 @@ fun RecipesScreen(
         showImportUrl = showImportUrl,
         showSuggest = showSuggest,
         importState = importState.value,
+        historyItems = historyItems.value,
         onDismissImportUrl = { showImportUrl = false; viewModel.clearImportState() },
         onFetchUrl = { url -> viewModel.importRecipeFromUrl(url) },
         onDismissSuggest = { showSuggest = false; viewModel.clearImportState() },
@@ -408,6 +410,7 @@ private fun RecipesImportStateDialogs(
     showImportUrl: Boolean,
     showSuggest: Boolean,
     importState: RecipesViewModel.ImportUiState?,
+    historyItems: List<String>,
     onDismissImportUrl: () -> Unit,
     onFetchUrl: (String) -> Unit,
     onDismissSuggest: () -> Unit,
@@ -428,6 +431,7 @@ private fun RecipesImportStateDialogs(
             isLoading    = importState is RecipesViewModel.ImportUiState.Loading,
             results      = (importState as? RecipesViewModel.ImportUiState.SuggestSuccess)?.results,
             errorMessage = (importState as? RecipesViewModel.ImportUiState.Error)?.message,
+            historyItems = historyItems,
             onDismiss    = onDismissSuggest,
             onSuggest    = onSuggest,
             onSuggestFromPantry = onSuggestFromPantry,

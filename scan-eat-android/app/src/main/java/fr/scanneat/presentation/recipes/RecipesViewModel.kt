@@ -13,6 +13,7 @@ import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.planning.scaledComponents
 import fr.scanneat.data.repository.planning.toTemplateItems
+import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.OFFICIAL_RECIPE_DB
@@ -47,9 +48,20 @@ class RecipesViewModel @Inject constructor(
     private val templateRepo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
+    private val scanRepository: ScanRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
     enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
+
+    // Distinct product names from scan history, for SuggestRecipesDialog's
+    // "from history" mode — lets the user build a suggestFromPantry() list by
+    // picking things they've actually scanned instead of only ever typing
+    // free text (this dialog's own doc comment: "the app has no persisted
+    // pantry inventory feature" — scan history doubles as the closest thing
+    // to one it already has, at no new storage cost).
+    val historyItems: StateFlow<List<String>> = scanRepository.observeHistory(limit = 50)
+        .map { list -> list.map { it.product.name }.distinct() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _goalFilter = MutableStateFlow(GoalFilter.ALL)
     val goalFilter: StateFlow<GoalFilter> = _goalFilter.asStateFlow()

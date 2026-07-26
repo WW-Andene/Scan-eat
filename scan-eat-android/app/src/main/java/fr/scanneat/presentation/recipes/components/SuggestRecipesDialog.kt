@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -21,6 +24,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -37,6 +41,8 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.semanticRed
 
+private enum class SuggestMode { INGREDIENT, PANTRY, HISTORY }
+
 /**
  * Entry dialog for RecipesViewModel.suggestRecipes()/suggestFromPantry() — wires up
  * the server's suggest-recipes route family (single ingredient, or a free-typed list
@@ -46,15 +52,19 @@ import fr.scanneat.presentation.ui.theme.semanticRed
  * prefill path the other imports use.
  *
  * The app has no persisted "pantry inventory" feature, so the pantry mode below is a
- * second free-text input on this same dialog rather than a picker over stored items -
- * [pantryMode] just decides which OutlinedTextField is shown and which callback the
- * confirm button calls, [results]/[errorMessage]/[isLoading] render identically either way.
+ * free-text input on this same dialog rather than a picker over stored items. The
+ * history mode is the closest thing to a real picker this app can offer without one:
+ * [historyItems] (distinct scan-history product names) rendered as multi-select
+ * chips, feeding the exact same suggestFromPantry(List&lt;String&gt;) call the
+ * free-typed pantry mode uses — same backend call, just a different way to build
+ * its input list.
  */
 @Composable
 internal fun SuggestRecipesDialog(
     isLoading: Boolean,
     results: List<FetchedRecipeResult>?,
     errorMessage: String?,
+    historyItems: List<String>,
     onDismiss: () -> Unit,
     onSuggest: (String) -> Unit,
     onSuggestFromPantry: (List<String>) -> Unit,
@@ -62,7 +72,8 @@ internal fun SuggestRecipesDialog(
 ) {
     var ingredient by rememberSaveable { mutableStateOf("") }
     var pantryText by rememberSaveable { mutableStateOf("") }
-    var pantryMode by rememberSaveable { mutableStateOf(false) }
+    var mode by rememberSaveable { mutableStateOf(SuggestMode.INGREDIENT) }
+    var selectedHistory by remember { mutableStateOf(setOf<String>()) }
     val pantryItems = pantryText.split(',', '\n').map { it.trim() }.filter { it.isNotBlank() }
 
     AlertDialog(
@@ -76,40 +87,77 @@ internal fun SuggestRecipesDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    TextButton(onClick = { pantryMode = false }, enabled = !isLoading) {
+                    TextButton(onClick = { mode = SuggestMode.INGREDIENT }, enabled = !isLoading) {
                         Text(
                             stringResource(R.string.recipes_suggest_mode_ingredient),
-                            fontWeight = if (!pantryMode) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (!pantryMode) AccentCoral else OnBackground.copy(0.5f),
+                            fontWeight = if (mode == SuggestMode.INGREDIENT) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (mode == SuggestMode.INGREDIENT) AccentCoral else OnBackground.copy(0.5f),
                         )
                     }
-                    TextButton(onClick = { pantryMode = true }, enabled = !isLoading) {
+                    TextButton(onClick = { mode = SuggestMode.PANTRY }, enabled = !isLoading) {
                         Text(
                             stringResource(R.string.recipes_suggest_mode_pantry),
-                            fontWeight = if (pantryMode) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (pantryMode) AccentCoral else OnBackground.copy(0.5f),
+                            fontWeight = if (mode == SuggestMode.PANTRY) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (mode == SuggestMode.PANTRY) AccentCoral else OnBackground.copy(0.5f),
+                        )
+                    }
+                    TextButton(onClick = { mode = SuggestMode.HISTORY }, enabled = !isLoading) {
+                        Text(
+                            stringResource(R.string.recipes_suggest_mode_history),
+                            fontWeight = if (mode == SuggestMode.HISTORY) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (mode == SuggestMode.HISTORY) AccentCoral else OnBackground.copy(0.5f),
                         )
                     }
                 }
-                if (pantryMode) {
-                    Text(stringResource(R.string.recipes_suggest_pantry_hint), color = OnBackground.copy(0.6f))
-                    OutlinedTextField(
-                        value = pantryText, onValueChange = { pantryText = it },
-                        label = { Text(stringResource(R.string.recipes_suggest_pantry_placeholder)) },
-                        singleLine = false, minLines = 3, maxLines = 6,
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !isLoading,
-                        colors = scanEatTextFieldColors(),
-                    )
-                } else {
-                    Text(stringResource(R.string.recipes_suggest_hint), color = OnBackground.copy(0.6f))
-                    OutlinedTextField(
-                        value = ingredient, onValueChange = { ingredient = it },
-                        label = { Text(stringResource(R.string.recipes_suggest_placeholder)) },
-                        singleLine = true, modifier = Modifier.fillMaxWidth(),
-                        enabled = !isLoading,
-                        colors = scanEatTextFieldColors(),
-                    )
+                when (mode) {
+                    SuggestMode.PANTRY -> {
+                        Text(stringResource(R.string.recipes_suggest_pantry_hint), color = OnBackground.copy(0.6f))
+                        OutlinedTextField(
+                            value = pantryText, onValueChange = { pantryText = it },
+                            label = { Text(stringResource(R.string.recipes_suggest_pantry_placeholder)) },
+                            singleLine = false, minLines = 3, maxLines = 6,
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isLoading,
+                            colors = scanEatTextFieldColors(),
+                        )
+                    }
+                    SuggestMode.HISTORY -> {
+                        if (historyItems.isEmpty()) {
+                            Text(stringResource(R.string.recipes_suggest_history_empty), color = OnBackground.copy(0.5f))
+                        } else {
+                            Text(stringResource(R.string.recipes_suggest_history_hint), color = OnBackground.copy(0.6f))
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 160.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                contentPadding = PaddingValues(vertical = Spacing.XS),
+                            ) {
+                                items(historyItems) { name ->
+                                    val selected = name in selectedHistory
+                                    FilterChip(
+                                        selected = selected,
+                                        onClick = {
+                                            selectedHistory = if (selected) selectedHistory - name else selectedHistory + name
+                                        },
+                                        label = { Text(name) },
+                                        enabled = !isLoading,
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    SuggestMode.INGREDIENT -> {
+                        Text(stringResource(R.string.recipes_suggest_hint), color = OnBackground.copy(0.6f))
+                        OutlinedTextField(
+                            value = ingredient, onValueChange = { ingredient = it },
+                            label = { Text(stringResource(R.string.recipes_suggest_placeholder)) },
+                            singleLine = true, modifier = Modifier.fillMaxWidth(),
+                            enabled = !isLoading,
+                            colors = scanEatTextFieldColors(),
+                        )
+                    }
                 }
                 if (isLoading) {
                     CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
@@ -142,9 +190,19 @@ internal fun SuggestRecipesDialog(
             }
         },
         confirmButton = {
-            val suggestEnabled = !isLoading && (if (pantryMode) pantryItems.isNotEmpty() else ingredient.isNotBlank())
+            val suggestEnabled = !isLoading && when (mode) {
+                SuggestMode.PANTRY    -> pantryItems.isNotEmpty()
+                SuggestMode.HISTORY   -> selectedHistory.isNotEmpty()
+                SuggestMode.INGREDIENT -> ingredient.isNotBlank()
+            }
             TextButton(
-                onClick = { if (pantryMode) onSuggestFromPantry(pantryItems) else onSuggest(ingredient.trim()) },
+                onClick = {
+                    when (mode) {
+                        SuggestMode.PANTRY     -> onSuggestFromPantry(pantryItems)
+                        SuggestMode.HISTORY    -> onSuggestFromPantry(selectedHistory.toList())
+                        SuggestMode.INGREDIENT -> onSuggest(ingredient.trim())
+                    }
+                },
                 enabled = suggestEnabled,
             ) {
                 Text(stringResource(R.string.recipes_suggest_button), color = if (suggestEnabled) AccentCoral else OnBackground.copy(0.3f))

@@ -968,10 +968,6 @@
     <string name="settings_section_units">Units</string>
     <string name="settings_units_hint">Used in Weight, Profile, and Biolism</string>
     <string name="settings_theme_low_contrast">Low contrast</string>
-    <string name="settings_section_background_theme">Background theme</string>
-    <string name="settings_background_theme_hint">Decorative background pattern, separate from the light/dark theme above</string>
-    <string name="settings_background_theme_default">Default</string>
-    <string name="settings_background_theme_ocean_foam">Ocean foam</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
     <string name="settings_section_reminders">Reminders</string>
@@ -1139,6 +1135,9 @@
     <string name="recipes_suggest_mode_pantry">My pantry</string>
     <string name="recipes_suggest_pantry_hint">List what you have on hand (comma or one item per line), and the AI proposes a few ideas.</string>
     <string name="recipes_suggest_pantry_placeholder">E.g. chicken, rice, broccoli…</string>
+    <string name="recipes_suggest_mode_history">My history</string>
+    <string name="recipes_suggest_history_hint">Pick one or more products you\'ve already scanned, and the AI proposes a few ideas.</string>
+    <string name="recipes_suggest_history_empty">No scans in your history yet.</string>
     <string name="recipes_cd_menu_scan">Scan a restaurant menu</string>
     <string name="recipes_menu_dialog_title">Menu dishes</string>
     <string name="recipes_menu_empty">No dishes detected in this photo.</string>
@@ -1200,6 +1199,7 @@
     <string name="hint_cd_open">View information</string>
     <string name="hint_panel_title">Good to know</string>
     <string name="hint_section_benefits">Positive points</string>
+    <string name="hint_section_information">Information</string>
     <string name="hint_section_risks">Points of caution</string>
     <string name="hint_section_condition_risks">Risk linked to your profile</string>
     <string name="hint_section_pair_well">Pairs well with</string>
