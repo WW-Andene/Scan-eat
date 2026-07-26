@@ -1,7 +1,9 @@
 package fr.scanneat.data.repository.scan
 
+import androidx.room.withTransaction
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import fr.scanneat.data.local.db.AppDatabase
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
@@ -80,6 +82,7 @@ class ScanRepository @Inject constructor(
     private val moshi: Moshi,                  // singleton from AppModule
     private val customFoodRepo: CustomFoodRepository,
     private val serverApiProvider: ServerScanApiProvider,
+    private val db: AppDatabase,
 ) {
     private val productAdapter = moshi.adapter(Product::class.java)
     private val auditAdapter   = moshi.adapter(ScoreAudit::class.java)
@@ -186,7 +189,15 @@ class ScanRepository @Inject constructor(
      * @Transaction so two concurrent scans of the same barcode can't both read
      * "no existing row" and both insert a duplicate.
      */
-    suspend fun persist(result: ScanResult, profileId: String = "default"): Long {
+    suspend fun persist(result: ScanResult, profileId: String = "default"): Long = db.withTransaction {
+        // scan_history and scan_score_history are two separate DAOs, written by
+        // two separate suspend calls - without wrapping both in one Room
+        // transaction, a process death between them (rare, but real - Android can
+        // kill a background app mid-write at any time) left scan_history updated
+        // but that scan's score-history row missing, permanently under-counting
+        // "Top Scanned" and silently dropping one point from the score-delta/
+        // sparkline feature for that product, with no way to detect or repair it
+        // after the fact.
         val now = System.currentTimeMillis()
         val id = dao.upsertByBarcode(result.barcode, profileId) { existingId, existingFavorite ->
             ScanHistoryEntity(
@@ -225,7 +236,7 @@ class ScanRepository @Inject constructor(
             profileId = profileId,
         ))
         scoreHistoryDao.trim(MAX_HISTORY_ROWS, profileId)
-        return id
+        id
     }
 
     /**
