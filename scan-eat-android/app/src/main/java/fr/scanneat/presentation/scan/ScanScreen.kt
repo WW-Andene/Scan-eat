@@ -4,11 +4,15 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ImageProxy
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -59,9 +63,15 @@ import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.result.FactsCautionsColumn
 import fr.scanneat.presentation.scan.components.CameraPreview
+import fr.scanneat.presentation.scan.components.DetectedBox
 import fr.scanneat.presentation.scan.components.ManualBarcodeEntry
 import fr.scanneat.presentation.scan.components.NoCameraFallback
+import fr.scanneat.presentation.scan.components.ScanShelfObjectOverlay
+import fr.scanneat.presentation.scan.components.ScanShelfPeekChip
+import fr.scanneat.presentation.scan.components.ShelfPeek
+import fr.scanneat.presentation.scan.components.ShelfPeekStatus
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun ScanScreen(
@@ -86,6 +96,20 @@ fun ScanScreen(
     val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
     val cachedPreview  = viewModel.cachedPreview.collectAsStateWithLifecycle()
     val captureErrorMessage = stringResource(R.string.scan_capture_error)
+
+    // ── Shelf-scan mode (hybrid live-boxes/tap-to-identify) ──────────────────
+    // Off by default: CameraPreview only allocates the on-device object
+    // detector when onObjectsDetected is non-null, so every other tab of this
+    // screen (barcode/photo scanning) pays zero extra inference cost.
+    var shelfMode by remember { mutableStateOf(false) }
+    var shelfObjects by remember { mutableStateOf<Triple<List<DetectedBox>, Int, Int>?>(null) }
+    var shelfImageCapture: ImageCapture? by remember { mutableStateOf(null) }
+    var shelfPeeks by remember { mutableStateOf<List<ShelfPeek>>(emptyList()) }
+    var nextPeekId by remember { mutableStateOf(0L) }
+    val shelfCoroutineScope = rememberCoroutineScope()
+    LaunchedEffect(shelfMode) {
+        if (!shelfMode) { shelfObjects = null; shelfPeeks = emptyList() }
+    }
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
     // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
@@ -194,6 +218,8 @@ fun ScanScreen(
                 onCaptureError    = { Toast.makeText(context, captureErrorMessage, Toast.LENGTH_SHORT).show() },
                 onBarcodeBounds   = { rect, w, h -> barcodeBounds = Triple(rect, w, h) },
                 onBoundsCleared   = { barcodeBounds = null; viewModel.onBarcodeLost() },
+                onObjectsDetected = if (shelfMode) { objs, w, h -> shelfObjects = Triple(objs, w, h) } else null,
+                onImageCaptureReady = { shelfImageCapture = it },
                 bottomNavClearance = bottomNavClearance,
                 topInset          = topInset,
             )
@@ -290,6 +316,67 @@ fun ScanScreen(
                 onClick = { viewModel.toggleInstantMode() },
             )
 
+            // ── Shelf-scan mode toggle — top-end, below the flash toggle ──
+            ScanShelfModeFab(
+                shelfMode = shelfMode,
+                topInset = topInset,
+                onClick = { shelfMode = !shelfMode },
+            )
+
+            // ── Shelf-scan live boxes + tap-to-identify mini panels ──
+            if (shelfMode) {
+                shelfObjects?.let { (objs, w, h) ->
+                    ScanShelfObjectOverlay(
+                        objects = objs,
+                        imgW = w,
+                        imgH = h,
+                        onBoxTapped = { box, tapOffset ->
+                            // Cap concurrent peeks — evict the oldest rather than ignore the
+                            // tap, same "capped not unbounded" pattern as MAX_QUEUED_PHOTOS.
+                            if (shelfPeeks.size >= 3) shelfPeeks = shelfPeeks.drop(1)
+                            val peekId = nextPeekId
+                            nextPeekId += 1
+                            shelfPeeks = shelfPeeks + ShelfPeek(peekId, tapOffset, ShelfPeekStatus.Loading)
+                            val capture = shelfImageCapture
+                            if (capture == null) {
+                                shelfPeeks = shelfPeeks.map { if (it.id == peekId) it.copy(status = ShelfPeekStatus.Failed(captureErrorMessage)) else it }
+                            } else {
+                                capture.takePicture(
+                                    ContextCompat.getMainExecutor(context),
+                                    object : ImageCapture.OnImageCapturedCallback() {
+                                        override fun onCaptureSuccess(image: ImageProxy) {
+                                            val full = image.toBitmap()
+                                            image.close()
+                                            val cropped = cropAroundBox(full, box.rect, w, h)
+                                            shelfCoroutineScope.launch {
+                                                val result = viewModel.identifyShelfBox(cropped)
+                                                shelfPeeks = shelfPeeks.map { p ->
+                                                    if (p.id != peekId) p else p.copy(
+                                                        status = result.fold(
+                                                            onSuccess = { (scanResult, id) -> ShelfPeekStatus.Ready(scanResult.product.name, scanResult.audit.grade, id) },
+                                                            onFailure = { e -> ShelfPeekStatus.Failed(e.message ?: captureErrorMessage) },
+                                                        ),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        override fun onError(exception: ImageCaptureException) {
+                                            shelfPeeks = shelfPeeks.map { if (it.id == peekId) it.copy(status = ShelfPeekStatus.Failed(captureErrorMessage)) else it }
+                                        }
+                                    },
+                                )
+                            }
+                        },
+                    )
+                }
+                shelfPeeks.forEach { peek ->
+                    ScanShelfPeekChip(
+                        peek = peek,
+                        onDismiss = { shelfPeeks = shelfPeeks.filter { it.id != peek.id } },
+                        onOpenResult = { id -> onResultReady(id) },
+                    )
+                }
+            }
         }
 
         // ── Result of the last scan attempt — a single exhaustive `when` over all 7
@@ -504,6 +591,30 @@ private fun ScanBoundingBoxOverlay(rect: android.graphics.Rect, imgW: Int, imgH:
     }
 }
 
+/**
+ * Maps a box detected against the (lower-res, 16:9) analysis stream onto the
+ * (higher-res, 4:3) capture stream by fraction-of-frame, not pixel-for-pixel —
+ * CameraX's ImageAnalysis and ImageCapture use cases independently crop/scale
+ * from the same sensor to their own target resolutions, so this is an
+ * approximation rather than an exact geometric correspondence. A generous
+ * 25%-per-side margin (clamped to the bitmap's own bounds) absorbs that
+ * imprecision so the tapped product still ends up inside the crop even when
+ * the mapping isn't perfectly centered.
+ */
+private fun cropAroundBox(bitmap: Bitmap, box: android.graphics.Rect, analysisW: Int, analysisH: Int): Bitmap {
+    val fracLeft   = box.left.toFloat()   / analysisW
+    val fracTop    = box.top.toFloat()    / analysisH
+    val fracRight  = box.right.toFloat()  / analysisW
+    val fracBottom = box.bottom.toFloat() / analysisH
+    val marginX = (fracRight - fracLeft) * 0.25f
+    val marginY = (fracBottom - fracTop) * 0.25f
+    val left   = ((fracLeft   - marginX) * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
+    val top    = ((fracTop    - marginY) * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
+    val right  = ((fracRight  + marginX) * bitmap.width).toInt().coerceIn(left + 1, bitmap.width)
+    val bottom = ((fracBottom + marginY) * bitmap.height).toInt().coerceIn(top + 1, bitmap.height)
+    return Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
+}
+
 @Composable
 private fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: Dp, onClick: () -> Unit) {
     FloatingActionButton(
@@ -597,6 +708,27 @@ private fun BoxScope.ScanInstantModeFab(instantMode: Boolean, bottomNavClearance
         shape          = CircleShape,
     ) {
         Icon(Icons.Default.Bolt, stringResource(R.string.scan_instant_toggle), tint = if (instantMode) Color.Black else OnSurface)
+    }
+}
+
+/**
+ * Toggles shelf-scan mode (hybrid live-boxes/tap-to-identify) — top-end,
+ * stacked below the flash toggle (same corner, same 40dp size) rather than
+ * the bottom-start corner, which already holds the instant-mode FAB and,
+ * conditionally, the recent-barcodes chip column right above it. Always
+ * reserves the flash button's own height even when this device has no flash
+ * unit (CameraPreview's hasFlash isn't exposed to this screen to condition
+ * on) — a small unused gap above it there is a minor cosmetic cost, not a
+ * collision with anything else in that corner.
+ */
+@Composable
+private fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick: () -> Unit) {
+    FloatingActionButton(
+        onClick = onClick,
+        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 48.dp, end = Spacing.L).size(40.dp),
+        containerColor = if (shelfMode) Teal else SurfaceVariant,
+    ) {
+        Icon(Icons.Default.GridView, stringResource(R.string.scan_shelf_mode_toggle), tint = if (shelfMode) Color.Black else OnSurface)
     }
 }
 

@@ -53,6 +53,8 @@
     <string name="scan_capture_error">Échec de la capture photo — réessayez</string>
     <string name="scan_instant_toggle">Mode instantané</string>
     <string name="scan_identify_multi_hint">Appui long : plusieurs aliments</string>
+    <string name="scan_shelf_mode_toggle">Mode étalage</string>
+    <string name="scan_shelf_peek_loading">Identification…</string>
     <string name="scan_identify_multi_found_title">Plusieurs aliments détectés</string>
     <string name="scan_identify_multi_found_body">Sélectionnez l\'aliment à consulter :</string>
 

@@ -15,6 +15,7 @@ okhttp               = "4.12.0"
 moshi                = "1.15.1"
 camerax              = "1.3.4"
 mlkit-barcode        = "17.3.0"
+mlkit-object-detection = "17.0.2"
 kotlinx-coroutines   = "1.9.0"
 core-ktx             = "1.15.0"
 appcompat            = "1.7.0"
@@ -102,6 +103,13 @@ camerax-view    = { group = "androidx.camera", name = "camera-view",    version.
 
 # ML Kit
 mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkit-barcode" }
+# Generic object detector — coarse bounding boxes only, no per-product
+# classification (that's what the vision-LLM tap-to-identify call is for).
+# Used by the shelf-scan live overlay. Same bundled-model artifact family as
+# mlkit-barcode above (not the com.google.android.gms:play-services-mlkit-*
+# on-demand-download variant), so it works fully offline like barcode
+# scanning already does, at the cost of a few extra MB in the APK.
+mlkit-object-detection = { group = "com.google.mlkit", name = "object-detection", version.ref = "mlkit-object-detection" }
 
 # Glance (Compose-based home-screen widgets)
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance-appwidget" }

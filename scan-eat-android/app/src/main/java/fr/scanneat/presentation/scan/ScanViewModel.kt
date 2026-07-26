@@ -454,6 +454,26 @@ class ScanViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Tap-to-identify for one cropped region from the shelf-scan live-box
+     * overlay (see ScanShelfObjectOverlay). Deliberately independent of the
+     * main score()/identifyFromPhotos() state machine and its scoreMutex -
+     * several of these run concurrently as the user taps different boxes
+     * while panning across a shelf, and none of them is "the" scan this
+     * screen shows full UI for. Unlike identifyFromPhotos(), this skips the
+     * medication/non-consumable name-DB cross-check: that lookup exists for
+     * "what am I holding" (could genuinely be a pill box), not a glance at a
+     * grocery shelf, so a medication caught in a shelf tap will just be
+     * scored as food in this first version rather than gaining its own
+     * dedicated dialog treatment here too.
+     */
+    suspend fun identifyShelfBox(bitmap: Bitmap): Result<Pair<ScanResult, Long>> {
+        val lang = prefs.language.first()
+        if (!isOnline()) return Result.failure(Exception(offlineMessage(lang)))
+        return scanRepo.identifyOrScoreFromImages(listOf(bitmap.toPayload()), lang, true, identifyMode = true)
+            .mapCatching { scanResult -> scanResult to scanRepo.persist(scanResult) }
+    }
+
     private fun isOnline(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false

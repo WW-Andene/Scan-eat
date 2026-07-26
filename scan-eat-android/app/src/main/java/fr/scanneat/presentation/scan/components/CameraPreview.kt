@@ -34,6 +34,9 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.objects.ObjectDetection
+import com.google.mlkit.vision.objects.ObjectDetector
+import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
@@ -56,6 +59,16 @@ private fun extractGtinFromGs1(raw: String): String? {
     return match.groupValues[1]
 }
 
+/**
+ * One generically-detected object region from a live camera frame (shelf-scan
+ * overlay) — [trackingId] comes from ML Kit's STREAM_MODE tracker (stable
+ * across frames for the same physical object as the camera pans, -1 if the
+ * tracker couldn't assign one for that detection). No product identity here
+ * by design: the detector only tells you *something distinct is here*, not
+ * what it is — that's the tap-triggered vision-LLM call's job.
+ */
+data class DetectedBox(val trackingId: Int, val rect: android.graphics.Rect)
+
 // ImageProxy.image is CameraX's @ExperimentalGetImage API, which is built on
 // the androidx.annotation.experimental system rather than Kotlin's native
 // @RequiresOptIn - lint's UnsafeOptInUsageDetector only recognizes
@@ -70,55 +83,70 @@ private fun analyzeFrame(
     onBarcodeDetected: (String) -> Unit,
     onBarcodeBounds: ((android.graphics.Rect, Int, Int) -> Unit)? = null,
     onBoundsCleared: (() -> Unit)? = null,
+    objectDetector: ObjectDetector? = null,
+    onObjectsDetected: ((List<DetectedBox>, Int, Int) -> Unit)? = null,
 ) {
     val media = proxy.image
-    if (media != null) {
-        val rotation = proxy.imageInfo.rotationDegrees
-        val (imgW, imgH) = if (rotation == 90 || rotation == 270)
-            Pair(proxy.height, proxy.width) else Pair(proxy.width, proxy.height)
-        val img = InputImage.fromMediaImage(media, rotation)
-        scanner.process(img)
-            .addOnSuccessListener { barcodes ->
-                var foundAny = false
-                for (bc in barcodes) {
-                    val raw = bc.rawValue ?: continue
-                    // CODABAR: older/still-common on some pharmacy and blood-bank packaging
-                    // (e.g. some pre-DataMatrix French medication boxes) - like CODE_128/ITF
-                    // it's a symbology, not a fixed-length GTIN encoding, so the digit-length
-                    // filter below (unchanged) is what actually decides whether a decoded
-                    // value looks like a real product/medication barcode.
-                    if (bc.format in listOf(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
-                            Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E, Barcode.FORMAT_CODE_128,
-                            Barcode.FORMAT_ITF, Barcode.FORMAT_CODABAR)) {
-                        val digits = raw.filter { it.isDigit() }
-                        if (digits.length in listOf(8, 12, 13, 14)) {
-                            onBarcodeDetected(digits)
-                            bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
-                            foundAny = true
-                            break
-                        }
-                    } else if (bc.format == Barcode.FORMAT_DATA_MATRIX || bc.format == Barcode.FORMAT_QR_CODE) {
-                        // Many French medication boxes carry no EAN-13 at all - only a
-                        // GS1 DataMatrix (2D "CIP DataMatrix"), and some carry a plain
-                        // QR code that just encodes the barcode digits directly. Try the
-                        // GS1 GTIN extraction first; if that finds nothing, fall back to
-                        // treating the raw value as a plain barcode only when it's
-                        // exactly digits of a plausible length (never for an arbitrary
-                        // QR code like a URL).
-                        val digits = extractGtinFromGs1(raw)
-                            ?: raw.takeIf { it.all(Char::isDigit) && it.length in listOf(8, 12, 13, 14) }
-                        if (digits != null) {
-                            onBarcodeDetected(digits)
-                            bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
-                            foundAny = true
-                            break
-                        }
+    if (media == null) { proxy.close(); return }
+    val rotation = proxy.imageInfo.rotationDegrees
+    val (imgW, imgH) = if (rotation == 90 || rotation == 270)
+        Pair(proxy.height, proxy.width) else Pair(proxy.width, proxy.height)
+    val img = InputImage.fromMediaImage(media, rotation)
+
+    // Both detectors run against the same frame independently — closing the
+    // proxy only once every task in flight has completed (not just the first
+    // one to finish, as a single addOnCompleteListener would) so neither
+    // detector ever reads from a buffer CameraX has already recycled.
+    val pending = java.util.concurrent.atomic.AtomicInteger(if (objectDetector != null) 2 else 1)
+    fun releaseIfDone() { if (pending.decrementAndGet() == 0) proxy.close() }
+
+    scanner.process(img)
+        .addOnSuccessListener { barcodes ->
+            var foundAny = false
+            for (bc in barcodes) {
+                val raw = bc.rawValue ?: continue
+                // CODABAR: older/still-common on some pharmacy and blood-bank packaging
+                // (e.g. some pre-DataMatrix French medication boxes) - like CODE_128/ITF
+                // it's a symbology, not a fixed-length GTIN encoding, so the digit-length
+                // filter below (unchanged) is what actually decides whether a decoded
+                // value looks like a real product/medication barcode.
+                if (bc.format in listOf(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
+                        Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E, Barcode.FORMAT_CODE_128,
+                        Barcode.FORMAT_ITF, Barcode.FORMAT_CODABAR)) {
+                    val digits = raw.filter { it.isDigit() }
+                    if (digits.length in listOf(8, 12, 13, 14)) {
+                        onBarcodeDetected(digits)
+                        bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
+                        foundAny = true
+                        break
+                    }
+                } else if (bc.format == Barcode.FORMAT_DATA_MATRIX || bc.format == Barcode.FORMAT_QR_CODE) {
+                    // Many French medication boxes carry no EAN-13 at all - only a
+                    // GS1 DataMatrix (2D "CIP DataMatrix"), and some carry a plain
+                    // QR code that just encodes the barcode digits directly. Try the
+                    // GS1 GTIN extraction first; if that finds nothing, fall back to
+                    // treating the raw value as a plain barcode only when it's
+                    // exactly digits of a plausible length (never for an arbitrary
+                    // QR code like a URL).
+                    val digits = extractGtinFromGs1(raw)
+                        ?: raw.takeIf { it.all(Char::isDigit) && it.length in listOf(8, 12, 13, 14) }
+                    if (digits != null) {
+                        onBarcodeDetected(digits)
+                        bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
+                        foundAny = true
+                        break
                     }
                 }
-                if (!foundAny) onBoundsCleared?.invoke()
             }
-            .addOnCompleteListener { proxy.close() }
-    } else proxy.close()
+            if (!foundAny) onBoundsCleared?.invoke()
+        }
+        .addOnCompleteListener { releaseIfDone() }
+
+    objectDetector?.process(img)
+        ?.addOnSuccessListener { objects ->
+            onObjectsDetected?.invoke(objects.map { DetectedBox(it.trackingId ?: -1, it.boundingBox) }, imgW, imgH)
+        }
+        ?.addOnCompleteListener { releaseIfDone() }
 }
 
 @Composable
@@ -129,6 +157,14 @@ fun CameraPreview(
     onCaptureError: () -> Unit = {},
     onBarcodeBounds: ((android.graphics.Rect, Int, Int) -> Unit)? = null,
     onBoundsCleared: (() -> Unit)? = null,
+    // Shelf-scan live overlay (hybrid mode: free on-device boxes, tap fires the
+    // actual identify call) — both null by default so every other CameraPreview
+    // call site (Scan's main barcode/photo flow) pays zero extra inference cost.
+    onObjectsDetected: ((List<DetectedBox>, Int, Int) -> Unit)? = null,
+    // Lets the caller trigger its own on-demand capture (e.g. a box tap) via the
+    // same ImageCapture use case the shutter FAB below already uses, without
+    // duplicating the bind-to-lifecycle setup a second time.
+    onImageCaptureReady: ((ImageCapture) -> Unit)? = null,
     // The floating bottom nav is a separate, later z-layer drawn on top of the
     // whole screen - every other overlay on ScanScreen was given this same
     // clearance for exactly that reason. Without it, the capture FAB's ~16-72dp
@@ -140,9 +176,23 @@ fun CameraPreview(
     val context        = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scanner        = remember { BarcodeScanning.getClient() }
+    // Only spun up when a caller actually wants boxes (ScanScreen's shelf mode) —
+    // every other screen reusing CameraPreview never allocates this detector.
+    // Bundled model (see mlkit-object-detection's own comment), so this works
+    // fully offline with no first-use download delay.
+    val objectDetector = remember(onObjectsDetected != null) {
+        if (onObjectsDetected != null) {
+            ObjectDetection.getClient(
+                ObjectDetectorOptions.Builder()
+                    .setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
+                    .enableMultipleObjects()
+                    .build(),
+            )
+        } else null
+    }
 
     val executor = remember { Executors.newSingleThreadExecutor() }
-    DisposableEffect(Unit) { onDispose { executor.shutdown(); scanner.close() } }
+    DisposableEffect(Unit) { onDispose { executor.shutdown(); scanner.close(); objectDetector?.close() } }
 
     var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
     var camera: Camera? by remember { mutableStateOf(null) }
@@ -170,13 +220,14 @@ fun CameraPreview(
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                         .build()
                     imageCapture = capture
+                    onImageCaptureReady?.invoke(capture)
                     val analysis = ImageAnalysis.Builder()
                         .setTargetResolution(Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also { ia ->
                             ia.setAnalyzer(executor) { proxy ->
-                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodeBounds, onBoundsCleared)
+                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodeBounds, onBoundsCleared, objectDetector, onObjectsDetected)
                             }
                         }
                     // Previously a bare runCatching with no onFailure branch: a bind failure

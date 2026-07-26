@@ -53,6 +53,8 @@
     <string name="scan_capture_error">Photo capture failed — try again</string>
     <string name="scan_instant_toggle">Instant mode</string>
     <string name="scan_identify_multi_hint">Long-press: multiple foods</string>
+    <string name="scan_shelf_mode_toggle">Shelf mode</string>
+    <string name="scan_shelf_peek_loading">Identifying…</string>
     <string name="scan_identify_multi_found_title">Multiple foods detected</string>
     <string name="scan_identify_multi_found_body">Select the food to view:</string>
 
