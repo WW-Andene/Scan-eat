@@ -157,6 +157,14 @@ internal fun allergenLabels(): Map<String, String> = mapOf(
     "sulfites" to stringResource(R.string.allergen_sulfites), "lupin" to stringResource(R.string.allergen_lupin),
 )
 
+// "food_allergies" and "intolerances" were previously selectable here too, but
+// were pure no-ops: nothing in PersonalScoreEngine/ProductHints/DietChecker
+// ever read either key, and both concepts are already fully handled by the
+// dedicated allergenLabels() selector above (the actual EU 14-allergen list,
+// which checkUserAllergens() genuinely checks against every product). Keeping
+// them here just gave a false impression of protection - a user selecting
+// "food allergies" as a condition, instead of (or in addition to) picking
+// their specific allergen(s) below, got silently nothing.
 @Composable
 internal fun conditionLabels(): Map<String, String> = mapOf(
     "diabetes" to stringResource(R.string.condition_diabetes),
@@ -164,8 +172,6 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     "pregnancy" to stringResource(R.string.condition_pregnancy),
     "kidney_disease" to stringResource(R.string.condition_kidney_disease),
     "thyroid_disorder" to stringResource(R.string.condition_thyroid_disorder),
-    "food_allergies" to stringResource(R.string.condition_food_allergies),
-    "intolerances" to stringResource(R.string.condition_intolerances),
     "digestive_disorders" to stringResource(R.string.condition_digestive_disorders),
     "cancer" to stringResource(R.string.condition_cancer),
     "depression" to stringResource(R.string.condition_depression),

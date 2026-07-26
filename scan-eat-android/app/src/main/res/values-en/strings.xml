@@ -658,8 +658,6 @@
     <string name="condition_pregnancy">Pregnancy</string>
     <string name="condition_kidney_disease">Kidney disease</string>
     <string name="condition_thyroid_disorder">Thyroid disorder</string>
-    <string name="condition_food_allergies">Food allergies</string>
-    <string name="condition_intolerances">Intolerances</string>
     <string name="condition_digestive_disorders">Digestive disorders</string>
     <string name="condition_cancer">Cancer / oncology treatment</string>
     <string name="condition_depression">Depression</string>

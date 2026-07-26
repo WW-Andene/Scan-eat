@@ -345,16 +345,18 @@ private fun checkDietCompliance(product: Product, profile: Profile, lang: String
 // ===== HEALTH CONDITIONS =====
 // Only the conditions with an established, simple nutrition-level rule get a
 // scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
-// alcohol veto, WCRF/NHS alcohol caution for cancer/depression). "thyroid_disorder",
-// "food_allergies", "intolerances" and "digestive_disorders" are still selectable
-// in ProfileSelectors.kt (Profile.healthConditions is free-form) but have no
-// dedicated nutrition-threshold rule reliable enough to code here yet, and are
-// NOT surfaced anywhere else either - this comment previously claimed they were
-// ("surfaced elsewhere, e.g. the hint system"), but neither ProductHints.kt nor
-// HealthConditionGuidanceDb.kt (whose own header explains why digestive_disorders
-// specifically is too heterogeneous a bucket to map to ingredients) ever reads
-// these 4 keys - a user can select any of them expecting some product-specific
-// guidance and gets none, identically to not having selected it at all.
+// alcohol veto, WCRF/NHS alcohol caution for cancer/depression). "thyroid_disorder"
+// and "digestive_disorders" are still selectable in ProfileSelectors.kt
+// (Profile.healthConditions is free-form) but have no dedicated nutrition-
+// threshold rule reliable enough to code here yet, and are NOT surfaced
+// anywhere else either (see HealthConditionGuidanceDb.kt's own header for why
+// digestive_disorders specifically is too heterogeneous a bucket to map to
+// ingredients) - a user selecting either still gets no product-specific
+// guidance, identically to not having selected it. "food_allergies" and
+// "intolerances" used to have the same no-op problem but were removed
+// entirely from ProfileSelectors.kt instead of left as dead options - both
+// concepts are already fully covered by the dedicated allergens selector,
+// which checkUserAllergens() genuinely checks against every product.
 private fun checkHealthConditions(
     product: Product,
     profile: Profile,
