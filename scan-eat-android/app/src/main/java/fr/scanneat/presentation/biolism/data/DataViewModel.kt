@@ -26,6 +26,8 @@ class DataViewModel @Inject constructor(
     val manualHR = repo.manualHR.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+    val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     // Real intake — sourced from the Diary's scanned/logged food (single source of truth for
     // calorie tracking), so Biolism's energy figures reflect actual consumption instead of a

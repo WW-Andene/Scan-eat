@@ -17,13 +17,13 @@ import fr.scanneat.util.formatDecimal
 import java.util.Locale
 
 @Composable
-fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
+fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile, useImperial: Boolean = false) {
     BioCard(stringResource(R.string.biolism_body_title), defaultOpen = true, badge = { BmiChip(met) }) {
         MetCellGrid(listOf(
             Triple(stringResource(R.string.biolism_body_bmi_label), met.bmi.formatDecimal(), stringResource(R.string.biolism_body_bmi_sub)),
             Triple(stringResource(R.string.biolism_body_fat_label), "%.1f%%".format(Locale.US, met.bfPct), stringResource(R.string.biolism_body_fat_sub)),
-            Triple(stringResource(R.string.biolism_body_lean_label), "%.1f kg".format(Locale.US, met.ffm), stringResource(R.string.biolism_body_lean_sub)),
-            Triple(stringResource(R.string.biolism_body_fatmass_label), "%.1f kg".format(Locale.US, met.fm), stringResource(R.string.biolism_body_fatmass_sub)),
+            Triple(stringResource(R.string.biolism_body_lean_label), dispWeight(met.ffm, useImperial), stringResource(R.string.biolism_body_lean_sub)),
+            Triple(stringResource(R.string.biolism_body_fatmass_label), dispWeight(met.fm, useImperial), stringResource(R.string.biolism_body_fatmass_sub)),
         ))
         // Navy tape (when available)
         met.navyBfPct?.let { navy ->
@@ -32,8 +32,8 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
                 Label(stringResource(R.string.biolism_body_navy_method), Teal)
                 MetCellGrid(listOf(
                     Triple(stringResource(R.string.biolism_body_navy_bf_label), "%.1f%%".format(Locale.US, navy), stringResource(R.string.biolism_body_navy_bf_sub)),
-                    Triple(stringResource(R.string.biolism_body_navy_lean_label), "%.1f kg".format(Locale.US, met.navyFfm ?: 0.0), stringResource(R.string.biolism_body_navy_lean_sub)),
-                    Triple(stringResource(R.string.biolism_body_navy_fat_label), "%.1f kg".format(Locale.US, met.navyFm ?: 0.0), stringResource(R.string.biolism_body_navy_fat_sub)),
+                    Triple(stringResource(R.string.biolism_body_navy_lean_label), dispWeight(met.navyFfm ?: 0.0, useImperial), stringResource(R.string.biolism_body_navy_lean_sub)),
+                    Triple(stringResource(R.string.biolism_body_navy_fat_label), dispWeight(met.navyFm ?: 0.0, useImperial), stringResource(R.string.biolism_body_navy_fat_sub)),
                     Triple(stringResource(R.string.biolism_body_navy_delta_label), "%+.1f%%".format(Locale.US, navy - met.bfPct), ""),
                 ))
             }
@@ -43,11 +43,11 @@ fun BodyCompositionCard(met: MetabolicResult, profile: BiolismProfile) {
         Label(stringResource(R.string.biolism_body_ibw_title), OnBackground.copy(0.4f))
         val ibwDelta = profile.weightKg - met.ibwMean
         MetCellGrid(listOf(
-            Triple(stringResource(R.string.biolism_body_ibw_devine), "%.1f kg".format(Locale.US, met.ibwDevine), stringResource(R.string.biolism_body_ibw_devine_sub)),
-            Triple(stringResource(R.string.biolism_body_ibw_robinson), "%.1f kg".format(Locale.US, met.ibwRobinson), stringResource(R.string.biolism_body_ibw_robinson_sub)),
-            Triple(stringResource(R.string.biolism_body_ibw_miller), "%.1f kg".format(Locale.US, met.ibwMiller), stringResource(R.string.biolism_body_ibw_miller_sub)),
-            Triple(stringResource(R.string.biolism_body_ibw_mean), "%.1f kg".format(Locale.US, met.ibwMean),
-                stringResource(R.string.biolism_body_ibw_delta_sub, if (ibwDelta > 0) "+" else "", ibwDelta)),
+            Triple(stringResource(R.string.biolism_body_ibw_devine), dispWeight(met.ibwDevine, useImperial), stringResource(R.string.biolism_body_ibw_devine_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_robinson), dispWeight(met.ibwRobinson, useImperial), stringResource(R.string.biolism_body_ibw_robinson_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_miller), dispWeight(met.ibwMiller, useImperial), stringResource(R.string.biolism_body_ibw_miller_sub)),
+            Triple(stringResource(R.string.biolism_body_ibw_mean), dispWeight(met.ibwMean, useImperial),
+                stringResource(R.string.biolism_body_ibw_delta_sub, if (ibwDelta > 0) "+" else "", dispWeight(kotlin.math.abs(ibwDelta), useImperial))),
         ))
         // Visceral
         Spacer(Modifier.height(Spacing.S))

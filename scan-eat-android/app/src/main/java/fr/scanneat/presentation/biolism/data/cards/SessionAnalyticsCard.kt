@@ -13,7 +13,7 @@ import fr.scanneat.presentation.ui.theme.*
 import java.util.Locale
 
 @Composable
-fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double) {
+fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double, useImperial: Boolean = false) {
     val withRate = sessions.filter { it.elapsedSec > 0 }
     val avgBurnRate = if (withRate.isNotEmpty())
         withRate.sumOf { it.kcalBurned / (it.elapsedSec / 60.0) } / withRate.size
@@ -60,7 +60,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
                 BarSparkline(last8, Teal, barHeight = 36.dp)
                 Spacer(Modifier.height(6.dp))
                 InfoRow(stringResource(R.string.biolism_sessan_fat_oxidised_cum), "%.1f g".format(Locale.US, totalFatLostKg * 1000), "", Teal)
-                InfoRow(stringResource(R.string.biolism_sessan_est_weight), "%.3f kg".format(Locale.US, latestWeight), "", deltaColor)
+                InfoRow(stringResource(R.string.biolism_sessan_est_weight), dispWeight(latestWeight, useImperial), "", deltaColor)
             }
         }
     }

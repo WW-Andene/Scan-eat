@@ -196,7 +196,7 @@
     <string name="biolism_body_ibw_miller">Miller</string>
     <string name="biolism_body_ibw_miller_sub">1983</string>
     <string name="biolism_body_ibw_mean">Average</string>
-    <string name="biolism_body_ibw_delta_sub">%1$s%2$.1f kg vs current</string>
+    <string name="biolism_body_ibw_delta_sub">%1$s%2$s vs current</string>
     <string name="biolism_body_visceral_title">Visceral fat indicators</string>
     <string name="biolism_body_whtr_label">Waist/Height (WHtR)</string>
     <string name="biolism_body_risk_thin">Thin</string>

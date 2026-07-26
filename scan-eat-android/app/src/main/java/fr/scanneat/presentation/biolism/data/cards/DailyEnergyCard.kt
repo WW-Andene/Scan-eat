@@ -17,7 +17,7 @@ import fr.scanneat.util.formatDecimal
 import java.util.Locale
 
 @Composable
-fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState, sessions: List<BiolismSession>, todayIntakeKcal: Double, lang: String = "fr") {
+fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState, sessions: List<BiolismSession>, todayIntakeKcal: Double, lang: String = "fr", useImperial: Boolean = false) {
     BioCard(stringResource(R.string.biolism_energy_title),
         badge = { if (s.ketosisOn) TealBadge(stringResource(R.string.biolism_energy_keto_badge, ((1.0 - met.ketoSupprFactor) * 100).toInt())) }
     ) {
@@ -73,7 +73,10 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
             // "+0.026 kg") implied a precision this rough net-kcal/7700 estimate
             // doesn't actually have, and read as disagreeing with every other
             // weight figure in the app rather than just being a coarser estimate.
-            InfoRow(stringResource(R.string.biolism_energy_weight_impact), "%+.1f kg".format(Locale.US, netBal / 7700.0), stringResource(R.string.biolism_energy_weight_impact_sub), TextSecondary)
+            val weightImpactKg = netBal / 7700.0
+            InfoRow(stringResource(R.string.biolism_energy_weight_impact),
+                (if (weightImpactKg >= 0) "+" else "-") + dispWeight(kotlin.math.abs(weightImpactKg), useImperial),
+                stringResource(R.string.biolism_energy_weight_impact_sub), TextSecondary)
         }
     }
 }

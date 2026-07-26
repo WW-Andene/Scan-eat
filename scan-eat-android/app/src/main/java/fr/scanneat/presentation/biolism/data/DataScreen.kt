@@ -48,6 +48,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val cum         = viewModel.sessionCumulative.collectAsStateWithLifecycle()
     val todayIntake = viewModel.todayIntakeKcal.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
+    val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle()  // force recomposition every second
 
     val met = m.value
@@ -70,8 +71,8 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { MetabolicHealthScoreCard(met, profile.value) }
-        item { BodyCompositionCard(met, profile.value) }
-        item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value, language.value) }
+        item { BodyCompositionCard(met, profile.value, useImperial.value) }
+        item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value, language.value, useImperial.value) }
         item { BurnRateCard(met, s, cum.value) }
         item { SubstrateFluxCard(met, s) }
         if (s.ketosisOn) {
@@ -90,10 +91,10 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         }
         item { EquationsCard(met, profile.value) }
         if (sessions.value.isNotEmpty()) {
-            item { SessionAnalyticsCard(sessions.value, profile.value.weightKg) }
+            item { SessionAnalyticsCard(sessions.value, profile.value.weightKg, useImperial.value) }
         }
         if (sessions.value.isNotEmpty()) {
-            item { SessionHistoryCard(sessions.value, viewModel::deleteSession) }
+            item { SessionHistoryCard(sessions.value, viewModel::deleteSession, useImperial.value) }
         }
         item { Spacer(Modifier.height(Spacing.L)) }
     }

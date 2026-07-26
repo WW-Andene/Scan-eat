@@ -28,7 +28,7 @@ import fr.scanneat.presentation.ui.theme.*
 import java.util.Locale
 
 @Composable
-fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit) {
+fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit, useImperial: Boolean = false) {
     val prKcal = sessions.maxOf { it.kcalBurned }
     val prDur  = sessions.maxOf { it.elapsedSec }
     val prRate = sessions.maxOf { it.kcalPerMin }
@@ -75,7 +75,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit)
                     Column(Modifier.padding(top = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         InfoRow(stringResource(R.string.biolism_sesshist_avg_rate), "%.3f kcal/min".format(Locale.US, sess.kcalPerMin), "", TextSecondary)
                         InfoRow(stringResource(R.string.biolism_sesshist_bmr_tdee), stringResource(R.string.biolism_sesshist_bmr_tdee_value, sess.bmrDay, sess.tdeeDay), "", TextSecondary)
-                        InfoRow(stringResource(R.string.biolism_sesshist_weight_start_end), "%.1f → %.1f kg".format(Locale.US, sess.startWeightKg, sess.endWeightKg), "", TextSecondary)
+                        InfoRow(stringResource(R.string.biolism_sesshist_weight_start_end), "${dispWeight(sess.startWeightKg, useImperial)} → ${dispWeight(sess.endWeightKg, useImperial)}", "", TextSecondary)
                         InfoRow(stringResource(R.string.biolism_sesshist_fat_fraction), "%.0f%%".format(Locale.US, sess.fatFrac * 100), "", Warm)
                         TextButton(onClick = { confirmDeleteId = sess.id }) {
                             // semanticRed(), not the raw Danger literal - matches the
