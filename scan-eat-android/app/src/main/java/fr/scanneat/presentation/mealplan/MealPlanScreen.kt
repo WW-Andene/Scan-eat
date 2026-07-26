@@ -49,6 +49,7 @@ fun MealPlanScreen(
     val dayCalories = viewModel.dayCalories.collectAsStateWithLifecycle()
     val gapSuggestions = viewModel.gapSuggestions.collectAsStateWithLifecycle()
     val weeklyTotalKcal = viewModel.weeklyTotalKcal.collectAsStateWithLifecycle()
+    val slotWarnings = viewModel.slotWarnings.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show day names in the wrong language.
     val dayFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d", Locale(language.value)) }
@@ -125,6 +126,7 @@ fun MealPlanScreen(
                     onClearSlot = { meal -> viewModel.clear(date, meal) },
                     onAssign = { meal -> assignTarget = date to meal },
                     onLogSlot = { meal, slot -> viewModel.logSlot(date, meal, slot) },
+                    slotWarnings = slotWarnings.value,
                 )
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
@@ -174,6 +176,7 @@ private fun MealPlanDayCard(
     onClearSlot: (meal: String) -> Unit,
     onAssign: (meal: String) -> Unit,
     onLogSlot: (meal: String, slot: MealPlanSlot) -> Unit,
+    slotWarnings: Map<String, String>,
 ) {
     val isToday = date == LocalDate.now()
     ScanEatCard(
@@ -217,6 +220,7 @@ private fun MealPlanDayCard(
                 onClear = { onClearSlot(meal) },
                 onAssign = { onAssign(meal) },
                 onLog = { s -> onLogSlot(meal, s) },
+                warning = slotWarnings["$date|$meal"],
             )
         }
         if (suggestion != null) {
@@ -256,7 +260,7 @@ private fun mealLabel(key: String): String = when (key) {
 }
 
 @Composable
-private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> Unit, onClear: () -> Unit, onAssign: () -> Unit, onLog: (MealPlanSlot) -> Unit) {
+private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> Unit, onClear: () -> Unit, onAssign: () -> Unit, onLog: (MealPlanSlot) -> Unit, warning: String? = null) {
     var editing by remember { mutableStateOf(false) }
     var text by remember(slot) { mutableStateOf((slot as? MealPlanSlot.NoteSlot)?.text ?: "") }
 
@@ -291,6 +295,12 @@ private fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> U
                     else -> {}
                 }
                 Text(label, style = MaterialTheme.typography.bodySmall, color = if (slot != null) OnSurface else OnSurface.copy(0.3f))
+                // Same checkUserAllergens()/checkDiet() warning Recipes/Templates/Grocery/
+                // Diary already show for the exact same items - this weekly grid previously
+                // showed zero allergen/diet warning no matter what was planned here.
+                if (warning != null) {
+                    Icon(Icons.Default.WarningAmber, contentDescription = warning, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                }
             }
             // Editing as free text only makes sense for a note (or an empty slot) — a
             // Recipe/Template assignment has no text to edit, and the text field always

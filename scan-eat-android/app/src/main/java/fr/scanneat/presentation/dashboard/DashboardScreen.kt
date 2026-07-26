@@ -79,6 +79,7 @@ fun DashboardScreen(
     val language = viewModel.language.collectAsStateWithLifecycle()
     val otherTrackers = viewModel.otherTrackers.collectAsStateWithLifecycle()
     val recentScanWarnings = viewModel.recentScanWarnings.collectAsStateWithLifecycle()
+    val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -165,7 +166,7 @@ fun DashboardScreen(
 
             // ---- Weight summary ----
             s.weightSummary?.let { ws ->
-                item { WeightCard(summary = ws, forecast = s.weightForecast) }
+                item { WeightCard(summary = ws, forecast = s.weightForecast, useImperial = useImperialWeight.value) }
             }
 
             // ---- Gap-closer suggestions ----

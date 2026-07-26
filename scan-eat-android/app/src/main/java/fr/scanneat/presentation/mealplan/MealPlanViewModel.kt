@@ -12,6 +12,8 @@ import fr.scanneat.data.repository.planning.MealTemplate
 import fr.scanneat.data.repository.planning.MealTemplateRepository
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.data.repository.planning.RecipeRepository
+import fr.scanneat.domain.engine.scoring.checkDiet
+import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -94,6 +96,35 @@ class MealPlanViewModel @Inject constructor(
     /** Sum of planned kcal across all days in the current week — derived from dayCalories, no extra query. */
     val weeklyTotalKcal: StateFlow<Int> = dayCalories.map { it.values.sum() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    /**
+     * "$date|$meal" -> short personal-safety warning for whatever Recipe/
+     * Template is planned in that slot - same checkUserAllergens()/checkDiet()
+     * pattern Recipes/Templates/Grocery/Diary already show for the exact same
+     * items. Previously this weekly grid showed zero allergen/diet warning no
+     * matter what was assigned, even though every one of those sibling screens
+     * already computes and displays it, and logSlot() above lets a planned
+     * item go straight to the diary from here.
+     */
+    val slotWarnings: StateFlow<Map<String, String>> = combine(weekPlan, recipes, templates, prefs.profile, language) { plan, recipeList, templateList, profile, lang ->
+        val result = mutableMapOf<String, String>()
+        plan.forEach { (date, dayPlan) ->
+            listOf("breakfast", "lunch", "dinner", "snack").forEach { meal ->
+                val product = when (val slot = dayPlan[meal]) {
+                    is MealPlanSlot.RecipeSlot   -> recipeList.find { it.id == slot.id }?.toCheckProduct()
+                    is MealPlanSlot.TemplateSlot -> templateList.find { it.id == slot.id }?.toCheckProduct()
+                    else -> null
+                } ?: return@forEach
+                val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
+                val dietResult = checkDiet(product, profile.diet, lang)
+                val parts = mutableListOf<String>()
+                allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
+                dietResult.reason?.let { parts += it }
+                if (parts.isNotEmpty()) result["$date|$meal"] = parts.joinToString(" · ")
+            }
+        }
+        result
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     // New: for each day that still has at least two empty meal slots, suggest the
     // highest-protein recipe not yet assigned anywhere on that day — so a user

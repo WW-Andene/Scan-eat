@@ -14,7 +14,7 @@ import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary, forecast: WeightForecast) {
+internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummary, forecast: WeightForecast, useImperial: Boolean = false) {
   ScanEatCard(
     contentPadding = PaddingValues(Spacing.L),
     verticalArrangement = Arrangement.spacedBy(Spacing.S),
@@ -22,7 +22,12 @@ internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummar
         Text(stringResource(R.string.weight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
-                Text(stringResource(R.string.weight_kg, summary.latestKg), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
+                // dispWeight(), not the hardcoded-"kg" weight_kg string resource - this
+                // headline number previously always showed kg regardless of the same
+                // metric/imperial toggle the Weight tab's own headline already respects
+                // (WeightScreen's dispWeight()), so the same value read differently
+                // depending on which screen showed it.
+                Text(dispWeight(summary.latestKg, useImperial), style = MaterialTheme.typography.titleLarge, color = AccentCoral, fontWeight = FontWeight.Bold)
                 val deltaColor = when {
                     summary.deltaKg < 0 -> semanticGreen()
                     summary.deltaKg > 0 -> semanticRed()

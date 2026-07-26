@@ -767,7 +767,6 @@
 
     <!-- ── Weight screen ──────────────────────────────────────────────────── -->
     <string name="weight_title">Weight</string>
-    <string name="weight_kg">%1$s kg</string>
     <string name="weight_cd_calendar">Calendar</string>
     <string name="calendar_cd_prev_month">Previous month</string>
     <string name="calendar_cd_next_month">Next month</string>

@@ -253,8 +253,11 @@ fun ProfileScreen(
                                         trackColor = OnSurface.copy(0.1f),
                                     )
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text("${cw}kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                                        Text("→ ${gw}kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                        // dispWeight(), not a hardcoded "kg" suffix - this row previously
+                                        // ignored the metric/imperial toggle two sections below on this
+                                        // same screen, always showing kg even in imperial mode.
+                                        Text(dispWeight(cw, useImperial.value), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                        Text("→ ${dispWeight(gw, useImperial.value)}", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                     }
                                 }
                             }

@@ -361,12 +361,22 @@ class BiolismRepository @Inject constructor(
                 data.heightCm?.let    { p[K_HEIGHT] = it }
                 data.weightKg?.let    { p[K_WEIGHT] = it }
                 data.activityId?.let  { p[K_ACTIVITY] = it }
-                data.ethnicityId?.let { p[K_ETHNICITY] = it }
-                data.waistCm?.let     { p[K_WAIST] = it }
-                data.hipCm?.let       { p[K_HIP] = it }
-                data.neckCm?.let      { p[K_NECK] = it }
-                data.cycleDay?.let    { p[K_CYCLE_DAY] = it }
             }
+            // Biolism-exclusive body-composition fields (waist/hip/neck/ethnicity/
+            // cycleDay) are independent of hasProfileOverride, which only tracks the
+            // sex/age/height/weight main-profile override (see saveBodyMeasurements()'s
+            // own doc comment - it never touches K_SEX) - gating them behind it too
+            // meant a user who set ONLY these via the Biolism profile screen, never
+            // diverging sex/age/height/weight from the main profile, had them silently
+            // vanish on restore: exportForBackup() captures them unconditionally, but
+            // importForBackup only ever reapplied them inside the hasProfileOverride
+            // branch. Always clear first, same as the profile-override fields above.
+            p.remove(K_ETHNICITY); p.remove(K_WAIST); p.remove(K_HIP); p.remove(K_NECK); p.remove(K_CYCLE_DAY)
+            data.ethnicityId?.let { p[K_ETHNICITY] = it }
+            data.waistCm?.let     { p[K_WAIST] = it }
+            data.hipCm?.let       { p[K_HIP] = it }
+            data.neckCm?.let      { p[K_NECK] = it }
+            data.cycleDay?.let    { p[K_CYCLE_DAY] = it }
             if (data.manualHR != null) p[K_MANUAL_HR] = data.manualHR else p.remove(K_MANUAL_HR)
             // Previously only written `if (data.sessions.isNotEmpty())`, same "forgot to
             // clear on the empty case" bug this function's own doc comment above already

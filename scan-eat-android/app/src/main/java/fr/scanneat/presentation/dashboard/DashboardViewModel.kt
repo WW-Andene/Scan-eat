@@ -300,6 +300,14 @@ class DashboardViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    // Dashboard's WeightCard previously always showed kg via a hardcoded string
+    // resource, ignoring this same metric/imperial toggle the Weight tab itself
+    // already respects for its own headline weight display (WeightScreen's
+    // dispWeight()) — a user in imperial mode saw a different unit for the exact
+    // same weight value depending on which screen showed it.
+    val useImperialWeight: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     /**
      * dbId -> short personal-safety warning, same checkUserAllergens()/
      * checkDiet() pattern as DiaryViewModel.diaryWarnings and

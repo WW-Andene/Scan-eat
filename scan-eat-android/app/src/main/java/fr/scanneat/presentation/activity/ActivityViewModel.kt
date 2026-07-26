@@ -9,6 +9,7 @@ import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.ActivityType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -32,11 +33,22 @@ class ActivityViewModel @Inject constructor(
         viewModelScope.launch { repo.syncFromHealthConnect() }
     }
 
-    // Fix #6: use a reactive date so entries refresh automatically after midnight
-    private val _date = MutableStateFlow(LocalDate.now())
-    val date: StateFlow<LocalDate> = _date.asStateFlow()
+    // Polling + distinctUntilChanged, not a fixed `val` set once at construction
+    // and refreshed only via ActivityScreen's ON_RESUME observer calling
+    // refreshDate() - a screen left foregrounded straight through midnight (no
+    // pause/resume in between) never got that call at all, so `entries` could
+    // silently go a day stale with no lifecycle event to catch it. Same fix
+    // already applied to Weight/Hydration/Medication/Diary/MealPlan for this
+    // exact bug.
+    val date: StateFlow<LocalDate> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LocalDate.now())
 
-    val entries: StateFlow<List<ActivityEntry>> = _date
+    val entries: StateFlow<List<ActivityEntry>> = date
         .flatMapLatest { repo.observeByDate(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -129,12 +141,6 @@ class ActivityViewModel @Inject constructor(
         }
         count
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
-    // Refresh to today if the date has changed since last foreground (e.g. app kept alive overnight)
-    fun refreshDate() {
-        val today = LocalDate.now()
-        if (_date.value != today) _date.value = today
-    }
 
     // log()/delete()/restore() previously called repo.log()/repo.delete() completely
     // unguarded - unlike every sibling ViewModel's equivalent write (Result/Dashboard/
