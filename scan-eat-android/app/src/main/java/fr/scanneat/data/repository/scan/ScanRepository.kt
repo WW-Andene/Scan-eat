@@ -324,6 +324,14 @@ class ScanRepository @Inject constructor(
             // stale DB fallback lookup below could fabricate a "success" result
             // for a scan nobody is waiting on anymore.
             if (e is CancellationException) throw e
+            // A legacy row from before classifyNonFood() existed (or, rarer, one the
+            // static NonConsumableLookupDb CSV didn't cover yet) can end up right here
+            // via the cache-hit re-verification above falling through to this real
+            // lookup - it never should have been scored as food, so it's purged
+            // outright rather than left for findBetterInCategory/observeTopScanned to
+            // keep surfacing forever. A harmless no-op when there was no prior row
+            // (a genuinely first-time scan of a non-food barcode).
+            if (e is NonFoodProductException) purgeNonFoodEntry(barcode)
             // Last-resort fallback: neither OFF nor the vision LLM could identify
             // this barcode (or the lookup itself failed after exhausting its own
             // retries) — but the user may have already manually taught the app
@@ -334,6 +342,14 @@ class ScanRepository @Inject constructor(
             customFoodByBarcode(barcode, lang) ?: throw e
         }
         Pair(result, persist(result))
+    }
+
+    private suspend fun purgeNonFoodEntry(barcode: String, profileId: String = "default") = db.withTransaction {
+        dao.deleteByBarcode(barcode, profileId)
+        // matchKeyFor(barcode, ...) always resolves to the barcode itself when one is
+        // present (see its own definition) - passed directly here since there's no
+        // product name to fall back to for something being purged, not scored.
+        scoreHistoryDao.deleteByMatchKey(barcode, profileId)
     }
 
     private suspend fun customFoodByBarcode(barcode: String, lang: String): ScanResult? {

@@ -95,6 +95,16 @@ interface ScanHistoryDao {
     @Query("DELETE FROM scan_history WHERE id = :id")
     suspend fun delete(id: Long)
 
+    /**
+     * Purges a barcode confirmed non-food by a re-verification lookup - see
+     * ScanRepository.scoreBarcode's cache-hit path. Unlike a normal rescan (which
+     * upserts in place), this row should never have existed as a scored food item
+     * at all, so it's removed outright rather than kept around for
+     * findBetterInCategory/observeTopScanned to keep surfacing.
+     */
+    @Query("DELETE FROM scan_history WHERE barcode = :barcode AND profileId = :profileId")
+    suspend fun deleteByBarcode(barcode: String, profileId: String = "default")
+
     @Query("DELETE FROM scan_history WHERE profileId = :profileId")
     suspend fun clearAll(profileId: String = "default")
 

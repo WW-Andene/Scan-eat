@@ -26,6 +26,10 @@ interface ScanScoreHistoryDao {
     @Query("DELETE FROM scan_score_history WHERE profileId = :profileId")
     suspend fun clearAll(profileId: String = "default")
 
+    /** Companion to ScanHistoryDao.deleteByBarcode - see its own doc comment. */
+    @Query("DELETE FROM scan_score_history WHERE matchKey = :matchKey AND profileId = :profileId")
+    suspend fun deleteByMatchKey(matchKey: String, profileId: String = "default")
+
     /** Bounds unbounded growth the same way ScanHistoryDao.trimNonFavorites does for scan_history. */
     @Query("""
         DELETE FROM scan_score_history
