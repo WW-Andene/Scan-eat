@@ -63,7 +63,7 @@ private fun computeGlobalBonuses(product: Product, lang: String = "en"): List<De
     return bonuses
 }
 
-private fun computeGlobalPenalties(product: Product, lang: String = "en"): List<Deduction> {
+private fun computeGlobalPenalties(product: Product, severeFlagCount: Int, lang: String = "en"): List<Deduction> {
     val en = lang == "en"
     val penalties = mutableListOf<Deduction>()
     if (product.hasMisleadingMarketing) penalties += Deduction("global_penalty", if (en) "Misleading marketing claims" else "Allégations marketing trompeuses", -2.0, Severity.MODERATE)
@@ -72,6 +72,20 @@ private fun computeGlobalPenalties(product: Product, lang: String = "en"): List<
         Regex("""huile de palme|huile de palmiste|graisse de palme|st[eé]arine de palme|ol[eé]ine de palme|palm oil|palm kernel|coprah""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
     }
     if (palm != null) penalties += Deduction("global_penalty", (if (en) "Palm oil or derivative: " else "Huile de palme ou dérivé : ") + palm.name, -3.0, Severity.MODERATE)
+    // Cumulative vigilance malus: each pillar's own score floors at 0 (never
+    // negative), so a product that maxes out its deductions in several
+    // *independent* pillars at once (e.g. critical sugar AND critical sat fat
+    // AND high additive risk) never loses more than any single one of those
+    // pillars' own max points — the overflow past each floor is silently
+    // discarded instead of compounding. This adds a small, capped penalty back
+    // in proportion to how many MAJOR/CRITICAL flags fired across all 5
+    // pillars combined, so being bad in many independent ways scores worse
+    // than being bad in just one.
+    when {
+        severeFlagCount >= 8 -> penalties += Deduction("global_penalty", if (en) "$severeFlagCount major/critical flags — very high cumulative risk" else "$severeFlagCount signalements majeurs/critiques — risque cumulé très élevé", -6.0, Severity.MAJOR)
+        severeFlagCount >= 6 -> penalties += Deduction("global_penalty", if (en) "$severeFlagCount major/critical flags — high cumulative risk" else "$severeFlagCount signalements majeurs/critiques — risque cumulé élevé", -4.0, Severity.MODERATE)
+        severeFlagCount >= 4 -> penalties += Deduction("global_penalty", if (en) "$severeFlagCount major/critical flags — elevated cumulative risk" else "$severeFlagCount signalements majeurs/critiques — risque cumulé modéré", -2.0, Severity.MINOR)
+    }
     return penalties
 }
 
@@ -201,8 +215,11 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
     val baseScore = processing.score + nutritionalDensity.score + negativeNutrients.score +
                     additiveRisk.score + ingredientIntegrity.score
 
+    val severeFlagCount = listOf(processing, nutritionalDensity, negativeNutrients, additiveRisk, ingredientIntegrity)
+        .sumOf { pillar -> pillar.deductions.count { it.severity == Severity.CRITICAL || it.severity == Severity.MAJOR } }
+
     val globalBonuses   = computeGlobalBonuses(product, lang)
-    val globalPenalties = computeGlobalPenalties(product, lang)
+    val globalPenalties = computeGlobalPenalties(product, severeFlagCount, lang)
     val bonusTotal      = minOf(10.0, globalBonuses.sumOf { it.points })
     val penaltyTotal    = globalPenalties.sumOf { it.points }
 
