@@ -214,6 +214,9 @@ class ScanRepository @Inject constructor(
                 profileId   = profileId,
                 favorite    = existingFavorite,
                 warningsJson = warningsAdapter.toJson(result.warnings),
+                // Explicit, not relied-on-as-default - see ScanHistoryEntity's own
+                // doc comment on why the raw default must stay false.
+                nonFoodChecked = true,
             )
         }
         // Opportunistic retention trim - scan_history otherwise grows unbounded
@@ -285,11 +288,27 @@ class ScanRepository @Inject constructor(
         // existing OFF+LLM merge logic run instead, and persist() still upserts
         // the same barcode's existing row rather than creating a duplicate.
         if (images.isEmpty()) {
-            getCachedByBarcode(barcode)?.let { cached ->
-                val fresh = if (cached.audit.engineVersion != ENGINE_VERSION) {
-                    cached.copy(audit = scoreProduct(cached.product, lang))
-                } else cached
-                return@ioCatching Pair(fresh, persist(fresh))
+            dao.findByBarcode(barcode)?.let { entity ->
+                // A row written before classifyNonFood() existed (nonFoodChecked=0,
+                // backfilled by MIGRATION_24_25) might be exactly the kind of
+                // lubricant/cosmetic/tobacco item that check exists to catch - trusting
+                // it forever would mean the SAME physical barcode shows the correct
+                // "not food" dialog on a first scan post-update but silently reverts to
+                // its old bogus food score on every rescan after that, just because a
+                // cache row already exists. Falling through to a real lookup re-runs
+                // that check once and persist() then writes nonFoodChecked=true, so
+                // every scan after this one is fast again regardless of API mode. When
+                // offline, still serve the stale cache rather than error out - a legacy
+                // row is far more likely to be genuine food than not, and this defers
+                // to the very next online scan instead of blocking the user now.
+                if (entity.nonFoodChecked || !online) {
+                    entity.toDomain()?.let { cached ->
+                        val fresh = if (cached.audit.engineVersion != ENGINE_VERSION) {
+                            cached.copy(audit = scoreProduct(cached.product, lang))
+                        } else cached
+                        return@ioCatching Pair(fresh, persist(fresh))
+                    }
+                }
             }
         }
         if (!online) error(offlineMessage(lang))

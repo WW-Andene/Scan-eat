@@ -42,4 +42,18 @@ data class ScanHistoryEntity(
     // WarningsSection could never render scan.warnings for any scan, fresh or
     // historical (only audit.warnings, a separate field, ever showed up).
     val warningsJson: String = "[]",
+    // ScanRepository.persist() always passes true explicitly - a row only ever
+    // reaches persist() after scoreDirectBarcode/scoreViaServer's classifyNonFood
+    // check has already passed (a non-food barcode throws NonFoodProductException
+    // before persist() is reached). The raw default stays false on purpose: it's
+    // what MIGRATION_24_25 backfills pre-existing rows to, and - just as
+    // importantly - what BackupRepository's Moshi restore falls back to for any
+    // backup JSON written before this field existed (KotlinJsonAdapterFactory
+    // applies a missing key's constructor default). A restored pre-classifier
+    // backup is exactly the same "might be a mis-scored non-food item" case the
+    // migration handles, so it needs the same false, not persist()'s true.
+    // ScanRepository.scoreBarcode's cache-hit shortcut treats false as "not yet
+    // verified" and re-runs a real lookup once for that barcode instead of
+    // trusting the stale cached score forever.
+    val nonFoodChecked: Boolean = false,
 )

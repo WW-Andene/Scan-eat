@@ -39,7 +39,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationLogEntity::class,
         ScanScoreHistoryEntity::class,
     ],
-    version = 24,
+    version = 25,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -366,5 +366,19 @@ val MIGRATION_23_24 = object : Migration(23, 24) {
         // scan — same index-gap class MIGRATION_8_9 already fixed for
         // custom_foods/recipes/meal_templates.
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_activity_log_profileId_externalSourceId` ON `activity_log` (`profileId`, `externalSourceId`)")
+    }
+}
+val MIGRATION_24_25 = object : Migration(24, 25) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v24 → v25: scan_history gains nonFoodChecked - OffMapper.classifyNonFood()
+        // (server + Android) now blocks a lubricant/cosmetic/tobacco/etc. barcode
+        // from ever being scored as food, but rows written before that check
+        // existed are already sitting in scan_history with a bogus nutrition-based
+        // grade. Backfilling them to 0 (not-yet-checked) rather than 1 lets
+        // ScanRepository.scoreBarcode's cache-hit shortcut tell "verified food" apart
+        // from "never checked" and re-run one real lookup per legacy barcode instead
+        // of trusting a pre-classifier score forever - see ScanHistoryEntity's own
+        // doc comment on the field.
+        db.execSQL("ALTER TABLE `scan_history` ADD COLUMN `nonFoodChecked` INTEGER NOT NULL DEFAULT 0")
     }
 }
