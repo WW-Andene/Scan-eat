@@ -1113,10 +1113,10 @@
     <string name="dashboard_chronic_gap_title">Écarts récurrents</string>
     <string name="dashboard_chronic_gap_entry">%1$s : bas %2$d/%3$d jours (%4$d %% de l\'objectif en moyenne)</string>
     <string name="dashboard_insight_title">Cohérence hebdo</string>
-    <string name="dashboard_insight_deficit_losing">Cette semaine : déficit moyen de %1$d kcal/j, et le poids baisse (%2$+.1f kg/sem) — cohérent.</string>
-    <string name="dashboard_insight_surplus_gaining">Cette semaine : surplus moyen de %1$d kcal/j, et le poids monte (%2$+.1f kg/sem) — cohérent.</string>
-    <string name="dashboard_insight_deficit_not_losing">Cette semaine : déficit moyen de %1$d kcal/j, mais le poids ne baisse pas (%2$+.1f kg/sem) — à surveiller.</string>
-    <string name="dashboard_insight_surplus_not_gaining">Cette semaine : surplus moyen de %1$d kcal/j, mais le poids ne monte pas (%2$+.1f kg/sem) — à surveiller.</string>
+    <string name="dashboard_insight_deficit_losing">Cette semaine : déficit moyen de %1$d kcal/j, et le poids baisse (%2$s/sem) — cohérent.</string>
+    <string name="dashboard_insight_surplus_gaining">Cette semaine : surplus moyen de %1$d kcal/j, et le poids monte (%2$s/sem) — cohérent.</string>
+    <string name="dashboard_insight_deficit_not_losing">Cette semaine : déficit moyen de %1$d kcal/j, mais le poids ne baisse pas (%2$s/sem) — à surveiller.</string>
+    <string name="dashboard_insight_surplus_not_gaining">Cette semaine : surplus moyen de %1$d kcal/j, mais le poids ne monte pas (%2$s/sem) — à surveiller.</string>
     <string name="dashboard_insight_active_minutes">%1$d min actives cette semaine</string>
     <string name="dashboard_insight_fasting_adherence">Jeûne : %1$d %% des jeûnes réussis cette semaine</string>
     <string name="dashboard_insight_hydration_adherence">Hydratation : objectif atteint %1$d %% de la semaine</string>
@@ -1381,7 +1381,7 @@
     <string name="calendar_day_empty">Rien d\'enregistré ce jour-là</string>
     <string name="calendar_open_in_diary">Ouvrir dans Journal</string>
     <string name="calendar_day_meals">%1$d repas · %2$d kcal</string>
-    <string name="calendar_day_weight">%1$.1f kg</string>
+    <string name="calendar_day_weight">%1$s</string>
     <string name="calendar_day_activity">%1$d activité(s) · %2$d min · %3$d kcal</string>
     <string name="calendar_day_hydration">%1$d mL bus</string>
     <string name="calendar_day_fasting">Jeûne : %1$.1f h / %2$d h visé</string>

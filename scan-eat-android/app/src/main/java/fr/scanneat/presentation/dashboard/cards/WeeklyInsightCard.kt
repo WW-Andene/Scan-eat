@@ -25,6 +25,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.ScanEatCard
+import fr.scanneat.presentation.ui.theme.dispWeight
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import kotlin.math.abs
@@ -37,7 +38,7 @@ import kotlin.math.abs
  * signal is strong enough this week to say anything useful yet.
  */
 @Composable
-internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake) {
+internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useImperial: Boolean = false) {
     val consistent = insight.agreement == InsightAgreement.CONSISTENT
     val color = if (consistent) semanticGreen() else semanticAmber()
     val isDeficit = insight.avgDailyDeficitKcal > 0
@@ -58,8 +59,10 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake) {
             )
             Text(stringResource(R.string.dashboard_insight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         }
+        val trend = insight.weightTrendKgPerWeek
+        val trendSign = if (trend >= 0) "+" else "-"
         Text(
-            stringResource(messageRes, abs(insight.avgDailyDeficitKcal), insight.weightTrendKgPerWeek),
+            stringResource(messageRes, abs(insight.avgDailyDeficitKcal), "$trendSign${dispWeight(abs(trend), useImperial)}"),
             style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.85f),
         )
         if (insight.weeklyActiveMinutes > 0) {

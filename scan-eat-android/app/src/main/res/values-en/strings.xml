@@ -1077,10 +1077,10 @@
     <string name="dashboard_chronic_gap_title">Recurring Gaps</string>
     <string name="dashboard_chronic_gap_entry">%1$s: low %2$d/%3$d days (avg %4$d%% of target)</string>
     <string name="dashboard_insight_title">Weekly consistency</string>
-    <string name="dashboard_insight_deficit_losing">This week: average deficit of %1$d kcal/day, and weight is trending down (%2$+.1f kg/week) — consistent.</string>
-    <string name="dashboard_insight_surplus_gaining">This week: average surplus of %1$d kcal/day, and weight is trending up (%2$+.1f kg/week) — consistent.</string>
-    <string name="dashboard_insight_deficit_not_losing">This week: average deficit of %1$d kcal/day, but weight isn\'t trending down (%2$+.1f kg/week) — worth a look.</string>
-    <string name="dashboard_insight_surplus_not_gaining">This week: average surplus of %1$d kcal/day, but weight isn\'t trending up (%2$+.1f kg/week) — worth a look.</string>
+    <string name="dashboard_insight_deficit_losing">This week: average deficit of %1$d kcal/day, and weight is trending down (%2$s/week) — consistent.</string>
+    <string name="dashboard_insight_surplus_gaining">This week: average surplus of %1$d kcal/day, and weight is trending up (%2$s/week) — consistent.</string>
+    <string name="dashboard_insight_deficit_not_losing">This week: average deficit of %1$d kcal/day, but weight isn\'t trending down (%2$s/week) — worth a look.</string>
+    <string name="dashboard_insight_surplus_not_gaining">This week: average surplus of %1$d kcal/day, but weight isn\'t trending up (%2$s/week) — worth a look.</string>
     <string name="dashboard_insight_active_minutes">%1$d active min this week</string>
     <string name="dashboard_insight_fasting_adherence">Fasting: %1$d%% of fasts hit target this week</string>
     <string name="dashboard_insight_hydration_adherence">Hydration: goal met %1$d%% of this week</string>
@@ -1380,7 +1380,7 @@
     <string name="calendar_day_empty">Nothing logged this day</string>
     <string name="calendar_open_in_diary">Open in Journal</string>
     <string name="calendar_day_meals">%1$d meal(s) · %2$d kcal</string>
-    <string name="calendar_day_weight">%1$.1f kg</string>
+    <string name="calendar_day_weight">%1$s</string>
     <string name="calendar_day_activity">%1$d activity(ies) · %2$d min · %3$d kcal</string>
     <string name="calendar_day_hydration">%1$d mL drunk</string>
     <string name="calendar_day_fasting">Fasting: %1$.1f h / %2$d h target</string>

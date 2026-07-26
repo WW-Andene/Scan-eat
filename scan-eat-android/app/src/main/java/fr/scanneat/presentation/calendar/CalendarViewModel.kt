@@ -88,6 +88,8 @@ class CalendarViewModel @Inject constructor(
 
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+    val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     fun setMonth(m: YearMonth) { _month.value = m }
     fun selectDate(date: LocalDate) { _selectedDate.value = date }

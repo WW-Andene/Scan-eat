@@ -74,6 +74,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
     val weekSummaries = viewModel.weekSummaries.collectAsStateWithLifecycle()
     val monthSummary = viewModel.monthSummary.collectAsStateWithLifecycle()
     val language = viewModel.language.collectAsStateWithLifecycle()
+    val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
     val locale = Locale(language.value)
     var weekPopup by remember { mutableStateOf<WeekSummary?>(null) }
 
@@ -125,7 +126,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             monthSummary.value?.let { ms ->
                 MonthSummaryBar(ms)
             }
-            DayDetailCard(detail.value, locale, onOpenDate = onOpenDate)
+            DayDetailCard(detail.value, locale, useImperial = useImperial.value, onOpenDate = onOpenDate)
             Spacer(Modifier.height(Spacing.XXL))
             }
             }
@@ -282,7 +283,7 @@ private fun MultiMarkerMonthGrid(
 }
 
 @Composable
-private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, onOpenDate: (LocalDate) -> Unit = {}) {
+private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, useImperial: Boolean = false, onOpenDate: (LocalDate) -> Unit = {}) {
     val dateFmt = DateTimeFormatter.ofPattern("EEEE d MMMM", locale)
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -306,7 +307,7 @@ private fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, onOpenDate:
                 DetailRow(colorFor(CalendarSource.MEALS), stringResource(R.string.calendar_day_meals, detail.mealCount, detail.kcal.roundToInt()))
             }
             detail.weightKg?.let {
-                DetailRow(colorFor(CalendarSource.WEIGHT), stringResource(R.string.calendar_day_weight, it))
+                DetailRow(colorFor(CalendarSource.WEIGHT), stringResource(R.string.calendar_day_weight, dispWeight(it, useImperial)))
             }
             if (detail.activities.isNotEmpty()) {
                 val totalMin = detail.activities.sumOf { it.minutes }

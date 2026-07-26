@@ -160,7 +160,7 @@ fun DashboardScreen(
             // signal is strong enough yet to say anything useful. ----
             (s.crossInsight as? CrossTrackerInsight.WeightVsIntake)?.let { insight ->
                 if (insight.agreement != InsightAgreement.INCONCLUSIVE) {
-                    item { WeeklyInsightCard(insight) }
+                    item { WeeklyInsightCard(insight, useImperial = useImperialWeight.value) }
                 }
             }
 
