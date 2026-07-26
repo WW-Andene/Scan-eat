@@ -295,11 +295,11 @@ private fun WeightSummaryCard(
                 } else {
                     if (s.deltaKg <= 0) semanticGreen() else semanticRed()
                 }
-                Text(stringResource(R.string.weight_delta_kg, "$sign${s.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = dColor)
+                Text(stringResource(R.string.weight_delta_kg, "$sign${dispWeight(kotlin.math.abs(s.deltaKg))}"), style = MaterialTheme.typography.labelSmall, color = dColor)
             }
             Column(horizontalAlignment = Alignment.End) {
                 val tSign = if (s.trendKgPerWeek >= 0) "+" else ""
-                Text(stringResource(R.string.weight_trend_kg_week, "$tSign${s.trendKgPerWeek}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                Text(stringResource(R.string.weight_trend_kg_week, "$tSign${dispWeight(kotlin.math.abs(s.trendKgPerWeek))}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                 if (forecast is WeightForecast.Ok) {
                     Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                 }

@@ -34,12 +34,12 @@ internal fun WeightCard(summary: fr.scanneat.data.repository.health.WeightSummar
                     else -> OnSurface.copy(0.5f)
                 }
                 val sign = if (summary.deltaKg >= 0) "+" else ""
-                Text(stringResource(R.string.weight_delta_kg, "$sign${summary.deltaKg}"), style = MaterialTheme.typography.labelSmall, color = deltaColor)
+                Text(stringResource(R.string.weight_delta_kg, "$sign${dispWeight(kotlin.math.abs(summary.deltaKg), useImperial)}"), style = MaterialTheme.typography.labelSmall, color = deltaColor)
             }
             Column(horizontalAlignment = Alignment.End) {
                 val trend = summary.trendKgPerWeek
                 val trendSign = if (trend >= 0) "+" else ""
-                Text(stringResource(R.string.weight_trend_kg_week, "$trendSign$trend"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                Text(stringResource(R.string.weight_trend_kg_week, "$trendSign${dispWeight(kotlin.math.abs(trend), useImperial)}"), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                 if (forecast is WeightForecast.Ok) {
                     Text(stringResource(R.string.weight_goal_forecast, forecast.days), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                 }
