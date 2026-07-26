@@ -38,6 +38,11 @@ ANDROID_SCORING_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/dom
 # OFF-mapping logic are different packages there, unlike the server which keeps
 # both under the single `shared` package (ScoringEngine.kt/ServerOffMapper.kt).
 ANDROID_NUTRITION_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/domain/engine/nutrition"
+# barcodeCandidates and its helpers live in fr.scanneat.util on the Android side
+# (a plain utility, not a domain/engine file) - the server keeps its own manual
+# copy inline in OffService.kt (see that file's own "manual sync" comment).
+ANDROID_UTIL_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/util"
+SERVER_SERVICE_DIR = REPO / "scan-eat-server/src/main/kotlin/fr/scanneat/service"
 
 # (function name, server path, android path) — pure-logic functions that must
 # stay identical between the two hand-maintained copies.
@@ -108,6 +113,16 @@ PAIRS = [
     ("DEFAULT_THRESHOLDS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "CategoryThresholds.kt"),
     ("CATEGORY_THRESHOLDS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "CategoryThresholds.kt"),
     ("NRV_TARGETS", SERVER_DIR / "ScoringEngine.kt", ANDROID_SCORING_DIR / "NutritionalDensityPillar.kt"),
+    # GTIN candidate expansion (compressed UPC-E / GTIN-14 case codes -> the
+    # EAN-13/UPC-A form OFF actually indexes) - OffService.kt's own header calls
+    # this "manual sync of ScanRepository's Android logic", but nothing actually
+    # verified that until now. A silent drift here means the exact same barcode
+    # finds a product in one API mode (DIRECT or SERVER) and 404s in the other.
+    ("barcodeCandidates", SERVER_SERVICE_DIR / "OffService.kt", ANDROID_UTIL_DIR / "BarcodeNormalizer.kt"),
+    ("upcEToUpcA", SERVER_SERVICE_DIR / "OffService.kt", ANDROID_UTIL_DIR / "BarcodeNormalizer.kt"),
+    ("gtin14ToEan13", SERVER_SERVICE_DIR / "OffService.kt", ANDROID_UTIL_DIR / "BarcodeNormalizer.kt"),
+    ("ean13CheckDigit", SERVER_SERVICE_DIR / "OffService.kt", ANDROID_UTIL_DIR / "BarcodeNormalizer.kt"),
+    ("upcCheckDigit", SERVER_SERVICE_DIR / "OffService.kt", ANDROID_UTIL_DIR / "BarcodeNormalizer.kt"),
 ]
 
 FUNC_START_RE_TMPL = r"^(?:private |internal |public )?fun {name}\b"
