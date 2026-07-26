@@ -643,6 +643,35 @@ class PersonalScoreEngineTest {
         assertEquals(0, result.personalScore)
     }
 
+    // Regression: checkDietCompliance()'s veto reason and checkHealthConditions()'s
+    // veto reason used to be combined with `dietReason ?: otherReason` - whichever
+    // fired first "won" and the other was silently dropped. A vegan-and-pregnant
+    // profile scanning something containing both gelatin (vegan veto) and wine
+    // (pregnancy alcohol veto) saw only the diet reason, hiding the arguably more
+    // safety-relevant pregnancy/alcohol warning entirely.
+    @Test
+    fun `a product that trips both a diet veto and a health-condition veto keeps both reasons`() {
+        val sauce = Product(
+            name = "Sauce à la gélatine et au vin", category = ProductCategory.CONDIMENT, novaClass = NovaClass.PROCESSED,
+            ingredients = listOf(
+                Ingredient(name = "gélatine", category = IngredientCategory.FOOD),
+                Ingredient(name = "vin", category = IngredientCategory.FOOD),
+            ),
+            nutrition = NutritionPer100g(energyKcal = 80.0, fatG = 0.0, saturatedFatG = 0.0, carbsG = 3.0, sugarsG = 1.0, fiberG = 0.0, proteinG = 0.0, saltG = 0.3),
+        )
+        val audit = scoreProduct(sauce)
+        val profile = pregnantProfile().copy(diet = DietKey.VEGAN)
+        val result = computePersonalScore(audit, sauce, profile, lang = "en")
+
+        assertTrue(result.veto)
+        assertEquals(0, result.personalScore)
+        assertNotNull(result.dietReason)
+        assertTrue("diet reason should still mention the vegan violation",
+            result.dietReason!!.contains("vegan", ignoreCase = true) || result.dietReason!!.contains("gelatin", ignoreCase = true))
+        assertTrue("combined reason should also mention the pregnancy/alcohol veto, not just the diet one",
+            result.dietReason!!.contains("alcohol", ignoreCase = true) || result.dietReason!!.contains("pregnancy", ignoreCase = true))
+    }
+
     @Test
     fun `Vinaigrette (vinegar) does not falsely trigger the pregnancy alcohol veto`() {
         // Plain "vinaigre" (not "vinaigre de vin") - the latter genuinely

@@ -949,13 +949,11 @@ fun computePersonalScore(
         product.nutrition.proteinG < 1.0 && product.nutrition.fiberG < 1.0
 
     val adjustments = mutableListOf<PersonalAdjustment>()
-    var dietReason: String? = null
     var veto = false
 
     val dietResult = checkDietCompliance(product, profile, lang)
     adjustments += dietResult.adjustments
     veto = veto || dietResult.veto
-    dietReason = dietReason ?: dietResult.dietReason
 
     // ===== ALLERGEN CHECK =====
     val allergenHits = if (profile.allergens.isNotEmpty())
@@ -965,7 +963,16 @@ fun computePersonalScore(
     val conditionsResult = checkHealthConditions(product, profile, lang, catThresholds, isSugarSweetenedBeverage)
     adjustments += conditionsResult.adjustments
     veto = veto || conditionsResult.veto
-    dietReason = dietReason ?: conditionsResult.dietReason
+
+    // Both checks above can independently veto the same product (e.g. a vegan
+    // profile that's also pregnant, scanning something with both gelatin and
+    // alcohol) - previously an Elvis-chained `dietReason ?: otherReason` kept only
+    // whichever fired first and silently dropped the other, so DietVetoBanner (the
+    // one UI surface explaining why the score was zeroed) could hide a genuinely
+    // safety-relevant health-condition reason behind an unrelated diet reason.
+    val dietReason = listOfNotNull(dietResult.dietReason, conditionsResult.dietReason)
+        .takeIf { it.isNotEmpty() }
+        ?.joinToString(" · ")
 
     adjustments += computeAgeAdjustments(product, profile, catThresholds, isSugarSweetenedBeverage, lang)
     adjustments += computeSexAdjustments(product, profile, lang)
