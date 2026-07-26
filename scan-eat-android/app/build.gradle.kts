@@ -193,7 +193,7 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
     implementation(libs.mlkit.barcode)
-    implementation(libs.mlkit.object.detection)
+    implementation(libs.mlkit.objectdetection)
 
     // Health Connect
     implementation(libs.health.connect.client)
