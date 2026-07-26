@@ -336,7 +336,13 @@ class BackupRepository @Inject constructor(
      * scores as "prior scans" the next time a previously-scanned product is
      * rescanned, contradicting what a user asking to erase their history expects.
      */
-    suspend fun clearScanHistory() {
+    suspend fun clearScanHistory() = db.withTransaction {
+        // Same atomicity gap as ScanRepository.persist() (its inverse: clearing
+        // instead of appending) - two separate DAO calls with no shared
+        // transaction meant a process death between them could clear scan_history
+        // while leaving scan_score_history intact, resurfacing pre-clear scores as
+        // "prior scans" the next time a previously-scanned product was rescanned -
+        // exactly the outcome this function's own doc comment says it exists to avoid.
         scanHistoryDao.clearAll()
         scanScoreHistoryDao.clearAll()
     }
