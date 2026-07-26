@@ -371,10 +371,13 @@ class ScanViewModel @Inject constructor(
      * plate into a single one. Every returned result is persisted immediately,
      * same as the single-item path's success branch, so MultiFoodFoundDialog can
      * navigate straight to the existing Result screen for whichever item the
-     * user taps without a second network round-trip. Unlike identifyFromPhotos,
-     * this doesn't cross-check the medication/non-consumable name DBs per item -
-     * those lookups exist for a single scanned barcode/label, not a multi-item
-     * plate photo, which is never going to be a pill box or a cleaning product.
+     * user taps without a second network round-trip. Each item is still
+     * cross-checked against the medication/non-consumable name DBs first,
+     * same as identifyFromPhotos - "a plate is never going to contain a pill
+     * box" doesn't rule out the vision model misidentifying something else in
+     * frame as one of the plate's "foods," and unlike the single-item path,
+     * nothing here would otherwise stop that misidentification from being
+     * persisted straight into scan_history with a nutrition-based score.
      */
     fun identifyMultiFromPhotos() {
         val imgs = _images.value
@@ -392,10 +395,17 @@ class ScanViewModel @Inject constructor(
                 val identified = scanRepo.identifyMultiFromImages(imgs, lang, online)
                 identified.fold(
                     onSuccess = { results ->
-                        _state.value = if (results.isEmpty()) {
+                        val nonEdibleNames = withContext(Dispatchers.IO) {
+                            results.filter { r ->
+                                findMedicationByName(appContext, r.product.name) != null ||
+                                    findNonConsumableByName(appContext, r.product.name) != null
+                            }.map { it.product.name }.toSet()
+                        }
+                        val edibleResults = results.filterNot { it.product.name in nonEdibleNames }
+                        _state.value = if (edibleResults.isEmpty()) {
                             ScanUiState.Error(noFoodsDetectedMessage(lang))
                         } else {
-                            ScanUiState.MultiFoodFound(items = results.map { it to scanRepo.persist(it) })
+                            ScanUiState.MultiFoodFound(items = edibleResults.map { it to scanRepo.persist(it) })
                         }
                     },
                     onFailure = { e -> _state.value = ScanUiState.Error(e.message ?: genericErrorMessage(lang)) },
