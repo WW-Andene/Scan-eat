@@ -90,7 +90,8 @@ private fun labelJsonSchema(): String = """
     "vit_d_ug": <number or null>,
     "vit_e_mg": <number or null>,
     "vit_k_ug": <number or null>,
-    "b12_ug": <number or null>
+    "b12_ug": <number or null>,
+    "caffeine_mg": <number or null>
   },
   "organic": <true|false>,
   "whole_grain_primary": <true|false>,
@@ -184,6 +185,7 @@ data class LlmNutritionDto(
     val vit_e_mg: Double? = null,
     val vit_k_ug: Double? = null,
     val b12_ug: Double? = null,
+    val caffeine_mg: Double? = null,
 )
 
 // ============================================================================
@@ -228,6 +230,12 @@ private fun mapLlmToProduct(dto: LlmProductDto): Product {
         vitEMg        = n?.vit_e_mg,
         vitKUg        = n?.vit_k_ug,
         b12Ug         = n?.b12_ug,
+        // Photo/OCR-identified products previously never got a caffeine value
+        // at all (unlike barcode-scanned ones, which read it straight from
+        // OFF's own nutriments map) - the hypertension caffeine check could
+        // only ever fire for a product found via barcode, silently missing
+        // a caffeinated drink identified purely from its label photo.
+        caffeineMg    = n?.caffeine_mg,
     )
     return Product(
         name      = dto.name?.trim() ?: "(produit sans nom)",

@@ -73,6 +73,7 @@ private data class LlmNutritionDto(
     @SerialName("vit_e_mg") val vitEMg: Double? = null,
     @SerialName("vit_k_ug") val vitKUg: Double? = null,
     @SerialName("b12_ug") val b12Ug: Double? = null,
+    @SerialName("caffeine_mg") val caffeineMg: Double? = null,
 )
 
 // ---- Prompts ----
@@ -86,7 +87,7 @@ Read the food packaging image and extract as raw JSON (no markdown, no preamble)
   "category": "<sandwich|ready_meal|bread|breakfast_cereal|yogurt|cheese|processed_meat|fresh_meat|fish|snack_sweet|snack_salty|beverage_soft|beverage_juice|beverage_water|condiment|oil_fat|other>",
   "nova_class": <1|2|3|4>,
   "ingredients": [{ "name": "<name>", "percentage": <number|null>, "e_number": "<Exxx|null>", "category": "<food|additive|processing_aid|null>", "is_whole_food": <true|false|null> }],
-  "nutrition": { "energy_kcal":<n>, "fat_g":<n>, "saturated_fat_g":<n>, "carbs_g":<n>, "sugars_g":<n>, "added_sugars_g":<n|null>, "fiber_g":<n>, "protein_g":<n>, "salt_g":<n>, "trans_fat_g":<n|null>, "iron_mg":<n|null>, "calcium_mg":<n|null>, "magnesium_mg":<n|null>, "potassium_mg":<n|null>, "zinc_mg":<n|null>, "vit_a_ug":<n|null>, "vit_c_mg":<n|null>, "vit_d_ug":<n|null>, "vit_e_mg":<n|null>, "b12_ug":<n|null> },
+  "nutrition": { "energy_kcal":<n>, "fat_g":<n>, "saturated_fat_g":<n>, "carbs_g":<n>, "sugars_g":<n>, "added_sugars_g":<n|null>, "fiber_g":<n>, "protein_g":<n>, "salt_g":<n>, "trans_fat_g":<n|null>, "iron_mg":<n|null>, "calcium_mg":<n|null>, "magnesium_mg":<n|null>, "potassium_mg":<n|null>, "zinc_mg":<n|null>, "vit_a_ug":<n|null>, "vit_c_mg":<n|null>, "vit_d_ug":<n|null>, "vit_e_mg":<n|null>, "vit_k_ug":<n|null>, "b12_ug":<n|null>, "caffeine_mg":<n|null> },
   "organic": <true|false>, "whole_grain_primary": <true|false>, "fermented": <true|false>,
   "has_health_claims": <true|false>, "has_misleading_marketing": <true|false>,
   "named_oils": <true|false|null>, "origin": "<country|null>", "weight_g": <number|null>,
@@ -221,7 +222,17 @@ private fun mapToProduct(dto: LlmProductDto): Product {
         vitCMg        = n?.vitCMg,
         vitDUg        = n?.vitDUg,
         vitEMg        = n?.vitEMg,
+        // vitKUg was already declared on LlmNutritionDto but neither requested in
+        // the prompt's JSON schema above nor read here - a structurally-present
+        // field that could never actually carry a value end to end.
+        vitKUg        = n?.vitKUg,
         b12Ug         = n?.b12Ug,
+        // Photo/OCR-identified products previously never got a caffeine value at
+        // all (unlike barcode-scanned ones, which read it straight from OFF's own
+        // nutriments map) - the hypertension caffeine check could only ever fire
+        // for a product found via barcode. Mirrors the identical Android-side fix
+        // in OcrParser.kt.
+        caffeineMg    = n?.caffeineMg,
     )
     return Product(
         name      = dto.name?.trim() ?: "(produit sans nom)",
