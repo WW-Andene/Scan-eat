@@ -37,6 +37,11 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
     // language setting, unlike BiolismOnboardingScreen (the only caller that
     // already used the lang-aware .label(lang)/.note(lang) extensions).
     val language = viewModel.language.collectAsStateWithLifecycle()
+    // Same app-wide, persisted metric/imperial preference ProfileScreen/WeightScreen
+    // read/write (see BiolismProfileViewModel.useImperial's own doc comment) -
+    // replaces this screen's previous session-only, always-metric-by-default local
+    // toggle below.
+    val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
 
     val p = profile.value
 
@@ -51,7 +56,6 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
     var hip        by remember(p) { mutableStateOf(p.hipCm.takeIf { it > 0 }?.toString() ?: "") }
     var neck       by remember(p) { mutableStateOf(p.neckCm.takeIf { it > 0 }?.toString() ?: "") }
     var cycleDay   by remember(p) { mutableStateOf(p.cycleDay.toString()) }
-    var useImperial by remember { mutableStateOf(false) }
 
     LaunchedEffect(saved.value) { if (saved.value) viewModel.clearSaved() }
 
@@ -70,11 +74,11 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         }
     }
 
-    fun dispWeight(kg: Double): String = sharedDispWeight(kg, useImperial)
+    fun dispWeight(kg: Double): String = sharedDispWeight(kg, useImperial.value)
     fun dispCirc(cm: Double): String =
-        if (useImperial) "%.1f in".format(Locale.US, cm / CM_TO_IN) else "%.1f cm".format(Locale.US, cm)
+        if (useImperial.value) "%.1f in".format(Locale.US, cm / CM_TO_IN) else "%.1f cm".format(Locale.US, cm)
     fun dispHeight(cm: Double): String {
-        if (!useImperial) return "%.1f cm".format(Locale.US, cm)
+        if (!useImperial.value) return "%.1f cm".format(Locale.US, cm)
         // Round to the displayed 1-decimal precision *before* splitting into feet/
         // inches - splitting the raw unrounded value let a remainder like 11.9999in
         // independently round up to display "12.0" without carrying into the next
@@ -108,8 +112,8 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
                     FilterChip(
-                        selected = useImperial == imperial,
-                        onClick = { useImperial = imperial },
+                        selected = useImperial.value == imperial,
+                        onClick = { viewModel.setUseImperial(imperial) },
                         label = { Text(label, style = MaterialTheme.typography.labelSmall) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
                     )
@@ -167,11 +171,11 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             BioInput(stringResource(R.string.profile_field_age), age, KeyboardType.Number) { age = it }
             BioInputUnit(
                 stringResource(R.string.profile_field_height), stringResource(R.string.profile_field_height_imperial),
-                height, useImperial, { it / CM_TO_IN }, { it * CM_TO_IN },
+                height, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
             ) { height = it }
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_weight), stringResource(R.string.bioprofile_field_weight_imperial),
-                weight, useImperial, { it * KG_TO_LB }, { it / KG_TO_LB },
+                weight, useImperial.value, { it * KG_TO_LB }, { it / KG_TO_LB },
             ) { weight = it }
         }
 
@@ -221,15 +225,15 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_waist), stringResource(R.string.bioprofile_field_waist_imperial),
-                waist, useImperial, { it / CM_TO_IN }, { it * CM_TO_IN },
+                waist, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
             ) { waist = it }
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_hip), stringResource(R.string.bioprofile_field_hip_imperial),
-                hip, useImperial, { it / CM_TO_IN }, { it * CM_TO_IN },
+                hip, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
             ) { hip = it }
             BioInputUnit(
                 stringResource(R.string.bioprofile_field_neck), stringResource(R.string.bioprofile_field_neck_imperial),
-                neck, useImperial, { it / CM_TO_IN }, { it * CM_TO_IN },
+                neck, useImperial.value, { it / CM_TO_IN }, { it * CM_TO_IN },
             ) { neck = it }
         }
 

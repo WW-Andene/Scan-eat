@@ -14,12 +14,25 @@ import javax.inject.Inject
 @HiltViewModel
 class BiolismProfileViewModel @Inject constructor(
     private val repo: BiolismRepository,
-    prefs: UserPreferences,
+    private val prefs: UserPreferences,
 ) : ViewModel() {
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     val profile: StateFlow<BiolismProfile> = repo.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BiolismProfile())
+
+    // Same app-wide, persisted metric/imperial preference ProfileViewModel/
+    // WeightViewModel read/write - this screen previously kept its own
+    // session-only, always-metric-by-default local toggle instead, so a user
+    // in imperial mode everywhere else in the app still saw cm/kg here, and
+    // any preference they set on this specific screen was lost the moment
+    // they navigated away instead of matching the rest of the app.
+    val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setUseImperial(v: Boolean) {
+        viewModelScope.launch { prefs.setUseImperialWeight(v) }
+    }
 
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
