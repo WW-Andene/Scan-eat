@@ -63,7 +63,7 @@ class UserPreferences @Inject constructor(
 
     // ---- API / app settings ----
 
-    // The stored value is Keystore-encrypted (see ApiKeyCipher) going forward.
+    // The stored value is Keystore-encrypted (see SecureFieldCipher) going forward.
     // A value stored before this existed is still plaintext — decryptOrNull
     // returns null for it (not valid Base64(iv+ciphertext), or the GCM tag
     // fails to verify), so it's re-encrypted in place on first read after the
@@ -75,8 +75,8 @@ class UserPreferences @Inject constructor(
     // an unchanged value.
     val groqApiKey: Flow<String> = storeData.map { prefs ->
         val stored = prefs[KEY_API_KEY] ?: return@map ""
-        ApiKeyCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
-            store.edit { it[KEY_API_KEY] = ApiKeyCipher.encrypt(plaintext) }
+        SecureFieldCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
+            store.edit { it[KEY_API_KEY] = SecureFieldCipher.encrypt(plaintext) }
         }
     }.distinctUntilChanged()
     /** Empty string means "use the built-in default" (see OcrParser.DEFAULT_MODEL). */
@@ -90,8 +90,8 @@ class UserPreferences @Inject constructor(
      */
     val cerebrasApiKey: Flow<String> = storeData.map { prefs ->
         val stored = prefs[KEY_CEREBRAS_API_KEY] ?: return@map ""
-        ApiKeyCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
-            store.edit { it[KEY_CEREBRAS_API_KEY] = ApiKeyCipher.encrypt(plaintext) }
+        SecureFieldCipher.decryptOrNull(stored) ?: stored.also { plaintext ->
+            store.edit { it[KEY_CEREBRAS_API_KEY] = SecureFieldCipher.encrypt(plaintext) }
         }
     }.distinctUntilChanged()
     val apiMode: Flow<ApiMode>    = storeData.map { ApiMode.fromKey(it[KEY_API_MODE] ?: "direct") }.distinctUntilChanged()
@@ -115,8 +115,8 @@ class UserPreferences @Inject constructor(
      */
     val useImperialWeight: Flow<Boolean> = storeData.map { it[KEY_USE_IMPERIAL_WEIGHT] ?: false }.distinctUntilChanged()
 
-    suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = ApiKeyCipher.encrypt(key) }
-    suspend fun setCerebrasApiKey(key: String) = store.edit { it[KEY_CEREBRAS_API_KEY] = ApiKeyCipher.encrypt(key) }
+    suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = SecureFieldCipher.encrypt(key) }
+    suspend fun setCerebrasApiKey(key: String) = store.edit { it[KEY_CEREBRAS_API_KEY] = SecureFieldCipher.encrypt(key) }
     suspend fun setGroqModel(model: String) = store.edit { it[KEY_GROQ_MODEL] = model }
     suspend fun setApiMode(mode: ApiMode)   = store.edit { it[KEY_API_MODE]   = mode.key }
     suspend fun setServerUrl(url: String)   = store.edit { it[KEY_SERVER_URL] = url }
@@ -142,20 +142,24 @@ class UserPreferences @Inject constructor(
             activityLevel  = ActivityLevel.values().firstOrNull { it.name == p[KEY_PROFILE_ACTIVITY] } ?: ActivityLevel.MODERATELY_ACTIVE,
             goal           = Goal.values().firstOrNull { it.name == p[KEY_PROFILE_GOAL] } ?: Goal.MAINTAIN,
             isMenstruating = p[KEY_PROFILE_MENSTRUATING] ?: false,
-            allergens      = p[KEY_PROFILE_ALLERGENS]
-                ?.split(",")
-                ?.map { it.trim() }
-                ?.filter { it.isNotEmpty() }
-                ?.toSet()
-                ?: emptySet(),
-            healthConditions = p[KEY_PROFILE_CONDITIONS]
-                ?.split(",")
-                ?.map { it.trim() }
-                ?.filter { it.isNotEmpty() }
-                ?.toSet()
-                ?: emptySet(),
+            allergens      = decryptCsvSet(p[KEY_PROFILE_ALLERGENS]),
+            healthConditions = decryptCsvSet(p[KEY_PROFILE_CONDITIONS]),
         )
     }.distinctUntilChanged()
+
+    // Allergens and health conditions (diabetes, pregnancy, kidney disease,
+    // allergies, ...) are real medical data, not incidental settings — stored
+    // Keystore-encrypted like the API keys above, via the same
+    // decrypt-or-fall-back-to-legacy-plaintext-and-re-encrypt pattern. A value
+    // saved before this existed is still a plain comma-joined string;
+    // decryptOrNull returns null for it and the raw value is used as-is (the
+    // repair/re-encrypt happens on the next saveProfile, same as any other
+    // profile edit — there's no dedicated migration path since, unlike the API
+    // key flows, this one has no long-lived read-only collector to repair in place).
+    private fun decryptCsvSet(stored: String?): Set<String> {
+        val plaintext = stored?.let { SecureFieldCipher.decryptOrNull(it) ?: it } ?: return emptySet()
+        return plaintext.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+    }
 
     suspend fun saveProfile(profile: Profile) = store.edit { p ->
         p[KEY_ACTIVE_PROFILE]       = profile.id
@@ -172,8 +176,8 @@ class UserPreferences @Inject constructor(
         p[KEY_PROFILE_ACTIVITY]     = profile.activityLevel.name
         p[KEY_PROFILE_GOAL]         = profile.goal.name
         p[KEY_PROFILE_MENSTRUATING] = profile.isMenstruating
-        p[KEY_PROFILE_ALLERGENS]    = profile.allergens.joinToString(",")
-        p[KEY_PROFILE_CONDITIONS]   = profile.healthConditions.joinToString(",")
+        p[KEY_PROFILE_ALLERGENS]    = SecureFieldCipher.encrypt(profile.allergens.joinToString(","))
+        p[KEY_PROFILE_CONDITIONS]   = SecureFieldCipher.encrypt(profile.healthConditions.joinToString(","))
     }
 
     /** Convenience — update only weight (used by WeightRepository after logging). */
