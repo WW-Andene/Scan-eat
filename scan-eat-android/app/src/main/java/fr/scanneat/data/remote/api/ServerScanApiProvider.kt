@@ -24,8 +24,14 @@ class ServerScanApiProvider @Inject constructor(
     @Volatile private var url: String = ""
 
     fun get(baseUrl: String): ServerScanApi {
-        require(baseUrl.startsWith("https://") || baseUrl.startsWith("http://localhost") || baseUrl.startsWith("http://127.0.0.1")) {
-            "Server URL must use https:// (plain http:// only allowed for localhost testing): $baseUrl"
+        // Server mode's realistic deployment is a self-hosted backend on the
+        // user's own LAN (a home server, a laptop running the companion server
+        // app, the Android emulator's host-loopback address) - plain http:// is
+        // the normal case there, not an edge case, so only reject http:// when
+        // the host looks like a public internet address where cleartext would
+        // actually leak credentials over the open network.
+        require(baseUrl.startsWith("https://") || isPrivateOrLocalHttp(baseUrl)) {
+            "Server URL must use https:// for non-local hosts: $baseUrl"
         }
         val normUrl = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
         if (api == null || url != normUrl) {
@@ -38,5 +44,15 @@ class ServerScanApiProvider @Inject constructor(
             url = normUrl
         }
         return api!!
+    }
+
+    private fun isPrivateOrLocalHttp(baseUrl: String): Boolean {
+        if (!baseUrl.startsWith("http://")) return false
+        val host = baseUrl.removePrefix("http://").substringBefore('/').substringBefore(':')
+        return host == "localhost" || host == "127.0.0.1" || host == "10.0.2.2" ||
+            host.endsWith(".local") ||
+            host.matches(Regex("""10(\.\d{1,3}){3}""")) ||
+            host.matches(Regex("""192\.168(\.\d{1,3}){2}""")) ||
+            host.matches(Regex("""172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2}"""))
     }
 }
