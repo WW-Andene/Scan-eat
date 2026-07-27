@@ -3,9 +3,7 @@ package fr.scanneat.data.repository.backup
 import androidx.room.withTransaction
 import com.squareup.moshi.Moshi
 import fr.scanneat.BuildConfig
-import fr.scanneat.data.backup.BACKUP_FORMAT_VERSION
 import fr.scanneat.data.backup.BackupBundle
-import fr.scanneat.data.backup.BackupImportError
 import fr.scanneat.data.backup.BackupMetadata
 import fr.scanneat.data.backup.BackupSummary
 import fr.scanneat.data.backup.DayNoteBackup
@@ -17,16 +15,12 @@ import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.customfood.CustomFoodDao
 import fr.scanneat.data.local.db.medication.MedicationDao
-import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogDao
-import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.weight.WeightDao
-import fr.scanneat.data.local.prefs.ApiMode
-import fr.scanneat.data.local.prefs.SecureFieldCipher
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastingRepository
@@ -36,14 +30,8 @@ import fr.scanneat.data.repository.planning.GroceryCheckedRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
-import fr.scanneat.domain.engine.scoring.DietKey
-import fr.scanneat.domain.model.ActivityLevel
-import fr.scanneat.domain.model.Goal
-import fr.scanneat.domain.model.Profile
-import fr.scanneat.domain.model.Sex
 import fr.scanneat.util.ioCatching
 import kotlinx.coroutines.flow.first
-import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -77,47 +65,23 @@ class BackupRepository @Inject constructor(
     private val medicationDao: MedicationDao,
     private val medicationLogDao: MedicationLogDao,
     private val scanScoreHistoryDao: ScanScoreHistoryDao,
-    private val prefs: UserPreferences,
-    private val hydrationRepo: HydrationRepository,
-    private val fastingRepo: FastingRepository,
-    private val dayNotesRepo: DayNotesRepository,
-    private val mealPlanRepo: MealPlanRepository,
-    private val remindersRepo: RemindersRepository,
-    private val groceryCheckedRepo: GroceryCheckedRepository,
-    private val manualGroceryRepo: ManualGroceryRepository,
-    private val biolismRepo: BiolismRepository,
+    // Widened from private to internal so BackupRestore.kt's restoreDataStoreData()
+    // extension function (extracted verbatim into its own sibling file, same
+    // pattern as HealthConnectRepository's Ext files) can still reach these.
+    internal val prefs: UserPreferences,
+    internal val hydrationRepo: HydrationRepository,
+    internal val fastingRepo: FastingRepository,
+    internal val dayNotesRepo: DayNotesRepository,
+    internal val mealPlanRepo: MealPlanRepository,
+    internal val remindersRepo: RemindersRepository,
+    internal val groceryCheckedRepo: GroceryCheckedRepository,
+    internal val manualGroceryRepo: ManualGroceryRepository,
+    internal val biolismRepo: BiolismRepository,
     private val moshi: Moshi,
 ) {
-    private val bundleAdapter = moshi.adapter(BackupBundle::class.java)
-
-    // MedicationEntity.name/dosage/scheduleNote and MedicationLogEntity.
-    // medicationName are Keystore-encrypted at rest (MedicationRepository) -
-    // that encryption key is device-bound and non-exportable, so a raw
-    // ciphertext value written into a backup file would be permanently
-    // undecryptable after restoring on another device or a reinstall (a new
-    // Keystore key). The backup file must carry these fields as plaintext
-    // (matching how profile.allergens/healthConditions already reach this
-    // bundle already-decrypted, via UserPreferences.profile) and re-encrypt
-    // them going back in on import, exactly mirroring the live save/load path.
-    private fun MedicationEntity.decryptedForBackup() = copy(
-        name = SecureFieldCipher.decryptOrNull(name) ?: name,
-        dosage = SecureFieldCipher.decryptOrNull(dosage) ?: dosage,
-        scheduleNote = SecureFieldCipher.decryptOrNull(scheduleNote) ?: scheduleNote,
-    )
-
-    private fun MedicationEntity.encryptedFromBackup() = copy(
-        name = SecureFieldCipher.encrypt(name),
-        dosage = SecureFieldCipher.encrypt(dosage),
-        scheduleNote = SecureFieldCipher.encrypt(scheduleNote),
-    )
-
-    private fun MedicationLogEntity.decryptedForBackup() = copy(
-        medicationName = SecureFieldCipher.decryptOrNull(medicationName) ?: medicationName,
-    )
-
-    private fun MedicationLogEntity.encryptedFromBackup() = copy(
-        medicationName = SecureFieldCipher.encrypt(medicationName),
-    )
+    // Internal (not private) so BackupParsing.kt's parseBundle() extension
+    // function can reach it - same reasoning as the constructor properties above.
+    internal val bundleAdapter = moshi.adapter(BackupBundle::class.java)
 
     /** Reads every table plus DataStore-backed data and serializes to a pretty-printed JSON string. */
     suspend fun exportToJson(): String {
@@ -328,51 +292,6 @@ class BackupRepository @Inject constructor(
         BackupSummary.from(bundle).copy(scanHistory = importedScans, consumption = importedConsumption)
     }
 
-    private suspend fun restoreDataStoreData(bundle: BackupBundle) {
-        bundle.profile?.let { p ->
-            prefs.saveProfile(Profile(
-                name = p.name,
-                sex = runCatching { Sex.valueOf(p.sex) }.getOrDefault(Sex.NOT_SPECIFIED),
-                ageYears = p.ageYears,
-                heightCm = p.heightCm,
-                weightKg = p.weightKg,
-                goalWeightKg = p.goalWeightKg,
-                activityLevel = runCatching { ActivityLevel.valueOf(p.activityLevel) }.getOrDefault(ActivityLevel.MODERATELY_ACTIVE),
-                goal = runCatching { Goal.valueOf(p.goal) }.getOrDefault(Goal.MAINTAIN),
-                diet = DietKey.fromKey(p.diet),
-                allergens = p.allergens.toSet(),
-                isMenstruating = p.isMenstruating,
-                healthConditions = p.healthConditions.toSet(),
-            ))
-        }
-        bundle.settings?.let { s ->
-            prefs.setApiMode(ApiMode.fromKey(s.apiMode))
-            prefs.setServerUrl(s.serverUrl)
-            prefs.setLanguage(s.language)
-            prefs.setTheme(s.theme)
-            prefs.setDyslexicFont(s.dyslexicFont)
-            prefs.setColorblindMode(s.colorblindMode)
-            prefs.setUseImperialWeight(s.useImperialWeight)
-        }
-        // restoreAll writes every ReminderSettings field in one transaction — the
-        // previous piecemeal setBreakfast/setLunch/setDinner/setHydration/setWeight
-        // calls silently dropped snack, all four custom labels, hydration/weight
-        // custom-time reminders, and every user-created custom reminder despite
-        // exportToJson serializing all of them.
-        bundle.reminderSettings?.let { r -> remindersRepo.restoreAll(r) }
-        fastingRepo.importForBackup(bundle.fastingActiveStartMs, bundle.fastingActiveTargetHours, bundle.fastingHistory)
-        hydrationRepo.importAll(bundle.hydration.mapNotNull { entry ->
-            runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry.ml }
-        })
-        dayNotesRepo.importAll(bundle.dayNotes.mapNotNull { entry ->
-            runCatching { LocalDate.parse(entry.date) }.getOrNull()?.let { it to entry.text }
-        })
-        bundle.mealPlanRaw?.let { mealPlanRepo.importRaw(it) }
-        groceryCheckedRepo.restoreAll(bundle.groceryCheckedKeys.toSet())
-        bundle.biolism?.let { biolismRepo.importForBackup(it) }
-        manualGroceryRepo.importAll(bundle.manualGroceryItems)
-    }
-
     /**
      * Reads just the header/summary info from a backup file — same validation
      * (version check, malformed JSON) as [importFromJson] but without touching
@@ -407,16 +326,4 @@ class BackupRepository @Inject constructor(
             scanHistoryDao.observeTotalCount(),
             consumptionDao.observeTotalCount(),
         ) { scans, diary -> scans to diary }
-
-    private fun parseBundle(json: String): BackupBundle {
-        val bundle = try {
-            bundleAdapter.fromJson(json)
-        } catch (e: Exception) {
-            throw BackupImportError.Malformed(e)
-        } ?: throw BackupImportError.Malformed(IllegalArgumentException("empty JSON body"))
-        if (bundle.formatVersion > BACKUP_FORMAT_VERSION) {
-            throw BackupImportError.UnsupportedVersion(bundle.formatVersion, BACKUP_FORMAT_VERSION)
-        }
-        return bundle
-    }
 }
