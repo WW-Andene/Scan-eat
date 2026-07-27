@@ -1071,6 +1071,10 @@
     <string name="dashboard_today_label">Today</string>
     <string name="dashboard_week_title">This Week</string>
     <string name="dashboard_week_avg_kcal">%1$d kcal/day avg.</string>
+    <string name="dashboard_week_bar_no_data">%1$s: no data logged</string>
+    <string name="dashboard_week_bar_over">%1$s: %2$d kilocalories, over target</string>
+    <string name="dashboard_week_bar_on_target">%1$s: %2$d kilocalories, on target</string>
+    <string name="dashboard_week_bar_default">%1$s: %2$d kilocalories</string>
     <string name="dashboard_best_worst_title">Best / Worst Day</string>
     <string name="dashboard_best_day">Best</string>
     <string name="dashboard_worst_day">Worst</string>

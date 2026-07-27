@@ -15,6 +15,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,12 +65,23 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                         isOnTarget     -> semanticGreen().copy(if (isToday) 1f else 0.7f)
                         else           -> AccentCoral.copy(if (isToday) 1f else 0.6f)
                     }
+                    val dayName = day.date.dayOfWeek.getDisplayName(TextStyle.FULL, locale)
+                    // Bars are pure Canvas/background boxes with no text underneath -
+                    // without a content description TalkBack skipped this chart's data
+                    // entirely, announcing only the surrounding day-letter labels.
+                    val barDescription = when {
+                        day.count == 0 -> stringResource(R.string.dashboard_week_bar_no_data, dayName)
+                        isOver         -> stringResource(R.string.dashboard_week_bar_over, dayName, day.kcal.roundToInt())
+                        isOnTarget     -> stringResource(R.string.dashboard_week_bar_on_target, dayName, day.kcal.roundToInt())
+                        else           -> stringResource(R.string.dashboard_week_bar_default, dayName, day.kcal.roundToInt())
+                    }
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight(if (day.count == 0) 0.05f else frac.coerceAtLeast(0.05f))
                             .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                            .background(color),
+                            .background(color)
+                            .semantics { contentDescription = barDescription },
                         contentAlignment = Alignment.TopCenter,
                     ) {
                         // Over/on-target status previously relied on red-vs-green color
