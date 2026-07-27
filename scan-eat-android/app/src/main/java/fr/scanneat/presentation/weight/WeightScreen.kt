@@ -83,6 +83,11 @@ fun WeightScreen(
     val useImperial = useImperialState.value
     fun setUseImperial(v: Boolean) = viewModel.setUseImperial(v)
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    // Every "open Add" entry point (FAB, top-bar action, empty-state CTA) must reset the
+    // dialog fields, not just the save path - otherwise cancelling an Edit and then tapping
+    // Add reopens the dialog still prefilled with the edited entry's weight/notes/date, and
+    // saving silently overwrites that entry's date again instead of logging today.
+    fun openAddDialog() { kgText = ""; notesText = ""; entryDate = LocalDate.now(); showAdd = true }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val deletedMessage = stringResource(R.string.weight_deleted_message)
@@ -153,7 +158,7 @@ fun WeightScreen(
                 item {
                     EmptyListState(
                         Icons.Default.Scale, stringResource(R.string.weight_empty_body),
-                        ctaLabel = stringResource(R.string.weight_cd_add), onCta = { showAdd = true },
+                        ctaLabel = stringResource(R.string.weight_cd_add), onCta = { openAddDialog() },
                     )
                 }
             }
@@ -188,7 +193,7 @@ fun WeightScreen(
         Box(Modifier.fillMaxSize()) {
             content(PaddingValues(bottom = embeddedBottomPadding))
             FloatingActionButton(
-                onClick = { showAdd = true },
+                onClick = { openAddDialog() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
@@ -198,7 +203,7 @@ fun WeightScreen(
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-            actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
+            actions = { IconButton(onClick = { openAddDialog() }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }
@@ -213,7 +218,7 @@ fun WeightScreen(
             entryDate = entryDate,
             fmt = fmt,
             onPickDate = { showDatePicker = true },
-            onDismiss = { showAdd = false },
+            onDismiss = { showAdd = false; kgText = ""; notesText = ""; entryDate = LocalDate.now() },
             onSave = { kg ->
                 viewModel.log(kg, notesText, entryDate)
                 kgText = ""; notesText = ""; entryDate = LocalDate.now(); showAdd = false

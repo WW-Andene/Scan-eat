@@ -199,6 +199,13 @@ class ActivityRepository @Inject constructor(
             distanceKm   = distanceKm?.coerceAtLeast(0.0),
             weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
         ))
+        // log() mirrors every write to Health Connect - omitting it here would leave
+        // an editted entry's HC record silently stale (still showing the pre-edit
+        // duration/kcal) with no error and no indication anything is out of sync.
+        // Health Connect has no update-in-place for a record it wrote (same
+        // documented limitation as WeightRepository.log()), so this writes a fresh
+        // record with the edited stats rather than trying to mutate the old one.
+        healthConnect.writeActivity(type, minutes.coerceAtLeast(0), kcal, Instant.ofEpochMilli(loggedAt))
     }
 
     suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =

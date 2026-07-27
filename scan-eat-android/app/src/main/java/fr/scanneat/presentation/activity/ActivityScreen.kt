@@ -106,6 +106,18 @@ fun ActivityScreen(
     // and Activity previously only supported delete-and-recreate.
     var editTargetId by remember { mutableStateOf<String?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
+    // Every "open Add" entry point (FAB, top-bar action, empty-state CTA) must reset every
+    // dialog field, not just editTargetId - otherwise cancelling an Edit and then tapping
+    // Add reopens the dialog still prefilled with that entry's minutes/sets/reps/distance/
+    // weight/sub-type, and saving would create a new entry with those stale leftover values.
+    fun openAddDialog() {
+        editTargetId = null
+        selectedType = ActivityType.WALKING_BRISK
+        selectedSubType = null; customSubTypeText = ""
+        setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
+        minutesText = "30"
+        showAdd = true
+    }
     val typeLabels = typeLabels()
     val subTypeLabels = subTypeLabels()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -170,7 +182,7 @@ fun ActivityScreen(
                 item {
                     EmptyListState(
                         Icons.Default.DirectionsRun, stringResource(R.string.activity_empty),
-                        ctaLabel = stringResource(R.string.activity_add_cta), onCta = { showAdd = true },
+                        ctaLabel = stringResource(R.string.activity_add_cta), onCta = { openAddDialog() },
                     )
                 }
             }
@@ -184,7 +196,7 @@ fun ActivityScreen(
         Box(Modifier.fillMaxSize()) {
             content(PaddingValues(bottom = embeddedBottomPadding))
             FloatingActionButton(
-                onClick = { showAdd = true },
+                onClick = { openAddDialog() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
@@ -194,7 +206,7 @@ fun ActivityScreen(
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.activity_title), color = OnBackground) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-            actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
+            actions = { IconButton(onClick = { openAddDialog() }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }
@@ -226,7 +238,7 @@ fun ActivityScreen(
                 onWeightUsedTextChange = { weightUsedText = it },
                 onMinutesTextChange = { minutesText = it },
             ),
-            onDismiss = { showAdd = false; editTargetId = null },
+            onDismiss = { openAddDialog(); showAdd = false },
             onAdd = {
                 minutesText.toIntOrNull()?.let { min ->
                     // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's
