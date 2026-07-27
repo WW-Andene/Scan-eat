@@ -89,7 +89,7 @@ class ScanViewModel @Inject constructor(
      * score FAB at all.
      */
     val cachedPreview: StateFlow<ScanResult?> = _scannedBarcode
-        .flatMapLatest { barcode -> flow { emit(barcode?.let { scanRepo.getCachedByBarcode(it) }) } }
+        .flatMapLatest { barcode -> flow { emit(barcode?.let { scanRepo.getCachedByBarcode(it, lang = language.value) }) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // Same allergen/diet warning already surfaced on History/Dashboard/Diary/
@@ -129,7 +129,7 @@ class ScanViewModel @Inject constructor(
     val visibleBarcodeCachedPreviews: StateFlow<Map<String, ScanResult>> = _visibleBarcodes
         .flatMapLatest { codes ->
             if (codes.isEmpty()) flowOf(emptyMap())
-            else flow { emit(codes.distinct().mapNotNull { code -> scanRepo.getCachedByBarcode(code)?.let { code to it } }.toMap()) }
+            else flow { emit(codes.distinct().mapNotNull { code -> scanRepo.getCachedByBarcode(code, lang = language.value)?.let { code to it } }.toMap()) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 

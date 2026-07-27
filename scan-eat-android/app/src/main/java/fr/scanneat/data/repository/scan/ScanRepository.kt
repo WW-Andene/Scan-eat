@@ -97,8 +97,19 @@ class ScanRepository @Inject constructor(
 
     suspend fun getById(id: Long): ScanResult? = dao.findById(id)?.toDomain()
 
-    suspend fun getCachedByBarcode(barcode: String, profileId: String = "default"): ScanResult? =
-        dao.findByBarcode(barcode, profileId)?.toDomain()
+    /**
+     * Same staleness check scoreBarcode()'s own cache-hit path already applies:
+     * a cached row scored by an older engine version is rescored locally (pure
+     * function, no network) rather than returned as-is. Without this, the
+     * "already scanned" live preview (ScanViewModel.cachedPreview and the
+     * per-barcode AR panel) kept showing a product's pre-engine-bump grade
+     * until the user actually re-scanned it, even though scoreBarcode() itself
+     * would have shown the corrected score all along.
+     */
+    suspend fun getCachedByBarcode(barcode: String, profileId: String = "default", lang: String = "en"): ScanResult? =
+        dao.findByBarcode(barcode, profileId)?.toDomain()?.let { cached ->
+            if (cached.audit.engineVersion != ENGINE_VERSION) cached.copy(audit = scoreProduct(cached.product, lang)) else cached
+        }
 
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeFavorites(profileId).map { entities -> entities.mapNotNull { it.toDomain() } }
