@@ -1,5 +1,6 @@
 package fr.scanneat.data.local.prefs
 
+import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
@@ -42,13 +43,18 @@ internal object SecureFieldCipher {
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setKeySize(256)
         // StrongBox (a separate secure-element chip, where present) is strictly
-        // stronger than the TEE-only default — opportunistic, not required:
-        // most devices don't have one, and KeyGenParameterSpec throws
-        // StrongBoxUnavailableException rather than silently downgrading, so
-        // the fallback below is what actually lets this run everywhere.
-        val spec = runCatching {
-            specBuilder.setIsStrongBoxBacked(true).build()
-        }.getOrElse { specBuilder.build() }
+        // stronger than the TEE-only default — opportunistic, not required.
+        // setIsStrongBoxBacked() itself is API 28+ (this app's minSdk is 26),
+        // so it's only ever called behind this version check - not just
+        // wrapped in runCatching, which guards the *runtime* StrongBoxUnavailable-
+        // Exception a device can still throw even on API 28+, but does nothing
+        // for a method that doesn't exist in the API 26/27 framework jar at all
+        // (that's a hard NewApi lint error, not a catchable exception).
+        val spec = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            runCatching { specBuilder.setIsStrongBoxBacked(true).build() }.getOrElse { specBuilder.build() }
+        } else {
+            specBuilder.build()
+        }
         return try {
             keyGenerator.init(spec)
             keyGenerator.generateKey()
