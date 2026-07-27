@@ -107,6 +107,11 @@ private fun normalizeForMatch(s: String): String =
 
 private fun tokenize(s: String): List<String> = s.split(' ').filter { it.isNotBlank() }
 
+/** A token carrying a dosage strength or quantity ("1000mg", "500", "5g") - the single most
+ *  safety-relevant word in a medication name, since two different drugs (or two strengths of
+ *  the same drug) routinely share every other word ("comprimé", "boîte", a shared brand stem). */
+private fun isDosageToken(t: String): Boolean = t.any { it.isDigit() }
+
 /**
  * Fallback for when there's no barcode/DataMatrix/QR to scan at all — OCR
  * reads the drug/product name off the box (see OcrParser.identifyFood, via
@@ -128,16 +133,34 @@ private fun tokenize(s: String): List<String> = s.split(' ').filter { it.isNotBl
  * reordering/spacing noise, and keeps the single best-scoring entry instead
  * of whichever happened to be first in map iteration order to clear the
  * old any-overlap bar.
+ *
+ * Dosage-strength tokens ("1000mg", "500") are checked separately from the
+ * general token-overlap score, and are load-bearing rather than advisory:
+ * when the query names a strength, any candidate that doesn't share at
+ * least one matching dosage token is disqualified outright, however high
+ * its overall word-overlap score is. Without this, two presentations of the
+ * same drug at different strengths, or two different drugs sharing a
+ * brand stem or generic form words ("comprimé", "boîte"), could tie or
+ * beat the correct match purely on non-dosage words, surfacing the wrong
+ * drug's cautions/interactions for a real medication the user is taking.
+ * A query with no digits at all (rare - most BDPM names carry a strength)
+ * skips this check and falls back to the general score alone.
  */
 fun findMedicationByName(context: Context, name: String): MedicationDbEntry? {
     val query = normalizeForMatch(name)
     if (query.length < 3) return null
     val queryTokens = tokenize(query)
     if (queryTokens.isEmpty()) return null
+    val queryDosageTokens = queryTokens.filter(::isDosageToken)
     var best: MedicationDbEntry? = null
     var bestScore = 0.0
     for (entry in MedicationStore.get(context).values) {
         val candidateTokens = tokenize(normalizeForMatch(entry.name))
+        if (queryDosageTokens.isNotEmpty()) {
+            val candidateDosageTokens = candidateTokens.filter(::isDosageToken)
+            val dosageMatches = queryDosageTokens.any { qt -> candidateDosageTokens.any { ct -> ct.contains(qt) || qt.contains(ct) } }
+            if (!dosageMatches) continue
+        }
         val matched = queryTokens.count { qt -> candidateTokens.any { ct -> ct.contains(qt) || qt.contains(ct) } }
         val score = matched.toDouble() / queryTokens.size
         if (score > bestScore) { bestScore = score; best = entry }
