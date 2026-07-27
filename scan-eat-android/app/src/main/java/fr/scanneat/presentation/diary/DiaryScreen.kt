@@ -249,17 +249,31 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
         // Day navigation — meal logging is scoped to a single day; the other
         // Journal tabs (weight, water, activity, fasting) manage their own
         // date context internally, so this row is Meals-only.
+        //
+        // Wrapped in ScanEatCard: every other item in this list (the calendar
+        // picker right below, MacroSummaryCard, DiaryKcalBreakdownCard,
+        // DiaryProteinPerSlotCard) already gets the app's glass-card floating
+        // treatment - this row alone used to render as a bare Row directly on
+        // the screen's ambientGloom wash, squeezed right under the tab row's
+        // own ScanEatCard with only a divider between them, reading as flat
+        // chrome glued to the panel above it instead of floating like its
+        // siblings (same class of fix the tab row itself already got - see
+        // that ScanEatCard's own doc comment above).
         item {
-            DiaryDayNavigationRow(
-                dateLabel = selectedDate.value.format(dateFmt),
-                isToday = isToday.value,
-                showCalendar = showCalendar,
-                onPrevDay = { saveNoteIfDirty(); viewModel.goToPreviousDay() },
-                onNextDay = { saveNoteIfDirty(); viewModel.goToNextDay() },
-                onToggleCalendar = { showCalendar = !showCalendar },
-                onCopyPreviousDay = { viewModel.copyPreviousDayMeals() },
-                onToday = { saveNoteIfDirty(); viewModel.goToToday() },
-            )
+            ScanEatCard(
+                shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(horizontal = Spacing.S, vertical = Spacing.XS),
+            ) {
+                DiaryDayNavigationRow(
+                    dateLabel = selectedDate.value.format(dateFmt),
+                    isToday = isToday.value,
+                    showCalendar = showCalendar,
+                    onPrevDay = { saveNoteIfDirty(); viewModel.goToPreviousDay() },
+                    onNextDay = { saveNoteIfDirty(); viewModel.goToNextDay() },
+                    onToggleCalendar = { showCalendar = !showCalendar },
+                    onCopyPreviousDay = { viewModel.copyPreviousDayMeals() },
+                    onToday = { saveNoteIfDirty(); viewModel.goToToday() },
+                )
+            }
         }
 
         if (showCalendar) {
