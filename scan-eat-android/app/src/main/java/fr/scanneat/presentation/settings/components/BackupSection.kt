@@ -47,10 +47,11 @@ internal fun BackupSection(
     backupState: BackupUiState,
     dataStats: Pair<Int, Int>,
     language: String,
-    onExport: () -> Unit,
+    onExport: (String?) -> Unit,
     onImport: () -> Unit,
     onClearBackupState: () -> Unit,
-    onConfirmImport: (String) -> Unit,
+    onConfirmImport: (String, String?) -> Unit,
+    onSubmitPassphrase: (String, String) -> Unit,
     onPrepareCsvExport: () -> Unit,
     onPrepareBiolismCsvExport: () -> Unit,
     onPrepareWeightCsvExport: () -> Unit,
@@ -59,12 +60,13 @@ internal fun BackupSection(
     onPrepareMedicationCsvExport: () -> Unit,
     onPrepareFastingCsvExport: () -> Unit,
 ) {
+    var showExportDialog by remember { mutableStateOf(false) }
     SettingsSection(stringResource(R.string.settings_section_backup)) {
         Text(stringResource(R.string.settings_backup_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         val working = backupState is BackupUiState.Working
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             ScanEatPrimaryButton(
-                onClick = onExport,
+                onClick = { showExportDialog = true },
                 enabled = !working,
             ) {
                 // No explicit tint - defaults to LocalContentColor, which
@@ -97,6 +99,38 @@ internal fun BackupSection(
                 ),
                 onDismiss = onClearBackupState,
             )
+            is BackupUiState.NeedsPassphrase -> {
+                var passphraseInput by remember { mutableStateOf("") }
+                AlertDialog(
+                    onDismissRequest = onClearBackupState,
+                    title = { Text(stringResource(R.string.settings_backup_passphrase_title), color = OnBackground) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                            Text(stringResource(R.string.settings_backup_passphrase_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                            OutlinedTextField(
+                                value = passphraseInput, onValueChange = { passphraseInput = it },
+                                singleLine = true,
+                                isError = s.wrongPassphrase,
+                                label = { Text(stringResource(R.string.settings_backup_passphrase_field)) },
+                                colors = scanEatTextFieldColors(),
+                            )
+                            if (s.wrongPassphrase) {
+                                Text(stringResource(R.string.settings_backup_passphrase_wrong), style = MaterialTheme.typography.labelSmall, color = semanticRed())
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = { onSubmitPassphrase(s.json, passphraseInput) },
+                            enabled = passphraseInput.isNotBlank(),
+                        ) { Text(stringResource(R.string.common_ok), color = AccentCoral) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = onClearBackupState) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
+                    },
+                    containerColor = SurfaceVariant,
+                )
+            }
             is BackupUiState.ImportPreview -> {
                 // Every other date formatter in this screen respects the app's own
                 // in-app language toggle (independent of device locale) - this one
@@ -115,7 +149,7 @@ internal fun BackupSection(
                         )
                     },
                     confirmButton = {
-                        TextButton(onClick = { onConfirmImport(s.json) }) {
+                        TextButton(onClick = { onConfirmImport(s.json, s.passphrase) }) {
                             Text(stringResource(R.string.settings_backup_import_confirm_button), color = AccentCoral)
                         }
                     },
@@ -128,6 +162,36 @@ internal fun BackupSection(
                 )
             }
             else -> {}
+        }
+        if (showExportDialog) {
+            var exportPassphrase by remember { mutableStateOf("") }
+            AlertDialog(
+                onDismissRequest = { showExportDialog = false },
+                title = { Text(stringResource(R.string.settings_backup_export_dialog_title), color = OnBackground) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                        Text(stringResource(R.string.settings_backup_export_dialog_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
+                        OutlinedTextField(
+                            value = exportPassphrase, onValueChange = { exportPassphrase = it },
+                            singleLine = true,
+                            label = { Text(stringResource(R.string.settings_backup_passphrase_field_optional)) },
+                            colors = scanEatTextFieldColors(),
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { onExport(exportPassphrase.takeIf { it.isNotBlank() }); showExportDialog = false }) {
+                        Text(
+                            stringResource(if (exportPassphrase.isNotBlank()) R.string.settings_backup_export_encrypt_button else R.string.settings_backup_export_button),
+                            color = AccentCoral,
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showExportDialog = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
+                },
+                containerColor = SurfaceVariant,
+            )
         }
         // CSV diary export — spreadsheet-friendly complement to the JSON backup
         HorizontalDivider(color = OnBackground.copy(0.08f))

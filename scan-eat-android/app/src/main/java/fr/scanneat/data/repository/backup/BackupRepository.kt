@@ -83,8 +83,13 @@ class BackupRepository @Inject constructor(
     // function can reach it - same reasoning as the constructor properties above.
     internal val bundleAdapter = moshi.adapter(BackupBundle::class.java)
 
-    /** Reads every table plus DataStore-backed data and serializes to a pretty-printed JSON string. */
-    suspend fun exportToJson(): String {
+    /**
+     * Reads every table plus DataStore-backed data and serializes to a pretty-printed
+     * JSON string. [passphrase], when non-blank, encrypts the resulting file (see
+     * BackupPassphraseCipher) - opt-in, since a lost/forgotten passphrase makes the
+     * backup permanently unreadable, unlike the plaintext default.
+     */
+    suspend fun exportToJson(passphrase: String? = null): String {
         val profile = prefs.profile.first()
         val (fastingStartMs, fastingTargetHours, fastingHistory) = fastingRepo.exportForBackup()
 
@@ -136,7 +141,11 @@ class BackupRepository @Inject constructor(
             biolism = biolismRepo.exportForBackup(),
             manualGroceryItems = manualGroceryRepo.exportAll(),
         )
-        return bundleAdapter.indent("  ").toJson(bundle)
+        val plainJson = bundleAdapter.indent("  ").toJson(bundle)
+        // Opt-in - see BackupPassphraseCipher's own doc comment for the file
+        // format and why a device-bound Keystore key can't be used for a file
+        // that's explicitly meant to leave the device.
+        return if (passphrase.isNullOrEmpty()) plainJson else BackupPassphraseCipher.encrypt(plainJson, passphrase)
     }
 
     /**
@@ -159,8 +168,8 @@ class BackupRepository @Inject constructor(
      * device or another." Resetting id=0 makes Room assign fresh,
      * non-colliding ids for these two tables on every import.
      */
-    suspend fun importFromJson(json: String): Result<BackupSummary> = ioCatching {
-        val bundle = parseBundle(json)
+    suspend fun importFromJson(json: String, passphrase: String? = null): Result<BackupSummary> = ioCatching {
+        val bundle = parseBundle(json, passphrase)
         var importedScans = 0
         var importedConsumption = 0
         db.withTransaction {
@@ -300,9 +309,14 @@ class BackupRepository @Inject constructor(
      * the DB or DataStore, so the UI can preview a file ("taken on 2026-07-01,
      * 42 items") before the user commits to overwriting local data with it.
      */
-    fun peekMetadata(json: String): Result<BackupMetadata> = runCatching {
-        BackupMetadata.from(parseBundle(json))
+    fun peekMetadata(json: String, passphrase: String? = null): Result<BackupMetadata> = runCatching {
+        BackupMetadata.from(parseBundle(json, passphrase))
     }
+
+    /** True when [json] is a BackupPassphraseCipher-encrypted file, not raw JSON -
+     *  the UI checks this before calling peekMetadata() to decide whether to prompt
+     *  for a passphrase first, rather than trying blind and reading a generic error. */
+    fun isEncryptedBackup(json: String): Boolean = BackupPassphraseCipher.isEncrypted(json)
 
     /**
      * Clears the scan history table (keeps all other data intact) - also clears

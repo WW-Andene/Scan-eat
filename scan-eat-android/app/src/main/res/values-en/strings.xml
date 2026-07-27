@@ -1000,6 +1000,14 @@
     <string name="settings_section_backup">Backup</string>
     <string name="settings_backup_hint">Export your data (scans, diary, weight, custom foods, recipes…) to a file you can restore later, on this device or another.</string>
     <string name="settings_backup_export_button">Export my data</string>
+    <string name="settings_backup_export_encrypt_button">Encrypt and export</string>
+    <string name="settings_backup_export_dialog_title">Export my data</string>
+    <string name="settings_backup_export_dialog_hint">You can protect this file with a passphrase. Without one, it will be exported in plain text (as before).</string>
+    <string name="settings_backup_passphrase_field">Passphrase</string>
+    <string name="settings_backup_passphrase_field_optional">Passphrase (optional)</string>
+    <string name="settings_backup_passphrase_title">Protected file</string>
+    <string name="settings_backup_passphrase_hint">This backup is passphrase-protected. Enter it to continue.</string>
+    <string name="settings_backup_passphrase_wrong">Wrong passphrase or corrupted file.</string>
     <string name="settings_backup_import_button">Restore a backup</string>
     <string name="settings_backup_working">Working…</string>
     <string name="settings_backup_import_success">%1$d items restored.</string>

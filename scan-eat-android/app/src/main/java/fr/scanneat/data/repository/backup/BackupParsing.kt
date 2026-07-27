@@ -13,9 +13,20 @@ import fr.scanneat.data.backup.BackupImportError
 // (same package), no external caller changes.
 // ============================================================================
 
-internal fun BackupRepository.parseBundle(json: String): BackupBundle {
+/**
+ * [passphrase] is required (and used to decrypt first) when [json] is actually
+ * a BackupPassphraseCipher-encrypted envelope, not raw JSON - see that
+ * object's own doc comment for the file format and why a Keystore key can't
+ * be used here instead. A plain (unencrypted) export is unaffected: it
+ * doesn't match the encrypted prefix, so this parses it exactly as before.
+ */
+internal fun BackupRepository.parseBundle(json: String, passphrase: String? = null): BackupBundle {
+    val plainJson = if (BackupPassphraseCipher.isEncrypted(json)) {
+        if (passphrase.isNullOrEmpty()) throw BackupImportError.PassphraseRequired
+        BackupPassphraseCipher.decryptOrNull(json, passphrase) ?: throw BackupImportError.WrongPassphrase
+    } else json
     val bundle = try {
-        bundleAdapter.fromJson(json)
+        bundleAdapter.fromJson(plainJson)
     } catch (e: Exception) {
         throw BackupImportError.Malformed(e)
     } ?: throw BackupImportError.Malformed(IllegalArgumentException("empty JSON body"))

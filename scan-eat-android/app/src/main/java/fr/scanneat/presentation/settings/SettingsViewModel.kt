@@ -30,8 +30,15 @@ sealed class BackupUiState {
     /** CSV export ready (diary or Biolism sessions) — written via Storage Access Framework like JSON. filenamePrefix picks the suggested filename. */
     data class CsvExportReady(val csv: String, val filenamePrefix: String = "journal") : BackupUiState()
     /** peekMetadata() succeeded — the screen shows a confirm dialog ("taken on X, N items")
-     *  before confirmImport() actually overwrites local data with this file's contents. */
-    data class ImportPreview(val json: String, val metadata: BackupMetadata) : BackupUiState()
+     *  before confirmImport() actually overwrites local data with this file's contents.
+     *  [passphrase] carries through from NeedsPassphrase so confirmImport() can decrypt
+     *  [json] again for the real import - it's still the encrypted envelope here, not
+     *  the decrypted plaintext, since peekMetadata() only ever returns parsed metadata. */
+    data class ImportPreview(val json: String, val metadata: BackupMetadata, val passphrase: String? = null) : BackupUiState()
+    /** The picked file is passphrase-encrypted (BackupPassphraseCipher) - the screen
+     *  prompts for one before peekMetadata()/importFromJson() can even parse it.
+     *  [wrongPassphrase] is true after a submitted passphrase failed to decrypt it. */
+    data class NeedsPassphrase(val json: String, val wrongPassphrase: Boolean = false) : BackupUiState()
     data class ImportSuccess(val summary: BackupSummary) : BackupUiState()
     data class Error(val messageKey: BackupErrorKey) : BackupUiState()
 }
@@ -93,19 +100,32 @@ class SettingsViewModel @Inject constructor(
     private val _backupState = MutableStateFlow<BackupUiState>(BackupUiState.Idle)
     val backupState: StateFlow<BackupUiState> = _backupState.asStateFlow()
 
-    /** Generates the JSON; the screen writes it to a user-picked URI once state becomes ExportReady. */
-    fun prepareExport() {
+    /**
+     * Generates the JSON; the screen writes it to a user-picked URI once state becomes
+     * ExportReady. [passphrase], when non-blank, encrypts the file (opt-in - see
+     * BackupPassphraseCipher's own doc comment).
+     */
+    fun prepareExport(passphrase: String? = null) {
         _backupState.value = BackupUiState.Working
         viewModelScope.launch {
-            val json = backupRepository.exportToJson()
+            val json = backupRepository.exportToJson(passphrase?.takeIf { it.isNotBlank() })
             _backupState.value = BackupUiState.ExportReady(json)
         }
     }
 
-    /** Reads just the file's header/summary via peekMetadata() — the screen shows a confirm
-     *  dialog before [confirmImport] actually overwrites local data. Previously importFromJson
-     *  applied the file immediately with no way to see what's in it or back out first. */
+    /**
+     * Reads just the file's header/summary via peekMetadata() — the screen shows a confirm
+     * dialog before [confirmImport] actually overwrites local data. Previously importFromJson
+     * applied the file immediately with no way to see what's in it or back out first.
+     * An encrypted file (BackupPassphraseCipher) can't even be parsed this far without a
+     * passphrase - checked up front via isEncryptedBackup() rather than always trying blind
+     * and reading a generic "malformed" error for what's actually "needs a passphrase."
+     */
     fun previewImport(json: String) {
+        if (backupRepository.isEncryptedBackup(json)) {
+            _backupState.value = BackupUiState.NeedsPassphrase(json)
+            return
+        }
         _backupState.value = BackupUiState.Working
         viewModelScope.launch {
             backupRepository.peekMetadata(json).fold(
@@ -115,10 +135,26 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun confirmImport(json: String) {
+    /** Submits a passphrase for a NeedsPassphrase file - re-runs the same preview step now
+     *  that it can actually be decrypted, or re-shows NeedsPassphrase(wrongPassphrase=true). */
+    fun previewImportWithPassphrase(json: String, passphrase: String) {
         _backupState.value = BackupUiState.Working
         viewModelScope.launch {
-            backupRepository.importFromJson(json).fold(
+            backupRepository.peekMetadata(json, passphrase).fold(
+                onSuccess = { _backupState.value = BackupUiState.ImportPreview(json, it, passphrase) },
+                onFailure = { e ->
+                    _backupState.value = if (e is BackupImportError.WrongPassphrase)
+                        BackupUiState.NeedsPassphrase(json, wrongPassphrase = true)
+                    else BackupUiState.Error(e.toBackupErrorKey())
+                },
+            )
+        }
+    }
+
+    fun confirmImport(json: String, passphrase: String? = null) {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch {
+            backupRepository.importFromJson(json, passphrase).fold(
                 onSuccess = { _backupState.value = BackupUiState.ImportSuccess(it) },
                 onFailure = { e -> _backupState.value = BackupUiState.Error(e.toBackupErrorKey()) },
             )
@@ -128,6 +164,8 @@ class SettingsViewModel @Inject constructor(
     private fun Throwable.toBackupErrorKey() = when (this) {
         is BackupImportError.UnsupportedVersion -> BackupErrorKey.UNSUPPORTED_VERSION
         is BackupImportError.Malformed          -> BackupErrorKey.MALFORMED
+        is BackupImportError.PassphraseRequired,
+        is BackupImportError.WrongPassphrase    -> BackupErrorKey.MALFORMED
         else                                    -> BackupErrorKey.IO
     }
 

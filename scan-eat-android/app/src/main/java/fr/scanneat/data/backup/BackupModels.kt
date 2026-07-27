@@ -184,4 +184,8 @@ sealed class BackupImportError : Exception() {
     data class UnsupportedVersion(val found: Int, val supported: Int) : BackupImportError()
     /** The file isn't valid JSON, or doesn't match the expected BackupBundle shape. */
     data class Malformed(val underlyingCause: Throwable) : BackupImportError()
+    /** The file is passphrase-encrypted (see BackupPassphraseCipher) and needs one before it can be read at all. */
+    data object PassphraseRequired : BackupImportError()
+    /** A passphrase was supplied but didn't decrypt the file (wrong passphrase or corrupted file - indistinguishable). */
+    data object WrongPassphrase : BackupImportError()
 }

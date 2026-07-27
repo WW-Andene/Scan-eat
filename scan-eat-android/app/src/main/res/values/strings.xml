@@ -1038,6 +1038,14 @@
     <string name="settings_section_backup">Sauvegarde</string>
     <string name="settings_backup_hint">Exportez vos données (scans, journal, poids, aliments personnalisés, recettes…) dans un fichier que vous pouvez restaurer plus tard, sur cet appareil ou un autre.</string>
     <string name="settings_backup_export_button">Exporter mes données</string>
+    <string name="settings_backup_export_encrypt_button">Chiffrer et exporter</string>
+    <string name="settings_backup_export_dialog_title">Exporter mes données</string>
+    <string name="settings_backup_export_dialog_hint">Vous pouvez protéger ce fichier par un mot de passe. Sans mot de passe, il sera exporté en clair (comme avant).</string>
+    <string name="settings_backup_passphrase_field">Mot de passe</string>
+    <string name="settings_backup_passphrase_field_optional">Mot de passe (facultatif)</string>
+    <string name="settings_backup_passphrase_title">Fichier protégé</string>
+    <string name="settings_backup_passphrase_hint">Cette sauvegarde est protégée par un mot de passe. Saisissez-le pour continuer.</string>
+    <string name="settings_backup_passphrase_wrong">Mot de passe incorrect ou fichier corrompu.</string>
     <string name="settings_backup_import_button">Restaurer une sauvegarde</string>
     <string name="settings_backup_working">Traitement en cours…</string>
     <string name="settings_backup_import_success">%1$d éléments restaurés.</string>
