@@ -267,14 +267,33 @@ class BackupRepository @Inject constructor(
             mealTemplateDao.insertAll(bundle.mealTemplates)
             recipeDao.insertAll(bundle.recipes)
 
-            val existingMedicationBarcodes = medicationDao.getAllForBackup()
-                .mapNotNullTo(mutableSetOf()) { it.barcode }
+            val existingMedications = medicationDao.getAllForBackup()
+            val existingMedicationBarcodes = existingMedications.mapNotNullTo(mutableSetOf()) { it.barcode }
             val newMedications = bundle.medications.filter { row ->
                 row.barcode == null || existingMedicationBarcodes.add(row.barcode)
             }
             // Bundle rows are plaintext (decryptedForBackup ran on export) -
             // re-encrypt before they land in the DB, same as any live save.
             medicationDao.insertAll(newMedications.map { it.encryptedFromBackup() })
+
+            // medication_log.medicationId has no DB-level FOREIGN KEY to
+            // medications.id — deliberately: MedicationLogEntity.medicationName
+            // is a denormalized snapshot specifically so a log entry survives
+            // its medication being renamed or deleted later (see that entity's
+            // own doc comment), which a CASCADE (or a default NO ACTION) FK
+            // would break — CASCADE would silently erase adherence history the
+            // moment a medication is deleted, and NO ACTION would make
+            // MedicationRepository.delete() start throwing for any medication
+            // that was ever logged. What a schema-level FK would still be
+            // useful for — refusing to create a *new* reference to a
+            // medication id that never existed — is worth having without
+            // that trade-off, so it's enforced here instead, at the one place
+            // new medicationId values can plausibly come from outside the
+            // live save path (a hand-edited or partially-restored backup
+            // file): a log row whose medicationId isn't one of this import's
+            // medications and isn't already local is a dangling reference by
+            // construction and is dropped rather than persisted as an orphan.
+            val validMedicationIds = existingMedications.mapTo(mutableSetOf()) { it.id } + newMedications.map { it.id }
 
             // medication_log has a DB-level UNIQUE index on (medicationId, date,
             // profileId) since MIGRATION_23_24 - inserting via insertAll's REPLACE
@@ -288,7 +307,7 @@ class BackupRepository @Inject constructor(
             val existingLogKeys = medicationLogDao.getAllForBackup()
                 .mapTo(mutableSetOf()) { Triple(it.medicationId, it.date, it.profileId) }
             val newMedicationLog = bundle.medicationLog.filter { row ->
-                existingLogKeys.add(Triple(row.medicationId, row.date, row.profileId))
+                row.medicationId in validMedicationIds && existingLogKeys.add(Triple(row.medicationId, row.date, row.profileId))
             }
             medicationLogDao.insertAll(newMedicationLog.map { it.encryptedFromBackup() })
 
