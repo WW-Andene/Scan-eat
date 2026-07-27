@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Server mode's realistic deployment is a self-hosted backend on the user's
+  own LAN (a home server, a laptop running the companion server app, or the
+  Android emulator's host-loopback address) - plain http:// is the normal
+  case there. usesCleartextTraffic="false" in the manifest blocks this at
+  the OS level regardless of any app-side URL validation (see
+  ServerScanApiProvider.isPrivateOrLocalHttp), so this config carves out
+  cleartext exceptions for exactly those private/local ranges while keeping
+  the manifest-level block for every other (public internet) host.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">local</domain>
+    </domain-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <ip-address>127.0.0.1</ip-address>
+    </domain-config>
+</network-security-config>

@@ -49,10 +49,12 @@ class ServerScanApiProvider @Inject constructor(
     private fun isPrivateOrLocalHttp(baseUrl: String): Boolean {
         if (!baseUrl.startsWith("http://")) return false
         val host = baseUrl.removePrefix("http://").substringBefore('/').substringBefore(':')
-        return host == "localhost" || host == "127.0.0.1" || host == "10.0.2.2" ||
-            host.endsWith(".local") ||
-            host.matches(Regex("""10(\.\d{1,3}){3}""")) ||
-            host.matches(Regex("""192\.168(\.\d{1,3}){2}""")) ||
-            host.matches(Regex("""172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2}"""))
+        if (host == "localhost" || host == "127.0.0.1" || host == "10.0.2.2" || host.endsWith(".local")) return true
+        // Each octet bounded to 0-255 (not just \d{1,3}) so a malformed address
+        // like 10.999.999.999 isn't misclassified as a valid private-range host.
+        val octet = """(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"""
+        return host.matches(Regex("""10(\.$octet){3}""")) ||
+            host.matches(Regex("""192\.168(\.$octet){2}""")) ||
+            host.matches(Regex("""172\.(1[6-9]|2\d|3[01])(\.$octet){2}"""))
     }
 }
