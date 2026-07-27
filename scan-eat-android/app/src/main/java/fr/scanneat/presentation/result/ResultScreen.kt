@@ -40,6 +40,7 @@ import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.ScanEatSnackbarHost
 import kotlinx.coroutines.launch
 
 // Orchestrator only — content composition lives in ResultContent.kt, each

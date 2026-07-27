@@ -52,6 +52,7 @@ import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
 import fr.scanneat.presentation.ui.theme.HydrationBlue
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.ScanEatSnackbarHost
 import fr.scanneat.presentation.ui.theme.ambientGloom
 
 // Orchestrator only — each dashboard section lives in cards/*.kt, the
