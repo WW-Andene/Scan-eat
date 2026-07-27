@@ -35,7 +35,7 @@ internal fun HistoryFilterChipsRow(
                 colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
             )
         }
-        items(gradeFilterOptions) { (grade, label) ->
+        items(gradeFilterOptions, key = { it.first?.name ?: "all" }) { (grade, label) ->
             val isSelected = gradeFilter == grade
             FilterChip(
                 selected = isSelected,

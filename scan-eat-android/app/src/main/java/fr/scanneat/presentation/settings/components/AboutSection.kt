@@ -62,7 +62,7 @@ internal fun OssLicensesDialog(onDismiss: () -> Unit) {
                 modifier = Modifier.heightIn(max = 360.dp),
                 verticalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
-                items(OSS_LIBRARIES) { (name, license) ->
+                items(OSS_LIBRARIES, key = { it.first }) { (name, license) ->
                     Column {
                         Text(name, style = MaterialTheme.typography.bodyMedium, color = OnBackground)
                         Text(license, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))

@@ -16,7 +16,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun TemplatesMealFilterRow(selected: MealSlot?, onSelect: (MealSlot?) -> Unit) {
     val mealOptions = listOf<MealSlot?>(null) + MealSlot.values().toList()
     LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-        items(mealOptions) { slot ->
+        items(mealOptions, key = { it?.name ?: "all" }) { slot ->
             FilterChip(
                 selected = selected == slot,
                 onClick = { onSelect(slot) },

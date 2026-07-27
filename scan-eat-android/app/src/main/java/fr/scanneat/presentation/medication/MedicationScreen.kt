@@ -87,7 +87,13 @@ fun MedicationScreen(
             // the ViewModel returns typed InteractionWarning values (it has no
             // stringResource() access) and this is where they're localized.
             if (interactionWarnings.value.isNotEmpty()) {
-                items(interactionWarnings.value) { warning -> MedicationInteractionWarningBanner(warning) }
+                items(interactionWarnings.value, key = { warning ->
+                    when (warning) {
+                        is InteractionWarning.GroupDuplicate -> "dup-${warning.group.name}"
+                        InteractionWarning.AnticoagNsaid -> "anticoag-nsaid"
+                        InteractionWarning.SsriMaoi -> "ssri-maoi"
+                    }
+                }) { warning -> MedicationInteractionWarningBanner(warning) }
             }
 
             // Today's adherence summary: compact chip row showing taken/not-taken per medication.

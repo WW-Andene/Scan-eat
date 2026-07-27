@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.AlertDialog
@@ -131,7 +132,7 @@ internal fun SuggestRecipesDialog(
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                                 contentPadding = PaddingValues(vertical = Spacing.XS),
                             ) {
-                                items(historyItems) { name ->
+                                items(historyItems, key = { it }) { name ->
                                     val selected = name in selectedHistory
                                     FilterChip(
                                         selected = selected,
@@ -169,7 +170,7 @@ internal fun SuggestRecipesDialog(
                 if (!results.isNullOrEmpty()) {
                     HorizontalDivider(color = OnBackground.copy(0.1f))
                     LazyColumn(modifier = Modifier.heightIn(max = 280.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(results) { idea ->
+                        itemsIndexed(results, key = { index, idea -> "$index-${idea.name}" }) { _, idea ->
                             Surface(
                                 shape = RoundedCornerShape(10.dp), color = OnBackground.copy(0.05f),
                                 onClick = { onPick(idea) }, modifier = Modifier.fillMaxWidth(),

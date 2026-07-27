@@ -25,7 +25,7 @@ internal fun DiarySlotFilterRow(slotFilter: MealSlot?, onFilterChange: (MealSlot
                 colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
             )
         }
-        items(MealSlot.values()) { slot ->
+        items(MealSlot.values(), key = { it.name }) { slot ->
             FilterChip(
                 selected = slotFilter == slot,
                 onClick = { onFilterChange(if (slotFilter == slot) null else slot) },

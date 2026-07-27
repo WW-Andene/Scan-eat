@@ -31,7 +31,7 @@ internal fun RecipesFilterChipsRow(
     )
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-            items(filterOptions) { (filter, label) ->
+            items(filterOptions, key = { it.first.name }) { (filter, label) ->
                 FilterChip(
                     selected = goalFilter == filter,
                     onClick = { onFilterChange(filter) },

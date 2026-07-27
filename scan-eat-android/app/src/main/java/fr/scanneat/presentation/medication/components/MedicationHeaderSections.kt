@@ -70,7 +70,11 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
             Column {
                 Text(stringResource(R.string.medication_interaction_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
                 Text(message, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
-                Text(stringResource(R.string.medication_interaction_cta), style = MaterialTheme.typography.labelSmall, color = semanticRed().copy(0.6f))
+                // Was semanticRed().copy(0.6f) - a safety-relevant CTA (anticoagulant/
+                // NSAID interaction) rendered at reduced contrast over an already-tinted
+                // (semanticRed 0.1f) background, likely below WCAG AA 4.5:1. Full-opacity
+                // to match the title/icon above it; alpha is reserved for the message body.
+                Text(stringResource(R.string.medication_interaction_cta), style = MaterialTheme.typography.labelSmall, color = semanticRed(), fontWeight = FontWeight.SemiBold)
             }
         }
     }
