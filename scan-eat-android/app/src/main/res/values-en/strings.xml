@@ -989,7 +989,7 @@
     <string name="settings_legal_medical_disclaimer">This app does not provide medical advice. Scores, estimates and recommendations are informational and don\'t replace guidance from a healthcare professional.</string>
     <string name="settings_legal_data_accuracy">Nutrition information comes from open databases or label recognition and may contain errors or be incomplete.</string>
     <string name="settings_legal_nutrition_recs">Nutrition targets are computed from published formulas (Mifflin-St Jeor, EFSA, WHO) applied to your own data; they are estimates, not prescriptions.</string>
-    <string name="settings_legal_medication">Medication tracking is a plain manual reminder. It does not check drug interactions, dosage, or contraindications — always consult a healthcare professional or pharmacist.</string>
+    <string name="settings_legal_medication">Medication tracking is a plain manual reminder. It flags a small, fixed list of well-known interaction risks (e.g. anticoagulant + NSAID) by name matching only — it does not check dosage, contraindications, or any interaction outside that list. Always consult a healthcare professional or pharmacist.</string>
     <string name="settings_legal_liability">The publisher accepts no liability for health decisions made solely on information from this app.</string>
     <string name="settings_legal_privacy">Your data (profile, history, medications) is stored locally on your device and only sent to third-party services if you explicitly enable a feature that requires it (e.g. API-based scoring).</string>
     <string name="settings_about_version">Scan\'eat v%1$s · Scoring engine v%2$s</string>
