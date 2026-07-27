@@ -36,34 +36,44 @@ internal object SecureFieldCipher {
     private const val GCM_IV_LENGTH_BYTES = 12
     private const val GCM_TAG_LENGTH_BITS = 128
 
-    private fun generateKey(): SecretKey {
-        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE_PROVIDER)
-        val specBuilder = KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+    private fun baseSpecBuilder(): KeyGenParameterSpec.Builder =
+        KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setKeySize(256)
+
+    private fun generateKey(): SecretKey {
+        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE_PROVIDER)
         // StrongBox (a separate secure-element chip, where present) is strictly
         // stronger than the TEE-only default — opportunistic, not required.
         // setIsStrongBoxBacked() itself is API 28+ (this app's minSdk is 26),
-        // so it's only ever called behind this version check - not just
-        // wrapped in runCatching, which guards the *runtime* StrongBoxUnavailable-
-        // Exception a device can still throw even on API 28+, but does nothing
-        // for a method that doesn't exist in the API 26/27 framework jar at all
-        // (that's a hard NewApi lint error, not a catchable exception).
-        val spec = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            runCatching { specBuilder.setIsStrongBoxBacked(true).build() }.getOrElse { specBuilder.build() }
-        } else {
-            specBuilder.build()
+        // so it's only ever called behind this version check - that guards the
+        // hard NewApi lint error from calling a method that doesn't exist in the
+        // API 26/27 framework jar at all. The runtime StrongBoxUnavailableException
+        // a device can still throw even on API 28+ (declares the feature but
+        // rejects this spec, or has no real StrongBox chip at all) is handled by
+        // the try/catch below.
+        //
+        // Each attempt below calls baseSpecBuilder() to get its OWN fresh Builder:
+        // KeyGenParameterSpec.Builder mutates itself in place and returns `this`
+        // from every setter, so a single shared builder that had
+        // .setIsStrongBoxBacked(true) called on it stays permanently flagged for
+        // every later .build() call from that same instance - a previous version
+        // of this fallback reused one builder for both the StrongBox attempt and
+        // the "retry without StrongBox" attempt, so the retry silently rebuilt an
+        // identical StrongBox-required spec and threw the exact same
+        // StrongBoxUnavailableException, this time uncaught, crashing every save
+        // on a device whose StrongBox chip rejects this spec (or has none at all).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                keyGenerator.init(baseSpecBuilder().setIsStrongBoxBacked(true).build())
+                return keyGenerator.generateKey()
+            } catch (e: Exception) {
+                // Fall through to the non-StrongBox attempt below, fresh builder.
+            }
         }
-        return try {
-            keyGenerator.init(spec)
-            keyGenerator.generateKey()
-        } catch (e: Exception) {
-            // StrongBoxUnavailableException on devices that report the feature
-            // but reject this particular spec — retry once without it.
-            keyGenerator.init(specBuilder.build())
-            keyGenerator.generateKey()
-        }
+        keyGenerator.init(baseSpecBuilder().build())
+        return keyGenerator.generateKey()
     }
 
     private fun getOrCreateKey(): SecretKey {
