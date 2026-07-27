@@ -112,11 +112,14 @@ internal fun FastingHistoryRow(completion: FastCompletion, onDelete: () -> Unit)
         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) semanticGreen() else semanticAmber())
         Icon(if (c.reached) Icons.Default.CheckCircle else Icons.Default.Close, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(Spacing.XS))
         // Previously the only way to fix a mis-tapped Finish (wrong hours logged)
         // was clearHistory(), which wipes all 90 entries and zeroes the streak -
         // matching the per-entry delete Weight/Activity/Medication already have.
+        // Distinct icon/tint from the status glyph above (also a small X when not
+        // reached) so the two aren't visually confusable as the same control.
         IconButton(onClick = onDelete) {
-            Icon(Icons.Default.DeleteOutline, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
+            Icon(Icons.Default.DeleteOutline, stringResource(R.string.common_delete), tint = semanticRed().copy(0.5f), modifier = Modifier.size(16.dp))
         }
     }
 }
