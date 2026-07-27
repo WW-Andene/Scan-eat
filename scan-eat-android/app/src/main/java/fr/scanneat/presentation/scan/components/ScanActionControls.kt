@@ -30,6 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -153,8 +155,16 @@ internal fun BoxScope.ScanInstantModeFab(instantMode: Boolean, bottomNavClearanc
 internal fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick: () -> Unit) {
     FloatingActionButton(
         onClick = onClick,
+        // traversalIndex = -1f (before every other FAB in this Box's default 0f) -
+        // this is the only one of the five controls in this overlay anchored to the
+        // TOP of the screen, but it was declared last in ScanScreen's composition
+        // order (after all four bottom-anchored controls), so TalkBack's default
+        // traversal - which follows composition order here, not screen position -
+        // announced it dead last: a swipe-through went bottom-end, bottom-end,
+        // bottom-start, bottom-start, then jumped back up to this top-right button.
         modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 48.dp, end = Spacing.L)
-            .minTouchTarget(), // was a fixed 40dp, below the 48dp WCAG/Material touch-target minimum
+            .minTouchTarget() // was a fixed 40dp, below the 48dp WCAG/Material touch-target minimum
+            .semantics { traversalIndex = -1f },
         containerColor = if (shelfMode) Teal else SurfaceVariant,
     ) {
         Icon(Icons.Default.GridView, stringResource(R.string.scan_shelf_mode_toggle), tint = if (shelfMode) Color.Black else OnSurface)
