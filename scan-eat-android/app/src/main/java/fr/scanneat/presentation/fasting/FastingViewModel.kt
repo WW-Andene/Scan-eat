@@ -49,6 +49,6 @@ class FastingViewModel @Inject constructor(
     fun cancel()           = viewModelScope.launch { runCatching { repo.cancel() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
 
     /** Removes a single mis-logged history entry — previously only clearHistory() (nuke-all) existed. */
-    fun deleteHistoryEntry(startMs: Long) = viewModelScope.launch { runCatching { repo.deleteEntry(startMs) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    fun deleteHistoryEntry(id: String) = viewModelScope.launch { runCatching { repo.deleteEntry(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
 }
 

@@ -4,6 +4,7 @@ import fr.scanneat.data.local.db.toIsoString
 import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.data.local.db.weight.WeightEntity
+import fr.scanneat.data.local.prefs.SecureFieldCipher
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.domain.model.roundTo1Decimal
 import kotlinx.coroutines.CancellationException
@@ -78,12 +79,16 @@ class WeightRepository @Inject constructor(
     suspend fun log(date: LocalDate, weightKg: Double, notes: String = "", profileId: String = "default") {
         require(weightKg > 0 && weightKg <= 400) { "Invalid weight: $weightKg" }
         val rounded = weightKg.roundTo1Decimal()
+        // notes is free-text the user attaches to a weigh-in (e.g. "after workout",
+        // "sick this week", "started new medication") - same Keystore-encrypted-at-
+        // rest pattern as Medication's name/dosage/scheduleNote, since it can just
+        // as easily reveal a health condition as those fields do.
         val existing = dao.upsertForDate(date.toIsoString(), profileId) { existing ->
             WeightEntity(
                 id        = existing?.id ?: UUID.randomUUID().toString(),
                 date      = date.toIsoString(),
                 weightKg  = rounded,
-                notes     = notes,
+                notes     = SecureFieldCipher.encrypt(notes),
                 loggedAt  = System.currentTimeMillis(),
                 profileId = profileId,
             )
@@ -149,7 +154,7 @@ class WeightRepository @Inject constructor(
                     id        = UUID.randomUUID().toString(),
                     date      = date.toIsoString(),
                     weightKg  = kg,
-                    notes     = "",
+                    notes     = SecureFieldCipher.encrypt(""),
                     loggedAt  = System.currentTimeMillis(),
                     profileId = profileId,
                 )
@@ -232,5 +237,5 @@ class WeightRepository @Inject constructor(
         return ((num / den) * 7.0).roundTo1Decimal()
     }
 
-    private fun WeightEntity.toDomain() = WeightEntry(id, date.toLocalDate(), weightKg, notes)
+    private fun WeightEntity.toDomain() = WeightEntry(id, date.toLocalDate(), weightKg, SecureFieldCipher.decryptOrNull(notes) ?: notes)
 }

@@ -2,6 +2,7 @@ package fr.scanneat.data.repository.backup
 
 import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.weight.WeightEntity
 import fr.scanneat.data.local.prefs.SecureFieldCipher
 
 // ============================================================================
@@ -42,3 +43,9 @@ internal fun MedicationLogEntity.decryptedForBackup() = copy(
 internal fun MedicationLogEntity.encryptedFromBackup() = copy(
     medicationName = SecureFieldCipher.encrypt(medicationName),
 )
+
+/** Same plaintext-in-backup, re-encrypt-on-import pattern as the Medication
+ *  entities above, for WeightEntity.notes (see WeightRepository.log's own doc comment). */
+internal fun WeightEntity.decryptedForBackup() = copy(notes = SecureFieldCipher.decryptOrNull(notes) ?: notes)
+
+internal fun WeightEntity.encryptedFromBackup() = copy(notes = SecureFieldCipher.encrypt(notes))

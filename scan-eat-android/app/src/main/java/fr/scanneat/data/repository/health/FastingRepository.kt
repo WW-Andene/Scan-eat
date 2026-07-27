@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.time.LocalDate
 import java.io.IOException
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -55,6 +56,14 @@ data class FastCompletion(
     val targetHours: Int,
     val achievedHours: Double,
     val reached: Boolean,       // achieved >= target
+    // Was startMs doubling as a de-facto unique key ("two fasts can't start in
+    // the same millisecond" - true in practice, but a real id is one less thing
+    // to reason about as more features build on this history, e.g. edit-in-place).
+    // A real UUID assigned at completion time. Entries serialized before this
+    // field existed have none in storage - parseEntry() below synthesizes one
+    // from startMs for those (same fallback identity as before), so old history
+    // rows keep working without a migration.
+    val id: String = UUID.randomUUID().toString(),
 )
 
 @Singleton
@@ -155,13 +164,12 @@ class FastingRepository @Inject constructor(
      * Removes a single history entry - previously the only way to fix a mis-tapped
      * "Finish" (wrong hours logged) was clearHistory(), which wipes all 90 entries
      * and permanently zeroes the streak, unlike Weight/Activity/Medication which all
-     * support editing/deleting a single entry. FastCompletion has no stable id, but
-     * [startMs] (the fast's own start timestamp) is unique in practice - two fasts
-     * can't start in the same millisecond - so it doubles as one.
+     * support editing/deleting a single entry. Matched by [FastCompletion.id] now
+     * (see that field's own doc comment for the startMs-as-id history this replaces).
      */
-    suspend fun deleteEntry(startMs: Long) {
+    suspend fun deleteEntry(id: String) {
         store.edit { prefs ->
-            val history = loadHistory(prefs).filterNot { it.startMs == startMs }
+            val history = loadHistory(prefs).filterNot { it.id == id }
             prefs[KEY_HISTORY_JSON] = serializeHistory(history)
         }
     }
@@ -197,11 +205,16 @@ class FastingRepository @Inject constructor(
     }
 
     private fun serializeHistory(list: List<FastCompletion>): String =
-        list.joinToString("|") { "${it.date},${it.startMs},${it.endMs},${it.targetHours},${it.achievedHours},${it.reached}" }
+        list.joinToString("|") { "${it.date},${it.startMs},${it.endMs},${it.targetHours},${it.achievedHours},${it.reached},${it.id}" }
 
     private fun parseEntry(s: String): FastCompletion? = runCatching {
         val p = s.split(",")
-        FastCompletion(p[0], p[1].toLong(), p[2].toLong(), p[3].toInt(), p[4].toDouble(), p[5].toBoolean())
+        // A row written before FastCompletion.id existed has no 7th field -
+        // fall back to startMs.toString() as its id, matching what deleteEntry()
+        // effectively keyed on before this field existed (startMs was unique
+        // in practice), so old history rows keep a stable identity across parses.
+        val id = p.getOrNull(6) ?: p[1]
+        FastCompletion(p[0], p[1].toLong(), p[2].toLong(), p[3].toInt(), p[4].toDouble(), p[5].toBoolean(), id)
     }.onFailure {
         // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -
         // a corrupted delimited entry here previously vanished from the fasting

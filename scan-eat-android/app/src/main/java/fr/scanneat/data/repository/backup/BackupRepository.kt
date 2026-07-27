@@ -94,7 +94,7 @@ class BackupRepository @Inject constructor(
             scanHistory   = scanHistoryDao.getAllForBackup(),
             consumption   = consumptionDao.getAllForBackup(),
             customFoods   = customFoodDao.getAllForBackup(),
-            weights       = weightDao.getAllForBackup(),
+            weights       = weightDao.getAllForBackup().map { it.decryptedForBackup() },
             activities    = activityDao.getAllForBackup(),
             mealTemplates = mealTemplateDao.getAllForBackup(),
             recipes       = recipeDao.getAllForBackup(),
@@ -226,7 +226,9 @@ class BackupRepository @Inject constructor(
             }
             customFoodDao.insertAll(newCustomFoods)
 
-            weightDao.insertAll(bundle.weights)
+            // Bundle rows are plaintext (decryptedForBackup ran on export) - re-encrypt
+            // before they land in the DB, same as medications above.
+            weightDao.insertAll(bundle.weights.map { it.encryptedFromBackup() })
             activityDao.insertAll(bundle.activities)
             mealTemplateDao.insertAll(bundle.mealTemplates)
             recipeDao.insertAll(bundle.recipes)

@@ -87,7 +87,7 @@ fun FastingScreen(
     // Deleting a single history entry is permanent (no per-entry undo, unlike
     // Weight/Activity/Medication's delete-with-undo-snackbar) - a confirm dialog
     // is the safeguard here instead, matching DeleteConfirmDialog's other usages.
-    var deleteTarget by remember { mutableStateOf<Long?>(null) }
+    var deleteTarget by remember { mutableStateOf<String?>(null) }
 
     var targetHours by remember { mutableIntStateOf(16) }
     var customMode by remember { mutableStateOf(false) }
@@ -173,8 +173,8 @@ fun FastingScreen(
 
             // History list
             if (history.value.isNotEmpty()) {
-                items(history.value.take(20), key = { it.endMs }) { c ->
-                    FastingHistoryRow(c, onDelete = { deleteTarget = c.startMs })
+                items(history.value.take(20), key = { it.id }) { c ->
+                    FastingHistoryRow(c, onDelete = { deleteTarget = c.id })
                 }
             }
 
@@ -209,8 +209,8 @@ fun FastingScreen(
         )
     }
 
-    deleteTarget?.let { startMs ->
-        val entryDate = history.value.find { it.startMs == startMs }?.date
-        DeleteConfirmDialog(itemName = entryDate, onConfirm = { viewModel.deleteHistoryEntry(startMs); deleteTarget = null }, onDismiss = { deleteTarget = null })
+    deleteTarget?.let { targetId ->
+        val entryDate = history.value.find { it.id == targetId }?.date
+        DeleteConfirmDialog(itemName = entryDate, onConfirm = { viewModel.deleteHistoryEntry(targetId); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 }

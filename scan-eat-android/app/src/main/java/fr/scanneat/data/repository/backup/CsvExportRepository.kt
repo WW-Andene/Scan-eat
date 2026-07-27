@@ -93,7 +93,12 @@ class CsvExportRepository @Inject constructor(
      */
     suspend fun exportWeightCsv(): String {
         val rows = weightDao.getAllForBackup()
-        val lines = rows.sortedBy { it.date }.map { e -> "${e.date},${e.weightKg},${csvField(e.notes)}" }
+        // notes is Keystore-encrypted at rest (WeightRepository) - decrypt before
+        // writing to a human-readable CSV, same as exportMedicationCsv's name field.
+        val lines = rows.sortedBy { it.date }.map { e ->
+            val notes = SecureFieldCipher.decryptOrNull(e.notes) ?: e.notes
+            "${e.date},${e.weightKg},${csvField(notes)}"
+        }
         return buildCsv("date,weightKg,notes", lines)
     }
 
