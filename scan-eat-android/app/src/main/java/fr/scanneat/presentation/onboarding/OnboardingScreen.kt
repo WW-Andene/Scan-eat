@@ -10,9 +10,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import fr.scanneat.R
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Goal
@@ -76,15 +78,30 @@ fun OnboardingScreen(
             // Improvement: step-progress dots — previously no visual indicator of how many
             // pages exist or which one you're on; users had no way to gauge remaining effort.
             if (page > 0) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    (1..3).forEach { step ->
-                        val active = step == page
-                        Box(
-                            Modifier
-                                .size(if (active) 20.dp else 8.dp, 8.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
-                        )
+                Box(Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.align(Alignment.Center),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        (1..3).forEach { step ->
+                            val active = step == page
+                            Box(
+                                Modifier
+                                    .size(if (active) 20.dp else 8.dp, 8.dp)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
+                            )
+                        }
+                    }
+                    // A user who picked Server mode then wanted to change it after
+                    // already reaching Profile capture (page 3), or who just wanted
+                    // to re-read the value-proposition page, had no way back short of
+                    // abandoning onboarding entirely (there's no "restart" affordance
+                    // either) - every other multi-step wizard in the app
+                    // (BiolismOnboardingScreen) already has a Back button at every
+                    // step past the first; this one didn't.
+                    TextButton(onClick = { page -= 1 }, modifier = Modifier.align(Alignment.CenterStart)) {
+                        Text(stringResource(R.string.common_back), color = OnBackground.copy(0.6f))
                     }
                 }
             }
