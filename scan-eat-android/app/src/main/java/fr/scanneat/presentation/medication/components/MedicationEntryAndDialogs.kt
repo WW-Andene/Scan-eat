@@ -26,11 +26,11 @@ internal fun MedicationEntryRow(
     onToggleTaken: () -> Unit,
     onSetActive: (Boolean) -> Unit,
     onOpenReminder: () -> Unit,
-    onRename: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val m = medication
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M), onClick = onEdit) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -80,9 +80,9 @@ internal fun MedicationEntryRow(
             }
             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                 DropdownMenuItem(
-                    text = { Text(stringResource(R.string.common_rename)) },
+                    text = { Text(stringResource(R.string.common_edit)) },
                     leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                    onClick = { menuExpanded = false; onRename() },
+                    onClick = { menuExpanded = false; onEdit() },
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_delete)) },
@@ -95,14 +95,21 @@ internal fun MedicationEntryRow(
 }
 
 @Composable
-internal fun AddMedicationDialog(onDismiss: () -> Unit, onSave: (name: String, dosage: String, scheduleNote: String) -> Unit) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var dosage by rememberSaveable { mutableStateOf("") }
-    var scheduleNote by rememberSaveable { mutableStateOf("") }
+internal fun AddMedicationDialog(
+    onDismiss: () -> Unit,
+    onSave: (name: String, dosage: String, scheduleNote: String) -> Unit,
+    initialName: String = "",
+    initialDosage: String = "",
+    initialScheduleNote: String = "",
+    isEdit: Boolean = false,
+) {
+    var name by rememberSaveable { mutableStateOf(initialName) }
+    var dosage by rememberSaveable { mutableStateOf(initialDosage) }
+    var scheduleNote by rememberSaveable { mutableStateOf(initialScheduleNote) }
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
-        title = { Text(stringResource(R.string.medication_add_dialog_title), color = OnBackground) },
+        title = { Text(stringResource(if (isEdit) R.string.medication_edit_dialog_title else R.string.medication_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.medication_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
@@ -112,7 +119,7 @@ internal fun AddMedicationDialog(onDismiss: () -> Unit, onSave: (name: String, d
         },
         confirmButton = {
             TextButton(onClick = { onSave(name, dosage, scheduleNote) }, enabled = name.isNotBlank()) {
-                Text(stringResource(R.string.common_create), color = Teal)
+                Text(stringResource(if (isEdit) R.string.common_save else R.string.common_create), color = Teal)
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },

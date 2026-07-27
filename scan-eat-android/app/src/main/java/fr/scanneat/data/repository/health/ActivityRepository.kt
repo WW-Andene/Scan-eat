@@ -153,6 +153,54 @@ class ActivityRepository @Inject constructor(
 
     suspend fun delete(id: String) = dao.delete(id)
 
+    /**
+     * Edits an existing entry in place - Weight/Diary/Templates already support
+     * editing a logged entry, but Activity only ever supported delete-and-recreate.
+     * Reuses dao.insert()'s OnConflictStrategy.REPLACE on the primary key [id] as
+     * an upsert (same trick WeightRepository.log() gets for free from its date
+     * uniqueness), so no separate DAO update query is needed. Recomputes kcal the
+     * same way log() does, keeping the original loggedAt so the entry doesn't
+     * jump position in "most recently logged" orderings just from being edited.
+     */
+    suspend fun update(
+        id: String,
+        type: ActivityType,
+        minutes: Int,
+        weightKg: Double,
+        kcalOverride: Int? = null,
+        note: String = "",
+        date: LocalDate = LocalDate.now(),
+        profileId: String = "default",
+        subType: String? = null,
+        sets: Int? = null,
+        reps: Int? = null,
+        distanceKm: Double? = null,
+        weightUsedKg: Double? = null,
+    ) {
+        val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
+                   else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm)
+        // ActivityEntry (the domain model every screen/ViewModel already works
+        // with) doesn't expose loggedAt, so this looks the existing row's value
+        // up itself rather than requiring callers to thread it through - an edit
+        // shouldn't jump position in "most recently logged" orderings.
+        val loggedAt = dao.findById(id)?.loggedAt ?: System.currentTimeMillis()
+        dao.insert(ActivityEntity(
+            id           = id,
+            date         = date.toIsoString(),
+            type         = type.key,
+            minutes      = minutes.coerceAtLeast(0),
+            kcalBurned   = kcal,
+            note         = note,
+            loggedAt     = loggedAt,
+            profileId    = profileId,
+            subType      = subType,
+            sets         = sets?.coerceAtLeast(0),
+            reps         = reps?.coerceAtLeast(0),
+            distanceKm   = distanceKm?.coerceAtLeast(0.0),
+            weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
+        ))
+    }
+
     suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =
         dao.getRange(from.toIsoString(), to.toIsoString(), profileId).map { it.toDomain() }
 

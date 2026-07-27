@@ -211,11 +211,16 @@ class MedicationViewModel @Inject constructor(
         }
     }
 
-    fun rename(medication: Medication, newName: String) {
-        if (newName.isBlank()) return
+    /** Edits an existing medication's name/dosage/schedule note in place — previously the
+     *  only mutations available after creation were rename(), setReminder(), and delete();
+     *  fixing a dosage typo or a schedule-note change required deleting and recreating the
+     *  medication, losing its adherence-log association (MedicationLogEntry references it
+     *  by id) and its reminder settings in the process. */
+    fun edit(medication: Medication, name: String, dosage: String, scheduleNote: String) {
+        if (name.isBlank()) return
         viewModelScope.launch {
             runCatching {
-                repo.save(newName, medication.dosage, medication.scheduleNote, medication.barcode, medication.active, id = medication.id,
+                repo.save(name, dosage, scheduleNote, medication.barcode, medication.active, id = medication.id,
                     reminderOn = medication.reminderOn, reminderTime = medication.reminderTime)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }

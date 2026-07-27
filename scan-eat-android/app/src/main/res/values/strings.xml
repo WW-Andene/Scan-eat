@@ -891,6 +891,7 @@
     <string name="medication_empty_body">Aucun traitement enregistré.</string>
     <string name="medication_cd_new">Nouveau traitement</string>
     <string name="medication_add_dialog_title">Nouveau traitement</string>
+    <string name="medication_edit_dialog_title">Modifier le traitement</string>
     <string name="medication_field_name">Nom du médicament</string>
     <string name="medication_field_dosage">Dosage</string>
     <string name="medication_field_dosage_hint">ex. 500 mg, 2 comprimés</string>

@@ -17,9 +17,9 @@ import fr.scanneat.data.repository.health.ActivityType
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun ActivityEntryRow(entry: ActivityEntry, typeLabels: Map<ActivityType, String>, subTypeLabels: Map<String, String>, onDelete: () -> Unit) {
+internal fun ActivityEntryRow(entry: ActivityEntry, typeLabels: Map<ActivityType, String>, subTypeLabels: Map<String, String>, onEdit: () -> Unit, onDelete: () -> Unit) {
     val e = entry
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M), onClick = onEdit) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -40,6 +40,9 @@ internal fun ActivityEntryRow(entry: ActivityEntry, typeLabels: Map<ActivityType
                 if (metricsParts.isNotEmpty()) {
                     Text(metricsParts.joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 }
+            }
+            IconButton(onClick = onEdit) {
+                Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))

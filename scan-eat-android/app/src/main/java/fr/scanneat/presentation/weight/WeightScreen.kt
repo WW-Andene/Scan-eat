@@ -28,6 +28,7 @@ import fr.scanneat.presentation.weight.components.WeightEntryRow
 import fr.scanneat.presentation.weight.components.WeightSummaryCard
 import fr.scanneat.presentation.weight.components.WeightTrendChart
 import fr.scanneat.presentation.weight.components.WeightUnitToggleRow
+import fr.scanneat.util.formatDecimal
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -164,7 +165,19 @@ fun WeightScreen(
                 // with no delta at all since idx - 1 was never valid for it.
                 val prev = reversedEntries.getOrNull(idx + 1)
                 val delta = prev?.let { e.weightKg - it.weightKg }
-                WeightEntryRow(entry = e, delta = delta, useImperial = useImperial, fmt = fmt, dispWeight = ::dispWeight, onDelete = { deleteTarget = e.id })
+                WeightEntryRow(
+                    entry = e, delta = delta, useImperial = useImperial, fmt = fmt, dispWeight = ::dispWeight,
+                    onEdit = {
+                        // log()/upsertForDate replaces the existing row for this date rather than
+                        // creating a duplicate, so reopening the same Add dialog prefilled with the
+                        // entry's own values is a correct edit path - no separate update() needed.
+                        kgText = if (useImperial) (e.weightKg * KG_TO_LB).formatDecimal(1) else e.weightKg.formatDecimal(1)
+                        notesText = e.notes
+                        entryDate = e.date
+                        showAdd = true
+                    },
+                    onDelete = { deleteTarget = e.id },
+                )
             }
             item { WeightReminderCard() }
             item { Spacer(Modifier.height(Spacing.XXL)) }

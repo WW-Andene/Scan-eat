@@ -259,9 +259,9 @@ internal fun WeeklyAverageCard(thisWeek: Double, lastWeek: Double, useImperial: 
 }
 
 @Composable
-internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boolean, fmt: DateTimeFormatter, dispWeight: (Double) -> String, onDelete: () -> Unit) {
+internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boolean, fmt: DateTimeFormatter, dispWeight: (Double) -> String, onEdit: () -> Unit, onDelete: () -> Unit) {
     val e = entry
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M), onClick = onEdit) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -285,6 +285,9 @@ internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boo
                 )
             }
             Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+            IconButton(onClick = onEdit) {
+                Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+            }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }

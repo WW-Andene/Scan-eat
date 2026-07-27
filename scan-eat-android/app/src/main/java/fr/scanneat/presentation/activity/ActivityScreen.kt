@@ -100,6 +100,11 @@ fun ActivityScreen(
     var distanceText by rememberSaveable { mutableStateOf("") }
     var weightUsedText by rememberSaveable { mutableStateOf("") }
     var showAdd by remember { mutableStateOf(false) }
+    // Non-null while editing an existing entry (vs. creating a new one) — the same
+    // AddActivityDialog is reused for both, matching Diary's edit-via-reopened-dialog
+    // pattern, since Weight/Diary/Templates already support editing a logged entry
+    // and Activity previously only supported delete-and-recreate.
+    var editTargetId by remember { mutableStateOf<String?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     val typeLabels = typeLabels()
     val subTypeLabels = subTypeLabels()
@@ -143,7 +148,22 @@ fun ActivityScreen(
             item { ActivityWeeklyMinutesCard(weeklyMinutes = weeklyMinutes.value, weekTrendPct = weekTrendPct.value) }
 
             items(entries.value, key = { it.id }) { e ->
-                ActivityEntryRow(entry = e, typeLabels = typeLabels, subTypeLabels = subTypeLabels, onDelete = { deleteTarget = e.id })
+                ActivityEntryRow(
+                    entry = e, typeLabels = typeLabels, subTypeLabels = subTypeLabels,
+                    onEdit = {
+                        editTargetId = e.id
+                        selectedType = e.type
+                        selectedSubType = e.subType
+                        customSubTypeText = e.subType.orEmpty()
+                        setsText = e.sets?.toString().orEmpty()
+                        repsText = e.reps?.toString().orEmpty()
+                        distanceText = e.distanceKm?.toString().orEmpty()
+                        weightUsedText = e.weightUsedKg?.toString().orEmpty()
+                        minutesText = e.minutes.toString()
+                        showAdd = true
+                    },
+                    onDelete = { deleteTarget = e.id },
+                )
             }
 
             if (entries.value.isEmpty()) {
@@ -206,22 +226,25 @@ fun ActivityScreen(
                 onWeightUsedTextChange = { weightUsedText = it },
                 onMinutesTextChange = { minutesText = it },
             ),
-            onDismiss = { showAdd = false },
+            onDismiss = { showAdd = false; editTargetId = null },
             onAdd = {
                 minutesText.toIntOrNull()?.let { min ->
                     // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's
                     // own coerceIn calls - previously unbounded, so a pasted or IME-entered
                     // value like "999999" reps or a negative distance silently landed in
                     // activity_log and skewed the weekly burn/minutes charts.
-                    viewModel.log(
-                        selectedType, min,
-                        subType = selectedSubType,
-                        sets = setsText.toIntOrNull()?.coerceIn(0, 999),
-                        reps = repsText.toIntOrNull()?.coerceIn(0, 999),
-                        distanceKm = distanceText.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 500.0),
-                        weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 500.0),
-                    )
+                    val sets = setsText.toIntOrNull()?.coerceIn(0, 999)
+                    val reps = repsText.toIntOrNull()?.coerceIn(0, 999)
+                    val distanceKm = distanceText.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 500.0)
+                    val weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 500.0)
+                    val editId = editTargetId
+                    if (editId != null) {
+                        viewModel.update(editId, selectedType, min, subType = selectedSubType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg)
+                    } else {
+                        viewModel.log(selectedType, min, subType = selectedSubType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg)
+                    }
                     showAdd = false
+                    editTargetId = null
                     selectedSubType = null; customSubTypeText = ""; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
                 }
             },

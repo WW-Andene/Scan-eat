@@ -31,6 +31,9 @@ interface ActivityDao {
     @Query("DELETE FROM activity_log WHERE id = :id")
     suspend fun delete(id: String)
 
+    @Query("SELECT * FROM activity_log WHERE id = :id LIMIT 1")
+    suspend fun findById(id: String): ActivityEntity?
+
     /** Dedup key set for syncFromHealthConnect() - an external session whose Health Connect id is already here was already imported, and must not be inserted again. */
     @Query("SELECT externalSourceId FROM activity_log WHERE profileId = :profileId AND externalSourceId IS NOT NULL")
     suspend fun getImportedExternalIds(profileId: String = "default"): List<String>

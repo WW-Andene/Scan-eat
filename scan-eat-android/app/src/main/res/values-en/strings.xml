@@ -1337,6 +1337,7 @@
     <string name="medication_empty_body">No medication recorded.</string>
     <string name="medication_cd_new">New medication</string>
     <string name="medication_add_dialog_title">New Medication</string>
+    <string name="medication_edit_dialog_title">Edit Medication</string>
     <string name="medication_field_name">Medication name</string>
     <string name="medication_field_dosage">Dosage</string>
     <string name="medication_field_dosage_hint">e.g. 500 mg, 2 tablets</string>

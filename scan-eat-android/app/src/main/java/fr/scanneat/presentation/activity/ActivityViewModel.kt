@@ -166,6 +166,23 @@ class ActivityViewModel @Inject constructor(
         }
     }
 
+    /** Edits an already-logged entry in place — the only tracker (with Weight/Medication)
+     *  that previously supported only delete-and-recreate for a mis-logged entry. */
+    fun update(
+        id: String, type: ActivityType, minutes: Int,
+        subType: String? = null, sets: Int? = null, reps: Int? = null,
+        distanceKm: Double? = null, weightUsedKg: Double? = null,
+    ) {
+        viewModelScope.launch {
+            runCatching {
+                repo.update(
+                    id, type, minutes, weightKg.value ?: 70.0,
+                    subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
+                )
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     fun delete(id: String) = viewModelScope.launch {
         runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }

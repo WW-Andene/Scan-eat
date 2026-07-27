@@ -63,7 +63,7 @@ fun MedicationScreen(
         }
     }
     var showAdd by remember { mutableStateOf(false) }
-    var renameTarget by remember { mutableStateOf<Medication?>(null) }
+    var editTarget by remember { mutableStateOf<Medication?>(null) }
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var reminderTarget by remember { mutableStateOf<Medication?>(null) }
 
@@ -121,7 +121,7 @@ fun MedicationScreen(
                     onToggleTaken = { if (takenToday != null) viewModel.undoTaken(takenToday) else viewModel.markTaken(m) },
                     onSetActive = { active -> viewModel.setActive(m, active) },
                     onOpenReminder = { reminderTarget = m },
-                    onRename = { renameTarget = m },
+                    onEdit = { editTarget = m },
                     onDelete = { deleteTarget = m.id },
                 )
             }
@@ -155,8 +155,15 @@ fun MedicationScreen(
         })
     }
 
-    renameTarget?.let { m ->
-        RenameDialog(currentName = m.name, onDismiss = { renameTarget = null }, onConfirm = { newName -> viewModel.rename(m, newName); renameTarget = null })
+    editTarget?.let { m ->
+        AddMedicationDialog(
+            isEdit = true,
+            initialName = m.name,
+            initialDosage = m.dosage,
+            initialScheduleNote = m.scheduleNote,
+            onDismiss = { editTarget = null },
+            onSave = { name, dosage, scheduleNote -> viewModel.edit(m, name, dosage, scheduleNote); editTarget = null },
+        )
     }
 
     deleteTarget?.let { id ->
