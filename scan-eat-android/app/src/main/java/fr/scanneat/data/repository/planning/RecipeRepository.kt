@@ -49,6 +49,10 @@ class RecipeRepository @Inject constructor(private val dao: RecipeDao,
 
     suspend fun findById(id: String): Recipe? = dao.findById(id)?.toDomain(componentsAdapter)
 
+    /** Case-insensitive name lookup - see RecipeDao.findByName's own doc comment. */
+    suspend fun findByName(name: String, profileId: String = "default"): Recipe? =
+        dao.findByName(name, profileId)?.toDomain(componentsAdapter)
+
     suspend fun save(
         name: String,
         components: List<RecipeComponent>,

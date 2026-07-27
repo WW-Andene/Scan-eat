@@ -3,7 +3,6 @@ package fr.scanneat.presentation.result
 import androidx.lifecycle.viewModelScope
 import fr.scanneat.data.repository.planning.RecipeComponent
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -77,7 +76,10 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                 // scanned product created a brand-new one-component "recipe" every
                 // time instead of recognizing it was already saved - matched by name
                 // here since Recipe (unlike CustomFood) has no barcode field of its own.
-                val existingId = recipeRepo.observeAll().first().find { it.name.equals(scan.product.name, ignoreCase = true) }?.id
+                // Was recipeRepo.observeAll().first().find{} - a full-table load+scan
+                // on every single scan-result save just to detect a duplicate name,
+                // growing with the recipe count. findByName does the same lookup in SQL.
+                val existingId = recipeRepo.findByName(scan.product.name)?.id
                 recipeRepo.save(
                     name = scan.product.name,
                     components = listOf(

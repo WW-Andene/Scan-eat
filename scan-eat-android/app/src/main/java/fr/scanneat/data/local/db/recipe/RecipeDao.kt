@@ -14,6 +14,11 @@ interface RecipeDao {
     @Query("SELECT * FROM recipes WHERE id = :id LIMIT 1")
     suspend fun findById(id: String): RecipeEntity?
 
+    /** Case-insensitive name lookup - ResultSaveDestinations uses this to detect an
+     *  existing recipe by name instead of loading+filtering the whole table. */
+    @Query("SELECT * FROM recipes WHERE profileId = :profileId AND name = :name COLLATE NOCASE LIMIT 1")
+    suspend fun findByName(name: String, profileId: String = "default"): RecipeEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entity: RecipeEntity)
 
