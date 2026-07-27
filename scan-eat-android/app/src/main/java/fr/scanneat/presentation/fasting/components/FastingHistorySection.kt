@@ -106,11 +106,17 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>) {
 }
 
 @Composable
-internal fun FastingHistoryRow(completion: FastCompletion) {
+internal fun FastingHistoryRow(completion: FastCompletion, onDelete: () -> Unit) {
     val c = completion
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) semanticGreen() else semanticAmber())
         Icon(if (c.reached) Icons.Default.CheckCircle else Icons.Default.Close, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
+        // Previously the only way to fix a mis-tapped Finish (wrong hours logged)
+        // was clearHistory(), which wipes all 90 entries and zeroes the streak -
+        // matching the per-entry delete Weight/Activity/Medication already have.
+        IconButton(onClick = onDelete) {
+            Icon(Icons.Default.DeleteOutline, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
+        }
     }
 }

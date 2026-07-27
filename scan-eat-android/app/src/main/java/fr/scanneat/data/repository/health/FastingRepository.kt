@@ -151,6 +151,21 @@ class FastingRepository @Inject constructor(
         store.edit { prefs -> prefs.remove(KEY_HISTORY_JSON) }
     }
 
+    /**
+     * Removes a single history entry - previously the only way to fix a mis-tapped
+     * "Finish" (wrong hours logged) was clearHistory(), which wipes all 90 entries
+     * and permanently zeroes the streak, unlike Weight/Activity/Medication which all
+     * support editing/deleting a single entry. FastCompletion has no stable id, but
+     * [startMs] (the fast's own start timestamp) is unique in practice - two fasts
+     * can't start in the same millisecond - so it doubles as one.
+     */
+    suspend fun deleteEntry(startMs: Long) {
+        store.edit { prefs ->
+            val history = loadHistory(prefs).filterNot { it.startMs == startMs }
+            prefs[KEY_HISTORY_JSON] = serializeHistory(history)
+        }
+    }
+
     // ---- Backup export/import ----
 
     /** Current active session (if any) plus history, for BackupRepository. */

@@ -62,10 +62,32 @@ fun FastingScreen(
         }
     }
 
+    // Personal-record chip in ActiveFastCard is a persistent badge, shown for the
+    // entire remainder of the fast once the threshold is crossed - there was no
+    // distinct, one-time acknowledgment of the actual moment it happens, unlike
+    // Weight/Activity's other celebration-adjacent moments. personalRecord was
+    // already fully computed with no consumer for this; fires once per active
+    // fast (recordCelebrated resets whenever there's no active fast to celebrate).
+    var recordCelebrated by remember { mutableStateOf(false) }
+    val newRecordMessage = stringResource(R.string.fasting_new_record)
+    LaunchedEffect(state.value?.startMs, personalRecord.value) {
+        val s = state.value
+        if (s == null) {
+            recordCelebrated = false
+        } else if (!recordCelebrated && personalRecord.value > 0 && s.elapsedHours >= personalRecord.value) {
+            recordCelebrated = true
+            snackbarHostState.showSnackbar(newRecordMessage)
+        }
+    }
+
     // cancel() (unlike stop()) discards the in-progress fast with no history record
     // at all - a misclick on a button sitting right next to Finish previously threw
     // away hours of progress with zero confirmation and no way to undo it.
     var showCancelConfirm by remember { mutableStateOf(false) }
+    // Deleting a single history entry is permanent (no per-entry undo, unlike
+    // Weight/Activity/Medication's delete-with-undo-snackbar) - a confirm dialog
+    // is the safeguard here instead, matching DeleteConfirmDialog's other usages.
+    var deleteTarget by remember { mutableStateOf<Long?>(null) }
 
     var targetHours by remember { mutableIntStateOf(16) }
     var customMode by remember { mutableStateOf(false) }
@@ -151,7 +173,9 @@ fun FastingScreen(
 
             // History list
             if (history.value.isNotEmpty()) {
-                items(history.value.take(20), key = { it.endMs }) { c -> FastingHistoryRow(c) }
+                items(history.value.take(20), key = { it.endMs }) { c ->
+                    FastingHistoryRow(c, onDelete = { deleteTarget = c.startMs })
+                }
             }
 
             item { Spacer(Modifier.height(Spacing.XXL)) }
@@ -183,5 +207,10 @@ fun FastingScreen(
             onConfirm = { viewModel.cancel(); showCancelConfirm = false },
             onDismiss = { showCancelConfirm = false },
         )
+    }
+
+    deleteTarget?.let { startMs ->
+        val entryDate = history.value.find { it.startMs == startMs }?.date
+        DeleteConfirmDialog(itemName = entryDate, onConfirm = { viewModel.deleteHistoryEntry(startMs); deleteTarget = null }, onDismiss = { deleteTarget = null })
     }
 }
