@@ -46,7 +46,15 @@ fun hasMinimalProfile(p: Profile): Boolean =
 fun bmrMifflinStJeor(p: Profile): Double? {
     if (!hasMinimalProfile(p)) return null
     val sexOffset = if (p.sex == Sex.FEMALE) -161.0 else 5.0
-    return 10.0 * p.weightKg!! + 6.25 * p.heightCm!! - 5.0 * p.ageYears!! + sexOffset
+    // Age has no upper sanity cap upstream in profile entry, and the formula's
+    // -5×age term can drive BMR toward/below zero for a very old, light, short
+    // profile (e.g. age=130, weight=35kg, height=140cm) - clamped to the range
+    // the formula was actually validated for, then floored at a minimum
+    // physiologically plausible BMR so nothing downstream (daily targets,
+    // sat-fat/sugar budgets) ever displays a negative or near-zero value.
+    val clampedAge = p.ageYears!!.coerceIn(1, 110)
+    val raw = 10.0 * p.weightKg!! + 6.25 * p.heightCm!! - 5.0 * clampedAge + sexOffset
+    return raw.coerceAtLeast(500.0)
 }
 
 fun tdeeKcal(p: Profile): Double? {

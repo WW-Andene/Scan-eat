@@ -74,16 +74,21 @@ internal fun MedicationEntryRow(
                     tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
                 )
             }
+            // A fresh UX audit flagged Medication as the one tracker whose Edit
+            // action was hidden behind an overflow menu while Weight/Activity both
+            // expose an always-visible pencil icon - a user who just learned "tap
+            // the pencil" on those two trackers found no pencil at all here. Delete
+            // stays in the overflow (Medication already has 2 more always-visible
+            // icons than Weight/Activity - taken-today + reminder - so there isn't
+            // row width for a 5th icon button).
+            IconButton(onClick = onEdit) {
+                Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f))
+            }
             var menuExpanded by remember { mutableStateOf(false) }
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
             }
             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.common_edit)) },
-                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                    onClick = { menuExpanded = false; onEdit() },
-                )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_delete)) },
                     leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },

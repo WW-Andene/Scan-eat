@@ -130,7 +130,7 @@ class CalendarViewModel @Inject constructor(
         val end = m.atEndOfMonth()
         combine(
             consumptionRepo.observeRange(start, end),
-            weightRepo.observeAll(),
+            weightRepo.observeRange(start, end),
             fastingRepo.history,
             activityRepo.observeRange(start, end),
             // Was a one-shot flow{ emit(getLogRange(...)) } - unlike activityRepo.observeRange
@@ -216,16 +216,16 @@ class CalendarViewModel @Inject constructor(
     val dayDetail: StateFlow<CalendarDayDetail> = _selectedDate.flatMapLatest { date ->
         combine(
             consumptionRepo.observeDay(date),
-            weightRepo.observeAll(),
+            weightRepo.observeByDate(date),
             activityRepo.observeByDate(date),
             hydrationRepo.observe(date),
             fastingRepo.history,
-        ) { daily, weights, activities, hydrationMl, fastHistory ->
+        ) { daily, weightEntry, activities, hydrationMl, fastHistory ->
             CalendarDayDetail(
                 date           = date,
                 mealCount      = daily.entries.size,
                 kcal           = daily.totals.energyKcal,
-                weightKg       = weights.find { it.date == date }?.weightKg,
+                weightKg       = weightEntry?.weightKg,
                 activities     = activities,
                 hydrationMl    = hydrationMl,
                 fastCompletion = fastHistory.find { it.date == date.toString() },

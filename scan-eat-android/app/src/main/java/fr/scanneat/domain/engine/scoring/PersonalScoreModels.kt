@@ -13,7 +13,12 @@ data class PersonalAdjustment(
     val veto: Boolean = false,
 )
 
-enum class AdjustmentCategory { DIET, AGE, SEX, ACTIVITY, BMI, GOAL, MODIFIER, CONDITION, PROTEIN_BUDGET }
+// PROTEIN_BUDGET previously also covered sat-fat/sugar/salt daily-budget penalties,
+// which have nothing to do with protein — flagged independently by two separate
+// audit passes as a real mislabeling (any future UI grouping/filtering by category
+// would bucket sat-fat/sugar/salt warnings under "protein"). DAILY_BUDGET now
+// covers those three; PROTEIN_BUDGET is reserved for the actual protein-PRI bonus.
+enum class AdjustmentCategory { DIET, AGE, SEX, ACTIVITY, BMI, GOAL, MODIFIER, CONDITION, PROTEIN_BUDGET, DAILY_BUDGET }
 
 data class PersonalScoreResult(
     val personalScore: Int,

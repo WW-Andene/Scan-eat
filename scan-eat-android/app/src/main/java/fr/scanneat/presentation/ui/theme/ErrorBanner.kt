@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 
@@ -39,7 +42,14 @@ fun ErrorBanner(
     onAction: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
 ) {
-    Surface(modifier = modifier.fillMaxWidth(), color = semanticRed().copy(alpha = 0.15f), shape = RoundedCornerShape(CardRadius.CONTROL)) {
+    // This banner is the app's one shared error surface (scan network failures,
+    // allergen/diet vetoes, non-food detection) - a fresh accessibility audit
+    // found it was never announced to TalkBack at all (no liveRegion anywhere in
+    // the app). Assertive since it's frequently safety-relevant (allergen match).
+    Surface(
+        modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Assertive },
+        color = semanticRed().copy(alpha = 0.15f), shape = RoundedCornerShape(CardRadius.CONTROL),
+    ) {
         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.ErrorOutline, null, tint = semanticRed())
             Spacer(Modifier.width(8.dp))

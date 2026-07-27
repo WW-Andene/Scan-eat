@@ -75,14 +75,19 @@ class DashboardViewModel @Inject constructor(
             consumptionRepo.observeDay(date),
             consumptionRepo.observeRange(date.minusDays(30), date),
             prefs.profile,
-            weightRepo.observeAll(),
+            weightRepo.observeLatest(),
             biolismRepo.profile,
         ) { todayData, allEntries, profile, _, bioProfile ->
-            // weightRepo.observeAll() (4th param, ignored) is a trigger-only input -
+            // weightRepo.observeLatest() (4th param, ignored) is a trigger-only input -
             // it makes this combine re-run when weight changes, but wSummary below
             // is fetched fresh via weightRepo.summarize() rather than threaded
-            // through here. Kotlin's typed 5-flow combine() overload removes the
-            // Array<*>-indexed unchecked casts the previous form needed.
+            // through here. Was observeAll() (the full, unbounded weight_log table)
+            // until a performance audit flagged it as a full-table fetch+map on
+            // every single unrelated Dashboard recompute purely to get Room's
+            // table-level invalidation signal - observeLatest() gets the identical
+            // re-trigger from a 1-row query instead. Kotlin's typed 5-flow combine()
+            // overload removes the Array<*>-indexed unchecked casts the previous
+            // form needed.
             Quad(todayData, allEntries, profile, bioProfile)
         }
             // Nested rather than folded into the 5-way combine above (which is

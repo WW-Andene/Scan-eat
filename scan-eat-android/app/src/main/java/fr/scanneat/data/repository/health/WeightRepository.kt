@@ -47,6 +47,19 @@ class WeightRepository @Inject constructor(
     fun observeAll(profileId: String = "default"): Flow<List<WeightEntry>> =
         dao.observeAll(profileId).map { list -> list.map { it.toDomain() } }
 
+    /** Cheap re-trigger signal for callers that only need to know "weight changed",
+     *  not the full history - see WeightDao.observeLatest's own doc comment. */
+    fun observeLatest(profileId: String = "default"): Flow<WeightEntry?> =
+        dao.observeLatest(profileId).map { it?.toDomain() }
+
+    /** Bounded range for callers (e.g. Calendar's visible month) that don't need the whole table. */
+    fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<WeightEntry>> =
+        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.map { it.toDomain() } }
+
+    /** Reactive single-date lookup - see WeightDao.observeByDate's own doc comment. */
+    fun observeByDate(date: LocalDate, profileId: String = "default"): Flow<WeightEntry?> =
+        dao.observeByDate(date.toIsoString(), profileId).map { it?.toDomain() }
+
     /**
      * Upsert — one entry per day, newest write wins (mirrors weight-log.js).
      * Also mirrors to Health Connect when the user has granted sync permission

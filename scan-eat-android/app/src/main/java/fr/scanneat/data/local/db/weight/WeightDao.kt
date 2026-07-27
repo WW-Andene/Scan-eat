@@ -12,8 +12,28 @@ interface WeightDao {
     @Query("SELECT * FROM weight_log WHERE profileId = :profileId ORDER BY date ASC")
     fun observeAll(profileId: String = "default"): Flow<List<WeightEntity>>
 
+    /**
+     * Same table-level Room invalidation as [observeAll] (a Flow re-emits on any
+     * write to weight_log regardless of the query's own WHERE/LIMIT), but only
+     * ever maps a single row - for callers that need a "did anything change"
+     * re-trigger signal without paying to fetch+map the whole (unbounded, growing)
+     * table on every emission. See DashboardViewModel's heavyState combine().
+     */
+    @Query("SELECT * FROM weight_log WHERE profileId = :profileId ORDER BY date DESC LIMIT 1")
+    fun observeLatest(profileId: String = "default"): Flow<WeightEntity?>
+
     @Query("SELECT * FROM weight_log WHERE date = :date AND profileId = :profileId LIMIT 1")
     suspend fun findByDate(date: String, profileId: String = "default"): WeightEntity?
+
+    /** Bounded month-range counterpart to [observeAll] - CalendarViewModel.markers only
+     *  ever needs the visible month, not the whole (unbounded, growing) table. */
+    @Query("SELECT * FROM weight_log WHERE date BETWEEN :from AND :to AND profileId = :profileId ORDER BY date ASC")
+    fun observeRange(from: String, to: String, profileId: String = "default"): Flow<List<WeightEntity>>
+
+    /** Reactive counterpart to [findByDate] - CalendarViewModel.dayDetail previously
+     *  scanned the entire (unbounded) weight history with `.find {}` for one date. */
+    @Query("SELECT * FROM weight_log WHERE date = :date AND profileId = :profileId LIMIT 1")
+    fun observeByDate(date: String, profileId: String = "default"): Flow<WeightEntity?>
 
     @Query("SELECT * FROM weight_log WHERE id = :id LIMIT 1")
     suspend fun findById(id: String): WeightEntity?
