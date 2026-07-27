@@ -13,9 +13,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,11 +40,11 @@ class BiolismRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userPreferences: UserPreferences,
 ) {
-    private val store = context.biolismStore
+    internal val store = context.biolismStore
 
     // DataStore.data throws IOException on read/corruption errors — fall back to
     // an empty (default-valued) Preferences instead of crashing collectors.
-    private val storeData: Flow<Preferences> = store.data.catch { e ->
+    internal val storeData: Flow<Preferences> = store.data.catch { e ->
         if (e is IOException) emit(emptyPreferences()) else throw e
     }
 
@@ -237,63 +234,16 @@ class BiolismRepository @Inject constructor(
         val ketoHours: Double get() = ketoElapsedMs / 3_600_000.0
     }
 
-    val timerState: Flow<TimerState> = storeData.map { p ->
-        TimerState(
-            running          = p[K_SESS_RUNNING]   ?: false,
-            wallStartMs      = p[K_SESS_WALL_START] ?: 0L,
-            accumulatedMs    = p[K_SESS_ACCUMULATED]?: 0L,
-            ketoRunning      = p[K_KETO_RUNNING]    ?: false,
-            ketoWallStartMs  = p[K_KETO_WALL_START] ?: 0L,
-            ketoAccumulatedMs= p[K_KETO_ACCUMULATED]?: 0L,
-            ketosisOn        = p[K_KETOSIS_ON]      ?: false,
-            ketoAdapted      = p[K_KETO_ADAPTED]    ?: false,
-            fastingActive    = p[K_FASTING_ACTIVE]  ?: false,
-            lastMealTs       = p[K_LAST_MEAL_TS]    ?: 0L,
-        )
-    }.distinctUntilChanged()
+    private val timerStateStore = TimerStateStore(store, storeData)
+    val timerState: Flow<TimerState> get() = timerStateStore.timerState
+    suspend fun saveTimerState(state: TimerState) = timerStateStore.saveTimerState(state)
+    val manualHR: Flow<Int?> get() = timerStateStore.manualHR
+    suspend fun saveManualHR(bpm: Int?) = timerStateStore.saveManualHR(bpm)
 
-    suspend fun saveTimerState(state: TimerState) = store.edit { p ->
-        p[K_SESS_RUNNING]    = state.running
-        p[K_SESS_WALL_START] = state.wallStartMs
-        p[K_SESS_ACCUMULATED]= state.accumulatedMs
-        p[K_KETO_RUNNING]    = state.ketoRunning
-        p[K_KETO_WALL_START] = state.ketoWallStartMs
-        p[K_KETO_ACCUMULATED]= state.ketoAccumulatedMs
-        p[K_KETOSIS_ON]      = state.ketosisOn
-        p[K_KETO_ADAPTED]    = state.ketoAdapted
-        p[K_FASTING_ACTIVE]  = state.fastingActive
-        p[K_LAST_MEAL_TS]    = state.lastMealTs
-    }
-
-    val manualHR: Flow<Int?> = storeData.map { p -> p[K_MANUAL_HR] }.distinctUntilChanged()
-    suspend fun saveManualHR(bpm: Int?) = store.edit { p ->
-        if (bpm != null) p[K_MANUAL_HR] = bpm else p.remove(K_MANUAL_HR)
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Session history (last 20 sessions)
-    // ─────────────────────────────────────────────────────────────────────────
-    val sessions: Flow<List<BiolismSession>> = storeData.map { p ->
-        val json = p[K_SESSIONS] ?: return@map emptyList()
-        runCatching { Json.decodeFromString<List<SerializableSession>>(json) }
-            .getOrElse { emptyList() }
-            .map { it.toDomain() }
-    }.distinctUntilChanged()
-
-    suspend fun saveSession(session: BiolismSession) = store.edit { p ->
-        val current = runCatching {
-            Json.decodeFromString<List<SerializableSession>>(p[K_SESSIONS] ?: "[]")
-        }.getOrElse { emptyList() }
-        val updated = (current + SerializableSession.fromDomain(session)).takeLast(20)
-        p[K_SESSIONS] = Json.encodeToString(updated)
-    }
-
-    suspend fun deleteSession(id: Long) = store.edit { p ->
-        val current = runCatching {
-            Json.decodeFromString<List<SerializableSession>>(p[K_SESSIONS] ?: "[]")
-        }.getOrElse { emptyList() }
-        p[K_SESSIONS] = Json.encodeToString(current.filter { it.id != id })
-    }
+    private val sessionHistoryStore = SessionHistoryStore(store, storeData)
+    val sessions: Flow<List<BiolismSession>> get() = sessionHistoryStore.sessions
+    suspend fun saveSession(session: BiolismSession) = sessionHistoryStore.saveSession(session)
+    suspend fun deleteSession(id: Long) = sessionHistoryStore.deleteSession(id)
 
     // ─────────────────────────────────────────────────────────────────────────
     // Backup / restore — Biolism previously had no export/import path at all:
@@ -323,91 +273,7 @@ class BiolismRepository @Inject constructor(
         val sessions: List<BiolismSession>,
     )
 
-    suspend fun exportForBackup(): BiolismBackupData {
-        val p = storeData.first()
-        return BiolismBackupData(
-            onboarded          = p[K_ONBOARDED] ?: false,
-            hasProfileOverride = p[K_SEX] != null,
-            sex         = p[K_SEX],
-            ageYears    = p[K_AGE],
-            heightCm    = p[K_HEIGHT],
-            weightKg    = p[K_WEIGHT],
-            activityId  = p[K_ACTIVITY],
-            ethnicityId = p[K_ETHNICITY],
-            waistCm     = p[K_WAIST],
-            hipCm       = p[K_HIP],
-            neckCm      = p[K_NECK],
-            cycleDay    = p[K_CYCLE_DAY],
-            timerState  = timerState.first(),
-            manualHR    = p[K_MANUAL_HR],
-            sessions    = sessions.first(),
-        )
-    }
-
-    suspend fun importForBackup(data: BiolismBackupData) {
-        store.edit { p ->
-            p[K_ONBOARDED] = data.onboarded
-            // Previously only reapplied K_SEX/AGE/HEIGHT/WEIGHT/ACTIVITY when the
-            // backup itself had an override, but never cleared an EXISTING local
-            // override when the backup didn't - restoring a backup with no
-            // override (or an old pre-v4 backup with none at all) left this
-            // device's prior override in place, now permanently diverged from the
-            // main profile the restore just overwrote. Always clear first, same
-            // key set as clearProfileOverride(), then conditionally reapply.
-            p.remove(K_SEX); p.remove(K_AGE); p.remove(K_HEIGHT); p.remove(K_WEIGHT); p.remove(K_ACTIVITY)
-            if (data.hasProfileOverride) {
-                data.sex?.let         { p[K_SEX] = it }
-                data.ageYears?.let    { p[K_AGE] = it }
-                data.heightCm?.let    { p[K_HEIGHT] = it }
-                data.weightKg?.let    { p[K_WEIGHT] = it }
-                data.activityId?.let  { p[K_ACTIVITY] = it }
-            }
-            // Biolism-exclusive body-composition fields (waist/hip/neck/ethnicity/
-            // cycleDay) are independent of hasProfileOverride, which only tracks the
-            // sex/age/height/weight main-profile override (see saveBodyMeasurements()'s
-            // own doc comment - it never touches K_SEX) - gating them behind it too
-            // meant a user who set ONLY these via the Biolism profile screen, never
-            // diverging sex/age/height/weight from the main profile, had them silently
-            // vanish on restore: exportForBackup() captures them unconditionally, but
-            // importForBackup only ever reapplied them inside the hasProfileOverride
-            // branch. Always clear first, same as the profile-override fields above.
-            p.remove(K_ETHNICITY); p.remove(K_WAIST); p.remove(K_HIP); p.remove(K_NECK); p.remove(K_CYCLE_DAY)
-            data.ethnicityId?.let { p[K_ETHNICITY] = it }
-            data.waistCm?.let     { p[K_WAIST] = it }
-            data.hipCm?.let       { p[K_HIP] = it }
-            data.neckCm?.let      { p[K_NECK] = it }
-            data.cycleDay?.let    { p[K_CYCLE_DAY] = it }
-            if (data.manualHR != null) p[K_MANUAL_HR] = data.manualHR else p.remove(K_MANUAL_HR)
-            // Previously only written `if (data.sessions.isNotEmpty())`, same "forgot to
-            // clear on the empty case" bug this function's own doc comment above already
-            // describes fixing for the profile-override fields - restoring a backup with
-            // no (or fewer) sessions left this device's existing session history in place
-            // instead of reverting to the backup's actual state.
-            p[K_SESSIONS] = Json.encodeToString(data.sessions.map { SerializableSession.fromDomain(it) }.takeLast(20))
-        }
-        saveTimerState(data.timerState)
-    }
-
-    @Serializable
-    private data class SerializableSession(
-        val id: Long, val timestamp: String, val elapsedSec: Double,
-        val kcalBurned: Double, val kcalPerMin: Double,
-        val bmrDay: Double, val tdeeDay: Double, val activityLabel: String,
-        val ketosis: Boolean, val startWeightKg: Double, val endWeightKg: Double,
-        val fatFrac: Double, val fatLostKg: Double,
-        val ketoElapsedSec: Double = 0.0,
-    ) {
-        fun toDomain() = BiolismSession(
-            id, timestamp, elapsedSec, kcalBurned, kcalPerMin, bmrDay, tdeeDay,
-            activityLabel, ketosis, startWeightKg, endWeightKg, fatFrac, fatLostKg,
-            ketoElapsedSec,
-        )
-        companion object {
-            fun fromDomain(s: BiolismSession) = SerializableSession(
-                s.id, s.timestamp, s.elapsedSec, s.kcalBurned, s.kcalPerMin,
-                s.bmrDay, s.tdeeDay, s.activityLabel, s.ketosis, s.startWeightKg,
-                s.endWeightKg, s.fatFrac, s.fatLostKg, s.ketoElapsedSec,
-            )
-        }
-    }
+    private val backupStore = BackupStore(store, storeData, timerStateStore, sessionHistoryStore)
+    suspend fun exportForBackup(): BiolismBackupData = backupStore.exportForBackup()
+    suspend fun importForBackup(data: BiolismBackupData) = backupStore.importForBackup(data)
 }
