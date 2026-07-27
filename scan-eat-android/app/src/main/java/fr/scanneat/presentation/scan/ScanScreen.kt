@@ -35,10 +35,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.presentation.scan.components.CameraPreview
+import fr.scanneat.presentation.scan.components.DetectedBarcode
 import fr.scanneat.presentation.scan.components.DetectedBox
 import fr.scanneat.presentation.scan.components.NoCameraFallback
+import fr.scanneat.presentation.scan.components.ScanBarcodeArPanel
 import fr.scanneat.presentation.scan.components.ScanBarcodeChip
-import fr.scanneat.presentation.scan.components.ScanBoundingBoxOverlay
+import fr.scanneat.presentation.scan.components.ScanBoundingBoxesOverlay
 import fr.scanneat.presentation.scan.components.ScanHeaderBar
 import fr.scanneat.presentation.scan.components.ScanIdentifyFoodAction
 import fr.scanneat.presentation.scan.components.ScanInstantModeFab
@@ -78,6 +80,7 @@ fun ScanScreen(
     val todayScanCount = viewModel.todayScanCount.collectAsStateWithLifecycle()
     val cachedPreview  = viewModel.cachedPreview.collectAsStateWithLifecycle()
     val cachedPreviewWarning = viewModel.cachedPreviewWarning.collectAsStateWithLifecycle()
+    val visibleBarcodeCachedPreviews = viewModel.visibleBarcodeCachedPreviews.collectAsStateWithLifecycle()
     val captureErrorMessage = stringResource(R.string.scan_capture_error)
 
     // ── Shelf-scan mode (hybrid live-boxes/tap-to-identify) ──────────────────
@@ -187,8 +190,11 @@ fun ScanScreen(
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottomNavClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
     Box(modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
-        // barcodeBounds: (rect, rotatedImgW, rotatedImgH) — updated on every frame that contains a barcode
-        var barcodeBounds by remember { mutableStateOf<Triple<android.graphics.Rect, Int, Int>?>(null) }
+        // barcodesInFrame: every barcode decoded this frame plus the rotated image
+        // dimensions used to map each one's rect into screen space - see
+        // CameraFrameAnalyzer's own doc comment on why this is now a list rather
+        // than a single (rect, w, h) triple.
+        var barcodesInFrame by remember { mutableStateOf<Triple<List<DetectedBarcode>, Int, Int>?>(null) }
 
         if (hasCamera && !cameraUnavailable) {
             CameraPreview(
@@ -199,8 +205,11 @@ fun ScanScreen(
                 // the full manual-entry fallback, just surface it so the shutter button
                 // doesn't look silently broken.
                 onCaptureError    = { Toast.makeText(context, captureErrorMessage, Toast.LENGTH_SHORT).show() },
-                onBarcodeBounds   = { rect, w, h -> barcodeBounds = Triple(rect, w, h) },
-                onBoundsCleared   = { barcodeBounds = null; viewModel.onBarcodeLost() },
+                onBarcodesInFrame = { boxes, w, h ->
+                    barcodesInFrame = Triple(boxes, w, h)
+                    viewModel.onBarcodesVisible(boxes.map { it.value })
+                    if (boxes.isEmpty()) viewModel.onBarcodeLost()
+                },
                 onObjectsDetected = if (shelfMode) { objs, w, h -> shelfObjects = Triple(objs, w, h) } else null,
                 onImageCaptureReady = { shelfImageCapture = it },
                 bottomNavClearance = bottomNavClearance,
@@ -264,8 +273,22 @@ fun ScanScreen(
                 ScanPhotoQueue(images = images.value, topInset = topInset, onRemovePhoto = { viewModel.removePhoto(it) })
             }
 
-            // ── Bounding box overlay — drawn in image→screen mapped coordinates ──
-            barcodeBounds?.let { (rect, imgW, imgH) -> ScanBoundingBoxOverlay(rect, imgW, imgH) }
+            // ── Bounding box overlay — every decoded barcode this frame, drawn in
+            // image→screen mapped coordinates (not just one) ──
+            barcodesInFrame?.let { (boxes, imgW, imgH) -> ScanBoundingBoxesOverlay(boxes, imgW, imgH) }
+
+            // ── AR-style auto mini panel — for each barcode already in scan history
+            // (visibleBarcodeCachedPreviews), anchored directly above its own
+            // detected box, no tap required. A barcode with no prior scan still only
+            // gets the plain bounding box above - there's nothing cached to show for
+            // it before it's actually been scanned once. ──
+            barcodesInFrame?.let { (boxes, imgW, imgH) ->
+                boxes.forEach { box ->
+                    visibleBarcodeCachedPreviews.value[box.value]?.let { cached ->
+                        ScanBarcodeArPanel(box = box, imgW = imgW, imgH = imgH, cached = cached)
+                    }
+                }
+            }
 
             // ── Score FAB — bottom-end ──
             ScanScoreFab(scanState = state.value, bottomNavClearance = bottomNavClearance, onClick = { viewModel.score() })

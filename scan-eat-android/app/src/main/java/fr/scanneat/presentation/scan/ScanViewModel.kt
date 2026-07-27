@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -109,6 +110,33 @@ class ScanViewModel @Inject constructor(
 
     private val _recentBarcodes = MutableStateFlow<List<String>>(emptyList())
     val recentBarcodes: StateFlow<List<String>> = _recentBarcodes.asStateFlow()
+
+    private val _visibleBarcodes = MutableStateFlow<List<String>>(emptyList())
+
+    /**
+     * Cached "already scanned" result for every barcode currently decoded in the
+     * live camera frame — not just the single debounced [scannedBarcode] scoring
+     * target. [cachedPreview] above only ever covers one code at a time (the one
+     * onBarcodeDetected's stability debounce has committed to), so pointing the
+     * camera at two familiar products side by side only ever surfaced a preview
+     * for whichever one won that debounce, with the other showing a bare
+     * bounding box and no hint it was already known. This lets ScanScreen show
+     * an auto-appearing (no tap needed) AR-style mini panel above EACH familiar
+     * barcode simultaneously — an unfamiliar one still only gets its bounding
+     * box, since there's nothing cached to show for it without actually
+     * scanning it first.
+     */
+    val visibleBarcodeCachedPreviews: StateFlow<Map<String, ScanResult>> = _visibleBarcodes
+        .flatMapLatest { codes ->
+            if (codes.isEmpty()) flowOf(emptyMap())
+            else flow { emit(codes.distinct().mapNotNull { code -> scanRepo.getCachedByBarcode(code)?.let { code to it } }.toMap()) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Called every frame with every barcode currently decoded in view — see [visibleBarcodeCachedPreviews]. */
+    fun onBarcodesVisible(barcodes: List<String>) {
+        _visibleBarcodes.value = barcodes
+    }
 
     private val scoreMutex = Mutex()
 

@@ -141,25 +141,99 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
     }
 }
 
+/**
+ * One bounding box per barcode decoded this frame — previously only ever
+ * received a single (rect, w, h) triple (analyzeFrame reported at most one
+ * barcode per frame, `break`-ing out of ML Kit's result list the instant the
+ * first one decoded), so a shelf with two products' codes both in view only
+ * ever drew a box around whichever one happened to be first in that frame's
+ * list, with the other left with no visual feedback at all despite decoding
+ * fine. Now draws every one of them.
+ */
 @Composable
-internal fun ScanBoundingBoxOverlay(rect: android.graphics.Rect, imgW: Int, imgH: Int) {
+internal fun ScanBoundingBoxesOverlay(boxes: List<DetectedBarcode>, imgW: Int, imgH: Int) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         val scaleX = size.width / imgW.toFloat()
         val scaleY = size.height / imgH.toFloat()
         val scale  = maxOf(scaleX, scaleY)
         val offX   = (size.width  - imgW  * scale) / 2f
         val offY   = (size.height - imgH * scale) / 2f
-        val left   = offX + rect.left   * scale
-        val top    = offY + rect.top    * scale
-        val right  = offX + rect.right  * scale
-        val bottom = offY + rect.bottom * scale
-        drawRoundRect(
-            color        = AccentCoral,
-            topLeft      = Offset(left, top),
-            size         = androidx.compose.ui.geometry.Size(right - left, bottom - top),
-            cornerRadius = CornerRadius(8f, 8f),
-            style        = Stroke(width = 3f),
-            alpha        = 0.85f,
-        )
+        boxes.forEach { box ->
+            val rect   = box.rect
+            val left   = offX + rect.left   * scale
+            val top    = offY + rect.top    * scale
+            val right  = offX + rect.right  * scale
+            val bottom = offY + rect.bottom * scale
+            drawRoundRect(
+                color        = AccentCoral,
+                topLeft      = Offset(left, top),
+                size         = androidx.compose.ui.geometry.Size(right - left, bottom - top),
+                cornerRadius = CornerRadius(8f, 8f),
+                style        = Stroke(width = 3f),
+                alpha        = 0.85f,
+            )
+        }
+    }
+}
+
+/**
+ * AR-style mini panel for a barcode that already has a cached "already
+ * scanned" result — anchored directly above its own detected bounding box
+ * (mapped the same image→screen "fit center" way [ScanBoundingBoxesOverlay]
+ * draws the box itself) instead of ScanBarcodeChip's fixed top-of-screen
+ * position. Appears automatically the instant a familiar barcode enters
+ * frame - no tap required, matching [ScanBarcodeChip]'s existing "instant a
+ * familiar barcode enters frame" cue, just positioned like the object
+ * augmented-reality label it's meant to read as instead of static chrome.
+ * A barcode with no cached result never gets one of these - only its plain
+ * bounding box - since there's nothing to show for it before it's actually
+ * been scanned at least once.
+ */
+@Composable
+internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: Int, cached: ScanResult) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp.dp
+    val panelWidth = 152.dp
+    val (xDp, yDp) = with(density) {
+        val screenW = screenWidthDp.toPx()
+        val screenH = configuration.screenHeightDp.dp.toPx()
+        val scaleX = screenW / imgW.toFloat()
+        val scaleY = screenH / imgH.toFloat()
+        val scale  = maxOf(scaleX, scaleY)
+        val offX   = (screenW - imgW * scale) / 2f
+        val offY   = (screenH - imgH * scale) / 2f
+        val centerX = offX + (box.rect.left + box.rect.right) / 2f * scale
+        val top     = offY + box.rect.top * scale
+        (centerX.toDp() - panelWidth / 2) to (top.toDp() - 44.dp)
+    }
+    val clampedX = xDp.coerceIn(Spacing.S, (screenWidthDp - panelWidth - Spacing.S).coerceAtLeast(Spacing.S))
+    val clampedY = yDp.coerceAtLeast(Spacing.S)
+
+    Box(modifier = Modifier.align(Alignment.TopStart).padding(start = clampedX, top = clampedY).width(panelWidth)) {
+        Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant.copy(0.94f)) {
+            Row(
+                modifier = Modifier.padding(horizontal = Spacing.S, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+            ) {
+                Surface(shape = RoundedCornerShape(50), color = gradeColor(cached.audit.grade).copy(alpha = 0.25f)) {
+                    Text(
+                        cached.audit.grade.label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = gradeColor(cached.audit.grade),
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = Spacing.XS, vertical = 1.dp),
+                    )
+                }
+                Text(
+                    cached.product.name,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = OnSurface,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }

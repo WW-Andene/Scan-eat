@@ -57,7 +57,7 @@ sealed interface ShelfPeekStatus {
 
 /**
  * Live on-device bounding boxes over the camera preview (shelf-scan mode),
- * drawn with the same image→screen "fit center" mapping ScanBoundingBoxOverlay
+ * drawn with the same image→screen "fit center" mapping ScanBoundingBoxesOverlay
  * already uses for the single barcode box (see its own comment), extended to
  * N boxes and made tappable. A tap is translated back into image space via the
  * inverse of that same mapping to find which box (if any) was hit; the

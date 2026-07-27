@@ -45,13 +45,15 @@ data class DetectedBox(val trackingId: Int, val rect: android.graphics.Rect)
 // suppress the warning despite looking like the right fix). Extracted into
 // its own function rather than annotating the whole CameraPreview composable
 // so the experimental-API requirement doesn't leak onto its callers.
+/** One decoded barcode from a live camera frame, alongside its screen-space bounding box. */
+data class DetectedBarcode(val value: String, val rect: android.graphics.Rect)
+
 @androidx.annotation.OptIn(markerClass = [ExperimentalGetImage::class])
 internal fun analyzeFrame(
     proxy: ImageProxy,
     scanner: com.google.mlkit.vision.barcode.BarcodeScanner,
     onBarcodeDetected: (String) -> Unit,
-    onBarcodeBounds: ((android.graphics.Rect, Int, Int) -> Unit)? = null,
-    onBoundsCleared: (() -> Unit)? = null,
+    onBarcodesInFrame: ((List<DetectedBarcode>, Int, Int) -> Unit)? = null,
     objectDetector: ObjectDetector? = null,
     onObjectsDetected: ((List<DetectedBox>, Int, Int) -> Unit)? = null,
 ) {
@@ -71,7 +73,16 @@ internal fun analyzeFrame(
 
     scanner.process(img)
         .addOnSuccessListener { barcodes ->
-            var foundAny = false
+            // Every valid barcode in the frame is reported, not just the first one ML
+            // Kit happens to list - a shelf with two products side by side (or a
+            // multi-pack showing several distinct codes at once) previously only ever
+            // got the single barcode ML Kit's list-order put first that frame, silently
+            // dropping every other one in view no matter how clearly it decoded, which
+            // made both a plain single scan and instant/multi mode miss neighboring
+            // codes entirely. Deduplicated by value (the same physical barcode can
+            // occasionally decode twice from slightly different regions of one frame).
+            val detected = mutableListOf<DetectedBarcode>()
+            val seenValues = mutableSetOf<String>()
             for (bc in barcodes) {
                 val raw = bc.rawValue ?: continue
                 // CODABAR: older/still-common on some pharmacy and blood-bank packaging
@@ -79,16 +90,10 @@ internal fun analyzeFrame(
                 // it's a symbology, not a fixed-length GTIN encoding, so the digit-length
                 // filter below (unchanged) is what actually decides whether a decoded
                 // value looks like a real product/medication barcode.
-                if (bc.format in listOf(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
+                val digits = if (bc.format in listOf(Barcode.FORMAT_EAN_13, Barcode.FORMAT_EAN_8,
                         Barcode.FORMAT_UPC_A, Barcode.FORMAT_UPC_E, Barcode.FORMAT_CODE_128,
                         Barcode.FORMAT_ITF, Barcode.FORMAT_CODABAR)) {
-                    val digits = raw.filter { it.isDigit() }
-                    if (digits.length in listOf(8, 12, 13, 14)) {
-                        onBarcodeDetected(digits)
-                        bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
-                        foundAny = true
-                        break
-                    }
+                    raw.filter { it.isDigit() }.takeIf { it.length in listOf(8, 12, 13, 14) }
                 } else if (bc.format == Barcode.FORMAT_DATA_MATRIX || bc.format == Barcode.FORMAT_QR_CODE) {
                     // Many French medication boxes carry no EAN-13 at all - only a
                     // GS1 DataMatrix (2D "CIP DataMatrix"), and some carry a plain
@@ -97,17 +102,15 @@ internal fun analyzeFrame(
                     // treating the raw value as a plain barcode only when it's
                     // exactly digits of a plausible length (never for an arbitrary
                     // QR code like a URL).
-                    val digits = extractGtinFromGs1(raw)
+                    extractGtinFromGs1(raw)
                         ?: raw.takeIf { it.all(Char::isDigit) && it.length in listOf(8, 12, 13, 14) }
-                    if (digits != null) {
-                        onBarcodeDetected(digits)
-                        bc.boundingBox?.let { onBarcodeBounds?.invoke(it, imgW, imgH) }
-                        foundAny = true
-                        break
-                    }
+                } else null
+                if (digits != null && seenValues.add(digits)) {
+                    onBarcodeDetected(digits)
+                    bc.boundingBox?.let { detected += DetectedBarcode(digits, it) }
                 }
             }
-            if (!foundAny) onBoundsCleared?.invoke()
+            onBarcodesInFrame?.invoke(detected, imgW, imgH)
         }
         .addOnCompleteListener { releaseIfDone() }
 

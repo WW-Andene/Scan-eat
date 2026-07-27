@@ -47,8 +47,7 @@ fun CameraPreview(
     onPhotoCaptured: (Bitmap) -> Unit,
     onCameraError: () -> Unit = {},
     onCaptureError: () -> Unit = {},
-    onBarcodeBounds: ((android.graphics.Rect, Int, Int) -> Unit)? = null,
-    onBoundsCleared: (() -> Unit)? = null,
+    onBarcodesInFrame: ((List<DetectedBarcode>, Int, Int) -> Unit)? = null,
     // Shelf-scan live overlay (hybrid mode: free on-device boxes, tap fires the
     // actual identify call) — both null by default so every other CameraPreview
     // call site (Scan's main barcode/photo flow) pays zero extra inference cost.
@@ -119,7 +118,7 @@ fun CameraPreview(
                         .build()
                         .also { ia ->
                             ia.setAnalyzer(executor) { proxy ->
-                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodeBounds, onBoundsCleared, objectDetector, onObjectsDetected)
+                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodesInFrame, objectDetector, onObjectsDetected)
                             }
                         }
                     // Previously a bare runCatching with no onFailure branch: a bind failure
