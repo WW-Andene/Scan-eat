@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,85 +41,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import java.io.ByteArrayOutputStream
 import javax.inject.Inject
-
-/** Reaches the user verbatim in the scan error banner — needs to actually say what to do. */
-private fun invalidApiKeyMessage(lang: String) =
-    if (lang == "en") "Groq rejected this API key — check it in Settings"
-    else "Clé API Groq refusée — vérifiez-la dans Réglages"
-
-/**
- * Groq model names get deprecated/retired periodically (the pinned
- * DEFAULT_MODEL/FALLBACK_MODEL are compile-time literals) - when that
- * happens Groq returns a 400/404 for the model, not the more common
- * 401/403/429/5xx this app already has friendly messages for, and it'd
- * otherwise surface as a bare HTTP error with no indication that the fix
- * is just picking a current model in Settings.
- */
-private fun invalidModelMessage(lang: String) =
-    if (lang == "en") "This AI model is no longer available — pick a current one in Settings"
-    else "Ce modèle IA n'est plus disponible — choisissez-en un à jour dans Réglages"
-
-/**
- * OcrParser already retries a 429 internally (see isRetryable), so reaching
- * this branch means every retry was also rate-limited — a transient-but-
- * persistent state distinct from the other HTTP error branches, which this
- * file previously had no message for despite invalidModelMessage's own
- * comment claiming 429 already had a friendly message.
- */
-private fun rateLimitedMessage(lang: String) =
-    if (lang == "en") "Groq is rate-limiting requests right now — wait a moment and try again"
-    else "Groq limite les requêtes en ce moment — patientez un instant puis réessayez"
-
-private fun noInputMessage(lang: String) =
-    if (lang == "en") "Scan a barcode or take a photo"
-    else "Scannez un code-barres ou prenez une photo"
-
-/**
- * identifyFromPhotos() previously reused noInputMessage() for its offline branch
- * even though photos are guaranteed present there (the function early-returns on
- * an empty queue before this check) - a user with photos already queued, offline,
- * trying to identify unlabeled produce, got told to "scan a barcode or take a
- * photo" instead of the real, actionable problem. Mirrors ScanRepository's own
- * private offlineMessage(), which every barcode/label-parsing path already uses.
- */
-private fun offlineMessage(lang: String) =
-    if (lang == "en") "No internet connection" else "Pas de connexion internet"
-
-/**
- * Fallback for the `else` branch of the scan-failure `when` — every sibling
- * branch (invalidApiKeyMessage/invalidModelMessage/rateLimitedMessage/
- * noInputMessage) routes through lang, but this default case used to hardcode
- * the bare French literal "Erreur inconnue", so English-language users hit a
- * French message whenever an unrecognized exception surfaced.
- */
-private fun genericErrorMessage(lang: String) =
-    if (lang == "en") "Unknown error"
-    else "Erreur inconnue"
-
-/**
- * identifyMultiFromPhotos()'s empty-list fallback - the server can legitimately
- * return zero items (no distinct food detected on the plate) without that being
- * a request failure, so this needs its own message rather than reusing
- * genericErrorMessage's "Unknown error", which would be actively misleading.
- */
-private fun noFoodsDetectedMessage(lang: String) =
-    if (lang == "en") "No distinct foods were detected in the photo(s) — try a clearer shot"
-    else "Aucun aliment distinct détecté sur la ou les photos — essayez une photo plus nette"
-
-sealed class ScanUiState {
-    data object Idle     : ScanUiState()
-    data object Scanning : ScanUiState()
-    data class  Success(val result: ScanResult, val persistedId: Long) : ScanUiState()
-    data class  Error(val message: String, val needsPhoto: Boolean = false) : ScanUiState()
-    /** Barcode matched the medication lookup DB instead of a food product - offer to save it to Traitement rather than running it through food scoring. */
-    data class  MedicationFound(val entry: MedicationDbEntry) : ScanUiState()
-    /** Barcode matched a household/chemical product - not something to run through food scoring, and never something to imply is safe to consume. */
-    data class  NonConsumableFound(val entry: NonConsumableDbEntry) : ScanUiState()
-    /** Photo(s) held multiple distinct foods (a plate) - identifyMultiFromPhotos() already scored+persisted every one; the user picks which to view. */
-    data class  MultiFoodFound(val items: List<Pair<ScanResult, Long>>) : ScanUiState()
-}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -556,44 +477,7 @@ class ScanViewModel @Inject constructor(
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    /**
-     * Photo-queue thumbnails render in a 64.dp box, but the capture itself is
-     * 1600×1200 — holding that full bitmap per queued photo (~7.7MB each,
-     * ARGB_8888) risks real memory pressure with more than one or two photos
-     * queued. Scale down (aspect-preserving) for display.
-     *
-     * The upload bytes are also capped, separately from the thumbnail - the
-     * vision model needs enough resolution to read label text, not the raw
-     * capture resolution, and every uncapped photo was previously shipped to
-     * Groq (or proxied through server mode) at full 1600×1200 for no OCR
-     * accuracy benefit, just wasted bandwidth/tokens.
-     */
-    private fun Bitmap.toPayload(): ImagePayload {
-        val uploadScale = UPLOAD_MAX_PX.toFloat() / maxOf(width, height)
-        val uploadBitmap = if (uploadScale < 1f) {
-            Bitmap.createScaledBitmap(this, (width * uploadScale).toInt(), (height * uploadScale).toInt(), true)
-        } else this
-
-        val out = ByteArrayOutputStream()
-        uploadBitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
-
-        val thumbScale = THUMBNAIL_MAX_PX.toFloat() / maxOf(width, height)
-        val thumb = if (thumbScale < 1f) {
-            Bitmap.createScaledBitmap(this, (width * thumbScale).toInt(), (height * thumbScale).toInt(), true)
-        } else this
-
-        if (uploadBitmap !== this) uploadBitmap.recycle()
-        if (thumb !== this) recycle()
-
-        return ImagePayload(
-            base64    = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP),
-            thumbnail = thumb,
-        )
-    }
-
     private companion object {
-        const val THUMBNAIL_MAX_PX = 160
-        const val UPLOAD_MAX_PX = 1024   // ample for label OCR - well under the raw 1600x1200 capture
         /** Mirrors the server's RouteHelpers.MAX_IMAGES - see addPhoto()'s doc comment. */
         const val MAX_QUEUED_PHOTOS = 8
         /** See onBarcodeDetected()'s own doc comment. */
