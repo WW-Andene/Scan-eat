@@ -40,6 +40,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 private fun DataStatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier = Modifier) {
@@ -272,6 +273,7 @@ fun SettingsScreen(
                 BackupSection(
                     backupState = backupState.value,
                     dataStats = dataStats.value,
+                    language = language.value,
                     onExport = { viewModel.prepareExport() },
                     onImport = { importLauncher.launch(arrayOf("application/json")) },
                     onClearBackupState = { viewModel.clearBackupState() },
@@ -584,6 +586,7 @@ private fun AccessibilitySection(
 private fun BackupSection(
     backupState: BackupUiState,
     dataStats: Pair<Int, Int>,
+    language: String,
     onExport: () -> Unit,
     onImport: () -> Unit,
     onClearBackupState: () -> Unit,
@@ -635,7 +638,12 @@ private fun BackupSection(
                 onDismiss = onClearBackupState,
             )
             is BackupUiState.ImportPreview -> {
-                val dateFmt = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
+                // Every other date formatter in this screen respects the app's own
+                // in-app language toggle (independent of device locale) - this one
+                // didn't, so a user running the app in a language different from
+                // their device locale saw this one date's month abbreviation in the
+                // wrong language.
+                val dateFmt = remember(language) { DateTimeFormatter.ofPattern("dd MMM yyyy", Locale(language)) }
                 val exportedDate = Instant.ofEpochMilli(s.metadata.exportedAtMs).atZone(ZoneId.systemDefault()).toLocalDate().format(dateFmt)
                 AlertDialog(
                     onDismissRequest = onClearBackupState,

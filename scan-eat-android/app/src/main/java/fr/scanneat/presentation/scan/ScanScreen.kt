@@ -564,7 +564,14 @@ private fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, on
                     Text(pluralStringResource(R.plurals.scan_photo_count, images.size, images.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
                     Spacer(Modifier.height(6.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        itemsIndexed(images) { index, payload ->
+                        // Without a key, removing a photo from the middle of the queue
+                        // (onRemovePhoto) shifts every later index, so Compose recomposes
+                        // every item after it and can lose their remembered thumbnail
+                        // state instead of just removing the one item. `images` itself
+                        // is small (capped at MAX_QUEUED_PHOTOS) and each ImagePayload
+                        // is structurally unique per captured photo, so the payload
+                        // itself is a stable, sufficient key.
+                        itemsIndexed(images, key = { _, payload -> payload }) { index, payload ->
                             Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
                                 .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
                                 val bmp = remember(payload) { payload.thumbnail }
@@ -780,8 +787,11 @@ private fun BoxScope.ScanStateOverlay(
                             Spacer(Modifier.width(Spacing.S))
                             Text(stringResource(R.string.scan_needs_photo),
                                 Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
-                            IconButton(onClick = onDismissError, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface)
+                            // The IconButton itself must keep Material's default 48dp touch
+                            // target (WCAG 2.5.5/2.5.8) - sizing it down to 32dp shrank the
+                            // tappable area, not just the glyph. Constrain the icon instead.
+                            IconButton(onClick = onDismissError) {
+                                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface, modifier = Modifier.size(IconSize.Inline))
                             }
                         }
                     }
@@ -878,7 +888,7 @@ private fun MultiFoodFoundDialog(
                 Text(stringResource(R.string.scan_identify_multi_found_body), color = OnBackground.copy(0.7f))
                 HorizontalDivider(color = OnBackground.copy(0.1f))
                 LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    itemsIndexed(items) { _, (result, persistedId) ->
+                    itemsIndexed(items, key = { _, (_, persistedId) -> persistedId }) { _, (result, persistedId) ->
                         val grade = gradeColor(result.audit.grade)
                         Surface(
                             shape = RoundedCornerShape(10.dp),
