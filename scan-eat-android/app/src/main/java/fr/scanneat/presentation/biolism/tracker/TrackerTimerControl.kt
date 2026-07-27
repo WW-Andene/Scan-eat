@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.biolism.tracker
 
+import androidx.lifecycle.viewModelScope
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay

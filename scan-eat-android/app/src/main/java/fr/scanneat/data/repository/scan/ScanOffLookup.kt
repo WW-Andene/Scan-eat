@@ -9,7 +9,7 @@ import fr.scanneat.domain.engine.nutrition.isOffSparse
 import fr.scanneat.domain.engine.nutrition.mapOffProduct
 import fr.scanneat.domain.engine.nutrition.mergeOffWithLlm
 import fr.scanneat.domain.engine.scoring.scoreProduct
-import fr.scanneat.domain.model.ImagePayload
+import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.domain.model.ScanSource
 import fr.scanneat.util.barcodeCandidates

@@ -2,7 +2,6 @@ package fr.scanneat.data.repository.planning
 
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.*
-import fr.scanneat.domain.model.ImagePayload
 import fr.scanneat.util.ioCatching
 import fr.scanneat.util.serverUrlMissingMessage
 import kotlinx.coroutines.flow.first

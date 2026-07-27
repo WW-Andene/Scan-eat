@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.biolism.tracker
 
+import androidx.lifecycle.viewModelScope
 import fr.scanneat.domain.model.MS_PER_HOUR
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch

@@ -4,6 +4,7 @@ import fr.scanneat.data.repository.scan.ComparisonRepository
 import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
+import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*

@@ -2,6 +2,7 @@ package fr.scanneat.data.repository.biolism
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import fr.scanneat.domain.engine.biolism.BiolismSession
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged

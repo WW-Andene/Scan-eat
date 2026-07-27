@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.presentation.grocery.CheckableGroceryItem
 import fr.scanneat.presentation.ui.theme.*
 
 /** Extracted so the same row renders identically flat (default) or grouped-by-aisle. */

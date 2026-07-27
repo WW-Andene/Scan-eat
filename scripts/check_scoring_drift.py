@@ -136,7 +136,39 @@ FUNC_START_RE_TMPL = r"^(?:private |internal |public )?fun {name}\b"
 VAL_START_RE_TMPL = r"^(?:private |internal |public )?val {name}\b"
 
 
+CONCAT_RE = re.compile(
+    r"^(?:private |internal |public )?val \w+(?:\s*:\s*[^=]+)?=\s*"
+    r"([A-Za-z_][A-Za-z0-9_]*(?:\s*\+\s*[A-Za-z_][A-Za-z0-9_]*)+)\s*$"
+)
+
+
+def _find_in_dir(directory: Path, name: str, extractor) -> str | None:
+    """Scan every sibling .kt file in `directory` for `name`, trying `extractor`
+    on each. Used both as a fallback when a PAIRS-listed file no longer holds a
+    declaration atomization moved elsewhere in the same package, and to resolve
+    the identifiers referenced by a tier-concatenation val (see extract_val)."""
+    for candidate in sorted(directory.glob("*.kt")):
+        try:
+            return extractor(candidate, name)
+        except ValueError:
+            continue
+    return None
+
+
 def extract_val(path: Path, name: str) -> str:
+    """Top-level `val NAME = listOf(...)/mapOf(...)/Regex(...)` etc, falling
+    back to a directory-wide search (see `_extract_val_in_file`'s docstring)
+    when `name` isn't declared in `path` itself."""
+    try:
+        return _extract_val_in_file(path, name)
+    except ValueError:
+        found = _find_in_dir(path.parent, name, _extract_val_in_file)
+        if found is not None:
+            return found
+        raise ValueError(f"val `{name}` not found in {path} or its directory")
+
+
+def _extract_val_in_file(path: Path, name: str) -> str:
     """Top-level `val NAME = listOf(...)/mapOf(...)/Regex(...)` etc. Unlike a
     `fun` body, these never contain `{ }` (Kotlin string templates aside), so
     brace-matching can't find the end - instead this counts paren depth from
@@ -144,7 +176,20 @@ def extract_val(path: Path, name: str) -> str:
     these constants' own initializer starts and ends (including nested
     `Pair(Regex(...), "label")`-style entries and the regex patterns' own
     internal `(?:...)`/`(?!...)` groups, which are always paren-balanced
-    since they're valid compiled regexes)."""
+    since they're valid compiled regexes).
+
+    Some constants (e.g. ADDITIVES_DB, atomized into per-tier files) are now a
+    bare `TIER1 + TIER2 + ...` sum of other top-level vals with no `(` of its
+    own - for that shape, each referenced identifier is resolved (searching
+    every sibling file in the same directory, since atomization scatters them
+    across files in the same package) and their listOf(...) bodies are
+    spliced back into one synthetic body, so the comparison still sees the
+    real entries instead of just the assembly expression.
+
+    No directory fallback happens in here (that's `extract_val`'s job) - this
+    only ever looks at `path` itself, so it's safe to call from `_find_in_dir`
+    without recursing back into a directory scan.
+    """
     text = path.read_text()
     lines = text.splitlines()
     start_re = re.compile(VAL_START_RE_TMPL.format(name=re.escape(name)))
@@ -155,7 +200,17 @@ def extract_val(path: Path, name: str) -> str:
     body_lines = []
     depth = 0
     started_paren = False
+    top_level_re = re.compile(r"^(private |internal |public )?(fun|val|const|class|object) ")
+    comment_re = re.compile(r"^\s*(/\*|//)")
     for line in lines[start_idx:]:
+        # Stop before the next declaration if this one never opened a paren -
+        # e.g. a bare "IDENT + IDENT + ..." concatenation (see below), which
+        # would otherwise keep scanning until some LATER unrelated
+        # declaration's own parens happened to balance out, corrupting the
+        # "body" with that unrelated text (the exact bug extract_function's
+        # own top_level_re/comment_re stop condition already guards against).
+        if body_lines and depth == 0 and not started_paren and (top_level_re.match(line) or comment_re.match(line)):
+            break
         body_lines.append(line)
         for ch in line:
             if ch == "(":
@@ -166,11 +221,60 @@ def extract_val(path: Path, name: str) -> str:
         if started_paren and depth == 0:
             break
     if not started_paren:
-        raise ValueError(f"val `{name}` in {path} has no `(` initializer - extract_val can't handle this shape")
+        # Might be a bare "IDENT + IDENT + ..." concatenation of other vals
+        # (atomized data split across sibling files) rather than a genuinely
+        # paren-less shape this function can't handle at all.
+        joined = " ".join(l.strip() for l in body_lines)
+        m = CONCAT_RE.match(joined)
+        if not m:
+            raise ValueError(f"val `{name}` in {path} has no `(` initializer - extract_val can't handle this shape")
+        parts = []
+        for ident in re.split(r"\s*\+\s*", m.group(1)):
+            part_body = _find_in_dir(path.parent, ident, _extract_val_in_file)
+            if part_body is None:
+                raise ValueError(f"val `{name}` in {path}: referenced `{ident}` not found in directory")
+            # Strip the "val IDENT: Type = listOf(" header and trailing ")" so
+            # only the inner entries survive, then re-wrap once below.
+            inner = part_body
+            inner = re.sub(r"^.*?\blistOf\(", "", inner, count=1, flags=re.DOTALL)
+            inner = inner.rstrip()
+            if inner.endswith(")"):
+                inner = inner[:-1]
+            inner = inner.rstrip()
+            # Each tier's own listOf(...) already ends with a trailing comma
+            # after its last entry (standard Kotlin style) - since parts are
+            # re-joined with ",\n" below, keeping it here would double it up.
+            if inner.endswith(","):
+                inner = inner[:-1]
+            parts.append(inner.strip())
+        # Reuse this val's own declaration line (with its real type annotation,
+        # e.g. "val ADDITIVES_DB: List<AdditiveInfo> =") rather than a
+        # fabricated header, so only the entries themselves are ever the
+        # source of a reported diff - and keep the server side's convention of
+        # a trailing comma after the last entry.
+        header = lines[start_idx].rstrip()
+        header = re.sub(r"=\s*$", "= listOf(", header)
+        return header + "\n" + ",\n".join(parts) + ",\n)"
     return "\n".join(body_lines)
 
 
 def extract_function(path: Path, name: str) -> str:
+    """`fun NAME(...) {...}`/`fun NAME(...) = ...`, falling back to a
+    directory-wide search (see `_extract_function_in_file`'s docstring) when
+    `name` isn't declared in `path` itself."""
+    try:
+        return _extract_function_in_file(path, name)
+    except ValueError:
+        found = _find_in_dir(path.parent, name, _extract_function_in_file)
+        if found is not None:
+            return found
+        raise ValueError(f"function `{name}` not found in {path} or its directory")
+
+
+def _extract_function_in_file(path: Path, name: str) -> str:
+    """No directory fallback happens in here (that's `extract_function`'s
+    job) - this only ever looks at `path` itself, so it's safe to call from
+    `_find_in_dir` without recursing back into a directory scan."""
     text = path.read_text()
     lines = text.splitlines()
     start_re = re.compile(FUNC_START_RE_TMPL.format(name=re.escape(name)))

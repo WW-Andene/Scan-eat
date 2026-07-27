@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.result
 
+import androidx.lifecycle.viewModelScope
 import fr.scanneat.data.repository.planning.RecipeComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first

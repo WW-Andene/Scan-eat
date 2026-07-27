@@ -1,7 +1,6 @@
 package fr.scanneat.data.repository.scan
 
 import fr.scanneat.data.remote.api.*
-import fr.scanneat.domain.model.ImagePayload
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.util.serverUrlMissingMessage
 import kotlinx.coroutines.delay

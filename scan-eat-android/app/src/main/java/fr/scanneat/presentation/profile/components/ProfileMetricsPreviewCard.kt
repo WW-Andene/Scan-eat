@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun ProfileMetricsPreviewCard(
     currentProfile: Profile,
-    bmi: Int?,
+    bmi: Double?,
     bmiCat: fr.scanneat.domain.engine.scoring.BmiCategory?,
     tdee: Double?,
     tdeeGoal: Double?,
