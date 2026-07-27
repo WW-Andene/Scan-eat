@@ -14,7 +14,6 @@ import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
-import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -72,21 +71,17 @@ fun Application.module() {
     }
     install(CallLogging) { level = Level.INFO }
     install(DefaultHeaders)
-    // RateLimiter and fetchRecipeRoute's SSRF guard both key off request.origin.remoteHost.
-    // Without this plugin that's always the direct TCP peer - every deployment this README
-    // recommends (Docker behind a reverse proxy, Railway/Render/Fly.io) puts a proxy in
-    // front, so remoteHost is the proxy's own IP for every client and the whole client base
-    // collapses into one rate-limit bucket. XForwardedHeaders makes remoteHost follow
-    // X-Forwarded-For instead.
-    //
-    // useLastProxy() (not the plugin's default useFirstProxy()) is what actually delivers
-    // that intent: a standards-compliant reverse proxy *appends* its own observed IP rather
-    // than replacing the header ("X-Forwarded-For: <whatever the client sent>, <proxy's real
-    // observed IP>"), so the *last* entry is the only one the proxy itself vouches for - the
-    // default trusts the *first* (leftmost) entry instead, which is exactly the value a
-    // client can set itself, silently defeating the limiter/SSRF guard even in the documented
-    // single-reverse-proxy deployments this comment describes, not just a no-proxy exposure.
-    install(XForwardedHeaders) { useLastProxy() }
+    // RateLimiter and fetchRecipeRoute's SSRF guard identify clients via
+    // routing.trustedClientIp() (ClientAddress.kt), not Ktor's XForwardedHeaders
+    // plugin. That plugin trusts X-Forwarded-For unconditionally - fine behind
+    // the documented single-reverse-proxy deployment, but if this server is
+    // ever reachable directly (misconfiguration, a platform that doesn't front
+    // it), any client could set the header to a fresh value per request and
+    // fully defeat both the rate limiter and the SSRF guard's per-client
+    // bucket. trustedClientIp() only honors X-Forwarded-For when the direct
+    // TCP peer is itself inside a trusted range (loopback/RFC1918 by default,
+    // or TRUSTED_PROXY_CIDRS) - safe even if the port ends up exposed with no
+    // proxy in front at all.
     // Some reverse proxies/orchestrators/uptime monitors send HEAD (not GET)
     // for liveness checks - without this, /health only answers GET and those
     // probes see a 404/405 instead of a clean liveness signal.

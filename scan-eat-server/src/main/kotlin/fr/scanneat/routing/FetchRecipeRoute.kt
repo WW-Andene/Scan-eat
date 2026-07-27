@@ -3,7 +3,6 @@ package fr.scanneat.routing
 import fr.scanneat.model.*
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.origin
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
@@ -163,7 +162,7 @@ private fun fetchRecipeHtml(startUrl: String): FetchOutcome {
 
 fun Route.fetchRecipeRoute() {
     get("/fetch-recipe") {
-        val clientKey = call.request.origin.remoteHost
+        val clientKey = call.trustedClientIp()
         if (isFetchRecipeRateLimited(clientKey)) {
             call.respond(HttpStatusCode.TooManyRequests, ErrorResponse("rate_limit"))
             return@get

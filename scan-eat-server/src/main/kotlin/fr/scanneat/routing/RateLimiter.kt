@@ -3,7 +3,6 @@ package fr.scanneat.routing
 import fr.scanneat.model.ErrorResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.origin
 import io.ktor.server.response.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -88,7 +87,7 @@ val llmRateLimiter = RateLimiter(maxRequests = 30, windowMs = 60_000L)
  * paid/expensive work (LLM calls, outbound fetches).
  */
 suspend fun ApplicationCall.rejectIfRateLimited(limiter: RateLimiter): Boolean {
-    val clientKey = request.origin.remoteHost
+    val clientKey = trustedClientIp()
     if (limiter.isLimited(clientKey)) {
         respond(HttpStatusCode.TooManyRequests, ErrorResponse("rate_limit"))
         return true
