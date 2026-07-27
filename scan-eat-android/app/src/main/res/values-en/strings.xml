@@ -1314,6 +1314,8 @@
     <string name="notif_channel_custom">Custom reminders</string>
     <string name="notif_summary_title">Daily digest</string>
     <string name="notif_summary_body">%1$d kcal logged · %2$d meals</string>
+    <string name="notif_streak_risk_title">Your streak is about to break</string>
+    <string name="notif_streak_risk_body">%1$d-day logging streak — log something before midnight to keep it going.</string>
     <string name="reminders_daily_digest_title">Daily digest (9:00 PM)</string>
     <string name="reminders_daily_digest_subtitle">Summary of today\'s scans, hydration, and meals</string>
     <string name="reminders_title">Reminders</string>

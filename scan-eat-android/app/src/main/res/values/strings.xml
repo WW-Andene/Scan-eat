@@ -1352,6 +1352,8 @@
     <string name="notif_channel_custom">Rappels personnalisés</string>
     <string name="notif_summary_title">Bilan du jour</string>
     <string name="notif_summary_body">%1$d kcal journalisées · %2$d repas</string>
+    <string name="notif_streak_risk_title">Votre série est sur le point de s\'arrêter</string>
+    <string name="notif_streak_risk_body">Série de %1$d jours — enregistrez quelque chose avant minuit pour la conserver.</string>
     <string name="reminders_daily_digest_title">Bilan quotidien (21h00)</string>
     <string name="reminders_daily_digest_subtitle">Résumé de vos scans, hydratation et repas du jour</string>
     <string name="reminders_title">Rappels</string>

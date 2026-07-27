@@ -16,6 +16,7 @@ import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.reminders.RemindersRepository
+import fr.scanneat.domain.engine.dashboard.logStreakDays
 import fr.scanneat.util.localizedString
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -134,9 +135,21 @@ class ReminderWorker @AssistedInject constructor(
             val dayData = consumptionRepo.observeDay(today).first()
             val totalKcal = dayData.totals.energyKcal.toInt()
             val mealCount = dayData.entries.size
-            val body = String.format(localizedString(lang, R.string.notif_summary_body), totalKcal, mealCount)
-            if (NotificationHelper.show(applicationContext, 110,
-                localizedString(lang, R.string.notif_summary_title), body, NotifChannel.SUMMARY)) {
+            // R&D §X.0: logStreakDays() was already computed on Dashboard/the widget
+            // but nothing proactively warned a user their streak was about to lapse -
+            // the only way to notice was opening the app after midnight to find it
+            // already broken. Post-21:00 is exactly when this digest already fires,
+            // so this reuses that same window: with a 1-day grace period, an unlogged
+            // today still returns yesterday-anchored streak length, which is exactly
+            // the run that breaks at midnight if nothing is logged before then.
+            val streakAtRisk = if (mealCount == 0) logStreakDays(consumptionRepo.getAllLoggedDates(), today) else 0
+            val (title, body) = if (streakAtRisk > 0)
+                localizedString(lang, R.string.notif_streak_risk_title) to
+                    String.format(localizedString(lang, R.string.notif_streak_risk_body), streakAtRisk)
+            else
+                localizedString(lang, R.string.notif_summary_title) to
+                    String.format(localizedString(lang, R.string.notif_summary_body), totalKcal, mealCount)
+            if (NotificationHelper.show(applicationContext, 110, title, body, NotifChannel.SUMMARY)) {
                 remindersRepo.markFiredToday(K_LAST_DIGEST_DATE)
             }
         }
