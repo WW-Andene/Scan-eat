@@ -5,24 +5,13 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HydrationRecord
-import androidx.health.connect.client.records.MealType
 import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
-import androidx.health.connect.client.request.ReadRecordsRequest
-import androidx.health.connect.client.time.TimeRangeFilter
-import androidx.health.connect.client.units.Energy
-import androidx.health.connect.client.units.Mass
-import androidx.health.connect.client.units.Volume
 import dagger.hilt.android.qualifiers.ApplicationContext
-import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.CancellationException
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.roundToInt
 
 // ============================================================================
 // HEALTH CONNECT REPOSITORY — platform health-data sync for weight.
@@ -43,7 +32,13 @@ enum class HealthConnectAvailability { AVAILABLE, NOT_INSTALLED, UNSUPPORTED }
 
 @Singleton
 class HealthConnectRepository @Inject constructor(
-    @ApplicationContext private val context: Context,
+    // Widened from private to internal so the weight/hydration/activity/nutrition
+    // sync extension functions (extracted verbatim into their own sibling files -
+    // HealthConnectWeightExt.kt, HealthConnectHydrationExt.kt,
+    // HealthConnectActivityExt.kt, HealthConnectNutritionExt.kt) can still reach
+    // it - same purely-structural split ScanRepository already went through for
+    // ScanOffLookup/ScanServerClient.
+    @ApplicationContext internal val context: Context,
 ) {
     companion object {
         // Write and read are two separate subsets (not one combined set), same
@@ -53,15 +48,15 @@ class HealthConnectRepository @Inject constructor(
         // weight data in" - must not lose the other half's functionality just
         // because this pair happens to ship together. writeWeight()/deleteWeight()
         // check only the write subset; readWeights() checks only the read subset.
-        private val weightWritePermissions = setOf(HealthPermission.getWritePermission(WeightRecord::class))
-        private val weightReadPermissions = setOf(HealthPermission.getReadPermission(WeightRecord::class))
+        internal val weightWritePermissions = setOf(HealthPermission.getWritePermission(WeightRecord::class))
+        internal val weightReadPermissions = setOf(HealthPermission.getReadPermission(WeightRecord::class))
         // Hydration is write-only (see writeHydrationDelta) - Health Connect's
         // HydrationRecord models a volume over a start/end interval, but this
         // app stores intake as a single mutable running total per day, so
         // reading external records back and merging them risks double-
         // counting on every re-read rather than being a safe idempotent
         // import the way readExternalWeights() is for WeightRepository.
-        private val hydrationPermissions = setOf(HealthPermission.getWritePermission(HydrationRecord::class))
+        internal val hydrationPermissions = setOf(HealthPermission.getWritePermission(HydrationRecord::class))
         // Activity now reads back too (see readExternalActivity) - unlike
         // hydration, ActivityEntity is a genuine multi-entry-per-day table
         // with a dedup key (externalSourceId, added alongside this), so a
@@ -77,11 +72,11 @@ class HealthConnectRepository @Inject constructor(
         // PERMISSIONS set: a user who granted only the write half (or only
         // the read half) must not lose the other half's functionality just
         // because this pair happens to ship together.
-        private val activityWritePermissions = setOf(
+        internal val activityWritePermissions = setOf(
             HealthPermission.getWritePermission(ExerciseSessionRecord::class),
             HealthPermission.getWritePermission(TotalCaloriesBurnedRecord::class),
         )
-        private val activityReadPermissions = setOf(
+        internal val activityReadPermissions = setOf(
             HealthPermission.getReadPermission(ExerciseSessionRecord::class),
             HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
         )
@@ -90,12 +85,12 @@ class HealthConnectRepository @Inject constructor(
         // delete later (ConsumptionRepository.delete()/update() only ever get the
         // local row's own id), so editing/deleting an entry in-app leaves its HC
         // mirror behind.
-        private val nutritionPermissions = setOf(HealthPermission.getWritePermission(NutritionRecord::class))
+        internal val nutritionPermissions = setOf(HealthPermission.getWritePermission(NutritionRecord::class))
 
         /** Requested together up front (single system permission dialog) - see [hasPermission] for why writes each check only their own subset instead of this combined set. */
         val PERMISSIONS: Set<String> = weightWritePermissions + weightReadPermissions + hydrationPermissions + activityWritePermissions + activityReadPermissions + nutritionPermissions
 
-        private const val TAG = "HealthConnectRepository"
+        internal const val TAG = "HealthConnectRepository"
     }
 
     fun availability(): HealthConnectAvailability = when (HealthConnectClient.getSdkStatus(context)) {
@@ -104,7 +99,7 @@ class HealthConnectRepository @Inject constructor(
         else -> HealthConnectAvailability.AVAILABLE
     }
 
-    private fun client(): HealthConnectClient = HealthConnectClient.getOrCreate(context)
+    internal fun client(): HealthConnectClient = HealthConnectClient.getOrCreate(context)
 
     /**
      * True only when every permission Scan'eat ever asks for is granted — used for the Settings
@@ -134,289 +129,23 @@ class HealthConnectRepository @Inject constructor(
      * PERMISSIONS stopped being a subset of what's actually granted. Each
      * write function now checks only what it personally needs.
      */
-    private suspend fun hasPermission(required: Set<String>): Boolean {
+    internal suspend fun hasPermission(required: Set<String>): Boolean {
         if (availability() != HealthConnectAvailability.AVAILABLE) return false
         return client().permissionController.getGrantedPermissions().containsAll(required)
     }
 
-    /**
-     * Mirrors a locally-logged weight entry into Health Connect. No-ops silently if not
-     * available/permitted — sync is opt-in, never a hard dependency for local logging. Also
-     * no-ops (logging only) on a genuine Health Connect exception (permission revoked between
-     * the check above and the write, provider uninstalled mid-session, etc.) - the local Room
-     * write this mirrors has already committed by the time WeightRepository.log() calls this.
-     */
-    suspend fun writeWeight(date: LocalDate, weightKg: Double) {
-        try {
-            if (!hasPermission(weightWritePermissions)) return
-            val instant = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
-            val record = WeightRecord(
-                time = instant,
-                zoneOffset = ZoneId.systemDefault().rules.getOffset(instant),
-                weight = Mass.kilograms(weightKg),
-            )
-            client().insertRecords(listOf(record))
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "writeWeight failed", e)
-        }
-    }
+    // writeWeight/readWeights/readExternalWeights/deleteWeight now live in
+    // HealthConnectWeightExt.kt (see that file) - extracted verbatim as extension
+    // functions on HealthConnectRepository, same cohesive "weight sync" concern
+    // ScanRepository's own split pulled ScanOffLookup/ScanServerClient out for.
 
-    /** Reads weight records Health Connect has from any source (this app or others) in the given window. */
-    suspend fun readWeights(start: Instant, end: Instant): List<WeightRecord> {
-        return try {
-            if (!hasPermission(weightReadPermissions)) return emptyList()
-            client()
-                .readRecords(ReadRecordsRequest(recordType = WeightRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end)))
-                .records
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "readWeights failed", e)
-            emptyList()
-        }
-    }
+    // writeHydrationDelta now lives in HealthConnectHydrationExt.kt (see that file) -
+    // extracted verbatim, same "hydration sync" concern.
 
-    /**
-     * Same as [readWeights] but excludes records this app itself wrote —
-     * readWeights() existed but had zero callers anywhere: sync was
-     * write-only, so a smart scale (or any other app) writing into Health
-     * Connect never appeared in Scan'eat's own weight history. Filtering out
-     * this app's own dataOrigin is what makes importing them back safe —
-     * without it, WeightRepository's own writeWeight() calls would get read
-     * back as if they were new external data, in an endless feedback loop.
-     */
-    suspend fun readExternalWeights(start: Instant, end: Instant): List<WeightRecord> = try {
-        readWeights(start, end).filter { it.metadata.dataOrigin.packageName != context.packageName }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        android.util.Log.w(TAG, "readExternalWeights failed", e)
-        emptyList()
-    }
+    // writeActivity/readExternalActivity/exerciseTypeFor/activityTypeFor/
+    // ExternalActivitySession now live in HealthConnectActivityExt.kt (see that
+    // file) - extracted verbatim, same "activity/exercise sync" concern.
 
-    /**
-     * Deletes whatever weight record(s) this app previously mirrored for [date] —
-     * WeightRepository.delete() previously never called this at all, so deleting a
-     * bad/duplicate entry in-app left a stale record permanently in Health Connect
-     * (and any other app reading from it) with no way to remove it except manually
-     * in the Health Connect app itself. insertRecords() has no stable id to target
-     * directly, so this reads the day's records back and deletes them by their
-     * Health Connect-assigned metadata id.
-     */
-    suspend fun deleteWeight(date: LocalDate) {
-        try {
-            // Deleting needs write permission; the read below (to find which records
-            // to delete) is gated separately inside readWeights() itself.
-            if (!hasPermission(weightWritePermissions)) return
-            val start = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
-            val end = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
-            val ids = readWeights(start, end).map { it.metadata.id }
-            if (ids.isNotEmpty()) client().deleteRecords(WeightRecord::class, ids, emptyList())
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "deleteWeight failed", e)
-        }
-    }
-
-    /**
-     * Mirrors a single hydration delta (e.g. +1 glass, 250 mL) as its own
-     * instantaneous HydrationRecord - HydrationRepository.add()/addGlass() had
-     * zero Health Connect wiring before, unlike weight, so a day's water intake
-     * never left this app. A tiny (1s) interval rather than a true zero-length
-     * one: HydrationRecord requires startTime < endTime.
-     */
-    suspend fun writeHydrationDelta(mlDelta: Int) {
-        if (mlDelta <= 0) return
-        try {
-            if (!hasPermission(hydrationPermissions)) return
-            val end = Instant.now()
-            val start = end.minusSeconds(1)
-            val record = HydrationRecord(
-                startTime = start,
-                startZoneOffset = ZoneId.systemDefault().rules.getOffset(start),
-                endTime = end,
-                endZoneOffset = ZoneId.systemDefault().rules.getOffset(end),
-                volume = Volume.milliliters(mlDelta.toDouble()),
-            )
-            client().insertRecords(listOf(record))
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "writeHydrationDelta failed", e)
-        }
-    }
-
-    /**
-     * Mirrors a logged workout as an ExerciseSessionRecord + a paired
-     * TotalCaloriesBurnedRecord over the same window (Health Connect has no
-     * "calories" field on the session itself — a separate overlapping record
-     * is the documented way to attach an energy estimate to a session).
-     * ActivityRepository only stores a date + duration, not a real logged
-     * time-of-day, so [endTime] (the moment the entry was actually created,
-     * i.e. ActivityEntity.loggedAt) anchors the window instead of guessing
-     * one — end = when it was logged, start = end minus the logged duration.
-     */
-    suspend fun writeActivity(type: ActivityType, minutes: Int, kcal: Int, endTime: Instant) {
-        if (minutes <= 0) return
-        try {
-            if (!hasPermission(activityWritePermissions)) return
-            val start = endTime.minusSeconds(minutes * 60L)
-            val startOffset = ZoneId.systemDefault().rules.getOffset(start)
-            val endOffset = ZoneId.systemDefault().rules.getOffset(endTime)
-            val session = ExerciseSessionRecord(
-                startTime = start,
-                startZoneOffset = startOffset,
-                endTime = endTime,
-                endZoneOffset = endOffset,
-                exerciseType = exerciseTypeFor(type),
-            )
-            val calories = TotalCaloriesBurnedRecord(
-                startTime = start,
-                startZoneOffset = startOffset,
-                endTime = endTime,
-                endZoneOffset = endOffset,
-                energy = Energy.kilocalories(kcal.toDouble()),
-            )
-            client().insertRecords(listOf(session, calories))
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "writeActivity failed", e)
-        }
-    }
-
-    /**
-     * Mirrors a single logged diary entry as a NutritionRecord — ConsumptionRepository.log()/
-     * logAll() had zero Health Connect wiring at all, unlike weight/hydration/activity, so a
-     * day's actual food intake never left this app. A tiny (1s) interval ending at [loggedAt],
-     * same convention as [writeHydrationDelta] - NutritionRecord requires startTime < endTime.
-     */
-    suspend fun writeNutrition(
-        loggedAt: Instant,
-        mealSlot: MealSlot,
-        name: String,
-        kcal: Double,
-        proteinG: Double,
-        carbsG: Double,
-        fatG: Double,
-        saturatedFatG: Double,
-        sugarsG: Double,
-        fiberG: Double,
-        saltG: Double,
-    ) {
-        try {
-            if (!hasPermission(nutritionPermissions)) return
-            val end = loggedAt
-            val start = end.minusSeconds(1)
-            val record = NutritionRecord(
-                startTime = start,
-                startZoneOffset = ZoneId.systemDefault().rules.getOffset(start),
-                endTime = end,
-                endZoneOffset = ZoneId.systemDefault().rules.getOffset(end),
-                name = name,
-                mealType = mealTypeFor(mealSlot),
-                energy = Energy.kilocalories(kcal),
-                protein = Mass.grams(proteinG),
-                totalCarbohydrate = Mass.grams(carbsG),
-                totalFat = Mass.grams(fatG),
-                saturatedFat = Mass.grams(saturatedFatG),
-                sugar = Mass.grams(sugarsG),
-                dietaryFiber = Mass.grams(fiberG),
-                // EU nutrition-label convention: sodium(g) ≈ salt(g) / 2.5 - saltG is what
-                // NutritionPer100g/ConsumedNutrition track, Health Connect wants sodium.
-                sodium = Mass.grams(saltG / 2.5),
-            )
-            client().insertRecords(listOf(record))
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "writeNutrition failed", e)
-        }
-    }
-
-    private fun mealTypeFor(slot: MealSlot): Int = when (slot) {
-        MealSlot.BREAKFAST -> MealType.MEAL_TYPE_BREAKFAST
-        MealSlot.LUNCH     -> MealType.MEAL_TYPE_LUNCH
-        MealSlot.DINNER    -> MealType.MEAL_TYPE_DINNER
-        MealSlot.SNACK     -> MealType.MEAL_TYPE_SNACK
-    }
-
-    private fun exerciseTypeFor(type: ActivityType): Int = when (type) {
-        ActivityType.WALKING_BRISK -> ExerciseSessionRecord.EXERCISE_TYPE_WALKING
-        ActivityType.RUNNING       -> ExerciseSessionRecord.EXERCISE_TYPE_RUNNING
-        ActivityType.CYCLING       -> ExerciseSessionRecord.EXERCISE_TYPE_BIKING
-        ActivityType.SWIMMING      -> ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL
-        ActivityType.STRENGTH      -> ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING
-        ActivityType.YOGA          -> ExerciseSessionRecord.EXERCISE_TYPE_YOGA
-        ActivityType.HIIT          -> ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING
-        ActivityType.OTHER         -> ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT
-    }
-
-    // Inverse of exerciseTypeFor() - anything Health Connect reports that isn't
-    // one of our own 8 types (it has dozens more: badminton, rowing, skiing...)
-    // still gets imported, just bucketed as OTHER rather than silently dropped,
-    // same fallback convention ActivityType.fromKey() already uses for an
-    // unrecognized stored key.
-    private fun activityTypeFor(exerciseType: Int): ActivityType = when (exerciseType) {
-        ExerciseSessionRecord.EXERCISE_TYPE_WALKING -> ActivityType.WALKING_BRISK
-        ExerciseSessionRecord.EXERCISE_TYPE_RUNNING -> ActivityType.RUNNING
-        ExerciseSessionRecord.EXERCISE_TYPE_BIKING  -> ActivityType.CYCLING
-        ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL,
-        ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_OPEN_WATER -> ActivityType.SWIMMING
-        ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING -> ActivityType.STRENGTH
-        ExerciseSessionRecord.EXERCISE_TYPE_YOGA -> ActivityType.YOGA
-        ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING -> ActivityType.HIIT
-        else -> ActivityType.OTHER
-    }
-
-    /**
-     * A workout Health Connect has from an external source (a fitness
-     * tracker's own app, etc.) in the given window - excludes this app's own
-     * mirrored sessions, same dataOrigin filter [readExternalWeights] uses.
-     * Energy comes from whichever TotalCaloriesBurnedRecord's window most
-     * overlaps the session's, since Health Connect has no direct link between
-     * the two record types beyond time overlap (see [writeActivity]'s own
-     * doc comment on why they're separate records in the first place).
-     */
-    suspend fun readExternalActivity(start: Instant, end: Instant): List<ExternalActivitySession> {
-        return try {
-            if (!hasPermission(activityReadPermissions)) return emptyList()
-            val sessions = client()
-                .readRecords(ReadRecordsRequest(recordType = ExerciseSessionRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end)))
-                .records
-                .filter { it.metadata.dataOrigin.packageName != context.packageName }
-            if (sessions.isEmpty()) return emptyList()
-            val calorieRecords = client()
-                .readRecords(ReadRecordsRequest(recordType = TotalCaloriesBurnedRecord::class, timeRangeFilter = TimeRangeFilter.between(start, end)))
-                .records
-                .filter { it.metadata.dataOrigin.packageName != context.packageName }
-            sessions.map { session ->
-                val overlapping = calorieRecords.filter { it.startTime < session.endTime && it.endTime > session.startTime }
-                val kcal = overlapping.sumOf { it.energy.inKilocalories }.roundToInt()
-                ExternalActivitySession(
-                    id        = session.metadata.id,
-                    type      = activityTypeFor(session.exerciseType),
-                    startTime = session.startTime,
-                    endTime   = session.endTime,
-                    kcal      = kcal,
-                )
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            android.util.Log.w(TAG, "readExternalActivity failed", e)
-            emptyList()
-        }
-    }
+    // writeNutrition/mealTypeFor now live in HealthConnectNutritionExt.kt (see
+    // that file) - extracted verbatim, same "nutrition sync" concern.
 }
-
-data class ExternalActivitySession(
-    val id: String,
-    val type: ActivityType,
-    val startTime: Instant,
-    val endTime: Instant,
-    val kcal: Int,
-)

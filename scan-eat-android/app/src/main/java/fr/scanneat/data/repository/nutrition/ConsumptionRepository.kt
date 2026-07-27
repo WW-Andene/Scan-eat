@@ -12,6 +12,7 @@ import fr.scanneat.data.local.db.toIsoString
 import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.toLocalDateTimeUtc
 import fr.scanneat.data.repository.health.HealthConnectRepository
+import fr.scanneat.data.repository.health.writeNutrition
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.widget.TodayWidget
 import kotlinx.coroutines.flow.Flow

@@ -31,7 +31,6 @@ import fr.scanneat.domain.model.IngredientCategory
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanSource
-import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
@@ -39,12 +38,15 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
-import retrofit2.HttpException
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class RecipesViewModel @Inject constructor(
-    private val repo: RecipeRepository,
+    // Widened from private to internal so RecipesImportExt.kt's extension
+    // functions (the URL/photo import + suggest flow, extracted verbatim into
+    // that sibling file) can still reach it - same structural-only split
+    // ScanRepository already went through with ScanOffLookup/ScanServerClient.
+    internal val repo: RecipeRepository,
     private val templateRepo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
@@ -324,109 +326,15 @@ class RecipesViewModel @Inject constructor(
         data class Error(val message: String) : ImportUiState()
     }
 
-    private val _importState = MutableStateFlow<ImportUiState>(ImportUiState.Idle)
+    // Widened from private to internal - RecipesImportExt.kt's extension functions
+    // (moved verbatim into that sibling file) mutate this directly, same as every
+    // function in this file did before the split.
+    internal val _importState = MutableStateFlow<ImportUiState>(ImportUiState.Idle)
     val importState: StateFlow<ImportUiState> = _importState.asStateFlow()
 
-    fun importRecipeFromUrl(url: String) {
-        if (url.isBlank()) return
-        viewModelScope.launch {
-            _importState.value = ImportUiState.Loading
-            val lang = language.value
-            repo.fetchRecipeFromUrl(url, lang).fold(
-                onSuccess = { _importState.value = ImportUiState.Success(it) },
-                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
-            )
-        }
-    }
-
-    /**
-     * Photo counterpart to [importRecipeFromUrl] — wires up the server's
-     * identify-recipe route (recipe card / cookbook page photo → structured recipe
-     * via Groq vision), previously unreachable from the app. Shares the same
-     * ImportUiState/AddRecipeDialog prefill flow as the URL import.
-     */
-    fun importRecipeFromPhotos(images: List<ImagePayload>) {
-        if (images.isEmpty()) return
-        viewModelScope.launch {
-            _importState.value = ImportUiState.Loading
-            val lang = language.value
-            repo.identifyRecipeFromPhotos(images, lang).fold(
-                onSuccess = { _importState.value = ImportUiState.Success(it) },
-                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
-            )
-        }
-    }
-
-    /**
-     * Restaurant menu photo -> estimated dishes (IdentifyMenuRoute.kt), previously
-     * unreachable from the app. Unlike [importRecipeFromPhotos], a successful result
-     * lands in [ImportUiState.MenuSuccess] rather than [ImportUiState.Success] - these
-     * dishes are external restaurant items with nothing to save/log, so they never
-     * feed AddRecipeDialog's prefill.
-     */
-    fun identifyMenuFromPhotos(images: List<ImagePayload>) {
-        if (images.isEmpty()) return
-        viewModelScope.launch {
-            _importState.value = ImportUiState.Loading
-            val lang = language.value
-            repo.identifyMenuFromPhotos(images, lang).fold(
-                onSuccess = { _importState.value = ImportUiState.MenuSuccess(it) },
-                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
-            )
-        }
-    }
-
-    /** Single-ingredient recipe ideas (SuggestRoute.kt) - shows a pickable list rather than pre-filling directly, unlike importRecipeFromUrl/Photos. */
-    fun suggestRecipes(ingredient: String) {
-        if (ingredient.isBlank()) return
-        viewModelScope.launch {
-            _importState.value = ImportUiState.Loading
-            val lang = language.value
-            repo.suggestRecipes(ingredient, lang).fold(
-                onSuccess = { _importState.value = ImportUiState.SuggestSuccess(it) },
-                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
-            )
-        }
-    }
-
-    /** Pantry variant of [suggestRecipes] (SuggestRoute.kt's suggest-from-pantry) - same [ImportUiState.SuggestSuccess] rendering, just a different set of inputs to the same idea-picking flow. */
-    fun suggestFromPantry(items: List<String>) {
-        if (items.isEmpty()) return
-        viewModelScope.launch {
-            _importState.value = ImportUiState.Loading
-            val lang = language.value
-            repo.suggestFromPantry(items, lang).fold(
-                onSuccess = { _importState.value = ImportUiState.SuggestSuccess(it) },
-                onFailure = { e -> _importState.value = ImportUiState.Error(importErrorMessage(e, lang)) },
-            )
-        }
-    }
-
-    /** Picking one of suggestRecipes()'s ideas feeds the same Success -> AddRecipeDialog prefill path a URL/photo import uses. */
-    fun pickSuggestion(result: FetchedRecipeResult) { _importState.value = ImportUiState.Success(result) }
-
-    fun clearImportState() { _importState.value = ImportUiState.Idle }
-
-    /**
-     * RecipesScreen's photo-picker launcher calls this when decodeImagePayload()
-     * returns null (corrupt file, OOM, unsupported format) - previously that path
-     * just did nothing at all, unlike every other import failure here which always
-     * lands in ImportUiState.Error.
-     */
-    fun photoDecodeFailed() {
-        val lang = language.value
-        _importState.value = ImportUiState.Error(
-            if (lang == "en") "Couldn't read that photo — try a different one" else "Impossible de lire cette photo — essayez-en une autre",
-        )
-    }
-
-    private fun importErrorMessage(e: Throwable, lang: String): String = when {
-        e is HttpException && e.code() == 404 ->
-            if (lang == "en") "No recipe found on this page" else "Aucune recette trouvée sur cette page"
-        e is HttpException && e.code() == 429 ->
-            if (lang == "en") "Too many requests — try again in a minute" else "Trop de requêtes — réessayez dans une minute"
-        e is HttpException && e.code() == 400 ->
-            if (lang == "en") "Invalid or unreachable URL" else "URL invalide ou inaccessible"
-        else -> e.message ?: (if (lang == "en") "Import failed" else "Échec de l'import")
-    }
+    // importRecipeFromUrl/importRecipeFromPhotos/identifyMenuFromPhotos/suggestRecipes/
+    // suggestFromPantry/pickSuggestion/clearImportState/photoDecodeFailed/importErrorMessage
+    // now live in RecipesImportExt.kt (see that file) - extracted verbatim as extension
+    // functions on RecipesViewModel, same cohesive "URL/photo import + suggest" concern
+    // ScanRepository's own split pulled ScanOffLookup/ScanServerClient out for.
 }
