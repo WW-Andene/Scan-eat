@@ -142,6 +142,26 @@ class ActivityViewModel @Inject constructor(
         count
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    // One-time celebration the moment the current streak sets a new all-time
+    // record - Fasting already has this exact acknowledgment for personalRecord
+    // (a distinct moment, not just ActivityStreakRow's persistent badge), Activité
+    // didn't. Emits the new record's day count; UI shows a one-shot snackbar.
+    private val _newStreakRecord = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+    val newStreakRecord: SharedFlow<Int> = _newStreakRecord.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            streak.collect { current ->
+                if (current <= 0) return@collect
+                val best = prefs.activityBestStreak.first()
+                if (current > best) {
+                    prefs.setActivityBestStreak(current)
+                    _newStreakRecord.emit(current)
+                }
+            }
+        }
+    }
+
     // log()/delete()/restore() previously called repo.log()/repo.delete() completely
     // unguarded - unlike every sibling ViewModel's equivalent write (Result/Dashboard/
     // MealPlan/Templates/Weight all wrap theirs in runCatching), so a Room write

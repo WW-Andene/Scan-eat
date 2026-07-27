@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -130,6 +131,19 @@ fun ActivityScreen(
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
             viewModel.clearActionFailed()
+        }
+    }
+
+    // One-time celebration snackbar the moment the streak sets a new all-time
+    // record - Fasting already has this exact acknowledgment for personalRecord;
+    // ActivityStreakRow's badge is persistent, not a distinct celebrated moment.
+    // context.getString (not stringResource) since the message needs the day
+    // count from a value only known inside this suspend collector, not at
+    // composition time.
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.newStreakRecord.collect { days ->
+            snackbarHostState.showSnackbar(context.getString(R.string.activity_new_streak_record, days))
         }
     }
 

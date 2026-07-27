@@ -45,6 +45,7 @@ class UserPreferences @Inject constructor(
         val KEY_DYSLEXIC_FONT        = booleanPreferencesKey("dyslexic_font")
         val KEY_COLORBLIND_MODE      = stringPreferencesKey("colorblind_mode")
         val KEY_USE_IMPERIAL_WEIGHT  = booleanPreferencesKey("use_imperial_weight")
+        val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         // Profile — flat keys
         val KEY_PROFILE_NAME         = stringPreferencesKey("profile_name")
@@ -114,6 +115,17 @@ class UserPreferences @Inject constructor(
      * forcing anyone using lb to re-toggle it every visit.
      */
     val useImperialWeight: Flow<Boolean> = storeData.map { it[KEY_USE_IMPERIAL_WEIGHT] ?: false }.distinctUntilChanged()
+
+    /**
+     * Longest consecutive-day Activité streak ever reached - a persisted high-water
+     * mark, unlike ActivityViewModel.streak (the *current* run, which resets to 0
+     * the day after a missed workout). Needed to celebrate a new streak record the
+     * moment it's set, the same one-time acknowledgment Fasting already has for
+     * personalRecord - without a stored mark there's no way to tell "today's streak
+     * is a new all-time best" from "today's streak merely continues an old one."
+     */
+    val activityBestStreak: Flow<Int> = storeData.map { it[KEY_ACTIVITY_BEST_STREAK] ?: 0 }.distinctUntilChanged()
+    suspend fun setActivityBestStreak(days: Int) = store.edit { it[KEY_ACTIVITY_BEST_STREAK] = days }
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = SecureFieldCipher.encrypt(key) }
     suspend fun setCerebrasApiKey(key: String) = store.edit { it[KEY_CEREBRAS_API_KEY] = SecureFieldCipher.encrypt(key) }
