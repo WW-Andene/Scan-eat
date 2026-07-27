@@ -144,6 +144,7 @@ class ActivityRepository @Inject constructor(
             distanceKm   = distanceKm?.coerceAtLeast(0.0),
             weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
         ))
+        dao.trim(MAX_HISTORY_ROWS, profileId)
         // Health Connect had zero Activité wiring at all before this - a logged
         // workout stayed invisible to it and any other app reading from it,
         // unlike weight/hydration which already mirror.
@@ -193,6 +194,7 @@ class ActivityRepository @Inject constructor(
                 externalSourceId = session.id,
             ))
         }
+        dao.trim(MAX_HISTORY_ROWS, profileId)
     }
 
     private fun ActivityEntity.toDomain() = ActivityEntry(
@@ -208,4 +210,9 @@ class ActivityRepository @Inject constructor(
         distanceKm   = distanceKm,
         weightUsedKg = weightUsedKg,
     )
+
+    companion object {
+        /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
+        const val MAX_HISTORY_ROWS = 5000
+    }
 }

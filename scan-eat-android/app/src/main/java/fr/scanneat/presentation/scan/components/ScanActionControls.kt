@@ -41,6 +41,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.glassSheen
+import fr.scanneat.presentation.ui.theme.minTouchTarget
 
 @Composable
 internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: Dp, onClick: () -> Unit) {
@@ -152,7 +153,8 @@ internal fun BoxScope.ScanInstantModeFab(instantMode: Boolean, bottomNavClearanc
 internal fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick: () -> Unit) {
     FloatingActionButton(
         onClick = onClick,
-        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 48.dp, end = Spacing.L).size(40.dp),
+        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 48.dp, end = Spacing.L)
+            .minTouchTarget(), // was a fixed 40dp, below the 48dp WCAG/Material touch-target minimum
         containerColor = if (shelfMode) Teal else SurfaceVariant,
     ) {
         Icon(Icons.Default.GridView, stringResource(R.string.scan_shelf_mode_toggle), tint = if (shelfMode) Color.Black else OnSurface)

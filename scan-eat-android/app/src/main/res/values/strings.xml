@@ -26,7 +26,7 @@
     <string name="common_allow">Autoriser</string>
     <string name="scan_open_settings_button">Ouvrir les réglages</string>
     <string name="scan_medication_found_title">Médicament détecté</string>
-    <string name="scan_medication_found_body">%1$s reconnu depuis la base publique des médicaments (ANSM). L\'ajouter à ton Traitement ?</string>
+    <string name="scan_medication_found_body">%1$s reconnu depuis la base publique des médicaments (ANSM). L\'ajouter à votre Traitement ?</string>
     <string name="scan_medication_found_add">Ajouter au Traitement</string>
     <string name="scan_nonconsumable_found_title">Produit non alimentaire</string>
     <string name="scan_nonconsumable_found_body">%1$s (%2$s) — ce produit n\'est pas destiné à la consommation.</string>
@@ -154,7 +154,7 @@
     <string name="biolism_evo_weight_current">Poids actuel</string>
     <string name="biolism_evo_weight_delta">%1$s%2$s sur la période</string>
     <string name="biolism_evo_bodycomp_title">Composition corporelle</string>
-    <string name="biolism_evo_bodycomp_caption">Estimation à partir de ton historique de poids et de tes mensurations actuelles (taille/hanches/cou) — pas une mesure quotidienne réelle</string>
+    <string name="biolism_evo_bodycomp_caption">Estimation à partir de votre historique de poids et de vos mensurations actuelles (taille/hanches/cou) — pas une mesure quotidienne réelle</string>
     <string name="biolism_evo_bodycomp_fat_label">Masse grasse (%)</string>
     <string name="biolism_evo_bodycomp_lean_label">Masse maigre (kg)</string>
     <string name="biolism_evo_hydration_title">Hydratation</string>
@@ -168,7 +168,7 @@
     <string name="biolism_evo_ketosis_avg">Durée moyenne en cétose</string>
     <string name="biolism_evo_ketosis_sessions">%1$d séances</string>
     <string name="biolism_evo_hormones_today">Aujourd\'hui (référence)</string>
-    <string name="biolism_evo_hormones_caption">Estimations calculées à jeûne et cétose nuls (référence), indépendantes de ton état réel du jour. Les tendances ci-dessous ne suivent que l\'effet de l\'évolution de ta composition corporelle.</string>
+    <string name="biolism_evo_hormones_caption">Estimations calculées à jeûne et cétose nuls (référence), indépendantes de votre état réel du jour. Les tendances ci-dessous ne suivent que l\'effet de l\'évolution de votre composition corporelle.</string>
 
     <!-- ── Biolism: Body Composition card ────────────────────────────────── -->
     <string name="biolism_body_title">Composition corporelle</string>
@@ -267,7 +267,7 @@
          card chrome and equation titles are localized here. -->
     <string name="biolism_eq_title">Équations &amp; sources</string>
     <string name="biolism_eq_badge">RÉFÉRENCE</string>
-    <string name="biolism_eq_disclaimer">Chaque valeur affichée dans Métabolisme dérive d\'une formule publiée. Ci-dessous : la formule, tes chiffres actuels substitués, et la source.</string>
+    <string name="biolism_eq_disclaimer">Chaque valeur affichée dans Métabolisme dérive d\'une formule publiée. Ci-dessous : la formule, vos chiffres actuels substitués, et la source.</string>
     <string name="biolism_eq_bmr_msj">BMR — Mifflin-St Jeor (1990)</string>
     <string name="biolism_eq_bmr_km">BMR — Katch-McArdle (1996)</string>
     <string name="biolism_eq_bodyfat">Masse grasse — Deurenberg (1991)</string>
@@ -414,13 +414,13 @@
 
     <!-- ── Biolism: Onboarding wizard ─────────────────────────────────────── -->
     <string name="biolism_onboard_step0_title">Bienvenue dans Métabolisme</string>
-    <string name="biolism_onboard_step0_sub">Configurons ton profil en 3 étapes rapides. Ces données restent sur ton appareil et alimentent chaque calcul.</string>
-    <string name="biolism_onboard_step1_title">Qui es-tu ?</string>
-    <string name="biolism_onboard_step1_sub">Sexe et âge calibrent ta formule de BMR. Taille et poids sont les entrées principales.</string>
+    <string name="biolism_onboard_step0_sub">Configurons votre profil en 3 étapes rapides. Ces données restent sur votre appareil et alimentent chaque calcul.</string>
+    <string name="biolism_onboard_step1_title">Qui êtes-vous ?</string>
+    <string name="biolism_onboard_step1_sub">Sexe et âge calibrent votre formule de BMR. Taille et poids sont les entrées principales.</string>
     <string name="biolism_onboard_step2_title">Mesures corporelles</string>
     <string name="biolism_onboard_step2_sub">Débloque le BF%% Navy, le ratio taille/hanches et les indicateurs de graisse viscérale.</string>
     <string name="biolism_onboard_step3_title">Niveau d\'activité</string>
-    <string name="biolism_onboard_step3_sub">À quel point es-tu actif au quotidien ? Ceci multiplie ton BMR pour estimer ta dépense totale.</string>
+    <string name="biolism_onboard_step3_sub">À quel point êtes-vous actif au quotidien ? Ceci multiplie votre BMR pour estimer votre dépense totale.</string>
     <string name="biolism_onboard_optional_suffix"> (optionnel)</string>
     <string name="biolism_onboard_male">Homme</string>
     <string name="biolism_onboard_female">Femme</string>
@@ -543,8 +543,8 @@
     <string name="biolism_tracker_goal_eta">~%1$dh à ce rythme</string>
     <string name="biolism_tracker_tdee_budget_title">Budget énergétique du jour</string>
     <string name="biolism_tracker_tdee_budget_note">%1$d kcal brûlées / %2$d kcal TDEE</string>
-    <string name="biolism_tracker_empty_title">Complète ton profil Métabolisme</string>
-    <string name="biolism_tracker_empty_desc">Âge, sexe, taille et poids sont nécessaires pour calculer ton BMR et les flux de substrats.</string>
+    <string name="biolism_tracker_empty_title">Complétez votre profil Métabolisme</string>
+    <string name="biolism_tracker_empty_desc">Âge, sexe, taille et poids sont nécessaires pour calculer votre BMR et les flux de substrats.</string>
     <string name="biolism_goals_title">Objectifs quotidiens</string>
     <string name="biolism_goals_bmr_label">BMR (au repos)</string>
     <string name="biolism_goals_bmr_note">besoin métabolique de base</string>
@@ -1022,10 +1022,10 @@
     <string name="settings_section_legal">Mentions légales</string>
     <string name="settings_legal_medical_disclaimer">Cette application ne fournit pas d\'avis médical. Les scores, estimations et recommandations sont informatifs et ne remplacent pas l\'avis d\'un professionnel de santé.</string>
     <string name="settings_legal_data_accuracy">Les informations nutritionnelles proviennent de bases de données ouvertes ou de la reconnaissance d\'étiquette et peuvent contenir des erreurs ou être incomplètes.</string>
-    <string name="settings_legal_nutrition_recs">Les objectifs nutritionnels sont calculés à partir de formules publiées (Mifflin-St Jeor, EFSA, OMS) appliquées à tes propres données ; ce sont des estimations, pas des prescriptions.</string>
-    <string name="settings_legal_medication">Le suivi des traitements est un simple aide-mémoire manuel. Il ne vérifie ni interactions médicamenteuses, ni posologie, ni contre-indications — consulte toujours un professionnel de santé ou un pharmacien.</string>
+    <string name="settings_legal_nutrition_recs">Les objectifs nutritionnels sont calculés à partir de formules publiées (Mifflin-St Jeor, EFSA, OMS) appliquées à vos propres données ; ce sont des estimations, pas des prescriptions.</string>
+    <string name="settings_legal_medication">Le suivi des traitements est un simple aide-mémoire manuel. Il ne vérifie ni interactions médicamenteuses, ni posologie, ni contre-indications — consultez toujours un professionnel de santé ou un pharmacien.</string>
     <string name="settings_legal_liability">L\'éditeur décline toute responsabilité en cas de décision de santé prise sur la seule base des informations de l\'application.</string>
-    <string name="settings_legal_privacy">Tes données (profil, historique, traitements) sont stockées localement sur ton appareil et ne sont transmises à des services tiers que si tu actives explicitement une fonctionnalité qui le nécessite (ex. scoring via API).</string>
+    <string name="settings_legal_privacy">Vos données (profil, historique, traitements) sont stockées localement sur votre appareil et ne sont transmises à des services tiers que si vous activez explicitement une fonctionnalité qui le nécessite (ex. scoring via API).</string>
     <string name="settings_about_version">Scan\'eat v%1$s · Moteur de scoring v%2$s</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
     <string name="settings_about_licenses_button">Licences open source</string>
@@ -1332,19 +1332,19 @@
     <string name="reminders_title">Rappels</string>
     <string name="reminders_enable_notifications">Activer les notifications</string>
     <string name="reminders_notif_breakfast_title">Petit-déjeuner</string>
-    <string name="reminders_notif_breakfast_body">N\'oublie pas de journaliser ton petit-déjeuner.</string>
+    <string name="reminders_notif_breakfast_body">N\'oubliez pas de journaliser votre petit-déjeuner.</string>
     <string name="reminders_notif_snack_title">Collation</string>
-    <string name="reminders_notif_snack_body">N\'oublie pas de journaliser ta collation.</string>
+    <string name="reminders_notif_snack_body">N\'oubliez pas de journaliser votre collation.</string>
     <string name="reminders_notif_lunch_title">Déjeuner</string>
-    <string name="reminders_notif_lunch_body">N\'oublie pas de journaliser ton déjeuner.</string>
+    <string name="reminders_notif_lunch_body">N\'oubliez pas de journaliser votre déjeuner.</string>
     <string name="reminders_notif_dinner_title">Dîner</string>
-    <string name="reminders_notif_dinner_body">N\'oublie pas de journaliser ton dîner.</string>
+    <string name="reminders_notif_dinner_body">N\'oubliez pas de journaliser votre dîner.</string>
     <string name="reminders_notif_hydration_title">Hydratation</string>
-    <string name="reminders_notif_hydration_body">Pense à boire un verre d\'eau.</string>
+    <string name="reminders_notif_hydration_body">Pensez à boire un verre d\'eau.</string>
     <string name="reminders_notif_weight_title">Pesée</string>
-    <string name="reminders_notif_weight_body">Ça fait un moment — enregistre ton poids.</string>
+    <string name="reminders_notif_weight_body">Ça fait un moment — enregistrez votre poids.</string>
     <string name="reminders_notif_fasting_title">Jeûne terminé</string>
-    <string name="reminders_notif_fasting_body">Tu as atteint ton objectif de jeûne — bravo !</string>
+    <string name="reminders_notif_fasting_body">Vous avez atteint votre objectif de jeûne — bravo !</string>
     <string name="reminders_notif_medication_title">Traitement</string>
     <string name="reminders_notif_medication_body">C\'est l\'heure de prendre : %1$s</string>
     <string name="reminders_notif_activity_title">Activité</string>

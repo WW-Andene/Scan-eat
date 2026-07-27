@@ -285,7 +285,7 @@ fun ScanScreen(
             barcodesInFrame?.let { (boxes, imgW, imgH) ->
                 boxes.forEach { box ->
                     visibleBarcodeCachedPreviews.value[box.value]?.let { cached ->
-                        ScanBarcodeArPanel(box = box, imgW = imgW, imgH = imgH, cached = cached)
+                        ScanBarcodeArPanel(box = box, imgW = imgW, imgH = imgH, cached = cached, topInset = topInset)
                     }
                 }
             }
@@ -356,6 +356,17 @@ fun ScanScreen(
                                             val full = image.toBitmap()
                                             image.close()
                                             val cropped = cropAroundBox(full, box.rect, w, h)
+                                            // Bitmap.createBitmap(source, x, y, w, h) returns `source` itself,
+                                            // not a copy, when the requested region is the whole bitmap (x=0,
+                                            // y=0, w/h matching) - which cropAroundBox's own clamping can produce
+                                            // for a box spanning nearly the entire frame. Recycling unconditionally
+                                            // would then recycle `cropped` out from under identifyShelfBox() too.
+                                            // Only recycle `full` when cropAroundBox actually produced a distinct
+                                            // bitmap - otherwise this leaked ~7.7MB (1600x1200 ARGB_8888) per
+                                            // shelf-mode tap, unlike the main capture path's
+                                            // ScanImagePayload.toPayload(), which already recycles every
+                                            // intermediate bitmap it creates.
+                                            if (cropped !== full) full.recycle()
                                             shelfCoroutineScope.launch {
                                                 val result = viewModel.identifyShelfBox(cropped)
                                                 shelfPeeks = shelfPeeks.map { p ->

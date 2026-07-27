@@ -190,7 +190,7 @@ internal fun ScanBoundingBoxesOverlay(boxes: List<DetectedBarcode>, imgW: Int, i
  * been scanned at least once.
  */
 @Composable
-internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: Int, cached: ScanResult) {
+internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: Int, cached: ScanResult, topInset: Dp = 0.dp) {
     val density = androidx.compose.ui.platform.LocalDensity.current
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
@@ -208,7 +208,11 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
         (centerX.toDp() - panelWidth / 2) to (top.toDp() - 44.dp)
     }
     val clampedX = xDp.coerceIn(Spacing.S, (screenWidthDp - panelWidth - Spacing.S).coerceAtLeast(Spacing.S))
-    val clampedY = yDp.coerceAtLeast(Spacing.S)
+    // Floor of just Spacing.S let the panel render under the status bar / behind
+    // ScanHeaderBar's own scrim+title (which reserves topInset + Spacing.L) for any
+    // barcode detected high in frame - clamp below that same reserved header zone
+    // instead, matching ScanHeaderBar/ScanBarcodeChip's own inset math.
+    val clampedY = yDp.coerceAtLeast(topInset + Spacing.L + 32.dp)
 
     Box(modifier = Modifier.align(Alignment.TopStart).padding(start = clampedX, top = clampedY).width(panelWidth)) {
         Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant.copy(0.94f)) {

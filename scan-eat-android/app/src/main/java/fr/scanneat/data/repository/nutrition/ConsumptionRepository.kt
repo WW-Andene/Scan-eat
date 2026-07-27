@@ -46,6 +46,7 @@ class ConsumptionRepository @Inject constructor(
 
     suspend fun log(entry: DiaryEntry) {
         dao.insert(entry.toEntity())
+        dao.trim(MAX_HISTORY_ROWS, entry.profileId)
         mirrorToHealthConnect(entry)
         refreshWidget()
     }
@@ -53,8 +54,15 @@ class ConsumptionRepository @Inject constructor(
     /** Atomic multi-entry write — use when logging a template or recipe that expands to several entries. */
     suspend fun logAll(entries: List<DiaryEntry>) {
         dao.insertAll(entries.map { it.toEntity() })
+        entries.map { it.profileId }.distinct().forEach { dao.trim(MAX_HISTORY_ROWS, it) }
         entries.forEach { mirrorToHealthConnect(it) }
         refreshWidget()
+    }
+
+    companion object {
+        /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS - unbounded until
+         *  this audit fix, unlike scan_history/scan_score_history which already trim. */
+        const val MAX_HISTORY_ROWS = 5000
     }
 
     // TodayWidget's kcal/streak/macro figures previously only refreshed on the platform's

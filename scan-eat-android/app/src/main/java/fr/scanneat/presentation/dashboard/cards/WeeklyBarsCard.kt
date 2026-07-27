@@ -69,7 +69,17 @@ internal fun WeeklyBarsCard(rollup: RollupResult, targets: DailyTargets?, langua
                             .fillMaxHeight(if (day.count == 0) 0.05f else frac.coerceAtLeast(0.05f))
                             .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
                             .background(color),
-                    )
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        // Over/on-target status previously relied on red-vs-green color
+                        // alone (the single hardest confusion pair for colorblind
+                        // viewers) - a small glyph gives the same signal without color.
+                        if (isOver) {
+                            Text("!", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = OnSurface, fontSize = 9.sp)
+                        } else if (isOnTarget) {
+                            Text("✓", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = OnSurface, fontSize = 9.sp)
+                        }
+                    }
                 }
             }
             // Dashed target line — only shown when targets are set

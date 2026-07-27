@@ -57,6 +57,7 @@ fun ProfileScreen(
     val biolismProfile = viewModel.biolismProfile.collectAsStateWithLifecycle()
     val bmiCat = viewModel.bmiCat.collectAsStateWithLifecycle()
     val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
+    val profileLoaded = viewModel.profileLoaded.collectAsStateWithLifecycle()
 
     // Local mutable state mirrors the saved profile - keyed on the whole Profile
     // object (a data class, so this only re-derives when a real field actually
@@ -133,6 +134,17 @@ fun ProfileScreen(
             }
         },
     ) { padding ->
+        // Previously rendered the form immediately with profile.value's Profile()
+        // seed default (blank name, NOT_SPECIFIED sex, etc.) for the brief window
+        // before prefs.profile's real DataStore-backed value loads asynchronously -
+        // a visible flash of empty fields on every cold open of this screen.
+        if (!profileLoaded.value) {
+            Box(
+                Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
+                contentAlignment = Alignment.Center,
+            ) { CircularProgressIndicator(color = AccentCoral) }
+            return@FloatingScreenScaffold
+        }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()

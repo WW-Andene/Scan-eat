@@ -84,6 +84,13 @@ class ScanRepository @Inject constructor(
 
     // ---- History ----
 
+    // Convention (applies repo-wide, not just here): every DAO/repository method
+    // that reads or writes profile-scoped data accepts profileId: String =
+    // "default" and threads it straight through to the query - this is the
+    // app's only multi-profile foundation (single-profile today, but every
+    // Room table/index is already scoped by it). A new method that silently
+    // hardcodes "default" inline instead of accepting this parameter quietly
+    // breaks that foundation the day multi-profile support ships.
     fun observeHistory(limit: Int = 50, profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeRecent(profileId = profileId, limit = limit).map { entities ->
             entities.mapNotNull { it.toDomain() }

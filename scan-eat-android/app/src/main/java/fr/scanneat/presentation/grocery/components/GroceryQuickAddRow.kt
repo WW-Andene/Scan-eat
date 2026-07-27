@@ -28,7 +28,7 @@ internal fun GroceryQuickAddRow(quickAddText: String, onQuickAddTextChange: (Str
         IconButton(
             onClick = onAdd,
             enabled = quickAddText.isNotBlank(),
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.minTouchTarget(), // was a fixed 40dp, below the 48dp WCAG/Material minimum
         ) {
             Icon(Icons.Default.Add, stringResource(R.string.grocery_quick_add_cd), tint = if (quickAddText.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
         }

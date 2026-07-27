@@ -24,6 +24,16 @@ class ProfileViewModel @Inject constructor(
     val profile: StateFlow<Profile> = prefs.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
 
+    // True until prefs.profile's first real DataStore-backed value has arrived -
+    // before that, `profile` above is still its Profile() seed default, which
+    // ProfileScreen previously rendered as-is (a brief flash of blank/default
+    // fields on cold start before the real saved profile loads asynchronously).
+    private val _profileLoaded = MutableStateFlow(false)
+    val profileLoaded: StateFlow<Boolean> = _profileLoaded.asStateFlow()
+    init {
+        viewModelScope.launch { prefs.profile.first(); _profileLoaded.value = true }
+    }
+
     // Derived metrics — recomputed whenever profile changes
     val bmiValue: StateFlow<Double?> = profile.map { bmi(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

@@ -34,4 +34,13 @@ interface ActivityDao {
     /** Dedup key set for syncFromHealthConnect() - an external session whose Health Connect id is already here was already imported, and must not be inserted again. */
     @Query("SELECT externalSourceId FROM activity_log WHERE profileId = :profileId AND externalSourceId IS NOT NULL")
     suspend fun getImportedExternalIds(profileId: String = "default"): List<String>
+
+    /** Bounds unbounded growth the same way ScanScoreHistoryDao.trim does for scan_score_history. */
+    @Query("""
+        DELETE FROM activity_log
+        WHERE profileId = :profileId AND id NOT IN (
+            SELECT id FROM activity_log WHERE profileId = :profileId ORDER BY loggedAt DESC LIMIT :keepCount
+        )
+    """)
+    suspend fun trim(keepCount: Int, profileId: String = "default")
 }

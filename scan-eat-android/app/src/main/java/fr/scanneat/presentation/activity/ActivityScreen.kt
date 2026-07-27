@@ -196,13 +196,17 @@ fun ActivityScreen(
             onDismiss = { showAdd = false },
             onAdd = {
                 minutesText.toIntOrNull()?.let { min ->
+                    // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's
+                    // own coerceIn calls - previously unbounded, so a pasted or IME-entered
+                    // value like "999999" reps or a negative distance silently landed in
+                    // activity_log and skewed the weekly burn/minutes charts.
                     viewModel.log(
                         selectedType, min,
                         subType = selectedSubType,
-                        sets = setsText.toIntOrNull(),
-                        reps = repsText.toIntOrNull(),
-                        distanceKm = distanceText.replace(',', '.').toDoubleOrNull(),
-                        weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull(),
+                        sets = setsText.toIntOrNull()?.coerceIn(0, 999),
+                        reps = repsText.toIntOrNull()?.coerceIn(0, 999),
+                        distanceKm = distanceText.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 500.0),
+                        weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 500.0),
                     )
                     showAdd = false
                     selectedSubType = null; customSubTypeText = ""; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""

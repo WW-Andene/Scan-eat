@@ -45,6 +45,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
+import fr.scanneat.presentation.ui.theme.minTouchTarget
 
 @Composable
 internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, onRemovePhoto: (Int) -> Unit) {
@@ -77,9 +78,15 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                                         Icon(Icons.Default.Image, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
                                     }
                                 }
+                                // IconButton's own footprint kept at minTouchTarget()'s 48dp floor for
+                                // a real tap target (previously a fixed 20dp, well under the WCAG/
+                                // Material minimum) - the visible circle/glyph stay small via inner
+                                // Modifier.size() calls so the 64dp thumbnail isn't visually overrun.
                                 IconButton(onClick = { onRemovePhoto(index) },
-                                    modifier = Modifier.align(Alignment.TopEnd).size(20.dp).background(Background.copy(0.6f), CircleShape)) {
-                                    Icon(Icons.Default.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
+                                    modifier = Modifier.align(Alignment.TopEnd).minTouchTarget()) {
+                                    Box(Modifier.size(20.dp).background(Background.copy(0.6f), CircleShape), contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Default.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
+                                    }
                                 }
                             }
                         }

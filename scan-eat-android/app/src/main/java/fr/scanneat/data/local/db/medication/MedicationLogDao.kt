@@ -57,4 +57,13 @@ interface MedicationLogDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<MedicationLogEntity>)
+
+    /** Bounds unbounded growth the same way ScanScoreHistoryDao.trim does for scan_score_history. */
+    @Query("""
+        DELETE FROM medication_log
+        WHERE profileId = :profileId AND id NOT IN (
+            SELECT id FROM medication_log WHERE profileId = :profileId ORDER BY takenAt DESC LIMIT :keepCount
+        )
+    """)
+    suspend fun trim(keepCount: Int, profileId: String = "default")
 }

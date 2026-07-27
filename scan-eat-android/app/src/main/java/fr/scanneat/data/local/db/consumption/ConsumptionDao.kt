@@ -39,4 +39,13 @@ interface ConsumptionDao {
 
     @Query("SELECT COUNT(*) FROM consumption_log WHERE profileId = :profileId")
     fun observeTotalCount(profileId: String = "default"): Flow<Int>
+
+    /** Bounds unbounded growth the same way ScanScoreHistoryDao.trim does for scan_score_history. */
+    @Query("""
+        DELETE FROM consumption_log
+        WHERE profileId = :profileId AND id NOT IN (
+            SELECT id FROM consumption_log WHERE profileId = :profileId ORDER BY loggedAt DESC LIMIT :keepCount
+        )
+    """)
+    suspend fun trim(keepCount: Int, profileId: String = "default")
 }
