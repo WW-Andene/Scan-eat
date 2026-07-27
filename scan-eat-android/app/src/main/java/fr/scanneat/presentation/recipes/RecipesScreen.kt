@@ -220,7 +220,7 @@ fun RecipesScreen(
             item {
                 Text(stringResource(R.string.recipes_official_section_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
             }
-            items(viewModel.officialRecipes) { recipe ->
+            items(viewModel.officialRecipes, key = { it.nameFr }) { recipe ->
                 OfficialRecipeCard(
                     recipe   = recipe,
                     isFrench = language.value == "fr",

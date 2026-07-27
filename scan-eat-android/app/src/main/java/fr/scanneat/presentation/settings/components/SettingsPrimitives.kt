@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -37,7 +39,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 internal fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     ScanEatCard {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+            Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
             content()
         }
     }

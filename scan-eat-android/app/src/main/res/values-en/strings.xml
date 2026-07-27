@@ -1339,6 +1339,7 @@
     <string name="medication_add_dialog_title">New Medication</string>
     <string name="medication_field_name">Medication name</string>
     <string name="medication_field_dosage">Dosage</string>
+    <string name="medication_field_dosage_hint">e.g. 500 mg, 2 tablets</string>
     <string name="medication_field_schedule">Schedule / frequency</string>
     <string name="medication_reminder_cd">Medication reminder</string>
     <string name="medication_cd_calendar">Calendar</string>

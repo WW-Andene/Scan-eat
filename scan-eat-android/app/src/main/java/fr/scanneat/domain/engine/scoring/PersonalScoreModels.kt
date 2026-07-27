@@ -13,7 +13,7 @@ data class PersonalAdjustment(
     val veto: Boolean = false,
 )
 
-enum class AdjustmentCategory { DIET, AGE, SEX, ACTIVITY, BMI, GOAL, MODIFIER, CONDITION }
+enum class AdjustmentCategory { DIET, AGE, SEX, ACTIVITY, BMI, GOAL, MODIFIER, CONDITION, PROTEIN_BUDGET }
 
 data class PersonalScoreResult(
     val personalScore: Int,

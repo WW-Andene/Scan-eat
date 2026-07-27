@@ -24,6 +24,9 @@ class ServerScanApiProvider @Inject constructor(
     @Volatile private var url: String = ""
 
     fun get(baseUrl: String): ServerScanApi {
+        require(baseUrl.startsWith("https://") || baseUrl.startsWith("http://localhost") || baseUrl.startsWith("http://127.0.0.1")) {
+            "Server URL must use https:// (plain http:// only allowed for localhost testing): $baseUrl"
+        }
         val normUrl = if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
         if (api == null || url != normUrl) {
             api = Retrofit.Builder()

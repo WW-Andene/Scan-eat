@@ -106,7 +106,7 @@ internal fun AddMedicationDialog(onDismiss: () -> Unit, onSave: (name: String, d
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.medication_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
-                OutlinedTextField(value = dosage, onValueChange = { dosage = it }, label = { Text(stringResource(R.string.medication_field_dosage)) }, singleLine = true, colors = scanEatTextFieldColors())
+                OutlinedTextField(value = dosage, onValueChange = { dosage = it }, label = { Text(stringResource(R.string.medication_field_dosage)) }, placeholder = { Text(stringResource(R.string.medication_field_dosage_hint)) }, singleLine = true, colors = scanEatTextFieldColors())
                 OutlinedTextField(value = scheduleNote, onValueChange = { scheduleNote = it }, label = { Text(stringResource(R.string.medication_field_schedule)) }, singleLine = true, colors = scanEatTextFieldColors())
             }
         },

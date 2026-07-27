@@ -135,7 +135,9 @@ class ScanViewModel @Inject constructor(
 
     /** Called every frame with every barcode currently decoded in view — see [visibleBarcodeCachedPreviews]. */
     fun onBarcodesVisible(barcodes: List<String>) {
-        _visibleBarcodes.value = barcodes
+        // Sorted so frame-to-frame detector reordering of the same barcode set
+        // doesn't change list identity and re-trigger flatMapLatest's re-query.
+        _visibleBarcodes.value = barcodes.sorted()
     }
 
     private val scoreMutex = Mutex()

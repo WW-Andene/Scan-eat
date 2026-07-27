@@ -138,7 +138,7 @@ fun HydrationScreen(
             onDismiss = { showGoalEditor = false },
             onReset = { viewModel.setCustomGoal(null); showGoalEditor = false },
             onConfirm = { text ->
-                text.toIntOrNull()?.takeIf { it > 0 }?.let { viewModel.setCustomGoal(it) }
+                text.toIntOrNull()?.takeIf { it > 0 }?.coerceIn(1, 10000)?.let { viewModel.setCustomGoal(it) }
                 showGoalEditor = false
             },
         )

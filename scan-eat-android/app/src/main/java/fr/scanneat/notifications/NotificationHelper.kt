@@ -36,19 +36,17 @@ object NotificationHelper {
     private const val LEGACY_CHANNEL_ID = "biolism_reminders"
 
     fun ensureChannels(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = context.getSystemService(NotificationManager::class.java) ?: return
-            NotifChannel.entries.forEach { ch ->
-                manager.createNotificationChannel(
-                    NotificationChannel(ch.id, context.getString(ch.nameRes), NotificationManager.IMPORTANCE_DEFAULT)
-                )
-            }
-            // Keep the legacy catch-all channel for any notification still using CHANNEL_ID
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return
+        NotifChannel.entries.forEach { ch ->
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, context.getString(R.string.reminders_channel_name), NotificationManager.IMPORTANCE_DEFAULT)
+                NotificationChannel(ch.id, context.getString(ch.nameRes), NotificationManager.IMPORTANCE_DEFAULT)
             )
-            manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
         }
+        // Keep the legacy catch-all channel for any notification still using CHANNEL_ID
+        manager.createNotificationChannel(
+            NotificationChannel(CHANNEL_ID, context.getString(R.string.reminders_channel_name), NotificationManager.IMPORTANCE_DEFAULT)
+        )
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
     }
 
     /**
