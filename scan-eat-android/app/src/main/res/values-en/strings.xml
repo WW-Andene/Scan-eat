@@ -991,7 +991,7 @@
     <string name="settings_legal_nutrition_recs">Nutrition targets are computed from published formulas (Mifflin-St Jeor, EFSA, WHO) applied to your own data; they are estimates, not prescriptions.</string>
     <string name="settings_legal_medication">Medication tracking is a plain manual reminder. It flags a small, fixed list of well-known interaction risks (e.g. anticoagulant + NSAID) by name matching only — it does not check dosage, contraindications, or any interaction outside that list. Always consult a healthcare professional or pharmacist.</string>
     <string name="settings_legal_liability">The publisher accepts no liability for health decisions made solely on information from this app.</string>
-    <string name="settings_legal_privacy">Your data (profile, history, medications) is stored locally on your device and only sent to third-party services if you explicitly enable a feature that requires it (e.g. API-based scoring).</string>
+    <string name="settings_legal_privacy">Your data (profile, history, medications) is stored locally on your device. Scanning a barcode sends it to Open Food Facts to look up the product — that\'s core to scanning itself, not an optional feature. Photo/AI-based scoring additionally sends the image to the AI provider only when you use that feature.</string>
     <string name="settings_about_version">Scan\'eat v%1$s · Scoring engine v%2$s</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
     <string name="settings_about_licenses_button">Open source licenses</string>
