@@ -8,7 +8,6 @@ import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.domain.engine.biolism.*
-import fr.scanneat.domain.model.MS_PER_HOUR
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.time.Instant
@@ -18,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TrackerViewModel @Inject constructor(
-    private val repo: BiolismRepository,
+    internal val repo: BiolismRepository,
     private val prefs: UserPreferences,
     private val fastingRepo: FastingRepository,
 ) : ViewModel() {
@@ -48,12 +47,12 @@ class TrackerViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     // ── Timer state from DataStore (source of truth on resume) ───────────────
-    private val _timerState = MutableStateFlow(TimerState())
+    internal val _timerState = MutableStateFlow(TimerState())
     val timerState: StateFlow<TimerState> = _timerState.asStateFlow()
 
     // ── Live elapsed — updated by coroutine ticker, not DataStore ─────────────
-    private val _elapsedMs   = MutableStateFlow(0L)
-    private val _ketoElapsedMs = MutableStateFlow(0L)
+    internal val _elapsedMs   = MutableStateFlow(0L)
+    internal val _ketoElapsedMs = MutableStateFlow(0L)
     val elapsedMs:     StateFlow<Long> = _elapsedMs.asStateFlow()
     val ketoElapsedMs: StateFlow<Long> = _ketoElapsedMs.asStateFlow()
 
@@ -66,7 +65,7 @@ class TrackerViewModel @Inject constructor(
     val showKcalPerSec: StateFlow<Boolean> = _showKcalPerSec.asStateFlow()
 
     // ── Saved confirmation ────────────────────────────────────────────────────
-    private val _saved = MutableStateFlow(false)
+    internal val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
     // repo.saveTimerState()/repo.saveSession() below previously called their DataStore
@@ -74,7 +73,7 @@ class TrackerViewModel @Inject constructor(
     // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
     // write failure here wasn't just silent, it was an uncaught exception that would
     // crash the app.
-    private val _actionFailed = MutableStateFlow(false)
+    internal val _actionFailed = MutableStateFlow(false)
     /** True briefly after a failed save, for a one-shot error snackbar. */
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
     fun clearActionFailed() { _actionFailed.value = false }
@@ -123,7 +122,7 @@ class TrackerViewModel @Inject constructor(
     }
 
 
-    private var tickJob: Job? = null
+    internal var tickJob: Job? = null
 
     init {
         // Restore from DataStore on cold start
@@ -140,111 +139,13 @@ class TrackerViewModel @Inject constructor(
     // Timer control
     // ─────────────────────────────────────────────────────────────────────────
 
-    fun startOrPause() {
-        val s = _timerState.value
-        if (s.running) pauseSession(s) else startSession(s)
-    }
+    // Timer control (startOrPause/reset/startTicker/stopTicker) is implemented as
+    // internal extension functions in TrackerTimerControl.kt (same package) —
+    // see that file for the start/pause/ticker state machine.
 
-    private fun startSession(s: TimerState) {
-        val now = System.currentTimeMillis()
-        val next = s.copy(
-            running       = true,
-            wallStartMs   = now,
-            ketoRunning   = s.ketosisOn,
-            ketoWallStartMs = if (s.ketosisOn) now else s.ketoWallStartMs,
-        )
-        _timerState.value = next
-        _saved.value = false
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-        startTicker()
-    }
-
-    private fun pauseSession(s: TimerState) {
-        val now = System.currentTimeMillis()
-        val accMs     = s.accumulatedMs + (if (s.wallStartMs > 0) now - s.wallStartMs else 0L)
-        val ketoAccMs = s.ketoAccumulatedMs + (if (s.ketoRunning && s.ketoWallStartMs > 0) now - s.ketoWallStartMs else 0L)
-        val next = s.copy(running = false, wallStartMs = 0L, accumulatedMs = accMs,
-                          ketoRunning = false, ketoWallStartMs = 0L, ketoAccumulatedMs = ketoAccMs)
-        _timerState.value = next
-        _elapsedMs.value    = accMs
-        _ketoElapsedMs.value = ketoAccMs
-        stopTicker()
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
-
-    fun reset() {
-        stopTicker()
-        val next = _timerState.value.copy(
-            running = false, wallStartMs = 0L, accumulatedMs = 0L,
-            ketoRunning = false, ketoWallStartMs = 0L, ketoAccumulatedMs = 0L,
-        )
-        _timerState.value = next
-        _elapsedMs.value = 0L
-        _ketoElapsedMs.value = 0L
-        _saved.value = false
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
-
-    private fun startTicker() {
-        tickJob?.cancel()
-        tickJob = viewModelScope.launch {
-            while (isActive) {
-                val now = System.currentTimeMillis()
-                val s   = _timerState.value
-                val wall     = if (s.wallStartMs > 0) now - s.wallStartMs else 0L
-                val ketoWall = if (s.ketoRunning && s.ketoWallStartMs > 0) now - s.ketoWallStartMs else 0L
-                _elapsedMs.value     = s.accumulatedMs + wall
-                _ketoElapsedMs.value = s.ketoAccumulatedMs + ketoWall
-                delay(100L)  // 10 fps — smooth enough for a display, battery-friendly
-            }
-        }
-    }
-
-    private fun stopTicker() { tickJob?.cancel(); tickJob = null }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Ketosis / fasting toggles
-    // ─────────────────────────────────────────────────────────────────────────
-
-    fun toggleKetosis() {
-        val s = _timerState.value
-        val now = System.currentTimeMillis()
-        val next = if (s.ketosisOn) {
-            // turning off — reset keto timer
-            val ketoAcc = s.ketoAccumulatedMs + (if (s.ketoRunning && s.ketoWallStartMs > 0) now - s.ketoWallStartMs else 0L)
-            s.copy(ketosisOn = false, ketoRunning = false, ketoWallStartMs = 0L, ketoAccumulatedMs = ketoAcc)
-        } else {
-            // turning on
-            s.copy(ketosisOn = true,
-                   ketoRunning = s.running,
-                   ketoWallStartMs = if (s.running) now else 0L,
-                   ketoAccumulatedMs = 0L)
-        }
-        _timerState.value = next
-        _ketoElapsedMs.value = next.ketoElapsedMs
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
-
-    fun toggleKetoAdapted() {
-        val s = _timerState.value
-        val next = s.copy(ketoAdapted = !s.ketoAdapted)
-        _timerState.value = next
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
-
-    fun toggleFastingActive() {
-        val s = _timerState.value
-        val next = s.copy(fastingActive = !s.fastingActive)
-        _timerState.value = next
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
-
-    fun logMealNow() {
-        val s = _timerState.value
-        val next = s.copy(fastingActive = true, lastMealTs = System.currentTimeMillis())
-        _timerState.value = next
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
+    // Ketosis/fasting toggles (toggleKetosis/toggleKetoAdapted/toggleFastingActive/
+    // logMealNow/importRealFast/addKetoHours/addFastingHours) are implemented as
+    // internal extension functions in TrackerKetosisFastingLogic.kt (same package).
 
     // ── Bridge to the real Jeûne (Fasting tab) timer ─────────────────────────
     // Biolism's fasting toggle is a deliberately separate, manual metabolic
@@ -259,36 +160,8 @@ class TrackerViewModel @Inject constructor(
         .map { it?.takeIf { f -> f.isActive }?.elapsedHours }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun importRealFast() {
-        val hours = realFastHours.value ?: return
-        val s = _timerState.value
-        val next = s.copy(fastingActive = true, lastMealTs = System.currentTimeMillis() - (hours * MS_PER_HOUR).toLong())
-        _timerState.value = next
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
-
-    // ── Add time to keto/fasting timers ──────────────────────────────────────
-    fun addKetoHours(hours: Double) {
-        val s = _timerState.value
-        val addMs = (hours * MS_PER_HOUR).toLong()
-        val next  = s.copy(ketoAccumulatedMs = (s.ketoAccumulatedMs + addMs).coerceAtLeast(0L))
-        _timerState.value = next
-        _ketoElapsedMs.value = next.ketoElapsedMs
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
-
-    fun addFastingHours(hours: Double) {
-        val s = _timerState.value
-        val deltaMs = (hours * MS_PER_HOUR).toLong()
-        // Upper-bounded at "now" too — unlike addKetoHours' single coerceAtLeast(0),
-        // repeatedly tapping the "-" stepper here could otherwise push lastMealTs into
-        // the future, making fastingHours negative and silently blanking the badge.
-        val newTs   = ((s.lastMealTs.takeIf { it > 0L } ?: System.currentTimeMillis()) - deltaMs)
-            .coerceIn(0L, System.currentTimeMillis())
-        val next    = s.copy(fastingActive = true, lastMealTs = newTs)
-        _timerState.value = next
-        viewModelScope.launch { runCatching { repo.saveTimerState(next) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
-    }
+    // importRealFast/addKetoHours/addFastingHours are implemented as internal
+    // extension functions in TrackerKetosisFastingLogic.kt (same package).
 
     // ─────────────────────────────────────────────────────────────────────────
     // Session save

@@ -11,11 +11,8 @@ import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
-import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.data.repository.scan.ScanRepository
-import fr.scanneat.domain.engine.biolism.BiolismEngine
-import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
@@ -49,17 +46,6 @@ data class ResultUiState(
     val notFound: Boolean = false,
 )
 
-// Only worth suggesting an alternative below this grade — A/B/A+ are already a
-// good choice, and surfacing one for every single scan would just be noise.
-private val ALTERNATIVE_ELIGIBLE_GRADES = setOf(Grade.C, Grade.D, Grade.F)
-
-// Branded/manufactured categories whose name is a flavor or product label, not
-// a raw ingredient - "pairs well with" suggestions don't make sense for them.
-private val NON_PAIRABLE_CATEGORIES = setOf(
-    ProductCategory.BEVERAGE_SOFT, ProductCategory.BEVERAGE_JUICE, ProductCategory.BEVERAGE_WATER,
-    ProductCategory.SNACK_SWEET, ProductCategory.SNACK_SALTY, ProductCategory.CONDIMENT,
-)
-
 sealed class LogState {
     data object Idle    : LogState()
     data object Loading : LogState()
@@ -67,31 +53,20 @@ sealed class LogState {
     data class  Error(val message: String) : LogState()
 }
 
-// Internal sealed type — avoids Pair<Triple<...>> type complexity and null-unsafety
-private sealed class ScanLoad {
-    data object Empty : ScanLoad()
-    data class  Loaded(
-        val scan: ScanResult,
-        val personal: PersonalScoreResult?,
-        val comparison: ComparisonResult?,
-        val pairings: List<String>,
-        val alternative: ScanResult?,
-        val scoreDelta: Int?,
-        val scoreHistory: List<Int>,
-    ) : ScanLoad()
-}
+// ScanLoad (the flow's internal sealed result type) now lives in
+// ResultScanLoader.kt (same package) alongside the loader that builds it.
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ResultViewModel @Inject constructor(
-    private val scanRepo: ScanRepository,
+    internal val scanRepo: ScanRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val comparisonRepo: ComparisonRepository,
     private val prefs: UserPreferences,
     private val biolismRepo: BiolismRepository,
-    private val customFoodRepo: CustomFoodRepository,
-    private val recipeRepo: RecipeRepository,
-    private val manualGroceryRepo: ManualGroceryRepository,
+    internal val customFoodRepo: CustomFoodRepository,
+    internal val recipeRepo: RecipeRepository,
+    internal val manualGroceryRepo: ManualGroceryRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -118,80 +93,21 @@ class ResultViewModel @Inject constructor(
     val profile: StateFlow<Profile> = prefs.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
 
-    private val _logState = MutableStateFlow<LogState>(LogState.Idle)
+    internal val _logState = MutableStateFlow<LogState>(LogState.Idle)
 
     // getById() is a one-shot suspend read, not a Flow, so toggling the DB row
     // via setFavorite() wouldn't otherwise be reflected until the screen fully
     // reloads. This local override lets the star flip instantly; null means
     // "no override yet, use whatever was loaded".
-    private val favoriteOverride = MutableStateFlow<Boolean?>(null)
+    internal val favoriteOverride = MutableStateFlow<Boolean?>(null)
 
-    // arm()/compare() disarm shared comparison state as a side effect, so they must run
-    // at most once per scan — WhileSubscribed(5000) can cancel and restart this flow
-    // (e.g. backgrounding the screen briefly) which would otherwise re-run the side
-    // effect and silently re-arm the current scan as its own comparison baseline.
-    private var comparisonResolved = false
-    private var cachedComparison: ComparisonResult? = null
+    // Builds each scan's ScanLoad — holds its own comparisonResolved/cachedComparison
+    // re-entrancy state (see ResultScanLoader.kt, same package).
+    private val scanLoader = ResultScanLoader(scanId, isFreshScan, scanRepo, comparisonRepo)
 
     // Fix 2: Use a typed sealed class instead of Pair<Triple<...>> — clean and null-safe
     private val scanLoad: Flow<ScanLoad> = combine(prefs.profile, prefs.language, biolismRepo.profile) { profile, lang, bioProfile -> Triple(profile, lang, bioProfile) }.flatMapLatest { (profile, lang, bioProfile) ->
-        flow {
-            // observeHistoryChecked, not observeHistory - every real navigation call
-            // site passes an explicit id (see AppNavGraph.kt), so this fallback only
-            // fires for a malformed/argument-less entry into this screen. Same guard
-            // as CustomFoodViewModel.latestScan: an id-less "just show me whatever's
-            // most recent" fallback shouldn't be able to land on a legacy
-            // pre-classifyNonFood() row and run full personalized scoring against it.
-            // getById(scanId) - the normal, explicit-id path (tapping a specific row
-            // in History, say) - deliberately isn't filtered the same way: the user
-            // asked to see that exact row's stored data, which is a different
-            // guarantee than "silently pick something recent for me."
-            val scan = if (scanId > 0L) scanRepo.getById(scanId)
-                       else scanRepo.observeHistoryChecked(limit = 1).first().firstOrNull()
-
-            if (scan == null) { emit(ScanLoad.Empty); return@flow }
-
-            // Was previously called with the default lang="fr", so an
-            // English-language user still got all personal-score adjustment
-            // reasons (diet/allergen/health-condition call-outs) in French.
-            // bioTdeeKcal: same "prefer Biolism's richer TDEE when a valid
-            // Biolism profile exists" pattern Dashboard/Diary/Widget already
-            // use, so this screen's "100 g uses X% of your daily budget"
-            // adjustment agrees with what those screens show for the same day.
-            val bioTdeeKcal = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
-            val personal   = computePersonalScore(scan.audit, scan.product, profile, lang, bioTdeeKcal)
-            if (!comparisonResolved && isFreshScan) {
-                comparisonResolved = true
-                cachedComparison = if (comparisonRepo.isArmed.first()) comparisonRepo.compare(scan)
-                                   else { comparisonRepo.arm(scan); null }
-            }
-            // Pairing suggestions are meant for a whole/raw ingredient ("tomate",
-            // "boeuf") - a branded beverage or sweet snack's name often carries a
-            // flavor descriptor ("Vanille", "Fraise") that happens to key an
-            // ingredient in the pairings database, producing baking-ingredient
-            // suggestions for a soda that has nothing to do with them.
-            val pairs      = if (scan.product.category in NON_PAIRABLE_CATEGORIES) emptyList()
-                              else findPairings(scan.product.name, limit = 5)
-            val alternative = if (scan.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES)
-                scanRepo.findBetterAlternative(scan, allergens = profile.allergens, dietKey = profile.diet, lang = lang) else null
-
-            // Prior scans of the same product (matched by barcode when present, else
-            // case-insensitive name) — used for the score delta badge and history
-            // mini-sparkline. Previously filtered the last 200 (all-product) scan_
-            // history rows client-side, which was both wasteful (deserializing 200
-            // full product/audit JSON blobs on every reload) and, for any barcoded
-            // product, entirely broken: scan_history upserts by barcode (a rescan
-            // REPLACEs the existing row in place, see ScanRepository.persist), so
-            // there is never more than one row per barcode to find a "prior" one
-            // among - the barcode branch of that filter could never match anything.
-            // scan_score_history is a separate append-only log written on every
-            // persist() specifically so this feature has real data to query.
-            val priorScores  = scanRepo.priorScores(scan.barcode, scan.product.name, beforeMillis = scan.scannedAt)
-            val scoreDelta   = priorScores.firstOrNull()?.let { scan.audit.score - it }
-            val scoreHistory = priorScores.take(5).reversed()  // oldest → newest for the timeline
-
-            emit(ScanLoad.Loaded(scan, personal, cachedComparison, pairs, alternative, scoreDelta, scoreHistory))
-        }
+        scanLoader.build(profile, lang, bioProfile)
     }
 
     val state: StateFlow<ResultUiState> = combine(scanLoad, _logState, favoriteOverride) { load, logState, favOverride ->
@@ -245,94 +161,9 @@ class ResultViewModel @Inject constructor(
 
     fun clearLogState() { _logState.value = LogState.Idle }
 
-    /**
-     * Multi-destination save from the scanned product's "Save to..." popup —
-     * each destination is independent (a product can go to several at once)
-     * and none of them requires the others to be reachable first.
-     */
-    fun saveToDestinations(destinations: Set<SaveDestination>) {
-        val scan = state.value.scanResult ?: return
-        viewModelScope.launch {
-            // Every write below previously ran completely unguarded - a Room/DataStore
-            // write failure (disk-full, constraint violation) on any one of these 4
-            // independent destinations crashed the app instead of just failing to
-            // save that one destination. Reuses the same LogState.Error signal log()
-            // already surfaces on failure.
-            runCatching {
-                // Symmetric with the check: unchecking Favoris and tapping Save must
-                // actually unfavorite, not just skip re-favoriting — this popup is
-                // the only way to change favorite status for an already-favorited
-                // scan (the star icon opens it pre-selected rather than toggling).
-                if (scan.dbId > 0) {
-                    val wantFavorite = SaveDestination.FAVORIS in destinations
-                    favoriteOverride.value = wantFavorite
-                    scanRepo.setFavorite(scan.dbId, wantFavorite)
-                }
-                if (SaveDestination.MES_ALIMENTS in destinations) {
-                    val n = scan.product.nutrition
-                    customFoodRepo.save(
-                        name     = scan.product.name,
-                        kcal     = n.energyKcal,
-                        proteinG = n.proteinG,
-                        carbsG   = n.carbsG,
-                        fatG     = n.fatG,
-                        fiberG   = n.fiberG,
-                        saltG    = n.saltG,
-                        // Previously dropped here too - CustomFoodRepository.save() had
-                        // no params for these at all, so every custom food saved from a
-                        // scan permanently reported zero iron/calcium/vitD/B12 regardless
-                        // of what the source product actually contained.
-                        ironMg    = n.ironMg ?: 0.0,
-                        calciumMg = n.calciumMg ?: 0.0,
-                        vitDUg    = n.vitDUg ?: 0.0,
-                        b12Ug     = n.b12Ug ?: 0.0,
-                        // Previously dropped here - the only dedup key left was the
-                        // display name, which two differently-barcoded products can
-                        // share (e.g. two brands both "Yaourt nature"), silently
-                        // overwriting one with the other's nutrition values.
-                        barcode  = scan.barcode,
-                        // Also previously dropped - the scanned product's real,
-                        // already-known category was discarded in favour of a
-                        // hardcoded "other" on the saved custom food.
-                        category = scan.product.category,
-                    )
-                }
-                if (SaveDestination.COURSES in destinations) {
-                    // Previously hardcoded to 100g regardless of the actual product — a
-                    // 1.5kg bag of rice and a 30g snack both landed on the grocery list
-                    // as "100 g", actively corrupting the "how much do I need to buy"
-                    // math aggregateGroceryList() exists to compute. weightG is the
-                    // label's own stated package weight when the scan captured one.
-                    // addOrUpdate (not add) - re-saving the same product on a later
-                    // shopping trip previously created a fresh duplicate line item
-                    // every time instead of refreshing the existing one's quantity.
-                    manualGroceryRepo.addOrUpdate(scan.product.name, scan.product.weightG ?: 100.0)
-                }
-                if (SaveDestination.REPAS in destinations) {
-                    val n = scan.product.nutrition
-                    // Previously always called save() with no id, so re-saving the same
-                    // scanned product created a brand-new one-component "recipe" every
-                    // time instead of recognizing it was already saved - matched by name
-                    // here since Recipe (unlike CustomFood) has no barcode field of its own.
-                    val existingId = recipeRepo.observeAll().first().find { it.name.equals(scan.product.name, ignoreCase = true) }?.id
-                    recipeRepo.save(
-                        name = scan.product.name,
-                        components = listOf(
-                            RecipeComponent(
-                                productName = scan.product.name, grams = 100.0,
-                                kcal = n.energyKcal, proteinG = n.proteinG, carbsG = n.carbsG,
-                                fatG = n.fatG, saltG = n.saltG, fiberG = n.fiberG,
-                            ),
-                        ),
-                        id = existingId,
-                    )
-                }
-            }.onFailure { e ->
-                if (e is CancellationException) throw e
-                _logState.value = LogState.Error(e.message ?: if (language.value == "en") "Error" else "Erreur")
-            }
-        }
-    }
+    // saveToDestinations (the "Save to..." popup's multi-destination write) is
+    // implemented as an internal extension function in ResultSaveDestinations.kt
+    // (same package) — was already a public member, external callers unaffected.
 }
 
 enum class SaveDestination { COURSES, MES_ALIMENTS, REPAS, FAVORIS }
