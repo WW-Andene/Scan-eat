@@ -1,0 +1,162 @@
+package fr.scanneat.presentation.medication.components
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import fr.scanneat.R
+import fr.scanneat.data.repository.health.Medication
+import fr.scanneat.data.repository.health.MedicationLogEntry
+import fr.scanneat.presentation.reminders.components.PermissionBanner
+import fr.scanneat.presentation.reminders.components.permissionState
+import fr.scanneat.presentation.ui.theme.*
+
+@Composable
+internal fun MedicationEntryRow(
+    medication: Medication,
+    takenToday: MedicationLogEntry?,
+    onToggleTaken: () -> Unit,
+    onSetActive: (Boolean) -> Unit,
+    onOpenReminder: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val m = medication
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(m.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                val details = listOfNotNull(
+                    m.dosage.takeIf { it.isNotBlank() },
+                    m.scheduleNote.takeIf { it.isNotBlank() },
+                ).joinToString(" · ")
+                if (details.isNotBlank()) {
+                    Text(details, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                }
+            }
+            // "Taken today" - previously there was no way to log a dose at all,
+            // only to keep/remove a medication from the active list.
+            // Left at IconButton's default 48dp touch target (Material/WCAG
+            // minimum) - a UI/UX audit found this row forcing 4 icon-sized
+            // controls (plus a Switch) below the 48dp minimum.
+            IconButton(onClick = onToggleTaken) {
+                Icon(
+                    if (takenToday != null) Icons.Default.CheckCircle else Icons.Default.CheckCircleOutline,
+                    stringResource(if (takenToday != null) R.string.medication_cd_undo_taken else R.string.medication_cd_taken_today),
+                    tint = if (takenToday != null) Teal else OnSurface.copy(0.4f),
+                )
+            }
+            Switch(
+                checked = m.active, onCheckedChange = onSetActive,
+                colors = SwitchDefaults.colors(checkedTrackColor = Teal),
+            )
+            // Previously "schedule" was display-only text — no way to actually
+            // be reminded to take a medication, unlike Fasting/Hydration/Weight
+            // which all fire a real notification. Kept visible (not in the
+            // overflow menu below) since its icon tint doubles as an at-a-glance
+            // "reminder on/off" indicator, unlike Rename/Delete.
+            IconButton(onClick = onOpenReminder) {
+                Icon(
+                    Icons.Default.Notifications,
+                    stringResource(R.string.medication_reminder_cd),
+                    tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
+                )
+            }
+            var menuExpanded by remember { mutableStateOf(false) }
+            IconButton(onClick = { menuExpanded = true }) {
+                Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+            }
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.common_rename)) },
+                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                    onClick = { menuExpanded = false; onRename() },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.common_delete)) },
+                    leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                    onClick = { menuExpanded = false; onDelete() },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun AddMedicationDialog(onDismiss: () -> Unit, onSave: (name: String, dosage: String, scheduleNote: String) -> Unit) {
+    var name by rememberSaveable { mutableStateOf("") }
+    var dosage by rememberSaveable { mutableStateOf("") }
+    var scheduleNote by rememberSaveable { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.medication_add_dialog_title), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.medication_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
+                OutlinedTextField(value = dosage, onValueChange = { dosage = it }, label = { Text(stringResource(R.string.medication_field_dosage)) }, singleLine = true, colors = scanEatTextFieldColors())
+                OutlinedTextField(value = scheduleNote, onValueChange = { scheduleNote = it }, label = { Text(stringResource(R.string.medication_field_schedule)) }, singleLine = true, colors = scanEatTextFieldColors())
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(name, dosage, scheduleNote) }, enabled = name.isNotBlank()) {
+                Text(stringResource(R.string.common_create), color = Teal)
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
+}
+
+@Composable
+internal fun MedicationReminderDialog(medication: Medication, onDismiss: () -> Unit, onSave: (on: Boolean, time: String) -> Unit) {
+    val m = medication
+    var on by rememberSaveable(m.id) { mutableStateOf(m.reminderOn) }
+    var time by rememberSaveable(m.id) { mutableStateOf(m.reminderTime) }
+    val isValidTime = remember(time) { runCatching { java.time.LocalTime.parse(time) }.isSuccess }
+    // Every sibling reminder card (meal/hydration/weight/activity, see
+    // RemindersCard.kt) shows this banner - this dialog didn't, so a user with
+    // POST_NOTIFICATIONS denied could enable a medication reminder that would
+    // silently never fire (NotificationHelper.show() no-ops without the
+    // permission), with the switch looking "on" and nothing telling them why.
+    val (permGranted, permDenied, onRequest) = permissionState()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant,
+        title = { Text(stringResource(R.string.medication_reminder_dialog_title, m.name), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                PermissionBanner(permGranted, permDenied, onRequest)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.medication_reminder_toggle), color = OnBackground.copy(0.8f))
+                    Switch(checked = on, onCheckedChange = { on = it }, colors = SwitchDefaults.colors(checkedTrackColor = Teal))
+                }
+                OutlinedTextField(
+                    value = time, onValueChange = { time = it },
+                    label = { Text(stringResource(R.string.medication_reminder_time_label)) },
+                    placeholder = { Text("08:00") }, singleLine = true,
+                    isError = !isValidTime,
+                    colors = scanEatTextFieldColors(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(on, time) },
+                enabled = isValidTime,
+            ) { Text(stringResource(R.string.common_save), color = Teal) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+    )
+}

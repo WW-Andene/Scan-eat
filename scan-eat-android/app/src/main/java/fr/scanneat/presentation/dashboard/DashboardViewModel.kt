@@ -15,92 +15,22 @@ import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
-import fr.scanneat.domain.engine.biolism.BiolismEngine
-import fr.scanneat.domain.engine.biolism.computeMetabolics
 import fr.scanneat.domain.engine.dashboard.*
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
-import fr.scanneat.presentation.result.defaultMealForHour
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.ZoneId
 import javax.inject.Inject
 
-/**
- * The single, merged calorie-balance readout (real Diary intake vs TDEE).
- * TDEE prefers Biolism's richer estimate when a valid Biolism profile exists,
- * falling back to the main Profile's PAL-based TDEE otherwise.
- */
-data class CalorieBalance(
-    val kcalIn: Double,
-    val tdee: Double,
-    val tdeeFromBiolism: Boolean,
-    val net: Double,
-    // Logged Activité kcal for today — previously computed and stored
-    // (ActivityRepository.dailyBurned) but never read anywhere near the
-    // Dashboard, so a logged workout had zero visible effect on the day's
-    // calorie readout. Kept informational rather than folded into tdee/net:
-    // Biolism's TDEE is already computed off a general PAL/activity-level
-    // input, so silently adding logged-workout kcal on top risks double-
-    // counting the same activity twice rather than showing something new.
-    val exerciseKcal: Int = 0,
-)
-
-data class DashboardUiState(
-    val todayTotals: ConsumedNutrition = ConsumedNutrition.ZERO,
-    val targets: DailyTargets? = null,
-    val calorieBalance: CalorieBalance? = null,
-    val streak: Int = 0,
-    // longestLogStreak() was fully built (scans full history for the longest-
-    // ever unbroken logging run) but had zero callers - a user who logged 30
-    // days straight last month and then missed a day saw that record vanish
-    // entirely, since only the *current* streak (logStreakDays) was ever shown.
-    val longestStreak: Int = 0,
-    val weekly: RollupResult? = null,
-    // monthlyRollup() was fully implemented (same shape as weeklyRollup, which
-    // already has a card) but had zero callers - there was no way to see
-    // anything past a single week anywhere on the Dashboard.
-    val monthly: RollupResult? = null,
-    val weekDelta: WeekOverWeekDelta? = null,
-    // monthOverMonthDelta() existed alongside weekOverWeekDelta() but had no
-    // Dashboard caller - MonthlyTrendCard only ever plotted 30 daily bars
-    // against a flat target line, no delta number the way WeekDeltaCard has.
-    val monthDelta: WeekOverWeekDelta? = null,
-    val weightSummary: fr.scanneat.data.repository.health.WeightSummary? = null,
-    val weightForecast: WeightForecast = WeightForecast.InsufficientData,
-    val gapSuggestions: List<GapEntry> = emptyList(),
-    val chronicGaps: List<ChronicGap> = emptyList(),
-    val recentScans: List<ScanResult> = emptyList(),
-    /** Today's diary entries - kept around purely to derive [neverLoggedScans] below. */
-    val todayEntries: List<DiaryEntry> = emptyList(),
-    // Cross-references this week's calorie deficit/surplus against the real
-    // weight-trend direction - see weeklyCrossTrackerInsight()'s own doc
-    // comment for why this didn't exist anywhere before.
-    val crossInsight: CrossTrackerInsight = CrossTrackerInsight.InsufficientData,
-    // DashboardViewModel already injected both ConsumptionRepository and
-    // ScanRepository but never cross-referenced them - the app's core loop
-    // (scan -> decide -> log) had no follow-through nudge, so a user who scans
-    // several products at the store and only logs some of them got no signal
-    // that the rest were never actually recorded to their diary.
-    val neverLoggedScans: List<ScanResult> = emptyList(),
-)
-
-/** Today-only glance snapshot of the trackers Dashboard otherwise never surfaces - see [DashboardViewModel.otherTrackers]. */
-data class OtherTrackersSnapshot(
-    val hydrationMl: Int = 0,
-    val hydrationGoalMl: Int = HYD_DEFAULT_GOAL_ML,
-    val fastingActive: FastingState? = null,
-    val medsTakenCount: Int = 0,
-    val medsActiveCount: Int = 0,
-)
+// CalorieBalance, DashboardUiState, and OtherTrackersSnapshot moved to
+// DashboardModels.kt (same package) - pure data shapes, kept separate from
+// the ViewModel logic that builds/emits them.
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -165,107 +95,25 @@ class DashboardViewModel @Inject constructor(
             .flatMapLatest { (quad, customFoods) ->
                 val (todayData, allEntries, profile, bioProfile) = quad
                 val foodDb = FOOD_DB + customFoods
+                // Full computation extracted to buildHeavyDashboardState() in
+                // DashboardHeavyState.kt (same package) - moved verbatim, this
+                // flatMapLatest just wires its inputs/output.
                 flow {
-                    // WeeklyBarsCard/gap engines below all read targets.kcal directly, but
-                    // only calorieBalance further down ever substituted the richer
-                    // Biolism TDEE for it - so this same screen could show a Biolism-based
-                    // "1850/2400 kcal today" balance right next to a WeeklyBarsCard target
-                    // line still drawn from the plain PAL-based estimate. Overriding once,
-                    // at the source, keeps every consumer of `targets` in agreement.
-                    val bioTdeePreview = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
-                    // withKcalOverride rescales fat/carbs targets onto the Biolism kcal too -
-                    // a plain kcal swap left TodayMacroCard's macro rings computed from the
-                    // stale profile-only kcal, so they no longer summed to the balance above.
-                    val targets = (if (hasMinimalProfile(profile)) dailyTargets(profile) else null)
-                        ?.let { if (bioTdeePreview != null) it.withKcalOverride(bioTdeePreview, profile.goal) else it }
-                    val thisWeek  = weeklyRollup(allEntries, date)
-                    val priorWeek = weeklyRollup(allEntries, date.minusDays(7))
-                    val thisMonth = monthlyRollup(allEntries, date)
-                    // allEntries only ever covers the last 30 days (observeRange above) -
-                    // a prior-30-day comparison needs its own one-shot fetch of days
-                    // 31-60 ago, not widening the primary reactive window every other
-                    // computation in this block reads from.
-                    val priorMonthEnd = date.minusDays(31)
-                    val priorMonthEntries = consumptionRepo.observeRange(priorMonthEnd.minusDays(29), priorMonthEnd).first()
-                    val monthDelta = monthOverMonthDelta(thisMonth, monthlyRollup(priorMonthEntries, priorMonthEnd))
-                    val wSummary  = weightRepo.summarize(30)
-                    val forecast  = if (wSummary != null && profile.goalWeightKg != null)
-                        weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
-                    else WeightForecast.InsufficientData
-                    val gaps = if (targets != null && todayData.entries.isNotEmpty())
-                        closeTheGap(todayData.totals, targets, foodDb)
-                    else emptyList()
-                    // chronicNutrientGaps() was fully built (7-day recurring-deficit
-                    // scan) but never called from any ViewModel - closeTheGap() above
-                    // only ever looks at today, so a real ongoing shortfall (e.g. low
-                    // fiber 5 of the last 7 days) never surfaced unless it also
-                    // happened to be true today.
-                    val chronic = if (targets != null) chronicNutrientGaps(allEntries, targets, foodDb) else emptyList()
-
-                    // Weekly active minutes for the cross-tracker insight below - a
-                    // fresh range query (not the single-day observeByDate used elsewhere
-                    // on Dashboard) since no 7-day activity window was already loaded here.
-                    val weeklyActiveMinutes = activityRepo.getRange(date.minusDays(6), date).sumOf { it.minutes }
-                    val weekStart = date.minusDays(6)
-                    // "five trackers... never cross-reference each other" (see
-                    // weeklyCrossTrackerInsight's own doc comment) - fasting/hydration
-                    // were tracked but excluded from this insight entirely. Fasting
-                    // adherence mirrors FastingScreen's own "successCount/completed.size"
-                    // convention (% of *attempted* fasts that hit target, not % of the
-                    // week, since fasting is often deliberately not a daily practice) -
-                    // hydration is expected daily, so it divides by the fixed 7-day week.
-                    val weeklyFastCompletions = fastingRepo.history.first().filter { c ->
-                        runCatching { LocalDate.parse(c.date) }.getOrNull()?.let { it in weekStart..date } == true
-                    }
-                    val weeklyFastingAdherencePct = weeklyFastCompletions.takeIf { it.isNotEmpty() }
-                        ?.let { it.count { c -> c.reached } * 100 / it.size }
-                    val weeklyHydrationEntries = hydrationRepo.exportAll().filter { (d, _) -> d in weekStart..date }
-                    val hydrationGoal = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions)
-                    val weeklyHydrationAdherencePct = weeklyHydrationEntries.takeIf { it.isNotEmpty() && hydrationGoal > 0 }
-                        ?.let { entries -> entries.count { (_, ml) -> ml >= hydrationGoal } * 100 / 7 }
-                    val crossInsight = weeklyCrossTrackerInsight(
-                        weeklyAvgKcal         = thisWeek.avg.kcal,
-                        kcalTarget            = targets?.kcal ?: 0.0,
-                        daysLogged            = thisWeek.daysLogged,
-                        weightTrendKgPerWeek  = wSummary?.trendKgPerWeek,
-                        weeklyActiveMinutes   = weeklyActiveMinutes,
-                        weeklyFastingAdherencePct   = weeklyFastingAdherencePct,
-                        weeklyHydrationAdherencePct = weeklyHydrationAdherencePct,
-                    )
-
-                    val calorieBalance = targets?.kcal?.let {
-                        CalorieBalance(
-                            kcalIn          = todayData.totals.energyKcal,
-                            tdee            = it,
-                            tdeeFromBiolism = bioTdeePreview != null,
-                            net             = todayData.totals.energyKcal - it,
+                    emit(
+                        buildHeavyDashboardState(
+                            date = date,
+                            todayData = todayData,
+                            allEntries = allEntries,
+                            profile = profile,
+                            bioProfile = bioProfile,
+                            foodDb = foodDb,
+                            consumptionRepo = consumptionRepo,
+                            weightRepo = weightRepo,
+                            activityRepo = activityRepo,
+                            fastingRepo = fastingRepo,
+                            hydrationRepo = hydrationRepo,
                         )
-                    }
-
-                    // allEntries is only ever a 30-day window (observeRange above) - passing
-                    // it to logStreakDays/longestLogStreak silently capped both at 30 even
-                    // when the user's real streak/record ran longer. getAllLoggedDates() is
-                    // a cheap DISTINCT-date query (no row hydration), so this stays correct
-                    // no matter how long the actual streak or logging history is.
-                    val loggedDates = consumptionRepo.getAllLoggedDates()
-
-                    emit(DashboardUiState(
-                        todayTotals    = todayData.totals,
-                        targets        = targets,
-                        calorieBalance = calorieBalance,
-                        streak         = logStreakDays(loggedDates, date),
-                        longestStreak  = longestLogStreak(loggedDates),
-                        weekly         = thisWeek,
-                        monthly        = thisMonth,
-                        weekDelta      = weekOverWeekDelta(thisWeek, priorWeek),
-                        monthDelta     = monthDelta,
-                        weightSummary  = wSummary,
-                        weightForecast = forecast,
-                        gapSuggestions = gaps,
-                        chronicGaps    = chronic,
-                        todayEntries   = todayData.entries,
-                        crossInsight   = crossInsight,
-                    ))
+                    )
                 }
             }
     }
@@ -358,91 +206,26 @@ class DashboardViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OtherTrackersSnapshot())
 
-    // ── Gap-closer suggestions: previously a dead end ────────────────────────
-    // GapCloserCard rendered suggestion chips (e.g. "Lentilles, 80 g") with no
-    // way to act on them — tapping did nothing. GapSuggestion.name is always
-    // an exact FoodEntry.name from the same merged FOOD_DB+custom-foods list
-    // closeTheGap/chronicNutrientGaps were given, so it's looked up directly
-    // rather than fuzzy-searched.
-    private val _gapLoggedName = MutableStateFlow<String?>(null)
+    // Gap-suggestion / never-logged-scan logging state+actions extracted to
+    // DashboardGapLoggingDelegate in DashboardGapLogging.kt (same package) -
+    // moved verbatim; the public surface below just forwards to it so no
+    // external caller (GapCloserCard/NeverLoggedScansCard/DashboardScreen) needs to change.
+    private val gapLogging = DashboardGapLoggingDelegate(viewModelScope, consumptionRepo, customFoodRepo)
+
     /** Non-null briefly after a successful log, for a one-shot confirmation snackbar. */
-    val gapLoggedName: StateFlow<String?> = _gapLoggedName.asStateFlow()
+    val gapLoggedName: StateFlow<String?> get() = gapLogging.gapLoggedName
 
-    // logGapSuggestion/logNeverLoggedScan both guarded their Room write with runCatching
-    // to avoid crashing on a disk-full/constraint failure, but neither had a failure
-    // path at all - a save that failed produced zero visible effect, so the user
-    // couldn't tell their tap hadn't actually logged anything.
-    private val _actionFailed = MutableStateFlow(false)
     /** True briefly after a failed log, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
+    val actionFailed: StateFlow<Boolean> get() = gapLogging.actionFailed
+    fun clearActionFailed() = gapLogging.clearActionFailed()
 
-    // logGapSuggestion/logNeverLoggedScan both previously had no re-entrancy guard - a fast
-    // double-tap (or a second tap landing before the first log's suspend DB write finished)
-    // fired the whole function twice, silently creating two duplicate diary entries for the
-    // same suggestion/scan. Keyed by the same suggestion.name/scan matchKey a tap is already
-    // logically about, so a duplicate tap on the SAME item while it's still in flight is a
-    // no-op, but a tap on a DIFFERENT item is never blocked by an unrelated one in progress.
-    private val loggingKeys = mutableSetOf<String>()
+    fun logGapSuggestion(suggestion: GapSuggestion) = gapLogging.logGapSuggestion(suggestion)
 
-    fun logGapSuggestion(suggestion: GapSuggestion) {
-        if (!loggingKeys.add(suggestion.name)) return
-        viewModelScope.launch {
-            try {
-                // Previously only ever searched raw FOOD_DB - a suggestion built from a
-                // user's own custom food (now possible since closeTheGap/chronicNutrientGaps
-                // are given FOOD_DB + custom foods) would silently no-op here otherwise.
-                val food = (FOOD_DB + customFoodRepo.observeAll().first()).find { it.name == suggestion.name } ?: return@launch
-                // Unguarded suspend DB write previously crashed the app on any Room insert
-                // failure (disk-full, constraint violation) — ResultViewModel.log() guards
-                // its equivalent call the same way.
-                runCatching {
-                    consumptionRepo.log(
-                        DiaryEntry(
-                            date        = LocalDate.now(),
-                            mealSlot    = defaultMealForHour(LocalTime.now().hour),
-                            productName = food.name,
-                            barcode     = null,
-                            portionG    = suggestion.grams.toDouble(),
-                            nutrition   = food.toProduct(suggestion.grams.toDouble()).nutrition,
-                            source      = ScanSource.MANUAL,
-                        )
-                    )
-                }.onSuccess { _gapLoggedName.value = food.name }
-                    .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-            } finally {
-                loggingKeys.remove(suggestion.name)
-            }
-        }
-    }
-
-    fun clearGapLoggedMessage() { _gapLoggedName.value = null }
+    fun clearGapLoggedMessage() = gapLogging.clearGapLoggedMessage()
 
     /** Logs a never-logged scan straight from its real product/barcode/source — see [DashboardUiState.neverLoggedScans]. */
-    fun logNeverLoggedScan(scan: ScanResult, portionG: Double, mealSlot: MealSlot) {
-        val key = "scan:" + (scan.barcode ?: scan.product.name.lowercase())
-        if (!loggingKeys.add(key)) return
-        viewModelScope.launch {
-            try {
-                runCatching {
-                    consumptionRepo.log(
-                        DiaryEntry(
-                            date        = LocalDate.now(),
-                            mealSlot    = mealSlot,
-                            productName = scan.product.name,
-                            barcode     = scan.barcode,
-                            portionG    = portionG,
-                            nutrition   = scan.product.nutrition,
-                            source      = scan.source,
-                            ingredients = scan.product.ingredients,
-                        )
-                    )
-                }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-            } finally {
-                loggingKeys.remove(key)
-            }
-        }
-    }
+    fun logNeverLoggedScan(scan: ScanResult, portionG: Double, mealSlot: MealSlot) =
+        gapLogging.logNeverLoggedScan(scan, portionG, mealSlot)
 
     // Local tuple to carry 4 values cleanly through flatMapLatest
     private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)

@@ -1,32 +1,30 @@
 package fr.scanneat.presentation.medication
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import fr.scanneat.presentation.ui.theme.semanticRed
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
 import fr.scanneat.data.repository.health.MedicationLogEntry
-import fr.scanneat.presentation.medication.MedicationViewModel.DayAdherence
-import fr.scanneat.presentation.reminders.components.PermissionBanner
-import fr.scanneat.presentation.reminders.components.permissionState
+import fr.scanneat.presentation.medication.components.AddMedicationDialog
+import fr.scanneat.presentation.medication.components.MedicationEntryRow
+import fr.scanneat.presentation.medication.components.MedicationInteractionWarningBanner
+import fr.scanneat.presentation.medication.components.MedicationReminderDialog
+import fr.scanneat.presentation.medication.components.MedicationStreakRow
+import fr.scanneat.presentation.medication.components.MedicationTodaySummaryCard
+import fr.scanneat.presentation.medication.components.MedicationWeeklyAdherenceChart
 import fr.scanneat.presentation.ui.theme.*
-import java.time.LocalDate
 
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar - used when
@@ -173,279 +171,4 @@ fun MedicationScreen(
             onSave = { on, time -> viewModel.setReminder(m, on, time); reminderTarget = null },
         )
     }
-}
-
-@Composable
-private fun MedicationStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        // New: daily adherence streak badge
-        if (streakDays > 0) {
-            Surface(shape = RoundedCornerShape(50), color = Teal.copy(0.15f)) {
-                Row(
-                    modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
-                ) {
-                    Icon(Icons.Default.LocalFireDepartment, null, tint = Teal, modifier = Modifier.size(16.dp))
-                    // stringResource, not a hardcoded "j" (French "jour") suffix -
-                    // an English-language user saw this exact French fragment
-                    // regardless of the app's own in-app language setting.
-                    Text(stringResource(R.string.common_streak_days_compact, streakDays), style = MaterialTheme.typography.labelMedium, color = Teal, fontWeight = FontWeight.Bold)
-                }
-            }
-        } else {
-            Spacer(Modifier.width(1.dp))
-        }
-        IconButton(onClick = onOpenCalendar) {
-            Icon(Icons.Default.CalendarMonth, stringResource(R.string.medication_cd_calendar), tint = OnBackground.copy(0.6f))
-        }
-    }
-}
-
-@Composable
-private fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
-    val message = when (warning) {
-        is InteractionWarning.GroupDuplicate -> {
-            val groupLabel = when (warning.group) {
-                DrugGroup.ANTICOAGULANTS -> stringResource(R.string.medication_group_anticoagulants)
-                DrugGroup.ANTIPLATELETS  -> stringResource(R.string.medication_group_antiplatelets)
-                DrugGroup.NSAIDS         -> stringResource(R.string.medication_group_nsaids)
-                DrugGroup.SSRI_SNRI      -> stringResource(R.string.medication_group_ssri_snri)
-                DrugGroup.MAOI           -> stringResource(R.string.medication_group_maoi)
-            }
-            stringResource(R.string.medication_interaction_group_dup, groupLabel)
-        }
-        is InteractionWarning.AnticoagNsaid -> stringResource(R.string.medication_interaction_anticoag_nsaid)
-        is InteractionWarning.SsriMaoi      -> stringResource(R.string.medication_interaction_ssri_maoi)
-    }
-    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f), modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Default.Warning, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
-            Column {
-                Text(stringResource(R.string.medication_interaction_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
-                Text(message, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
-                Text(stringResource(R.string.medication_interaction_cta), style = MaterialTheme.typography.labelSmall, color = semanticRed().copy(0.6f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun MedicationTodaySummaryCard(medications: List<Medication>, todayTaken: List<MedicationLogEntry>) {
-    val active = medications.filter { it.active }
-    val allTaken = active.all { m -> todayTaken.any { it.medicationId == m.id } }
-    Surface(
-        shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = 0.42f),
-        modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-    ) {
-        Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-            Text(
-                stringResource(R.string.medication_today_summary_title),
-                style = MaterialTheme.typography.labelSmall,
-                color = OnSurface.copy(0.5f),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), modifier = Modifier.fillMaxWidth()) {
-                active.forEach { m ->
-                    val taken = todayTaken.any { it.medicationId == m.id }
-                    Surface(shape = RoundedCornerShape(50), color = if (taken) Teal.copy(0.2f) else OnSurface.copy(0.08f)) {
-                        Row(
-                            Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        ) {
-                            Icon(
-                                if (taken) Icons.Default.Check else Icons.Default.Close,
-                                null,
-                                tint = if (taken) Teal else OnSurface.copy(0.35f),
-                                modifier = Modifier.size(10.dp),
-                            )
-                            Text(
-                                m.name,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (taken) Teal else OnSurface.copy(0.5f),
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>) {
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-            Text(stringResource(R.string.medication_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
-                weeklyAdherence.forEach { day ->
-                    val frac = (day.pct ?: 0) / 100f
-                    val barColor = when {
-                        day.pct == null -> OnSurface.copy(0.12f)
-                        day.pct >= 100   -> Teal
-                        day.pct > 0      -> semanticAmber()
-                        else             -> semanticRed()
-                    }
-                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
-                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.04f)).background(barColor, RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)))
-                    }
-                }
-            }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                weeklyAdherence.forEach { day ->
-                    Text(
-                        day.date.dayOfWeek.name.take(1),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
-                        color = OnSurface.copy(if (day.date == LocalDate.now()) 0.8f else 0.4f),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MedicationEntryRow(
-    medication: Medication,
-    takenToday: MedicationLogEntry?,
-    onToggleTaken: () -> Unit,
-    onSetActive: (Boolean) -> Unit,
-    onOpenReminder: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    val m = medication
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(m.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
-                val details = listOfNotNull(
-                    m.dosage.takeIf { it.isNotBlank() },
-                    m.scheduleNote.takeIf { it.isNotBlank() },
-                ).joinToString(" · ")
-                if (details.isNotBlank()) {
-                    Text(details, style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-                }
-            }
-            // "Taken today" - previously there was no way to log a dose at all,
-            // only to keep/remove a medication from the active list.
-            // Left at IconButton's default 48dp touch target (Material/WCAG
-            // minimum) - a UI/UX audit found this row forcing 4 icon-sized
-            // controls (plus a Switch) below the 48dp minimum.
-            IconButton(onClick = onToggleTaken) {
-                Icon(
-                    if (takenToday != null) Icons.Default.CheckCircle else Icons.Default.CheckCircleOutline,
-                    stringResource(if (takenToday != null) R.string.medication_cd_undo_taken else R.string.medication_cd_taken_today),
-                    tint = if (takenToday != null) Teal else OnSurface.copy(0.4f),
-                )
-            }
-            Switch(
-                checked = m.active, onCheckedChange = onSetActive,
-                colors = SwitchDefaults.colors(checkedTrackColor = Teal),
-            )
-            // Previously "schedule" was display-only text — no way to actually
-            // be reminded to take a medication, unlike Fasting/Hydration/Weight
-            // which all fire a real notification. Kept visible (not in the
-            // overflow menu below) since its icon tint doubles as an at-a-glance
-            // "reminder on/off" indicator, unlike Rename/Delete.
-            IconButton(onClick = onOpenReminder) {
-                Icon(
-                    Icons.Default.Notifications,
-                    stringResource(R.string.medication_reminder_cd),
-                    tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
-                )
-            }
-            var menuExpanded by remember { mutableStateOf(false) }
-            IconButton(onClick = { menuExpanded = true }) {
-                Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
-            }
-            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.common_rename)) },
-                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                    onClick = { menuExpanded = false; onRename() },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.common_delete)) },
-                    leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
-                    onClick = { menuExpanded = false; onDelete() },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AddMedicationDialog(onDismiss: () -> Unit, onSave: (name: String, dosage: String, scheduleNote: String) -> Unit) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var dosage by rememberSaveable { mutableStateOf("") }
-    var scheduleNote by rememberSaveable { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
-        title = { Text(stringResource(R.string.medication_add_dialog_title), color = OnBackground) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.medication_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
-                OutlinedTextField(value = dosage, onValueChange = { dosage = it }, label = { Text(stringResource(R.string.medication_field_dosage)) }, singleLine = true, colors = scanEatTextFieldColors())
-                OutlinedTextField(value = scheduleNote, onValueChange = { scheduleNote = it }, label = { Text(stringResource(R.string.medication_field_schedule)) }, singleLine = true, colors = scanEatTextFieldColors())
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSave(name, dosage, scheduleNote) }, enabled = name.isNotBlank()) {
-                Text(stringResource(R.string.common_create), color = Teal)
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-    )
-}
-
-@Composable
-private fun MedicationReminderDialog(medication: Medication, onDismiss: () -> Unit, onSave: (on: Boolean, time: String) -> Unit) {
-    val m = medication
-    var on by rememberSaveable(m.id) { mutableStateOf(m.reminderOn) }
-    var time by rememberSaveable(m.id) { mutableStateOf(m.reminderTime) }
-    val isValidTime = remember(time) { runCatching { java.time.LocalTime.parse(time) }.isSuccess }
-    // Every sibling reminder card (meal/hydration/weight/activity, see
-    // RemindersCard.kt) shows this banner - this dialog didn't, so a user with
-    // POST_NOTIFICATIONS denied could enable a medication reminder that would
-    // silently never fire (NotificationHelper.show() no-ops without the
-    // permission), with the switch looking "on" and nothing telling them why.
-    val (permGranted, permDenied, onRequest) = permissionState()
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
-        title = { Text(stringResource(R.string.medication_reminder_dialog_title, m.name), color = OnBackground) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                PermissionBanner(permGranted, permDenied, onRequest)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.medication_reminder_toggle), color = OnBackground.copy(0.8f))
-                    Switch(checked = on, onCheckedChange = { on = it }, colors = SwitchDefaults.colors(checkedTrackColor = Teal))
-                }
-                OutlinedTextField(
-                    value = time, onValueChange = { time = it },
-                    label = { Text(stringResource(R.string.medication_reminder_time_label)) },
-                    placeholder = { Text("08:00") }, singleLine = true,
-                    isError = !isValidTime,
-                    colors = scanEatTextFieldColors(),
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onSave(on, time) },
-                enabled = isValidTime,
-            ) { Text(stringResource(R.string.common_save), color = Teal) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-    )
 }
