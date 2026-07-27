@@ -1033,6 +1033,8 @@
     <string name="settings_about_version">Scan\'eat v%1$s · Moteur de scoring v%2$s</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
     <string name="settings_about_licenses_button">Licences open source</string>
+    <string name="settings_about_share_crash_log">Partager le journal de diagnostic</string>
+    <string name="settings_about_no_crash_log">Aucun plantage n\'a été enregistré sur cet appareil</string>
     <string name="settings_licenses_dialog_title">Licences open source</string>
     <string name="settings_licenses_apache_note">Texte complet de l\'Apache License 2.0 : apache.org/licenses/LICENSE-2.0</string>
     <string name="settings_section_backup">Sauvegarde</string>

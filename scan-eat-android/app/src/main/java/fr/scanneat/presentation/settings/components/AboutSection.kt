@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.settings.components
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,20 +12,48 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.scanneat.BuildConfig
+import fr.scanneat.CrashLogger
 import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.ENGINE_VERSION
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun AboutSection(onShowLicenses: () -> Unit) {
+    val context = LocalContext.current
     SettingsSection(stringResource(R.string.settings_section_about)) {
         Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
         TextButton(onClick = onShowLicenses, contentPadding = PaddingValues(0.dp)) {
             Text(stringResource(R.string.settings_about_licenses_button), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
+        }
+        // CrashLogger.install() (ScanEatApp.kt) persists uncaught exceptions to
+        // last_crash.txt, but nothing anywhere ever surfaced that file to the
+        // user - it just sat in internal storage a normal user has no way to
+        // reach, making the whole crash-logging feature write-only. Shared as
+        // plain text (not a file attachment) so no FileProvider/manifest
+        // <provider> entry is needed, mirroring ResultScreen's existing
+        // ACTION_SEND text-share pattern.
+        val noCrashLogMessage = stringResource(R.string.settings_about_no_crash_log)
+        TextButton(
+            onClick = {
+                val log = CrashLogger.readLastCrash(context)
+                if (log.isNullOrBlank()) {
+                    Toast.makeText(context, noCrashLogMessage, Toast.LENGTH_SHORT).show()
+                } else {
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, log)
+                    }
+                    context.startActivity(Intent.createChooser(sendIntent, null))
+                }
+            },
+            contentPadding = PaddingValues(0.dp),
+        ) {
+            Text(stringResource(R.string.settings_about_share_crash_log), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
         }
     }
 }

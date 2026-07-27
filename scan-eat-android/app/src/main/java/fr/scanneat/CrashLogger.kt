@@ -22,6 +22,12 @@ object CrashLogger {
     private const val FILE_NAME = "last_crash.txt"
     private const val MAX_ENTRIES = 5
 
+    /** Raw contents of the persisted crash log, or null if none was ever written. */
+    fun readLastCrash(context: Context): String? {
+        val file = File(context.applicationContext.filesDir, FILE_NAME)
+        return if (file.exists()) file.readText() else null
+    }
+
     fun install(context: Context) {
         val appContext = context.applicationContext
         val previousHandler = Thread.getDefaultUncaughtExceptionHandler()

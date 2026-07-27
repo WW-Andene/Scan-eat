@@ -995,6 +995,8 @@
     <string name="settings_about_version">Scan\'eat v%1$s · Scoring engine v%2$s</string>
     <string name="settings_about_sdk">minSdk 26 · Kotlin + Jetpack Compose</string>
     <string name="settings_about_licenses_button">Open source licenses</string>
+    <string name="settings_about_share_crash_log">Share diagnostic log</string>
+    <string name="settings_about_no_crash_log">No crash has been recorded on this device</string>
     <string name="settings_licenses_dialog_title">Open source licenses</string>
     <string name="settings_licenses_apache_note">Full Apache License 2.0 text: apache.org/licenses/LICENSE-2.0</string>
     <string name="settings_section_backup">Backup</string>
