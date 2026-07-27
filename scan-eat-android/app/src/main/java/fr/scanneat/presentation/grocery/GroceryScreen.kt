@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.planning.*
+import fr.scanneat.presentation.history.components.HistorySearchBar
 import fr.scanneat.presentation.grocery.components.GroceryItemRow
 import fr.scanneat.presentation.grocery.components.GroceryProgressRow
 import fr.scanneat.presentation.grocery.components.GroceryQuickAddRow
@@ -49,6 +50,11 @@ fun GroceryScreen(
     onNavigateToPlanning: (PlanningDestination) -> Unit = {},
 ) {
     var quickAddText by rememberSaveable { mutableStateOf("") }
+    // Grocery had no search at all, unlike every other list-heavy screen (Recipes,
+    // Templates, ScanHistory, CustomFood) — aggregating many recipes/templates into
+    // one big list meant finding a specific item was scroll-and-scan only. Purely a
+    // display filter (checkedProgress/counts below still read the unfiltered lists).
+    var searchQuery by rememberSaveable { mutableStateOf("") }
     val items     = viewModel.groceryItems.collectAsStateWithLifecycle()
     val checkable = viewModel.checkableItems.collectAsStateWithLifecycle()
     val manualItemKeys = viewModel.manualItemKeys.collectAsStateWithLifecycle()
@@ -139,6 +145,10 @@ fun GroceryScreen(
                     )
                 }
             } else {
+            val filteredCheckable = remember(checkable.value, searchQuery) {
+                if (searchQuery.isBlank()) checkable.value
+                else checkable.value.filter { it.item.name.contains(searchQuery, ignoreCase = true) }
+            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
                 verticalArrangement = Arrangement.spacedBy(Spacing.M),
@@ -153,12 +163,21 @@ fun GroceryScreen(
                         onAdd = { viewModel.quickAdd(quickAddText); quickAddText = "" },
                     )
                 }
+                item { HistorySearchBar(query = searchQuery, onQueryChange = { searchQuery = it }) }
                 item { GroceryProgressRow(itemCount = items.value.size, checkedProgress = checkedProgress.value) }
-                if (groupByAisle.value) {
+                if (searchQuery.isNotBlank() && filteredCheckable.isEmpty()) {
+                    item {
+                        Text(
+                            stringResource(R.string.grocery_search_no_results),
+                            style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),
+                            modifier = Modifier.padding(vertical = Spacing.L),
+                        )
+                    }
+                } else if (groupByAisle.value) {
                     // Previously a flat alphabetical/unsorted list with no produce/dairy/
                     // pantry sectioning at all. Fixed display order regardless of which
                     // categories this particular list actually contains.
-                    val grouped = checkable.value.groupBy { groceryCategoryFor(it.item.name) }
+                    val grouped = filteredCheckable.groupBy { groceryCategoryFor(it.item.name) }
                     listOf(
                         GroceryCategory.PRODUCE, GroceryCategory.MEAT_FISH, GroceryCategory.DAIRY,
                         GroceryCategory.BAKERY, GroceryCategory.PANTRY, GroceryCategory.FROZEN,
@@ -182,7 +201,7 @@ fun GroceryScreen(
                         }
                     }
                 } else {
-                    items(checkable.value, key = { it.item.key }) { checkableItem ->
+                    items(filteredCheckable, key = { it.item.key }) { checkableItem ->
                         GroceryItemRow(
                             checkableItem, warning = itemWarnings.value[checkableItem.item.key],
                             isManual = checkableItem.item.key in manualItemKeys.value,

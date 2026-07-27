@@ -584,6 +584,7 @@
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Grocery List</string>
     <string name="grocery_empty_body">Create recipes to automatically generate your grocery list.</string>
+    <string name="grocery_search_no_results">No items match your search.</string>
     <plurals name="grocery_item_count">
         <item quantity="one">%1$d item · aggregated from your recipes</item>
         <item quantity="other">%1$d items · aggregated from your recipes</item>

@@ -585,6 +585,7 @@
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Liste de courses</string>
     <string name="grocery_empty_body">Créez des recettes pour générer la liste de courses automatiquement.</string>
+    <string name="grocery_search_no_results">Aucun article ne correspond à votre recherche.</string>
     <plurals name="grocery_item_count">
         <item quantity="one">%1$d article · agrégé depuis vos recettes</item>
         <item quantity="other">%1$d articles · agrégé depuis vos recettes</item>
