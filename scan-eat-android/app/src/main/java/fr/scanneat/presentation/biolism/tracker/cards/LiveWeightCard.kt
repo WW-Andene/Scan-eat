@@ -19,11 +19,24 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.KG_TO_LB
 import java.util.Locale
 
+/** 1 ounce (avoirdupois) in grams - used only to give this card's gram-scale deltas
+ *  (fat/glycogen lost, live delta) an imperial-equivalent small unit, matching kg's
+ *  relationship to grams the way dispWeight() matches kg to lb for the main number. */
+private const val G_TO_OZ = 1.0 / 28.3495
+
 @Composable
-internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: Double, glycoLostKg: Double, ketosisOn: Boolean) {
+internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: Double, glycoLostKg: Double, ketosisOn: Boolean, useImperial: Boolean = false) {
     val color = if (ketosisOn) Teal else Gold
+    // Every sibling weight display in this app (WeightScreen, BiolismProfileScreen,
+    // BodyCompositionCard) routes through the useImperial preference - this card was
+    // the one place still hardcoded to kg/g regardless of the user's setting.
+    val mainUnit = if (useImperial) "lb" else "kg"
+    val smallUnit = if (useImperial) "oz" else "g"
+    fun mainValue(kg: Double) = if (useImperial) kg * KG_TO_LB else kg
+    fun smallValue(g: Double) = if (useImperial) g * G_TO_OZ else g
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = color.copy(0.04f),
@@ -37,18 +50,18 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
                     style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
             }
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(String.format(Locale.US, "%.4f", liveWeight), style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.W500), color = color)
-                Text("kg", style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
+                Text(String.format(Locale.US, "%.4f", mainValue(liveWeight)), style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.W500), color = color)
+                Text(mainUnit, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
                 val deltaG = (liveWeight - baseWeight) * 1000.0
-                Text(stringResource(R.string.biolism_liveweight_delta, String.format(Locale.US, "%.4f", deltaG)), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
+                Text(stringResource(R.string.biolism_liveweight_delta, String.format(Locale.US, "%.4f", smallValue(deltaG)), smallUnit), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Text(stringResource(R.string.biolism_liveweight_base, String.format(Locale.US, "%.3f", baseWeight)), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
+                Text(stringResource(R.string.biolism_liveweight_base, String.format(Locale.US, "%.3f", mainValue(baseWeight)), mainUnit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
                 Text("−", color = OnBackground.copy(0.3f))
-                Text(stringResource(R.string.biolism_liveweight_fat_lost, String.format(Locale.US, "%.4f", fatLostKg * 1000)), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
+                Text(stringResource(R.string.biolism_liveweight_fat_lost, String.format(Locale.US, "%.4f", smallValue(fatLostKg * 1000)), smallUnit), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
                 if (ketosisOn && glycoLostKg > 0) {
                     Text("−", color = OnBackground.copy(0.3f))
-                    Text(stringResource(R.string.biolism_liveweight_glyco_lost, String.format(Locale.US, "%.2f", glycoLostKg * 1000)), style = MaterialTheme.typography.labelSmall, color = Gold.copy(0.8f))
+                    Text(stringResource(R.string.biolism_liveweight_glyco_lost, String.format(Locale.US, "%.2f", smallValue(glycoLostKg * 1000)), smallUnit), style = MaterialTheme.typography.labelSmall, color = Gold.copy(0.8f))
                 }
             }
         }

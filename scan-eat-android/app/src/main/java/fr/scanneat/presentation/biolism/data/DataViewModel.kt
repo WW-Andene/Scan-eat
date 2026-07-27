@@ -37,14 +37,15 @@ class DataViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     // Fix 12: tick drives wall-clock recalculation of elapsed/keto/fasting times
-    // so DataScreen shows live values even while the tracker is running.
-    private val _tick = MutableStateFlow(System.currentTimeMillis())
-    val tick: StateFlow<Long> = _tick.asStateFlow()
-    init {
-        viewModelScope.launch {
-            while (true) { delay(1000L); _tick.value = System.currentTimeMillis() }
-        }
-    }
+    // so DataScreen shows live values even while the tracker is running. Gated on
+    // WhileSubscribed like every other StateFlow here (was an unconditional
+    // viewModelScope.launch loop) so it stops ticking - and stops recomputing
+    // metabolics/hormones/sessionCumulative every second - once DataScreen is no
+    // longer visible/subscribed, instead of running for the ViewModel's whole
+    // lifetime regardless of whether anyone is looking at it.
+    val tick: StateFlow<Long> = flow {
+        while (true) { emit(System.currentTimeMillis()); delay(1000L) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), System.currentTimeMillis())
 
     // Live timer state: persisted base + wall-clock delta on each tick
     val timer: StateFlow<TimerState> = combine(repo.timerState, tick) { stored, now ->

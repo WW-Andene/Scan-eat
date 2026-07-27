@@ -534,10 +534,10 @@
     <string name="biolism_liveweight_title">Live weight</string>
     <string name="biolism_liveweight_method_ketosis">9,300 kcal/kg (triglycerides)</string>
     <string name="biolism_liveweight_method_normal">Wishnofsky · 7,700 kcal/kg</string>
-    <string name="biolism_liveweight_delta">Δ %1$s g</string>
-    <string name="biolism_liveweight_base">Base: %1$s kg</string>
-    <string name="biolism_liveweight_fat_lost">%1$s g fat</string>
-    <string name="biolism_liveweight_glyco_lost">%1$s g glycogen+H₂O</string>
+    <string name="biolism_liveweight_delta">Δ %1$s %2$s</string>
+    <string name="biolism_liveweight_base">Base: %1$s %2$s</string>
+    <string name="biolism_liveweight_fat_lost">%1$s %2$s fat</string>
+    <string name="biolism_liveweight_glyco_lost">%1$s %2$s glycogen+H₂O</string>
     <string name="biolism_tracker_goal_label">Goal → %1$s</string>
     <string name="biolism_tracker_goal_eta">~%1$dh at this rate</string>
     <string name="biolism_tracker_tdee_budget_title">Today\'s energy budget</string>

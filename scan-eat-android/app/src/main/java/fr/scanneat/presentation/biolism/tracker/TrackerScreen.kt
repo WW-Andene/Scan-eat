@@ -187,6 +187,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                     fatLostKg    = fatLostKg,
                     glycoLostKg  = glycoLostKg,
                     ketosisOn    = s.ketosisOn,
+                    useImperial  = useImperial.value,
                 )
             }
 
