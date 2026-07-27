@@ -1,8 +1,11 @@
 plugins {
     kotlin("jvm")                version "2.0.21"
     kotlin("plugin.serialization") version "2.0.21"
-    id("io.ktor.plugin")         version "2.3.12"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    // Ktor Gradle plugin 3.x bundles its own shadow-jar support (com.gradleup.shadow,
+    // the successor to com.github.johnrengelman.shadow) - applying the old shadow
+    // plugin here too made both compete for the same "com.github.johnrengelman:shadow"
+    // capability and fail dependency resolution outright.
+    id("io.ktor.plugin")         version "3.0.3"
 }
 
 group   = "fr.scanneat"
@@ -21,7 +24,7 @@ repositories {
     mavenCentral()
 }
 
-val ktor_version     = "2.3.12"
+val ktor_version     = "3.0.3"
 val kotlin_version   = "2.0.21"
 val logback_version  = "1.5.6"
 

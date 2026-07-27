@@ -40,8 +40,10 @@ suspend fun ApplicationCall.requireGroqKey(): String? {
  * unbounded `call.receive<T>()` buffer - this API has no legitimate client
  * that streams a chunked body (the Android app and any curl/fetch JSON POST
  * always send a fixed Content-Length), so requiring one closes that gap
- * without needing Ktor 3.x's RequestBodyLimit plugin (unavailable on the
- * Ktor 2.3.12 this server is pinned to).
+ * without needing Ktor's RequestBodyLimit plugin (now available since the
+ * 3.x upgrade, but this Content-Length check already covers the same gap
+ * and every route already calls it, so there's no behavior gap left to close
+ * by adopting it too).
  */
 suspend fun ApplicationCall.rejectIfTooLarge(): Boolean {
     val len = request.headers[HttpHeaders.ContentLength]?.toLongOrNull()
