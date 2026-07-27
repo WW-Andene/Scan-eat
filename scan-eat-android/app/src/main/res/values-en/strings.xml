@@ -1080,6 +1080,7 @@
     <string name="dashboard_worst_day">Worst</string>
     <string name="dashboard_month_title">Last 30 Days</string>
     <string name="dashboard_month_days_logged">%1$d/%2$d days logged</string>
+    <string name="dashboard_month_chart_cd">Daily calories, %1$s to %2$s: %3$d of %4$d days logged, %5$d days over target</string>
     <string name="dashboard_week_delta">%1$s kcal vs last week</string>
     <string name="dashboard_month_delta">%1$s kcal vs last month</string>
     <string name="dashboard_gap_title">Close the Gaps</string>

@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -67,8 +69,24 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
             }
         }
         val peak = (listOf(targets?.kcal ?: 0.0) + rollup.days.map { it.kcal }).maxOrNull()?.coerceAtLeast(1.0) ?: 1.0
+        // Locale(language) - same as WeeklyBarsCard/DiaryScreen/WeightScreen - so month
+        // abbreviations follow the in-app language setting, not the device default.
+        val fmt = remember(language) { DateTimeFormatter.ofPattern("d MMM", Locale(language)) }
+        // 30 unlabeled bars have no per-bar text the way WeeklyBarsCard's 7 do,
+        // and 30 individual TalkBack stops for a "glance" chart would be more
+        // noise than signal - one merged summary (mirroring WeeklyBarsCard's
+        // per-bar fix, but scoped to the whole chart here) gives screen reader
+        // users the data instead of 30 silent boxes.
+        val daysOverTarget = if (targets != null) rollup.days.count { it.kcal > targets.kcal } else 0
+        val chartDescription = stringResource(
+            R.string.dashboard_month_chart_cd,
+            rollup.days.first().date.format(fmt),
+            rollup.days.last().date.format(fmt),
+            rollup.daysLogged, rollup.days.size, daysOverTarget,
+        )
         Row(
-            modifier              = Modifier.fillMaxWidth().height(56.dp),
+            modifier              = Modifier.fillMaxWidth().height(56.dp)
+                .semantics(mergeDescendants = true) { contentDescription = chartDescription },
             horizontalArrangement = Arrangement.spacedBy(1.dp),
             verticalAlignment     = Alignment.Bottom,
         ) {
@@ -93,9 +111,6 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
         // 30 individual date labels would never fit - only the window's
         // start/end are printed, same information WeeklyBarsCard conveys
         // per-bar but compressed to fit a month at a glance.
-        // Locale(language) - same as WeeklyBarsCard/DiaryScreen/WeightScreen - so month
-        // abbreviations follow the in-app language setting, not the device default.
-        val fmt = remember(language) { DateTimeFormatter.ofPattern("d MMM", Locale(language)) }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(rollup.days.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f), fontSize = 9.sp)
             Text(

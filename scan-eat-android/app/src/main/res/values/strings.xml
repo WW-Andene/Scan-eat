@@ -1118,6 +1118,7 @@
     <string name="dashboard_worst_day">Pire</string>
     <string name="dashboard_month_title">30 derniers jours</string>
     <string name="dashboard_month_days_logged">%1$d/%2$d jours suivis</string>
+    <string name="dashboard_month_chart_cd">Calories quotidiennes, du %1$s au %2$s : %3$d/%4$d jours suivis, %5$d jours au-dessus de l\'objectif</string>
     <string name="dashboard_week_delta">%1$s kcal vs semaine dernière</string>
     <string name="dashboard_month_delta">%1$s kcal vs mois dernier</string>
     <string name="dashboard_gap_title">Combler les écarts</string>
