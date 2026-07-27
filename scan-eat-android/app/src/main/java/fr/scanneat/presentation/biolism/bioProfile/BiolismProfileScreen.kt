@@ -11,7 +11,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -258,7 +257,15 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         }
 
         // ── Save ──────────────────────────────────────────────────────────────
+        // Was unconditionally enabled with the same silent-zero-on-invalid-input
+        // fallback BiolismOnboardingScreen's canAdvance gate now guards against -
+        // this screen had no gate at all, so "abc" in any field saved as 0.0/0
+        // with no feedback, corrupting BMI/TDEE math downstream.
+        val canSave = age.toIntOrNull() != null &&
+            height.replace(',', '.').toDoubleOrNull() != null &&
+            weight.replace(',', '.').toDoubleOrNull() != null
         ScanEatPrimaryButton(
+            enabled = canSave,
             onClick = {
                 // Onboarding normalizes comma decimals (French-locale default)
                 // before parsing; this edit screen didn't, so a French user
@@ -285,7 +292,11 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             modifier = Modifier.fillMaxWidth(),
             containerColor = Gold,
         ) {
-            Text(stringResource(R.string.bioprofile_save_button), color = Color.Black, fontWeight = FontWeight.Bold)
+            // Explicit color=Color.Black previously always won over
+            // ScanEatPrimaryButton's disabledContentColor (see ScanEatButton.kt's
+            // own doc comment) - dropped so the label actually dims when canSave
+            // is false, same fix as BiolismOnboardingScreen's Next/Finish button.
+            Text(stringResource(R.string.bioprofile_save_button), fontWeight = FontWeight.Bold)
         }
     }
     SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))

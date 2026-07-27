@@ -38,9 +38,13 @@ class EvolutionViewModel @Inject constructor(
 
     private val windowStart get() = LocalDate.now().minusDays((EVOLUTION_WINDOW_DAYS - 1).toLong())
 
-    // ── Weight — real, unbounded Room history, same source WeightScreen charts ──
-    val weightEntries: StateFlow<List<WeightEntry>> = weightRepo.observeAll()
-        .map { all -> all.filter { !it.date.isBefore(windowStart) } }
+    // ── Weight — bounded to the 90-day window in SQL via WeightRepository.observeRange,
+    // same source WeightScreen charts. Was observeAll() (the whole, unbounded
+    // weight_log table), fetching/mapping years of history on every write just
+    // to filter almost all of it away in-memory - the exact pattern already
+    // fixed for Dashboard/Calendar (see WeightDao.observeRange's own doc
+    // comment), reintroduced here by this screen bypassing the bounded API. ──
+    val weightEntries: StateFlow<List<WeightEntry>> = weightRepo.observeRange(windowStart, LocalDate.now())
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // ── Body composition — Fat%/lean mass have no dated history of their own

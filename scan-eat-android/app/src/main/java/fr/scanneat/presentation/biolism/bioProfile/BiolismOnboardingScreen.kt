@@ -15,7 +15,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -70,8 +69,15 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
         neckCm = neck.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 100.0) ?: 0.0,
     )
 
+    // Was isNotBlank() - typing a non-numeric value (e.g. "abc") passed this
+    // gate, then buildProfile()'s toIntOrNull()/toDoubleOrNull() ?: 0 silently
+    // saved ageYears=0/heightCm=0.0/weightKg=0.0, which divides-by-zero into
+    // BMI/TDEE downstream (MetabolicsCalculator.kt). Gate on actual parseability.
     val canAdvance = when (step) {
-        1 -> sex != BiolismSex.NOT_SPECIFIED && age.isNotBlank() && height.isNotBlank() && weight.isNotBlank()
+        1 -> sex != BiolismSex.NOT_SPECIFIED &&
+            age.toIntOrNull() != null &&
+            height.replace(',', '.').toDoubleOrNull() != null &&
+            weight.replace(',', '.').toDoubleOrNull() != null
         else -> true
     }
     val onboardSteps = rememberOnboardSteps()
@@ -199,16 +205,21 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                             Text(stringResource(R.string.biolism_onboard_skip), color = OnBackground.copy(0.5f))
                         }
                     }
-                    Button(
+                    // Was a raw Button with an explicit Text(color = Color.Black) -
+                    // ScanEatButton.kt's own doc comment describes fixing this exact
+                    // bug elsewhere: an explicit Text color always wins over
+                    // ButtonDefaults' disabledContentColor, so a disabled button's
+                    // label stayed fully opaque regardless of its dimmed container,
+                    // giving no visual cue that Next/Finish couldn't be tapped yet.
+                    ScanEatPrimaryButton(
                         onClick = {
                             if (step < onboardSteps.size - 1) step += 1
                             else viewModel.completeOnboarding(buildProfile())
                         },
                         enabled = canAdvance,
-                        colors = ButtonDefaults.buttonColors(containerColor = Gold, disabledContainerColor = Gold.copy(0.3f)),
-                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        containerColor = Gold,
                     ) {
-                        Text(if (step < onboardSteps.size - 1) stringResource(R.string.biolism_onboard_next) else stringResource(R.string.biolism_onboard_finish), color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text(if (step < onboardSteps.size - 1) stringResource(R.string.biolism_onboard_next) else stringResource(R.string.biolism_onboard_finish), fontWeight = FontWeight.Bold)
                     }
                 }
             }
