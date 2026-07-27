@@ -4,6 +4,7 @@ import com.squareup.moshi.Moshi
 import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.medication.MedicationLogDao
+import fr.scanneat.data.local.prefs.SecureFieldCipher
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
@@ -119,7 +120,13 @@ class CsvExportRepository @Inject constructor(
     /** Exports the "dose taken" adherence log as CSV - see [exportWeightCsv]'s own doc comment. */
     suspend fun exportMedicationCsv(): String {
         val rows = medicationLogDao.getAllForBackup()
-        val lines = rows.sortedBy { it.date }.map { e -> "${e.date},${csvField(e.medicationName)},${e.takenAt}" }
+        // medicationName is Keystore-encrypted at rest (MedicationRepository) -
+        // decrypt before writing to a human-readable CSV, or every row would
+        // show unreadable ciphertext instead of the medication's name.
+        val lines = rows.sortedBy { it.date }.map { e ->
+            val name = SecureFieldCipher.decryptOrNull(e.medicationName) ?: e.medicationName
+            "${e.date},${csvField(name)},${e.takenAt}"
+        }
         return buildCsv("date,medication,takenAt", lines)
     }
 

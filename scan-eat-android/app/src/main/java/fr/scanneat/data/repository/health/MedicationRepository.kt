@@ -6,6 +6,7 @@ import fr.scanneat.data.local.db.medication.MedicationLogDao
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.toIsoString
 import fr.scanneat.data.local.db.toLocalDate
+import fr.scanneat.data.local.prefs.SecureFieldCipher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -54,8 +55,16 @@ class MedicationRepository @Inject constructor(
     private val logDao: MedicationLogDao,
 ) {
 
+    // name/dosage/scheduleNote are encrypted at rest (see toEntity/toDomain), so
+    // MedicationDao.observeAll can no longer ORDER BY name in SQL - ciphertext
+    // has no relation to the plaintext's alphabetical order (a fresh random IV
+    // means even the same name re-encrypts to different bytes each time). The
+    // DAO only orders by `active` now; the name-ascending tiebreak the UI
+    // still expects is reproduced here, after decryption.
     fun observeAll(profileId: String = "default"): Flow<List<Medication>> =
-        dao.observeAll(profileId).map { list -> list.map { it.toDomain() } }
+        dao.observeAll(profileId).map { list ->
+            list.map { it.toDomain() }.sortedWith(compareByDescending<Medication> { it.active }.thenBy { it.name })
+        }
 
     suspend fun save(
         name: String,
@@ -74,7 +83,8 @@ class MedicationRepository @Inject constructor(
         // reminder schedule.
         val entity = dao.upsertMedication(explicitId = id, barcode = barcode, profileId = profileId) { resolvedId, createdAt ->
             MedicationEntity(
-                id = resolvedId, name = name.trim(), dosage = dosage.trim(), scheduleNote = scheduleNote.trim(),
+                id = resolvedId, name = SecureFieldCipher.encrypt(name.trim()), dosage = SecureFieldCipher.encrypt(dosage.trim()),
+                scheduleNote = SecureFieldCipher.encrypt(scheduleNote.trim()),
                 barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
                 reminderOn = reminderOn, reminderTime = reminderTime,
             )
@@ -89,19 +99,34 @@ class MedicationRepository @Inject constructor(
 
     suspend fun delete(id: String) = dao.delete(id)
 
+    // name/dosage/scheduleNote can reveal a medical condition (antidepressant,
+    // HIV medication, etc.) more directly than almost any other field in this
+    // app, so they're Keystore-encrypted at rest like the profile's allergens/
+    // healthConditions (SecureFieldCipher, same decrypt-or-fall-back-to-legacy-
+    // plaintext-and-re-encrypt pattern - a row saved before this existed is
+    // still plaintext and gets encrypted the next time it's saved).
+    // barcode is left as-is: it's a public product identifier, not personal
+    // data, and DAO lookups (findByBarcode/upsertMedication) match on it directly.
     private fun Medication.toEntity(createdAt: Long, profileId: String) = MedicationEntity(
-        id = id, name = name, dosage = dosage, scheduleNote = scheduleNote,
+        id = id, name = SecureFieldCipher.encrypt(name), dosage = SecureFieldCipher.encrypt(dosage),
+        scheduleNote = SecureFieldCipher.encrypt(scheduleNote),
         barcode = barcode, active = active, createdAt = createdAt, profileId = profileId,
         reminderOn = reminderOn, reminderTime = reminderTime,
     )
 
     private fun MedicationEntity.toDomain() = Medication(
-        id = id, name = name, dosage = dosage, scheduleNote = scheduleNote, barcode = barcode, active = active,
+        id = id, name = SecureFieldCipher.decryptOrNull(name) ?: name,
+        dosage = SecureFieldCipher.decryptOrNull(dosage) ?: dosage,
+        scheduleNote = SecureFieldCipher.decryptOrNull(scheduleNote) ?: scheduleNote,
+        barcode = barcode, active = active,
         reminderOn = reminderOn, reminderTime = reminderTime, createdAt = createdAt,
     )
 
     // ── Adherence log ("I took this") ────────────────────────────────────────
 
+    // Unlike observeAll above, no SQL ORDER BY touches medicationName, so no
+    // sort needs to move to Kotlin here - takenAt/date ordering is untouched
+    // by encrypting this one field.
     fun observeLogByDate(date: LocalDate, profileId: String = "default"): Flow<List<MedicationLogEntry>> =
         logDao.observeByDate(date.toIsoString(), profileId).map { list -> list.map { it.toLogDomain() } }
 
@@ -117,7 +142,10 @@ class MedicationRepository @Inject constructor(
             MedicationLogEntity(
                 id             = UUID.randomUUID().toString(),
                 medicationId   = medication.id,
-                medicationName = medication.name,
+                // medicationName is a denormalized snapshot (see MedicationLogEntity's
+                // own doc comment) of the same sensitive field as Medication.name -
+                // encrypted here for the same reason.
+                medicationName = SecureFieldCipher.encrypt(medication.name),
                 date           = date.toIsoString(),
                 takenAt        = System.currentTimeMillis(),
                 profileId      = profileId,
@@ -128,7 +156,7 @@ class MedicationRepository @Inject constructor(
     suspend fun deleteLogEntry(id: String) = logDao.delete(id)
 
     private fun MedicationLogEntity.toLogDomain() = MedicationLogEntry(
-        id = id, medicationId = medicationId, medicationName = medicationName,
+        id = id, medicationId = medicationId, medicationName = SecureFieldCipher.decryptOrNull(medicationName) ?: medicationName,
         date = date.toLocalDate(), takenAt = takenAt,
     )
 }

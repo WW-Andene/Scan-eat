@@ -17,13 +17,16 @@ import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.customfood.CustomFoodDao
 import fr.scanneat.data.local.db.medication.MedicationDao
+import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogDao
+import fr.scanneat.data.local.db.medication.MedicationLogEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.weight.WeightDao
 import fr.scanneat.data.local.prefs.ApiMode
+import fr.scanneat.data.local.prefs.SecureFieldCipher
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastingRepository
@@ -87,6 +90,35 @@ class BackupRepository @Inject constructor(
 ) {
     private val bundleAdapter = moshi.adapter(BackupBundle::class.java)
 
+    // MedicationEntity.name/dosage/scheduleNote and MedicationLogEntity.
+    // medicationName are Keystore-encrypted at rest (MedicationRepository) -
+    // that encryption key is device-bound and non-exportable, so a raw
+    // ciphertext value written into a backup file would be permanently
+    // undecryptable after restoring on another device or a reinstall (a new
+    // Keystore key). The backup file must carry these fields as plaintext
+    // (matching how profile.allergens/healthConditions already reach this
+    // bundle already-decrypted, via UserPreferences.profile) and re-encrypt
+    // them going back in on import, exactly mirroring the live save/load path.
+    private fun MedicationEntity.decryptedForBackup() = copy(
+        name = SecureFieldCipher.decryptOrNull(name) ?: name,
+        dosage = SecureFieldCipher.decryptOrNull(dosage) ?: dosage,
+        scheduleNote = SecureFieldCipher.decryptOrNull(scheduleNote) ?: scheduleNote,
+    )
+
+    private fun MedicationEntity.encryptedFromBackup() = copy(
+        name = SecureFieldCipher.encrypt(name),
+        dosage = SecureFieldCipher.encrypt(dosage),
+        scheduleNote = SecureFieldCipher.encrypt(scheduleNote),
+    )
+
+    private fun MedicationLogEntity.decryptedForBackup() = copy(
+        medicationName = SecureFieldCipher.decryptOrNull(medicationName) ?: medicationName,
+    )
+
+    private fun MedicationLogEntity.encryptedFromBackup() = copy(
+        medicationName = SecureFieldCipher.encrypt(medicationName),
+    )
+
     /** Reads every table plus DataStore-backed data and serializes to a pretty-printed JSON string. */
     suspend fun exportToJson(): String {
         val profile = prefs.profile.first()
@@ -102,8 +134,8 @@ class BackupRepository @Inject constructor(
             activities    = activityDao.getAllForBackup(),
             mealTemplates = mealTemplateDao.getAllForBackup(),
             recipes       = recipeDao.getAllForBackup(),
-            medications   = medicationDao.getAllForBackup(),
-            medicationLog = medicationLogDao.getAllForBackup(),
+            medications   = medicationDao.getAllForBackup().map { it.decryptedForBackup() },
+            medicationLog = medicationLogDao.getAllForBackup().map { it.decryptedForBackup() },
             scanScoreHistory = scanScoreHistoryDao.getAllForBackup(),
             profile = ProfileBackup(
                 name = profile.name,
@@ -240,7 +272,9 @@ class BackupRepository @Inject constructor(
             val newMedications = bundle.medications.filter { row ->
                 row.barcode == null || existingMedicationBarcodes.add(row.barcode)
             }
-            medicationDao.insertAll(newMedications)
+            // Bundle rows are plaintext (decryptedForBackup ran on export) -
+            // re-encrypt before they land in the DB, same as any live save.
+            medicationDao.insertAll(newMedications.map { it.encryptedFromBackup() })
 
             // medication_log has a DB-level UNIQUE index on (medicationId, date,
             // profileId) since MIGRATION_23_24 - inserting via insertAll's REPLACE
@@ -256,7 +290,7 @@ class BackupRepository @Inject constructor(
             val newMedicationLog = bundle.medicationLog.filter { row ->
                 existingLogKeys.add(Triple(row.medicationId, row.date, row.profileId))
             }
-            medicationLogDao.insertAll(newMedicationLog)
+            medicationLogDao.insertAll(newMedicationLog.map { it.encryptedFromBackup() })
 
             // scan_score_history uses an autoGenerate Long id like scan_history/
             // consumption_log above, for the same reason - reset id=0 and dedup by

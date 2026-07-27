@@ -9,7 +9,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MedicationDao {
-    @Query("SELECT * FROM medications WHERE profileId = :profileId ORDER BY active DESC, name ASC")
+    // name is encrypted at rest (see MedicationRepository.toEntity) - ORDER BY
+    // name here would sort ciphertext, not the medication's actual name, so
+    // the name-ascending tiebreak now happens in MedicationRepository.observeAll
+    // after decryption. `active DESC` alone is still meaningful since it isn't
+    // an encrypted column.
+    @Query("SELECT * FROM medications WHERE profileId = :profileId ORDER BY active DESC")
     fun observeAll(profileId: String = "default"): Flow<List<MedicationEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
