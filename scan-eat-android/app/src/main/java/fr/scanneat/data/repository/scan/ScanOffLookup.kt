@@ -108,9 +108,10 @@ internal class ScanOffLookup(
         // would fabricate nutrition data for a product that was never meant to
         // carry any, not just under-serve a sparse but genuine food record.
         offResponse?.product?.let { dto ->
-            classifyNonFood(dto.categoriesTags)?.let { category ->
+            val name = dto.productNameFr ?: dto.productName ?: dto.genericNameFr ?: ""
+            classifyNonFood(dto.categoriesTags, name, dto.brands)?.let { category ->
                 throw NonFoodProductException(
-                    productName = dto.productNameFr ?: dto.productName ?: dto.genericNameFr ?: "",
+                    productName = name,
                     brand       = dto.brands ?: "",
                     category    = category,
                 )

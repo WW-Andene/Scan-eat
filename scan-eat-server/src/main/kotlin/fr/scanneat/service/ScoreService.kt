@@ -54,7 +54,7 @@ class ScoreService(
         // something like a lubricant or bleach bottle to "fill in missing nutrition
         // facts" would fabricate nutrition data for a product that was never meant
         // to carry any, not just under-serve a sparse but genuine food record.
-        val nonFoodCategory = classifyNonFood(offRaw.categoriesTags)
+        val nonFoodCategory = classifyNonFood(offRaw.categoriesTags, offRaw.productNameFr ?: offRaw.productName, offRaw.brands)
         if (nonFoodCategory != null) {
             val audit = scoreProduct(offProduct, lang)
             return BarcodeScoreOutcome.Success(

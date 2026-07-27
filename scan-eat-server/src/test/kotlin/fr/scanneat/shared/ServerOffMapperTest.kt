@@ -179,4 +179,35 @@ class ServerOffMapperTest {
         assertNull(classifyNonFood(null))
         assertNull(classifyNonFood(emptyList()))
     }
+
+    @Test
+    fun `name-brand fallback catches a lubricant OFF tagged only in a non-English taxonomy`() {
+        // Reproduces a live miss: "Durex Perfect Gliss Glijmiddel" scored as a
+        // regular NOVA-4 food product because OFF's own categories_tags for it
+        // didn't contain any of the English substrings above (e.g. localized as
+        // "nl:glijmiddelen"/"fr:lubrifiants" instead of "en:lubricants").
+        assertEquals(
+            "PERSONAL_CARE",
+            classifyNonFood(emptyList(), productName = "Perfect Gliss Glijmiddel", brand = "Durex"),
+        )
+        assertEquals(
+            "PERSONAL_CARE",
+            classifyNonFood(null, productName = "Gel lubrifiant intime", brand = null),
+        )
+    }
+
+    @Test
+    fun `name-brand fallback only runs when the tag pass found nothing`() {
+        // A tag-based non-food match still wins even if productName/brand were
+        // also supplied - the fallback is last-resort, not a second vote.
+        assertEquals(
+            "TOBACCO",
+            classifyNonFood(listOf("en:cigarettes"), productName = "Some Cigarettes", brand = "Whatever"),
+        )
+    }
+
+    @Test
+    fun `a name that merely contains an unrelated word never false-positives`() {
+        assertNull(classifyNonFood(listOf("en:beverages"), productName = "Orange Juice", brand = "Tropicana"))
+    }
 }

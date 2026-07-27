@@ -53,31 +53,50 @@ internal fun mapCategory(tags: List<String>?): ProductCategory {
  * food/beverage/supplement/medicine wins over a non-food match - a missed
  * obscure non-food item is a minor imprecision, wrongly telling someone their
  * actual food isn't food would not be.
+ *
+ * [productName]/[brand] are an optional last-resort fallback for when OFF's
+ * own tags don't classify it at all (missing/sparse tags, or - the case that
+ * exposed this gap - tagged only in a language whose taxonomy id doesn't
+ * contain any of the English substrings above, e.g. "fr:lubrifiants" or
+ * "nl:glijmiddelen" for a lubricant instead of "en:lubricants"). Checked only
+ * when the tag-based pass above found nothing, and only against a short list
+ * of brand/keyword strings that are unambiguous in ANY context - a real food
+ * product would never legitimately match "durex" or "glijmiddel" in its name.
  */
-fun classifyNonFood(tags: List<String>?): String? {
-    if (tags.isNullOrEmpty()) return null
-    val tag = tags.joinToString(" ")
-    // Checked before the generic "looks like food" safety net below - pet food
-    // literally contains the substring "food" (pet-food, cat-food, dog-food),
-    // which would otherwise always disqualify it from ever being flagged here.
-    if ("pet-food" in tag || "animal-feed" in tag || "cat-food" in tag || "dog-food" in tag) return "PET_SUPPLY"
-    val looksLikeFood = listOf(
-        "food", "beverage", "drink", "supplement", "dietary-supplement",
-        "medicine", "medication", "meal", "snack", "dairy", "cereal",
-    ).any { it in tag }
-    if (looksLikeFood) return null
+fun classifyNonFood(tags: List<String>?, productName: String? = null, brand: String? = null): String? {
+    val tag = tags?.joinToString(" ") ?: ""
+    if (tag.isNotEmpty()) {
+        // Checked before the generic "looks like food" safety net below - pet food
+        // literally contains the substring "food" (pet-food, cat-food, dog-food),
+        // which would otherwise always disqualify it from ever being flagged here.
+        if ("pet-food" in tag || "animal-feed" in tag || "cat-food" in tag || "dog-food" in tag) return "PET_SUPPLY"
+        val looksLikeFood = listOf(
+            "food", "beverage", "drink", "supplement", "dietary-supplement",
+            "medicine", "medication", "meal", "snack", "dairy", "cereal",
+        ).any { it in tag }
+        if (looksLikeFood) return null
+        val fromTags = when {
+            "sex-toy" in tag || "lubricant" in tag || "lubrifiant" in tag || "glijmiddel" in tag -> "PERSONAL_CARE"
+            "feminine-hygiene" in tag || "sanitary-protection" in tag ||
+                "diaper" in tag || "baby-hygiene" in tag -> "HYGIENE_PRODUCT"
+            "tobacco" in tag || "cigarette" in tag || "e-cigarette" in tag -> "TOBACCO"
+            "battery" in tag || "batteries" in tag -> "BATTERY"
+            "bleach" in tag || "javel" in tag -> "BLEACH"
+            "laundry" in tag || "lessive" in tag -> "LAUNDRY"
+            "cleaning-product" in tag || "detergent" in tag || "nettoyant" in tag -> "CLEANING_PRODUCT"
+            "household-chemical" in tag || "solvent" in tag -> "HOUSEHOLD_CHEMICAL"
+            "cosmetic" in tag || "beauty" in tag || "personal-care" in tag || "hygiene" in tag -> "PERSONAL_CARE"
+            "non-food" in tag -> "OTHER"
+            else -> null
+        }
+        if (fromTags != null) return fromTags
+    }
+    val nameAndBrand = ((productName ?: "") + " " + (brand ?: "")).lowercase()
+    if (nameAndBrand.isBlank()) return null
     return when {
-        "sex-toy" in tag || "lubricant" in tag -> "PERSONAL_CARE"
-        "feminine-hygiene" in tag || "sanitary-protection" in tag ||
-            "diaper" in tag || "baby-hygiene" in tag -> "HYGIENE_PRODUCT"
-        "tobacco" in tag || "cigarette" in tag || "e-cigarette" in tag -> "TOBACCO"
-        "battery" in tag || "batteries" in tag -> "BATTERY"
-        "bleach" in tag || "javel" in tag -> "BLEACH"
-        "laundry" in tag || "lessive" in tag -> "LAUNDRY"
-        "cleaning-product" in tag || "detergent" in tag || "nettoyant" in tag -> "CLEANING_PRODUCT"
-        "household-chemical" in tag || "solvent" in tag -> "HOUSEHOLD_CHEMICAL"
-        "cosmetic" in tag || "beauty" in tag || "personal-care" in tag || "hygiene" in tag -> "PERSONAL_CARE"
-        "non-food" in tag -> "OTHER"
+        "durex" in nameAndBrand || "glijmiddel" in nameAndBrand || "lubrifiant" in nameAndBrand ||
+            "lubricant" in nameAndBrand || "preservatif" in nameAndBrand || "préservatif" in nameAndBrand ||
+            "condom" in nameAndBrand -> "PERSONAL_CARE"
         else -> null
     }
 }
