@@ -1,15 +1,23 @@
 package fr.scanneat.presentation.biolism.evolution.cards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.HormoneResult
@@ -21,10 +29,12 @@ import fr.scanneat.presentation.biolism.evolution.LineTrendChart
 import fr.scanneat.presentation.biolism.evolution.NotEnoughDataNote
 import fr.scanneat.presentation.biolism.evolution.SexPrimaryHormone
 import fr.scanneat.presentation.ui.theme.Gold
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.Violet
+import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.util.formatDecimal
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -45,12 +55,20 @@ import java.util.Locale
 fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language: String) {
     val fmt = DateTimeFormatter.ofPattern("dd MMM", Locale(language))
     BioCard(stringResource(R.string.biolism_hormones_title), defaultOpen = false) {
-        Text(
-            stringResource(R.string.biolism_evo_hormones_caption),
-            style = MaterialTheme.typography.labelSmall,
-            color = OnBackground.copy(0.5f),
-            modifier = Modifier.background(OnBackground.copy(0.03f), RoundedCornerShape(6.dp)).padding(Spacing.S),
-        )
+        // Same unmissable-disclaimer treatment as the Data tab's HormonesCard -
+        // these numbers are formula-estimated, never measured, and a muted
+        // one-line caption was easy to scroll past before registering that.
+        val warnColor = semanticAmber()
+        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+            modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(6.dp)).padding(Spacing.S)) {
+            Icon(Icons.Default.WarningAmber, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
+            Text(
+                stringResource(R.string.biolism_evo_hormones_caption),
+                style = MaterialTheme.typography.labelSmall,
+                color = OnBackground.copy(0.85f),
+                fontWeight = FontWeight.Medium,
+            )
+        }
         Spacer(Modifier.height(Spacing.S))
         if (today == null) {
             NotEnoughDataNote()
@@ -73,7 +91,9 @@ fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language
                 points = trends.cortisol,
                 color = Teal,
                 dateFmt = fmt,
-                valueLabel = { v -> "${v.formatDecimal()} ${current.cortisol.unit}" },
+                // Whole numbers, not one decimal - see HormoneRow's own comment on
+                // why fabricated precision is worse than none for an estimate.
+                valueLabel = { v -> "${v.formatDecimal(0)} ${current.cortisol.unit}" },
             )
             Spacer(Modifier.height(Spacing.M))
         }
@@ -88,7 +108,7 @@ fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language
                 points = trends.sexPrimary,
                 color = Violet,
                 dateFmt = fmt,
-                valueLabel = { v -> v.formatDecimal() },
+                valueLabel = { v -> v.formatDecimal(0) },
             )
         }
     }

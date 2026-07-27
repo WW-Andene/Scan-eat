@@ -3,8 +3,11 @@ package fr.scanneat.presentation.biolism.data.cards
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -19,9 +22,20 @@ import fr.scanneat.presentation.ui.theme.*
 fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile: BiolismProfile) {
     BioCard(stringResource(R.string.biolism_hormones_title), defaultOpen = false,
         badge = { GoldBadge(stringResource(R.string.biolism_hormones_badge)) }) {
-        Text(stringResource(R.string.biolism_hormones_disclaimer),
-            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
-            modifier = Modifier.background(OnBackground.copy(0.03f), RoundedCornerShape(6.dp)).padding(Spacing.S))
+        // These are formula-derived estimates, not lab measurements, but every row
+        // below presents them with lab-report styling (a decimal-precision reading
+        // plus a Low/Normal/High badge) - a glance is enough to mistake one for a
+        // real result. A muted one-line caption was easy to scroll past entirely;
+        // this needs to register before the numbers do, so it gets a warning icon
+        // and near-full-strength text instead of the same faint treatment used for
+        // routine footnotes elsewhere in this card.
+        val warnColor = semanticAmber()
+        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+            modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(6.dp)).padding(Spacing.S)) {
+            Icon(Icons.Default.WarningAmber, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
+            Text(stringResource(R.string.biolism_hormones_disclaimer),
+                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.85f), fontWeight = FontWeight.Medium)
+        }
         Spacer(Modifier.height(Spacing.S))
 
         Label(stringResource(R.string.biolism_hormones_sex_section), Gold)

@@ -142,7 +142,11 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("%.1f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
+                // A formula-derived estimate (see HormoneEstimator), not a lab
+                // measurement - one-decimal precision here (unlike the whole-number
+                // reference range just below) implied a level of accuracy this
+                // doesn't have. Whole numbers, matching the ref range's own format.
+                Text("%.0f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
                 Surface(shape = RoundedCornerShape(3.dp), color = color.copy(0.15f),
                     border = BorderStroke(1.dp, color.copy(0.3f))) {
                     Text(h.label, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
