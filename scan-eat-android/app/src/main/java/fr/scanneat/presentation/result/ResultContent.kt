@@ -16,6 +16,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -229,7 +231,15 @@ private fun ProductScoreHistoryRow(scores: List<Int>, currentScore: Int) {
             color = OnSurface.copy(0.5f),
         )
         Spacer(Modifier.height(Spacing.XS))
-        Canvas(modifier = Modifier.fillMaxWidth().height(48.dp)) {
+        // Same gap already fixed on WeightHistorySection's trend Canvas and the
+        // dashboard bar charts (WeeklyBarsCard/MonthlyTrendCard) - a Canvas-drawn
+        // sparkline carries no text, so TalkBack skipped the actual trend shape
+        // entirely, leaving only the first/current score labels below it.
+        val trendDescription = stringResource(R.string.result_score_history_cd, scores.first(), currentScore)
+        Canvas(
+            modifier = Modifier.fillMaxWidth().height(48.dp)
+                .clearAndSetSemantics { contentDescription = trendDescription },
+        ) {
             val pts = allScores.mapIndexed { i, s ->
                 val x = if (allScores.size == 1) size.width / 2f
                         else i / (allScores.size - 1f) * size.width

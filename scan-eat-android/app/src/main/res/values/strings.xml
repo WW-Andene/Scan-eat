@@ -1272,6 +1272,7 @@
     </plurals>
     <string name="result_cd_unfavorite">Retirer des favoris</string>
     <string name="result_score_history_title">Historique du score</string>
+    <string name="result_score_history_cd">Évolution du score : de %1$d à %2$d</string>
     <string name="result_macro_contribution_title">Apport pour 100 g (%% VNR)</string>
     <string name="result_macro_contribution_note">VNR = Valeurs nutritionnelles de référence UE (adulte)</string>
     <string name="result_macro_kcal">Énergie</string>

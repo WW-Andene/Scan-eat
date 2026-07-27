@@ -1234,6 +1234,7 @@
     </plurals>
     <string name="result_cd_unfavorite">Remove from favorites</string>
     <string name="result_score_history_title">Score history</string>
+    <string name="result_score_history_cd">Score trend: from %1$d to %2$d</string>
     <string name="result_macro_contribution_title">Per 100 g contribution (%% DRV)</string>
     <string name="result_macro_contribution_note">DRV = EU Daily Reference Values (adult)</string>
     <string name="result_macro_kcal">Energy</string>
