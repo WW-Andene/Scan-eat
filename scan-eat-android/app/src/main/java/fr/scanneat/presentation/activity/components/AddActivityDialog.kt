@@ -14,6 +14,35 @@ import fr.scanneat.data.repository.health.ACTIVITY_SUB_TYPES
 import fr.scanneat.data.repository.health.ActivityType
 import fr.scanneat.presentation.ui.theme.*
 
+/**
+ * Snapshot of the dialog's editable fields. Grouped into one immutable value
+ * instead of 8 flat parameters — the dialog previously took 26 individual
+ * value/callback parameters, one pair per editable field.
+ */
+internal data class AddActivityFormValues(
+    val selectedType: ActivityType,
+    val selectedSubType: String?,
+    val customSubTypeText: String,
+    val setsText: String,
+    val repsText: String,
+    val distanceText: String,
+    val weightUsedText: String,
+    val minutesText: String,
+)
+
+/** Callback bundle mirroring [AddActivityFormValues], one setter per field. */
+internal class AddActivityFormActions(
+    val onSelectedTypeChange: (ActivityType) -> Unit,
+    val onSelectedSubTypeChange: (String?) -> Unit,
+    val onCustomSubTypeTextChange: (String) -> Unit,
+    val onClearCustomSubTypeText: () -> Unit,
+    val onSetsTextChange: (String) -> Unit,
+    val onRepsTextChange: (String) -> Unit,
+    val onDistanceTextChange: (String) -> Unit,
+    val onWeightUsedTextChange: (String) -> Unit,
+    val onMinutesTextChange: (String) -> Unit,
+)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AddActivityDialog(
@@ -21,18 +50,21 @@ internal fun AddActivityDialog(
     typeLabels: Map<ActivityType, String>,
     subTypeLabels: Map<String, String>,
     pastSubTypes: Map<ActivityType, List<String>>,
-    selectedType: ActivityType, onSelectedTypeChange: (ActivityType) -> Unit,
-    selectedSubType: String?, onSelectedSubTypeChange: (String?) -> Unit,
-    customSubTypeText: String, onCustomSubTypeTextChange: (String) -> Unit,
-    onClearCustomSubTypeText: () -> Unit,
-    setsText: String, onSetsTextChange: (String) -> Unit,
-    repsText: String, onRepsTextChange: (String) -> Unit,
-    distanceText: String, onDistanceTextChange: (String) -> Unit,
-    weightUsedText: String, onWeightUsedTextChange: (String) -> Unit,
-    minutesText: String, onMinutesTextChange: (String) -> Unit,
+    values: AddActivityFormValues,
+    actions: AddActivityFormActions,
     onDismiss: () -> Unit,
     onAdd: () -> Unit,
 ) {
+    val (selectedType, selectedSubType, customSubTypeText, setsText, repsText, distanceText, weightUsedText, minutesText) = values
+    val onSelectedTypeChange = actions.onSelectedTypeChange
+    val onSelectedSubTypeChange = actions.onSelectedSubTypeChange
+    val onCustomSubTypeTextChange = actions.onCustomSubTypeTextChange
+    val onClearCustomSubTypeText = actions.onClearCustomSubTypeText
+    val onSetsTextChange = actions.onSetsTextChange
+    val onRepsTextChange = actions.onRepsTextChange
+    val onDistanceTextChange = actions.onDistanceTextChange
+    val onWeightUsedTextChange = actions.onWeightUsedTextChange
+    val onMinutesTextChange = actions.onMinutesTextChange
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,

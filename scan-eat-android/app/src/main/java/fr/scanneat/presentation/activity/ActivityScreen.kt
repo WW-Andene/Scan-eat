@@ -27,6 +27,8 @@ import fr.scanneat.presentation.activity.components.ActivityStreakRow
 import fr.scanneat.presentation.activity.components.ActivityWeeklyBurnChart
 import fr.scanneat.presentation.activity.components.ActivityWeeklyMinutesCard
 import fr.scanneat.presentation.activity.components.AddActivityDialog
+import fr.scanneat.presentation.activity.components.AddActivityFormActions
+import fr.scanneat.presentation.activity.components.AddActivityFormValues
 import fr.scanneat.presentation.reminders.ActivityReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
@@ -183,16 +185,27 @@ fun ActivityScreen(
             typeLabels = typeLabels,
             subTypeLabels = subTypeLabels,
             pastSubTypes = pastSubTypes.value,
-            selectedType = selectedType, onSelectedTypeChange = { selectedType = it; selectedSubType = null; customSubTypeText = "" },
-            selectedSubType = selectedSubType,
-            onSelectedSubTypeChange = { selectedSubType = it },
-            customSubTypeText = customSubTypeText, onCustomSubTypeTextChange = { customSubTypeText = it; selectedSubType = it.ifBlank { null } },
-            onClearCustomSubTypeText = { customSubTypeText = "" },
-            setsText = setsText, onSetsTextChange = { setsText = it },
-            repsText = repsText, onRepsTextChange = { repsText = it },
-            distanceText = distanceText, onDistanceTextChange = { distanceText = it },
-            weightUsedText = weightUsedText, onWeightUsedTextChange = { weightUsedText = it },
-            minutesText = minutesText, onMinutesTextChange = { minutesText = it },
+            values = AddActivityFormValues(
+                selectedType = selectedType,
+                selectedSubType = selectedSubType,
+                customSubTypeText = customSubTypeText,
+                setsText = setsText,
+                repsText = repsText,
+                distanceText = distanceText,
+                weightUsedText = weightUsedText,
+                minutesText = minutesText,
+            ),
+            actions = AddActivityFormActions(
+                onSelectedTypeChange = { selectedType = it; selectedSubType = null; customSubTypeText = "" },
+                onSelectedSubTypeChange = { selectedSubType = it },
+                onCustomSubTypeTextChange = { customSubTypeText = it; selectedSubType = it.ifBlank { null } },
+                onClearCustomSubTypeText = { customSubTypeText = "" },
+                onSetsTextChange = { setsText = it },
+                onRepsTextChange = { repsText = it },
+                onDistanceTextChange = { distanceText = it },
+                onWeightUsedTextChange = { weightUsedText = it },
+                onMinutesTextChange = { minutesText = it },
+            ),
             onDismiss = { showAdd = false },
             onAdd = {
                 minutesText.toIntOrNull()?.let { min ->
