@@ -22,6 +22,7 @@ import fr.scanneat.presentation.settings.components.AboutSection
 import fr.scanneat.presentation.settings.components.AccessibilitySection
 import fr.scanneat.presentation.settings.components.ApiModeSection
 import fr.scanneat.presentation.settings.components.BackupSection
+import fr.scanneat.presentation.settings.components.BiolismDisplaySection
 import fr.scanneat.presentation.settings.components.CerebrasKeySection
 import fr.scanneat.presentation.settings.components.DataResetSection
 import fr.scanneat.presentation.settings.components.GroqKeySection
@@ -58,6 +59,7 @@ fun SettingsScreen(
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
+    val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
     val savedField = viewModel.savedField.collectAsStateWithLifecycle()
     val backupState = viewModel.backupState.collectAsStateWithLifecycle()
     val healthConnectAvailability = viewModel.healthConnectAvailability.collectAsStateWithLifecycle()
@@ -233,6 +235,9 @@ fun SettingsScreen(
             // preference also consumed by Weight/Biolism; users looking for it under
             // Réglages (where every other display preference lives) found nothing. ----
             item { UnitsSection(useImperialWeight.value, onChange = viewModel::setUseImperialWeight) }
+
+            // ---- Biolism display depth (R&D §X.0) ----
+            item { BiolismDisplaySection(biolismAdvancedView.value, onChange = viewModel::setBiolismAdvancedView) }
 
             // ---- Accessibility ----
             item {

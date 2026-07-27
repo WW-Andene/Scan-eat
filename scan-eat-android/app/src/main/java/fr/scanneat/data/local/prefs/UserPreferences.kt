@@ -45,6 +45,7 @@ class UserPreferences @Inject constructor(
         val KEY_DYSLEXIC_FONT        = booleanPreferencesKey("dyslexic_font")
         val KEY_COLORBLIND_MODE      = stringPreferencesKey("colorblind_mode")
         val KEY_USE_IMPERIAL_WEIGHT  = booleanPreferencesKey("use_imperial_weight")
+        val KEY_BIOLISM_ADVANCED     = booleanPreferencesKey("biolism_advanced_view")
         val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         // Profile — flat keys
@@ -116,6 +117,14 @@ class UserPreferences @Inject constructor(
      */
     val useImperialWeight: Flow<Boolean> = storeData.map { it[KEY_USE_IMPERIAL_WEIGHT] ?: false }.distinctUntilChanged()
 
+    // R&D §X.0: Biolism's Data tab has 14 cards, several research-grade
+    // (substrate flux/RQ, Fanger thermoregulation, ventilation physiology,
+    // raw formula sheets) that can overwhelm a user who just wants BMR/body
+    // composition/energy at a glance. Defaults to true (the existing full
+    // view) so no current user sees anything change unless they opt out -
+    // this is a progressive-disclosure option, not a removal.
+    val biolismAdvancedView: Flow<Boolean> = storeData.map { it[KEY_BIOLISM_ADVANCED] ?: true }.distinctUntilChanged()
+
     /**
      * Longest consecutive-day Activité streak ever reached - a persisted high-water
      * mark, unlike ActivityViewModel.streak (the *current* run, which resets to 0
@@ -138,6 +147,7 @@ class UserPreferences @Inject constructor(
     suspend fun setDyslexicFont(v: Boolean)       = store.edit { it[KEY_DYSLEXIC_FONT] = v }
     suspend fun setColorblindMode(mode: String)   = store.edit { it[KEY_COLORBLIND_MODE] = mode }
     suspend fun setUseImperialWeight(v: Boolean)  = store.edit { it[KEY_USE_IMPERIAL_WEIGHT] = v }
+    suspend fun setBiolismAdvancedView(v: Boolean) = store.edit { it[KEY_BIOLISM_ADVANCED] = v }
 
     // ---- Profile ----
 

@@ -49,6 +49,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val todayIntake = viewModel.todayIntakeKcal.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
+    val advanced    = viewModel.advancedView.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle()  // force recomposition every second
 
     val met = m.value
@@ -74,22 +75,33 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         item { BodyCompositionCard(met, profile.value, useImperial.value) }
         item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value, language.value, useImperial.value) }
         item { BurnRateCard(met, s, cum.value) }
-        item { SubstrateFluxCard(met, s) }
-        if (s.ketosisOn) {
-            item { KetosisProcessCard(s, met, language.value) }
-        }
-        item { OrganHeatCard(met, s) }
-        item { ThermoregulationCard(met) }
-        item { PhysiologicalMetricsCard(met, profile.value, s, cum.value, manualHR.value, viewModel::saveManualHR) }
-        hormones.value?.let { h ->
-            item { HormonesCard(h, s, met, profile.value) }
+        // R&D §X.0: everything below this point is the research-grade half of
+        // this screen (substrate-flux biochemistry, Fanger thermoregulation,
+        // raw ventilation/respiratory physiology, hormone estimates, formula
+        // sheets) - gated behind the Advanced Biolism view toggle (Settings)
+        // so a user who only wants BMR/body composition/energy isn't handed
+        // 10+ dense scientific cards by default. Defaults to on (unchanged
+        // behavior) until a user opts into the simpler view.
+        if (advanced.value) {
+            item { SubstrateFluxCard(met, s) }
+            if (s.ketosisOn) {
+                item { KetosisProcessCard(s, met, language.value) }
+            }
+            item { OrganHeatCard(met, s) }
+            item { ThermoregulationCard(met) }
+            item { PhysiologicalMetricsCard(met, profile.value, s, cum.value, manualHR.value, viewModel::saveManualHR) }
+            hormones.value?.let { h ->
+                item { HormonesCard(h, s, met, profile.value) }
+            }
         }
         item { MacroTargetsCard(met, profile.value) }
         if (sessions.value.isNotEmpty()) {
             item { GlobalSummaryCard(sessions.value) }
             item { DailyGoalsCard(met, profile.value, sessions.value, language.value) }
         }
-        item { EquationsCard(met, profile.value) }
+        if (advanced.value) {
+            item { EquationsCard(met, profile.value) }
+        }
         if (sessions.value.isNotEmpty()) {
             item { SessionAnalyticsCard(sessions.value, profile.value.weightKg, useImperial.value) }
         }

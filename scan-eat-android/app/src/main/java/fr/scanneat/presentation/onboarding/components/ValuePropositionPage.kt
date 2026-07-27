@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +32,17 @@ internal fun ColumnScope.ValuePropositionPage(onNext: () -> Unit) {
             icon    = Icons.Default.MonitorHeart,
             title   = stringResource(R.string.onboarding_value_biolism_title),
             body    = stringResource(R.string.onboarding_value_biolism_body),
+        )
+        // R&D §X.0: allergen-aware scoring and medication-interaction checks were
+        // both fully built (AllergenDetector, MedicationViewModel.detectInteractions)
+        // but never mentioned anywhere in onboarding - a new user had no way to know
+        // this safety layer existed unless they stumbled into it later. It's a real
+        // differentiator vs. competitors (Yuka/MyFitnessPal/Cronometer don't combine
+        // scoring + diary + this kind of safety modeling), so it belongs here.
+        ValueCard(
+            icon    = Icons.Default.Shield,
+            title   = stringResource(R.string.onboarding_value_safety_title),
+            body    = stringResource(R.string.onboarding_value_safety_body),
         )
     }
 

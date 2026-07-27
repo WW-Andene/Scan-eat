@@ -848,6 +848,8 @@
     <string name="onboarding_value_transparency_body">Every score comes with a formula you can inspect — sources and method included, not just a number.</string>
     <string name="onboarding_value_biolism_title">Metabolism: your metabolism, live</string>
     <string name="onboarding_value_biolism_body">Beyond scanning, track your BMR, ketosis, and fasting in real time — a dedicated tab, built in.</string>
+    <string name="onboarding_value_safety_title">Built-in safety checks</string>
+    <string name="onboarding_value_safety_body">Every score is checked against your own allergens, and your medications are screened for known interaction risks — automatically, not as a separate step.</string>
     <string name="onboarding_start_button">Get Started</string>
     <string name="onboarding_config_title">Configuration</string>
     <string name="onboarding_config_body">Scan\'eat uses an AI vision model to read labels. Choose how to call it:</string>
@@ -967,6 +969,9 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_high_contrast">High contrast</string>
     <string name="settings_section_units">Units</string>
+    <string name="settings_section_biolism_display">Biolism display</string>
+    <string name="settings_biolism_advanced">Advanced view</string>
+    <string name="settings_biolism_advanced_hint">Show research-grade cards (substrate flux, thermoregulation, hormones, formulas) on the Biolism Data tab. Off shows only BMR, body composition, energy and macros.</string>
     <string name="settings_units_hint">Used in Weight, Profile, and Biolism</string>
     <string name="settings_theme_low_contrast">Low contrast</string>
     <string name="settings_section_profile">Nutrition Profile</string>

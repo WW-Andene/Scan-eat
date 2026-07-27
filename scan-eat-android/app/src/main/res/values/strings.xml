@@ -849,6 +849,8 @@
     <string name="onboarding_value_transparency_body">Chaque score s\'appuie sur une formule consultable — sources et méthode incluses, pas juste un chiffre.</string>
     <string name="onboarding_value_biolism_title">Métabolisme : votre métabolisme, en direct</string>
     <string name="onboarding_value_biolism_body">Au-delà du scan, suivez votre BMR, votre cétose et votre jeûne en temps réel — un onglet dédié, inclus dans l\'app.</string>
+    <string name="onboarding_value_safety_title">Des vérifications de sécurité intégrées</string>
+    <string name="onboarding_value_safety_body">Chaque score est vérifié par rapport à vos propres allergènes, et vos traitements sont contrôlés pour les risques d\'interaction connus — automatiquement, sans étape supplémentaire.</string>
     <string name="onboarding_start_button">Commencer</string>
     <string name="onboarding_config_title">Configuration</string>
     <string name="onboarding_config_body">Scan\'eat utilise un modèle de vision par IA pour lire les étiquettes. Choisissez comment l\'appeler :</string>
@@ -1006,6 +1008,9 @@
     <string name="settings_theme_high_contrast">Contraste élevé</string>
     <string name="settings_theme_low_contrast">Contraste faible</string>
     <string name="settings_section_units">Unités</string>
+    <string name="settings_section_biolism_display">Affichage Biolism</string>
+    <string name="settings_biolism_advanced">Vue avancée</string>
+    <string name="settings_biolism_advanced_hint">Afficher les cartes scientifiques avancées (flux de substrats, thermorégulation, hormones, formules) dans l\'onglet Données de Biolism. Désactivé : seuls le BMR, la composition corporelle, l\'énergie et les macros sont affichés.</string>
     <string name="settings_units_hint">Utilisée dans Poids, Profil et Biolism</string>
     <string name="settings_section_profile">Profil nutritionnel</string>
     <string name="settings_section_accessibility">Accessibilité</string>
