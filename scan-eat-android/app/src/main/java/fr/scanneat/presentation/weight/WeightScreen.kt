@@ -197,14 +197,14 @@ fun WeightScreen(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = AccentCoral,
             ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
-            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
+            ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
             actions = { IconButton(onClick = { openAddDialog() }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }
 

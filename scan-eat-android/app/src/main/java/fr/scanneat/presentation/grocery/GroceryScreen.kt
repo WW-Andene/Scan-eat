@@ -82,7 +82,7 @@ fun GroceryScreen(
     }
 
     FloatingScreenScaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {

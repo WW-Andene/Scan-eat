@@ -64,7 +64,7 @@ fun TemplatesScreen(
             PlanningSwitcherMenu(current = PlanningDestination.TEMPLATES, onNavigate = onNavigateToPlanning)
             IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.templates_cd_new), tint = AccentCoral) }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize()

@@ -201,7 +201,7 @@ fun RecipesScreen(
             }
             IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize()

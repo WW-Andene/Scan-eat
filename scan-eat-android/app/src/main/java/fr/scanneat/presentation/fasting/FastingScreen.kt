@@ -185,13 +185,13 @@ fun FastingScreen(
     if (embedded) {
         Box(Modifier.fillMaxSize()) {
             content(PaddingValues(bottom = embeddedBottomPadding))
-            SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
+            ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.fasting_title), color = OnBackground) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }
 

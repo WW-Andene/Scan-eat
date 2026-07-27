@@ -119,7 +119,7 @@ fun DiaryScreen(
             }
         },
         showBottomNavClearance = true,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         val bottomClearance = padding.calculateBottomPadding()
         Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {

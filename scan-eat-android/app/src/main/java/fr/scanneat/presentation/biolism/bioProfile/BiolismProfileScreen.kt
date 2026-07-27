@@ -299,7 +299,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             Text(stringResource(R.string.bioprofile_save_button), fontWeight = FontWeight.Bold)
         }
     }
-    SnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 

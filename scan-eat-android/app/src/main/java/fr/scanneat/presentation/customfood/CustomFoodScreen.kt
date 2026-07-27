@@ -69,7 +69,7 @@ fun CustomFoodScreen(
                 Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral)
             }
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = CalorieOrange)) {
             // Search bar

@@ -102,7 +102,7 @@ fun ScanHistoryScreen(
                 onSortChange = { viewModel.setSort(it) },
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
             HistorySearchBar(query = query.value, onQueryChange = { viewModel.setQuery(it) })
