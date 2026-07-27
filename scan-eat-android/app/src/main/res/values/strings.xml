@@ -106,7 +106,7 @@
     <string name="common_streak_days_compact">%1$dj</string>
 
     <!-- ── Meal slots, shared across Diary / Result / MealPlan ───────────── -->
-    <string name="meal_breakfast">Petit-dej</string>
+    <string name="meal_breakfast">Petit-déjeuner</string>
     <string name="meal_lunch">Déjeuner</string>
     <string name="meal_dinner">Dîner</string>
     <string name="meal_snack">Collation</string>
@@ -635,8 +635,8 @@
     <string name="profile_section_measurements">Mesures corporelles (Métabolisme)</string>
     <string name="profile_field_waist">Tour de taille (cm)</string>
     <string name="profile_field_waist_imperial">Tour de taille (in)</string>
-    <string name="profile_field_hip">Tour de hanches (cm)</string>
-    <string name="profile_field_hip_imperial">Tour de hanches (in)</string>
+    <string name="profile_field_hip">Tour des hanches (cm)</string>
+    <string name="profile_field_hip_imperial">Tour des hanches (in)</string>
     <string name="profile_field_neck">Tour de cou (cm)</string>
     <string name="profile_field_neck_imperial">Tour de cou (in)</string>
     <string name="profile_field_ethnicity">Origine ethnique</string>
@@ -652,9 +652,9 @@
     <string name="profile_field_goal_weight">Poids cible (kg)</string>
     <string name="profile_field_goal_weight_imperial">Poids cible (lb)</string>
     <string name="profile_menstruating_checkbox">En âge menstruel (ajuste le besoin en fer)</string>
-    <string name="profile_allergen_hint">Sélectionne les allergènes à surveiller</string>
+    <string name="profile_allergen_hint">Sélectionnez les allergènes à surveiller</string>
     <string name="profile_section_conditions">Conditions de santé</string>
-    <string name="profile_condition_hint">Sélectionne les conditions à prendre en compte dans les calculs</string>
+    <string name="profile_condition_hint">Sélectionnez les conditions à prendre en compte dans les calculs</string>
     <string name="condition_diabetes">Diabète</string>
     <string name="condition_hypertension">Hypertension</string>
     <string name="condition_pregnancy">Grossesse</string>
@@ -820,7 +820,7 @@
     <string name="diary_tab_treatment">Traitement</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
-    <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Log it\'.</string>
+    <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Logger\'.</string>
     <string name="diary_kcal_breakdown_title">Répartition par repas</string>
     <string name="diary_protein_per_slot_title">Protéines par repas</string>
     <string name="diary_slot_short_breakfast">Matin</string>
@@ -1187,7 +1187,7 @@
     <string name="recipes_search_placeholder">Rechercher une recette…</string>
     <string name="recipes_filter_all">Tous</string>
     <string name="recipes_filter_high_protein">Riche protéines</string>
-    <string name="recipes_filter_low_carb">Low-carb</string>
+    <string name="recipes_filter_low_carb">Faible en glucides</string>
     <string name="recipes_filter_low_fat">Faible en gras</string>
     <string name="recipes_filter_results">%1$d/%2$d résultats</string>
     <string name="recipes_summary">%1$d kcal · %2$d ingrédients · %3$d g</string>
