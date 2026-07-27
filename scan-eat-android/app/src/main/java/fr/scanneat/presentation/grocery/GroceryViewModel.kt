@@ -252,13 +252,13 @@ class GroceryViewModel @Inject constructor(
         list.map { canonicalGroceryKey(it.name, existingKeys) }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    /** Removes every manual entry that contributed to the aggregated row keyed [groceryKey] — a recipe-sourced contribution to the same row, if any, is untouched. */
     /** Add a free-text item directly from the grocery screen's inline input row. */
     fun quickAdd(name: String) {
         if (name.isBlank()) return
         viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
+    /** Removes every manual entry that contributed to the aggregated row keyed [groceryKey] — a recipe-sourced contribution to the same row, if any, is untouched. */
     fun deleteManualContribution(groceryKey: String) {
         viewModelScope.launch {
             runCatching {

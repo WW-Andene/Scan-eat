@@ -143,13 +143,16 @@ class TemplatesViewModel @Inject constructor(
 
     fun logTemplate(template: MealTemplate, date: LocalDate = LocalDate.now(), mealOverride: MealSlot? = null, portionScale: Double = 1.0) {
         viewModelScope.launch {
-            val entries = repo.expand(template, date, mealOverride)
-            val scaled = if (portionScale == 1.0) entries
-            else entries.map { it.copy(portionG = it.portionG * portionScale) }
-            // Guarded like DashboardViewModel.logGapSuggestion/ResultViewModel.log -
-            // a Room insert failure (disk-full, constraint violation) here previously
-            // crashed the app instead of just failing to log this template.
-            runCatching { consumptionRepo.logAll(scaled) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            // repo.expand() used to run outside this guard - MealSlot.valueOf() inside it
+            // throws on any item with a malformed/legacy meal slot string, which crashed
+            // the app instead of surfacing the same actionFailed snackbar every other
+            // write failure in this ViewModel already uses.
+            runCatching {
+                val entries = repo.expand(template, date, mealOverride)
+                val scaled = if (portionScale == 1.0) entries
+                else entries.map { it.copy(portionG = it.portionG * portionScale) }
+                consumptionRepo.logAll(scaled)
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
