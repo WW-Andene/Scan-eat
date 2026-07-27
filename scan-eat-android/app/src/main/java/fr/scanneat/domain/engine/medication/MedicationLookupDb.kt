@@ -112,6 +112,16 @@ private fun tokenize(s: String): List<String> = s.split(' ').filter { it.isNotBl
  *  the same drug) routinely share every other word ("comprimé", "boîte", a shared brand stem). */
 private fun isDosageToken(t: String): Boolean = t.any { it.isDigit() }
 
+/** Compares the numeric value of two dosage tokens (e.g. "500mg", "1500mg") - the leading
+ *  digit run, parsed as a number, not the raw string - so "500mg" and "1500mg" are correctly
+ *  treated as different strengths instead of one matching as a substring of the other. */
+private fun dosageValuesEqual(a: String, b: String): Boolean {
+    val numA = a.takeWhile { it.isDigit() }
+    val numB = b.takeWhile { it.isDigit() }
+    if (numA.isEmpty() || numB.isEmpty()) return a == b
+    return numA.toDoubleOrNull() == numB.toDoubleOrNull() && a.drop(numA.length) == b.drop(numB.length)
+}
+
 /**
  * Fallback for when there's no barcode/DataMatrix/QR to scan at all — OCR
  * reads the drug/product name off the box (see OcrParser.identifyFood, via
@@ -158,7 +168,11 @@ fun findMedicationByName(context: Context, name: String): MedicationDbEntry? {
         val candidateTokens = tokenize(normalizeForMatch(entry.name))
         if (queryDosageTokens.isNotEmpty()) {
             val candidateDosageTokens = candidateTokens.filter(::isDosageToken)
-            val dosageMatches = queryDosageTokens.any { qt -> candidateDosageTokens.any { ct -> ct.contains(qt) || qt.contains(ct) } }
+            // Exact numeric-value equality, not substring containment - "500mg".contains("500mg")
+            // is the only intended match, but "1500mg".contains("500mg") was also true, silently
+            // treating a 3x-stronger presentation of the same drug as a dosage match and defeating
+            // the whole point of this check (see doc comment above).
+            val dosageMatches = queryDosageTokens.any { qt -> candidateDosageTokens.any { ct -> dosageValuesEqual(qt, ct) } }
             if (!dosageMatches) continue
         }
         val matched = queryTokens.count { qt -> candidateTokens.any { ct -> ct.contains(qt) || qt.contains(ct) } }

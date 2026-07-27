@@ -76,6 +76,7 @@ class WeightRepository @Inject constructor(
             )
         }
         if (existing?.weightKg != rounded) healthConnect.writeWeight(date, rounded)
+        dao.trim(MAX_HISTORY_ROWS, profileId)
         // Every BMI/TDEE/calorie-balance/kcal-burned calc downstream reads
         // prefs.profile.weightKg (ProfileViewModel, DashboardViewModel,
         // ActivityViewModel, BiolismRepository's no-override fallback), but this
@@ -145,6 +146,12 @@ class WeightRepository @Inject constructor(
             // fresh too, not just its own local history.
             if (date == LocalDate.now()) userPreferences.updateWeight(kg)
         }
+        dao.trim(MAX_HISTORY_ROWS, profileId)
+    }
+
+    private companion object {
+        /** Same retention cap as ActivityRepository/ConsumptionRepository/MedicationRepository. */
+        const val MAX_HISTORY_ROWS = 5000
     }
 
     /**

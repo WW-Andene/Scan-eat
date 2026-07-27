@@ -35,6 +35,15 @@ interface WeightDao {
     @Query("SELECT * FROM weight_log WHERE profileId = :profileId ORDER BY date DESC LIMIT :n")
     suspend fun getRecent(n: Int, profileId: String = "default"): List<WeightEntity>
 
+    /** Bounds unbounded growth the same way ActivityDao.trim/ConsumptionDao.trim do for their tables. */
+    @Query("""
+        DELETE FROM weight_log
+        WHERE profileId = :profileId AND id NOT IN (
+            SELECT id FROM weight_log WHERE profileId = :profileId ORDER BY date DESC LIMIT :keepCount
+        )
+    """)
+    suspend fun trim(keepCount: Int, profileId: String = "default")
+
     /**
      * Atomically resolves the existing row (if any) for [date]/[profileId] and
      * upserts [build]'s result, returning the pre-write row so the caller can
