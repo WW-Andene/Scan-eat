@@ -531,22 +531,37 @@ write path at all.
 
 No T3/blocked items this cycle. H5W-QUEUE.md still empty.
 
-**Next action for whoever picks this up:** Per this cycle's own scope-
-expansion ladder, since the correctness-bug-hunting phase (unguarded writes,
-stale-date parsing, engine-version staleness, OFF/LLM merge drift) is now
-exhaustively closed across both the Android app and the server, the
-recommended next phase is Depth Escalation / Research & Study:
-(1) **test coverage** - grep confirms there is no test source set at all
-for the domain scoring engine (`domain/engine/scoring/`) on either platform;
-for a health-scoring app this is a real, addressable gap worth at least a
-golden-file test harness covering PersonalScoreEngine/ScoringEngine's major
-pillars (additive risk, negative nutrients, nutritional density, ingredient
-integrity) so future refactors can't silently drift the two engines apart
-again without a fast local signal (currently only caught by manual
-cross-reading, as cycle 6 did by hand); (2) **CI workflow sanity** - re-read
-`.github/workflows/*.yml` end to end for any YAML/step regression introduced
-across cycles 1-7's commits, since there is still no compiler/gradle
-available in this environment to verify any of the seven cycles' changes
-actually build; (3) the two minor filter-vs-search empty-state message gaps
-noted in cycle 6 (ScanHistory/Templates) if nothing higher-value turns up
-in (1)/(2).
+**Correction after further checking (same cycle):** initially assumed no
+test coverage existed for the scoring engine and drafted that as the next
+recommendation below - checked before acting on it and that assumption was
+wrong. Both platforms already have real test suites: Android has
+`ScoringEngineTest`/`PersonalScoreEngineTest`/`DietCheckerTest`/
+`AllergenDetectorTest`/`BiolismEngineTest`/`ScanViewModelTest`/
+`BackupBundleTest` under `app/src/test/`; the server has
+`ScoringEngineTest`/`ServerOffMapperTest`/`ScoreServiceTest`/
+`OffServiceTest`/`GroqServiceTest`/`LlmLabelParserTest`/
+`FetchRecipeRouteTest`/`ApplicationTest` under `src/test/kotlin/`. Both
+`android-build.yml` and `server-build.yml` run their respective test tasks
+before building. Even better: there is a **third, dedicated CI workflow**,
+`.github/workflows/scoring-drift-check.yml`, running
+`scripts/check_scoring_drift.py` on every push/PR touching either
+platform's scoring code - it automatically diffs matched functions between
+`scan-eat-server/.../shared/*` and the Android `domain/engine/scoring/*`
+copy and fails the build on divergence. This means cycle 6's manual
+byte-for-byte cross-read of the two scoring engines was corroborating work
+CI already automates, not filling a real gap - worth knowing so a future
+cycle doesn't repeat that manual diff from scratch assuming it's the only
+protection. All three workflow YAML files were re-read end to end this
+cycle and are syntactically sound with no obvious regression from cycles
+1-7's commits (checked/relevant since there's still no local compiler to
+verify any of the seven cycles' Android/server changes actually build).
+
+**Next action for whoever picks this up:** Since test coverage and CI
+automation are both already solid, the recommended next phase per H5W's
+ladder is either (1) the two minor filter-vs-search empty-state message
+gaps noted in cycle 6 (ScanHistory/Templates) for UX polish, or (2) a first
+pass at code-quality dimensions - dead code, naming consistency, duplication
+- across the presentation/ or data/ trees, since correctness-bug-hunting
+(unguarded writes, stale-date parsing, engine-version staleness, OFF/LLM
+merge drift) is now exhaustively closed across both the Android app and the
+server.
