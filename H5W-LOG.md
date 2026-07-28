@@ -95,3 +95,61 @@
   check since this cycle's own fix newly makes that drop path reachable in
   practice, not just in Consumption/Recipe/Template/CustomFood). No T3/
   blocked items this cycle - H5W-QUEUE.md still empty.
+
+### Cycle 3 — ViewModel layer + medication log gap (2026-07-28)
+- Read WeightViewModel.kt, ActivityViewModel.kt, DashboardViewModel.kt,
+  CalendarViewModel.kt in full, specifically hunting for coroutine scope
+  leaks, race conditions on concurrent writes, missing loading/error states,
+  and cold-start StateFlow initial-value bugs per this cycle's brief. All
+  four are already extremely well hardened by many prior sessions: every
+  StateFlow uses `stateIn(viewModelScope, WhileSubscribed(5000), <sane
+  default>)` (no raw MutableStateFlow racing a collector), every write
+  (log/delete/update/restore) is `runCatching` with a CancellationException
+  rethrow + `_actionFailed` snackbar flag, and every date-scoped read
+  re-subscribes on a 60s-polled `today`/`date` Flow with distinctUntilChanged
+  (not a one-shot value frozen at construction) so nothing goes stale across
+  midnight. No race condition, scope leak, or missing error state found -
+  genuinely clean.
+- Investigated cycle 2's own open question: does the UI say anything when
+  the new `mapNotNull` guard (commit 2717150) silently drops a corrupted
+  row? Grepped the whole presentation+data tree for any existing
+  "corrupted"/"partial"/"could not be loaded" user-facing string - there is
+  none anywhere in the codebase. Every sibling repo with the same guard
+  (Consumption/Recipe/MealTemplate/CustomFood, predating this cycle) already
+  established the convention of silent-drop + `Log.w`, with zero UI
+  surfacing. Decision: leave Weight/Activity consistent with that existing,
+  deliberate convention rather than introduce a one-off banner - a literal
+  DB-corruption case is astronomically rare, log-only is proportionate, and
+  inventing new UI just for these two repos would be inconsistent rather
+  than an improvement. No change made here; documenting the reasoning so
+  it isn't re-litigated.
+- Real bug found and fixed (commit 2cd50b9): swept every other repository
+  under data/repository/health for the same unguarded-`toLocalDate()`
+  pattern cycle 2 fixed in Weight/Activity, since those two were fixed as
+  siblings but the sweep wasn't exhaustive across the whole health/ package
+  yet. Found `MedicationRepository.toLogDomain()` had never been
+  updated - `date.toLocalDate()` (LocalDate.parse) with no guard, the exact
+  same crash-on-corrupt-row bug. Fixed by mirroring the identical pattern:
+  `toLogDomain()` now returns `MedicationLogEntry?` via
+  `runCatching + Log.w + getOrNull`, and `observeLogByDate`/`getLogRange`/
+  `observeLogRange` switched from `map` to `mapNotNull`. Public signatures
+  unchanged, no call site needed updating (verified all 7 call sites across
+  MedicationViewModel/DashboardViewModel/CalendarViewModel/ReminderWorker).
+  This closes out the "unguarded toLocalDate()" bug class across the whole
+  data/repository tree - grepped for `LocalDate.parse`/`toLocalDate()`
+  across all of data/repository/ and confirmed every remaining call site
+  (MealPlanRepository, HydrationRepository, FastingRepository,
+  DayNotesRepository, BackupRestore, ConsumptionRepository) is already
+  `runCatching`-guarded.
+- Next action for whoever picks this up: ViewModel layer for
+  Weight/Activity/Dashboard/Calendar is now exhausted and clean. Good next
+  targets per H5W's scope-expansion ladder: (1) the Compose screens
+  themselves (WeightScreen.kt/ActivityScreen.kt/DashboardScreen.kt/
+  CalendarScreen.kt) for empty/loading state correctness now that the
+  ViewModel layer is confirmed solid; (2) MedicationViewModel.kt itself
+  (not yet read this cycle - only its repository was touched) for the same
+  race/scope/error-state checks just applied to Weight/Activity/Dashboard/
+  Calendar; (3) HydrationViewModel/FastingViewModel/DiaryViewModel/
+  MealPlanViewModel, referenced repeatedly in comments above as already
+  having had similar fixes applied but not yet directly read+verified this
+  session. No T3/blocked items this cycle - H5W-QUEUE.md still empty.
