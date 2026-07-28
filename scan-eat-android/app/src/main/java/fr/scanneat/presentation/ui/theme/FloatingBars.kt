@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -25,19 +26,34 @@ import dev.chrisbanes.haze.hazeSource
  * gradient approximation — see [glassSheen]'s own doc comment for why that
  * alone doesn't read as "frosted glass"). [backgroundColor] is the opaque
  * fallback Haze draws on API levels/devices where RenderEffect blur isn't
- * available (pre-Android 12); [tint] is the translucent colour composited
- * over the live blurred content everywhere else — that's what actually reads
- * as "glass" rather than a plain scrim. `noiseFactor = 0f` deliberately: the
- * library's default film-grain dithering risks reading as the same dot/grain
- * texture this rework was asked to remove, so it's off.
+ * available (pre-Android 12, and several MIUI/Xiaomi builds that disable the
+ * RenderEffect blur APIs on newer Android versions too); [tint] is the
+ * translucent colour composited over the live blurred content everywhere
+ * else — that's what actually reads as "glass" rather than a plain scrim.
+ * `noiseFactor = 0f` deliberately: the library's default film-grain dithering
+ * risks reading as the same dot/grain texture this rework was asked to
+ * remove, so it's off.
+ *
+ * backgroundColor was plain [SurfaceVariant] - on the OLED theme that's
+ * #241F29 sitting directly on a pure-black (#000000) [Background], so any
+ * device that falls back to this opaque fill (confirmed via a real MIUI
+ * device's screenshot) rendered it as a flat, hard-edged, visibly lighter
+ * rectangle with no blend into the screen at all - reading exactly as "an
+ * ugly floating text box," not glass. Blending it most of the way toward
+ * [Background] keeps the fallback panel close in tone to the screen behind
+ * it on every theme, not just OLED, while still leaving enough contrast for
+ * [glassSheen]'s edge highlight to read against it.
  */
 val FrostedGlassStyle: HazeStyle
-    @Composable get() = HazeStyle(
-        backgroundColor = SurfaceVariant,
-        tint            = HazeTint(SurfaceVariant.copy(alpha = 0.38f)),
-        blurRadius      = 12.dp,
-        noiseFactor     = 0f,
-    )
+    @Composable get() = run {
+        val fallbackColor = lerp(Background, SurfaceVariant, 0.35f)
+        HazeStyle(
+            backgroundColor = fallbackColor,
+            tint            = HazeTint(SurfaceVariant.copy(alpha = 0.38f)),
+            blurRadius      = 12.dp,
+            noiseFactor     = 0f,
+        )
+    }
 
 /**
  * Shared [HazeState] for MainShell's bottom nav: created once in MainShell
