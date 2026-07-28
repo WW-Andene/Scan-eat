@@ -6,7 +6,7 @@ on:
     inputs:
       working_directory:
         description: Subdirectory containing settings.gradle (leave blank for repo root)
-        default: '.'
+        default: 'scan-eat-android'
       branch:
         description: Branch to check out and build
         default: 'claude/app-wide-audit-kcfpmx'
@@ -60,10 +60,21 @@ jobs:
           cat > /tmp/dv_session.sh <<'DVEOF'
           GH_TOKEN='${{ secrets.GITHUB_TOKEN }}'
           APK="$APK_PATH"
-          PKG=$(${ANDROID_SDK_ROOT}/build-tools/*/aapt dump badging "$APK" | grep package: | sed -e "s/.*name='//" -e "s/'.*//")
-          ACT=$(${ANDROID_SDK_ROOT}/build-tools/*/aapt dump badging "$APK" | grep launchable-activity | sed -e "s/.*name='//" -e "s/'.*//")
+          PKG=""
+          AAPT2=$(find "$ANDROID_SDK_ROOT" -type f -name aapt2 2>/dev/null | head -n1)
+          if [ -n "$AAPT2" ]; then
+            PKG=$("$AAPT2" dump badging "$APK" 2>/dev/null | grep package: | sed -e "s/.*name='//" -e "s/'.*//")
+          fi
+          if [ -z "$PKG" ]; then
+            APKANALYZER=$(find "$ANDROID_SDK_ROOT/cmdline-tools" -type f -name apkanalyzer 2>/dev/null | head -n1)
+            [ -n "$APKANALYZER" ] && PKG=$("$APKANALYZER" manifest application-id "$APK" 2>/dev/null)
+          fi
           adb install -r "$APK"
-          adb shell am start -n "$PKG/$ACT"
+          if [ -n "$PKG" ]; then
+            adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1
+          else
+            echo "WARNING: could not determine package name — app installed but not auto-launched"
+          fi
           export DV_BRIDGE_TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(24))')
           echo aW1wb3J0IGh0dHAuc2VydmVyLCBzdWJwcm9jZXNzLCBqc29uLCBvcywgdXJsbGliLnBhcnNlClRPS0VOID0gb3MuZW52aXJvblsnRFZfQlJJREdFX1RPS0VOJ10KY2xhc3MgSChodHRwLnNlcnZlci5CYXNlSFRUUFJlcXVlc3RIYW5kbGVyKToKICAgIGRlZiBfYXV0aChzZWxmKToKICAgICAgICByZXR1cm4gc2VsZi5oZWFkZXJzLmdldCgnQXV0aG9yaXphdGlvbicpID09ICdCZWFyZXIgJyArIFRPS0VOCiAgICBkZWYgX2FkYihzZWxmLCAqYXJncyk6CiAgICAgICAgcmV0dXJuIHN1YnByb2Nlc3MucnVuKFsnYWRiJywgKmFyZ3NdLCBjYXB0dXJlX291dHB1dD1UcnVlKQogICAgZGVmIGRvX0dFVChzZWxmKToKICAgICAgICBpZiBub3Qgc2VsZi5fYXV0aCgpOgogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoNDAxKTsgc2VsZi5lbmRfaGVhZGVycygpOyByZXR1cm4KICAgICAgICBpZiBzZWxmLnBhdGggPT0gJy9zY3JlZW5zaG90JzoKICAgICAgICAgICAgciA9IHNlbGYuX2FkYignZXhlYy1vdXQnLCAnc2NyZWVuY2FwJywgJy1wJykKICAgICAgICAgICAgc2VsZi5zZW5kX3Jlc3BvbnNlKDIwMCk7IHNlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtVHlwZScsICdpbWFnZS9wbmcnKTsgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgICAgIHNlbGYud2ZpbGUud3JpdGUoci5zdGRvdXQpCiAgICAgICAgZWxpZiBzZWxmLnBhdGggPT0gJy91aSc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAndWlhdXRvbWF0b3InLCAnZHVtcCcsICcvc2RjYXJkL2R2X3VpLnhtbCcpCiAgICAgICAgICAgIHIgPSBzZWxmLl9hZGIoJ3NoZWxsJywgJ2NhdCcsICcvc2RjYXJkL2R2X3VpLnhtbCcpCiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSgyMDApOyBzZWxmLnNlbmRfaGVhZGVyKCdDb250ZW50LVR5cGUnLCAnYXBwbGljYXRpb24veG1sJyk7IHNlbGYuZW5kX2hlYWRlcnMoKQogICAgICAgICAgICBzZWxmLndmaWxlLndyaXRlKHIuc3Rkb3V0KQogICAgICAgIGVsc2U6CiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSg0MDQpOyBzZWxmLmVuZF9oZWFkZXJzKCkKICAgIGRlZiBkb19QT1NUKHNlbGYpOgogICAgICAgIGlmIG5vdCBzZWxmLl9hdXRoKCk6CiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSg0MDEpOyBzZWxmLmVuZF9oZWFkZXJzKCk7IHJldHVybgogICAgICAgIGxlbmd0aCA9IGludChzZWxmLmhlYWRlcnMuZ2V0KCdDb250ZW50LUxlbmd0aCcsIDApKQogICAgICAgIGJvZHkgPSBqc29uLmxvYWRzKHNlbGYucmZpbGUucmVhZChsZW5ndGgpIG9yIGIne30nKQogICAgICAgIGlmIHNlbGYucGF0aCA9PSAnL3RhcCc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAnaW5wdXQnLCAndGFwJywgc3RyKGJvZHlbJ3gnXSksIHN0cihib2R5Wyd5J10pKQogICAgICAgIGVsaWYgc2VsZi5wYXRoID09ICcvc3dpcGUnOgogICAgICAgICAgICBzZWxmLl9hZGIoJ3NoZWxsJywgJ2lucHV0JywgJ3N3aXBlJywgc3RyKGJvZHlbJ3gxJ10pLCBzdHIoYm9keVsneTEnXSksIHN0cihib2R5Wyd4MiddKSwgc3RyKGJvZHlbJ3kyJ10pLCBzdHIoYm9keS5nZXQoJ2R1cmF0aW9uTXMnLCAzMDApKSkKICAgICAgICBlbGlmIHNlbGYucGF0aCA9PSAnL3RleHQnOgogICAgICAgICAgICBzZWxmLl9hZGIoJ3NoZWxsJywgJ2lucHV0JywgJ3RleHQnLCB1cmxsaWIucGFyc2UucXVvdGUoYm9keVsndGV4dCddKS5yZXBsYWNlKCclMjAnLCAnJXMnKSkKICAgICAgICBlbGlmIHNlbGYucGF0aCA9PSAnL2tleSc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAnaW5wdXQnLCAna2V5ZXZlbnQnLCBzdHIoYm9keVsna2V5Y29kZSddKSkKICAgICAgICBlbHNlOgogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoNDA0KTsgc2VsZi5lbmRfaGVhZGVycygpOyByZXR1cm4KICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoMjAwKTsgc2VsZi5zZW5kX2hlYWRlcignQ29udGVudC1UeXBlJywgJ2FwcGxpY2F0aW9uL2pzb24nKTsgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgc2VsZi53ZmlsZS53cml0ZShiJ3sib2siOnRydWV9JykKICAgIGRlZiBsb2dfbWVzc2FnZShzZWxmLCAqYSk6IHBhc3MKaHR0cC5zZXJ2ZXIuSFRUUFNlcnZlcigoJzEyNy4wLjAuMScsIDgyODMpLCBIKS5zZXJ2ZV9mb3JldmVyKCk= | base64 -d > /tmp/dv_bridge.py
           python3 /tmp/dv_bridge.py &
