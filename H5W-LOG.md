@@ -50,3 +50,48 @@
   "one read path misses a check every sibling path already has" pattern, then
   escalate per H5W scope-expansion to ViewModels/UI states once repositories are
   exhausted. No T3/blocked items this cycle — see H5W-QUEUE.md (still empty).
+
+### Cycle 2 — Repository read-path sweep continued (2026-07-28)
+- Read MealTemplateRepository.kt, RecipeRepository.kt, RecipeEntityMapping.kt,
+  RecipeModels.kt, CustomFoodRepository.kt in full. No ENGINE_VERSION-style
+  staleness concept applies to any of the three (they're not scored/cached
+  scan data) - all three already carry a properly-guarded parse-failure path
+  (runCatching + Log.w + getOrNull, mapNotNull at every call site) and already
+  preserve createdAt/favorite on edit. Genuinely clean, no fix needed here.
+- Read HealthConnectRepository.kt and BiolismRepository.kt in full - both
+  already heavily hardened by prior sessions (per-feature permission subsets,
+  DataStore IOException fallback, live-weight-always-wins profile merge).
+  Clean.
+- Real bug found and fixed (commit 2717150): WeightRepository.toDomain() and
+  ActivityRepository.toDomain() both call `date.toLocalDate()`
+  (`LocalDate.parse`, throws `DateTimeParseException` on a malformed date
+  column) with no guard - the one class of protection every sibling
+  repository (ConsumptionRepository/RecipeRepository/MealTemplateRepository/
+  CustomFoodRepository) already has via `runCatching { }.onFailure { log }.
+  getOrNull()`. A single corrupted date row would previously crash the whole
+  Flow collector (observeAll/observeRange/observeByDate/summarize for Weight;
+  observeByDate/getRange/observeRange for Activity), taking down
+  WeightScreen/ActivityScreen/Dashboard/Calendar entirely instead of just
+  dropping that one row. Mirrored the same pattern, switched call sites from
+  `map` to `mapNotNull` (public Flow<List<T>>/Flow<T?> signatures unchanged,
+  no external call site needed updating).
+- Read CsvExportRepository.kt and BackupRepository.kt in full - both operate
+  on raw DAO/entity rows (no toDomain() parsing step, so no equivalent risk)
+  and are already extensively hardened (transactional restore, per-table
+  dedup keyed to each table's real uniqueness invariant, dangling-FK guard
+  for medication_log, CSV-injection guard). Clean.
+- Priority-1 repository sweep (MealTemplateRepository/RecipeRepository/
+  CustomFoodRepository/HealthConnectRepository/BiolismRepository/
+  CsvExportRepository/BackupRepository) is now exhausted. Every repository
+  under data/repository/ has been read in full across cycle 1 + cycle 2.
+- Next action for whoever picks this up: escalate per H5W's own
+  scope-expansion ladder - move to the ViewModels consuming
+  WeightRepository/ActivityRepository (WeightViewModel/ActivityViewModel/
+  DashboardViewModel/CalendarViewModel) for race conditions, missing loading/
+  error states, or coroutine scope leaks; then to the Compose screens
+  rendering that state (does WeightScreen/ActivityScreen actually show
+  anything when a row silently drops now, or would the user just see a
+  slightly-short list with zero indication a row was dropped - worth a quick
+  check since this cycle's own fix newly makes that drop path reachable in
+  practice, not just in Consumption/Recipe/Template/CustomFood). No T3/
+  blocked items this cycle - H5W-QUEUE.md still empty.
