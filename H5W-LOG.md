@@ -246,3 +246,20 @@
   fully exhausted and the next real scope expansion is the server side
   (scan-eat-server) or a first pass at code-quality/duplication dimensions
   per H5W's own ladder.
+
+### Cycle 4 addendum — MealPlanRepository + DayNotesRepository read (2026-07-28)
+- Read MealPlanRepository.kt and DayNotesRepository.kt in full (the two repos
+  flagged as unread at the end of this cycle's main entry above). Both
+  already guard every `LocalDate.parse` call site with `runCatching { }.
+  getOrNull()` (deserialize()'s per-line date parse, prune()'s stale-key
+  scan, listDates()/exportAll()'s key parsing). MealPlanRepository's
+  pruneOrphanedSlots/copyDay/copyWeek/setSlot all correctly re-serialize
+  through the same prune() after mutation. No gaps found - both clean.
+- This closes out every repository under data/repository/ by name in this
+  log across cycles 1-4. Full status: clean except the three fixed bugs
+  (ScanRepository.getById staleness c1b3b4b; Weight/Activity toDomain()
+  2717150; Medication toLogDomain() 2cd50b9).
+- No commit this addendum (read-only confirmation, folded into the cycle 4
+  commit's next-action note). Next cycle should pick up the still-unread
+  ViewModels (Recipes/Templates/Grocery/CustomFood/Profile/ScanHistory/
+  Result) or escalate to scan-eat-server per H5W's ladder.
