@@ -60,7 +60,7 @@ internal fun MultiFoodFoundDialog(
                     itemsIndexed(items, key = { _, (_, persistedId) -> persistedId }) { _, (result, persistedId) ->
                         val grade = gradeColor(result.audit.grade)
                         Surface(
-                            shape = RoundedCornerShape(10.dp),
+                            shape = RoundedCornerShape(CardRadius.CONTROL),
                             color = OnBackground.copy(0.05f),
                             onClick = { onPick(persistedId) },
                             modifier = Modifier.fillMaxWidth(),

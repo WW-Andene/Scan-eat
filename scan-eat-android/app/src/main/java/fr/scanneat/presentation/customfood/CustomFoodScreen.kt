@@ -125,7 +125,7 @@ fun CustomFoodScreen(
             if (scan != null && scan.product.name !in customNames) {
                 Surface(
                     color = AccentCoral.copy(0.1f),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
                 ) {
                     Row(

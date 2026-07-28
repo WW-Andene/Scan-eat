@@ -65,7 +65,7 @@ internal fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
         }
         AnimatedVisibility(visible = saved) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                 Text(stringResource(R.string.settings_saved_confirmation), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
             }
         }
