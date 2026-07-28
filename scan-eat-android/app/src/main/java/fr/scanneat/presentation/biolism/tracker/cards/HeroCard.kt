@@ -75,8 +75,11 @@ internal fun HeroCard(
             Text(formatElapsed(elapsedSec), style = MaterialTheme.typography.labelMedium,
                 color = OnBackground.copy(0.4f), fontWeight = FontWeight.Medium)
 
-            // Substrate bar
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            // Substrate bar - Spacing.S, not XS: the bar-to-legend gap read as
+            // cramped next to the rest of this card's own rhythm (every other
+            // gap here is Spacing.S via the outer Column), an inconsistency
+            // scoped to just this one nested Column.
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
                     Box(Modifier.weight(fatFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(if (ketosisOn) Teal else Warm))
                     Box(Modifier.weight(carbFrac.coerceAtLeast(0.01).toFloat()).fillMaxHeight().background(Gold.copy(0.6f)))
