@@ -75,7 +75,16 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         ) {
             Column(
                 modifier = Modifier
-                    .background(SurfaceVariant)
+                    // .copy(alpha = ...), not the bare opaque color - every other
+                    // card in the app goes through ScanEatCard's translucent
+                    // default fill so the screen's own ambientGloom wash bleeds
+                    // through it; this card hand-rolls its own Surface/Column
+                    // instead of using ScanEatCard (so it can overlay the streak
+                    // badge via BoxScope.align, a slot ScanEatCard's content
+                    // lambda doesn't expose) and had fully opaque SurfaceVariant
+                    // here as a result - the one card on Dashboard that never let
+                    // any background show through it at all.
+                    .background(SurfaceVariant.copy(alpha = 0.24f))
                     // Explicit center/radius, matching every other gradient in the
                     // theme (glassSheen's own glow, ambientGloom) - left implicit
                     // here (plain Brush.radialGradient(colors) with no center/

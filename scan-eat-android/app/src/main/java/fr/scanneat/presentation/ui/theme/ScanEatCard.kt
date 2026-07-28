@@ -58,7 +58,13 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
  *    so a screen's own ambient background wash (see [ambientGloom]) bleeds
  *    through visibly — this is what actually reads as "frosted glass over
  *    an atmosphere" rather than a flat tinted rectangle. Existing call
- *    sites that pass an explicit [color] are unaffected.
+ *    sites that pass an explicit [color] are unaffected. The previous
+ *    default (0.42 alpha) still read as an essentially solid card next to
+ *    the header/nav's real backdrop blur — [ambientGloom]'s own glow blobs
+ *    only reach ~7-10% alpha, so at 0.42 the card's own SurfaceVariant fill
+ *    dominates the blend and almost nothing of the wash actually shows
+ *    through. Dropped further so the card visibly participates in the same
+ *    atmosphere instead of just sitting on top of it.
  *  - [emphasis]/[accent] pick which [CardEmphasis] tier this card renders at
  *    and which hue its glow/border echo — default (PRIMARY, white accent)
  *    reproduces this primitive's original look plus the new subtle layers,
@@ -74,7 +80,7 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
 fun ScanEatCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(CardRadius.CARD),
-    color: Color = SurfaceVariant.copy(alpha = 0.42f),
+    color: Color = SurfaceVariant.copy(alpha = 0.24f),
     contentPadding: PaddingValues = PaddingValues(14.dp),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,
