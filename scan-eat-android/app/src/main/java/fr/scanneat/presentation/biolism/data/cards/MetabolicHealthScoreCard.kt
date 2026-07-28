@@ -106,7 +106,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
     val heroEntrance = rememberHeroEntrance(heroVisible)
     Box(Modifier.heroEntrance(heroEntrance)) {
     BioCard(stringResource(R.string.biolism_health_score_title), defaultOpen = true, emphasized = true, badge = {
-        Surface(shape = RoundedCornerShape(12.dp), color = scoreColor.copy(0.15f)) {
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = scoreColor.copy(0.15f)) {
             Text(
                 "$overallScore / 100",
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),

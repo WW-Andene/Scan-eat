@@ -63,7 +63,7 @@ fun LogSheet(
         onDismissRequest = onDismiss,
         sheetState       = sheetState,
         containerColor   = SurfaceVariant,
-        shape            = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        shape            = RoundedCornerShape(topStart = CardRadius.PROMINENT, topEnd = CardRadius.PROMINENT),
     ) {
         Column(
             modifier              = Modifier.fillMaxWidth().padding(horizontal = Spacing.XL).padding(bottom = Spacing.XXL),
