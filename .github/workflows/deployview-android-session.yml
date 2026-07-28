@@ -7,6 +7,9 @@ on:
       working_directory:
         description: Subdirectory containing settings.gradle (leave blank for repo root)
         default: 'scan-eat-android'
+      branch:
+        description: Branch to check out and build
+        default: 'claude/app-wide-audit-kcfpmx'
 
 jobs:
   session:
@@ -17,6 +20,8 @@ jobs:
         working-directory: ${{ github.event.inputs.working_directory }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
       - uses: actions/setup-java@v4
         with:
