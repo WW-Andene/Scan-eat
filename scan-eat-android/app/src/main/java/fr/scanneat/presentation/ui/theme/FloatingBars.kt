@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -39,23 +38,26 @@ import dev.chrisbanes.haze.hazeSource
  * device that falls back to this opaque fill (confirmed via a real MIUI
  * device's screenshot) rendered it as a flat, hard-edged, visibly lighter
  * rectangle with no blend into the screen at all - reading exactly as "an
- * ugly floating text box," not glass. An earlier pass blended it 65/35
- * toward [Background], but a second screenshot from the same device (header
- * AND bottom nav both still a clearly visible lighter box against near-black
- * content behind them) confirmed that wasn't enough - and the same
- * lighten-everything effect happens even on devices with real blur, since
- * blurring this app's own near-flat near-black gradient background produces
- * an equally flat, equally light result. Both the fallback blend and the
- * live tint alpha are dropped hard here so the chrome reads as a bare hint
- * of glass over the screen rather than a distinct card, on every device.
+ * ugly floating text box," not glass. Two earlier passes tried blending it
+ * (65/35, then 88/12) toward [Background] instead of eliminating the delta
+ * outright, but a third screenshot from the same device (header AND bottom
+ * nav both still a clearly visible lighter box, this time with scrolled
+ * content - an OutlinedTextField's own outline/label - bleeding straight
+ * through the now near-transparent tint) confirmed any non-zero blend still
+ * reads as a rectangle against pure black, and that thinning the tint
+ * further just trades "visible box" for "visible content ghosting through
+ * the box." backgroundColor is now exactly [Background] (zero blend) so the
+ * no-blur fallback is truly invisible against the screen behind it, and the
+ * live tint is bumped back up enough to actually obscure scrolled content
+ * instead of merely dimming it - [glassSheen]'s edge highlight remains the
+ * only thing marking the chrome's outline on every device.
  */
 val FrostedGlassStyle: HazeStyle
     @Composable get() = run {
-        val fallbackColor = lerp(Background, SurfaceVariant, 0.12f)
         HazeStyle(
-            backgroundColor = fallbackColor,
-            tint            = HazeTint(SurfaceVariant.copy(alpha = 0.16f)),
-            blurRadius      = 12.dp,
+            backgroundColor = Background,
+            tint            = HazeTint(SurfaceVariant.copy(alpha = 0.55f)),
+            blurRadius      = 16.dp,
             noiseFactor     = 0f,
         )
     }
