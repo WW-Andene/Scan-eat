@@ -8,6 +8,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.domain.engine.biolism.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -98,8 +99,23 @@ class DataViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun saveManualHR(bpm: Int?)    = viewModelScope.launch { repo.saveManualHR(bpm) }
-    fun deleteSession(id: Long)    = viewModelScope.launch { repo.deleteSession(id) }
+    // saveManualHR()/deleteSession() previously called repo's DataStore writes
+    // completely unguarded - unlike every sibling Biolism ViewModel (Tracker's
+    // saveSession, BiolismProfile's save/completeOnboarding/skipOnboarding all
+    // wrap theirs in runCatching), so a write failure here wasn't just silent,
+    // it was an uncaught exception that would crash the app. DataScreen had no
+    // actionFailed snackbar wiring at all before this fix.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed write, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
+    fun saveManualHR(bpm: Int?) = viewModelScope.launch {
+        runCatching { repo.saveManualHR(bpm) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
+    fun deleteSession(id: Long) = viewModelScope.launch {
+        runCatching { repo.deleteSession(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
 }
 
 data class SessionCumulative(

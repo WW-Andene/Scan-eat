@@ -13,9 +13,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,8 +31,9 @@ import fr.scanneat.presentation.biolism.data.cards.*
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.IconSize
-import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.ScanEatSnackbarHost
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.ambientGloom
 
@@ -52,6 +56,21 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val advanced    = viewModel.advancedView.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle()  // force recomposition every second
 
+    // Same pattern as TrackerScreen/WeightScreen - saveManualHR()/deleteSession()
+    // previously called repo's DataStore writes completely unguarded; a failed
+    // write now surfaces here as a one-shot snackbar instead of going back to
+    // silent. No Scaffold on this screen (embedded as a BiolismScreen tab), so
+    // the host is overlaid directly like TrackerScreen's own embedded path.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val logFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(logFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     val met = m.value
     val s   = timer.value
 
@@ -62,10 +81,12 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
                 Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
                 Text(stringResource(R.string.biolism_datascreen_empty_tab_hint), style = MaterialTheme.typography.bodySmall, color = Gold)
             }
+            ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
         }
         return
     }
 
+    Box(Modifier.fillMaxSize()) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal),
         contentPadding = PaddingValues(Spacing.L),
@@ -109,5 +130,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
             item { SessionHistoryCard(sessions.value, viewModel::deleteSession, useImperial.value) }
         }
         item { Spacer(Modifier.height(Spacing.L)) }
+    }
+    ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
