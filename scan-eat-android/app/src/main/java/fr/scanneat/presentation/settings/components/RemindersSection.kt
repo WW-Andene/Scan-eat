@@ -13,7 +13,7 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun RemindersSection(onOpenReminders: () -> Unit) {
-    SettingsSection(stringResource(R.string.reminders_title)) {
+    SettingsSection(stringResource(R.string.reminders_title), icon = Icons.Default.Notifications) {
         Text(stringResource(R.string.settings_reminders_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         ScanEatOutlinedButton(
             onClick = onOpenReminders,

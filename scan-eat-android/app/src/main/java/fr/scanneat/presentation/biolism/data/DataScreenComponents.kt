@@ -39,6 +39,13 @@ import java.util.Locale
 internal fun BioCard(
     title: String,
     defaultOpen: Boolean = true,
+    // MetabolicHealthScoreCard is the Data tab's stated aggregate/entry-point
+    // card (per its own doc comment) but rendered at the exact same visual
+    // weight as its 15 siblings - no card on this screen ever used HERO-tier
+    // emphasis the way Dashboard's CalorieBalanceCard does for its one focal
+    // card. Mirrors ScanEatCard's own HeroGlassSpec (edgeAlpha 0.34, a
+    // visible Gold border) rather than introducing a second set of numbers.
+    emphasized: Boolean = false,
     badge: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -50,8 +57,13 @@ internal fun BioCard(
     // the expanded/collapsed state and a Button role, mirroring HydrationScreen's
     // goal-editor row (see HydrationScreen.kt ~line 171).
     val openStateDescription = stringResource(if (open) R.string.common_expanded else R.string.common_collapsed)
-    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f)) {
-        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(alpha = 0.42f), modifier = Modifier.fillMaxWidth()) {
+    Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = if (emphasized) 0.34f else 0.16f, glowTint = if (emphasized) Gold else Color.White)) {
+        Surface(
+            shape = RoundedCornerShape(CardRadius.CARD),
+            color = SurfaceVariant.copy(alpha = 0.42f),
+            border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
             Column(Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { open = !open }
@@ -123,9 +135,15 @@ internal fun Label(text: String, color: Color = OnBackground.copy(0.4f)) {
 
 @Composable
 internal fun TintedPanel(color: Color, content: @Composable ColumnScope.() -> Unit) {
-    Surface(shape = RoundedCornerShape(10.dp), color = color.copy(0.06f),
-        border = BorderStroke(1.dp, color.copy(0.15f)), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
+    // Alpha steps were ad hoc (0.06f/0.15f) instead of the phi-derived Haze
+    // (0.10) / Border (0.162) alpha family every named Gold/Teal/Violet
+    // token elsewhere in this module uses - this is the shared container
+    // ~9 cards route through, so it was silently reintroducing an
+    // independent alpha scale across most of the Data tab regardless of
+    // which accent color a card passed in.
+    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(GLOW_HAZE_ALPHA),
+        border = BorderStroke(1.dp, color.copy(GLOW_BORDER_ALPHA)), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(Spacing.S), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
     }
 }
 

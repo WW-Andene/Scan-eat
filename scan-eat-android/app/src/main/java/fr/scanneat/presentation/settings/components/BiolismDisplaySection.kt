@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -25,7 +27,7 @@ import fr.scanneat.presentation.ui.theme.*
  */
 @Composable
 internal fun BiolismDisplaySection(advancedView: Boolean, onChange: (Boolean) -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_biolism_display)) {
+    SettingsSection(stringResource(R.string.settings_section_biolism_display), icon = Icons.Default.MonitorHeart) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.settings_biolism_advanced), style = MaterialTheme.typography.bodyMedium, color = OnBackground)

@@ -20,7 +20,7 @@ internal const val MAX_BACKUP_IMPORT_BYTES = 50L * 1024 * 1024
 
 @Composable
 internal fun DataResetSection(onShowResetDialog: () -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_reset)) {
+    SettingsSection(stringResource(R.string.settings_section_reset), icon = Icons.Default.DeleteForever) {
         Text(stringResource(R.string.settings_reset_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         ScanEatOutlinedButton(onClick = onShowResetDialog) {
             Icon(Icons.Default.DeleteForever, null, tint = semanticRed(), modifier = Modifier.size(18.dp))

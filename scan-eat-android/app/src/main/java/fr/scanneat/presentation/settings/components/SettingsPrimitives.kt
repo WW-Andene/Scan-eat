@@ -15,12 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
@@ -36,10 +38,20 @@ import fr.scanneat.presentation.ui.theme.Spacing
  * the card treatment everywhere else already has.
  */
 @Composable
-internal fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun SettingsSection(title: String, icon: ImageVector? = null, content: @Composable ColumnScope.() -> Unit) {
     ScanEatCard {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                // A 17-section settings list with title-text-only headers had no
+                // scanning anchors - this was the one confirmed gap in an otherwise
+                // near-zero-drift screen (every section already shared this same
+                // wrapper). icon is optional so a section can still omit it, but
+                // every section below now supplies one.
+                if (icon != null) {
+                    Icon(icon, null, tint = OnBackground.copy(0.6f), modifier = Modifier.size(IconSize.Inline))
+                }
+                Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.semantics { heading() })
+            }
             content()
         }
     }

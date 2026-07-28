@@ -2,6 +2,8 @@ package fr.scanneat.presentation.settings.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,7 +21,7 @@ internal fun AccessibilitySection(
     dyslexicFont: Boolean, onDyslexicFontChange: (Boolean) -> Unit,
     colorblindMode: String, onColorblindModeChange: (String) -> Unit,
 ) {
-    SettingsSection(stringResource(R.string.settings_section_accessibility)) {
+    SettingsSection(stringResource(R.string.settings_section_accessibility), icon = Icons.Default.Accessibility) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.settings_dyslexic_font), style = MaterialTheme.typography.bodyMedium, color = OnBackground)

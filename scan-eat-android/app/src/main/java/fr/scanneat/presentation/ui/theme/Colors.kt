@@ -96,6 +96,14 @@ val Severe          = Color(0xFFE06C5A)
 val MetaGreen       = Color(0xFFA0C878)
 val MetaGreenHaze   = Color(0x1AA0C878)
 
+// The two alpha steps above (0.10/0.162) as bare Float constants, for
+// composables (e.g. TintedPanel) that tint an arbitrary passed-in accent
+// color rather than one of the fixed named Color values above - keeps
+// any such call site on the same phi-derived alpha scale instead of
+// re-deriving its own ad hoc alpha.
+const val GLOW_HAZE_ALPHA: Float = 0.10f
+const val GLOW_BORDER_ALPHA: Float = 0.162f
+
 // Icon inactive
 val IconInactive    = Color(0xFF4E5468)
 

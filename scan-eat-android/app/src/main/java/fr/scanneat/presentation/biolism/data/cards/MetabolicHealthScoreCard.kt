@@ -3,7 +3,7 @@ package fr.scanneat.presentation.biolism.data.cards
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -94,7 +94,18 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
         else               -> stringResource(R.string.biolism_health_score_tier_needs_work)
     }
 
-    BioCard(stringResource(R.string.biolism_health_score_title), defaultOpen = true, badge = {
+    // The Data tab's stated aggregate/entry-point card (see file doc comment) -
+    // give it the same HERO-tier emphasis + entrance motion Dashboard's
+    // CalorieBalanceCard uses for its one focal card, instead of rendering at
+    // the same weight as its 15 siblings. Motion.kt's own header comment
+    // warns that animating every card independently "reads as busy, not
+    // polished" - so this stays scoped to the one HERO element on the
+    // screen, not applied to all 16 cards.
+    var heroVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { heroVisible = true }
+    val heroEntrance = rememberHeroEntrance(heroVisible)
+    Box(Modifier.heroEntrance(heroEntrance)) {
+    BioCard(stringResource(R.string.biolism_health_score_title), defaultOpen = true, emphasized = true, badge = {
         Surface(shape = RoundedCornerShape(12.dp), color = scoreColor.copy(0.15f)) {
             Text(
                 "$overallScore / 100",
@@ -124,6 +135,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             color = OnSurface.copy(0.4f),
         )
+    }
     }
 }
 

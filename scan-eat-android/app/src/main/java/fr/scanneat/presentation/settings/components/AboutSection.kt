@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,7 +26,7 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun AboutSection(onShowLicenses: () -> Unit) {
     val context = LocalContext.current
-    SettingsSection(stringResource(R.string.settings_section_about)) {
+    SettingsSection(stringResource(R.string.settings_section_about), icon = Icons.Default.Info) {
         Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         Text(stringResource(R.string.settings_about_sdk), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
         TextButton(onClick = onShowLicenses, contentPadding = PaddingValues(0.dp)) {

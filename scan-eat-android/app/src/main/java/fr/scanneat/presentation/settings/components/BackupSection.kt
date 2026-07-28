@@ -61,7 +61,7 @@ internal fun BackupSection(
     onPrepareFastingCsvExport: () -> Unit,
 ) {
     var showExportDialog by remember { mutableStateOf(false) }
-    SettingsSection(stringResource(R.string.settings_section_backup)) {
+    SettingsSection(stringResource(R.string.settings_section_backup), icon = Icons.Default.Backup) {
         Text(stringResource(R.string.settings_backup_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         val working = backupState is BackupUiState.Working
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {

@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.settings.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SettingsEthernet
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -10,7 +12,7 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun ApiModeSection(mode: ApiMode, onModeChange: (ApiMode) -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_api_mode)) {
+    SettingsSection(stringResource(R.string.settings_section_api_mode), icon = Icons.Default.SettingsEthernet) {
         Text(
             stringResource(R.string.settings_api_mode_hint),
             style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f),

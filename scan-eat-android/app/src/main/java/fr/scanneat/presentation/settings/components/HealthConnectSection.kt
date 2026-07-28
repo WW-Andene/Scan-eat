@@ -19,7 +19,7 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun HealthConnectSection(availability: HealthConnectAvailability, connected: Boolean, onConnect: () -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_health_connect)) {
+    SettingsSection(stringResource(R.string.settings_section_health_connect), icon = Icons.Default.HealthAndSafety) {
         Text(stringResource(R.string.settings_healthconnect_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         when (availability) {
             HealthConnectAvailability.AVAILABLE -> {

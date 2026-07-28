@@ -33,7 +33,7 @@ internal fun ApiKeyInputSection(
     hintBeforeRes: Int? = null,
     hintAfterRes: Int? = null,
 ) {
-    SettingsSection(stringResource(titleRes)) {
+    SettingsSection(stringResource(titleRes), icon = Icons.Default.Key) {
         hintBeforeRes?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f)) }
         OutlinedTextField(
             value = localKey, onValueChange = onLocalKeyChange,

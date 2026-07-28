@@ -13,7 +13,7 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun ProfileSection(onOpenProfile: () -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_profile)) {
+    SettingsSection(stringResource(R.string.settings_section_profile), icon = Icons.Default.Person) {
         Text(stringResource(R.string.settings_profile_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         ScanEatOutlinedButton(
             onClick = onOpenProfile,

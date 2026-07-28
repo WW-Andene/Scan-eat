@@ -2,6 +2,8 @@ package fr.scanneat.presentation.settings.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,7 +14,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 
 @Composable
 internal fun LegalSection() {
-    SettingsSection(stringResource(R.string.settings_section_legal)) {
+    SettingsSection(stringResource(R.string.settings_section_legal), icon = Icons.Default.Gavel) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Text(stringResource(R.string.settings_legal_medical_disclaimer), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
             Text(stringResource(R.string.settings_legal_data_accuracy), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
