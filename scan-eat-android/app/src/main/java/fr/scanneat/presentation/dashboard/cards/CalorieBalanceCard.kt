@@ -17,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
@@ -74,7 +76,24 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             Column(
                 modifier = Modifier
                     .background(SurfaceVariant)
-                    .background(Brush.radialGradient(listOf(balColor.copy(alpha = 0.14f), Color.Transparent)))
+                    // Explicit center/radius, matching every other gradient in the
+                    // theme (glassSheen's own glow, ambientGloom) - left implicit
+                    // here (plain Brush.radialGradient(colors) with no center/
+                    // radius), the two-stop gradient's falloff resolves from
+                    // whatever bounds Compose measures this Column at, and on a
+                    // near-black OLED surface an already-low-alpha (14%) two-stop
+                    // fade banded into a single off-position bright spot instead
+                    // of a smooth wash. drawWithCache below pins the center to the
+                    // card's true middle and adds a third color stop to soften
+                    // the falloff curve, both of which cut the banding.
+                    .drawWithCache {
+                        val brush = Brush.radialGradient(
+                            colors = listOf(balColor.copy(alpha = 0.14f), balColor.copy(alpha = 0.05f), Color.Transparent),
+                            center = Offset(size.width * 0.5f, size.height * 0.5f),
+                            radius = size.maxDimension * 0.6f,
+                        )
+                        onDrawBehind { drawRect(brush) }
+                    }
                     .padding(18.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {

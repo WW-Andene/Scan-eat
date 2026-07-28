@@ -47,16 +47,22 @@ fun Modifier.glassSheen(
             colors = listOf(Color.Transparent, Color.Black.copy(alpha = reliefAlpha)),
             startY = size.height * 0.55f,
         ) else null
-        val inset = size.width * 0.14f
+        // Fades in/out via its own gradient stops instead of a flat color cut
+        // off partway across the width (the old `inset` var) - a solid-color
+        // line with a hard start/end reads as an abrupt stop rather than a
+        // taper, exactly where the "edge" was supposed to be softest.
+        val edgeBrush = Brush.horizontalGradient(
+            colors = listOf(Color.Transparent, Color.White.copy(alpha = edgeAlpha), Color.Transparent),
+        )
         onDrawWithContent {
             drawContent()
             glow?.let { drawRect(brush = it) }
             drawRect(brush = sheen)
             relief?.let { drawRect(brush = it) }
             drawLine(
-                color = Color.White.copy(alpha = edgeAlpha),
-                start = Offset(inset, 0.5f),
-                end = Offset(size.width - inset, 0.5f),
+                brush = edgeBrush,
+                start = Offset(0f, 0.5f),
+                end = Offset(size.width, 0.5f),
                 strokeWidth = 1.5f,
             )
         }
