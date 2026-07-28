@@ -59,6 +59,19 @@ fun ProfileScreen(
     val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
     val profileLoaded = viewModel.profileLoaded.collectAsStateWithLifecycle()
 
+    // save()'s DataStore writes previously ran completely unguarded - see
+    // ProfileViewModel.actionFailed's own comment. A failed write now surfaces
+    // here as a one-shot snackbar instead of silently doing nothing.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val actionFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(actionFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     // Local mutable state mirrors the saved profile - keyed on the whole Profile
     // object (a data class, so this only re-derives when a real field actually
     // differs), not profile.value.id: id is a constant "default" that never
@@ -133,6 +146,7 @@ fun ProfileScreen(
                 Text(stringResource(R.string.common_save), color = AccentCoral, fontWeight = FontWeight.SemiBold)
             }
         },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         // Previously rendered the form immediately with profile.value's Profile()
         // seed default (blank name, NOT_SPECIFIED sex, etc.) for the brief window
