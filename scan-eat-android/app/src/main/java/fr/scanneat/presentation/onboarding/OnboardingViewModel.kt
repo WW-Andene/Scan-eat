@@ -1,7 +1,5 @@
 package fr.scanneat.presentation.onboarding
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -9,13 +7,12 @@ import fr.scanneat.domain.model.ActivityLevel
 import fr.scanneat.domain.model.Goal
 import fr.scanneat.domain.model.Profile
 import fr.scanneat.domain.model.Sex
-import kotlinx.coroutines.CancellationException
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences) : ViewModel() {
+class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences) : ActionFailureViewModel() {
 
     /** Where the screen navigates once onboarding finishes - see OnboardingScreen's single LaunchedEffect. */
     enum class Exit { SCAN, PROFILE }
@@ -39,21 +36,17 @@ class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences
     // onboarding - the very first screen a new user ever sees - would propagate
     // as an uncaught exception and crash the whole app instead of surfacing a
     // recoverable error.
-    private val _actionFailed = MutableStateFlow(false)
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
+    // actionFailed/clearActionFailed()/guardedLaunch/guardedSuspend now come
+    // from ActionFailureViewModel (see that file's doc comment) instead of
+    // being redefined here.
 
-    private fun guarded(block: suspend () -> Unit) = viewModelScope.launch {
-        runCatching { block() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
-
-    fun setMode(mode: ApiMode) = guarded { prefs.setApiMode(mode) }
+    fun setMode(mode: ApiMode) = guardedLaunch { prefs.setApiMode(mode) }
     // Trimmed to match SettingsViewModel.saveApiKey/saveServerUrl — an accidental
     // leading/trailing space (easy to pick up on a copy-paste from elsewhere) was
     // previously stored verbatim here, silently making the Groq key or server URL
     // invalid despite looking correct in the input field.
-    fun setApiKey(key: String) = guarded { prefs.setGroqApiKey(key.trim()) }
-    fun setServerUrl(url: String) = guarded { prefs.setServerUrl(url.trim()) }
+    fun setApiKey(key: String) = guardedLaunch { prefs.setGroqApiKey(key.trim()) }
+    fun setServerUrl(url: String) = guardedLaunch { prefs.setServerUrl(url.trim()) }
     fun skipApiSetup() { /* no key/server set — barcode-only OFF lookups still work */ }
 
     // Onboarding previously never asked for sex/age/height/weight at all - only an
@@ -65,17 +58,13 @@ class OnboardingViewModel @Inject constructor(private val prefs: UserPreferences
     // Returns whether the save actually succeeded - callers now only advance
     // (finish()) when true, instead of unconditionally continuing even after a
     // silently-swallowed write failure.
-    suspend fun saveMinimalProfile(sex: Sex, ageYears: Int?, heightCm: Double?, weightKg: Double?, activityLevel: ActivityLevel, goal: Goal): Boolean {
-        return runCatching {
+    suspend fun saveMinimalProfile(sex: Sex, ageYears: Int?, heightCm: Double?, weightKg: Double?, activityLevel: ActivityLevel, goal: Goal): Boolean =
+        guardedSuspend {
             prefs.saveProfile(Profile(sex = sex, ageYears = ageYears, heightCm = heightCm, weightKg = weightKg, activityLevel = activityLevel, goal = goal))
-        }.onFailure { e ->
-            if (e is CancellationException) throw e
-            _actionFailed.value = true
-        }.isSuccess
-    }
+        }
 
     fun finish(goToProfile: Boolean = false) {
-        guarded { prefs.setOnboardingComplete(true) }
+        guardedLaunch { prefs.setOnboardingComplete(true) }
         _exit.value = if (goToProfile) Exit.PROFILE else Exit.SCAN
     }
 }

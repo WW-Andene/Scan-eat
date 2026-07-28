@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.biolism.data
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -8,10 +7,9 @@ import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.domain.engine.biolism.*
-import kotlinx.coroutines.CancellationException
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -20,7 +18,7 @@ class DataViewModel @Inject constructor(
     private val repo: BiolismRepository,
     private val consumptionRepo: ConsumptionRepository,
     prefs: UserPreferences,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     val profile  = repo.profile.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BiolismProfile())
     val sessions = repo.sessions.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -104,18 +102,11 @@ class DataViewModel @Inject constructor(
     // saveSession, BiolismProfile's save/completeOnboarding/skipOnboarding all
     // wrap theirs in runCatching), so a write failure here wasn't just silent,
     // it was an uncaught exception that would crash the app. DataScreen had no
-    // actionFailed snackbar wiring at all before this fix.
-    private val _actionFailed = MutableStateFlow(false)
-    /** True briefly after a failed write, for a one-shot error snackbar. */
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
-    fun saveManualHR(bpm: Int?) = viewModelScope.launch {
-        runCatching { repo.saveManualHR(bpm) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
-    fun deleteSession(id: Long) = viewModelScope.launch {
-        runCatching { repo.deleteSession(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
-    }
+    // actionFailed snackbar wiring at all before this fix. actionFailed/
+    // clearActionFailed()/guardedLaunch now come from ActionFailureViewModel
+    // (see that file's doc comment) instead of being redefined here.
+    fun saveManualHR(bpm: Int?) = guardedLaunch { repo.saveManualHR(bpm) }
+    fun deleteSession(id: Long) = guardedLaunch { repo.deleteSession(id) }
 }
 
 data class SessionCumulative(

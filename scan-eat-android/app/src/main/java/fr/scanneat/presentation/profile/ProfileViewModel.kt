@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.profile
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
@@ -11,7 +10,7 @@ import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
-import kotlinx.coroutines.CancellationException
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,7 +19,7 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val biolismRepo: BiolismRepository,
-) : ViewModel() {
+) : ActionFailureViewModel() {
 
     val profile: StateFlow<Profile> = prefs.profile
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Profile())
@@ -59,10 +58,9 @@ class ProfileViewModel @Inject constructor(
     // (Biolism's Data tab). A DataStore I/O failure (disk full, corrupt prefs
     // file) here would crash this ViewModel's coroutine and leave the user
     // silently stuck on the Profile screen with no feedback that Save did
-    // nothing, instead of surfacing a recoverable error.
-    private val _actionFailed = MutableStateFlow(false)
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
+    // nothing, instead of surfacing a recoverable error. actionFailed/
+    // clearActionFailed()/guardedSuspend now come from ActionFailureViewModel
+    // (see that file's doc comment) instead of being redefined here.
 
     // Circumferences + ethnicity previously only existed in the Métabolisme
     // profile screen (BiolismProfileScreen), invisible from Réglages > Mon
@@ -104,19 +102,15 @@ class ProfileViewModel @Inject constructor(
             // unrelated on this screen. Only clear when a field Biolism actually
             // mirrors changed.
             val before = this@ProfileViewModel.profile.value
-            runCatching {
+            val ok = guardedSuspend {
                 prefs.saveProfile(profile)
                 val sharedFieldsChanged = before.sex != profile.sex || before.ageYears != profile.ageYears ||
                     before.heightCm != profile.heightCm || before.weightKg != profile.weightKg ||
                     before.activityLevel != profile.activityLevel
                 if (sharedFieldsChanged) biolismRepo.clearProfileOverride()
                 biolismRepo.saveBodyMeasurements(waistCm, hipCm, neckCm, ethnicityId)
-            }.onFailure { e ->
-                if (e is CancellationException) throw e
-                _actionFailed.value = true
-                return@launch
             }
-            _saved.value = true
+            if (ok) _saved.value = true
         }
     }
 

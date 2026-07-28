@@ -4,7 +4,6 @@ import android.app.ActivityManager
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -18,7 +17,7 @@ import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.health.HealthConnectRepository
-import kotlinx.coroutines.CancellationException
+import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -55,7 +54,7 @@ class SettingsViewModel @Inject constructor(
     private val healthConnect: HealthConnectRepository,
     private val fastingRepo: FastingRepository,
     @ApplicationContext private val context: Context,
-) : ViewModel() {
+) : ActionFailureViewModel() {
     val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val cerebrasApiKey = prefs.cerebrasApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val mode      = prefs.apiMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ApiMode.DIRECT)
@@ -83,17 +82,11 @@ class SettingsViewModel @Inject constructor(
     // ViewModel's coroutine and _savedField would simply never flip, leaving
     // the user staring at an unsaved field with zero feedback that Save did
     // nothing, instead of surfacing a recoverable error.
-    private val _actionFailed = MutableStateFlow(false)
-    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
-    fun clearActionFailed() { _actionFailed.value = false }
-
+    // actionFailed/clearActionFailed()/guardedSuspend now come from
+    // ActionFailureViewModel (see that file's doc comment) instead of being
+    // redefined here.
     private fun saveField(fieldKey: String, write: suspend () -> Unit) = viewModelScope.launch {
-        runCatching { write() }.onFailure { e ->
-            if (e is CancellationException) throw e
-            _actionFailed.value = true
-            return@launch
-        }
-        _savedField.value = fieldKey
+        if (guardedSuspend { write() }) _savedField.value = fieldKey
     }
 
     fun saveApiKey(key: String) = saveField("apiKey") { prefs.setGroqApiKey(key.trim()) }
