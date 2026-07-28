@@ -22,5 +22,5 @@ import androidx.compose.ui.semantics.semantics
  */
 @Composable
 fun ScanEatSnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifier) {
-    ScanEatSnackbarHost(hostState, modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite })
+    SnackbarHost(hostState, modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite })
 }
