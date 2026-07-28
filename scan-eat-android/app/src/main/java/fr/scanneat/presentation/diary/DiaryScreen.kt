@@ -14,6 +14,7 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -25,6 +26,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
 import fr.scanneat.R
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.activity.ActivityScreen
@@ -64,12 +68,23 @@ private enum class DiaryTab(val labelRes: Int) {
  *  Fasting/Treatment) the user was on back to Meals with no indication anything moved. */
 private val DiaryTabSaver = Saver<DiaryTab, String>(save = { it.name }, restore = { DiaryTab.valueOf(it) })
 
+// Taller than FloatingTopBarHeight (title row + tab row, not just a single
+// title row) - not including the device's own status-bar inset, which is
+// added separately via windowInsetsPadding below, same as FloatingTopBar/
+// BiolismScreen's own equivalent constant.
+private val DiaryHeaderHeight = 124.dp
+
 /**
  * Journal — the single home for every "log something today" task: meals
  * (this screen's original scope), weight, water, activity, and fasting.
  * These used to be scattered across Dashboard's launcher-tile grid, one tap
  * removed from a screen that was supposed to be a glance-and-go overview,
- * not a hub. Internal tab-row pattern mirrors BiolismScreen's.
+ * not a hub. Internal tab-row pattern mirrors BiolismScreen's: title + tab
+ * row merged into one floating glass header (own HazeState/hazeEffect)
+ * instead of FloatingScreenScaffold's title-only bar with a second, flat,
+ * non-blurred ScanEatCard underneath for the tabs - that arrangement let
+ * scrolled content clip hard against the tab card's opaque edge instead of
+ * fading/blurring under it like every other floating chrome in the app.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,32 +124,66 @@ fun DiaryScreen(
         }
     }
 
-    FloatingScreenScaffold(
-        title = { Text(stringResource(R.string.diary_header), color = OnBackground, fontWeight = FontWeight.Bold) },
-        navigationIcon = {
-            if (!isTabRoot) {
-                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
+    val hazeState = remember { HazeState() }
+    val bottomNavHazeState = LocalBottomNavHazeState.current
+    val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val bottomClearance = bottomInset + FloatingBottomNavHeight
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .hazeSource(bottomNavHazeState)
+            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState)
+                .padding(top = topInset + DiaryHeaderHeight)
+                .padding(bottom = bottomClearance),
+        ) {
+            when (activeTab) {
+                DiaryTab.MEALS    -> MealsTab(viewModel, bottomPadding = bottomClearance)
+                DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
             }
-        },
-        showBottomNavClearance = true,
-        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
-    ) { padding ->
-        val bottomClearance = padding.calculateBottomPadding()
-        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
-            Column(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
-                // Wrapped in ScanEatCard: this file's own doc comment claims
-                // this tab row "mirrors BiolismScreen's" — true of the layout
-                // only, not the look. Biolism's equivalent tab row lives inside
-                // its own floating glass header, while this one used to be a
-                // plain flat Row directly on the screen's ambientGloom wash,
-                // reading as flat chrome rather than floating like the rest of
-                // the app's tab bars/cards.
-                ScanEatCard(
-                    modifier = Modifier.padding(horizontal = Spacing.L).padding(bottom = Spacing.S),
-                    shape = RoundedCornerShape(CardRadius.CONTROL),
-                    contentPadding = PaddingValues(Spacing.XS),
-                    accent = AccentCoral,
-                ) {
+        }
+
+        // Merged floating glass header - title row + tab row in one card, both
+        // registered against the same hazeState the content Box above feeds,
+        // matching BiolismScreen's own internal header instead of a separate
+        // flat, non-blurred ScanEatCard sitting underneath a title-only bar.
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(horizontal = Spacing.L, vertical = Spacing.S)
+                .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral),
+        ) {
+            Surface(
+                shape           = RoundedCornerShape(CardRadius.PROMINENT),
+                color           = Color.Transparent,
+                shadowElevation = 8.dp,
+                modifier        = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(CardRadius.PROMINENT))
+                    .hazeEffect(state = hazeState, style = FrostedGlassStyle),
+            ) {
+                Column(modifier = Modifier.padding(horizontal = Spacing.L).padding(top = Spacing.M, bottom = Spacing.S)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (!isTabRoot) {
+                            IconButton(onClick = onBack, modifier = Modifier.padding(end = Spacing.XS)) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+                            }
+                        }
+                        Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -143,47 +192,43 @@ fun DiaryScreen(
                             val isActive = tab == activeTab
                             Surface(
                                 onClick = { activeTab = tab },
-                                modifier = Modifier.weight(1f).semantics { role = Role.Tab; selected = isActive },
+                                modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
                                 shape = RoundedCornerShape(8.dp),
                                 color = if (isActive) AccentCoral.copy(0.15f) else Color.Transparent,
                                 border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
                             ) {
-                                Text(
-                                    stringResource(tab.labelRes),
-                                    modifier = Modifier.padding(vertical = Spacing.S),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
-                                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 1,
-                                )
+                                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                    Text(
+                                        stringResource(tab.labelRes),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
+                                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 1,
+                                    )
+                                }
                             }
                         }
                     }
                 }
-                ScanEatDivider()
+            }
+        }
 
-                when (activeTab) {
-                    DiaryTab.MEALS    -> MealsTab(viewModel, bottomPadding = bottomClearance)
-                    DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                    DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                    DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                    DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                    DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                }
+        // Only Meals has a manual "search and log" entry point — the other tabs
+        // (weight/water/activity/fasting) each already have their own add
+        // affordance (a "+" button in their own embedded screen).
+        if (activeTab == DiaryTab.MEALS) {
+            FloatingActionButton(
+                onClick = { showAddEntry = true },
+                containerColor = AccentCoral,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
+            ) {
+                Icon(Icons.Default.Add, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
             }
-            // Only Meals has a manual "search and log" entry point — the other tabs
-            // (weight/water/activity/fasting) each already have their own add
-            // affordance (a "+" button in their own embedded screen).
-            if (activeTab == DiaryTab.MEALS) {
-                FloatingActionButton(
-                    onClick = { showAddEntry = true },
-                    containerColor = AccentCoral,
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
-                ) {
-                    Icon(Icons.Default.Add, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
-                }
-            }
+        }
+
+        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = bottomClearance)) {
+            ScanEatSnackbarHost(snackbarHostState)
         }
     }
 
