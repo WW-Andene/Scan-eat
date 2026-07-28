@@ -64,9 +64,15 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                         // every item after it and can lose their remembered thumbnail
                         // state instead of just removing the one item. `images` itself
                         // is small (capped at MAX_QUEUED_PHOTOS) and each ImagePayload
-                        // is structurally unique per captured photo, so the payload
-                        // itself is a stable, sufficient key.
-                        itemsIndexed(images, key = { _, payload -> payload }) { index, payload ->
+                        // is structurally unique per captured photo, so its base64 is a
+                        // stable, sufficient key - NOT the ImagePayload itself: Compose's
+                        // lazy-list key must be a saveable type (String/primitive/
+                        // Parcelable/Serializable, for scroll-state restoration), and a
+                        // plain data class fails that check with
+                        // "IllegalArgumentException: Type of the key ... is not
+                        // supported" the moment this row ever renders - i.e. on every
+                        // single photo capture.
+                        itemsIndexed(images, key = { _, payload -> payload.base64 }) { index, payload ->
                             Box(modifier = Modifier.size(64.dp).clip(RoundedCornerShape(8.dp))
                                 .border(1.dp, OnSurface.copy(0.2f), RoundedCornerShape(8.dp))) {
                                 val bmp = remember(payload) { payload.thumbnail }
