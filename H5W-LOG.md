@@ -263,3 +263,118 @@
   commit's next-action note). Next cycle should pick up the still-unread
   ViewModels (Recipes/Templates/Grocery/CustomFood/Profile/ScanHistory/
   Result) or escalate to scan-eat-server per H5W's ladder.
+
+## Cycle 5 (2026-07-28)
+
+Scope: both A (remaining unread ViewModels) and B (scan-eat-server
+persistence/routing layer), per cycle 4's own recommendation.
+
+### Part A — remaining ViewModels
+Read in full: RecipesViewModel, TemplatesViewModel, GroceryViewModel,
+CustomFoodViewModel, ProfileViewModel, ScanHistoryViewModel,
+OnboardingViewModel, ResultViewModel, and all four Biolism-tab ViewModels
+(BiolismProfileViewModel, EvolutionViewModel, TrackerViewModel,
+DataViewModel). All but one were already clean and heavily hardened -
+every write path already wrapped in runCatching with an actionFailed
+snackbar, StateFlow cold-start values all sensibly defaulted, no
+unguarded parsing, no coroutine scope leaks, loading/error states all
+present where needed.
+
+**Found and fixed:** `DataViewModel.saveManualHR()`/`deleteSession()`
+called `BiolismRepository`'s DataStore writes completely unguarded -
+the exact "one code path missing a check its sibling has" pattern this
+loop keeps finding. Every other Biolism ViewModel in the same package
+(TrackerViewModel.saveSession, BiolismProfileViewModel.save/
+completeOnboarding/skipOnboarding) already wraps its DataStore write in
+runCatching + `_actionFailed` + a one-shot snackbar; DataViewModel's two
+write methods, and DataScreen.kt itself, had none of that wiring at all -
+a DataStore I/O failure (disk full, corrupt prefs file) here would crash
+the whole Biolism "Data" tab instead of surfacing a recoverable error.
+Fixed by adding the same `_actionFailed`/`clearActionFailed()` pair to
+DataViewModel, wrapping both writes in runCatching (rethrowing
+CancellationException first, matching every sibling), and wiring
+DataScreen.kt's LaunchedEffect + ScanEatSnackbarHost following
+TrackerScreen.kt's own embedded-tab pattern exactly (no Scaffold on this
+screen, host overlaid in a Box). Commit a0ef38a.
+
+### Part B — scan-eat-server (first read this session; untouched by
+cycles 1-4, which were all Android-side)
+Read Application.kt, every file under routing/ (ScoreRoute, IdentifyRoute,
+IdentifyMenuRoute + IdentifyRecipeRoute, SuggestRoute, FetchRecipeRoute,
+RouteHelpers, RateLimiter, ClientAddress) and every file under service/
+(OffService, GroqService, ScoreService, LlmLabelParser) in full.
+
+**Persistence: none.** Confirmed explicitly per this cycle's own
+instruction - scan-eat-server has no database, no file-backed state, no
+session store. It's a stateless proxy/orchestration layer: barcode →
+Open Food Facts lookup (with an in-memory TTL+size-capped cache and
+in-flight request coalescing, not persistence) → optional Groq vision-LLM
+augmentation → scoring, or a straight image→LLM path, plus a
+schema.org-recipe-scraping proxy and recipe-suggestion endpoints. No
+database migrations, no user data at rest server-side to audit for
+staleness/corruption bugs the way Android's Room layer needed across
+cycles 1-3.
+
+**Everything else here is already extremely hardened** - clearly the
+product of prior, thorough security/correctness work (the code's own
+comments reference numbered "Fix N" items predating this log, i.e. work
+done before this H5W loop's 4 logged cycles). Specifically verified
+present and correct: per-client rate limiting shared across every
+LLM-calling route (RateLimiter.kt, 30 req/60s) plus a separate budget for
+the anonymous fetch-recipe proxy (20 req/60s); trusted-proxy-aware client
+IP resolution (ClientAddress.kt) that only honors X-Forwarded-For when
+the direct TCP peer is itself inside a trusted CIDR, closing the
+"expose the port with no reverse proxy" X-Forwarded-For spoofing gap;
+SSRF-safe DNS resolution for fetch-recipe (SsrfSafeDns pins the address
+actually connected to, closing the check-then-connect DNS-rebinding
+TOCTOU a naive resolve-then-fetch would leave open) with manual redirect
+following so every hop gets the same public-address check; a JSON
+nesting-depth pre-scan guarding against a stack-overflow DoS via deeply
+nested schema.org JSON-LD; body size caps (12 MB, requiring
+Content-Length so a chunked-encoding request can't bypass it), image
+count caps (8), per-field string length caps on LLM-prompt-injected user
+text (200 chars) with explicit "treat this as a literal food name, not
+instructions" framing in every prompt that embeds caller-supplied text;
+a caller-selectable Groq model allowlist (preventing an anonymous
+Server-mode caller from forcing the operator's key onto an arbitrary,
+possibly costlier model); consistent CancellationException-rethrow-first
+in every retry/catch site (route handlers, GroqService.complete,
+OffService.fetchExact, the top-level StatusPages handler) so a client
+disconnect is never mislogged as a server error; Groq response
+truncation (finish_reason == "length") logged instead of silently
+producing a downstream parse failure indistinguishable from a garbage
+LLM response; nutrition-value clamping with sensible per-domain ceilings
+in both LlmLabelParser (900 kcal/100g cap, matching Android's own
+OcrParser.kt) and FetchRecipeRoute's schema.org nutrition extraction
+(10,000 kcal cap, appropriate for a whole recipe rather than per-100g);
+a bounded, size-capped OFF product-lookup cache with in-flight-request
+coalescing so a burst of concurrent lookups for the same not-yet-cached
+barcode can't each independently fire the 4-candidate GTIN-expansion
+fan-out. Compared every route pairwise (Score/Identify/IdentifyMulti/
+IdentifyMenu/IdentifyRecipe/SuggestRecipes/SuggestFromPantry/FetchRecipe)
+looking for the "one route missing what its sibling has" pattern
+explicitly - found none; every LLM-calling route applies
+rejectIfTooLarge + rejectIfRateLimited + requireGroqKey (or the
+barcode-then-optional-key path for /score) in the same order, and every
+route's catch block ends in the same handleRouteError call.
+
+No T3/blocked items this cycle. H5W-QUEUE.md still empty.
+
+**Next action for whoever picks this up:** Both the Android
+ViewModel/repository layers and the server's routing/service layers are
+now fully read and confirmed clean (bar the one DataViewModel fix above).
+Per H5W's own scope-expansion ladder, the next areas to escalate to are:
+(1) Compose screen empty/loading/error-state correctness for the
+remaining unaudited screens (Recipes/Templates/Grocery/CustomFood/
+Profile/ScanHistory/Result/Onboarding/Biolism-tab screens - only
+Medication/Hydration/Fasting/Diary/MealPlan screens were checked in
+cycle 4), since this cycle only read ViewModels, not their Compose
+screens, for Part A; (2) scan-eat-server's model/ (ApiModels.kt) and
+shared/ (ScoringEngine.kt and its pillar files - CategoryThresholds,
+ProcessingPillar, ScoringKeywords, AdditivesDb, NegativeNutrientsPillar,
+AdditiveRiskPillar, ServerOffMapper, DomainToDto, NutritionalDensityPillar,
+IngredientIntegrityPillar) were not read this cycle at all - the actual
+scoring math/domain-mapping logic, as opposed to the routing/service
+plumbing around it, remains unaudited server-side; (3) once those are
+exhausted, code-quality dimensions (dead code, naming, duplication)
+per H5W's ladder.
