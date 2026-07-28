@@ -73,7 +73,7 @@ internal fun SuggestRecipesDialog(
 ) {
     var ingredient by rememberSaveable { mutableStateOf("") }
     var pantryText by rememberSaveable { mutableStateOf("") }
-    var mode by rememberSaveable { mutableStateOf(SuggestMode.INGREDIENT) }
+    var mode by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(SuggestMode.INGREDIENT) }
     var selectedHistory by remember { mutableStateOf(setOf<String>()) }
     val pantryItems = pantryText.split(',', '\n').map { it.trim() }.filter { it.isNotBlank() }
 
