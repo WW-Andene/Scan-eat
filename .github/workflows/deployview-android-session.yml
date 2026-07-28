@@ -6,7 +6,7 @@ on:
     inputs:
       working_directory:
         description: Subdirectory containing settings.gradle (leave blank for repo root)
-        default: 'scan-eat-android'
+        default: '.'
       branch:
         description: Branch to check out and build
         default: 'claude/app-wide-audit-kcfpmx'
