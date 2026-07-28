@@ -105,7 +105,20 @@ class ScanRepository @Inject constructor(
             entities.mapNotNull { it.toDomain() }
         }
 
-    suspend fun getById(id: Long): ScanResult? = dao.findById(id)?.toDomain()
+    /**
+     * Same engine-version staleness check getCachedByBarcode()/scoreBarcode()'s
+     * cache-hit path already apply - without it, opening a specific History row
+     * (see ResultScanLoader.build, the scanId > 0 path) showed that scan's
+     * pre-engine-bump grade forever, even though every other read path into a
+     * cached row (barcode lookup, live preview) had already been fixed to
+     * rescore locally instead. Rescoring is a pure function over the stored
+     * product, so this never touches the network or the stored row itself -
+     * only the ScanResult handed back to the caller reflects the current engine.
+     */
+    suspend fun getById(id: Long, lang: String = "en"): ScanResult? =
+        dao.findById(id)?.toDomain()?.let { cached ->
+            if (cached.audit.engineVersion != ENGINE_VERSION) cached.copy(audit = scoreProduct(cached.product, lang)) else cached
+        }
 
     /**
      * Same staleness check scoreBarcode()'s own cache-hit path already applies:

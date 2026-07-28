@@ -70,7 +70,7 @@ internal class ResultScanLoader(
         // in History, say) - deliberately isn't filtered the same way: the user
         // asked to see that exact row's stored data, which is a different
         // guarantee than "silently pick something recent for me."
-        val scan = if (scanId > 0L) scanRepo.getById(scanId)
+        val scan = if (scanId > 0L) scanRepo.getById(scanId, lang)
                    else scanRepo.observeHistoryChecked(limit = 1).first().firstOrNull()
 
         if (scan == null) { emit(ScanLoad.Empty); return@flow }
