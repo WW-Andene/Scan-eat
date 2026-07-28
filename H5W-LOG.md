@@ -565,3 +565,82 @@ pass at code-quality dimensions - dead code, naming consistency, duplication
 (unguarded writes, stale-date parsing, engine-version staleness, OFF/LLM
 merge drift) is now exhaustively closed across both the Android app and the
 server.
+
+## Cycle 8 — Depth-escalation phase: UX polish, accessibility, temporal-scale, dead code (2026-07-28)
+
+Per this cycle's brief, correctness-bug-hunting is exhausted; ran the full
+4-item depth-escalation ladder in order.
+
+**1. ScanHistory/Templates filter-vs-search empty-state gap (fixed, commit
+5156426).** Confirmed the exact minor UX gap cycle 6 flagged and deliberately
+deferred: both screens fell back to their generic "library is empty"
+message when a grade filter (History) or meal filter (Templates) - not a
+search query - produced zero rows, misleadingly implying an empty library
+rather than an active filter with no matches. Added `history_empty_grade`/
+`templates_empty_filtered` strings (FR+EN) and branched both screens'
+EmptyListState message on `gradeFilter.value`/`mealFilter.value` before
+falling through to the generic copy, matching the pattern their own
+search-query branch already used.
+
+**2. Accessibility pass on Settings/Onboarding/Profile/Biolism-Data
+snackbars (checked, clean).** All four screens edited in cycles 5-7 to add
+error snackbars already route through the shared `ScanEatSnackbarHost`
+composable, which centrally applies `semantics { liveRegion =
+LiveRegionMode.Polite }` - confirmed this is the one and only snackbar-host
+component used across all four, no raw `SnackbarHost` anywhere in them.
+DataScreen.kt's two `ScanEatSnackbarHost(...)` call sites are in mutually
+exclusive early-return branches (empty-metabolics state vs. loaded state),
+not a duplicate-instance bug. No fix needed.
+
+**3. Temporal accumulation / unbounded-query check on Weight/Activity/
+Biolism (checked, clean).** Traced every DAO backing these three screens.
+`WeightDao`/`ActivityDao`/`ConsumptionDao`/`MedicationLogDao`/
+`ScanScoreHistoryDao` all already have a `trim(keepCount, profileId)` query
+(`DELETE ... WHERE id NOT IN (SELECT id ... ORDER BY ... DESC LIMIT
+:keepCount)`), and their respective Repositories (`WeightRepository`,
+`ActivityRepository`, `ConsumptionRepository`, `MedicationRepository`,
+`ScanRepository`) call `dao.trim(MAX_HISTORY_ROWS, profileId)` after every
+write - so the underlying tables are already bounded regardless of which
+query variant (`observeAll`/`getRange`/etc.) a screen reads, closing off
+the "unbounded SELECT on an ever-growing table" failure mode by construction
+rather than by every call site remembering a LIMIT. Biolism's session
+history (`SessionHistoryStore` in `BiolismSessionHistory.kt`) is even
+simpler - a DataStore-backed JSON list explicitly `.takeLast(20)`-truncated
+on every `saveSession()`, so it can never exceed 20 entries regardless of
+how many workouts a user logs over years of use. This dimension is
+genuinely already solved app-wide; no fix needed.
+
+**4. Dead-code/unused-import sweep on files touched since ecb4ddc (fixed,
+commit 0146c19).** Grepped every import in every file this loop (7 prior
+cycles + this one) has touched, checking each imported symbol for a second
+occurrence beyond its own import line. Found and removed 20 genuinely
+unused imports in `ScanHistoryScreen.kt` (background, LazyRow,
+RoundedCornerShape, KeyboardOptions, Alignment, clip, Role,
+clearAndSetSemantics, contentDescription, role, selected, FontWeight,
+KeyboardType, TextOverflow, dp, sp, ViewModel, viewModelScope,
+HiltViewModel, ScanRepository, Inject - none referenced in the file body,
+apparently copy-paste residue predating this loop), plus one each in
+`ScanRepository.kt` (`KotlinJsonAdapterFactory` - Moshi is injected
+pre-built, never constructed locally), `DataScreen.kt` (`getValue` - no
+`by` delegate syntax in the file; `dp` - no raw dp literals), and
+`ProfileScreen.kt` (`MetricChip` - defined in profile/components but never
+referenced from this screen). Purely subtractive, re-verified post-edit
+with a fresh grep on each symbol to rule out wildcard-import shadowing
+false positives.
+
+No T3/blocked items. H5W-QUEUE.md still empty after 8 cycles.
+
+**Next action for whoever picks this up:** All four items on this cycle's
+ladder are now closed (2 fixed, 2 confirmed clean). Correctness-bug-hunting
+and this round of polish/accessibility/temporal-scale/dead-code passes are
+both exhausted for the areas explicitly scoped so far. Recommended next
+steps: (1) extend the dead-code sweep beyond files this loop has touched -
+it was deliberately scoped narrow this cycle, so a repo-wide unused-import/
+unused-private-function sweep (e.g. via a static grep pass over every
+`*ViewModel.kt`/`*Screen.kt`, not just the ~19 files with loop history) is
+still open; (2) naming-consistency and duplication passes across
+`presentation/`/`data/` per cycle 7's own recommendation, never yet
+started; (3) i18n completeness check - confirm every string added by this
+loop across 8 cycles has both a `values/` (FR) and `values-en/` entry with
+no placeholder/format-arg mismatch, since new strings have been added in
+nearly every cycle without a dedicated cross-check pass.
