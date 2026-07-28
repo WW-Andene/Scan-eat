@@ -471,3 +471,82 @@ pattern - Onboarding, Result, Dashboard, Calendar, and the 4 Biolism screens
 for this dimension, only their ViewModels; (3) once screens are exhausted,
 escalate to code-quality dimensions (dead code, naming, duplication) or
 accessibility/i18n gaps per the ladder.
+
+## Cycle 7 — Final 4th/5th-instance hunt for the unguarded-write bug class (2026-07-28)
+
+Scope: per this cycle's brief, re-grep the entire Android app for the
+unguarded-DataStore/DAO-write bug class one more time, specifically checking
+SettingsViewModel, OnboardingViewModel, and any ViewModel with a save/update/
+delete function not yet individually traced. Read every remaining ViewModel
+by name not yet explicitly confirmed in this log: SettingsViewModel,
+OnboardingViewModel, RemindersViewModel, SplashViewModel.
+
+**Found and fixed a 4th instance (commit 62340a4): `SettingsViewModel`**.
+`saveApiKey()`/`saveCerebrasApiKey()`/`saveServerUrl()` called
+`prefs.setGroqApiKey()`/`setCerebrasApiKey()`/`setServerUrl()` - raw
+`DataStore.edit{}` writes - completely unguarded. Same shape as the
+DataViewModel/ProfileViewModel bugs fixed in cycles 5-6: on failure the
+coroutine would crash and `_savedField` would never flip, so
+SettingsScreen's confirmation checkmark silently never appears - the user
+is left staring at a freshly pasted API key or server URL with zero
+indication whether Save did anything. Fixed via a shared `saveField()`
+helper (runCatching + CancellationException rethrow + `_actionFailed`/
+`clearActionFailed()`), wired to SettingsScreen's `FloatingScreenScaffold`
+via its existing `snackbarHost` slot.
+
+**Found and fixed a 5th, more severe instance (commit 9871f2f):
+`OnboardingViewModel`**. Every write (`setMode`/`setApiKey`/`setServerUrl`/
+`finish`/`saveMinimalProfile`) ran completely unguarded - and
+`saveMinimalProfile` is a `suspend fun` awaited directly inside
+`OnboardingScreen`'s `rememberCoroutineScope().launch { }` with zero
+try/catch anywhere in the whole call chain. A DataStore I/O failure here
+would propagate as an uncaught exception and crash the entire app on a new
+user's very first screen, before they'd ever completed onboarding - the
+worst-case manifestation of this bug class found across all 7 cycles.
+Fixed by routing every write through the same `guarded()` helper pattern,
+and additionally making `saveMinimalProfile` return a success `Boolean` so
+its two call sites (`onSaveAndContinue`/`onSaveAndGoToProfile`) only call
+`finish()` (which navigates onward) when the save actually succeeded,
+instead of unconditionally continuing past a silently-swallowed failure.
+Wired an `actionFailed` snackbar into OnboardingScreen's existing
+`Scaffold`.
+
+**RemindersViewModel and SplashViewModel: confirmed already clean.**
+RemindersViewModel already has the full `_actionFailed`/`guarded()` pattern
+applied to every one of its 15 setters (predates this cycle). SplashViewModel
+has no writes at all - it only reads `onboardingComplete`/`theme`/
+`dyslexicFont`/`colorblindMode` once at cold start.
+
+**This closes out the "unguarded ViewModel write" bug class for real.**
+Every `*ViewModel.kt` file under `presentation/` (26 total) has now been
+individually read and confirmed either already-guarded or fixed across
+cycles 1-7: WeightViewModel/ActivityViewModel (pre-loop), DataViewModel
+(cycle 5), ProfileViewModel (cycle 6), SettingsViewModel + OnboardingViewModel
+(cycle 7) were the five real instances found; every other ViewModel
+(Splash, Activity, BiolismProfile, Data✓, Evolution, Tracker, Calendar,
+CustomFood, Dashboard, Diary, Fasting, Grocery, ScanHistory, Hydration,
+MealPlan, Medication, Onboarding✓, Profile✓, Recipes, Reminders✓, Result,
+Scan, Settings✓, Templates, Weight) was already correctly wired or has no
+write path at all.
+
+No T3/blocked items this cycle. H5W-QUEUE.md still empty.
+
+**Next action for whoever picks this up:** Per this cycle's own scope-
+expansion ladder, since the correctness-bug-hunting phase (unguarded writes,
+stale-date parsing, engine-version staleness, OFF/LLM merge drift) is now
+exhaustively closed across both the Android app and the server, the
+recommended next phase is Depth Escalation / Research & Study:
+(1) **test coverage** - grep confirms there is no test source set at all
+for the domain scoring engine (`domain/engine/scoring/`) on either platform;
+for a health-scoring app this is a real, addressable gap worth at least a
+golden-file test harness covering PersonalScoreEngine/ScoringEngine's major
+pillars (additive risk, negative nutrients, nutritional density, ingredient
+integrity) so future refactors can't silently drift the two engines apart
+again without a fast local signal (currently only caught by manual
+cross-reading, as cycle 6 did by hand); (2) **CI workflow sanity** - re-read
+`.github/workflows/*.yml` end to end for any YAML/step regression introduced
+across cycles 1-7's commits, since there is still no compiler/gradle
+available in this environment to verify any of the seven cycles' changes
+actually build; (3) the two minor filter-vs-search empty-state message gaps
+noted in cycle 6 (ScanHistory/Templates) if nothing higher-value turns up
+in (1)/(2).
