@@ -41,10 +41,41 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
+      - name: Locate built APK
+        run: |
+          APK_PATH="$(pwd)/$(find . -path '*/outputs/apk/debug/*.apk' | head -n1)"
+          echo "APK_PATH=$APK_PATH" >> "$GITHUB_ENV"
+
       - name: Download cloudflared
         run: |
           curl -sL -o /usr/local/bin/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
           chmod +x /usr/local/bin/cloudflared
+
+      - name: Write session script
+        run: |
+          cat > /tmp/dv_session.sh <<'DVEOF'
+          APK="$APK_PATH"
+          PKG=$(${ANDROID_SDK_ROOT}/build-tools/*/aapt dump badging "$APK" | grep package: | sed -e "s/.*name='//" -e "s/'.*//")
+          ACT=$(${ANDROID_SDK_ROOT}/build-tools/*/aapt dump badging "$APK" | grep launchable-activity | sed -e "s/.*name='//" -e "s/'.*//")
+          adb install -r "$APK"
+          adb shell am start -n "$PKG/$ACT"
+          export DV_BRIDGE_TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(24))')
+          echo aW1wb3J0IGh0dHAuc2VydmVyLCBzdWJwcm9jZXNzLCBqc29uLCBvcywgdXJsbGliLnBhcnNlClRPS0VOID0gb3MuZW52aXJvblsnRFZfQlJJREdFX1RPS0VOJ10KY2xhc3MgSChodHRwLnNlcnZlci5CYXNlSFRUUFJlcXVlc3RIYW5kbGVyKToKICAgIGRlZiBfYXV0aChzZWxmKToKICAgICAgICByZXR1cm4gc2VsZi5oZWFkZXJzLmdldCgnQXV0aG9yaXphdGlvbicpID09ICdCZWFyZXIgJyArIFRPS0VOCiAgICBkZWYgX2FkYihzZWxmLCAqYXJncyk6CiAgICAgICAgcmV0dXJuIHN1YnByb2Nlc3MucnVuKFsnYWRiJywgKmFyZ3NdLCBjYXB0dXJlX291dHB1dD1UcnVlKQogICAgZGVmIGRvX0dFVChzZWxmKToKICAgICAgICBpZiBub3Qgc2VsZi5fYXV0aCgpOgogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoNDAxKTsgc2VsZi5lbmRfaGVhZGVycygpOyByZXR1cm4KICAgICAgICBpZiBzZWxmLnBhdGggPT0gJy9zY3JlZW5zaG90JzoKICAgICAgICAgICAgciA9IHNlbGYuX2FkYignZXhlYy1vdXQnLCAnc2NyZWVuY2FwJywgJy1wJykKICAgICAgICAgICAgc2VsZi5zZW5kX3Jlc3BvbnNlKDIwMCk7IHNlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtVHlwZScsICdpbWFnZS9wbmcnKTsgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgICAgIHNlbGYud2ZpbGUud3JpdGUoci5zdGRvdXQpCiAgICAgICAgZWxpZiBzZWxmLnBhdGggPT0gJy91aSc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAndWlhdXRvbWF0b3InLCAnZHVtcCcsICcvc2RjYXJkL2R2X3VpLnhtbCcpCiAgICAgICAgICAgIHIgPSBzZWxmLl9hZGIoJ3NoZWxsJywgJ2NhdCcsICcvc2RjYXJkL2R2X3VpLnhtbCcpCiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSgyMDApOyBzZWxmLnNlbmRfaGVhZGVyKCdDb250ZW50LVR5cGUnLCAnYXBwbGljYXRpb24veG1sJyk7IHNlbGYuZW5kX2hlYWRlcnMoKQogICAgICAgICAgICBzZWxmLndmaWxlLndyaXRlKHIuc3Rkb3V0KQogICAgICAgIGVsc2U6CiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSg0MDQpOyBzZWxmLmVuZF9oZWFkZXJzKCkKICAgIGRlZiBkb19QT1NUKHNlbGYpOgogICAgICAgIGlmIG5vdCBzZWxmLl9hdXRoKCk6CiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSg0MDEpOyBzZWxmLmVuZF9oZWFkZXJzKCk7IHJldHVybgogICAgICAgIGxlbmd0aCA9IGludChzZWxmLmhlYWRlcnMuZ2V0KCdDb250ZW50LUxlbmd0aCcsIDApKQogICAgICAgIGJvZHkgPSBqc29uLmxvYWRzKHNlbGYucmZpbGUucmVhZChsZW5ndGgpIG9yIGIne30nKQogICAgICAgIGlmIHNlbGYucGF0aCA9PSAnL3RhcCc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAnaW5wdXQnLCAndGFwJywgc3RyKGJvZHlbJ3gnXSksIHN0cihib2R5Wyd5J10pKQogICAgICAgIGVsaWYgc2VsZi5wYXRoID09ICcvc3dpcGUnOgogICAgICAgICAgICBzZWxmLl9hZGIoJ3NoZWxsJywgJ2lucHV0JywgJ3N3aXBlJywgc3RyKGJvZHlbJ3gxJ10pLCBzdHIoYm9keVsneTEnXSksIHN0cihib2R5Wyd4MiddKSwgc3RyKGJvZHlbJ3kyJ10pLCBzdHIoYm9keS5nZXQoJ2R1cmF0aW9uTXMnLCAzMDApKSkKICAgICAgICBlbGlmIHNlbGYucGF0aCA9PSAnL3RleHQnOgogICAgICAgICAgICBzZWxmLl9hZGIoJ3NoZWxsJywgJ2lucHV0JywgJ3RleHQnLCB1cmxsaWIucGFyc2UucXVvdGUoYm9keVsndGV4dCddKS5yZXBsYWNlKCclMjAnLCAnJXMnKSkKICAgICAgICBlbGlmIHNlbGYucGF0aCA9PSAnL2tleSc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAnaW5wdXQnLCAna2V5ZXZlbnQnLCBzdHIoYm9keVsna2V5Y29kZSddKSkKICAgICAgICBlbHNlOgogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoNDA0KTsgc2VsZi5lbmRfaGVhZGVycygpOyByZXR1cm4KICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoMjAwKTsgc2VsZi5zZW5kX2hlYWRlcignQ29udGVudC1UeXBlJywgJ2FwcGxpY2F0aW9uL2pzb24nKTsgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgc2VsZi53ZmlsZS53cml0ZShiJ3sib2siOnRydWV9JykKICAgIGRlZiBsb2dfbWVzc2FnZShzZWxmLCAqYSk6IHBhc3MKaHR0cC5zZXJ2ZXIuSFRUUFNlcnZlcigoJzEyNy4wLjAuMScsIDgyODMpLCBIKS5zZXJ2ZV9mb3JldmVyKCk= | base64 -d > /tmp/dv_bridge.py
+          python3 /tmp/dv_bridge.py &
+          sleep 2
+          /usr/local/bin/cloudflared tunnel --url http://127.0.0.1:8283 > /tmp/cf.log 2>&1 &
+          for i in $(seq 1 30); do
+            URL=$(grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' /tmp/cf.log | head -n1)
+            [ -n "$URL" ] && break
+            sleep 2
+          done
+          echo "DV_BRIDGE_URL=$URL"
+          echo "DV_BRIDGE_TOKEN=$DV_BRIDGE_TOKEN"
+          echo "DV_BRIDGE_PACKAGE=$PKG"
+          echo "Session live — waiting for cancellation or timeout."
+          while true; do sleep 60; done
+          DVEOF
+          chmod +x /tmp/dv_session.sh
 
       - name: Boot emulator, install app, start bridge + tunnel
         uses: reactivecircus/android-emulator-runner@v2
@@ -52,24 +83,4 @@ jobs:
           api-level: 34
           arch: x86_64
           profile: pixel_6
-          script: |
-            APK=$(find . -path '*/outputs/apk/debug/*.apk' | head -n1)
-            PKG=$(${ANDROID_SDK_ROOT}/build-tools/*/aapt dump badging "$APK" | grep package: | sed -e "s/.*name='//" -e "s/'.*//")
-            ACT=$(${ANDROID_SDK_ROOT}/build-tools/*/aapt dump badging "$APK" | grep launchable-activity | sed -e "s/.*name='//" -e "s/'.*//")
-            adb install -r "$APK"
-            adb shell am start -n "$PKG/$ACT"
-            export DV_BRIDGE_TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(24))')
-            echo aW1wb3J0IGh0dHAuc2VydmVyLCBzdWJwcm9jZXNzLCBqc29uLCBvcywgdXJsbGliLnBhcnNlClRPS0VOID0gb3MuZW52aXJvblsnRFZfQlJJREdFX1RPS0VOJ10KY2xhc3MgSChodHRwLnNlcnZlci5CYXNlSFRUUFJlcXVlc3RIYW5kbGVyKToKICAgIGRlZiBfYXV0aChzZWxmKToKICAgICAgICByZXR1cm4gc2VsZi5oZWFkZXJzLmdldCgnQXV0aG9yaXphdGlvbicpID09ICdCZWFyZXIgJyArIFRPS0VOCiAgICBkZWYgX2FkYihzZWxmLCAqYXJncyk6CiAgICAgICAgcmV0dXJuIHN1YnByb2Nlc3MucnVuKFsnYWRiJywgKmFyZ3NdLCBjYXB0dXJlX291dHB1dD1UcnVlKQogICAgZGVmIGRvX0dFVChzZWxmKToKICAgICAgICBpZiBub3Qgc2VsZi5fYXV0aCgpOgogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoNDAxKTsgc2VsZi5lbmRfaGVhZGVycygpOyByZXR1cm4KICAgICAgICBpZiBzZWxmLnBhdGggPT0gJy9zY3JlZW5zaG90JzoKICAgICAgICAgICAgciA9IHNlbGYuX2FkYignZXhlYy1vdXQnLCAnc2NyZWVuY2FwJywgJy1wJykKICAgICAgICAgICAgc2VsZi5zZW5kX3Jlc3BvbnNlKDIwMCk7IHNlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtVHlwZScsICdpbWFnZS9wbmcnKTsgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgICAgIHNlbGYud2ZpbGUud3JpdGUoci5zdGRvdXQpCiAgICAgICAgZWxpZiBzZWxmLnBhdGggPT0gJy91aSc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAndWlhdXRvbWF0b3InLCAnZHVtcCcsICcvc2RjYXJkL2R2X3VpLnhtbCcpCiAgICAgICAgICAgIHIgPSBzZWxmLl9hZGIoJ3NoZWxsJywgJ2NhdCcsICcvc2RjYXJkL2R2X3VpLnhtbCcpCiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSgyMDApOyBzZWxmLnNlbmRfaGVhZGVyKCdDb250ZW50LVR5cGUnLCAnYXBwbGljYXRpb24veG1sJyk7IHNlbGYuZW5kX2hlYWRlcnMoKQogICAgICAgICAgICBzZWxmLndmaWxlLndyaXRlKHIuc3Rkb3V0KQogICAgICAgIGVsc2U6CiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSg0MDQpOyBzZWxmLmVuZF9oZWFkZXJzKCkKICAgIGRlZiBkb19QT1NUKHNlbGYpOgogICAgICAgIGlmIG5vdCBzZWxmLl9hdXRoKCk6CiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSg0MDEpOyBzZWxmLmVuZF9oZWFkZXJzKCk7IHJldHVybgogICAgICAgIGxlbmd0aCA9IGludChzZWxmLmhlYWRlcnMuZ2V0KCdDb250ZW50LUxlbmd0aCcsIDApKQogICAgICAgIGJvZHkgPSBqc29uLmxvYWRzKHNlbGYucmZpbGUucmVhZChsZW5ndGgpIG9yIGIne30nKQogICAgICAgIGlmIHNlbGYucGF0aCA9PSAnL3RhcCc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAnaW5wdXQnLCAndGFwJywgc3RyKGJvZHlbJ3gnXSksIHN0cihib2R5Wyd5J10pKQogICAgICAgIGVsaWYgc2VsZi5wYXRoID09ICcvc3dpcGUnOgogICAgICAgICAgICBzZWxmLl9hZGIoJ3NoZWxsJywgJ2lucHV0JywgJ3N3aXBlJywgc3RyKGJvZHlbJ3gxJ10pLCBzdHIoYm9keVsneTEnXSksIHN0cihib2R5Wyd4MiddKSwgc3RyKGJvZHlbJ3kyJ10pLCBzdHIoYm9keS5nZXQoJ2R1cmF0aW9uTXMnLCAzMDApKSkKICAgICAgICBlbGlmIHNlbGYucGF0aCA9PSAnL3RleHQnOgogICAgICAgICAgICBzZWxmLl9hZGIoJ3NoZWxsJywgJ2lucHV0JywgJ3RleHQnLCB1cmxsaWIucGFyc2UucXVvdGUoYm9keVsndGV4dCddKS5yZXBsYWNlKCclMjAnLCAnJXMnKSkKICAgICAgICBlbGlmIHNlbGYucGF0aCA9PSAnL2tleSc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAnaW5wdXQnLCAna2V5ZXZlbnQnLCBzdHIoYm9keVsna2V5Y29kZSddKSkKICAgICAgICBlbHNlOgogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoNDA0KTsgc2VsZi5lbmRfaGVhZGVycygpOyByZXR1cm4KICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoMjAwKTsgc2VsZi5zZW5kX2hlYWRlcignQ29udGVudC1UeXBlJywgJ2FwcGxpY2F0aW9uL2pzb24nKTsgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgc2VsZi53ZmlsZS53cml0ZShiJ3sib2siOnRydWV9JykKICAgIGRlZiBsb2dfbWVzc2FnZShzZWxmLCAqYSk6IHBhc3MKaHR0cC5zZXJ2ZXIuSFRUUFNlcnZlcigoJzEyNy4wLjAuMScsIDgyODMpLCBIKS5zZXJ2ZV9mb3JldmVyKCk= | base64 -d > /tmp/dv_bridge.py
-            python3 /tmp/dv_bridge.py &
-            sleep 2
-            /usr/local/bin/cloudflared tunnel --url http://127.0.0.1:8283 > /tmp/cf.log 2>&1 &
-            for i in $(seq 1 30); do
-              URL=$(grep -o 'https://[a-zA-Z0-9-]*\.trycloudflare\.com' /tmp/cf.log | head -n1)
-              [ -n "$URL" ] && break
-              sleep 2
-            done
-            echo "DV_BRIDGE_URL=$URL"
-            echo "DV_BRIDGE_TOKEN=$DV_BRIDGE_TOKEN"
-            echo "DV_BRIDGE_PACKAGE=$PKG"
-            echo "Session live — waiting for cancellation or timeout."
-            while true; do sleep 60; done
+          script: bash /tmp/dv_session.sh
