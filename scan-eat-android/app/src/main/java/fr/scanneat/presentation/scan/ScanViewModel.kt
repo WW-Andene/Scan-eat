@@ -24,6 +24,7 @@ import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByName
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.ScanResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -486,10 +487,22 @@ class ScanViewModel @Inject constructor(
      */
     fun dismissFound() { clearQueue() }
 
-    /** Confirms saving a detected medication (ScanUiState.MedicationFound) into Traitement. */
+    /**
+     * Confirms saving a detected medication (ScanUiState.MedicationFound) into Traitement.
+     * medicationRepo.save() previously ran completely unguarded here - unlike every other
+     * Room/DataStore write this ViewModel performs (all wrapped and surfaced via
+     * ScanUiState.Error above), so a save failure (e.g. disk full) crashed the app instead
+     * of leaving the confirm dialog up with a visible error.
+     */
     fun saveDetectedMedication(entry: MedicationDbEntry) {
         viewModelScope.launch {
-            medicationRepo.save(name = entry.name, dosage = entry.form, barcode = entry.barcode)
+            runCatching { medicationRepo.save(name = entry.name, dosage = entry.form, barcode = entry.barcode) }
+                .onFailure { e ->
+                    if (e is CancellationException) throw e
+                    val lang = prefs.language.first()
+                    _state.value = ScanUiState.Error(e.message ?: genericErrorMessage(lang))
+                    return@launch
+                }
             clearQueue()
         }
     }

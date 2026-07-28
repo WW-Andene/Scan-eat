@@ -221,11 +221,17 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportFastingCsv(), filenamePrefix = "jeune") }
     }
 
-    fun clearScanHistory() = viewModelScope.launch { backupRepository.clearScanHistory() }
+    // Both previously called their repo's Room/DataStore write completely unguarded -
+    // the same unguarded-write pattern already fixed for saveApiKey/saveServerUrl above
+    // (see this file's comment near saveField) and for every sibling tracker ViewModel
+    // this loop has swept. A write failure here (disk full, corrupt row) crashed the
+    // app instead of surfacing as the shared actionFailed snackbar ActionFailureViewModel
+    // already provides to this class.
+    fun clearScanHistory() = guardedLaunch { backupRepository.clearScanHistory() }
 
     /** clearHistory() was fully implemented with zero callers — FastingScreen shows the full
      *  history/streak but had no way to reset it. Mirrors clearScanHistory()'s reset entry point. */
-    fun clearFastingHistory() = viewModelScope.launch { fastingRepo.clearHistory() }
+    fun clearFastingHistory() = guardedLaunch { fastingRepo.clearHistory() }
 
     /**
      * Full wipe — the exact same OS-level operation as Settings > App > Clear
