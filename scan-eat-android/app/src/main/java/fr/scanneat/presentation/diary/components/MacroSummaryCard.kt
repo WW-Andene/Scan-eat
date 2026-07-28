@@ -61,7 +61,7 @@ private fun MacroRow(totals: ConsumedNutrition, targets: DailyTargets?, accent: 
 
 @Composable
 private fun MacroItem(label: String, value: String, unit: String, target: Int?, accent: androidx.compose.ui.graphics.Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         // Previously only the raw total was shown, with no indication of the
         // profile-derived daily target it should be measured against.
         Text(if (target != null) "$value/$target" else value, style = MaterialTheme.typography.titleMedium, color = accent, fontWeight = FontWeight.Bold)

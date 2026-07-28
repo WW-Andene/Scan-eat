@@ -36,8 +36,12 @@ private val ACTIVITY_PAL = mapOf(
     ActivityLevel.EXTRA_ACTIVE     to 2.20,
 )
 
+// Sex is deliberately NOT required here: "Non précisé" is a valid, privacy-
+// preserving choice in Profile (ProfileSelectors.kt), and it previously
+// blocked every daily-target-dependent feature app-wide (Diary/Dashboard
+// macro targets, the Today widget, personal scoring) for anyone who picked
+// it - forcing a disclosure just to unlock core nutrition math.
 fun hasMinimalProfile(p: Profile): Boolean =
-    p.sex != Sex.NOT_SPECIFIED &&
     (p.ageYears ?: 0) > 0 &&
     (p.heightCm ?: 0.0) > 0.0 &&
     (p.weightKg ?: 0.0) > 0.0
@@ -45,7 +49,15 @@ fun hasMinimalProfile(p: Profile): Boolean =
 /** Mifflin-St Jeor BMR in kcal/day. */
 fun bmrMifflinStJeor(p: Profile): Double? {
     if (!hasMinimalProfile(p)) return null
-    val sexOffset = if (p.sex == Sex.FEMALE) -161.0 else 5.0
+    // NOT_SPECIFIED previously fell through to the male (+5) branch silently,
+    // unreachable in practice only because hasMinimalProfile used to exclude
+    // it outright - now that it doesn't, an unstated sex uses the midpoint of
+    // the male/female offsets rather than silently defaulting to either.
+    val sexOffset = when (p.sex) {
+        Sex.FEMALE        -> -161.0
+        Sex.MALE          -> 5.0
+        Sex.NOT_SPECIFIED -> -78.0
+    }
     // Age has no upper sanity cap upstream in profile entry, and the formula's
     // -5×age term can drive BMR toward/below zero for a very old, light, short
     // profile (e.g. age=130, weight=35kg, height=140cm) - clamped to the range
