@@ -274,6 +274,14 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         vitEMg        = o.vitEMg        ?: l.vitEMg,
         vitKUg        = o.vitKUg        ?: l.vitKUg,
         b12Ug         = o.b12Ug         ?: l.b12Ug,
+        // b1Mg/b2Mg/b3Mg were missing here even though NutritionPer100g carries all
+        // three and mapOffProduct() above already maps them from OFF - any product
+        // that also went through LLM merge (isOffSparse true for some unrelated
+        // field, e.g. missing category) silently dropped OFF's own B1/B2/B3 values
+        // back to null. Mirrors OffMerge.kt's identical fix on the Android project.
+        b1Mg          = o.b1Mg          ?: l.b1Mg,
+        b2Mg          = o.b2Mg          ?: l.b2Mg,
+        b3Mg          = o.b3Mg          ?: l.b3Mg,
         b6Mg          = o.b6Mg          ?: l.b6Mg,
         b9Ug          = o.b9Ug          ?: l.b9Ug,
         omega3G       = o.omega3G       ?: l.omega3G,
