@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun StartFastForm(
     targetHours: Int, onTargetHoursChange: (Int) -> Unit,
@@ -22,7 +23,7 @@ internal fun StartFastForm(
 ) {
     Text(stringResource(R.string.fasting_start_title), style = MaterialTheme.typography.titleMedium, color = OnSurface, fontWeight = FontWeight.SemiBold)
     Text(stringResource(R.string.fasting_target_duration_label), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
-    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         listOf(12, 16, 18, 20, 24).forEach { h ->
             FilterChip(
                 selected = !customMode && targetHours == h, onClick = { onCustomModeChange(false); onTargetHoursChange(h) },
