@@ -2,7 +2,6 @@ package fr.scanneat.data.repository.scan
 
 import androidx.room.withTransaction
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.data.local.db.AppDatabase
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity

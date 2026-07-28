@@ -27,7 +27,6 @@ import fr.scanneat.presentation.profile.components.AllergenSelector
 import fr.scanneat.presentation.profile.components.ConditionsSelector
 import fr.scanneat.presentation.profile.components.DietSelector
 import fr.scanneat.presentation.profile.components.GoalSelector
-import fr.scanneat.presentation.profile.components.MetricChip
 import fr.scanneat.presentation.profile.components.OutlinedInput
 import fr.scanneat.presentation.profile.components.ProfileMetricsPreviewCard
 import fr.scanneat.presentation.profile.components.ProfileSection
