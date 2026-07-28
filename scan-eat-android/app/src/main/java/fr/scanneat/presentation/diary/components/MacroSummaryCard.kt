@@ -42,6 +42,18 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
             )
             MacroRow(totals, goalTargets, Gold)
         }
+        // carbsGDailyMax is only non-null for a macro-budget diet (keto's 20-50g
+        // clinical ketosis ceiling, see DailyTargets.kt) - a user seeing e.g.
+        // "0/30g" right next to protein/fat targets several times higher had no
+        // indication that number was an intentional diet-driven cap rather than
+        // a miscalculated target, so a scan-through of Profile's own diet choice
+        // would read as the app being wrong instead of the diet being strict.
+        if ((targets ?: goalTargets)?.carbsGDailyMax != null) {
+            Text(
+                stringResource(R.string.diary_low_carb_hint),
+                style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f),
+            )
+        }
     }
 }
 

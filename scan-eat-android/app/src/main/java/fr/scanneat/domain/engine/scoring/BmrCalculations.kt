@@ -15,7 +15,10 @@ import kotlin.math.roundToInt
 //     (men 11 mg/day; menstruating women 16 mg/day)
 //   Sodium / BMI: WHO Global Database on BMI (2000); WHO Salt Guideline (2012)
 //   Sat-fat / free-sugar daily budgets: WHO SFA Guideline 2023; WHO Sugars 2015
-//   Athlete protein/carb: IOC Consensus on Sports Nutrition (Br J Sports Med 2018)
+//   Active/deficit protein target: IOC Consensus on Sports Nutrition (Br J
+//     Sports Med 2018); ISSN Position Stand (Jäger et al., J Int Soc Sports
+//     Nutr 2017;14:20) - 1.2-2.0 g/kg for anyone physically active or in an
+//     energy deficit, vs the EFSA PRI's 0.83 g/kg sedentary-maintenance floor
 //   Mifflin-St Jeor BMR: Mifflin et al., JADA 1990;90(3):402
 //   PAL multipliers: FAO/WHO/UNU 2004 Table 5.1
 //   Daily micronutrient targets: EFSA DRV Summary 2017
@@ -105,5 +108,32 @@ fun proteinPriG(p: Profile): Double? {
     val w = p.weightKg ?: return null
     val age = p.ageYears ?: return null
     val perKg = if (age >= 65) 1.0 else 0.83
+    return (w * perKg).roundToInt().toDouble()
+}
+
+/**
+ * Daily protein TARGET shown as Journal/Dashboard's "/target" figure -
+ * distinct from [proteinPriG], which stays the bare EFSA PRI and is still
+ * shown verbatim, correctly labeled "EFSA PRI", in scan results
+ * (ProteinAndBudgetAdjustments.kt). The PRI is a deficiency-avoidance
+ * minimum for a sedentary adult at energy balance - previously dailyTargets()
+ * used it as-is for every profile regardless of activity level or goal, so
+ * e.g. a sedentary user in a Goal.LOSE deficit (actively at risk of losing
+ * lean mass alongside fat) was shown the same 0.83 g/kg minimum as someone
+ * doing nothing about their weight at all. IOC Consensus on Sports Nutrition
+ * (Br J Sports Med 2018) and the ISSN Position Stand (Jäger et al., J Int Soc
+ * Sports Nutr 2017) both put the higher-need range for physically active
+ * people or anyone in an energy deficit at 1.2-2.0 g/kg - applied here as two
+ * independent floors (activity, then goal) rather than picking whichever is
+ * higher, since an active user who is also cutting calories faces both
+ * pressures on lean mass at once, not just one.
+ */
+fun proteinTargetG(p: Profile): Double? {
+    val w = p.weightKg ?: return null
+    val pri = proteinPriG(p) ?: return null
+    var perKg = pri / w
+    if (p.activityLevel != ActivityLevel.SEDENTARY) perKg = maxOf(perKg, 1.2)
+    if (p.activityLevel == ActivityLevel.VERY_ACTIVE || p.activityLevel == ActivityLevel.EXTRA_ACTIVE) perKg = maxOf(perKg, 1.6)
+    if (p.goal == Goal.LOSE) perKg = maxOf(perKg, 1.6)
     return (w * perKg).roundToInt().toDouble()
 }

@@ -61,7 +61,11 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
         Goal.GAIN     -> tdee + GOAL_KCAL_ADJUSTMENT
         Goal.MAINTAIN -> tdee
     }
-    val pri  = proteinPriG(effectiveP) ?: 0.0
+    // proteinTargetG(), not the bare proteinPriG() EFSA minimum - see that
+    // function's own doc comment for why the Journal/Dashboard target needs
+    // to be activity/goal-aware while the scan-result "% of EFSA PRI" callout
+    // (ProteinAndBudgetAdjustments.kt) stays tied to the literal PRI figure.
+    val pri  = proteinTargetG(effectiveP) ?: 0.0
     // Sex-specific iron: menstruating women 16 mg/day (EFSA 2015). Uses the
     // profile's own isMenstruating answer rather than inferring from age —
     // the app already asks this explicitly (ProfileScreen shows the checkbox
