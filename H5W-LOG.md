@@ -153,3 +153,96 @@
   MealPlanViewModel, referenced repeatedly in comments above as already
   having had similar fixes applied but not yet directly read+verified this
   session. No T3/blocked items this cycle - H5W-QUEUE.md still empty.
+
+### Cycle 4 — MedicationViewModel + Hydration/Fasting/Diary/MealPlan ViewModels, 4th-instance hunt (2026-07-28)
+- Read MedicationViewModel.kt, HydrationViewModel.kt, FastingViewModel.kt,
+  DiaryViewModel.kt, MealPlanViewModel.kt in full - the cycle 3 next-action
+  list, exhaustively this time (previously only referenced in comments, never
+  directly read+verified). Checked each for coroutine scope leaks, race
+  conditions on concurrent writes, missing loading/error states, and
+  cold-start StateFlow initial-value bugs, same rubric as cycle 3.
+  All five are already extremely well hardened by many prior sessions:
+  every StateFlow is `stateIn(viewModelScope, WhileSubscribed(5000), <sane
+  default>)`, every write path is `runCatching` + CancellationException
+  rethrow + `_actionFailed` flag, every date-scoped read re-subscribes via a
+  60s-polled `today`/`currentDate` Flow + distinctUntilChanged (not a value
+  frozen at construction) so nothing goes stale across midnight
+  (MedicationViewModel's `today`, HydrationViewModel's `today`,
+  DiaryViewModel's `currentDate`, MealPlanViewModel's `weekDates`).
+  MealPlanViewModel additionally runs a live orphan-slot pruner in `init{}`
+  keyed off recipe/template id sets - re-checked it can't race a legitimate
+  in-flight `setRecipe`/`setTemplate` write (it only ever removes ids that
+  no longer resolve against the *current* recipe/template lists, so a slot
+  set in the same tick it's observed is never pruned - correct). No
+  fixable bug found in any of the five; confirmed clean rather than skipped.
+- HydrationViewModel's `streak`/`weeklyIntake` compute `LocalDate.now()`
+  inline inside their `.map`/`combine` bodies instead of consuming the
+  `today` Flow directly - looked suspicious at first (same shape as the
+  bug class this loop keeps finding: a frozen date). Traced it through:
+  both are downstream of `intake`, which itself is `today.flatMapLatest`,
+  so any midnight rollover already re-triggers this chain within the same
+  60s poll window and `LocalDate.now()` is freshly evaluated at that
+  trigger point, not captured earlier. Functionally equivalent to using
+  `today` directly. No bug - documenting so this isn't re-flagged and
+  re-investigated by a future cycle.
+- Re-ran the 4th-instance hunt requested this cycle: grepped all of
+  data/repository/ for `LocalDate.parse`, `.toLocalDate()`, `.toInt()`,
+  `.toDouble()`, `Json.decode`/`fromJson`/Moshi adapters. Every remaining
+  unguarded-looking hit resolved to one of: (a) already inside a
+  `runCatching`-wrapped `toDomain()`/`parseEntry()` (Weight/Activity/
+  Medication/Consumption/Fasting - all fixed in cycles 2-3), (b) a Moshi/
+  kotlinx.serialization adapter *construction* line, not a decode call site
+  (decode calls themselves are separately guarded), or (c) pure numeric
+  formatting on already-validated in-memory domain values (RecipeModels.kt/
+  CsvExportRepository.kt's `.toInt()` calls on values that were never
+  parsed from a string, just rounded for display/CSV output - not the same
+  risk class at all). Singled out `FastingRepository.streak`'s
+  `LocalDate.parse(date)` (line 153) for closer inspection since it's
+  unguarded and initially looked like a real 4th instance - traced the
+  control flow by hand: it only ever calls `LocalDate.parse` on a `date`
+  string already proven equal (`==`) to `expected`, and `expected` is only
+  ever assigned from `LocalDate.now().toString()` or a prior successful
+  `LocalDate.parse(...).minusDays(1).toString()` - i.e. always a
+  by-construction-valid ISO string. A corrupted/malformed date value in
+  history can never reach this `LocalDate.parse` call because it would
+  first have to fail the `date == expected` equality check (a corrupt
+  string can't coincidentally equal a well-formed ISO date except in the
+  degenerate case where it isn't actually corrupt). Confirmed safe by
+  construction, not a bug - no fix made. The "unguarded LocalDate.parse /
+  toLocalDate() crash-on-corrupt-row" bug class search is now genuinely
+  exhausted a second time with zero new instances found; cycles 2-3's
+  three fixes (Weight/Activity, Medication) were the complete set.
+- Escalated per this cycle's own instruction to the Compose screens once
+  the ViewModel/repository layer turned up nothing: checked
+  MedicationScreen.kt/HydrationScreen.kt/FastingScreen.kt/DiaryScreen.kt/
+  MealPlanScreen.kt for `actionFailed` snackbar wiring and empty-state
+  handling. All five already correctly collect `actionFailed` with
+  `collectAsStateWithLifecycle()`, show a snackbar via `LaunchedEffect` and
+  call `clearActionFailed()` afterward; Medication/Diary explicitly render
+  a distinct empty state (`medications.value.isEmpty()`, `s.entries.
+  isEmpty()`). Hydration/Fasting have no empty-state branch, but neither
+  needs one - both always render a live counter (glass count / fast timer)
+  that is itself the "empty" state (0 mL / no active fast), not a list that
+  could silently render blank. No gap found.
+- Also read HydrationRepository.kt in full (previously only referenced, not
+  directly read+verified) - already correctly guards `LocalDate.parse` in
+  both `prune()` and `observeAll()` via `runCatching { }.getOrNull()`.
+  Clean.
+- No commits this cycle - every area in scope was read in full and
+  confirmed already correct; nothing met the bar for a real, safe fix.
+  No T3/blocked items - H5W-QUEUE.md still empty.
+- Next action for whoever picks this up: the ViewModel layer across the
+  entire presentation/ tree (Weight/Activity/Dashboard/Calendar from cycle
+  3, Medication/Hydration/Fasting/Diary/MealPlan from this cycle) is now
+  fully read and confirmed clean. Remaining unread ViewModels to sweep for
+  completeness: RecipesViewModel, TemplatesViewModel, GroceryViewModel,
+  CustomFoodViewModel, ProfileViewModel, ScanHistoryViewModel/
+  ResultViewModel (partially referenced in comments above but not yet
+  directly read this session). Also unread this session:
+  MealPlanRepository.kt and DayNotesRepository.kt (both referenced but not
+  opened) - worth a quick full read since they're the last two repos under
+  data/repository/ not yet explicitly confirmed clean by name in this log.
+  If those all come back clean too, the repository+ViewModel layers are
+  fully exhausted and the next real scope expansion is the server side
+  (scan-eat-server) or a first pass at code-quality/duplication dimensions
+  per H5W's own ladder.
