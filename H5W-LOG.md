@@ -846,3 +846,113 @@ the 4 checked this cycle) has grown its own independent, uninherited copy
 of the same `_actionFailed`/runCatching-launch pattern and could be
 switched onto the shared base class too — this cycle deliberately scoped
 the check to the 4 ViewModels cycle 9 named, not a full-repo grep.
+
+## Cycle 11 — Cycle 10's own 3-item list, in priority order (2026-07-28)
+
+**1. Repo-wide unused-import sweep (fixed, commit afa064b).** Grepped the 8
+files cycle 9-10 specifically touched (LogSheet.kt, MetabolicHealthScoreCard.kt,
+ActionFailureViewModel.kt, DataViewModel.kt, OnboardingViewModel.kt,
+ProfileViewModel.kt, SettingsViewModel.kt, plus BiolismProfileViewModel.kt found
+by the same glob) first — found one real hit, `MetabolicHealthScoreCard.kt`'s
+unused `androidx.compose.ui.graphics.Color` import, left dangling by cycle 10's
+own token-drift fix (`RoundedCornerShape(12.dp)` → `RoundedCornerShape
+(CardRadius.CONTROL)` never referenced `Color` directly; it was already unused
+before that edit too). While there, also checked the file's other `8.dp`
+`RoundedCornerShape` (a small `SubScoreChip` decorative badge) against
+`CardRadius.kt`'s doc comment — 8dp isn't part of the CONTROL/CARD/PROMINENT
+scale at all, and the doc comment explicitly carves out "small decorative
+radii ... intentionally not folded into this scale" — correctly left alone,
+not drift.
+
+Then ran the genuinely repo-wide sweep cycle 8 explicitly deferred: a script
+scanned all ~437 Kotlin files under `presentation/` and `data/repository/`
+for imports whose symbol name appears nowhere else in the file body. Initial
+pass returned 149 candidates; the overwhelming majority (~65) were
+`androidx.compose.runtime.getValue`/`setValue` false positives — required for
+Kotlin's `by remember {...}` property-delegate operator resolution even
+though they never appear as a literal token in the file text — spot-verified
+against a few files (`ReminderRow.kt`'s `by remember(time)`) and excluded
+from removal as a class. The remaining 83 hits across 39 files were each
+individually verified with a second, targeted grep (checking for `.dp`
+literals, qualified-name usage, wildcard-import shadowing) before removal.
+Two real patterns emerged on inspection: (a) screen files
+(`ActivityScreen.kt`, `HydrationScreen.kt`, `MealPlanScreen.kt`, etc.) still
+importing `ViewModel`/`HiltViewModel`/`Inject`/repository types left over
+from a prior refactor that moved ViewModel construction out of the screen
+into `hiltViewModel()`, and (b) files already migrated onto the
+`Spacing`/`IconSize`/`CardRadius` token system that still imported
+`androidx.compose.ui.unit.dp` or a raw `RoundedCornerShape`/`Color`/
+`FontWeight` no longer referenced. Removed all 83 confirmed-dead import
+lines across 39 files, purely subtractive, re-ran the same scan afterward to
+confirm zero remaining hits (besides the expected getValue/setValue class).
+Commit afa064b.
+
+**2. Security/privacy pass on API-key and backup-export handling (checked,
+clean).** Read `SettingsViewModel`'s `apiKey`/`cerebrasApiKey` StateFlows and
+`saveApiKey`/`saveCerebrasApiKey` end to end into `UserPreferences.kt` and
+`SecureFieldCipher.kt`. Confirmed: (a) both keys are Keystore-backed AES-256/
+GCM encrypted at rest (`SecureFieldCipher`, StrongBox-backed where available,
+non-exportable key, IV+ciphertext-only persisted) with transparent
+migrate-on-read for any pre-encryption plaintext value — this is real,
+already-hardened encryption, not obfuscation; (b) grepped the whole app for
+`Log.d`/`Log.i`/`Log.v` near "apikey"/"groq"/"cerebras" — zero hits; (c)
+`NetworkModule.kt`'s `HttpLoggingInterceptor` is `BuildConfig.DEBUG`-gated
+and set to `Level.BASIC` (method/URL/status/timing only, no headers/body),
+so the `Authorization` header carrying the key is never logged even in debug
+builds — already documented by a prior fix's own comment; (d) traced
+`BackupRepository.exportToJson()`/`BackupModels.kt` — the Groq key is
+explicitly, deliberately excluded from `SettingsBackup` per an existing
+comment ("a backup file shared for debugging or support must not leak a
+credential"); grepped `BackupModels.kt` for "cerebras" and confirmed the
+Cerebras key isn't mentioned at all, meaning it's excluded by omission the
+same as Groq — consistent, not a gap, since neither key is present in any
+backup field; (e) grepped `CsvExportRepository.kt` for the same terms — zero
+hits, none of its 6 CSV exports (diary/biolism/weight/activity/hydration/
+medication) touch API-key or server-URL fields at all. This whole area,
+flagged as unchecked since cycle 9, is genuinely already fully hardened —
+no fix needed.
+
+**3. Final confirmation pass: any other ViewModel needing
+`ActionFailureViewModel` (checked, clean — zero new migrations).** Grepped
+all 27 `*ViewModel.kt` files under `presentation/` for
+`runCatching`/`guarded`/`ActionFailureViewModel` occurrence counts. 25 of 27
+already have the pattern (either extending the base class or, for
+ViewModels not migrated in cycle 10, their own pre-existing
+`runCatching`-guarded write paths from cycles 1-7). The 2 with zero hits —
+`EvolutionViewModel` and `DashboardViewModel` — were read in full to confirm
+why: `EvolutionViewModel` has no write path at all, every member is a
+derived `StateFlow` computed from other repositories' read-only flows
+(confirmed by reading the whole file — no `.launch{}` outside `stateIn`, no
+DataStore/Room write call anywhere); `DashboardViewModel`'s two write-shaped
+public functions (`logGapSuggestion`/`logNeverLoggedScan`) both delegate to
+`DashboardGapLoggingDelegate` (a separate internal class in the same
+package, `DashboardGapLogging.kt`), which already independently implements
+the identical `runCatching` + `CancellationException`-rethrow +
+`_actionFailed` pattern (plus its own re-entrancy guard against double-tap
+duplicate-log races) — my grep on `DashboardViewModel.kt` itself simply
+missed it because the guarding logic lives one file over. No new instance of
+the unguarded-write bug class found; the `ActionFailureViewModel` migration
+set from cycle 10 (DataViewModel/ProfileViewModel/SettingsViewModel/
+OnboardingViewModel) was already complete, and `DashboardGapLoggingDelegate`
+is architecturally a different case (a delegate object, not a `ViewModel`
+subclass) so it isn't a base-class-extension candidate anyway.
+
+No T3/blocked items this cycle. H5W-QUEUE.md still empty after 11 cycles.
+
+**Next action for whoever picks this up:** All 3 items on cycle 10's list are
+now closed (1 real fix, 2 confirmed clean with real reading). Both the
+unguarded-write bug class and the security/privacy angle on API keys are now
+about as exhaustively checked as this loop can make them without a compiler
+or a pen-test. Recommended next steps, since correctness/security/dead-code
+are all freshly re-confirmed clean: (1) a naming-consistency/duplication pass
+across `presentation/`/`data/`, flagged as open since cycle 7 and never yet
+started — this is the last unclaimed item from that cycle's own ladder; (2)
+consider whether `data/` (repositories, not just `presentation/`) also
+carries the same class of dangling/leftover-refactor unused imports this
+cycle found so many of in `presentation/` — this cycle's script did scan
+`data/repository/` too (5 hits found and fixed there), but never checked
+`data/local/`, `data/backup/`, `data/remote/`, `domain/`, or `di/` — worth a
+follow-up pass to close out the sweep completely; (3) a fresh look at
+whether the server side (`scan-eat-server`) has accumulated the same
+unused-import drift, never checked from that specific angle (cycle 5 read
+every server file for logic, not for import hygiene).
