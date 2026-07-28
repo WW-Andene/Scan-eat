@@ -39,17 +39,22 @@ import dev.chrisbanes.haze.hazeSource
  * device that falls back to this opaque fill (confirmed via a real MIUI
  * device's screenshot) rendered it as a flat, hard-edged, visibly lighter
  * rectangle with no blend into the screen at all - reading exactly as "an
- * ugly floating text box," not glass. Blending it most of the way toward
- * [Background] keeps the fallback panel close in tone to the screen behind
- * it on every theme, not just OLED, while still leaving enough contrast for
- * [glassSheen]'s edge highlight to read against it.
+ * ugly floating text box," not glass. An earlier pass blended it 65/35
+ * toward [Background], but a second screenshot from the same device (header
+ * AND bottom nav both still a clearly visible lighter box against near-black
+ * content behind them) confirmed that wasn't enough - and the same
+ * lighten-everything effect happens even on devices with real blur, since
+ * blurring this app's own near-flat near-black gradient background produces
+ * an equally flat, equally light result. Both the fallback blend and the
+ * live tint alpha are dropped hard here so the chrome reads as a bare hint
+ * of glass over the screen rather than a distinct card, on every device.
  */
 val FrostedGlassStyle: HazeStyle
     @Composable get() = run {
-        val fallbackColor = lerp(Background, SurfaceVariant, 0.35f)
+        val fallbackColor = lerp(Background, SurfaceVariant, 0.12f)
         HazeStyle(
             backgroundColor = fallbackColor,
-            tint            = HazeTint(SurfaceVariant.copy(alpha = 0.38f)),
+            tint            = HazeTint(SurfaceVariant.copy(alpha = 0.16f)),
             blurRadius      = 12.dp,
             noiseFactor     = 0f,
         )
