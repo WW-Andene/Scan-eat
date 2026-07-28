@@ -49,6 +49,19 @@ fun OnboardingScreen(
         }
     }
 
+    // Every OnboardingViewModel write previously ran completely unguarded - see
+    // its own actionFailed comment. A failed write now surfaces here as a
+    // one-shot snackbar instead of crashing the app on a new user's first screen.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val actionFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(actionFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     // Previously plain remember{} - MainActivity unlocks orientation for tablets/
     // foldables (smallestScreenWidthDp >= 600), so a rotation there (or any
     // locale/font-scale change, on any device) recreated the Activity and wiped
@@ -65,7 +78,7 @@ fun OnboardingScreen(
     var activity by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(ActivityLevel.MODERATELY_ACTIVE) }
     var goal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(Goal.MAINTAIN) }
 
-    Scaffold(containerColor = Background) { padding ->
+    Scaffold(containerColor = Background, snackbarHost = { ScanEatSnackbarHost(snackbarHostState) }) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding)
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
@@ -147,8 +160,8 @@ fun OnboardingScreen(
                     weightText = weightText, onWeightTextChange = { weightText = it },
                     activity = activity, onActivityChange = { activity = it },
                     goal = goal, onGoalChange = { goal = it },
-                    onSaveAndContinue = { s, age, h, w, act, g -> viewModel.saveMinimalProfile(s, age, h, w, act, g); viewModel.finish() },
-                    onSaveAndGoToProfile = { s, age, h, w, act, g -> viewModel.saveMinimalProfile(s, age, h, w, act, g); viewModel.finish(goToProfile = true) },
+                    onSaveAndContinue = { s, age, h, w, act, g -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g)) viewModel.finish() },
+                    onSaveAndGoToProfile = { s, age, h, w, act, g -> if (viewModel.saveMinimalProfile(s, age, h, w, act, g)) viewModel.finish(goToProfile = true) },
                     onGoToProfileWithoutSaving = { viewModel.finish(goToProfile = true) },
                     onSkip = { viewModel.finish() },
                 )
