@@ -136,14 +136,16 @@ fun GroceryScreen(
                 )
             }
             if (items.value.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    EmptyListState(
-                        icon = Icons.Default.ShoppingCart,
-                        message = stringResource(
-                            if (scopeToPlanned.value) R.string.grocery_empty_planned_body else R.string.grocery_empty_body
-                        ),
-                    )
-                }
+                // Was wrapped in a fillMaxSize() Box, vertically centering it in the
+                // full screen height - every sibling feature (Diary/Recipes/Templates/
+                // CustomFood) places this same component near the top of the content
+                // instead, under the header row.
+                EmptyListState(
+                    icon = Icons.Default.ShoppingCart,
+                    message = stringResource(
+                        if (scopeToPlanned.value) R.string.grocery_empty_planned_body else R.string.grocery_empty_body
+                    ),
+                )
             } else {
             val filteredCheckable = remember(checkable.value, searchQuery) {
                 if (searchQuery.isBlank()) checkable.value

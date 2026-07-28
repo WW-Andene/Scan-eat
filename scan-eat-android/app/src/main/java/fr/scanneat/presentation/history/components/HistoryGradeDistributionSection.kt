@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
+import fr.scanneat.domain.model.Grade
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -25,24 +26,22 @@ internal fun HistoryGradeDistributionSection(gradeDistribution: List<Pair<String
     )
     Row(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))) {
         gradeDistribution.forEach { (grade, count) ->
-            val color = when (grade) {
-                "A" -> semanticGreen()
-                "B" -> semanticAmber()
-                "C" -> AccentCoral
-                else -> semanticRed()
-            }
+            // Was a second, independent grade->color mapping (green/amber/coral/red)
+            // that could silently disagree with gradeColor()'s own colorblind-safe
+            // palettes - this section's bands ("A"/"B"/"C"/"D") already line up
+            // 1:1 with Grade's own labels, so route through the shared accessor.
+            val color = gradeColor(Grade.fromLabel(grade))
             Box(Modifier.weight(count.toFloat() / total).fillMaxHeight().background(color))
         }
     }
     Spacer(Modifier.height(4.dp))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         gradeDistribution.forEach { (grade, count) ->
-            val color = when (grade) {
-                "A" -> semanticGreen()
-                "B" -> semanticAmber()
-                "C" -> AccentCoral
-                else -> semanticRed()
-            }
+            // Was a second, independent grade->color mapping (green/amber/coral/red)
+            // that could silently disagree with gradeColor()'s own colorblind-safe
+            // palettes - this section's bands ("A"/"B"/"C"/"D") already line up
+            // 1:1 with Grade's own labels, so route through the shared accessor.
+            val color = gradeColor(Grade.fromLabel(grade))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                 Box(Modifier.size(6.dp).background(color, RoundedCornerShape(3.dp)))
                 Text("$grade $count", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))

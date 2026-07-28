@@ -95,7 +95,11 @@ fun Modifier.pressScale(interactionSource: InteractionSource): Modifier {
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.97f else 1f,
-        animationSpec = if (reduced) snap() else spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        // Was a bouncy spring - the one motion in the app that contradicted this
+        // file's own "quiet, confident ... overshoot-free ease-out" character
+        // (see rememberHeroEntrance below). Same easing, short duration befitting
+        // a press (not a full entrance).
+        animationSpec = if (reduced) snap() else tween(durationMillis = 100, easing = ScoreRevealEasing),
         label = "pressScale",
     )
     return this.graphicsLayer { scaleX = scale; scaleY = scale }

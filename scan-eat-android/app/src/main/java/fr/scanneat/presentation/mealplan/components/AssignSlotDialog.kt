@@ -40,7 +40,9 @@ internal fun AssignSlotDialog(
         title = { Text(stringResource(R.string.mealplan_assign_title, mealLabel), color = OnBackground) },
         text = {
             if (recipes.isEmpty() && templates.isEmpty()) {
-                Text(stringResource(R.string.mealplan_assign_empty), color = OnBackground.copy(0.6f), style = MaterialTheme.typography.bodySmall)
+                // Was plain Text() - every other empty condition in the app
+                // routes through this shared icon+message component.
+                EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.mealplan_assign_empty))
             } else {
                 LazyColumn(modifier = Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     if (recipes.isNotEmpty()) {
