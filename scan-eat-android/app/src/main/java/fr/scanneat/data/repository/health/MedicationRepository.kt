@@ -128,14 +128,14 @@ class MedicationRepository @Inject constructor(
     // sort needs to move to Kotlin here - takenAt/date ordering is untouched
     // by encrypting this one field.
     fun observeLogByDate(date: LocalDate, profileId: String = "default"): Flow<List<MedicationLogEntry>> =
-        logDao.observeByDate(date.toIsoString(), profileId).map { list -> list.map { it.toLogDomain() } }
+        logDao.observeByDate(date.toIsoString(), profileId).map { list -> list.mapNotNull { it.toLogDomain() } }
 
     suspend fun getLogRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<MedicationLogEntry> =
-        logDao.getRange(from.toIsoString(), to.toIsoString(), profileId).map { it.toLogDomain() }
+        logDao.getRange(from.toIsoString(), to.toIsoString(), profileId).mapNotNull { it.toLogDomain() }
 
     /** Flow counterpart to [getLogRange] — see MedicationLogDao.observeRange's own doc comment. */
     fun observeLogRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<MedicationLogEntry>> =
-        logDao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.map { it.toLogDomain() } }
+        logDao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.mapNotNull { it.toLogDomain() } }
 
     suspend fun logTaken(medication: Medication, date: LocalDate = LocalDate.now(), profileId: String = "default") {
         logDao.insertIfAbsent(medication.id, date.toIsoString(), profileId) {
@@ -156,10 +156,23 @@ class MedicationRepository @Inject constructor(
 
     suspend fun deleteLogEntry(id: String) = logDao.delete(id)
 
-    private fun MedicationLogEntity.toLogDomain() = MedicationLogEntry(
-        id = id, medicationId = medicationId, medicationName = SecureFieldCipher.decryptOrNull(medicationName) ?: medicationName,
-        date = date.toLocalDate(), takenAt = takenAt,
-    )
+    private fun MedicationLogEntity.toLogDomain(): MedicationLogEntry? = runCatching {
+        MedicationLogEntry(
+            id = id, medicationId = medicationId, medicationName = SecureFieldCipher.decryptOrNull(medicationName) ?: medicationName,
+            date = date.toLocalDate(), takenAt = takenAt,
+        )
+    }.onFailure {
+        // Same silent-drop gap already fixed in WeightRepository/ActivityRepository
+        // toDomain() (cycle 2, commit 2717150) - `date.toLocalDate()` is
+        // LocalDate.parse under the hood and throws on a malformed date column.
+        // This was the last sibling repo whose per-row mapper wasn't guarded, so
+        // one corrupted medication_log row previously crashed the whole
+        // observeLogByDate()/getLogRange()/observeLogRange() flow - taking down
+        // Dashboard's otherTrackers, CalendarViewModel's markers/dayDetail, and
+        // MedicationViewModel's adherence log entirely instead of just dropping
+        // that one row.
+        android.util.Log.w("MedicationRepository", "Failed to parse medication log entry id=$id", it)
+    }.getOrNull()
 
     companion object {
         /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
