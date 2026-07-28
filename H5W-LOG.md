@@ -378,3 +378,96 @@ scoring math/domain-mapping logic, as opposed to the routing/service
 plumbing around it, remains unaudited server-side; (3) once those are
 exhausted, code-quality dimensions (dead code, naming, duplication)
 per H5W's ladder.
+
+## Cycle 6 — Server scoring-engine drift check (Part A) + Compose empty/loading/error sweep (Part B)
+
+### Part A — cross-check scan-eat-server's shared/ scoring engine against
+Android's domain/engine/scoring/, looking for a bug where the same product
+would score a different grade depending on Direct-mode vs Server-mode.
+
+Read every file on both sides in full and diffed them with package/import/
+comment-only lines stripped to isolate real logic differences:
+ScoringEngine.kt, CategoryThresholds.kt, ProcessingPillar.kt,
+ScoringKeywords.kt, NegativeNutrientsPillar.kt, AdditiveRiskPillar.kt,
+NutritionalDensityPillar.kt, IngredientIntegrityPillar.kt, AdditivesDb.kt
+(server) vs. AdditivesDb.kt + all 5 AdditivesTierN.kt files (Android),
+ServerOffMapper.kt vs. OffMapper.kt/OffCategoryMapping.kt/
+OffIngredientParsing.kt/OffMerge.kt (Android's post-atomization split).
+
+**Result: no drift bug found.** Every pillar's scoring logic is byte-for-byte
+identical once comments are stripped (all remaining diffs were either
+whitespace or comments explaining a fix already applied identically on
+both sides - e.g. the omega-3 double-count fix, the E150 longest-synonym-
+match fix, the whole-food-ratio fix, the cl/dl weight-parsing fix,
+b1/b2/b3/b9/caffeine vitamin mapping). Additive DB cross-checked by E-number
+set (111 codes, identical on both sides, zero diff). mapCategory/
+classifyNonFood/parseIngredients/additiveTagsToIngredients/parseWeightG all
+logic-identical. Git history confirms these two engines have been kept in
+sync deliberately across many prior fixes (commits like "fix: mirror
+caffeineMg on the server side (Scoring Drift Check)" predate this H5W loop's
+own cycles) - this is a well-maintained pair, not an accidental one.
+
+**Found and fixed a real, symmetric (non-drift) bug while reading
+ServerOffMapper.kt/OffMerge.kt's mergeNutrition():** b1Mg/b2Mg/b3Mg are
+mapped correctly from OFF on both platforms, but `mergeOffWithLlm()`'s
+mergeNutrition() carried forward every other micronutrient (b6Mg, b9Ug,
+b12Ug, vitAUg, etc.) with `o.x ?: l.x` while omitting these three entirely -
+so a product's real, OFF-sourced B1/B2/B3 value silently reset to null the
+moment that product also triggered LLM merge for any unrelated reason
+(isOffSparse() true for missing category/ingredients elsewhere).
+ProductHintsBenefitsRisks.kt derives real benefit/risk hints from these
+three fields, so this was a genuine, user-visible data-loss bug - just one
+present identically on both Android and server rather than a mode-dependent
+drift. Fixed by adding the same `o.x ?: l.x` merge lines for b1Mg/b2Mg/b3Mg
+to both OffMerge.kt (Android) and ServerOffMapper.kt (server), keeping them
+in sync. Commit d0dcd5e.
+
+### Part B — Compose screen empty/loading/error-state correctness
+Read GroceryScreen, CustomFoodScreen, ScanHistoryScreen, TemplatesScreen,
+RecipesScreen, ProfileScreen in full (the 6 screens flagged as unaudited
+by cycle 5, whose ViewModels were just read that cycle).
+
+**Grocery/CustomFood/ScanHistory/Templates/Recipes: clean.** All render a
+distinct EmptyListState (with a query-aware or filter-aware message where
+relevant) instead of blank/stale content; all already have actionFailed
+snackbar wiring for their write paths (a pattern earlier cycles had to
+retrofit repeatedly, now consistently present); Recipes' URL/photo/menu
+import flow has a real Loading/Success/Error sealed ImportUiState rendered
+distinctly via RecipesImportStateDialogs, not a silent-drop. Two very minor,
+lower-value UX gaps noted but not fixed (deliberately, per "small surgical
+diffs" - neither is a silent-drop or crash): ScanHistoryScreen and
+TemplatesScreen both fall back to their generic "library is empty" message
+when a grade/meal filter (not search query) is what's actually producing
+zero rows, rather than a filter-specific "no matches" message search
+already gets.
+
+**ProfileScreen/ProfileViewModel: found and fixed the same DataStore-write-
+unguarded pattern a 3rd time this loop** (after WeightViewModel/
+ActivityViewModel and cycle 5's DataViewModel). `save()` called
+`prefs.saveProfile()` and `biolismRepo.saveBodyMeasurements()`/
+`clearProfileOverride()` - all raw `DataStore.edit{}` calls - with zero
+runCatching, zero actionFailed flow, and the screen's `LaunchedEffect(saved
+.value)` (which pops back on success) simply never firing on a write
+failure, silently stranding the user on the Profile screen after tapping
+Save with no feedback that nothing was written, on top of the coroutine
+crash risk itself. Fixed with the identical runCatching + `_actionFailed`/
+`clearActionFailed()` + ScanEatSnackbarHost wiring used everywhere else this
+bug class has been found. Commit d32159d.
+
+This closes out the DataStore-unguarded-write bug class check for every
+top-level settings/profile-adjacent screen in the app - Weight, Activity,
+Biolism Data tab, and now Profile all confirmed fixed; every other
+ViewModel read across cycles 1-6 already had it.
+
+No T3/blocked items. H5W-QUEUE.md still empty.
+
+**Next action for whoever picks this up:** Both scoring engines and the
+6 screens above are now confirmed clean/fixed. Recommended next steps per
+H5W's ladder: (1) the two very minor filter-vs-search empty-state message
+gaps noted above (ScanHistory/Templates) if pursuing UX polish; (2) sweep
+the remaining unaudited Compose screens for the same empty/loading/error
+pattern - Onboarding, Result, Dashboard, Calendar, and the 4 Biolism screens
+(Tracker/Data/Profile/onboarding sub-screens) were never explicitly checked
+for this dimension, only their ViewModels; (3) once screens are exhausted,
+escalate to code-quality dimensions (dead code, naming, duplication) or
+accessibility/i18n gaps per the ladder.
