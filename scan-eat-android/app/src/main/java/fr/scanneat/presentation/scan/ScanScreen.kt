@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
@@ -349,8 +350,28 @@ fun ScanScreen(
                                     ContextCompat.getMainExecutor(context),
                                     object : ImageCapture.OnImageCapturedCallback() {
                                         override fun onCaptureSuccess(image: ImageProxy) {
-                                            val full = image.toBitmap()
+                                            // image.toBitmap() (CameraX's own extension) only supports
+                                            // YUV_420_888/RGBA_8888 - it throws UnsupportedOperationException
+                                            // on the JPEG-format ImageProxy this in-memory ImageCapture
+                                            // callback actually delivers, crashing on every shelf-mode box
+                                            // tap. Same bug, same fix as CameraPreview.kt's main capture
+                                            // path - this is a separate takePicture() call site that fix
+                                            // didn't cover. No rotation correction here (unlike
+                                            // CameraPreview.kt's fix): box.rect/w/h come from the same
+                                            // ImageAnalysis stream in its raw, unrotated sensor orientation,
+                                            // and cropAroundBox maps box coordinates onto `full` purely by
+                                            // fraction-of-width/height - rotating `full` but not the box
+                                            // would misalign the crop against streams that share that
+                                            // convention already.
+                                            val buffer = image.planes[0].buffer
+                                            val bytes = ByteArray(buffer.remaining())
+                                            buffer.get(bytes)
                                             image.close()
+                                            val full = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                                            if (full == null) {
+                                                shelfPeeks = shelfPeeks.map { if (it.id == peekId) it.copy(status = ShelfPeekStatus.Failed(captureErrorMessage)) else it }
+                                                return
+                                            }
                                             val cropped = cropAroundBox(full, box.rect, w, h)
                                             // Bitmap.createBitmap(source, x, y, w, h) returns `source` itself,
                                             // not a copy, when the requested region is the whole bitmap (x=0,
