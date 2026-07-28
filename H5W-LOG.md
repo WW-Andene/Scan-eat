@@ -644,3 +644,124 @@ started; (3) i18n completeness check - confirm every string added by this
 loop across 8 cycles has both a `values/` (FR) and `values-en/` entry with
 no placeholder/format-arg mismatch, since new strings have been added in
 nearly every cycle without a dedicated cross-check pass.
+
+## Cycle 9 — Scope broadened per explicit user instruction: away from
+database/repository/ViewModel layer, onto feature-completeness, i18n,
+visual consistency, and Compose list-perf (2026-07-28)
+
+**User directive this cycle:** stop focusing narrowly on the database
+layer; the correctness-bug-hunting ladder (unguarded writes, stale-date
+parsing, engine-version staleness, OFF/LLM merge drift) that drove cycles
+1-8 is explicitly done being re-litigated. Ran all 4 items of this
+session's broadened checklist. Every item came back genuinely clean on
+real inspection - documenting each in full so this isn't mistaken for a
+skipped pass.
+
+**1. i18n completeness (values/strings.xml vs values-en/strings.xml).**
+Wrote a small Python script to parse both files' `<string name="...">`
+entries directly (1308 keys each) and diff key sets both directions -
+zero keys missing in either direction. Additionally diffed every shared
+key's format-specifier list (`%s`/`%d`/`%f`, both positional `%1$s` and
+bare forms) between the FR and EN copy of each string - zero mismatches
+across all 1308 pairs, meaning no string risks a runtime
+`MissingFormatArgumentException` or a silently-dropped `%2$s` in one
+locale but not the other. Also grepped `presentation/` for hardcoded
+user-facing `Text("...")` literals (a common way new copy sneaks in
+without ever reaching strings.xml) - none found; every `Text(...)` call
+site already goes through `stringResource(...)`. This closes out cycle
+8's open i18n recommendation with a real, systematic check rather than a
+spot check - genuinely clean, no fix needed.
+
+**2. Feature completeness, both directions.** Re-read every route file
+under `scan-eat-server/.../routing/` (8 endpoints: `/api/score`,
+`/api/identify`, `/api/identify-multi`, `/api/identify-menu`,
+`/api/identify-recipe`, `/api/fetch-recipe`, `/api/suggest-recipes`,
+`/api/suggest-from-pantry`) and traced each one forward through
+`ServerScanApi.kt`'s Retrofit interface to its real Android call site by
+grepping the exact method name (not just the route string, per this
+cycle's explicit instruction not to repeat cycle-N's grep-only false
+positive): `score`→ScanScreen/ScanServerClient, `identify`→
+ScanServerClient, `identifyMulti`→ScanRepository/ScanServerClient,
+`identifyMenu`/`fetchRecipe`/`identifyRecipe`→RecipeServerImportClient,
+`suggestRecipes`/`suggestFromPantry`→RecipesScreen/RecipesImportExt/
+RecipeRepository. All 8 have live, non-stub call chains reaching real UI
+entry points - no orphaned server capability. Reverse direction: grepped
+all of `presentation/` and `data/` for `TODO`/`FIXME`/"not yet
+implemented"/`NotImplemented` - zero hits anywhere in the app. No stub UI
+feature found. Confirmed clean both directions.
+
+**3. Visual/design-consistency pass on screens not specifically named in
+cycles 1-8's design work: Hydration, Fasting, Calendar, Grocery,
+MealPlan.** Read HydrationScreen.kt + its components
+(HydrationSuggestedGoalBanner, HydrationRingAndControls,
+HydrationWeeklyChart), FastingScreen.kt + components (ActiveFastCard,
+FastingHistorySection), CalendarScreen.kt + components (DayDetailCard,
+MonthSummaryBar, MultiMarkerMonthGrid, LegendDot, DetailRow),
+GroceryScreen.kt + GroceryItemRow, MealPlanScreen.kt + components
+(MealPlanDayCard, MealPlanRow, WeeklyKcalBanner, AssignSlotDialog) in
+full, checking every `Surface(`/`Card(` call site for token drift
+(`CardRadius`, not a raw dp corner radius; `glassSheen`/semantic color
+helpers, not ad-hoc colors). Every card-shaped `Surface` already uses
+`RoundedCornerShape(CardRadius.CONTROL)`; every full "card" composable
+already uses `ScanEatCard` (GroceryItemRow, DayDetailCard,
+MealPlanDayCard) or a `glassSheen`-wrapped `Surface` matching the
+established pattern (HydrationWeeklyChart/FastingHistorySection). Small
+semantic-colored stat chips (MonthSummaryBar's 4 month-stat pills,
+ActiveFastCard's streak/record badges) intentionally use a plain
+`color.copy(alpha)`-tinted `Surface` without `glassSheen` - traced this
+against the same pattern already established elsewhere in the app
+(existing stat-chip components predating this session) and confirmed
+it's a deliberate, consistent secondary pattern for at-a-glance color
+coding, not drift. Checked icon sizing too: raw dp values below 20
+(12/14/16/18dp) appear throughout these files for small inline/decorative
+icons - checked `IconSize.kt` and confirmed it only defines tokens for
+`Inline` (20dp), `Nav` (24dp), `EmptyState` (40dp), with no token for
+sub-20dp decorative icons, so these aren't drift from a token that exists
+and is being ignored - they're a category the token system doesn't cover,
+consistent with usage elsewhere in the app. No stray hand-rolled
+`Surface`/corner-radius/color drift found in any of these 5 screens -
+genuinely clean.
+
+**4. Compose list-perf: missing `key = { }` on `LazyColumn`/`LazyRow`
+`items()` calls.** Grepped every file under `presentation/` using
+`LazyColumn`/`LazyRow` for `items(`/`itemsIndexed(` without `key =`.
+Every hit resolved to a screen (RemindersScreen, ProfileScreen,
+SettingsScreen, EvolutionScreen, DataScreen, HydrationScreen,
+CalendarScreen) whose `LazyColumn` is only ever used with fixed, static
+`item { ... }` blocks - one distinct composable per app-defined section,
+never a dynamic `List<T>`-backed `items(list)` call - so `key` genuinely
+doesn't apply (there's no reorderable/insertable collection to give
+identity to). Cross-checked the real list-heavy, dynamically-populated
+screens this item was meant to catch (History/Diary/Recipes/Grocery/
+MealPlan/Templates): every one of their `items(...)` calls already
+supplies `key = { ... }`. No missing-key instance found anywhere in the
+app - this dimension was already fully handled.
+
+**No commits this cycle** - every one of the 4 broadened-scope checks was
+carried out with real reading (scripted i18n diff, call-chain tracing,
+full file reads of 5 previously-unaudited screens + their components,
+exhaustive `items()`/`key` grep), and every one came back genuinely
+clean. This is a legitimate "checked, no gap" result, not a skipped pass -
+documenting in full per this loop's own standing rule against declaring
+"nothing found" without reading the code.
+
+No T3/blocked items. H5W-QUEUE.md still empty after 9 cycles.
+
+**Next action for whoever picks this up:** Per the user's explicit
+instruction this cycle, **do not drift back to database/repository/
+ViewModel-only work** - that ladder was declared closed after 8 cycles of
+its own. Areas from this session's broadened checklist not yet exhausted:
+(1) code-quality dimensions (naming consistency, duplication) across
+`presentation/`/`data/`, flagged as open since cycle 7 and never
+started; (2) a repo-wide unused-import/unused-private-function sweep
+beyond the ~19 files this loop has already touched (cycle 8 only checked
+loop-touched files); (3) a visual/UX pass on the screens this cycle didn't
+reach - Onboarding, Result, Dashboard, the 4 Biolism screens
+(Tracker/Data/Profile/onboarding sub-screens), Reminders - for the same
+`Surface`/`CardRadius`/`glassSheen` drift check just run clean on
+Hydration/Fasting/Calendar/Grocery/MealPlan; (4) a security/privacy pass
+specifically on the Android app's handling of the API key/server URL
+fields (SettingsViewModel) and any exported backup/CSV data, which no
+cycle has looked at from a "what's in this file if someone else opens
+it" angle rather than the "does the write crash" angle cycles 1-8 already
+covered.
