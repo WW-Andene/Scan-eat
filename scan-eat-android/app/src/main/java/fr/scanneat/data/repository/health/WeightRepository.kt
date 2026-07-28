@@ -46,7 +46,7 @@ class WeightRepository @Inject constructor(
 ) {
 
     fun observeAll(profileId: String = "default"): Flow<List<WeightEntry>> =
-        dao.observeAll(profileId).map { list -> list.map { it.toDomain() } }
+        dao.observeAll(profileId).map { list -> list.mapNotNull { it.toDomain() } }
 
     /** Cheap re-trigger signal for callers that only need to know "weight changed",
      *  not the full history - see WeightDao.observeLatest's own doc comment. */
@@ -55,7 +55,7 @@ class WeightRepository @Inject constructor(
 
     /** Bounded range for callers (e.g. Calendar's visible month) that don't need the whole table. */
     fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<WeightEntry>> =
-        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.map { it.toDomain() } }
+        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.mapNotNull { it.toDomain() } }
 
     /** Reactive single-date lookup - see WeightDao.observeByDate's own doc comment. */
     fun observeByDate(date: LocalDate, profileId: String = "default"): Flow<WeightEntry?> =
@@ -185,7 +185,7 @@ class WeightRepository @Inject constructor(
 
     suspend fun summarize(days: Int = 30, profileId: String = "default"): WeightSummary? {
         val all = dao.getRecent(Int.MAX_VALUE, profileId)
-            .map { it.toDomain() }
+            .mapNotNull { it.toDomain() }
             .sortedBy { it.date }
         return summarizeFrom(all, days)
     }
@@ -237,5 +237,16 @@ class WeightRepository @Inject constructor(
         return ((num / den) * 7.0).roundTo1Decimal()
     }
 
-    private fun WeightEntity.toDomain() = WeightEntry(id, date.toLocalDate(), weightKg, SecureFieldCipher.decryptOrNull(notes) ?: notes)
+    private fun WeightEntity.toDomain(): WeightEntry? = runCatching {
+        WeightEntry(id, date.toLocalDate(), weightKg, SecureFieldCipher.decryptOrNull(notes) ?: notes)
+    }.onFailure {
+        // Same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository/
+        // RecipeRepository/MealTemplateRepository/CustomFoodRepository - this was
+        // the one sibling repo whose toDomain() wasn't guarded, so a single
+        // malformed `date` column (LocalDate.parse throws on it) crashed the
+        // whole observeAll()/observeRange()/summarize() flow instead of just
+        // dropping that one row, taking down WeightScreen/Dashboard/Calendar
+        // entirely rather than degrading gracefully.
+        android.util.Log.w("WeightRepository", "Failed to parse weight entry id=$id", it)
+    }.getOrNull()
 }

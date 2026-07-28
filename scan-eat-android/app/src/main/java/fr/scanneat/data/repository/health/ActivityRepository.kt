@@ -110,7 +110,7 @@ class ActivityRepository @Inject constructor(
 ) {
 
     fun observeByDate(date: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
-        dao.observeByDate(date.toIsoString(), profileId).map { list -> list.map { it.toDomain() } }
+        dao.observeByDate(date.toIsoString(), profileId).map { list -> list.mapNotNull { it.toDomain() } }
 
     suspend fun log(
         type: ActivityType,
@@ -209,11 +209,11 @@ class ActivityRepository @Inject constructor(
     }
 
     suspend fun getRange(from: LocalDate, to: LocalDate, profileId: String = "default"): List<ActivityEntry> =
-        dao.getRange(from.toIsoString(), to.toIsoString(), profileId).map { it.toDomain() }
+        dao.getRange(from.toIsoString(), to.toIsoString(), profileId).mapNotNull { it.toDomain() }
 
     /** Observing counterpart to [getRange] — lets a live view (e.g. Calendar's month markers) stay fresh while activity is logged elsewhere, instead of only refreshing on the next one-shot read. */
     fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
-        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.map { it.toDomain() } }
+        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.mapNotNull { it.toDomain() } }
 
     /**
      * Pulls in workouts Health Connect has from an *external* source (a
@@ -252,19 +252,31 @@ class ActivityRepository @Inject constructor(
         dao.trim(MAX_HISTORY_ROWS, profileId)
     }
 
-    private fun ActivityEntity.toDomain() = ActivityEntry(
-        id           = id,
-        date         = date.toLocalDate(),
-        type         = ActivityType.fromKey(type),
-        minutes      = minutes,
-        kcalBurned   = kcalBurned,
-        note         = note,
-        subType      = subType,
-        sets         = sets,
-        reps         = reps,
-        distanceKm   = distanceKm,
-        weightUsedKg = weightUsedKg,
-    )
+    private fun ActivityEntity.toDomain(): ActivityEntry? = runCatching {
+        ActivityEntry(
+            id           = id,
+            date         = date.toLocalDate(),
+            type         = ActivityType.fromKey(type),
+            minutes      = minutes,
+            kcalBurned   = kcalBurned,
+            note         = note,
+            subType      = subType,
+            sets         = sets,
+            reps         = reps,
+            distanceKm   = distanceKm,
+            weightUsedKg = weightUsedKg,
+        )
+    }.onFailure {
+        // Same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository/
+        // RecipeRepository/MealTemplateRepository/CustomFoodRepository/
+        // WeightRepository - this was the other sibling repo whose toDomain()
+        // wasn't guarded, so a single malformed `date` column (LocalDate.parse
+        // throws on it) crashed the whole observeByDate()/getRange()/
+        // observeRange() flow instead of just dropping that one row, taking
+        // down ActivityScreen/Dashboard/Calendar entirely rather than
+        // degrading gracefully.
+        android.util.Log.w("ActivityRepository", "Failed to parse activity entry id=$id", it)
+    }.getOrNull()
 
     companion object {
         /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
