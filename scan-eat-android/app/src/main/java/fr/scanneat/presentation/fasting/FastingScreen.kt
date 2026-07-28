@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.fasting
 
-import kotlinx.coroutines.flow.StateFlow
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

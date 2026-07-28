@@ -23,7 +23,6 @@ import fr.scanneat.domain.engine.dashboard.CrossTrackerInsight
 import fr.scanneat.domain.engine.dashboard.InsightAgreement
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.dispWeight
 import fr.scanneat.presentation.ui.theme.semanticAmber

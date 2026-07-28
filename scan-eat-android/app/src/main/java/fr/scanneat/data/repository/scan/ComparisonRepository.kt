@@ -7,9 +7,7 @@ import com.squareup.moshi.Moshi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.domain.model.MS_PER_DAY
 import fr.scanneat.domain.model.ScanResult
-import fr.scanneat.domain.model.ScoreAudit
 import fr.scanneat.domain.model.Product
-import fr.scanneat.domain.model.ScanSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged

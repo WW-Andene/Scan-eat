@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.Row
@@ -35,7 +34,6 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.ScanEatSnackbarHost
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.dispWeight
 import fr.scanneat.presentation.ui.theme.semanticRed

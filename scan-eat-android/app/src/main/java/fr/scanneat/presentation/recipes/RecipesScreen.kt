@@ -10,20 +10,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -37,7 +33,6 @@ import java.io.ByteArrayOutputStream
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.recipes.components.AddRecipeDialog
-import fr.scanneat.presentation.recipes.components.ImportRecipeUrlDialog
 import fr.scanneat.presentation.recipes.components.LogOfficialRecipeDialog
 import fr.scanneat.presentation.recipes.components.LogRecipeDialog
 import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
@@ -47,7 +42,6 @@ import fr.scanneat.presentation.recipes.components.RecipesImportStateDialogs
 import fr.scanneat.presentation.recipes.components.RecipesSearchField
 import fr.scanneat.presentation.recipes.components.SaveAsTemplateDialog
 import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
-import fr.scanneat.presentation.recipes.components.SuggestRecipesDialog
 import fr.scanneat.presentation.shell.PlanningDestination
 import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*

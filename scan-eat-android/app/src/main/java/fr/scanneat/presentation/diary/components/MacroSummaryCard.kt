@@ -8,7 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.model.ConsumedNutrition
@@ -17,7 +16,6 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.dispWeight
 import kotlin.math.roundToInt
 

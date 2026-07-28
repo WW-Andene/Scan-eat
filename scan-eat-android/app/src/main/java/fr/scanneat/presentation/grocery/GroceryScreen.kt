@@ -1,13 +1,9 @@
 package fr.scanneat.presentation.grocery
 
 import android.content.Intent
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -16,18 +12,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -39,7 +30,6 @@ import fr.scanneat.presentation.grocery.components.GroceryQuickAddRow
 import fr.scanneat.presentation.grocery.components.GroceryTopBarActions
 import fr.scanneat.presentation.grocery.components.categoryLabel
 import fr.scanneat.presentation.shell.PlanningDestination
-import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
 

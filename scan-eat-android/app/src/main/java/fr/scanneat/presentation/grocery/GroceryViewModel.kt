@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.planning.GroceryCheckedRepository
-import fr.scanneat.data.repository.planning.ManualGroceryItem
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
 import fr.scanneat.data.repository.planning.MealPlanRepository
 import fr.scanneat.data.repository.planning.MealPlanSlot

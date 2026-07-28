@@ -11,14 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.R
-import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.health.HYD_GLASS_ML
-import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.presentation.hydration.components.HydrationGoalEditorDialog
 import fr.scanneat.presentation.hydration.components.HydrationRingAndControls
 import fr.scanneat.presentation.hydration.components.HydrationStreakRow
@@ -27,10 +22,6 @@ import fr.scanneat.presentation.hydration.components.HydrationWeeklyChart
 import fr.scanneat.presentation.reminders.HydrationReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.YearMonth
-import javax.inject.Inject
 
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar — used when

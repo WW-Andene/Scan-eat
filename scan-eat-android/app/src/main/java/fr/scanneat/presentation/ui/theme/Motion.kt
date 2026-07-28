@@ -3,7 +3,6 @@ package fr.scanneat.presentation.ui.theme
 import android.provider.Settings
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring

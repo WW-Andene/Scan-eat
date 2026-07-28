@@ -9,8 +9,6 @@ import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.FastingRepository
-import fr.scanneat.data.repository.health.FastingState
-import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository

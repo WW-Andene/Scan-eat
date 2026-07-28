@@ -17,10 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.R
-import fr.scanneat.data.local.prefs.UserPreferences
-import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.ActivityType
 import fr.scanneat.presentation.activity.components.ActivityDailyTotalsCard
 import fr.scanneat.presentation.activity.components.ActivityEntryRow
@@ -34,7 +31,6 @@ import fr.scanneat.presentation.reminders.ActivityReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 // internal (not private) so CalendarScreen's day-detail panel can reuse the same
 // localized labels instead of falling back to ActivityType.labelFr.

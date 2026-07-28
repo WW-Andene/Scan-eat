@@ -16,7 +16,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
-import fr.scanneat.data.repository.health.MedicationLogEntry
 import fr.scanneat.presentation.medication.components.AddMedicationDialog
 import fr.scanneat.presentation.medication.components.MedicationEntryRow
 import fr.scanneat.presentation.medication.components.MedicationInteractionWarningBanner

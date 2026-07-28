@@ -2,7 +2,6 @@ package fr.scanneat.data.repository.planning
 
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.db.template.MealTemplateEntity
 import fr.scanneat.domain.model.*

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Medication
@@ -24,7 +23,6 @@ import fr.scanneat.R
 import fr.scanneat.presentation.dashboard.OtherTrackersSnapshot
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticBlue

@@ -3,7 +3,6 @@ package fr.scanneat.data.repository.nutrition
 import android.content.Context
 import androidx.glance.appwidget.updateAll
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.consumption.ConsumptionEntity
