@@ -81,7 +81,12 @@ jobs:
           fi
           adb install -r "$APK"
           if [ -n "$PKG" ]; then
-            adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1
+            for i in 1 2 3 4 5; do
+              if adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 2>&1 | grep -q 'Events injected'; then
+                break
+              fi
+              sleep 2
+            done
           else
             echo "WARNING: could not determine package name — app installed but not auto-launched"
           fi
