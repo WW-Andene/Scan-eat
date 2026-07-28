@@ -14,6 +14,8 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.*
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.domain.engine.dashboard.*
+import fr.scanneat.domain.engine.nonconsumable.NonConsumableCategory
+import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
 import fr.scanneat.domain.engine.nutrition.*
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
@@ -60,6 +62,7 @@ private fun missingApiKeyMessage(lang: String) =
 @Singleton
 class ScanRepository @Inject constructor(
     private val offApi: OpenFoodFactsApi,
+    private val opfApi: OpenProductsFactsApi,
     private val dao: ScanHistoryDao,
     private val scoreHistoryDao: ScanScoreHistoryDao,
     private val prefs: UserPreferences,
@@ -117,6 +120,33 @@ class ScanRepository @Inject constructor(
         dao.findByBarcode(barcode, profileId)?.toDomain()?.let { cached ->
             if (cached.audit.engineVersion != ENGINE_VERSION) cached.copy(audit = scoreProduct(cached.product, lang)) else cached
         }
+
+    /**
+     * Live Open Products Facts lookup — a fallback for barcodes the bundled
+     * NonConsumableLookupDb CSV (a frozen 2026-07-13 export snapshot) doesn't
+     * cover yet, e.g. a household/personal-care product added to OPF after
+     * that export or just outside the category slice the export query
+     * covered (the reported case: a mouthwash barcode wasn't in the static
+     * CSV and OFF has no reason to know about it either, so scoreBarcode()
+     * fell straight through to a dead-end "product not found" error even
+     * though OPF's own live database has it). classifyNonFood is the same
+     * pure tag-classifier scoreDirectBarcode() already uses on OFF's
+     * categories_tags - reused here since OPF's category tag shape is
+     * identical. Returns null (not an error) on any network failure -
+     * this is a best-effort enrichment on top of the existing "not found"
+     * path, not something that should itself block or fail a scan.
+     */
+    suspend fun findNonConsumableViaOpf(barcode: String): NonConsumableDbEntry? = runCatching {
+        val product = opfApi.getProduct(barcode).product ?: return@runCatching null
+        val name = product.productName ?: ""
+        val category = classifyNonFood(product.categoriesTags, name, product.brands) ?: return@runCatching null
+        NonConsumableDbEntry(
+            barcode  = barcode,
+            name     = name,
+            brand    = product.brands ?: "",
+            category = runCatching { NonConsumableCategory.valueOf(category) }.getOrDefault(NonConsumableCategory.OTHER),
+        )
+    }.getOrNull()
 
     fun observeFavorites(profileId: String = "default"): Flow<List<ScanResult>> =
         dao.observeFavorites(profileId).map { entities -> entities.mapNotNull { it.toDomain() } }

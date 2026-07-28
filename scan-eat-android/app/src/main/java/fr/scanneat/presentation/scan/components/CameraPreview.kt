@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.scan.components
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.util.Size
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -196,7 +198,29 @@ fun CameraPreview(
                 // reads/writes ScanViewModel's photo queue, closing a cross-thread race on it.
                 imageCapture?.takePicture(ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
-                        val bmp = image.toBitmap(); image.close(); onPhotoCaptured(bmp)
+                        // image.toBitmap() (CameraX's own extension) only supports
+                        // YUV_420_888/RGBA_8888 - it throws UnsupportedOperationException
+                        // on the JPEG-format ImageProxy this in-memory ImageCapture
+                        // callback actually delivers, crashing on every single tap of
+                        // the shutter button. Decoding the JPEG bytes directly is the
+                        // correct path for this capture mode; the rotation the sensor
+                        // recorded (imageInfo.rotationDegrees) still needs to be applied
+                        // manually since decodeByteArray ignores it.
+                        val buffer = image.planes[0].buffer
+                        val bytes = ByteArray(buffer.remaining())
+                        buffer.get(bytes)
+                        val rotation = image.imageInfo.rotationDegrees
+                        image.close()
+                        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        if (decoded == null) {
+                            onCaptureError()
+                            return
+                        }
+                        val bmp = if (rotation != 0) {
+                            val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
+                            Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
+                        } else decoded
+                        onPhotoCaptured(bmp)
                     }
                     // Previously unoverridden (falls back to a no-op default) - a capture
                     // failure (camera momentarily reclaimed by another process, buffer/driver

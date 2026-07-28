@@ -431,6 +431,20 @@ class ScanViewModel @Inject constructor(
                                             .getOrDefault(NonConsumableCategory.OTHER),
                                     ),
                                 )
+                            // Neither OFF (food-only) nor the bundled NonConsumableLookupDb
+                            // snapshot (frozen 2026-07-13) had this barcode - before giving up,
+                            // try OPF's own live API (the same public DB the static CSV was
+                            // built from, just not frozen in time). Reported case: a mouthwash
+                            // barcode fell through both of the above to a dead-end "not found"
+                            // error even though OPF has a live record of it. Best-effort only -
+                            // findNonConsumableViaOpf already swallows its own network errors,
+                            // and this never runs offline (no point trying a network call we
+                            // already know will fail).
+                            e is ProductNotFoundException && barcode != null && online -> {
+                                val opfEntry = scanRepo.findNonConsumableViaOpf(barcode)
+                                if (opfEntry != null) ScanUiState.NonConsumableFound(opfEntry)
+                                else ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
+                            }
                             e is ProductNotFoundException ->
                                 ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
                             // A rejected API key (invalid/revoked, not just missing — that
