@@ -17,7 +17,7 @@ import java.time.LocalDate
 internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>) {
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
         val peak = weeklyBurn.maxOf { it.second }.coerceAtLeast(1)
-        val barColor = semanticRed()
+        val barColor = Warm
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.activity_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
             Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {

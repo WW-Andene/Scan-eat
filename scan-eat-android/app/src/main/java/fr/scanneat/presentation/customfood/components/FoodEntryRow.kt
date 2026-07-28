@@ -1,11 +1,10 @@
 package fr.scanneat.presentation.customfood.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +18,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,20 +28,20 @@ import fr.scanneat.presentation.result.HintIconButton
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
 internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHints, onDelete: () -> Unit, onRename: () -> Unit) {
+    // Was a hand-rolled Row+background+clip - the one list row in this app
+    // not built on ScanEatCard, reading flatter/duller next to every sibling
+    // row (DiaryEntryCard, RecipeCard, GroceryItemRow, ...) that gets the
+    // shared card's glassSheen/hierarchy treatment.
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(CardRadius.CONTROL))
-            .background(SurfaceVariant)
-            .padding(Spacing.M),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -119,5 +117,6 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                 )
             }
         }
+    }
     }
 }

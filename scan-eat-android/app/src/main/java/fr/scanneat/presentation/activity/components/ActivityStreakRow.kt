@@ -17,21 +17,12 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun ActivityStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        // New: consecutive-days activity streak badge
+        // Consecutive-days activity streak badge. Uses Warm (this screen's own
+        // accent, see ActivityScreen's ambientGloom) - semanticRed() was wrong
+        // here: it's the app-wide "danger" color, and a streak is a positive
+        // metric, not a warning.
         if (streakDays > 0) {
-            Surface(shape = RoundedCornerShape(50), color = semanticRed().copy(0.15f)) {
-                Row(
-                    modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
-                ) {
-                    Icon(Icons.Default.LocalFireDepartment, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
-                    // stringResource, not a hardcoded "j" (French "jour") suffix -
-                    // an English-language user saw this exact French fragment
-                    // regardless of the app's own in-app language setting.
-                    Text(stringResource(R.string.common_streak_days_compact, streakDays), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
-                }
-            }
+            StreakBadge(streakDays, Warm)
         } else {
             Spacer(Modifier.width(1.dp))
         }

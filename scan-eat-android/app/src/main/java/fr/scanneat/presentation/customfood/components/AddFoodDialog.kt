@@ -10,7 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +27,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
 @Composable
 internal fun AddFoodDialog(
@@ -132,11 +132,6 @@ private fun FoodField(
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor   = AccentCoral,
-            unfocusedBorderColor = OnBackground.copy(0.18f),
-            focusedTextColor     = OnBackground,
-            unfocusedTextColor   = OnBackground,
-        ),
+        colors = scanEatTextFieldColors(),
     )
 }

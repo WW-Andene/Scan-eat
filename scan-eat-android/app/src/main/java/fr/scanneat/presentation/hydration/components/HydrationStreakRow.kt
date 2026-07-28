@@ -17,26 +17,9 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun HydrationStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        // Improvement: 7-day adherence streak badge
+        // 7-day adherence streak badge
         if (streakDays > 0) {
-            Surface(shape = RoundedCornerShape(50), color = semanticBlue().copy(0.15f)) {
-                Row(
-                    modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
-                ) {
-                    Icon(Icons.Default.LocalFireDepartment, null, tint = semanticBlue(), modifier = Modifier.size(16.dp))
-                    // stringResource, not a hardcoded "j" (French "jour") suffix - an
-                    // English-language user saw this exact French fragment regardless
-                    // of the app's own in-app language setting.
-                    Text(
-                        stringResource(R.string.common_streak_days_compact, streakDays),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = semanticBlue(),
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
+            StreakBadge(streakDays, semanticBlue())
         } else {
             Spacer(Modifier.width(1.dp))
         }

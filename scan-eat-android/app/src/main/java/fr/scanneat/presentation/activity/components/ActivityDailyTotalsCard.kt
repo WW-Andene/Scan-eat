@@ -17,7 +17,7 @@ internal fun ActivityDailyTotalsCard(totalKcal: Int, totalMin: Int) {
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(16.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("$totalKcal", style = MaterialTheme.typography.titleLarge, color = semanticRed(), fontWeight = FontWeight.Bold)
+                Text("$totalKcal", style = MaterialTheme.typography.titleLarge, color = Warm, fontWeight = FontWeight.Bold)
                 Text(stringResource(R.string.activity_kcal_burned_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
