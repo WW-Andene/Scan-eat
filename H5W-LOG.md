@@ -765,3 +765,84 @@ fields (SettingsViewModel) and any exported backup/CSV data, which no
 cycle has looked at from a "what's in this file if someone else opens
 it" angle rather than the "does the write crash" angle cycles 1-8 already
 covered.
+
+## Cycle 10 — Visual-consistency pass on remaining unaudited screens + guarded-write dedup (2026-07-28)
+
+Followed cycle 9's own recommendation: (1) design/UX-audit the screens not
+yet specifically checked this loop (Onboarding, Result, Dashboard, all 4
+Biolism sub-screens, Reminders), and (2) check whether the "guarded write +
+actionFailed snackbar" pattern across DataViewModel/ProfileViewModel/
+SettingsViewModel/OnboardingViewModel had become duplicated boilerplate.
+
+**1. Visual-consistency pass (Onboarding/Result/Dashboard/Biolism*4/
+Reminders).** Grepped every `Surface(`/`RoundedCornerShape(`/`Spacing.`/
+`IconSize.`/`glassSheen`/`ScanEatCard` call site across ~15 files
+(OnboardingScreen, ResultScreen + its 8 component files, DashboardScreen,
+RemindersScreen, BiolismScreen, BiolismOnboardingScreen,
+BiolismProfileScreen, FormPrimitives, TrackerScreen +
+TrackerScreenComponents, DataScreen + DataScreenComponents +
+MetabolicHealthScoreCard, EvolutionScreen + EvolutionComponents). Found and
+fixed two genuine, small token-drift instances (commit e5f2ce3):
+- `LogSheet.kt`'s portion-entry `ModalBottomSheet` used a raw
+  `RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)` where
+  `CardRadius.PROMINENT` (also 20dp, documented as the token for exactly
+  "bottom sheets/modals") already existed and is used by
+  `AddDiaryEntryDialog`'s sheet internals.
+- `MetabolicHealthScoreCard`'s small colored score-badge `Surface` used a
+  raw `RoundedCornerShape(12.dp)` where `CardRadius.CONTROL` (12dp,
+  documented for "buttons/chips/badges") already exists and is used by
+  `ScoreBadgesRow.kt` for the same pill-badge role.
+Both are literal substitutions, zero visual/behavioral change, verified by
+re-grepping for any remaining bare 12/16/20dp `RoundedCornerShape` literal
+in the same file set (none left) and confirming both files already import
+`ui.theme.*` so `CardRadius` resolves without a new import. Everything
+else in these ~15 files was already on-token: every card-shaped `Surface`
+uses `CardRadius.CONTROL/CARD/PROMINENT`, every full card uses
+`ScanEatCard` or a `glassSheen`-wrapped `Surface`, `Spacing.*`/`IconSize.*`
+used consistently, sub-20dp decorative icons intentionally uncovered by
+the token system (same conclusion cycle 9 reached on Hydration/Fasting/
+Calendar/Grocery/MealPlan).
+
+**2. Guarded-write pattern duplication (commit 78569d7).** Read
+DataViewModel, ProfileViewModel, SettingsViewModel, OnboardingViewModel in
+full. All four had independently grown the identical trio
+(`_actionFailed`/`actionFailed`/`clearActionFailed()`) plus their own
+runCatching-wrapping launch helper (`guarded`, `saveField`, or inline
+`viewModelScope.launch { runCatching {...} }`) — genuine, safe, mechanical
+duplication per cycle 9's own flag. Extracted a new
+`fr.scanneat.presentation.common.ActionFailureViewModel` abstract base
+class (the trio + `guardedLaunch`/`guardedSuspend`) and switched all four
+ViewModels to extend it instead of `ViewModel()` directly, removing the
+duplicated members. Verified: (a) every call site's
+CancellationException-rethrow-then-flag semantics is byte-for-byte
+preserved: (b) the two callers with post-success side effects
+(`SettingsViewModel.saveField`'s `_savedField` assignment,
+`ProfileViewModel.save`'s `_saved` assignment) only fire when the guarded
+block actually succeeded, same as before, now via `guardedSuspend`'s
+`Boolean` return; (c) every screen reading
+`viewModel.actionFailed`/`.clearActionFailed()` (ProfileScreen,
+SettingsScreen, DataScreen, OnboardingScreen) needed zero changes since
+the public API is identical; (d) no other file in the codebase references
+`ProfileViewModel`/`SettingsViewModel`/`DataViewModel`/`OnboardingViewModel`
+by their old `: ViewModel()` supertype in a way a base-class swap could
+break (grepped for direct type references beyond `hiltViewModel()`/doc
+comments — none found); (e) dropped now-dangling `CancellationException`/
+`ViewModel`/`launch` imports left unused by the extraction in each of the
+4 files, re-grepped each file afterward to confirm no other usage of the
+removed import remained.
+
+No T3/blocked items. H5W-QUEUE.md still empty after 10 cycles.
+
+**Next action for whoever picks this up:** Two items from cycle 9's list
+remain open: (1) a repo-wide unused-import/unused-private-function sweep
+beyond the ~19 files this loop's history has touched (cycle 8 scoped this
+narrow on purpose); (2) a security/privacy pass on the Android app's
+handling of the API key/server URL fields and any exported backup/CSV
+data, from a "what's exposed if this file/field is inspected by someone
+else" angle rather than the "does the write crash" angle already covered.
+Also worth a look: this cycle's `ActionFailureViewModel` extraction opens
+the door to checking whether any *other* ViewModel in the app (outside
+the 4 checked this cycle) has grown its own independent, uninherited copy
+of the same `_actionFailed`/runCatching-launch pattern and could be
+switched onto the shared base class too — this cycle deliberately scoped
+the check to the 4 ViewModels cycle 9 named, not a full-repo grep.
