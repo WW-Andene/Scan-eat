@@ -1381,6 +1381,7 @@
     <string name="medication_interaction_group_dup">Several %1$s active at the same time — bleeding risk</string>
     <string name="medication_interaction_anticoag_nsaid">Anticoagulant + NSAID — high bleeding risk</string>
     <string name="medication_interaction_ssri_maoi">SSRI/SNRI + MAOI — risk of serotonin syndrome</string>
+    <string name="medication_interaction_anticoag_antiplatelet">Anticoagulant + antiplatelet — high bleeding risk</string>
     <string name="medication_group_anticoagulants">anticoagulants</string>
     <string name="medication_group_antiplatelets">antiplatelets</string>
     <string name="medication_group_nsaids">NSAIDs</string>

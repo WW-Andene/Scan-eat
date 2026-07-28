@@ -913,6 +913,7 @@
     <string name="medication_interaction_group_dup">Plusieurs %1$s actifs simultanément — risque hémorragique</string>
     <string name="medication_interaction_anticoag_nsaid">Anticoagulant + AINS — risque hémorragique élevé</string>
     <string name="medication_interaction_ssri_maoi">ISRS/IRSN + IMAO — risque de syndrome sérotoninergique</string>
+    <string name="medication_interaction_anticoag_antiplatelet">Anticoagulant + antiagrégant plaquettaire — risque hémorragique élevé</string>
     <string name="medication_group_anticoagulants">anticoagulants</string>
     <string name="medication_group_antiplatelets">antiagrégants</string>
     <string name="medication_group_nsaids">AINS</string>

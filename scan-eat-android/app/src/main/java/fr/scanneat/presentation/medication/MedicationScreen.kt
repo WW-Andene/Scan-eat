@@ -91,6 +91,7 @@ fun MedicationScreen(
                         is InteractionWarning.GroupDuplicate -> "dup-${warning.group.name}"
                         InteractionWarning.AnticoagNsaid -> "anticoag-nsaid"
                         InteractionWarning.SsriMaoi -> "ssri-maoi"
+                        InteractionWarning.AnticoagAntiplatelet -> "anticoag-antiplatelet"
                     }
                 }) { warning -> MedicationInteractionWarningBanner(warning) }
             }
