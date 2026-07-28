@@ -18,6 +18,7 @@ import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.health.HealthConnectRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -74,16 +75,31 @@ class SettingsViewModel @Inject constructor(
     /** Which field was just saved — SettingsScreen shows a brief confirmation, then clears it. */
     val savedField: StateFlow<String?> = _savedField.asStateFlow()
 
-    fun saveApiKey(key: String) = viewModelScope.launch {
-        prefs.setGroqApiKey(key.trim()); _savedField.value = "apiKey"
+    // saveApiKey/saveCerebrasApiKey/saveServerUrl below wrote to DataStore
+    // completely unguarded - the same "one code path missing a check its
+    // sibling has" pattern already fixed elsewhere this loop (DataViewModel.
+    // saveManualHR/deleteSession, ProfileViewModel.save). A DataStore I/O
+    // failure (disk full, corrupt prefs file) here would crash this
+    // ViewModel's coroutine and _savedField would simply never flip, leaving
+    // the user staring at an unsaved field with zero feedback that Save did
+    // nothing, instead of surfacing a recoverable error.
+    private val _actionFailed = MutableStateFlow(false)
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
+    private fun saveField(fieldKey: String, write: suspend () -> Unit) = viewModelScope.launch {
+        runCatching { write() }.onFailure { e ->
+            if (e is CancellationException) throw e
+            _actionFailed.value = true
+            return@launch
+        }
+        _savedField.value = fieldKey
     }
-    fun saveCerebrasApiKey(key: String) = viewModelScope.launch {
-        prefs.setCerebrasApiKey(key.trim()); _savedField.value = "cerebrasApiKey"
-    }
+
+    fun saveApiKey(key: String) = saveField("apiKey") { prefs.setGroqApiKey(key.trim()) }
+    fun saveCerebrasApiKey(key: String) = saveField("cerebrasApiKey") { prefs.setCerebrasApiKey(key.trim()) }
     fun setMode(m: ApiMode)        = viewModelScope.launch { prefs.setApiMode(m) }
-    fun saveServerUrl(url: String) = viewModelScope.launch {
-        prefs.setServerUrl(url.trim()); _savedField.value = "serverUrl"
-    }
+    fun saveServerUrl(url: String) = saveField("serverUrl") { prefs.setServerUrl(url.trim()) }
     fun clearSavedField() { _savedField.value = null }
     fun setLanguage(lang: String) {
         // Drives both the OCR prompt language (persisted) and the actual app UI locale.

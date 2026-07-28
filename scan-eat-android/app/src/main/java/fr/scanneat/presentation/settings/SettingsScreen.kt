@@ -83,6 +83,20 @@ fun SettingsScreen(
         }
     }
 
+    // saveApiKey/saveCerebrasApiKey/saveServerUrl previously wrote to DataStore
+    // completely unguarded - see SettingsViewModel.actionFailed's own comment.
+    // A failed write now surfaces here as a one-shot snackbar instead of
+    // silently leaving the field unsaved with no feedback.
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val actionFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(actionFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     val context = LocalContext.current
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         val state = backupState.value
@@ -167,6 +181,7 @@ fun SettingsScreen(
             }
         },
         showBottomNavClearance = isTabRoot,
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize()
