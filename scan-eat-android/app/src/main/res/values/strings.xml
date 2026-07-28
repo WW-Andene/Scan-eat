@@ -571,6 +571,7 @@
     <string name="history_empty">Aucun scan enregistré.</string>
     <string name="history_empty_query">Aucun résultat pour \"%1$s\".</string>
     <string name="history_empty_favorites">Aucun favori pour l\'instant — touchez l\'étoile sur un scan pour l\'ajouter.</string>
+    <string name="history_empty_grade">Aucun scan avec ce score.</string>
     <string name="history_load_more">Voir plus d\'anciens scans</string>
     <string name="history_sort">Trier</string>
     <string name="history_sort_recent">Plus récent</string>
@@ -756,6 +757,7 @@
     <!-- ── Templates screen ───────────────────────────────────────────────── -->
     <string name="templates_title">Modèles de repas</string>
     <string name="templates_empty_body">Les modèles de repas sont créés automatiquement lorsque vous enregistrez un repas depuis le journal.</string>
+    <string name="templates_empty_filtered">Aucun modèle pour ce repas.</string>
     <string name="templates_summary">%1$d kcal · %2$d articles · %3$s</string>
     <string name="templates_manage_items_cd">Gérer les aliments du modèle</string>
     <string name="templates_cd_save_as_recipe">Sauvegarder comme recette</string>

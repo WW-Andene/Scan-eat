@@ -159,6 +159,7 @@ fun ScanHistoryScreen(
                             when {
                                 query.value.isNotBlank() -> stringResource(R.string.history_empty_query, query.value)
                                 favoritesOnly.value       -> stringResource(R.string.history_empty_favorites)
+                                gradeFilter.value != null  -> stringResource(R.string.history_empty_grade)
                                 else                      -> stringResource(R.string.history_empty)
                             },
                         )

@@ -570,6 +570,7 @@
     <string name="history_empty">No scans recorded.</string>
     <string name="history_empty_query">No results for \"%1$s\".</string>
     <string name="history_empty_favorites">No favorites yet — tap the star on a scan to add it.</string>
+    <string name="history_empty_grade">No scans with this score.</string>
     <string name="history_load_more">Load older scans</string>
     <string name="history_sort">Sort</string>
     <string name="history_sort_recent">Most recent</string>
@@ -755,6 +756,7 @@
     <!-- ── Templates screen ───────────────────────────────────────────────── -->
     <string name="templates_title">Meal Templates</string>
     <string name="templates_empty_body">Meal templates are created automatically when you log a meal from the diary.</string>
+    <string name="templates_empty_filtered">No templates for this meal.</string>
     <string name="templates_summary">%1$d kcal · %2$d items · %3$s</string>
     <string name="templates_manage_items_cd">Manage template items</string>
     <string name="templates_cd_save_as_recipe">Save as recipe</string>

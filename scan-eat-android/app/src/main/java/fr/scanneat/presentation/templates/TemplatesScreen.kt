@@ -82,7 +82,13 @@ fun TemplatesScreen(
             if (templates.value.isNotEmpty()) {
                 item { TemplatesStatsRow(count = templates.value.size, totalKcal = libraryTotalKcal.value) }
             } else {
-                item { EmptyListState(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_empty_body)) }
+                item {
+                    EmptyListState(
+                        Icons.AutoMirrored.Filled.ListAlt,
+                        if (mealFilter.value != null) stringResource(R.string.templates_empty_filtered)
+                        else stringResource(R.string.templates_empty_body),
+                    )
+                }
             }
             items(templates.value, key = { it.id }) { template ->
                 TemplateCard(
