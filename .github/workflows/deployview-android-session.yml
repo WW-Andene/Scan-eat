@@ -54,48 +54,7 @@ jobs:
             adb install -r "$APK"
             adb shell am start -n "$PKG/$ACT"
             export DV_BRIDGE_TOKEN=$(python3 -c 'import secrets; print(secrets.token_hex(24))')
-            cat > /tmp/dv_bridge.py <<'PYEOF'
-import http.server, subprocess, json, os, urllib.parse
-TOKEN = os.environ['DV_BRIDGE_TOKEN']
-class H(http.server.BaseHTTPRequestHandler):
-    def _auth(self):
-        return self.headers.get('Authorization') == 'Bearer ' + TOKEN
-    def _adb(self, *args):
-        return subprocess.run(['adb', *args], capture_output=True)
-    def do_GET(self):
-        if not self._auth():
-            self.send_response(401); self.end_headers(); return
-        if self.path == '/screenshot':
-            r = self._adb('exec-out', 'screencap', '-p')
-            self.send_response(200); self.send_header('Content-Type', 'image/png'); self.end_headers()
-            self.wfile.write(r.stdout)
-        elif self.path == '/ui':
-            self._adb('shell', 'uiautomator', 'dump', '/sdcard/dv_ui.xml')
-            r = self._adb('shell', 'cat', '/sdcard/dv_ui.xml')
-            self.send_response(200); self.send_header('Content-Type', 'application/xml'); self.end_headers()
-            self.wfile.write(r.stdout)
-        else:
-            self.send_response(404); self.end_headers()
-    def do_POST(self):
-        if not self._auth():
-            self.send_response(401); self.end_headers(); return
-        length = int(self.headers.get('Content-Length', 0))
-        body = json.loads(self.rfile.read(length) or b'{}')
-        if self.path == '/tap':
-            self._adb('shell', 'input', 'tap', str(body['x']), str(body['y']))
-        elif self.path == '/swipe':
-            self._adb('shell', 'input', 'swipe', str(body['x1']), str(body['y1']), str(body['x2']), str(body['y2']), str(body.get('durationMs', 300)))
-        elif self.path == '/text':
-            self._adb('shell', 'input', 'text', urllib.parse.quote(body['text']).replace('%20', '%s'))
-        elif self.path == '/key':
-            self._adb('shell', 'input', 'keyevent', str(body['keycode']))
-        else:
-            self.send_response(404); self.end_headers(); return
-        self.send_response(200); self.send_header('Content-Type', 'application/json'); self.end_headers()
-        self.wfile.write(b'{"ok":true}')
-    def log_message(self, *a): pass
-http.server.HTTPServer(('127.0.0.1', 8283), H).serve_forever()
-            PYEOF
+            echo aW1wb3J0IGh0dHAuc2VydmVyLCBzdWJwcm9jZXNzLCBqc29uLCBvcywgdXJsbGliLnBhcnNlClRPS0VOID0gb3MuZW52aXJvblsnRFZfQlJJREdFX1RPS0VOJ10KY2xhc3MgSChodHRwLnNlcnZlci5CYXNlSFRUUFJlcXVlc3RIYW5kbGVyKToKICAgIGRlZiBfYXV0aChzZWxmKToKICAgICAgICByZXR1cm4gc2VsZi5oZWFkZXJzLmdldCgnQXV0aG9yaXphdGlvbicpID09ICdCZWFyZXIgJyArIFRPS0VOCiAgICBkZWYgX2FkYihzZWxmLCAqYXJncyk6CiAgICAgICAgcmV0dXJuIHN1YnByb2Nlc3MucnVuKFsnYWRiJywgKmFyZ3NdLCBjYXB0dXJlX291dHB1dD1UcnVlKQogICAgZGVmIGRvX0dFVChzZWxmKToKICAgICAgICBpZiBub3Qgc2VsZi5fYXV0aCgpOgogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoNDAxKTsgc2VsZi5lbmRfaGVhZGVycygpOyByZXR1cm4KICAgICAgICBpZiBzZWxmLnBhdGggPT0gJy9zY3JlZW5zaG90JzoKICAgICAgICAgICAgciA9IHNlbGYuX2FkYignZXhlYy1vdXQnLCAnc2NyZWVuY2FwJywgJy1wJykKICAgICAgICAgICAgc2VsZi5zZW5kX3Jlc3BvbnNlKDIwMCk7IHNlbGYuc2VuZF9oZWFkZXIoJ0NvbnRlbnQtVHlwZScsICdpbWFnZS9wbmcnKTsgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgICAgIHNlbGYud2ZpbGUud3JpdGUoci5zdGRvdXQpCiAgICAgICAgZWxpZiBzZWxmLnBhdGggPT0gJy91aSc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAndWlhdXRvbWF0b3InLCAnZHVtcCcsICcvc2RjYXJkL2R2X3VpLnhtbCcpCiAgICAgICAgICAgIHIgPSBzZWxmLl9hZGIoJ3NoZWxsJywgJ2NhdCcsICcvc2RjYXJkL2R2X3VpLnhtbCcpCiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSgyMDApOyBzZWxmLnNlbmRfaGVhZGVyKCdDb250ZW50LVR5cGUnLCAnYXBwbGljYXRpb24veG1sJyk7IHNlbGYuZW5kX2hlYWRlcnMoKQogICAgICAgICAgICBzZWxmLndmaWxlLndyaXRlKHIuc3Rkb3V0KQogICAgICAgIGVsc2U6CiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSg0MDQpOyBzZWxmLmVuZF9oZWFkZXJzKCkKICAgIGRlZiBkb19QT1NUKHNlbGYpOgogICAgICAgIGlmIG5vdCBzZWxmLl9hdXRoKCk6CiAgICAgICAgICAgIHNlbGYuc2VuZF9yZXNwb25zZSg0MDEpOyBzZWxmLmVuZF9oZWFkZXJzKCk7IHJldHVybgogICAgICAgIGxlbmd0aCA9IGludChzZWxmLmhlYWRlcnMuZ2V0KCdDb250ZW50LUxlbmd0aCcsIDApKQogICAgICAgIGJvZHkgPSBqc29uLmxvYWRzKHNlbGYucmZpbGUucmVhZChsZW5ndGgpIG9yIGIne30nKQogICAgICAgIGlmIHNlbGYucGF0aCA9PSAnL3RhcCc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAnaW5wdXQnLCAndGFwJywgc3RyKGJvZHlbJ3gnXSksIHN0cihib2R5Wyd5J10pKQogICAgICAgIGVsaWYgc2VsZi5wYXRoID09ICcvc3dpcGUnOgogICAgICAgICAgICBzZWxmLl9hZGIoJ3NoZWxsJywgJ2lucHV0JywgJ3N3aXBlJywgc3RyKGJvZHlbJ3gxJ10pLCBzdHIoYm9keVsneTEnXSksIHN0cihib2R5Wyd4MiddKSwgc3RyKGJvZHlbJ3kyJ10pLCBzdHIoYm9keS5nZXQoJ2R1cmF0aW9uTXMnLCAzMDApKSkKICAgICAgICBlbGlmIHNlbGYucGF0aCA9PSAnL3RleHQnOgogICAgICAgICAgICBzZWxmLl9hZGIoJ3NoZWxsJywgJ2lucHV0JywgJ3RleHQnLCB1cmxsaWIucGFyc2UucXVvdGUoYm9keVsndGV4dCddKS5yZXBsYWNlKCclMjAnLCAnJXMnKSkKICAgICAgICBlbGlmIHNlbGYucGF0aCA9PSAnL2tleSc6CiAgICAgICAgICAgIHNlbGYuX2FkYignc2hlbGwnLCAnaW5wdXQnLCAna2V5ZXZlbnQnLCBzdHIoYm9keVsna2V5Y29kZSddKSkKICAgICAgICBlbHNlOgogICAgICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoNDA0KTsgc2VsZi5lbmRfaGVhZGVycygpOyByZXR1cm4KICAgICAgICBzZWxmLnNlbmRfcmVzcG9uc2UoMjAwKTsgc2VsZi5zZW5kX2hlYWRlcignQ29udGVudC1UeXBlJywgJ2FwcGxpY2F0aW9uL2pzb24nKTsgc2VsZi5lbmRfaGVhZGVycygpCiAgICAgICAgc2VsZi53ZmlsZS53cml0ZShiJ3sib2siOnRydWV9JykKICAgIGRlZiBsb2dfbWVzc2FnZShzZWxmLCAqYSk6IHBhc3MKaHR0cC5zZXJ2ZXIuSFRUUFNlcnZlcigoJzEyNy4wLjAuMScsIDgyODMpLCBIKS5zZXJ2ZV9mb3JldmVyKCk= | base64 -d > /tmp/dv_bridge.py
             python3 /tmp/dv_bridge.py &
             sleep 2
             /usr/local/bin/cloudflared tunnel --url http://127.0.0.1:8283 > /tmp/cf.log 2>&1 &
