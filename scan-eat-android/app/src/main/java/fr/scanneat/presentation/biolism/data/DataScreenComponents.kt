@@ -91,7 +91,10 @@ internal fun BioCard(
 @Composable
 internal fun MetCellGrid(items: List<Triple<String, String, String>>, accents: List<Color> = emptyList()) {
     items.chunked(2).forEachIndexed { row, pair ->
-        Row(Modifier.fillMaxWidth().padding(bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        // bottom padding now matches this Row's own horizontal spacedBy(Spacing.S) -
+        // previously 6.dp against an 8.dp column gap, so a 2-column grid of cells
+        // had a visibly tighter gap between rows than between columns.
+        Row(Modifier.fillMaxWidth().padding(bottom = Spacing.S), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             pair.forEachIndexed { col, (label, value, sub) ->
                 val accent = accents.getOrNull(row * 2 + col) ?: OnBackground
                 MetCell(label, value, sub, accent, Modifier.weight(1f))
@@ -104,7 +107,9 @@ internal fun MetCellGrid(items: List<Triple<String, String, String>>, accents: L
 @Composable
 internal fun MetCell(label: String, value: String, sub: String, accent: Color = OnBackground, modifier: Modifier = Modifier.fillMaxWidth()) {
     Surface(shape = RoundedCornerShape(8.dp), color = OnBackground.copy(0.04f), modifier = modifier) {
-        Column(Modifier.padding(9.dp)) {
+        // Spacing.S (8dp), not the literal 9.dp this had - one dp off the actual
+        // scale for no reason, next to every other Biolism cell/row padding here.
+        Column(Modifier.padding(Spacing.S)) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), fontWeight = FontWeight.Bold)
             Text(value, style = MaterialTheme.typography.bodySmall, color = accent, fontWeight = FontWeight.SemiBold)
             // Bumped from 0.3f - a UI/UX audit flagged this as real informational
@@ -130,7 +135,7 @@ internal fun InfoRow(label: String, value: String, note: String, color: Color = 
 @Composable
 internal fun Label(text: String, color: Color = OnBackground.copy(0.4f)) {
     Text(text, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold,
-        letterSpacing = 1.sp, modifier = Modifier.padding(bottom = 6.dp))
+        letterSpacing = 1.sp, modifier = Modifier.padding(bottom = Spacing.S))
 }
 
 @Composable
@@ -143,7 +148,9 @@ internal fun TintedPanel(color: Color, content: @Composable ColumnScope.() -> Un
     // which accent color a card passed in.
     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(GLOW_HAZE_ALPHA),
         border = BorderStroke(1.dp, color.copy(GLOW_BORDER_ALPHA)), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(Spacing.S), verticalArrangement = Arrangement.spacedBy(6.dp), content = content)
+        // Inner spacing now matches this Column's own Spacing.S padding, instead of
+        // a literal 6.dp that didn't agree with the container it sits inside.
+        Column(Modifier.padding(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S), content = content)
     }
 }
 
@@ -151,7 +158,12 @@ internal fun TintedPanel(color: Color, content: @Composable ColumnScope.() -> Un
 internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
     val color = colorFromToken(h.colorToken)
     val barPct = (h.value / (h.refHigh * 1.3)).coerceIn(0.0, 1.0).toFloat()
-    Column(Modifier.padding(vertical = 5.dp)) {
+    // Spacing.XS, matching InfoRow's own vertical padding - this and InfoRow render
+    // the same "label/value row in a list" shape in the same cards (e.g.
+    // HormonesCard), and previously used a different literal padding (5.dp vs
+    // InfoRow's Spacing.XS/4dp) for no reason, giving the two row types a visibly
+    // different rhythm next to each other.
+    Column(Modifier.padding(vertical = Spacing.XS)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
             Column {
                 Text(name, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), fontWeight = FontWeight.Medium)
@@ -207,7 +219,11 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
 
 @Composable
 internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: String, color: Color, kcal: Double? = null) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    // Spacing.XS - same reasoning as HormoneRow above: MacroTargetsCard renders
+    // this next to InfoRow (Spacing.XS), and the two previously had a visibly
+    // different vertical rhythm (6.dp vs 4.dp) despite being the same "label/
+    // value row" shape.
+    Row(Modifier.fillMaxWidth().padding(vertical = Spacing.XS), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.bodyMedium, color = color, fontWeight = FontWeight.SemiBold)
             Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
