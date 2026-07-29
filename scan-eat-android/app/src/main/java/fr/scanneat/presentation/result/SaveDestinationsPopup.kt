@@ -28,7 +28,6 @@ import androidx.compose.ui.semantics.Role
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
-import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -96,8 +95,11 @@ private fun DestinationRow(
         // = { onToggle(destination) }) - a second independent actionable control nested
         // inside it is a real screen-reader/interaction conflict (two actionable elements
         // claiming the same tap), not just redundant. Same fix as OnboardingScreen's ModeCard.
-        Checkbox(checked = checked, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = Gold))
-        Icon(if (checked) Icons.Rounded.Star else Icons.Rounded.StarBorder, null, tint = Gold, modifier = Modifier.padding(end = Spacing.XS))
+        // app-audit §E3: was tinted Gold - the Biolism-domain accent - on a purely
+        // Scan'eat/nutrition feature whose own confirm button is already
+        // AccentCoral. Cross-domain accent mismatch within the same dialog.
+        Checkbox(checked = checked, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = AccentCoral))
+        Icon(if (checked) Icons.Rounded.Star else Icons.Rounded.StarBorder, null, tint = AccentCoral, modifier = Modifier.padding(end = Spacing.XS))
         Text(label, style = MaterialTheme.typography.bodyMedium, color = OnBackground)
     }
 }
