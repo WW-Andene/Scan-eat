@@ -30,6 +30,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
 /**
  * Full-screen fallback shown in place of the camera preview: either the device has
@@ -110,6 +111,11 @@ internal fun ManualBarcodeEntry(onSubmit: (String) -> Unit) {
                 { Text(stringResource(R.string.scan_manual_entry_invalid)) }
             } else null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            // art-direction-engine §INPUTS: was left at Material's default field
+            // theming entirely (Gold-tinted focus border/cursor) instead of the
+            // app's own scanEatTextFieldColors() - the one text input on this
+            // fallback screen didn't match every other themed field in the app.
+            colors = scanEatTextFieldColors(),
             modifier = Modifier.width(220.dp),
         )
         Spacer(Modifier.height(Spacing.M))
