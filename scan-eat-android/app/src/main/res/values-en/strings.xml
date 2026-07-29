@@ -841,6 +841,7 @@
     <string name="diary_macro_fat">Fat</string>
     <string name="diary_goal_targets_title">Goal (target weight: %1$s)</string>
     <string name="diary_low_carb_hint">Carbs are deliberately capped by your current diet (Volek &amp; Phinney\'s clinical ketosis range, 20–50 g net carbs/day): in ketosis the brain runs mostly on ketone bodies, and the small amount of glucose still needed is supplied by gluconeogenesis — this isn\'t a calculation error.</string>
+    <string name="diary_low_carb_hint_cd">Why carbs are capped</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
     <string name="diary_edit_portion_label">Portion (g)</string>
 
