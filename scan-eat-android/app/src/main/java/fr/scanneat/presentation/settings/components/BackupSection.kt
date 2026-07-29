@@ -30,6 +30,10 @@ internal fun DataStatChip(icon: androidx.compose.ui.graphics.vector.ImageVector,
         modifier = modifier,
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = OnBackground.copy(0.06f),
+        // art-direction-engine §CARDS: standalone stat tile directly on the
+        // Settings screen background, matching the small-tile elevation tier
+        // established elsewhere - had no shadowElevation at all.
+        shadowElevation = 3.dp,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
