@@ -71,7 +71,16 @@ fun PhysiologicalMetricsCard(
                     value = hrText, onValueChange = { hrText = it; it.toIntOrNull()?.let { bpm -> if (bpm > 0) onSaveManualHR(bpm) } },
                     label = { Text(stringResource(R.string.biolism_physio_hr_input_label)) }, singleLine = true,
                     modifier = Modifier.width(140.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Violet, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                    // design-aesthetic-audit §DC3: cursorColor/focusedLabelColor weren't
+                    // set, so both fell back to Material's default primary (Gold in this
+                    // theme) while the border was explicitly Violet - a focused field
+                    // showed a violet border around a gold cursor/label, same clash
+                    // class already fixed on scanEatTextFieldColors() and LogSheet.
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Violet, unfocusedBorderColor = OnBackground.copy(0.2f),
+                        focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,
+                        cursorColor = Violet, focusedLabelColor = Violet,
+                    ),
                 )
                 // takeIf guards a pre-existing stored 0 (from before onSaveManualHR
                 // rejected non-positive values) from dividing by zero below.
