@@ -28,6 +28,9 @@ internal fun FastingRow(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (active && fastingHours > 0) VioletHaze else VioletTrace,
         border = BorderStroke(1.dp, if (active && fastingHours > 0) VioletBorder else VioletTrace),
+        // art-direction-engine §CARDS: top-level Biolism tracker card with no
+        // shadowElevation at all, unlike the rest of the card system.
+        shadowElevation = 6.dp,
     ) {
         Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
