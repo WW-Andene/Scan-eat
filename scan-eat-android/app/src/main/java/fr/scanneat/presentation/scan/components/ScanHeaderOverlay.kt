@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -110,7 +111,10 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
                     // FAB, instead of only finding out after the round-trip.
                     cachedPreview?.takeIf { it.barcode == barcode }?.let { cached ->
                         Spacer(Modifier.width(Spacing.S))
-                        Surface(shape = RoundedCornerShape(12.dp), color = gradeColor(cached.audit.grade).copy(alpha = 0.2f)) {
+                        // art-direction-engine §DTA: was a raw RoundedCornerShape(12.dp)
+                        // literal instead of the CardRadius.CONTROL token this exact
+                        // value already has a name for.
+                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor(cached.audit.grade).copy(alpha = 0.2f)) {
                             Text(
                                 "${cached.audit.score} ${cached.audit.grade.label}",
                                 style = MaterialTheme.typography.labelMedium,
@@ -216,7 +220,8 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
     val clampedY = yDp.coerceAtLeast(topInset + Spacing.L + 32.dp)
 
     Box(modifier = Modifier.align(Alignment.TopStart).padding(start = clampedX, top = clampedY).width(panelWidth)) {
-        Surface(shape = RoundedCornerShape(16.dp), color = SurfaceVariant.copy(0.94f)) {
+        // same raw-literal drift as above - matches CardRadius.CARD exactly.
+        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(0.94f)) {
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.S, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,

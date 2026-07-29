@@ -141,7 +141,9 @@ fun FastingScreen(
 
             // Timer
             item {
-                ScanEatCard(shape = RoundedCornerShape(CardRadius.PROMINENT), contentPadding = PaddingValues(24.dp)) {
+                // app-audit §E1: was a raw PaddingValues(24.dp) literal instead of the
+                // Spacing.XL token this exact value already has a name for.
+                ScanEatCard(shape = RoundedCornerShape(CardRadius.PROMINENT), contentPadding = PaddingValues(Spacing.XL)) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,

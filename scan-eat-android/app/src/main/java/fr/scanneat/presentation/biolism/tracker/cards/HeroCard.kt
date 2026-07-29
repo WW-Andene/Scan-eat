@@ -33,7 +33,9 @@ internal fun HeroCard(
 ) {
     val heroColor = if (ketosisOn) Teal else Gold
     val displayValue = if (showPerSec) kcalSec else kcalTotal
-    ScanEatCard(contentPadding = PaddingValues(16.dp), emphasis = CardEmphasis.HERO, accent = heroColor) {
+    // design-aesthetic-audit §DTA: was a raw PaddingValues(16.dp) literal instead of
+    // the Spacing.L token this exact value already has a name for.
+    ScanEatCard(contentPadding = PaddingValues(Spacing.L), emphasis = CardEmphasis.HERO, accent = heroColor) {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (ketosisOn) Box(Modifier.size(6.dp).clip(CircleShape).background(Teal))
