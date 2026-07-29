@@ -32,6 +32,9 @@ internal fun ModeCard(selected: Boolean, title: String, subtitle: String, onClic
         // coral tint with a plain gray border around it.
         border  = if (selected) BorderStroke(1.5.dp, AccentCoral) else null,
         modifier = Modifier.fillMaxWidth(),
+        // design-aesthetic-audit §DH: this standalone selectable card had no
+        // shadowElevation at all, unlike the rest of the card system.
+        shadowElevation = 3.dp,
     ) {
         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
             // onClick = null: the whole Surface above is already clickable (onClick = onClick) —
