@@ -46,9 +46,16 @@ fun ErrorBanner(
     // allergen/diet vetoes, non-food detection) - a fresh accessibility audit
     // found it was never announced to TalkBack at all (no liveRegion anywhere in
     // the app). Assertive since it's frequently safety-relevant (allergen match).
+    // app-audit §E5: this shared Surface had no shadowElevation at all - flat
+    // next to every other card in the app (ScanEatCard and 13 other glass
+    // surfaces all got real elevation earlier this audit). A safety-relevant
+    // banner (allergen/diet veto, scan failure) is exactly the surface that
+    // should read as MORE prominent than an ordinary card, not less - HERO-tier
+    // elevation, matching the emphasis this content actually carries.
     Surface(
         modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Assertive },
         color = semanticRed().copy(alpha = 0.15f), shape = RoundedCornerShape(CardRadius.CONTROL),
+        shadowElevation = 10.dp,
     ) {
         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.ErrorOutline, null, tint = semanticRed())
