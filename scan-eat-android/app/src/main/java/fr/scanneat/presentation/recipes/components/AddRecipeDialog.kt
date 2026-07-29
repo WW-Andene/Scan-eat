@@ -39,6 +39,7 @@ import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 

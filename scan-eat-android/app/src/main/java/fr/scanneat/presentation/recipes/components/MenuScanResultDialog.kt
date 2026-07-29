@@ -23,6 +23,7 @@ import fr.scanneat.data.repository.planning.MenuDish
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 
 /**

@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 

@@ -48,6 +48,7 @@ import fr.scanneat.domain.engine.scoring.withKcalOverride
 import fr.scanneat.presentation.MainActivity
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.LocalColorblindMode
+import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticBlue
 import fr.scanneat.util.localizedQuantityString
 import fr.scanneat.util.localizedString
