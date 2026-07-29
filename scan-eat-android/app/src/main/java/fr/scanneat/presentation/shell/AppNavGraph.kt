@@ -168,6 +168,14 @@ fun AppNavGraph(
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onLog  = {
+                    // popBackStack() first - the popUpTo(startDestination){saveState=true}
+                    // below only saves each TAB's own state, it doesn't remove RESULT
+                    // (pushed on top of the Scan tab) from that saved stack. Without this,
+                    // Result stayed saved on top of Scan's own back stack: switching back
+                    // to the Scan tab later restored straight onto this Result screen (not
+                    // the camera), and a back-press from there popped out an extra level to
+                    // whatever tab was open before Scan, instead of just closing Result.
+                    navController.popBackStack()
                     // Match MainShell's tab-switch options exactly — a bare
                     // navigate{launchSingleTop} pushed Diary on top of Scan→Result
                     // instead of switching tabs, so system back from Diary
