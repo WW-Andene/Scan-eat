@@ -29,19 +29,24 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 /**
- * A soft top-light catch + hairline edge, applied over an existing card
- * background so it reads as a lit surface rather than a flat fill.
- * No real-time blur — the app's own gradients are the only thing behind it.
- * Clips to [shape] so the overlay never peeks past a rounded corner — pass
- * the same shape used by the card's own Surface/background underneath.
+ * A hairline top edge, applied over an existing card background so it reads
+ * as a lit surface rather than a flat fill. No real-time blur — the app's
+ * own gradients (or [ambientGloom]) are the only thing behind it. Clips to
+ * [shape] so the overlay never peeks past a rounded corner — pass the same
+ * shape used by the card's own Surface/background underneath.
  *
- * Frosted-glass rework: the dot-grain texture this used to layer on top
- * (via a since-removed grainTexture()) read as visual noise/false "shimmer"
- * rather than physical texture, so it's gone — [glowTint]/[glowAlpha] (a
- * soft internal glow blob, upper-left) and [reliefAlpha] (a matching dark
- * gradient at the bottom) are the only extra layers over the base sheen+edge
- * now, both kept deliberately subtle so they never fight the content drawn
- * on top of them.
+ * Reference pass: compared directly against Whispering Wishes' own glass
+ * chrome (backdrop-filter: blur() + box-shadow + a single hairline border,
+ * nothing else layered on top) after this app's version kept showing a
+ * visible tint artifact tied to the header title / nav label text, on
+ * every header and the nav bar alike, that survived several earlier
+ * targeted fixes. This used to also draw a top "sheen" wash, a corner glow
+ * blob, and a bottom "relief" shade - three extra translucent full-rect
+ * layers stacked directly over that same text on every floating header/nav
+ * bar in the app. Matching the simpler, proven-clean formula: blur (via
+ * hazeEffect at the call site) + shadowElevation (also at the call site) +
+ * this hairline only. [glowTint]/[glowAlpha]/[reliefAlpha] stay as
+ * accepted-but-unused parameters so existing call sites don't need to change.
  */
 fun Modifier.glassSheen(
     edgeAlpha: Float = 0.28f,
@@ -52,19 +57,6 @@ fun Modifier.glassSheen(
 ): Modifier = this
     .clip(shape)
     .drawWithCache {
-        val glow = if (glowAlpha > 0f) Brush.radialGradient(
-            colors = listOf(glowTint.copy(alpha = glowAlpha), Color.Transparent),
-            center = Offset(size.width * 0.16f, size.height * 0.08f),
-            radius = size.maxDimension * 0.75f,
-        ) else null
-        val sheen = Brush.verticalGradient(
-            colors = listOf(Color.White.copy(alpha = 0.04f), Color.Transparent),
-            endY = size.height * 0.45f,
-        )
-        val relief = if (reliefAlpha > 0f) Brush.verticalGradient(
-            colors = listOf(Color.Transparent, Color.Black.copy(alpha = reliefAlpha)),
-            startY = size.height * 0.55f,
-        ) else null
         // Fades in/out via its own gradient stops instead of a flat color cut
         // off partway across the width (the old `inset` var) - a solid-color
         // line with a hard start/end reads as an abrupt stop rather than a
@@ -74,9 +66,6 @@ fun Modifier.glassSheen(
         )
         onDrawWithContent {
             drawContent()
-            glow?.let { drawRect(brush = it) }
-            drawRect(brush = sheen)
-            relief?.let { drawRect(brush = it) }
             drawLine(
                 brush = edgeBrush,
                 start = Offset(0f, 0.5f),
