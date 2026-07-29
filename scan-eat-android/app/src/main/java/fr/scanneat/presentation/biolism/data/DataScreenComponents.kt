@@ -186,6 +186,13 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
             }
         }
         Spacer(Modifier.height(3.dp))
+        // design-aesthetic-audit §DC3: the reference band below was a hardcoded
+        // Color.White at low alpha - readable on the dark/OLED themes it was
+        // eyeballed against, but nearly invisible on the Light theme's near-white
+        // background (0xFFF6F1EC). OnBackground already flips between near-white
+        // and near-black per theme; captured here since DrawScope (inside Canvas
+        // below) isn't itself a @Composable context and can't read it directly.
+        val referenceBandColor = OnBackground
         // Fix 12: Canvas draws track, normal-range band, and value bar correctly
         Canvas(modifier = Modifier.fillMaxWidth().height(3.dp)) {
             val w   = size.width
@@ -199,7 +206,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
             drawRoundRect(color.copy(alpha = 0.06f), cornerRadius = CornerRadius(top))
             // Normal reference band
             drawRect(
-                color = Color.White.copy(alpha = 0.12f),
+                color = referenceBandColor.copy(alpha = 0.12f),
                 topLeft = Offset(w * loFrac, 0f),
                 size    = Size(w * (hiFrac - loFrac), h3),
             )
