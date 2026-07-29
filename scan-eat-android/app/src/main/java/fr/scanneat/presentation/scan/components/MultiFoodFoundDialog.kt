@@ -65,6 +65,9 @@ internal fun MultiFoodFoundDialog(
                             color = OnBackground.copy(0.05f),
                             onClick = { onPick(persistedId) },
                             modifier = Modifier.fillMaxWidth(),
+                            // design-aesthetic-audit §DH: matching the dialog
+                            // list-row elevation established elsewhere - had none.
+                            shadowElevation = 3.dp,
                         ) {
                             Row(
                                 modifier = Modifier.padding(Spacing.SM),
