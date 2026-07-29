@@ -47,6 +47,11 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 color = color.copy(0.08f),
+                // art-direction-engine §CARDS: matching the small-stat-tile
+                // elevation tier already applied to FastingHistorySection/
+                // HistoryTopScannedRow - this was a plain flat Surface with
+                // no depth cue at all.
+                shadowElevation = 3.dp,
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.S),
