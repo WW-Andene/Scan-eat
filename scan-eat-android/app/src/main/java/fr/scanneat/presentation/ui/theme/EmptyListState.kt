@@ -22,12 +22,18 @@ import androidx.compose.ui.unit.dp
  * optional — only screens with a clear single next step (e.g. "add a
  * recipe") should pass them; an empty state with no obvious action stays
  * icon+text only, which is still a complete, restrained state.
+ *
+ * art-direction-engine §EMPTY/§BAN: the icon tint was a flat neutral
+ * OnBackground-at-50% — the literal "gray empty state" pattern this skill's
+ * own blacklist names, on the one component every list-empty moment in the
+ * app shares. Tinted with the app's own accent instead, kept restrained
+ * (still just icon+text) per this file's own doc comment above.
  */
 @Composable
 fun EmptyListState(icon: ImageVector, message: String, ctaLabel: String? = null, onCta: (() -> Unit)? = null) {
     Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(icon, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.EmptyState))
+            Icon(icon, null, tint = AccentCoral.copy(0.45f), modifier = Modifier.size(IconSize.EmptyState))
             Text(message, color = OnBackground.copy(0.5f))
             if (ctaLabel != null && onCta != null) {
                 ScanEatPrimaryButton(onClick = onCta) { Text(ctaLabel) }
