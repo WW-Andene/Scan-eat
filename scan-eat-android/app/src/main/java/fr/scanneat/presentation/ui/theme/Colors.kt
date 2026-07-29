@@ -131,9 +131,19 @@ val SeparatorAccent: Color @Composable get() = AccentCoral.copy(alpha = 0.30f)
 fun ScanEatDivider(color: Color = SeparatorLight) = androidx.compose.material3.HorizontalDivider(color = color)
 
 // ── Label & secondary text ────────────────────────────────────────────────────
-val TextSecondary   = Color(0xFF7E859E)
-val TextMuted       = Color(0xFF454A60)
-val TextLabel       = Color(0xFF5C6278)
+// Category E audit (§E3 Color Craft & Contrast): these were flat literals
+// tuned by eye against the dark themes only — Color(0xFF7E859E) against the
+// OLED/Dark backgrounds clears ~5:1 (barely, on Dark) to ~5.75:1 (OLED), but
+// the exact same hardcoded value on the Light theme's near-white background
+// (0xFFF6F1EC) computes to ~3.2:1 — a real WCAG AA failure (4.5:1 required
+// for this size class), since these three never varied with `theme` the way
+// every other role in this file (Background/OnBackground/Separator*) already
+// does. Deriving from the theme's own OnBackground — already contrast-tuned
+// per theme, including Light's separately-calibrated near-black — fixes this
+// for every theme at once instead of hand-picking five more literals.
+val TextSecondary: Color @Composable get() = OnBackground.copy(alpha = 0.65f)
+val TextMuted:     Color @Composable get() = OnBackground.copy(alpha = 0.38f)
+val TextLabel:     Color @Composable get() = OnBackground.copy(alpha = 0.55f)
 
 // ── Feature accents outside the Scan'eat/Biolism systems ──────────────────────
 val HydrationBlue   = Color(0xFF29B6F6)
