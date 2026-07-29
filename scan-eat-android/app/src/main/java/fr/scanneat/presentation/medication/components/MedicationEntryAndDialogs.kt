@@ -3,7 +3,7 @@ package fr.scanneat.presentation.medication.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,7 +53,7 @@ internal fun MedicationEntryRow(
             // controls (plus a Switch) below the 48dp minimum.
             IconButton(onClick = onToggleTaken) {
                 Icon(
-                    if (takenToday != null) Icons.Default.CheckCircle else Icons.Default.CheckCircleOutline,
+                    if (takenToday != null) Icons.Rounded.CheckCircle else Icons.Rounded.CheckCircleOutline,
                     stringResource(if (takenToday != null) R.string.medication_cd_undo_taken else R.string.medication_cd_taken_today),
                     tint = if (takenToday != null) Teal else OnSurface.copy(0.4f),
                 )
@@ -69,7 +69,7 @@ internal fun MedicationEntryRow(
             // "reminder on/off" indicator, unlike Rename/Delete.
             IconButton(onClick = onOpenReminder) {
                 Icon(
-                    Icons.Default.Notifications,
+                    Icons.Rounded.Notifications,
                     stringResource(R.string.medication_reminder_cd),
                     tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
                 )
@@ -82,16 +82,16 @@ internal fun MedicationEntryRow(
             // icons than Weight/Activity - taken-today + reminder - so there isn't
             // row width for a 5th icon button).
             IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f))
+                Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f))
             }
             var menuExpanded by remember { mutableStateOf(false) }
             IconButton(onClick = { menuExpanded = true }) {
-                Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                Icon(Icons.Rounded.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
             }
             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_delete)) },
-                    leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                    leadingIcon = { Icon(Icons.Rounded.Close, contentDescription = null) },
                     onClick = { menuExpanded = false; onDelete() },
                 )
             }

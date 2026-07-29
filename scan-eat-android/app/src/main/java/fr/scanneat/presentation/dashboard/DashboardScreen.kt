@@ -12,12 +12,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Fastfood
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.RestaurantMenu
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Fastfood
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.RestaurantMenu
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -191,18 +191,18 @@ fun DashboardScreen(
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FeatureTile(Icons.Default.RestaurantMenu, stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
+                    FeatureTile(Icons.Rounded.RestaurantMenu, stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
                     FeatureTile(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
-                    FeatureTile(Icons.Default.CalendarMonth, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
+                    FeatureTile(Icons.Rounded.CalendarMonth, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
                 }
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FeatureTile(Icons.Default.ShoppingCart, stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
+                    FeatureTile(Icons.Rounded.ShoppingCart, stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
                     // onOpenCustomFoods had no call site anywhere in the composable -
                     // CustomFoodScreen was completely unreachable from any UI gesture.
-                    FeatureTile(Icons.Default.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
-                    FeatureTile(Icons.Default.Star, stringResource(R.string.dashboard_tile_favorites), Modifier.weight(1f), onClick = onOpenFavorites)
+                    FeatureTile(Icons.Rounded.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
+                    FeatureTile(Icons.Rounded.Star, stringResource(R.string.dashboard_tile_favorites), Modifier.weight(1f), onClick = onOpenFavorites)
                 }
             }
             item {
@@ -210,12 +210,12 @@ fun DashboardScreen(
                     // Previously no single place showed everything logged on a given
                     // day - Diary/Weight/Activity/Hydration each embedded their own
                     // siloed single-domain mini-calendar with no cross-tracker view.
-                    FeatureTile(Icons.Default.CalendarMonth, stringResource(R.string.dashboard_tile_calendar), Modifier.weight(1f), onClick = onOpenCalendar)
+                    FeatureTile(Icons.Rounded.CalendarMonth, stringResource(R.string.dashboard_tile_calendar), Modifier.weight(1f), onClick = onOpenCalendar)
                     // A UI/UX audit found ScanHistoryScreen (search/sort/favorite/
                     // delete) was reachable ONLY via the "View all" link below, itself
                     // gated on recentScans.isNotEmpty() - a brand-new user with zero
                     // scans had no way to open it at all. This tile is unconditional.
-                    FeatureTile(Icons.Default.History, stringResource(R.string.dashboard_tile_history), Modifier.weight(1f), onClick = onOpenHistory)
+                    FeatureTile(Icons.Rounded.History, stringResource(R.string.dashboard_tile_history), Modifier.weight(1f), onClick = onOpenHistory)
                     Spacer(Modifier.weight(1f))
                 }
             }
@@ -245,7 +245,7 @@ fun DashboardScreen(
             }
             if (s.recentScans.isEmpty()) {
                 item {
-                    EmptyListState(Icons.Default.History, stringResource(R.string.dashboard_recent_scans_empty))
+                    EmptyListState(Icons.Rounded.History, stringResource(R.string.dashboard_recent_scans_empty))
                 }
             } else {
                 items(s.recentScans, key = { it.dbId }) { scan ->

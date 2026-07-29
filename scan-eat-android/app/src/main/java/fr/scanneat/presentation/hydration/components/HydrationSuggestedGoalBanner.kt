@@ -3,7 +3,7 @@ package fr.scanneat.presentation.hydration.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,7 +25,7 @@ internal fun HydrationSuggestedGoalBanner(suggestedGoalMl: Int) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S),
         ) {
-            Icon(Icons.Default.TipsAndUpdates, null, tint = semanticBlue(), modifier = Modifier.size(18.dp))
+            Icon(Icons.Rounded.TipsAndUpdates, null, tint = semanticBlue(), modifier = Modifier.size(18.dp))
             Text(
                 stringResource(R.string.hydration_suggested_goal_hint, suggestedGoalMl),
                 style = MaterialTheme.typography.bodySmall,

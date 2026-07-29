@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,7 +53,7 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(
-                if (consistent) Icons.Default.CheckCircle else Icons.Default.WarningAmber,
+                if (consistent) Icons.Rounded.CheckCircle else Icons.Rounded.WarningAmber,
                 null, tint = color, modifier = Modifier.size(18.dp),
             )
             Text(stringResource(R.string.dashboard_insight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)

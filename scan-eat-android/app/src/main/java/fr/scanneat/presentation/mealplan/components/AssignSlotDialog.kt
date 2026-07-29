@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,7 +42,7 @@ internal fun AssignSlotDialog(
             if (recipes.isEmpty() && templates.isEmpty()) {
                 // Was plain Text() - every other empty condition in the app
                 // routes through this shared icon+message component.
-                EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.mealplan_assign_empty))
+                EmptyListState(Icons.Rounded.RestaurantMenu, stringResource(R.string.mealplan_assign_empty))
             } else {
                 LazyColumn(modifier = Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     if (recipes.isNotEmpty()) {
@@ -52,7 +52,7 @@ internal fun AssignSlotDialog(
                                 Modifier.fillMaxWidth().clickable { onPickRecipe(recipe) }.padding(vertical = Spacing.S),
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
-                                Icon(Icons.Default.RestaurantMenu, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                                Icon(Icons.Rounded.RestaurantMenu, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
                                 Text(recipe.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
                             }
                         }

@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,7 +31,7 @@ internal fun MedicationStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
             Spacer(Modifier.width(1.dp))
         }
         IconButton(onClick = onOpenCalendar) {
-            Icon(Icons.Default.CalendarMonth, stringResource(R.string.medication_cd_calendar), tint = OnBackground.copy(0.6f))
+            Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.medication_cd_calendar), tint = OnBackground.copy(0.6f))
         }
     }
 }
@@ -55,7 +55,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
     }
     Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f), modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Default.Warning, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+            Icon(Icons.Rounded.Warning, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
             Column {
                 Text(stringResource(R.string.medication_interaction_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
                 Text(message, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))
@@ -95,7 +95,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
                             horizontalArrangement = Arrangement.spacedBy(3.dp),
                         ) {
                             Icon(
-                                if (taken) Icons.Default.Check else Icons.Default.Close,
+                                if (taken) Icons.Rounded.Check else Icons.Rounded.Close,
                                 null,
                                 tint = if (taken) Teal else OnSurface.copy(0.35f),
                                 modifier = Modifier.size(10.dp),

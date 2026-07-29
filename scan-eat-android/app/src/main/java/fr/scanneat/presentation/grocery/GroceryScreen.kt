@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -131,7 +131,7 @@ fun GroceryScreen(
                 // CustomFood) places this same component near the top of the content
                 // instead, under the header row.
                 EmptyListState(
-                    icon = Icons.Default.ShoppingCart,
+                    icon = Icons.Rounded.ShoppingCart,
                     message = stringResource(
                         if (scopeToPlanned.value) R.string.grocery_empty_planned_body else R.string.grocery_empty_body
                     ),

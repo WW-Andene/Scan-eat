@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -23,13 +23,13 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun FeatureDomainChips() {
     val domains = listOf(
-        Icons.Default.QrCodeScanner to R.string.onboarding_domain_scan,
-        Icons.Default.RestaurantMenu to R.string.onboarding_domain_diet,
-        Icons.Default.WaterDrop to R.string.onboarding_domain_hydration,
-        Icons.Default.Timer to R.string.onboarding_domain_fasting,
-        Icons.Default.Scale to R.string.onboarding_domain_weight,
-        Icons.Default.DirectionsRun to R.string.onboarding_domain_activity,
-        Icons.Default.Medication to R.string.onboarding_domain_medication,
+        Icons.Rounded.QrCodeScanner to R.string.onboarding_domain_scan,
+        Icons.Rounded.RestaurantMenu to R.string.onboarding_domain_diet,
+        Icons.Rounded.WaterDrop to R.string.onboarding_domain_hydration,
+        Icons.Rounded.Timer to R.string.onboarding_domain_fasting,
+        Icons.Rounded.Scale to R.string.onboarding_domain_weight,
+        Icons.Rounded.DirectionsRun to R.string.onboarding_domain_activity,
+        Icons.Rounded.Medication to R.string.onboarding_domain_medication,
     )
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Text(

@@ -10,13 +10,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Lightbulb
+import androidx.compose.material.icons.rounded.Restaurant
+import androidx.compose.material.icons.rounded.ThumbUp
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -77,7 +77,7 @@ fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize:
         },
     ) {
         IconButton(onClick = { showHints = true }) {
-            Icon(Icons.Default.Lightbulb, cd, tint = if (hasRisks) semanticRed() else semanticAmber(), modifier = Modifier.size(iconSize))
+            Icon(Icons.Rounded.Lightbulb, cd, tint = if (hasRisks) semanticRed() else semanticAmber(), modifier = Modifier.size(iconSize))
         }
     }
     if (showHints) {
@@ -117,13 +117,13 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
                     HintSection(title, lines, accent, icon)
                     shownAny = true
                 }
-                section(stringResource(R.string.hint_section_information), hints.keyInfo, neutral, Icons.Default.Info)
-                section(stringResource(R.string.hint_section_risks), hints.risks, amber, Icons.Default.WarningAmber)
-                section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, Icons.Default.ErrorOutline)
-                section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Default.ThumbUp)
-                section(stringResource(R.string.hint_section_pair_well), hints.pairWell, green, Icons.Default.Restaurant)
-                section(stringResource(R.string.hint_section_avoid_pairing), hints.avoidPairing, amber, Icons.Default.Block)
-                section(stringResource(R.string.hint_section_facts), hints.facts, neutral, Icons.Default.Lightbulb)
+                section(stringResource(R.string.hint_section_information), hints.keyInfo, neutral, Icons.Rounded.Info)
+                section(stringResource(R.string.hint_section_risks), hints.risks, amber, Icons.Rounded.WarningAmber)
+                section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, Icons.Rounded.ErrorOutline)
+                section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Rounded.ThumbUp)
+                section(stringResource(R.string.hint_section_pair_well), hints.pairWell, green, Icons.Rounded.Restaurant)
+                section(stringResource(R.string.hint_section_avoid_pairing), hints.avoidPairing, amber, Icons.Rounded.Block)
+                section(stringResource(R.string.hint_section_facts), hints.facts, neutral, Icons.Rounded.Lightbulb)
                 if (isEmpty) {
                     Text(stringResource(R.string.hint_panel_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                 }
@@ -147,13 +147,13 @@ fun FactsCautionsColumn(facts: List<String>, cautions: List<String>) {
     val neutral = OnBackground.copy(0.7f)
     Column(modifier = Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState())) {
         if (cautions.isNotEmpty()) {
-            HintSection(stringResource(R.string.hint_section_risks), cautions, amber, Icons.Default.WarningAmber)
+            HintSection(stringResource(R.string.hint_section_risks), cautions, amber, Icons.Rounded.WarningAmber)
         }
         if (cautions.isNotEmpty() && facts.isNotEmpty()) {
             HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
         }
         if (facts.isNotEmpty()) {
-            HintSection(stringResource(R.string.hint_section_facts), facts, neutral, Icons.Default.Lightbulb)
+            HintSection(stringResource(R.string.hint_section_facts), facts, neutral, Icons.Rounded.Lightbulb)
         }
     }
 }

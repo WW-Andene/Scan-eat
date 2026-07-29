@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.rounded.QrCodeScanner
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -100,7 +100,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
         ) {
             Column {
                 Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(Spacing.S))
                     Text(barcode, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
                     // "Already scanned this" cue — the local-cache lookup
@@ -133,7 +133,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                     ) {
-                        Icon(Icons.Default.WarningAmber, null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
+                        Icon(Icons.Rounded.WarningAmber, null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
                         Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber())
                     }
                 }

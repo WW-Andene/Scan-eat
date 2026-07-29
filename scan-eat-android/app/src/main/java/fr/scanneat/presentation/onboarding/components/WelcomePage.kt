@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,7 +20,7 @@ import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun ColumnScope.WelcomePage(onNext: () -> Unit) {
-    Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(64.dp))
+    Icon(Icons.Rounded.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(64.dp))
     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = OnBackground, fontWeight = FontWeight.Bold)
     Text(
         stringResource(R.string.onboarding_welcome_body),

@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,8 +48,8 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
                 // Left at IconButton's default 48dp touch target (Material/WCAG
                 // minimum) - a UI/UX audit found this row forcing 36dp.
                 HintIconButton(hints = hints)
-                IconButton(onClick = onLog) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
-                IconButton(onClick = onClone) { Icon(Icons.Default.ContentCopy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
+                IconButton(onClick = onLog) { Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                IconButton(onClick = onClone) { Icon(Icons.Rounded.ContentCopy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
             }
         }
         recipe.ingredients.take(4).forEach { ing ->
@@ -57,7 +57,7 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
         }
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

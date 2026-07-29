@@ -3,9 +3,9 @@ package fr.scanneat.presentation.result.cards
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -107,7 +107,7 @@ internal fun PersonalizationPromptCard(onOpenProfile: () -> Unit) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Default.Person, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
+            Icon(Icons.Rounded.Person, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
             Text(stringResource(R.string.result_personalization_prompt), style = MaterialTheme.typography.bodySmall,
                 color = OnBackground, modifier = Modifier.weight(1f))
         }
@@ -122,7 +122,7 @@ internal fun DietVetoBanner(reason: String?) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Default.Block, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Inline))
+            Icon(Icons.Rounded.Block, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Inline))
             Text(reason ?: "", style = MaterialTheme.typography.bodySmall,
                 color = OnBackground, modifier = Modifier.weight(1f))
         }
@@ -143,7 +143,7 @@ internal fun AllergenUnverifiedBanner() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
+            Icon(Icons.Rounded.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
             Text(stringResource(R.string.result_allergens_unverified), style = MaterialTheme.typography.bodySmall,
                 color = OnBackground, modifier = Modifier.weight(1f))
         }
@@ -158,7 +158,7 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Default.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
+            Icon(Icons.Rounded.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
             Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
                 color = semanticAmber(), fontWeight = FontWeight.SemiBold)
         }

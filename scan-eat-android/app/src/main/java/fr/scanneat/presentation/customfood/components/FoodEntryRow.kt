@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -104,14 +104,14 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
             // a UI/UX audit found this row forcing both controls to 32dp.
             IconButton(onClick = onRename) {
                 Icon(
-                    Icons.Default.Edit, stringResource(R.string.common_rename),
+                    Icons.Rounded.Edit, stringResource(R.string.common_rename),
                     tint = OnSurface.copy(0.5f),
                     modifier = Modifier.size(16.dp),
                 )
             }
             IconButton(onClick = onDelete) {
                 Icon(
-                    Icons.Default.Close, stringResource(R.string.common_delete),
+                    Icons.Rounded.Close, stringResource(R.string.common_delete),
                     tint = OnSurface.copy(0.4f),
                     modifier = Modifier.size(16.dp),
                 )

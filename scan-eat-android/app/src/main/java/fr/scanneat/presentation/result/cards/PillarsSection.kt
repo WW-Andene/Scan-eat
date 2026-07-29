@@ -4,8 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -84,7 +84,7 @@ private fun PillarRow(pillar: PillarScore) {
                 Text(pillar.name, style = MaterialTheme.typography.labelMedium, color = OnBackground)
                 if (reasons.isNotEmpty()) {
                     Icon(
-                        if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null,
+                        if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null,
                         tint = OnBackground.copy(0.4f), modifier = Modifier.size(IconSize.Inline),
                     )
                 }

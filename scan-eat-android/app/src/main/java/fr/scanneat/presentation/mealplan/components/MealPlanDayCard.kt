@@ -3,7 +3,7 @@ package fr.scanneat.presentation.mealplan.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -61,10 +61,10 @@ internal fun MealPlanDayCard(
                     // hand - this copies the whole day onto the same
                     // weekday next week.
                     IconButton(onClick = onDuplicateDay) {
-                        Icon(Icons.Default.ContentCopy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.ContentCopy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                     IconButton(onClick = onClearDay) {
-                        Icon(Icons.Default.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Rounded.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -88,7 +88,7 @@ internal fun MealPlanDayCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
-                Icon(Icons.Default.Lightbulb, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                Icon(Icons.Rounded.Lightbulb, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
                 // Per-serving, not the recipe's whole-batch total - a single
                 // planned meal slot only ever represents 1/servings of
                 // suggestion.totalKcal/totalProteinG (same division logSlot()

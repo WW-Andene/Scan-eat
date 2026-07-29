@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -76,7 +76,7 @@ internal fun ReminderRow(
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
             )
             IconButton(onClick = onTest) {
-                Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, displayLabel), tint = Gold)
+                Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, displayLabel), tint = Gold)
             }
             Switch(checked = on, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = Gold),
                 modifier = Modifier.semantics { contentDescription = displayLabel })
@@ -115,9 +115,9 @@ internal fun CustomReminderRow(
         )
         // Both icon-only buttons previously had a null contentDescription - a
         // TalkBack user got no signal at all for what "test" or "delete" would do.
-        IconButton(onClick = onTest) { Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, labelText.ifBlank { reminder.label }), tint = AccentCoral) }
+        IconButton(onClick = onTest) { Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, labelText.ifBlank { reminder.label }), tint = AccentCoral) }
         Switch(checked = reminder.on, onCheckedChange = { onUpdate(reminder.copy(on = it)) }, colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             modifier = Modifier.semantics { contentDescription = labelText })
-        IconButton(onClick = onDelete) { Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.4f), modifier = Modifier.size(16.dp)) }
+        IconButton(onClick = onDelete) { Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.4f), modifier = Modifier.size(16.dp)) }
     }
 }

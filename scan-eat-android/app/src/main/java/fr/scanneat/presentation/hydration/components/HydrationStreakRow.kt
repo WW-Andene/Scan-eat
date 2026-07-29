@@ -2,7 +2,7 @@ package fr.scanneat.presentation.hydration.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,7 +22,7 @@ internal fun HydrationStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
             Spacer(Modifier.width(1.dp))
         }
         IconButton(onClick = onOpenCalendar) {
-            Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
+            Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
         }
     }
 }

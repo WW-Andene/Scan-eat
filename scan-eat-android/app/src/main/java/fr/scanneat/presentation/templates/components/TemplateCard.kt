@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,7 +55,7 @@ internal fun TemplateCard(
                 // for width in this row, each forced below the 48dp minimum.
                 IconButton(onClick = onToggleFavorite) {
                     Icon(
-                        if (template.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                        if (template.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
                         stringResource(if (template.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                         tint = if (template.favorite) Gold else OnSurface.copy(0.3f),
                     )
@@ -67,14 +67,14 @@ internal fun TemplateCard(
                     Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_manage_items_cd), tint = Teal)
                 }
                 IconButton(onClick = onLog, enabled = template.items.isNotEmpty()) {
-                    Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
+                    Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
                 }
                 // Save-as-Recipe/Rename/Delete moved into an overflow menu -
                 // Favorite/Manage-items/Log are the frequent actions and stay
                 // directly visible at full size.
                 var menuExpanded by remember { mutableStateOf(false) }
                 IconButton(onClick = { menuExpanded = true }) {
-                    Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                    Icon(Icons.Rounded.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     // The "💡 Bon à savoir" hint panel was previously reachable
@@ -87,7 +87,7 @@ internal fun TemplateCard(
                     // (Favorite/Manage-items/Log/More).
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.hint_panel_title)) },
-                        leadingIcon = { Icon(Icons.Default.Lightbulb, contentDescription = null, tint = if (hintsHaveRisks) semanticRed() else semanticAmber()) },
+                        leadingIcon = { Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = if (hintsHaveRisks) semanticRed() else semanticAmber()) },
                         trailingIcon = { if (hintsHaveRisks) Badge(containerColor = semanticRed()) { Text("$hintsRiskCount") } },
                         onClick = { menuExpanded = false; showHints = true },
                     )
@@ -96,18 +96,18 @@ internal fun TemplateCard(
                     // this saves a copy into the user's Recipes library.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.templates_cd_save_as_recipe)) },
-                        leadingIcon = { Icon(Icons.Default.RestaurantMenu, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.RestaurantMenu, contentDescription = null) },
                         enabled = template.items.isNotEmpty(),
                         onClick = { menuExpanded = false; onSaveAsRecipe() },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_rename)) },
-                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
                         onClick = { menuExpanded = false; onRename() },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_delete)) },
-                        leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.Close, contentDescription = null) },
                         onClick = { menuExpanded = false; onDelete() },
                     )
                 }
@@ -129,7 +129,7 @@ internal fun TemplateCard(
         // repeatedly.
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

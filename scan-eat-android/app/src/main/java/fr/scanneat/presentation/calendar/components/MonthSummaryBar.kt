@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.DirectionsRun
-import androidx.compose.material.icons.filled.RestaurantMenu
-import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.DirectionsRun
+import androidx.compose.material.icons.rounded.RestaurantMenu
+import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -38,10 +38,10 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         listOf(
-            Triple(AccentCoral, Icons.Default.RestaurantMenu, stringResource(R.string.calendar_month_kcal, ms.totalKcal)),
-            Triple(Warm,        Icons.Default.DirectionsRun,  stringResource(R.string.calendar_month_minutes, ms.activeMinutes)),
-            Triple(Teal,        Icons.Default.WaterDrop,       stringResource(R.string.calendar_month_hydration, ms.hydrationMl)),
-            Triple(Gold,        Icons.Default.CalendarMonth,   stringResource(R.string.calendar_month_days, ms.activeDays)),
+            Triple(AccentCoral, Icons.Rounded.RestaurantMenu, stringResource(R.string.calendar_month_kcal, ms.totalKcal)),
+            Triple(Warm,        Icons.Rounded.DirectionsRun,  stringResource(R.string.calendar_month_minutes, ms.activeMinutes)),
+            Triple(Teal,        Icons.Rounded.WaterDrop,       stringResource(R.string.calendar_month_hydration, ms.hydrationMl)),
+            Triple(Gold,        Icons.Rounded.CalendarMonth,   stringResource(R.string.calendar_month_days, ms.activeDays)),
         ).forEach { (color, icon, label) ->
             Surface(
                 modifier = Modifier.weight(1f),

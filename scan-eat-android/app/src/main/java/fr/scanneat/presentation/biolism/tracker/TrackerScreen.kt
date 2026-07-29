@@ -5,7 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -258,7 +258,7 @@ private fun EmptyProfilePrompt() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            Icon(Icons.Default.MonitorHeart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
+            Icon(Icons.Outlined.MonitorHeart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
             Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall,
                 color = OnBackground, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
             Text(stringResource(R.string.biolism_tracker_empty_desc),

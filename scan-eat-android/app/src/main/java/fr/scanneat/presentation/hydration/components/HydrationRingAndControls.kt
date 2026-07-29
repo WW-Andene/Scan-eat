@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -59,7 +59,7 @@ internal fun HydrationRingAndControls(
             Text("$intakeMl", style = MaterialTheme.typography.headlineLarge, color = semanticBlue(), fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(stringResource(R.string.hydration_goal_ml, goalMl), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                Icon(Icons.Default.Edit, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(12.dp))
+                Icon(Icons.Rounded.Edit, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(12.dp))
             }
             Text(stringResource(R.string.hydration_glasses_count, glasses, goalGlasses), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
         }
@@ -75,7 +75,7 @@ internal fun HydrationRingAndControls(
                         val filled = i < glasses
                         val overGoal = i >= goalGlasses
                         Icon(
-                            Icons.Default.Opacity,
+                            Icons.Rounded.Opacity,
                             contentDescription = null,
                             tint = when {
                                 !filled -> OnBackground.copy(0.15f)
@@ -94,7 +94,7 @@ internal fun HydrationRingAndControls(
         Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticGreen().copy(0.15f), shadowElevation = 3.dp) {
                 Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Icon(Icons.Default.CheckCircle, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.CheckCircle, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
                     Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
                 }
             }
@@ -108,7 +108,7 @@ internal fun HydrationRingAndControls(
             containerColor = if (intakeMl > 0) SurfaceVariant else SurfaceVariant.copy(alpha = 0.4f),
             shape = CircleShape,
             modifier = Modifier.size(56.dp),
-        ) { Icon(Icons.Default.Remove, stringResource(R.string.common_remove), tint = if (intakeMl > 0) OnSurface else OnSurface.copy(0.3f)) }
+        ) { Icon(Icons.Rounded.Remove, stringResource(R.string.common_remove), tint = if (intakeMl > 0) OnSurface else OnSurface.copy(0.3f)) }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.hydration_glass_ml, HYD_GLASS_ML), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
@@ -120,7 +120,7 @@ internal fun HydrationRingAndControls(
             containerColor = semanticBlue(),
             shape = CircleShape,
             modifier = Modifier.size(56.dp),
-        ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
+        ) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = Color.Black) }
     }
 
     Text(

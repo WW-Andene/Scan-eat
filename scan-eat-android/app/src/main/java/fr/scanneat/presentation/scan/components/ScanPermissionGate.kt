@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,7 +38,7 @@ internal fun ScanPermissionRequestColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(Icons.Default.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
+        Icon(Icons.Rounded.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
         Spacer(Modifier.height(Spacing.L))
         Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
             color = OnBackground, textAlign = TextAlign.Center)

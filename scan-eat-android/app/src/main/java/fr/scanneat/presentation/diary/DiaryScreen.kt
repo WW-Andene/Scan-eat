@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.Saver
@@ -229,7 +229,7 @@ fun DiaryScreen(
                 containerColor = AccentCoral,
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
             ) {
-                Icon(Icons.Default.Add, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
+                Icon(Icons.Rounded.Add, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
             }
         }
 
@@ -374,7 +374,7 @@ private fun MealsTab(viewModel: DiaryViewModel, topPadding: androidx.compose.ui.
                 fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.S))
         }
         if (s.entries.isEmpty()) {
-            item { EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.diary_empty_body)) }
+            item { EmptyListState(Icons.Rounded.RestaurantMenu, stringResource(R.string.diary_empty_body)) }
         } else {
             MealSlot.values().forEach { slot ->
                 val slotEntries = filteredBySlot[slot].orEmpty()
@@ -393,7 +393,7 @@ private fun MealsTab(viewModel: DiaryViewModel, topPadding: androidx.compose.ui.
                 }
             }
             if (filteredBySlot.values.all { it.isEmpty() }) {
-                item { EmptyListState(Icons.Default.FilterList, stringResource(R.string.diary_filter_empty)) }
+                item { EmptyListState(Icons.Rounded.FilterList, stringResource(R.string.diary_filter_empty)) }
             }
         }
         item {

@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -112,7 +112,7 @@ internal fun FastingHistoryRow(completion: FastCompletion, onDelete: () -> Unit)
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) semanticGreen() else semanticAmber())
-        Icon(if (c.reached) Icons.Default.CheckCircle else Icons.Default.Close, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
+        Icon(if (c.reached) Icons.Rounded.CheckCircle else Icons.Rounded.Close, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(Spacing.XS))
         // Previously the only way to fix a mis-tapped Finish (wrong hours logged)
         // was clearHistory(), which wipes all 90 entries and zeroes the streak -
@@ -120,7 +120,7 @@ internal fun FastingHistoryRow(completion: FastCompletion, onDelete: () -> Unit)
         // Distinct icon/tint from the status glyph above (also a small X when not
         // reached) so the two aren't visually confusable as the same control.
         IconButton(onClick = onDelete) {
-            Icon(Icons.Default.DeleteOutline, stringResource(R.string.common_delete), tint = semanticRed().copy(0.5f), modifier = Modifier.size(16.dp))
+            Icon(Icons.Rounded.DeleteOutline, stringResource(R.string.common_delete), tint = semanticRed().copy(0.5f), modifier = Modifier.size(16.dp))
         }
     }
 }

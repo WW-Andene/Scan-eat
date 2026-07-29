@@ -9,9 +9,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.ArrowDropUp
+import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -83,9 +83,9 @@ internal fun ScoreDeltaChip(delta: Int) {
         ) {
             Icon(
                 imageVector = when {
-                    neutral  -> Icons.Default.Remove
-                    positive -> Icons.Default.ArrowDropUp
-                    else     -> Icons.Default.ArrowDropDown
+                    neutral  -> Icons.Rounded.Remove
+                    positive -> Icons.Rounded.ArrowDropUp
+                    else     -> Icons.Rounded.ArrowDropDown
                 },
                 contentDescription = null,
                 tint     = textColor,

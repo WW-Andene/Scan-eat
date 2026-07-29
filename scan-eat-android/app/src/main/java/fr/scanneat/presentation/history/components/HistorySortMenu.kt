@@ -2,7 +2,7 @@ package fr.scanneat.presentation.history.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,7 +20,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> Unit, currentSort: HistorySort, onSortChange: (HistorySort) -> Unit) {
     Box {
         IconButton(onClick = { onExpandedChange(true) }) {
-            Icon(Icons.Default.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
+            Icon(Icons.Rounded.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
             val options = listOf(
@@ -34,7 +34,7 @@ internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> U
                 DropdownMenuItem(
                     text = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
                     leadingIcon = {
-                        if (isSelected) Icon(Icons.Default.Check, contentDescription = null, tint = AccentCoral)
+                        if (isSelected) Icon(Icons.Rounded.Check, contentDescription = null, tint = AccentCoral)
                     },
                     modifier = Modifier.semantics { selected = isSelected; role = Role.RadioButton },
                     onClick = { onSortChange(value); onExpandedChange(false) },

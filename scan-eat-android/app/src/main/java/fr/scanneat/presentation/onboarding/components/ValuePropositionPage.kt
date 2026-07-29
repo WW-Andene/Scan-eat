@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.MonitorHeart
-import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.MonitorHeart
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,12 +24,12 @@ internal fun ColumnScope.ValuePropositionPage(onNext: () -> Unit) {
 
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
         ValueCard(
-            icon    = Icons.Default.Fingerprint,
+            icon    = Icons.Rounded.Fingerprint,
             title   = stringResource(R.string.onboarding_value_transparency_title),
             body    = stringResource(R.string.onboarding_value_transparency_body),
         )
         ValueCard(
-            icon    = Icons.Default.MonitorHeart,
+            icon    = Icons.Rounded.MonitorHeart,
             title   = stringResource(R.string.onboarding_value_biolism_title),
             body    = stringResource(R.string.onboarding_value_biolism_body),
         )
@@ -40,7 +40,7 @@ internal fun ColumnScope.ValuePropositionPage(onNext: () -> Unit) {
         // differentiator vs. competitors (Yuka/MyFitnessPal/Cronometer don't combine
         // scoring + diary + this kind of safety modeling), so it belongs here.
         ValueCard(
-            icon    = Icons.Default.Shield,
+            icon    = Icons.Rounded.Shield,
             title   = stringResource(R.string.onboarding_value_safety_title),
             body    = stringResource(R.string.onboarding_value_safety_body),
         )

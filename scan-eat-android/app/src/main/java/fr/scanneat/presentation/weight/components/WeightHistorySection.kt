@@ -4,7 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +32,7 @@ import java.time.format.DateTimeFormatter
 internal fun WeightUnitToggleRow(useImperial: Boolean, onUnitChange: (Boolean) -> Unit, onOpenCalendar: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onOpenCalendar) {
-            Icon(Icons.Default.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
+            Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf(false to "kg", true to "lb").forEach { (imperial, label) ->
@@ -128,7 +128,7 @@ internal fun WeightSummaryCard(
                         // Icon, not the 🔥 emoji baked into the string before -
                         // same LocalFireDepartment streak-badge convention already
                         // used by Activity/Medication/Fasting/Hydration's own streaks.
-                        Icon(Icons.Default.LocalFireDepartment, null, tint = Gold, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Rounded.LocalFireDepartment, null, tint = Gold, modifier = Modifier.size(14.dp))
                         Text(
                             stringResource(R.string.weight_logging_streak_value, loggingStreakDays),
                             style = MaterialTheme.typography.labelSmall,
@@ -287,10 +287,10 @@ internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boo
             }
             Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
             IconButton(onClick = onEdit) {
-                Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
         }
     }

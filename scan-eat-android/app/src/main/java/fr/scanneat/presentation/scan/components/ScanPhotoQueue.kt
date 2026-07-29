@@ -18,8 +18,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -81,7 +81,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                                         modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                                 } else {
                                     Box(Modifier.fillMaxSize().background(SurfaceVariant), contentAlignment = Alignment.Center) {
-                                        Icon(Icons.Default.Image, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
+                                        Icon(Icons.Rounded.Image, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
                                     }
                                 }
                                 // IconButton's own footprint kept at minTouchTarget()'s 48dp floor for
@@ -91,7 +91,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                                 IconButton(onClick = { onRemovePhoto(index) },
                                     modifier = Modifier.align(Alignment.TopEnd).minTouchTarget()) {
                                     Box(Modifier.size(20.dp).background(Background.copy(0.6f), CircleShape), contentAlignment = Alignment.Center) {
-                                        Icon(Icons.Default.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
+                                        Icon(Icons.Rounded.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
                                     }
                                 }
                             }

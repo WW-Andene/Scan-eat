@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.rounded.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -75,7 +75,7 @@ internal fun AddWeightDialog(
                             Text(stringResource(R.string.weight_field_date), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
                             Text(entryDate.format(fmt), style = MaterialTheme.typography.bodyLarge, color = OnBackground)
                         }
-                        Icon(Icons.Default.DateRange, null, tint = OnBackground.copy(0.6f))
+                        Icon(Icons.Rounded.DateRange, null, tint = OnBackground.copy(0.6f))
                     }
                 }
             }

@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,10 +32,10 @@ private data class OnboardStep(val icon: ImageVector, val title: String, val sub
 
 @Composable
 private fun rememberOnboardSteps(): List<OnboardStep> = listOf(
-    OnboardStep(Icons.Default.MonitorHeart, stringResource(R.string.biolism_onboard_step0_title), stringResource(R.string.biolism_onboard_step0_sub)),
-    OnboardStep(Icons.Default.Person, stringResource(R.string.biolism_onboard_step1_title), stringResource(R.string.biolism_onboard_step1_sub)),
-    OnboardStep(Icons.Default.Straighten, stringResource(R.string.biolism_onboard_step2_title), stringResource(R.string.biolism_onboard_step2_sub), optional = true),
-    OnboardStep(Icons.Default.Bolt, stringResource(R.string.biolism_onboard_step3_title), stringResource(R.string.biolism_onboard_step3_sub)),
+    OnboardStep(Icons.Outlined.MonitorHeart, stringResource(R.string.biolism_onboard_step0_title), stringResource(R.string.biolism_onboard_step0_sub)),
+    OnboardStep(Icons.Outlined.Person, stringResource(R.string.biolism_onboard_step1_title), stringResource(R.string.biolism_onboard_step1_sub)),
+    OnboardStep(Icons.Outlined.Straighten, stringResource(R.string.biolism_onboard_step2_title), stringResource(R.string.biolism_onboard_step2_sub), optional = true),
+    OnboardStep(Icons.Outlined.Bolt, stringResource(R.string.biolism_onboard_step3_title), stringResource(R.string.biolism_onboard_step3_sub)),
 )
 
 @Composable

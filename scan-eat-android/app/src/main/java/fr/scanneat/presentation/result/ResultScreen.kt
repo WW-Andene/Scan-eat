@@ -4,10 +4,10 @@ import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -102,7 +102,7 @@ fun ResultScreen(
                     }
                     context.startActivity(Intent.createChooser(sendIntent, null))
                 }) {
-                    Icon(Icons.Default.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
+                    Icon(Icons.Rounded.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
                 }
                 HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value))
                 IconButton(onClick = { showSaveMenu = true }) {
@@ -113,7 +113,7 @@ fun ResultScreen(
                     // Using those same strings here told screen-reader users the tap would
                     // directly toggle favorite status when it actually opens a dialog.
                     Icon(
-                        if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                        if (scan.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
                         stringResource(R.string.result_cd_save_options),
                         tint = if (scan.favorite) Gold else OnBackground,
                     )
@@ -131,7 +131,7 @@ fun ResultScreen(
             // history entry, not "still loading". Previously indistinguishable from
             // the pre-load state (both had scanResult == null), so this spun the
             // loading indicator forever with no way out but the back arrow.
-            EmptyListState(Icons.Default.ErrorOutline, stringResource(R.string.result_not_found_body))
+            EmptyListState(Icons.Rounded.ErrorOutline, stringResource(R.string.result_not_found_body))
         } else if (s.scanResult == null) {
             // Matches ScoreRing's own size/stroke/track exactly, so the loading
             // state visually sets up the score reveal instead of being a generic

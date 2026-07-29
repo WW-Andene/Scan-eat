@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -62,7 +62,7 @@ fun TemplatesScreen(
         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.TEMPLATES, onNavigate = onNavigateToPlanning)
-            IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.templates_cd_new), tint = AccentCoral) }
+            IconButton(onClick = { showAdd = true }) { Icon(Icons.Rounded.Add, stringResource(R.string.templates_cd_new), tint = AccentCoral) }
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->

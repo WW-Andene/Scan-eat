@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,12 +61,12 @@ internal fun MultiMarkerMonthGrid(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             // Both chevrons previously had a null contentDescription - a TalkBack
             // user heard only "button" for month navigation.
-            IconButton(onClick = { onMonthChange(month.minusMonths(1)) }) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.calendar_cd_prev_month), tint = OnBackground) }
+            IconButton(onClick = { onMonthChange(month.minusMonths(1)) }) { Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.calendar_cd_prev_month), tint = OnBackground) }
             Text(
                 month.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() } + " " + month.year,
                 style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
             )
-            IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) { Icon(Icons.Default.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground) }
+            IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) { Icon(Icons.Rounded.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground) }
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             // Matches the week-number column's 48dp width below so these labels

@@ -2,7 +2,7 @@ package fr.scanneat.presentation.grocery.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -30,13 +30,13 @@ internal fun GroceryTopBarActions(
     PlanningSwitcherMenu(current = PlanningDestination.GROCERY, onNavigate = onNavigateToPlanning)
     if (hasCheckedItems) {
         IconButton(onClick = onShowClearConfirm) {
-            Icon(Icons.Default.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))
+            Icon(Icons.Rounded.RemoveDone, stringResource(R.string.grocery_clear_checked), tint = OnBackground.copy(0.7f))
         }
     }
     if (hasItems) {
         IconButton(onClick = onToggleSortAlpha) {
             Icon(
-                Icons.Default.SortByAlpha,
+                Icons.Rounded.SortByAlpha,
                 stringResource(R.string.grocery_sort_alpha),
                 tint = if (sortAlpha) AccentCoral else OnBackground.copy(0.6f),
             )
@@ -45,7 +45,7 @@ internal fun GroceryTopBarActions(
         // produce/dairy/pantry sectioning at all.
         IconButton(onClick = onToggleGroupByAisle) {
             Icon(
-                Icons.Default.Category,
+                Icons.Rounded.Category,
                 stringResource(R.string.grocery_group_by_aisle),
                 tint = if (groupByAisle) AccentCoral else OnBackground.copy(0.6f),
             )
@@ -53,11 +53,11 @@ internal fun GroceryTopBarActions(
         // Previously the only way out of the app was clipboard copy-then-paste -
         // mirrors ResultScreen's existing ACTION_SEND share pattern.
         IconButton(onClick = onShare) {
-            Icon(Icons.Default.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
+            Icon(Icons.Rounded.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
         }
         Box {
             IconButton(onClick = { onCopyMenuExpandedChange(true) }) {
-                Icon(Icons.Default.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
+                Icon(Icons.Rounded.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
             }
             DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }) {
                 DropdownMenuItem(

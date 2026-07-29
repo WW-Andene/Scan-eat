@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +32,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
         val warnColor = semanticAmber()
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
             modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(6.dp)).padding(Spacing.S)) {
-            Icon(Icons.Default.WarningAmber, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
+            Icon(Icons.Outlined.WarningAmber, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
             Text(stringResource(R.string.biolism_hormones_disclaimer),
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.85f), fontWeight = FontWeight.Medium)
         }

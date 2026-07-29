@@ -4,10 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,16 +34,16 @@ internal fun DiaryDayNavigationRow(
 ) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onPrevDay) { Icon(Icons.Default.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
+            IconButton(onClick = onPrevDay) { Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
             Text(dateLabel, style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
             IconButton(onClick = onNextDay, enabled = !isToday) {
-                Icon(Icons.Default.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday) OnBackground else OnBackground.copy(0.3f))
+                Icon(Icons.Rounded.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday) OnBackground else OnBackground.copy(0.3f))
             }
             IconButton(onClick = onToggleCalendar) {
-                Icon(Icons.Default.CalendarMonth, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
+                Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
             }
             IconButton(onClick = onCopyPreviousDay) {
-                Icon(Icons.Default.ContentCopy, stringResource(R.string.diary_cd_copy_previous_day), tint = OnBackground.copy(0.5f))
+                Icon(Icons.Rounded.ContentCopy, stringResource(R.string.diary_cd_copy_previous_day), tint = OnBackground.copy(0.5f))
             }
         }
         if (!isToday) {

@@ -22,9 +22,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.FlashOff
-import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.FlashOff
+import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -172,7 +172,7 @@ fun CameraPreview(
                 containerColor = if (torchOn) AccentCoral else SurfaceVariant,
             ) {
                 Icon(
-                    if (torchOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                    if (torchOn) Icons.Rounded.FlashOn else Icons.Rounded.FlashOff,
                     stringResource(R.string.scan_flash_toggle),
                     tint = if (torchOn) Color.Black else OnSurface,
                 )
@@ -235,7 +235,7 @@ fun CameraPreview(
             modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = bottomNavClearance + Spacing.L),
             containerColor = SurfaceVariant,
         ) {
-            Icon(Icons.Default.CameraAlt, stringResource(R.string.scan_capture), tint = OnSurface)
+            Icon(Icons.Rounded.CameraAlt, stringResource(R.string.scan_capture), tint = OnSurface)
         }
     }
 }

@@ -14,11 +14,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Fastfood
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Fastfood
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -62,7 +62,7 @@ internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: D
             is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
             is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound,
             is ScanUiState.MultiFoodFound ->
-                Icon(Icons.Default.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
+                Icon(Icons.Rounded.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
         }
     }
 }
@@ -97,7 +97,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
                 shadowElevation = 6.dp,
             ) {
                 Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
                 }
@@ -122,7 +122,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                     shadowElevation = 3.dp,
                 ) {
                     Row(Modifier.padding(horizontal = Spacing.SM, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Default.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
+                        Icon(Icons.Rounded.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
                         Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
                     }
                 }
@@ -139,7 +139,7 @@ internal fun BoxScope.ScanInstantModeFab(instantMode: Boolean, bottomNavClearanc
         containerColor = if (instantMode) AccentCoral else SurfaceVariant,
         shape          = CircleShape,
     ) {
-        Icon(Icons.Default.Bolt, stringResource(R.string.scan_instant_toggle), tint = if (instantMode) Color.Black else OnSurface)
+        Icon(Icons.Rounded.Bolt, stringResource(R.string.scan_instant_toggle), tint = if (instantMode) Color.Black else OnSurface)
     }
 }
 
@@ -169,6 +169,6 @@ internal fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick
             .semantics { traversalIndex = -1f },
         containerColor = if (shelfMode) Teal else SurfaceVariant,
     ) {
-        Icon(Icons.Default.GridView, stringResource(R.string.scan_shelf_mode_toggle), tint = if (shelfMode) Color.Black else OnSurface)
+        Icon(Icons.Rounded.GridView, stringResource(R.string.scan_shelf_mode_toggle), tint = if (shelfMode) Color.Black else OnSurface)
     }
 }

@@ -10,16 +10,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Notes
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Notes
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -71,7 +71,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
             // width in this one row, each below the 48dp minimum tappable size.
             IconButton(onClick = onToggleFavorite) {
                 Icon(
-                    if (recipe.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                    if (recipe.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
                     stringResource(if (recipe.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                     tint = if (recipe.favorite) Gold else OnSurface.copy(0.3f),
                 )
@@ -86,17 +86,17 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 // (Share/Notes/Scale/Save-as-Template/Rename/Delete) moves into
                 // an overflow menu so each remaining control can sit at a
                 // compliant 48dp instead of being squeezed to fit seven-wide.
-                IconButton(onClick = onLog) { Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                IconButton(onClick = onLog) { Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = AccentCoral) }
                 var menuExpanded by remember { mutableStateOf(false) }
                 IconButton(onClick = { menuExpanded = true }) {
-                    Icon(Icons.Default.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                    Icon(Icons.Rounded.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                     // Previously a recipe could only leave the app via the whole-database
                     // backup - no way to send just this one recipe to someone else.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.recipes_cd_share)) },
-                        leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null) },
                         onClick = {
                             menuExpanded = false
                             val sendIntent = Intent(Intent.ACTION_SEND).apply {
@@ -108,14 +108,14 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.recipes_cd_notes)) },
-                        leadingIcon = { Icon(Icons.Default.Notes, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.Notes, contentDescription = null) },
                         onClick = { menuExpanded = false; onEditNotes() },
                     )
                     // Previously servings only ever affected a one-off logged portion
                     // (LogRecipeDialog) - no way to permanently rescale the recipe itself.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.recipes_cd_scale)) },
-                        leadingIcon = { Icon(Icons.Default.Tune, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.Tune, contentDescription = null) },
                         onClick = { menuExpanded = false; onScale() },
                     )
                     // Templates/Recipes had no way to convert between the two -
@@ -127,12 +127,12 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_rename)) },
-                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
                         onClick = { menuExpanded = false; onRename() },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_delete)) },
-                        leadingIcon = { Icon(Icons.Default.Close, contentDescription = null) },
+                        leadingIcon = { Icon(Icons.Rounded.Close, contentDescription = null) },
                         onClick = { menuExpanded = false; onDelete() },
                     )
                 }
@@ -173,7 +173,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
         // (allergen or diet violation) had no warning anywhere in this screen.
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -80,7 +80,7 @@ private fun CautionBanner(text: String) {
             horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             verticalAlignment = Alignment.Top,
         ) {
-            Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.padding(top = 2.dp))
+            Icon(Icons.Outlined.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.padding(top = 2.dp))
             Text(text, style = MaterialTheme.typography.labelSmall, color = semanticAmber())
         }
     }

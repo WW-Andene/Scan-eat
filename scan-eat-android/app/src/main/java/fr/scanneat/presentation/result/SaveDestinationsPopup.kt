@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -94,7 +94,7 @@ private fun DestinationRow(
         // inside it is a real screen-reader/interaction conflict (two actionable elements
         // claiming the same tap), not just redundant. Same fix as OnboardingScreen's ModeCard.
         Checkbox(checked = checked, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = Gold))
-        Icon(if (checked) Icons.Default.Star else Icons.Default.StarBorder, null, tint = Gold, modifier = Modifier.padding(end = Spacing.XS))
+        Icon(if (checked) Icons.Rounded.Star else Icons.Rounded.StarBorder, null, tint = Gold, modifier = Modifier.padding(end = Spacing.XS))
         Text(label, style = MaterialTheme.typography.bodyMedium, color = OnBackground)
     }
 }

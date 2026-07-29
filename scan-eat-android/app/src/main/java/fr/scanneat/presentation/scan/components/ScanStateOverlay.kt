@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.CameraAlt
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,7 +68,7 @@ internal fun BoxScope.ScanStateOverlay(
                         .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                         color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL), shadowElevation = 3.dp) {
                         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CameraAlt, null, tint = AccentCoral)
+                            Icon(Icons.Rounded.CameraAlt, null, tint = AccentCoral)
                             Spacer(Modifier.width(Spacing.S))
                             Text(stringResource(R.string.scan_needs_photo),
                                 Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)
@@ -76,7 +76,7 @@ internal fun BoxScope.ScanStateOverlay(
                             // target (WCAG 2.5.5/2.5.8) - sizing it down to 32dp shrank the
                             // tappable area, not just the glyph. Constrain the icon instead.
                             IconButton(onClick = onDismissError) {
-                                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnSurface, modifier = Modifier.size(IconSize.Inline))
+                                Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = OnSurface, modifier = Modifier.size(IconSize.Inline))
                             }
                         }
                     }

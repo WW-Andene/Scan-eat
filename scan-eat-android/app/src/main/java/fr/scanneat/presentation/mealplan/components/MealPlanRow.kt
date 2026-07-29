@@ -3,7 +3,7 @@ package fr.scanneat.presentation.mealplan.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,10 +31,10 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // minimum) below - a UI/UX audit found this row forcing every control
             // to 32dp. The inner Icon's own smaller size keeps the glyph compact.
             IconButton(onClick = { onEdit(text); editing = false }) {
-                Icon(Icons.Default.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
             }
             IconButton(onClick = { editing = false }) {
-                Icon(Icons.Default.Close, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.Close, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
         } else {
             val label = when (slot) {
@@ -45,7 +45,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             }
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 when (slot) {
-                    is MealPlanSlot.RecipeSlot   -> Icon(Icons.Default.RestaurantMenu, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
+                    is MealPlanSlot.RecipeSlot   -> Icon(Icons.Rounded.RestaurantMenu, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
                     is MealPlanSlot.TemplateSlot -> Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
                     else -> {}
                 }
@@ -54,7 +54,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
                 // Diary already show for the exact same items - this weekly grid previously
                 // showed zero allergen/diet warning no matter what was planned here.
                 if (warning != null) {
-                    Icon(Icons.Default.WarningAmber, contentDescription = warning, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                    Icon(Icons.Rounded.WarningAmber, contentDescription = warning, tint = semanticAmber(), modifier = Modifier.size(12.dp))
                 }
             }
             // Editing as free text only makes sense for a note (or an empty slot) — a
@@ -63,7 +63,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // assignment. Recipe/Template slots use the clear (X) button to remove instead.
             if (slot == null || slot is MealPlanSlot.NoteSlot) {
                 IconButton(onClick = { editing = true }) {
-                    Icon(Icons.Default.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                 }
             }
             // A planned Recipe/Template slot previously only ever persisted the plan
@@ -72,18 +72,18 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // template is assigned; a note has no nutrition to log.
             if (slot is MealPlanSlot.RecipeSlot || slot is MealPlanSlot.TemplateSlot) {
                 IconButton(onClick = { onLog(slot) }) {
-                    Icon(Icons.Default.Add, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(18.dp))
                 }
             }
             // Lets a saved Recipe/Template actually be planned onto this slot — until
             // now MealPlanSlot.RecipeSlot/TemplateSlot could only ever be produced by
             // deserializing a backup, never by anything reachable from the UI.
             IconButton(onClick = onAssign) {
-                Icon(Icons.Default.RestaurantMenu, stringResource(R.string.mealplan_assign_cd), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(Icons.Rounded.RestaurantMenu, stringResource(R.string.mealplan_assign_cd), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             if (slot != null) {
                 IconButton(onClick = onClear) {
-                    Icon(Icons.Default.Close, stringResource(R.string.common_clear), tint = OnSurface.copy(0.3f), modifier = Modifier.size(14.dp))
+                    Icon(Icons.Rounded.Close, stringResource(R.string.common_clear), tint = OnSurface.copy(0.3f), modifier = Modifier.size(14.dp))
                 }
             }
         }

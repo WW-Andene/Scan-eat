@@ -3,9 +3,9 @@ package fr.scanneat.presentation.reminders
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -68,7 +68,7 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
             if (nextLabel != null) {
                 Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.12f)) {
                     Row(modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Default.Schedule, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
+                        Icon(Icons.Rounded.Schedule, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
                         Text(nextLabel, style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                     }
                 }
@@ -104,7 +104,7 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
         }
         var showAddDialog by remember { mutableStateOf(false) }
         TextButton(onClick = { showAddDialog = true }, modifier = Modifier.align(Alignment.End)) {
-            Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+            Icon(Icons.Rounded.Add, null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(Spacing.XS))
             Text(stringResource(R.string.reminders_add_custom), style = MaterialTheme.typography.labelMedium)
         }
@@ -140,7 +140,7 @@ fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
             Text(stringResource(R.string.reminders_hydration), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { NotificationHelper.show(context, 904, context.getString(R.string.reminders_hydration), context.getString(R.string.reminders_test_body)) }) {
-                    Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_hydration)), tint = semanticBlue())
+                    Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_hydration)), tint = semanticBlue())
                 }
                 val lbl = stringResource(R.string.reminders_hydration)
                 Switch(checked = s.hydrationOn, onCheckedChange = { viewModel.setHydration(it, s.hydrationIntervalHours) },
@@ -172,7 +172,7 @@ fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
             Text(stringResource(R.string.reminders_weight), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { NotificationHelper.show(context, 905, context.getString(R.string.reminders_weight), context.getString(R.string.reminders_test_body)) }) {
-                    Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_weight)), tint = Gold)
+                    Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_weight)), tint = Gold)
                 }
                 val lbl = stringResource(R.string.reminders_weight)
                 Switch(checked = s.weightOn, onCheckedChange = { viewModel.setWeight(it, s.weightThresholdDays) },
@@ -205,7 +205,7 @@ fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
             Text(stringResource(R.string.reminders_activity), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { NotificationHelper.show(context, 911, context.getString(R.string.reminders_activity), context.getString(R.string.reminders_test_body)) }) {
-                    Icon(Icons.Default.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_activity)), tint = semanticGreen())
+                    Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, stringResource(R.string.reminders_activity)), tint = semanticGreen())
                 }
                 val lbl = stringResource(R.string.reminders_activity)
                 Switch(checked = s.activityOn, onCheckedChange = { viewModel.setActivity(it, s.activityThresholdDays) },

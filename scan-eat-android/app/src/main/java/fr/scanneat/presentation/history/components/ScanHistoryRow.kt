@@ -3,7 +3,7 @@ package fr.scanneat.presentation.history.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -67,7 +67,7 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
                     // DiaryEntryCard's identical safety-relevant warning styling.
                     if (warning != null) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Default.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                            Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
                             Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
@@ -75,16 +75,16 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
             }
             IconButton(onClick = onToggleFavorite) {
                 Icon(
-                    if (scan.favorite) Icons.Default.Star else Icons.Default.StarBorder,
+                    if (scan.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
                     stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                     tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
                     modifier = Modifier.size(18.dp),
                 )
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
             }
-            Icon(Icons.Default.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
+            Icon(Icons.Rounded.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
         }
     }
 }

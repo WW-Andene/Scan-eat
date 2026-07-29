@@ -3,7 +3,7 @@ package fr.scanneat.presentation.grocery.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,7 +29,7 @@ internal fun GroceryQuickAddRow(quickAddText: String, onQuickAddTextChange: (Str
             enabled = quickAddText.isNotBlank(),
             modifier = Modifier.minTouchTarget(), // was a fixed 40dp, below the 48dp WCAG/Material minimum
         ) {
-            Icon(Icons.Default.Add, stringResource(R.string.grocery_quick_add_cd), tint = if (quickAddText.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
+            Icon(Icons.Rounded.Add, stringResource(R.string.grocery_quick_add_cd), tint = if (quickAddText.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
         }
     }
 }

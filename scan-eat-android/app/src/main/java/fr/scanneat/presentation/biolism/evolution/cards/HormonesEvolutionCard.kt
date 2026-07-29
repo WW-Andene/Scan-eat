@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.WarningAmber
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -61,7 +61,7 @@ fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language
         val warnColor = semanticAmber()
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
             modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(6.dp)).padding(Spacing.S)) {
-            Icon(Icons.Default.WarningAmber, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
+            Icon(Icons.Outlined.WarningAmber, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
             Text(
                 stringResource(R.string.biolism_evo_hormones_caption),
                 style = MaterialTheme.typography.labelSmall,

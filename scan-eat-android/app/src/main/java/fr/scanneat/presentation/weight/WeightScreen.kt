@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -163,7 +163,7 @@ fun WeightScreen(
             if (reversedEntries.isEmpty()) {
                 item {
                     EmptyListState(
-                        Icons.Default.Scale, stringResource(R.string.weight_empty_body),
+                        Icons.Rounded.Scale, stringResource(R.string.weight_empty_body),
                         ctaLabel = stringResource(R.string.weight_cd_add), onCta = { openAddDialog() },
                     )
                 }
@@ -202,14 +202,14 @@ fun WeightScreen(
                 onClick = { openAddDialog() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = AccentCoral,
-            ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = Color.Black) }
+            ) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = Color.Black) }
             ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-            actions = { IconButton(onClick = { openAddDialog() }) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
+            actions = { IconButton(onClick = { openAddDialog() }) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
             snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }

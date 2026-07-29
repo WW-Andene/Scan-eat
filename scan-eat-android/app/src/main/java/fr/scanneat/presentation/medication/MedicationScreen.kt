@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -119,7 +119,7 @@ fun MedicationScreen(
             if (medications.value.isEmpty()) {
                 item {
                     EmptyListState(
-                        Icons.Default.Medication, stringResource(R.string.medication_empty_body),
+                        Icons.Rounded.Medication, stringResource(R.string.medication_empty_body),
                         ctaLabel = stringResource(R.string.medication_cd_new), onCta = { showAdd = true },
                     )
                 }
@@ -147,14 +147,14 @@ fun MedicationScreen(
                 onClick = { showAdd = true },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = Teal,
-            ) { Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = androidx.compose.ui.graphics.Color.Black) }
+            ) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = androidx.compose.ui.graphics.Color.Black) }
             ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.medication_title), color = OnBackground) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
-            actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.medication_cd_new), tint = Teal) } },
+            actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Rounded.Add, stringResource(R.string.medication_cd_new), tint = Teal) } },
             snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }

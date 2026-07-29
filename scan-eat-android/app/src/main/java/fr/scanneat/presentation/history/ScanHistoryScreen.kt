@@ -5,7 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -134,7 +134,7 @@ fun ScanHistoryScreen(
                 if (scans.value.isEmpty()) {
                     item {
                         EmptyListState(
-                            Icons.Default.History,
+                            Icons.Rounded.History,
                             when {
                                 query.value.isNotBlank() -> stringResource(R.string.history_empty_query, query.value)
                                 favoritesOnly.value       -> stringResource(R.string.history_empty_favorites)

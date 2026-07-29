@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -30,7 +30,7 @@ internal fun DiaryNoteField(noteText: String, onNoteTextChange: (String) -> Unit
         trailingIcon = {
             if (isDirty) {
                 IconButton(onClick = onSave) {
-                    Icon(Icons.Default.Check, stringResource(R.string.diary_cd_save_note), tint = AccentCoral)
+                    Icon(Icons.Rounded.Check, stringResource(R.string.diary_cd_save_note), tint = AccentCoral)
                 }
             }
         },

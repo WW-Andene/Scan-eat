@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -162,7 +162,7 @@ fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenRes
                         Text(status.name, style = MaterialTheme.typography.labelSmall, color = OnSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     is ShelfPeekStatus.Failed -> {
-                        Icon(Icons.Default.ErrorOutline, null, tint = semanticRed(), modifier = Modifier.size(14.dp))
+                        Icon(Icons.Rounded.ErrorOutline, null, tint = semanticRed(), modifier = Modifier.size(14.dp))
                         Text(status.message, style = MaterialTheme.typography.labelSmall, color = OnSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }

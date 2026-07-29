@@ -13,7 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -173,8 +173,8 @@ fun RecipesScreen(
         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
-            IconButton(onClick = { showSuggest = true }) { Icon(Icons.Default.Lightbulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
-            IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Default.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
+            IconButton(onClick = { showSuggest = true }) { Icon(Icons.Rounded.Lightbulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
+            IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Rounded.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
             IconButton(onClick = {
                 photoImportLauncher.launch(
                     androidx.activity.result.PickVisualMediaRequest.Builder()
@@ -182,7 +182,7 @@ fun RecipesScreen(
                         .build()
                 )
             }) {
-                Icon(Icons.Default.PhotoCamera, stringResource(R.string.recipes_cd_import_photo), tint = OnBackground)
+                Icon(Icons.Rounded.PhotoCamera, stringResource(R.string.recipes_cd_import_photo), tint = OnBackground)
             }
             IconButton(onClick = {
                 menuScanLauncher.launch(
@@ -191,9 +191,9 @@ fun RecipesScreen(
                         .build()
                 )
             }) {
-                Icon(Icons.Default.Restaurant, stringResource(R.string.recipes_cd_menu_scan), tint = OnBackground)
+                Icon(Icons.Rounded.Restaurant, stringResource(R.string.recipes_cd_menu_scan), tint = OnBackground)
             }
-            IconButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
+            IconButton(onClick = { showAdd = true }) { Icon(Icons.Rounded.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
@@ -247,11 +247,11 @@ fun RecipesScreen(
                 item {
                     if (recipeQuery.value.isBlank() && goalFilter.value == RecipesViewModel.GoalFilter.ALL) {
                         EmptyListState(
-                            Icons.Default.RestaurantMenu, stringResource(R.string.recipes_empty_body),
+                            Icons.Rounded.RestaurantMenu, stringResource(R.string.recipes_empty_body),
                             ctaLabel = stringResource(R.string.recipes_cd_new), onCta = { showAdd = true },
                         )
                     } else {
-                        EmptyListState(Icons.Default.RestaurantMenu, stringResource(R.string.recipes_empty_query, recipeQuery.value))
+                        EmptyListState(Icons.Rounded.RestaurantMenu, stringResource(R.string.recipes_empty_query, recipeQuery.value))
                     }
                 }
             }

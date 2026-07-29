@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Medication
-import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.rounded.Medication
+import androidx.compose.material.icons.rounded.Opacity
+import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,7 +53,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             val hydrationPct = if (snapshot.hydrationGoalMl > 0) (snapshot.hydrationMl * 100 / snapshot.hydrationGoalMl) else 0
             TrackerStat(
-                icon = Icons.Default.Opacity,
+                icon = Icons.Rounded.Opacity,
                 tint = semanticBlue(),
                 value = stringResource(R.string.dashboard_other_trackers_hydration_value, hydrationPct.coerceAtMost(999)),
                 label = stringResource(R.string.dashboard_other_trackers_hydration_label),
@@ -61,7 +61,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
             )
             val fasting = snapshot.fastingActive
             TrackerStat(
-                icon = Icons.Default.Timer,
+                icon = Icons.Rounded.Timer,
                 tint = semanticAmber(),
                 value = if (fasting != null) stringResource(R.string.dashboard_other_trackers_fasting_active_value, fasting.elapsedHours.roundToInt())
                         else stringResource(R.string.dashboard_other_trackers_fasting_idle_value),
@@ -69,7 +69,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
                 modifier = Modifier.weight(1f),
             )
             TrackerStat(
-                icon = Icons.Default.Medication,
+                icon = Icons.Rounded.Medication,
                 tint = if (snapshot.medsActiveCount == 0 || snapshot.medsTakenCount == snapshot.medsActiveCount) semanticGreen() else semanticAmber(),
                 value = stringResource(R.string.dashboard_other_trackers_meds_value, snapshot.medsTakenCount, snapshot.medsActiveCount),
                 label = stringResource(R.string.dashboard_other_trackers_meds_label),

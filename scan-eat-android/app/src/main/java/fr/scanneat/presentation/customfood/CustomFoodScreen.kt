@@ -6,7 +6,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -66,7 +66,7 @@ fun CustomFoodScreen(
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.CUSTOM_FOODS, onNavigate = onNavigateToPlanning)
             IconButton(onClick = { showAdd = true }) {
-                Icon(Icons.Default.Add, stringResource(R.string.common_add), tint = AccentCoral)
+                Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = AccentCoral)
             }
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
@@ -80,11 +80,11 @@ fun CustomFoodScreen(
                     .fillMaxWidth()
                     .padding(horizontal = Spacing.L, vertical = Spacing.S),
                 placeholder = { Text(stringResource(R.string.customfood_search_placeholder), color = OnBackground.copy(0.4f)) },
-                leadingIcon = { Icon(Icons.Default.Search, null, tint = OnBackground.copy(0.5f)) },
+                leadingIcon = { Icon(Icons.Rounded.Search, null, tint = OnBackground.copy(0.5f)) },
                 trailingIcon = {
                     if (query.value.isNotEmpty()) {
                         IconButton(onClick = { viewModel.setQuery("") }) {
-                            Icon(Icons.Default.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
+                            Icon(Icons.Rounded.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
                         }
                     }
                 },
@@ -133,7 +133,7 @@ fun CustomFoodScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                     ) {
-                        Icon(Icons.Default.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Rounded.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                         Text(
                             stringResource(R.string.customfood_import_from_scan, scan.product.name),
                             style = MaterialTheme.typography.bodySmall,
@@ -144,7 +144,7 @@ fun CustomFoodScreen(
                         // minimum, was 32dp) and given a real contentDescription (was
                         // null - a TalkBack user heard nothing for this import action).
                         IconButton(onClick = { viewModel.importFromScan(scan) }) {
-                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.customfood_import_from_scan, scan.product.name), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.customfood_import_from_scan, scan.product.name), tint = AccentCoral, modifier = Modifier.size(18.dp))
                         }
                     }
                 }
@@ -157,7 +157,7 @@ fun CustomFoodScreen(
                 if (displayList.isEmpty()) {
                     item {
                         EmptyListState(
-                            Icons.Default.RestaurantMenu,
+                            Icons.Rounded.RestaurantMenu,
                             if (query.value.isBlank()) stringResource(R.string.customfood_empty_body)
                             else stringResource(R.string.customfood_empty_query, query.value),
                         )
