@@ -72,6 +72,14 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             color = Color.Transparent,
             border = BorderStroke(1.dp, balColor.copy(alpha = HeroGlassSpec.borderAlpha)),
+            // design-aesthetic-audit §DH: this card already declares itself
+            // HERO tier via HeroGlassSpec's edge/glow/border above (it's the
+            // Dashboard's one focal metric per the doc comment below), but had
+            // no shadowElevation at all - only the streak badge overlaid on top
+            // of it did. 10dp matches HeroGlassSpec's own elevation tier from
+            // ScanEatCard, so this card actually reads as more prominent than
+            // an ordinary card, not equal to or flatter than one.
+            shadowElevation = 10.dp,
         ) {
             Column(
                 modifier = Modifier
