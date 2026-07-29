@@ -144,6 +144,9 @@ fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenRes
             shape = RoundedCornerShape(CardRadius.CONTROL),
             color = SurfaceVariant.copy(0.94f),
             onClick = { if (peek.status is ShelfPeekStatus.Ready) onOpenResult(peek.status.resultId) else onDismiss() },
+            // design-aesthetic-audit §DH: floats freely over the live camera
+            // preview like ScanBarcodeChip/ScanHeaderOverlay, but had none.
+            shadowElevation = 6.dp,
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
