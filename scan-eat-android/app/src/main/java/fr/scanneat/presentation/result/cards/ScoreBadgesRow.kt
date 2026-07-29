@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.NovaClass
 import fr.scanneat.domain.model.ScoreAudit
@@ -57,7 +58,7 @@ private fun LetterGradeChip(label: String, grade: String) {
 
 @Composable
 private fun ScoreChip(label: String, color: Color) {
-    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(alpha = 0.15f)) {
+    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(alpha = 0.15f), shadowElevation = 3.dp) {
         Text(
             label,
             style = MaterialTheme.typography.labelMedium,
