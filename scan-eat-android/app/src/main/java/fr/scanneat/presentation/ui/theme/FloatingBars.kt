@@ -54,9 +54,19 @@ import dev.chrisbanes.haze.hazeSource
  */
 val FrostedGlassStyle: HazeStyle
     @Composable get() = run {
+        // design-aesthetic-audit: the OLED fix above only verified the no-blur
+        // fallback path against a near-black Background - Light theme has the same
+        // underlying problem this doc already describes for OLED, just inverted:
+        // SurfaceVariant (#F0E7E0) sits only ~1-3 RGB units from Background
+        // (#F6F1EC), so a 0.55-alpha tint barely darkens the live-blurred content
+        // it's compositing over, leaving glassSheen's hairline + the Surface's own
+        // shadowElevation shadow (both of which DO have real contrast in Light
+        // theme) as the only visible shape - a disconnected rectangle instead of a
+        // whole glass pill.
+        val tintAlpha = if (isLightBackground()) 0.82f else 0.55f
         HazeStyle(
             backgroundColor = Background,
-            tint            = HazeTint(SurfaceVariant.copy(alpha = 0.55f)),
+            tint            = HazeTint(SurfaceVariant.copy(alpha = tintAlpha)),
             blurRadius      = 16.dp,
             noiseFactor     = 0f,
         )

@@ -232,7 +232,7 @@ private val LightSafeAmber  = Color(0xFF8F4B00)
 private val LightSafeBlue   = Color(0xFF01579B)
 
 @Composable
-private fun isLightBackground(): Boolean = MaterialTheme.colorScheme.background.luminance() > 0.5f
+internal fun isLightBackground(): Boolean = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
 /** Good / positive / success signal. */
 @Composable

@@ -81,7 +81,14 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
 fun ScanEatCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(CardRadius.CARD),
-    color: Color = SurfaceVariant.copy(alpha = 0.24f),
+    // design-aesthetic-audit: Light theme's SurfaceVariant (#F0E7E0) sits only ~1-3
+    // RGB units from its own Background (#F6F1EC) - composited at the 0.24 alpha
+    // tuned against Dark/OLED (where SurfaceVariant contrasts strongly with a
+    // near-black Background), the card's own fill was imperceptible in Light theme.
+    // With no visible fill, the card never read as one whole shape - only its
+    // shadowElevation shadow (which DOES have real contrast against a light
+    // background) showed up, as a disconnected rectangle instead of a filled card.
+    color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.75f else 0.24f),
     contentPadding: PaddingValues = PaddingValues(Spacing.M),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,

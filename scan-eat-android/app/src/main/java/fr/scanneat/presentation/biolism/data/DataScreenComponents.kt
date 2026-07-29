@@ -60,7 +60,11 @@ internal fun BioCard(
     Box(Modifier.fillMaxWidth().glassSheen(edgeAlpha = if (emphasized) 0.34f else 0.16f, glowTint = if (emphasized) Gold else Color.White)) {
         Surface(
             shape = RoundedCornerShape(CardRadius.CARD),
-            color = SurfaceVariant.copy(alpha = 0.42f),
+            // design-aesthetic-audit: same fix as ScanEatCard.kt - SurfaceVariant sits
+            // only ~1-3 RGB units from Background in Light theme, so this fill was
+            // imperceptible there, leaving only the shadow visible as a disconnected
+            // rectangle instead of a filled card.
+            color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
             border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
             modifier = Modifier.fillMaxWidth(),
             shadowElevation = if (emphasized) 10.dp else 6.dp,
