@@ -29,6 +29,9 @@ internal fun KetosisToggleRow(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = bgColor,
         border = BorderStroke(1.dp, borderColor),
+        // app-audit §E5: top-level Biolism tracker card with no shadowElevation
+        // at all, unlike the rest of the card system.
+        shadowElevation = 6.dp,
     ) {
         Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -89,6 +92,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (active) GoldHaze else GoldTrace,
         border = BorderStroke(1.dp, if (active) GoldBorder else GoldTrace),
+        shadowElevation = 6.dp,
     ) {
         Row(Modifier.fillMaxWidth().padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             // Same weight(1f) fix as KetosisToggleRow above - reserves the fixed
