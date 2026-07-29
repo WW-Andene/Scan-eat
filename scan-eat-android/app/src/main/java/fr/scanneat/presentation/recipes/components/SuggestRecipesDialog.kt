@@ -176,6 +176,9 @@ internal fun SuggestRecipesDialog(
                             Surface(
                                 shape = RoundedCornerShape(10.dp), color = OnBackground.copy(0.05f),
                                 onClick = { onPick(idea) }, modifier = Modifier.fillMaxWidth(),
+                                // app-audit §E5: matching AddDiaryEntryDialog's
+                                // list-row elevation - had none.
+                                shadowElevation = 3.dp,
                             ) {
                                 Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Text(idea.name, style = MaterialTheme.typography.bodyMedium, color = AccentCoral)
