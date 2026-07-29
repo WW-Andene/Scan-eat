@@ -10,13 +10,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun TemplatesStatsRow(count: Int, totalKcal: Int) {
     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f)) {
+        // app-audit §E5: matching the small-stat-tile elevation tier (3dp)
+        // already applied to MonthSummaryBar/FastingHistorySection's near-
+        // identical pills - these had no shadowElevation at all.
+        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f), shadowElevation = 3.dp) {
             Text(
                 stringResource(R.string.templates_stats_count, count),
                 modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
@@ -24,7 +28,7 @@ internal fun TemplatesStatsRow(count: Int, totalKcal: Int) {
             )
         }
         if (totalKcal > 0) {
-            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
+            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f), shadowElevation = 3.dp) {
                 Text(
                     stringResource(R.string.templates_stats_total_kcal, totalKcal),
                     modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
