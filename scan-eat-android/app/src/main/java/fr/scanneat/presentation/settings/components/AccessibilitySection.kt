@@ -58,7 +58,7 @@ internal fun AccessibilitySection(
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Grade.entries.forEach { grade ->
                 val c = gradeColor(grade)
-                Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f)) {
+                Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f), shadowElevation = 3.dp) {
                     Text(
                         grade.label,
                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
