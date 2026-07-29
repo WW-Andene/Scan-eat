@@ -147,6 +147,14 @@ private val LightGoldAccent = Color(0xFF8B6914)
 /** "none" | "deuteranopia" | "protanopia" | "tritanopia" — read by gradeColor() and friends. */
 val LocalColorblindMode = staticCompositionLocalOf { "none" }
 
+/**
+ * Settings > Appearance > "Animated background" - read internally by
+ * ambientGloom() (Glass.kt) so every existing call site across the app
+ * (every screen using ambientGloom for its own background wash) picks up
+ * the setting automatically with no change to any of those call sites.
+ */
+val LocalAnimatedGloom = staticCompositionLocalOf { false }
+
 // OpenDyslexic (SIL OFL 1.1, https://opendyslexic.org) — the actual dyslexia
 // typeface, not just a spacing tweak on the default font. Weighted-bottom
 // letterforms are the whole point: switching it on must look like a different
@@ -193,6 +201,7 @@ fun ScanEatTheme(
     theme: String = "oled",
     dyslexicFont: Boolean = false,
     colorblindMode: String = "none",
+    animatedBackground: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when (theme) {
@@ -204,7 +213,11 @@ fun ScanEatTheme(
     }
     val goldAccent = if (theme == "light") LightGoldAccent else Gold
     val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography
-    CompositionLocalProvider(LocalGoldAccent provides goldAccent, LocalColorblindMode provides colorblindMode) {
+    CompositionLocalProvider(
+        LocalGoldAccent provides goldAccent,
+        LocalColorblindMode provides colorblindMode,
+        LocalAnimatedGloom provides animatedBackground,
+    ) {
         // The 5 schemes above bake `error` in as a plain val at construction
         // time, so it can't itself read LocalColorblindMode - every isError
         // form field in the app (OutlinedTextField etc.) rendered via

@@ -32,6 +32,8 @@ class SplashViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val colorblindMode: StateFlow<String> = prefs.colorblindMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
+    val animatedBackground: StateFlow<Boolean> = prefs.animatedBackground
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
         viewModelScope.launch {

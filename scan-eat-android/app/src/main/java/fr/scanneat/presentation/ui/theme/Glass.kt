@@ -1,7 +1,14 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -9,6 +16,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * A soft top-light catch + hairline edge, applied over an existing card
@@ -81,25 +90,64 @@ fun Modifier.glassSheen(
  * effects. Intended as the outermost layer behind a screen's Scaffold/
  * Column/LazyColumn content — apply directly to that container's own
  * modifier in place of a plain `.background(Background)`.
+ *
+ * Settings > Appearance > "Animated background" (read here via
+ * [LocalAnimatedGloom], provided by [ScanEatTheme]) makes both blobs drift
+ * slowly along their own independent circular path instead of sitting fully
+ * static — a generated, ever-so-slightly moving gloom rather than a fixed
+ * gradient. Off by default: it's a continuous per-frame redraw for as long
+ * as it's on, unlike every other setting here, which are one-time layout
+ * choices. `composed {}` is required (not a plain drawWithCache chain, like
+ * [glassSheen] above) because reading a CompositionLocal and driving an
+ * infinite animation both need actual composition, not just a draw scope.
  */
 fun Modifier.ambientGloom(
     base: Color,
     primary: Color,
     secondary: Color = primary,
-): Modifier = this.drawWithCache {
-    val primaryBrush = Brush.radialGradient(
-        colors = listOf(primary.copy(alpha = 0.10f), Color.Transparent),
-        center = Offset(size.width * 0.88f, size.height * 0.04f),
-        radius = size.width * 0.9f,
-    )
-    val secondaryBrush = Brush.radialGradient(
-        colors = listOf(secondary.copy(alpha = 0.07f), Color.Transparent),
-        center = Offset(size.width * 0.08f, size.height * 0.7f),
-        radius = size.width * 1.1f,
-    )
-    onDrawBehind {
-        drawRect(base)
-        drawRect(primaryBrush)
-        drawRect(secondaryBrush)
+): Modifier = composed {
+    val animated = LocalAnimatedGloom.current
+    val phase = if (animated) {
+        val transition = rememberInfiniteTransition(label = "ambientGloomPhase")
+        transition.animateFloat(
+            initialValue = 0f,
+            targetValue = (2.0 * Math.PI).toFloat(),
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 26_000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "ambientGloomPhaseValue",
+        ).value
+    } else 0f
+
+    this.drawWithCache {
+        // Drift radius scoped to a fraction of the screen so the blobs stay
+        // gentle and never swing far enough to feel like a spotlight sweeping
+        // across the content - opposite phase offsets (secondary uses
+        // phase + PI) so the two blobs don't move in lockstep.
+        val drift = size.width * 0.06f
+        val primaryCenter = Offset(
+            size.width * 0.88f + drift * cos(phase),
+            size.height * 0.04f + drift * sin(phase) * 0.4f,
+        )
+        val secondaryCenter = Offset(
+            size.width * 0.08f + drift * cos(phase + Math.PI.toFloat()),
+            size.height * 0.7f + drift * sin(phase + Math.PI.toFloat()),
+        )
+        val primaryBrush = Brush.radialGradient(
+            colors = listOf(primary.copy(alpha = 0.10f), Color.Transparent),
+            center = primaryCenter,
+            radius = size.width * 0.9f,
+        )
+        val secondaryBrush = Brush.radialGradient(
+            colors = listOf(secondary.copy(alpha = 0.07f), Color.Transparent),
+            center = secondaryCenter,
+            radius = size.width * 1.1f,
+        )
+        onDrawBehind {
+            drawRect(base)
+            drawRect(primaryBrush)
+            drawRect(secondaryBrush)
+        }
     }
 }

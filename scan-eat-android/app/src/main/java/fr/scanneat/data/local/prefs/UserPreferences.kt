@@ -46,6 +46,7 @@ class UserPreferences @Inject constructor(
         val KEY_COLORBLIND_MODE      = stringPreferencesKey("colorblind_mode")
         val KEY_USE_IMPERIAL_WEIGHT  = booleanPreferencesKey("use_imperial_weight")
         val KEY_BIOLISM_ADVANCED     = booleanPreferencesKey("biolism_advanced_view")
+        val KEY_ANIMATED_BACKGROUND  = booleanPreferencesKey("animated_background")
         val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         // Profile — flat keys
@@ -126,6 +127,16 @@ class UserPreferences @Inject constructor(
     val biolismAdvancedView: Flow<Boolean> = storeData.map { it[KEY_BIOLISM_ADVANCED] ?: true }.distinctUntilChanged()
 
     /**
+     * Settings > Appearance toggle for the screen's own ambient background wash
+     * (see ambientGloom() in Glass.kt) drifting slowly instead of sitting fully
+     * static. Defaults to false: it's a decorative, always-on-screen animation
+     * (unlike e.g. biolismAdvancedView, a one-time layout choice), so it costs a
+     * small continuous recomposition/redraw on every screen using ambientGloom
+     * for as long as it stays enabled - opt-in rather than on-by-default.
+     */
+    val animatedBackground: Flow<Boolean> = storeData.map { it[KEY_ANIMATED_BACKGROUND] ?: false }.distinctUntilChanged()
+
+    /**
      * Longest consecutive-day Activité streak ever reached - a persisted high-water
      * mark, unlike ActivityViewModel.streak (the *current* run, which resets to 0
      * the day after a missed workout). Needed to celebrate a new streak record the
@@ -148,6 +159,7 @@ class UserPreferences @Inject constructor(
     suspend fun setColorblindMode(mode: String)   = store.edit { it[KEY_COLORBLIND_MODE] = mode }
     suspend fun setUseImperialWeight(v: Boolean)  = store.edit { it[KEY_USE_IMPERIAL_WEIGHT] = v }
     suspend fun setBiolismAdvancedView(v: Boolean) = store.edit { it[KEY_BIOLISM_ADVANCED] = v }
+    suspend fun setAnimatedBackground(v: Boolean)  = store.edit { it[KEY_ANIMATED_BACKGROUND] = v }
 
     // ---- Profile ----
 

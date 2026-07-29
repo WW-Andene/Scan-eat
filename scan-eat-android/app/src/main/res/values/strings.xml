@@ -1019,6 +1019,8 @@
     <string name="settings_section_profile">Profil nutritionnel</string>
     <string name="settings_section_accessibility">Accessibilité</string>
     <string name="settings_section_reminders">Rappels</string>
+    <string name="settings_animated_background">Fond animé</string>
+    <string name="settings_animated_background_hint">La brume d\'ambiance en arrière-plan dérive lentement au lieu de rester fixe</string>
     <string name="settings_dyslexic_font">Police adaptée dyslexie</string>
     <string name="settings_dyslexic_font_hint">Interlettrage et espacement des lignes augmentés pour une lecture plus facile</string>
     <string name="settings_colorblind_mode">Mode daltonien</string>

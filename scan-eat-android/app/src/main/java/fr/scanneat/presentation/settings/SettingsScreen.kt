@@ -60,6 +60,7 @@ fun SettingsScreen(
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
+    val animatedBackground = viewModel.animatedBackground.collectAsStateWithLifecycle()
     val savedField = viewModel.savedField.collectAsStateWithLifecycle()
     val backupState = viewModel.backupState.collectAsStateWithLifecycle()
     val healthConnectAvailability = viewModel.healthConnectAvailability.collectAsStateWithLifecycle()
@@ -244,7 +245,12 @@ fun SettingsScreen(
             item { LanguageSection(language.value, onLanguageChange = viewModel::setLanguage) }
 
             // Fix 4: Theme toggle
-            item { ThemeSection(theme.value, onThemeChange = viewModel::setTheme) }
+            item {
+                ThemeSection(
+                    theme.value, onThemeChange = viewModel::setTheme,
+                    animatedBackground.value, onAnimatedBackgroundChange = viewModel::setAnimatedBackground,
+                )
+            }
 
             // ---- Units — was only reachable from Profile despite being an app-wide
             // preference also consumed by Weight/Biolism; users looking for it under

@@ -69,6 +69,7 @@ class SettingsViewModel @Inject constructor(
     // preference lives) wouldn't find it there.
     val useImperialWeight = prefs.useImperialWeight.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val biolismAdvancedView = prefs.biolismAdvancedView.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val animatedBackground = prefs.animatedBackground.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private val _savedField = MutableStateFlow<String?>(null)
     /** Which field was just saved — SettingsScreen shows a brief confirmation, then clears it. */
@@ -104,6 +105,7 @@ class SettingsViewModel @Inject constructor(
     fun setColorblindMode(mode: String) = viewModelScope.launch { prefs.setColorblindMode(mode) }
     fun setUseImperialWeight(v: Boolean) = viewModelScope.launch { prefs.setUseImperialWeight(v) }
     fun setBiolismAdvancedView(v: Boolean) = viewModelScope.launch { prefs.setBiolismAdvancedView(v) }
+    fun setAnimatedBackground(v: Boolean) = viewModelScope.launch { prefs.setAnimatedBackground(v) }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Backup export/import
