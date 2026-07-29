@@ -119,7 +119,7 @@ internal fun WeightSummaryCard(
             HorizontalDivider(color = OnSurface.copy(0.08f))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.weight_logging_streak_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                Surface(shape = RoundedCornerShape(50), color = Gold.copy(0.15f)) {
+                Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.15f)) {
                     Row(
                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -128,11 +128,18 @@ internal fun WeightSummaryCard(
                         // Icon, not the 🔥 emoji baked into the string before -
                         // same LocalFireDepartment streak-badge convention already
                         // used by Activity/Medication/Fasting/Hydration's own streaks.
-                        Icon(Icons.Rounded.LocalFireDepartment, null, tint = Gold, modifier = Modifier.size(14.dp))
+                        // design-aesthetic-audit §DC4: was tinted Gold - the
+                        // Biolism-domain accent - despite every other tracker's own
+                        // streak badge using its own established feature accent
+                        // (Activity=Warm, Medication=Teal, Hydration=blue) and this
+                        // same card already using AccentCoral for its own goal-delta
+                        // indicator above. AccentCoral matches this screen's own
+                        // established accent instead of an arbitrary borrowed one.
+                        Icon(Icons.Rounded.LocalFireDepartment, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
                         Text(
                             stringResource(R.string.weight_logging_streak_value, loggingStreakDays),
                             style = MaterialTheme.typography.labelSmall,
-                            color = Gold,
+                            color = AccentCoral,
                             fontWeight = FontWeight.Bold,
                         )
                     }
