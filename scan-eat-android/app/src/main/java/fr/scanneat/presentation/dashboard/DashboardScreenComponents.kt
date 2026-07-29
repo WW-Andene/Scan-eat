@@ -29,6 +29,7 @@ internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = 
         modifier = modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant.copy(alpha = 0.42f),
+        shadowElevation = 3.dp,
     ) {
         Column(
             modifier = Modifier.padding(Spacing.M),

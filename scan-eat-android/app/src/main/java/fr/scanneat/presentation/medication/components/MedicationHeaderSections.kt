@@ -77,6 +77,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = 0.42f),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+        shadowElevation = 6.dp,
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(

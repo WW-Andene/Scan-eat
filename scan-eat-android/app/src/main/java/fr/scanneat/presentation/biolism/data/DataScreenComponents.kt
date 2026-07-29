@@ -63,6 +63,7 @@ internal fun BioCard(
             color = SurfaceVariant.copy(alpha = 0.42f),
             border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
             modifier = Modifier.fillMaxWidth(),
+            shadowElevation = if (emphasized) 10.dp else 6.dp,
         ) {
             Column(Modifier.padding(Spacing.M)) {
                 Row(

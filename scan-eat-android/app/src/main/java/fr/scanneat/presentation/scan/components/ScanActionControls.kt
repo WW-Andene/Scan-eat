@@ -94,6 +94,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
                     onLongClick = onLongClick,
                     onLongClickLabel = multiHint,
                 ),
+                shadowElevation = 6.dp,
             ) {
                 Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
@@ -118,6 +119,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                     onClick = { onQuickScan(bc) },
                     shape = RoundedCornerShape(20.dp),
                     color = SurfaceVariant.copy(0.85f),
+                    shadowElevation = 3.dp,
                 ) {
                     Row(Modifier.padding(horizontal = Spacing.SM, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(Icons.Default.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))

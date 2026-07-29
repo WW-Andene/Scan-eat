@@ -92,6 +92,7 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>) {
                 modifier = Modifier.weight(1f).glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 color = SurfaceVariant.copy(alpha = 0.42f),
+                shadowElevation = 3.dp,
             ) {
                 Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(value, style = MaterialTheme.typography.titleSmall, color = AccentCoral, fontWeight = FontWeight.Bold)

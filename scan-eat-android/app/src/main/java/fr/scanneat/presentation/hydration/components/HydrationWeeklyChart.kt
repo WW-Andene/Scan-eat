@@ -24,6 +24,7 @@ internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goal
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant.copy(alpha = 0.42f),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+        shadowElevation = 6.dp,
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

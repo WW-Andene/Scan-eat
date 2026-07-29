@@ -96,6 +96,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = SurfaceVariant.copy(0.9f),
+            shadowElevation = 6.dp,
         ) {
             Column {
                 Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {

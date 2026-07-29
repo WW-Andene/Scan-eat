@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
@@ -25,6 +26,7 @@ internal fun HistoryTopScannedRow(topScanned: List<Triple<String, Int, Long>>, o
                     .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                 shape    = RoundedCornerShape(CardRadius.CONTROL),
                 color    = SurfaceVariant.copy(alpha = 0.42f),
+                shadowElevation = 3.dp,
             ) {
                 Column(
                     modifier = Modifier.padding(Spacing.S),
