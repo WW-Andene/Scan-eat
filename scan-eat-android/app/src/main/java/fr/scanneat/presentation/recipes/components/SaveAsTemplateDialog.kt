@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -37,6 +39,7 @@ internal fun SaveAsTemplateDialog(recipe: Recipe, onDismiss: () -> Unit, onConfi
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_save_as_template_title, recipe.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

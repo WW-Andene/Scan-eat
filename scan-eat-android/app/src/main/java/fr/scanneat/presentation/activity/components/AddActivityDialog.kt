@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.activity.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -68,6 +69,7 @@ internal fun AddActivityDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.activity_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

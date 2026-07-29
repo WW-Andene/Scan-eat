@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -52,7 +54,8 @@ internal fun ImportRecipeUrlDialog(
         // they'd cancelled. Only the dismiss button was ever gated by isLoading;
         // this closes the same gap for the implicit dismiss paths.
         onDismissRequest = { if (!isLoading) onDismiss() },
-        containerColor  = SurfaceVariant,
+        containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_import_url_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

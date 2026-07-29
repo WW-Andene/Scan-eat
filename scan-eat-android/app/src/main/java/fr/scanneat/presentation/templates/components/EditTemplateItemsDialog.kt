@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.templates.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -44,6 +45,7 @@ internal fun EditTemplateItemsDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.templates_manage_items_title, template.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {

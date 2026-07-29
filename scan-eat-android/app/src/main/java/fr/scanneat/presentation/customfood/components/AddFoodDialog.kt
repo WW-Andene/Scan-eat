@@ -66,7 +66,8 @@ internal fun AddFoodDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor   = SurfaceVariant,
+        containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.customfood_add_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {

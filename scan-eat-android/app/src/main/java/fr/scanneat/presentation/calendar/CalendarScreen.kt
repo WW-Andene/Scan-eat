@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.calendar
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -107,6 +108,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
         AlertDialog(
             onDismissRequest = { weekPopup = null },
             containerColor = SurfaceVariant,
+            shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.calendar_week_popup_title, ws.weekStart.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", locale))), color = OnBackground) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

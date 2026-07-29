@@ -114,6 +114,7 @@ internal fun AddMedicationDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (isEdit) R.string.medication_edit_dialog_title else R.string.medication_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -146,6 +147,7 @@ internal fun MedicationReminderDialog(medication: Medication, onDismiss: () -> U
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.medication_reminder_dialog_title, m.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

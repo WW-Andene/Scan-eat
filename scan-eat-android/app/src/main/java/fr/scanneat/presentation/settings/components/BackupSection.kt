@@ -129,6 +129,7 @@ internal fun BackupSection(
                         TextButton(onClick = onClearBackupState) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                     },
                     containerColor = SurfaceVariant,
+                    shape = RoundedCornerShape(CardRadius.PROMINENT),
                 )
             }
             is BackupUiState.ImportPreview -> {
@@ -159,6 +160,7 @@ internal fun BackupSection(
                         }
                     },
                     containerColor = SurfaceVariant,
+                    shape = RoundedCornerShape(CardRadius.PROMINENT),
                 )
             }
             else -> {}
@@ -191,6 +193,7 @@ internal fun BackupSection(
                     TextButton(onClick = { showExportDialog = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                 },
                 containerColor = SurfaceVariant,
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
             )
         }
         // CSV diary export — spreadsheet-friendly complement to the JSON backup

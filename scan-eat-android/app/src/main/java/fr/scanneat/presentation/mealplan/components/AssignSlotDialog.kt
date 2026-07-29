@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.mealplan.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,7 +37,8 @@ internal fun AssignSlotDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor   = SurfaceVariant,
+        containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.mealplan_assign_title, mealLabel), color = OnBackground) },
         text = {
             if (recipes.isEmpty() && templates.isEmpty()) {

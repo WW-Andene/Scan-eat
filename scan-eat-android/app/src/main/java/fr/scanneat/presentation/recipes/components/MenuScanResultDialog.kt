@@ -39,6 +39,7 @@ internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit)
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_menu_dialog_title), color = OnBackground) },
         text = {
             if (dishes.isEmpty()) {

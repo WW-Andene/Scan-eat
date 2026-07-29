@@ -111,6 +111,7 @@ internal fun BoxScope.ScanStateOverlay(
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant,
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
                 title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -131,6 +132,7 @@ internal fun BoxScope.ScanStateOverlay(
             AlertDialog(
                 onDismissRequest = onDismissFound,
                 containerColor = SurfaceVariant,
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
                 title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

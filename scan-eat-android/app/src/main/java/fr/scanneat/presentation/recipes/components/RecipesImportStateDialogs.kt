@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -15,6 +16,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -63,6 +65,7 @@ internal fun RecipesImportStateDialogs(
             is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
                 onDismissRequest = {},
                 containerColor = SurfaceVariant,
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
                 text = {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
                         CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
@@ -74,6 +77,7 @@ internal fun RecipesImportStateDialogs(
             is RecipesViewModel.ImportUiState.Error -> AlertDialog(
                 onDismissRequest = onClearImportState,
                 containerColor = SurfaceVariant,
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
                 text = { Text(importState.message, color = semanticRed()) },
                 confirmButton = { TextButton(onClick = onClearImportState) { Text(stringResource(R.string.common_ok), color = AccentCoral) } },
             )

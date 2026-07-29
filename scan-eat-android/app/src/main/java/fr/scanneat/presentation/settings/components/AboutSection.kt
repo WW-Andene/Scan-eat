@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.settings.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -88,6 +89,7 @@ internal fun OssLicensesDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.settings_licenses_dialog_title), color = OnBackground) },
         text = {
             LazyColumn(

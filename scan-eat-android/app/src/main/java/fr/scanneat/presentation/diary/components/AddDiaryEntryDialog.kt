@@ -85,6 +85,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
     AlertDialog(
         onDismissRequest = { viewModel.clearSearch(); onDismiss() },
         containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.diary_add_entry_title), color = OnBackground) },
         text = {
             Column(modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 360.dp)) {
