@@ -1295,6 +1295,7 @@
     <string name="result_nutri_vitd">Vitamin D</string>
     <string name="result_nutri_vitb12">Vitamin B12</string>
     <string name="result_nutri_vitc">Vitamin C</string>
+    <string name="result_nutri_estimated_note">Minerals/vitamins estimated (not declared by the product) — typical values for this category, not measured on this exact product.</string>
     <string name="result_show_less">Show less</string>
     <string name="result_show_more">Show more</string>
     <string name="result_notes_title">Notes</string>

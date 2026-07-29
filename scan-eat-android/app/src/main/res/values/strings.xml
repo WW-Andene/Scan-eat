@@ -1340,6 +1340,7 @@
     <string name="result_nutri_vitd">Vitamine D</string>
     <string name="result_nutri_vitb12">Vitamine B12</string>
     <string name="result_nutri_vitc">Vitamine C</string>
+    <string name="result_nutri_estimated_note">Minéraux/vitamines estimés (non déclarés par le produit) — valeurs typiques pour cette catégorie, pas mesurées sur ce produit précis.</string>
     <string name="result_show_less">Voir moins</string>
     <string name="result_show_more">Voir plus</string>
     <string name="result_notes_title">Notes</string>

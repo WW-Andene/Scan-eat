@@ -48,6 +48,18 @@ internal fun NutritionTable(nutrition: NutritionPer100g) {
             nutrition.vitDUg?.let { NRow(stringResource(R.string.result_nutri_vitd), "${fmt1(it)} µg") }
             nutrition.b12Ug?.let { NRow(stringResource(R.string.result_nutri_vitb12), "${fmt1(it)} µg") }
             nutrition.vitCMg?.let { NRow(stringResource(R.string.result_nutri_vitc), "${fmt1(it)} mg") }
+            // MicronutrientEstimator.kt: this product's source (OFF/LLM) declared none
+            // of the mineral/vitamin fields above at all, so they're category-typical
+            // estimates, not this specific product's real measured values - never
+            // presented as fact without this note.
+            if (nutrition.micronutrientsEstimated) {
+                Text(
+                    stringResource(R.string.result_nutri_estimated_note),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = OnBackground.copy(0.4f),
+                    modifier = Modifier.padding(top = Spacing.XS),
+                )
+            }
         }
         TextButton(onClick = { expanded = !expanded }) {
             Text(if (expanded) stringResource(R.string.result_show_less) else stringResource(R.string.result_show_more), style = MaterialTheme.typography.labelMedium, color = AccentCoral)

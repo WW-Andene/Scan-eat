@@ -84,6 +84,14 @@ data class NutritionPer100g(
     val omega6G: Double? = null,
     val cholesterolMg: Double? = null,
     val caffeineMg: Double? = null,
+    // True when one or more of the mineral/vitamin fields above were filled in by
+    // MicronutrientEstimator.kt (category-based typical values) rather than
+    // actually declared by the source (OFF/LLM) - most barcode products simply
+    // never list iron/calcium/zinc/etc, which previously meant a user who scanned
+    // and logged real food (e.g. beef) saw their iron intake silently stay at 0g
+    // for the day. Surfaced in MicronutrientCard so an estimate is never presented
+    // as a measured fact.
+    val micronutrientsEstimated: Boolean = false,
     // Persisted verbatim (via ConsumptionRepository's nutritionAdapter, and
     // nested inside Product's own productJson) to DB columns. New fields must
     // have a default value, or bump schemaVersion and add a migration branch

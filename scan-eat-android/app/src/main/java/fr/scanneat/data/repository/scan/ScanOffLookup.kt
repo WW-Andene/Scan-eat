@@ -8,6 +8,7 @@ import fr.scanneat.domain.engine.nutrition.detectSourceConflicts
 import fr.scanneat.domain.engine.nutrition.isOffSparse
 import fr.scanneat.domain.engine.nutrition.mapOffProduct
 import fr.scanneat.domain.engine.nutrition.mergeOffWithLlm
+import fr.scanneat.domain.engine.nutrition.withEstimatedMicronutrients
 import fr.scanneat.domain.engine.scoring.scoreProduct
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.domain.model.ScanResult
@@ -165,8 +166,16 @@ internal class ScanOffLookup(
             else -> throw ProductNotFoundException(productNotFoundMessage(lang))
         }
 
-        val audit = scoreProduct(finalProduct, lang)
-        return ScanResult(product = finalProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
+        // Fills iron/calcium/magnesium/potassium/zinc/vitC/vitD/B12 with a
+        // category-representative estimate wherever OFF/LLM declared none at all -
+        // see MicronutrientEstimator.kt for why: most barcode products simply never
+        // list these, which previously meant a real, common food (e.g. beef,
+        // fresh_meat) logged with zero iron impact on the day's totals, every time.
+        val estimatedProduct = finalProduct.copy(
+            nutrition = finalProduct.nutrition.withEstimatedMicronutrients(finalProduct.category),
+        )
+        val audit = scoreProduct(estimatedProduct, lang)
+        return ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
     }
 
     private companion object {
