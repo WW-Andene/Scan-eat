@@ -5,6 +5,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import fr.scanneat.domain.model.Grade
 
 // ============================================================================
@@ -206,12 +207,31 @@ fun gradeColor(grade: Grade): Color {
 // All UI code should read these instead of the raw constants so that colorblind
 // mode actually affects every element, not just grade chips.
 
+// design-aesthetic-audit §DC3: FlagGreen/FlagRed/AmberWarning/HydrationBlue are
+// flat literals tuned by eye against the dark themes only — same defect as
+// TextSecondary/TextMuted/TextLabel had (see Colors.kt's own fix above), just
+// undiscovered until this pass because these are semantic (colorblind-mode
+// branched) rather than plain text roles. Each computes to roughly 2-2.1:1
+// contrast against the Light theme's near-white background (0xFFF6F1EC) —
+// well below the 4.5:1 WCAG AA floor — when used directly as text/icon tint,
+// which every semantic* accessor's "none"/default branch does. Checking the
+// actual rendered background's luminance (not the theme name, so this stays
+// correct if a theme's exact background value ever changes) and swapping to a
+// darkened variant on light grounds fixes all four at once.
+private val LightSafeGreen  = Color(0xFF2E7D32)
+private val LightSafeRed    = Color(0xFFC62828)
+private val LightSafeAmber  = Color(0xFF8F4B00)
+private val LightSafeBlue   = Color(0xFF01579B)
+
+@Composable
+private fun isLightBackground(): Boolean = MaterialTheme.colorScheme.background.luminance() > 0.5f
+
 /** Good / positive / success signal. */
 @Composable
 fun semanticGreen(): Color = when (LocalColorblindMode.current) {
     "protanopia", "deuteranopia" -> Color(0xFF56B4E9) // sky blue — unambiguous for red-green CVD
     "tritanopia"                 -> Color(0xFF009E73) // bluish green — safe on blue-yellow axis
-    else                         -> FlagGreen
+    else                         -> if (isLightBackground()) LightSafeGreen else FlagGreen
 }
 
 /** Bad / danger / rejection signal. */
@@ -219,7 +239,7 @@ fun semanticGreen(): Color = when (LocalColorblindMode.current) {
 fun semanticRed(): Color = when (LocalColorblindMode.current) {
     "protanopia", "deuteranopia" -> Color(0xFFD55E00) // vermilion — distinct from sky blue above
     "tritanopia"                 -> Color(0xFFCC79A7) // reddish purple — safe on blue-yellow axis
-    else                         -> FlagRed
+    else                         -> if (isLightBackground()) LightSafeRed else FlagRed
 }
 
 /** Warning / caution signal. */
@@ -227,7 +247,7 @@ fun semanticRed(): Color = when (LocalColorblindMode.current) {
 fun semanticAmber(): Color = when (LocalColorblindMode.current) {
     "protanopia", "deuteranopia" -> Color(0xFFF0E442) // yellow — strongly distinct from vermilion
     "tritanopia"                 -> Color(0xFFE69F00) // orange — safe on blue-yellow axis
-    else                         -> AmberWarning
+    else                         -> if (isLightBackground()) LightSafeAmber else AmberWarning
 }
 
 /** Hydration / water indicator. */
@@ -237,5 +257,5 @@ fun semanticBlue(): Color = when (LocalColorblindMode.current) {
     // collision between two distinct meanings (success vs. hydration). Okabe-Ito's
     // "blue" isn't claimed by any other semantic accessor under this mode.
     "tritanopia" -> Color(0xFF0072B2)
-    else         -> HydrationBlue     // blue is fine for protan/deutan and normal
+    else         -> if (isLightBackground()) LightSafeBlue else HydrationBlue     // blue is fine for protan/deutan and normal
 }
