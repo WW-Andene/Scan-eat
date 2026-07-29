@@ -11,12 +11,21 @@ val ScanEatTypography = Typography(
     // size/weight but still inherits lineHeight/letterSpacing, which would otherwise
     // silently fall back to Material3's un-tuned baseline default instead of this
     // app's own ratio (every other slot here is deliberately tuned).
-    displayLarge    = TextStyle(fontWeight = FontWeight.Bold,      fontSize = 45.sp, lineHeight = 52.sp),
-    displayMedium   = TextStyle(fontWeight = FontWeight.Bold,      fontSize = 40.sp, lineHeight = 46.sp),
-    displaySmall    = TextStyle(fontWeight = FontWeight.Medium,   fontSize = 36.sp, lineHeight = 42.sp),
-    headlineLarge   = TextStyle(fontWeight = FontWeight.Bold,     fontSize = 32.sp, lineHeight = 40.sp),
+    //
+    // Category E audit (§E4/§DT2 Typography Craft): displayLarge/Medium/Small and
+    // headlineLarge/Small had no letterSpacing at all — the four largest, heaviest
+    // sizes in the whole scale were the only ones with no tracking decision made,
+    // while headlineMedium/titleLarge/labelMedium/labelSmall each got a deliberate,
+    // specific value. Untightened large bold text reads loose/amateur (standard
+    // typographic convention, and this app's own §TRACKING-equivalent logic already
+    // in use elsewhere); added negative tracking scaled to size, leaving the four
+    // already-tuned slots' distinctive open/positive tracking untouched.
+    displayLarge    = TextStyle(fontWeight = FontWeight.Bold,      fontSize = 45.sp, lineHeight = 52.sp, letterSpacing = (-1.0).sp),
+    displayMedium   = TextStyle(fontWeight = FontWeight.Bold,      fontSize = 40.sp, lineHeight = 46.sp, letterSpacing = (-0.9).sp),
+    displaySmall    = TextStyle(fontWeight = FontWeight.Medium,   fontSize = 36.sp, lineHeight = 42.sp, letterSpacing = (-0.7).sp),
+    headlineLarge   = TextStyle(fontWeight = FontWeight.Bold,     fontSize = 32.sp, lineHeight = 40.sp, letterSpacing = (-0.5).sp),
     headlineMedium  = TextStyle(fontWeight = FontWeight.Bold,     fontSize = 28.sp, lineHeight = 34.sp, letterSpacing = 0.56.sp),
-    headlineSmall   = TextStyle(fontWeight = FontWeight.Bold,     fontSize = 24.sp, lineHeight = 30.sp),
+    headlineSmall   = TextStyle(fontWeight = FontWeight.Bold,     fontSize = 24.sp, lineHeight = 30.sp, letterSpacing = (-0.3).sp),
     titleLarge      = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp, lineHeight = 26.sp, letterSpacing = 0.4.sp),
     titleMedium     = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 16.sp, lineHeight = 22.sp),
     titleSmall      = TextStyle(fontWeight = FontWeight.Medium,   fontSize = 14.sp, lineHeight = 20.sp),
