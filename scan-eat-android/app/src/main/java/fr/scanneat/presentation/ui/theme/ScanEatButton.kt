@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -8,6 +9,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +22,18 @@ import androidx.compose.ui.text.font.FontWeight
  * now only needs to change here, not at every call site. [containerColor]
  * lets sub-brands (e.g. the biolism Gold accent) reuse the same shape/label
  * recipe instead of re-deriving it by hand.
+ *
+ * art-direction-engine audit, §BUTTONS: two states were left at Material's
+ * defaults instead of this button's own accent — exactly the "one state
+ * that gives away the template" pattern the audit calls out.
+ * disabledContainerColor previously fell back to Material's generic
+ * onSurface-at-12%-alpha neutral gray fill regardless of whether the button
+ * was coral or Biolism gold — the state a user sees constantly (every
+ * disabled Save/Add button app-wide) carried zero brand identity. Now
+ * derived from the button's own [containerColor] instead. Active/press
+ * feedback was also missing beyond Material's default ripple — this app
+ * already built [pressScale] for exactly this (see Motion.kt) and applies
+ * it to every tappable ScanEatCard, but never to its own button primitive.
  */
 @Composable
 fun ScanEatPrimaryButton(
@@ -29,10 +43,12 @@ fun ScanEatPrimaryButton(
     containerColor: Color = AccentCoral,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     Button(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.pressScale(interactionSource),
         enabled = enabled,
+        interactionSource = interactionSource,
         shape   = RoundedCornerShape(CardRadius.CONTROL),
         // contentColor/disabledContentColor (not a hardcoded Text style) is what
         // actually flows through LocalContentColor per enabled state - the previous
@@ -42,9 +58,10 @@ fun ScanEatPrimaryButton(
         // a disabled button's label stayed fully opaque black, with only the
         // container dimming.
         colors  = ButtonDefaults.buttonColors(
-            containerColor        = containerColor,
-            contentColor          = Color.Black,
-            disabledContentColor  = Color.Black.copy(alpha = 0.38f),
+            containerColor         = containerColor,
+            contentColor           = Color.Black,
+            disabledContainerColor = containerColor.copy(alpha = 0.28f),
+            disabledContentColor   = Color.Black.copy(alpha = 0.38f),
         ),
     ) {
         ProvideTextStyle(LocalTextStyle.current.copy(fontWeight = FontWeight.SemiBold)) {
