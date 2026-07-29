@@ -31,6 +31,7 @@ import fr.scanneat.presentation.result.ResultScreen
 import fr.scanneat.presentation.scan.ScanScreen
 import fr.scanneat.presentation.settings.SettingsScreen
 import fr.scanneat.presentation.templates.TemplatesScreen
+import fr.scanneat.presentation.ui.theme.ScoreRevealEasing
 import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 
 @Composable
@@ -53,29 +54,29 @@ fun AppNavGraph(
         enterTransition  = {
             when {
                 reducedMotion -> fadeIn(instant)
-                isTabSwitch() -> fadeIn(tween(200))
-                else -> slideInHorizontally(tween(300)) { it } + fadeIn(tween(300))
+                isTabSwitch() -> fadeIn(tween(200, easing = ScoreRevealEasing))
+                else -> slideInHorizontally(tween(300, easing = ScoreRevealEasing)) { it } + fadeIn(tween(300, easing = ScoreRevealEasing))
             }
         },
         exitTransition   = {
             when {
                 reducedMotion -> fadeOut(instant)
-                isTabSwitch() -> fadeOut(tween(200))
-                else -> slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300))
+                isTabSwitch() -> fadeOut(tween(200, easing = ScoreRevealEasing))
+                else -> slideOutHorizontally(tween(300, easing = ScoreRevealEasing)) { -it } + fadeOut(tween(300, easing = ScoreRevealEasing))
             }
         },
         popEnterTransition = {
             when {
                 reducedMotion -> fadeIn(instant)
-                isTabSwitch() -> fadeIn(tween(200))
-                else -> slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300))
+                isTabSwitch() -> fadeIn(tween(200, easing = ScoreRevealEasing))
+                else -> slideInHorizontally(tween(300, easing = ScoreRevealEasing)) { -it } + fadeIn(tween(300, easing = ScoreRevealEasing))
             }
         },
         popExitTransition  = {
             when {
                 reducedMotion -> fadeOut(instant)
-                isTabSwitch() -> fadeOut(tween(200))
-                else -> slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300))
+                isTabSwitch() -> fadeOut(tween(200, easing = ScoreRevealEasing))
+                else -> slideOutHorizontally(tween(300, easing = ScoreRevealEasing)) { it } + fadeOut(tween(300, easing = ScoreRevealEasing))
             }
         },
     ) {
