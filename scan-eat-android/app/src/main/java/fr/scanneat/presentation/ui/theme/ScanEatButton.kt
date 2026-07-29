@@ -75,6 +75,12 @@ fun ScanEatPrimaryButton(
  * ScanEatPrimaryButton, so an outlined action next to a primary one doesn't
  * silently drift back to Material's default pill shape. Previously
  * hand-copied 3x within SessionControlsCard.kt alone.
+ *
+ * app-audit §E6 (Interaction Design Quality): this button's sibling,
+ * ScanEatPrimaryButton, got pressScale() press feedback in an earlier pass
+ * of this audit — this one didn't, so a primary and secondary action sitting
+ * next to each other (the app's own most common button pairing) felt like
+ * two different components on press instead of one coherent system.
  */
 @Composable
 fun ScanEatOutlinedButton(
@@ -83,10 +89,12 @@ fun ScanEatOutlinedButton(
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.pressScale(interactionSource),
         enabled = enabled,
+        interactionSource = interactionSource,
         shape   = RoundedCornerShape(CardRadius.CONTROL),
         content = content,
     )
