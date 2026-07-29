@@ -99,7 +99,7 @@ fun CustomFoodScreen(
                     modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
-                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f)) {
+                    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.06f), shadowElevation = 3.dp) {
                         Text(
                             stringResource(R.string.customfood_stats_count, foods.value.size),
                             modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
@@ -107,7 +107,7 @@ fun CustomFoodScreen(
                         )
                     }
                     avgKcal.value?.let { avg ->
-                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f)) {
+                        Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.08f), shadowElevation = 3.dp) {
                             Text(
                                 stringResource(R.string.customfood_stats_avg_kcal, avg),
                                 modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
@@ -127,6 +127,7 @@ fun CustomFoodScreen(
                     color = AccentCoral.copy(0.1f),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
+                    shadowElevation = 3.dp,
                 ) {
                     Row(
                         Modifier.padding(Spacing.S),
