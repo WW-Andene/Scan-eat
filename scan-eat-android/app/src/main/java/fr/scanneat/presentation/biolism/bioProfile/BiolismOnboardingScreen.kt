@@ -158,7 +158,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                                 bmi < 30.0 -> semanticAmber()
                                 else       -> semanticRed()
                             }
-                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(1.dp, bmiColor.copy(0.3f))) {
+                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(1.dp, bmiColor.copy(0.3f)), shadowElevation = 3.dp) {
                                 Text(
                                     stringResource(R.string.biolism_onboard_bmi_preview, "%.1f".format(java.util.Locale.US, bmi)),
                                     modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),

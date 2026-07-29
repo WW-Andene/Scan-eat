@@ -102,7 +102,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
         Spacer(Modifier.height(Spacing.L))
 
         if (saved.value) {
-            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Teal.copy(0.1f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f)), modifier = Modifier.fillMaxWidth()) {
+            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Teal.copy(0.1f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(0.3f)), modifier = Modifier.fillMaxWidth(), shadowElevation = 6.dp) {
                 Text(stringResource(R.string.bioprofile_saved), modifier = Modifier.padding(Spacing.M), color = Teal, fontWeight = FontWeight.Bold)
             }
         }
