@@ -34,6 +34,9 @@ internal fun HydrationGoalEditorDialog(
                     label = { Text(stringResource(R.string.hydration_goal_ml_hint)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
+                    // app-audit §E6: had no colors at all - fell back fully to
+                    // Material's default Gold-tinted field theming.
+                    colors = scanEatTextFieldColors(),
                 )
                 if (hasCustomGoal) {
                     TextButton(onClick = onReset) {

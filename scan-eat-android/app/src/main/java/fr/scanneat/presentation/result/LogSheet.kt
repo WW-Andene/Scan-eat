@@ -101,11 +101,18 @@ fun LogSheet(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier      = Modifier.weight(1f),
                     shape         = RoundedCornerShape(CardRadius.CONTROL),
+                    // app-audit §E6: focusedBorderColor was AccentCoral but cursorColor/
+                    // focusedLabelColor weren't set, so both fell back to Material's
+                    // default Gold primary - the same coral/gold clash fixed on
+                    // scanEatTextFieldColors() itself, on the single most-used input
+                    // in the app (every food log passes through this portion field).
                     colors        = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor   = AccentCoral,
                         unfocusedBorderColor = OnSurface.copy(0.2f),
                         focusedTextColor     = OnSurface,
                         unfocusedTextColor   = OnSurface,
+                        cursorColor          = AccentCoral,
+                        focusedLabelColor    = AccentCoral,
                     ),
                 )
                 kcalPreview?.let {

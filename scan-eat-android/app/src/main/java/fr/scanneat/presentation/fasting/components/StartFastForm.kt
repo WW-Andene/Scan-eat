@@ -50,6 +50,9 @@ internal fun StartFastForm(
                 label = { Text(stringResource(R.string.fasting_custom_start_label)) },
                 singleLine = true, modifier = Modifier.width(110.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
+                // app-audit §E6: had no colors at all - fell back fully to Material's
+                // default Gold-tinted field, unlike every other themed input in the app.
+                colors = scanEatTextFieldColors(),
             )
             Text("→", style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
             OutlinedTextField(
@@ -57,6 +60,7 @@ internal fun StartFastForm(
                 label = { Text(stringResource(R.string.fasting_custom_end_label)) },
                 singleLine = true, modifier = Modifier.width(110.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
+                colors = scanEatTextFieldColors(),
             )
         }
         if (customHours != null) {
