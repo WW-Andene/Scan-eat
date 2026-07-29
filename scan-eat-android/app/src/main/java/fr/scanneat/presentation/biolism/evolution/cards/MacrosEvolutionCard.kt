@@ -24,9 +24,9 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
-import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.Violet
 import fr.scanneat.presentation.ui.theme.Warm
+import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.util.formatDecimal
 
 /**
@@ -46,9 +46,15 @@ fun MacrosEvolutionCard(rollup: RollupResult?) {
         }
         MacroRow(stringResource(R.string.biolism_evo_macro_sugar), days, Warm) { it.sugarsG }
         MacroRow(stringResource(R.string.result_nutri_salt), days, Violet) { it.saltG }
-        MacroRow(stringResource(R.string.result_nutri_protein), days, Teal) { it.proteinG }
-        MacroRow(stringResource(R.string.result_nutri_carbs), days, Gold) { it.carbsG }
-        MacroRow(stringResource(R.string.result_nutri_fat), days, AccentCoral) { it.fatG }
+        // app-audit §E3: this card used its own protein=Teal/carbs=Gold/fat=AccentCoral
+        // mapping, contradicting the semantic macro-color convention consistent across
+        // every other macro display in the app (MacroSummaryCard, RecipeCard,
+        // TemplateCard, ProfileMetricsPreviewCard, DiaryKcalBreakdownCard):
+        // protein=green, carbs=coral, fat=gold. Same nutrients, different colors
+        // depending on screen - realigned to the established mapping.
+        MacroRow(stringResource(R.string.result_nutri_protein), days, semanticGreen()) { it.proteinG }
+        MacroRow(stringResource(R.string.result_nutri_carbs), days, AccentCoral) { it.carbsG }
+        MacroRow(stringResource(R.string.result_nutri_fat), days, Gold) { it.fatG }
     }
 }
 

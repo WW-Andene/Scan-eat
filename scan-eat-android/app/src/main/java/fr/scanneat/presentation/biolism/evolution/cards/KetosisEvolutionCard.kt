@@ -9,7 +9,7 @@ import fr.scanneat.presentation.biolism.data.InfoRow
 import fr.scanneat.presentation.biolism.data.formatDuration
 import fr.scanneat.presentation.biolism.evolution.BarSparkline
 import fr.scanneat.presentation.biolism.evolution.NotEnoughDataNote
-import fr.scanneat.presentation.ui.theme.Violet
+import fr.scanneat.presentation.ui.theme.Teal
 
 /**
  * ketoElapsedSec (added alongside this tab) is only populated on sessions
@@ -30,8 +30,8 @@ fun KetosisEvolutionCard(sessions: List<BiolismSession>) {
             stringResource(R.string.biolism_evo_ketosis_avg),
             formatDuration(avgMs),
             stringResource(R.string.biolism_evo_ketosis_sessions, qualifying.size),
-            Violet,
+            Teal,
         )
-        BarSparkline(values = qualifying.map { it.ketoElapsedSec / 3600.0 }, color = Violet)
+        BarSparkline(values = qualifying.map { it.ketoElapsedSec / 3600.0 }, color = Teal)
     }
 }
