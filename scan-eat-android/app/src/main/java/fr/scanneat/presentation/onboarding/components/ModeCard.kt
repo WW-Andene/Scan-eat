@@ -1,12 +1,12 @@
 package fr.scanneat.presentation.onboarding.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -25,7 +25,12 @@ internal fun ModeCard(selected: Boolean, title: String, subtitle: String, onClic
         onClick = onClick,
         shape   = RoundedCornerShape(CardRadius.CONTROL),
         color   = if (selected) AccentCoral.copy(0.15f) else SurfaceVariant,
-        border  = if (selected) ButtonDefaults.outlinedButtonBorder(enabled = true).copy(width = 1.5.dp) else null,
+        // art-direction-engine §CARDS: this used to borrow ButtonDefaults'
+        // outlined-button border, which resolves to Material's generic
+        // colorScheme.outline gray - unrelated to the AccentCoral fill this
+        // card already commits to when selected. A selected card showed a
+        // coral tint with a plain gray border around it.
+        border  = if (selected) BorderStroke(1.5.dp, AccentCoral) else null,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
