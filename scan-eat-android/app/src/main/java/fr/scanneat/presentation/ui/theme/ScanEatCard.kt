@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -40,10 +41,10 @@ enum class CardEmphasis { HERO, PRIMARY, SECONDARY }
 // BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit
 // doesn't expose - can still render at the HERO tier without re-declaring
 // (and risking drifting from) these same numbers as separate literals.
-internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val borderAlpha: Float)
-internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, borderAlpha = 0.22f)
-private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, borderAlpha = 0f)
-private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, borderAlpha = 0f)
+internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val borderAlpha: Float, val elevation: Dp)
+internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, borderAlpha = 0.22f, elevation = 10.dp)
+private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, borderAlpha = 0f, elevation = 6.dp)
+private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, borderAlpha = 0f, elevation = 3.dp)
 
 /**
  * The app's one card primitive — glassSheen() top-light + hairline edge over
@@ -81,7 +82,7 @@ fun ScanEatCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(CardRadius.CARD),
     color: Color = SurfaceVariant.copy(alpha = 0.24f),
-    contentPadding: PaddingValues = PaddingValues(14.dp),
+    contentPadding: PaddingValues = PaddingValues(Spacing.M),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,
     accent: Color = Color.White,
@@ -112,6 +113,7 @@ fun ScanEatCard(
             ),
             shape = shape,
             color = color,
+            shadowElevation = spec.elevation,
             border = if (spec.borderAlpha > 0f) BorderStroke(1.dp, accent.copy(alpha = spec.borderAlpha)) else null,
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)
