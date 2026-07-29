@@ -32,7 +32,7 @@ fun MacroTargetsCard(met: MetabolicResult, profile: BiolismProfile) {
 
         Spacer(Modifier.height(Spacing.S))
         Surface(shape = RoundedCornerShape(10.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldBorder), modifier = Modifier.fillMaxWidth()) {
-            Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.padding(Spacing.M), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
                     Text(stringResource(R.string.biolism_macro_total_min), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                     Text(stringResource(R.string.biolism_macro_total_min_sub), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))

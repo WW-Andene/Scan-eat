@@ -55,7 +55,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
     ) {
         Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(10.dp))) {
             Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f)) {
-                Column(Modifier.padding(horizontal = 10.dp, vertical = 6.dp)) {
+                Column(Modifier.padding(horizontal = Spacing.SM, vertical = 6.dp)) {
                     Text(pluralStringResource(R.plurals.scan_photo_count, images.size, images.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
                     Spacer(Modifier.height(6.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {

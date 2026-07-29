@@ -175,7 +175,7 @@ internal fun SuggestRecipesDialog(
                                 shape = RoundedCornerShape(10.dp), color = OnBackground.copy(0.05f),
                                 onClick = { onPick(idea) }, modifier = Modifier.fillMaxWidth(),
                             ) {
-                                Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Text(idea.name, style = MaterialTheme.typography.bodyMedium, color = AccentCoral)
                                     idea.steps.firstOrNull()?.let {
                                         Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), maxLines = 3)

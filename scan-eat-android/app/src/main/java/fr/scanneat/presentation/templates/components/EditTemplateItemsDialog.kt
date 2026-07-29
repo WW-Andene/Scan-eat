@@ -46,7 +46,7 @@ internal fun EditTemplateItemsDialog(
         containerColor = SurfaceVariant,
         title = { Text(stringResource(R.string.templates_manage_items_title, template.name), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
                 if (template.items.isEmpty()) {
                     Text(stringResource(R.string.templates_no_items_yet), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 }

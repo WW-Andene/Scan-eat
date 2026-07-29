@@ -66,14 +66,14 @@ internal fun MultiFoodFoundDialog(
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Row(
-                                modifier = Modifier.padding(10.dp),
+                                modifier = Modifier.padding(Spacing.SM),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.M),
                             ) {
                                 Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = grade.copy(0.2f)) {
                                     Text(
                                         result.audit.grade.label,
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        modifier = Modifier.padding(horizontal = Spacing.SM, vertical = 6.dp),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = grade, fontWeight = FontWeight.Bold,
                                     )

@@ -60,7 +60,7 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
     val (permGranted, permDenied, onRequest) = permissionState()
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         // Improvement: show next upcoming reminder time
         val nextLabel = nextReminderLabel(s)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -133,7 +133,7 @@ fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
     val (permGranted, permDenied, onRequest) = permissionState()
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -165,7 +165,7 @@ fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
     val (permGranted, permDenied, onRequest) = permissionState()
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -198,7 +198,7 @@ fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
     val (permGranted, permDenied, onRequest) = permissionState()
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

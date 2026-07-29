@@ -38,7 +38,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSuggestion) -> Unit) {
   ScanEatCard(
     contentPadding = PaddingValues(Spacing.L),
-    verticalArrangement = Arrangement.spacedBy(10.dp),
+    verticalArrangement = Arrangement.spacedBy(Spacing.SM),
   ) {
         Text(stringResource(R.string.dashboard_chronic_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         gaps.take(3).forEach { gap ->

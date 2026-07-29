@@ -64,7 +64,7 @@ internal fun BioCard(
             border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(Modifier.padding(14.dp)) {
+            Column(Modifier.padding(Spacing.M)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { open = !open }
                         .semantics(mergeDescendants = true) {

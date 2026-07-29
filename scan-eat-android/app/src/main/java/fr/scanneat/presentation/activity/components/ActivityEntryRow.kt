@@ -23,7 +23,7 @@ internal fun ActivityEntryRow(entry: ActivityEntry, typeLabels: Map<ActivityType
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.SM),
         ) {
             Column(Modifier.weight(1f)) {
                 val subLabel = e.subType?.let { subTypeLabels[it] ?: it }

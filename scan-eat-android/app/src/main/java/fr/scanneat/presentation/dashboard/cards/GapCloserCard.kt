@@ -34,7 +34,7 @@ import fr.scanneat.util.formatDecimal
 internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggestion) -> Unit) {
   ScanEatCard(
     contentPadding = PaddingValues(Spacing.L),
-    verticalArrangement = Arrangement.spacedBy(10.dp),
+    verticalArrangement = Arrangement.spacedBy(Spacing.SM),
   ) {
         Text(stringResource(R.string.dashboard_gap_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         gaps.take(3).forEach { gap ->

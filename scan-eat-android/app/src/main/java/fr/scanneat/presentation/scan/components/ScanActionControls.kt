@@ -119,7 +119,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                     shape = RoundedCornerShape(20.dp),
                     color = SurfaceVariant.copy(0.85f),
                 ) {
-                    Row(Modifier.padding(horizontal = 10.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(Modifier.padding(horizontal = Spacing.SM, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(Icons.Default.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
                         Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
                     }

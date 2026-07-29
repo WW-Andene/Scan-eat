@@ -28,7 +28,7 @@ internal fun ModeCard(selected: Boolean, title: String, subtitle: String, onClic
         border  = if (selected) ButtonDefaults.outlinedButtonBorder(enabled = true).copy(width = 1.5.dp) else null,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+        Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
             // onClick = null: the whole Surface above is already clickable (onClick = onClick) —
             // a second independent actionable control nested inside it is a real screen-reader/
             // interaction conflict (two actionable elements claiming the same tap), not just redundant.

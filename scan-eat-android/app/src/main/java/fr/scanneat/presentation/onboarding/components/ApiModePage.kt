@@ -39,7 +39,7 @@ internal fun ColumnScope.ApiModePage(
         style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.7f), textAlign = TextAlign.Center,
     )
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         ModeCard(
             selected  = selectedMode == ApiMode.DIRECT,
             title     = stringResource(R.string.onboarding_mode_direct_title),

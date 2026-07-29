@@ -38,7 +38,7 @@ internal fun PhaseStrip(phase: KetoPhaseInfo, ketoHours: Double, color: Color) {
                 .background(color.copy(0.7f)),
         )
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = Spacing.S),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {

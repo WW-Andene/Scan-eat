@@ -104,7 +104,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                         onDrawBehind { drawRect(brush) }
                     }
                     .padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(Spacing.SM),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(end = if (streak > 0) 40.dp else 0.dp),

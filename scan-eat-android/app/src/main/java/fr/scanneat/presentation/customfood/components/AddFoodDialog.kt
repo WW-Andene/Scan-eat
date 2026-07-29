@@ -69,7 +69,7 @@ internal fun AddFoodDialog(
         containerColor   = SurfaceVariant,
         title = { Text(stringResource(R.string.customfood_add_title), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
                 FoodField(stringResource(R.string.customfood_field_name), name, KeyboardType.Text) { name = it }
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     FoodField(stringResource(R.string.customfood_field_kcal), kcal, KeyboardType.Decimal, Modifier.weight(1f)) { kcal = it }

@@ -87,7 +87,7 @@ internal fun AddRecipeDialog(
         containerColor  = SurfaceVariant,
         title = { Text(stringResource(R.string.recipes_add_dialog_title), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                     colors = scanEatTextFieldColors())
                 OutlinedTextField(value = servingsText, onValueChange = { servingsText = it }, label = { Text(stringResource(R.string.recipes_field_servings)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),

@@ -43,7 +43,7 @@ internal fun MetricChip(label: String, value: String) {
 // signature this already had, so every call site is unaffected.
 @Composable
 internal fun ProfileSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    ScanEatCard(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         Text(title, style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         content()
     }

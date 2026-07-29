@@ -35,7 +35,7 @@ internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemCl
             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = gradeColor.copy(0.2f)) {
                 Text(
                     scan.audit.grade.label,
-                    modifier   = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    modifier   = Modifier.padding(horizontal = Spacing.SM, vertical = 6.dp),
                     style      = MaterialTheme.typography.labelLarge,
                     color      = gradeColor,
                     fontWeight = FontWeight.Bold,

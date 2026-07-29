@@ -31,7 +31,7 @@ internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
         modifier = Modifier
             .glassSheen(edgeAlpha = 0.10f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0f, reliefAlpha = 0f)
             .background(color.copy(0.1f))
-            .padding(horizontal = 14.dp, vertical = Spacing.S),
+            .padding(horizontal = Spacing.M, vertical = Spacing.S),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {

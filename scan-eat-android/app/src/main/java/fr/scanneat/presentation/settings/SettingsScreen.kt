@@ -187,7 +187,7 @@ fun SettingsScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Violet)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = Spacing.L),
             contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {

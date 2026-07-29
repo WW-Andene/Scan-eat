@@ -31,7 +31,7 @@ internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDism
         containerColor = SurfaceVariant,
         title = { Text(stringResource(R.string.reminders_add_custom), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
                 OutlinedTextField(
                     value = label, onValueChange = { label = it }, singleLine = true,
                     label = { Text(stringResource(R.string.reminders_custom_label_hint)) },

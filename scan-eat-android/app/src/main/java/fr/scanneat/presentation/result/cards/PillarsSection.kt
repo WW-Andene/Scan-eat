@@ -42,7 +42,7 @@ import kotlin.math.abs
 
 @Composable
 internal fun PillarsSection(pillars: ScoreAudit.Pillars) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         Text(stringResource(R.string.result_pillars_title), style = MaterialTheme.typography.titleSmall,
             color = OnBackground, fontWeight = FontWeight.SemiBold)
         listOf(pillars.processing, pillars.nutritionalDensity, pillars.negativeNutrients,

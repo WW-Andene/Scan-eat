@@ -49,7 +49,7 @@ internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit)
                             shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.05f),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(dish.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                                 dish.description?.let {
                                     Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), maxLines = 3)

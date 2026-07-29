@@ -45,7 +45,7 @@ internal fun AddWeightDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.weight_dialog_title), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
                 OutlinedTextField(
                     value = kgText, onValueChange = onKgTextChange,
                     label = { Text(if (useImperial) stringResource(R.string.weight_field_lb) else stringResource(R.string.weight_field_kg)) }, singleLine = true,
@@ -67,7 +67,7 @@ internal fun AddWeightDialog(
                     border = BorderStroke(1.dp, OnBackground.copy(0.2f)),
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.M),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
