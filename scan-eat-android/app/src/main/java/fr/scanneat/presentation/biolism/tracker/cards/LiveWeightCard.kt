@@ -42,6 +42,9 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
         color = color.copy(0.04f),
         border = BorderStroke(1.dp, color.copy(0.15f)),
         modifier = Modifier.fillMaxWidth(),
+        // design-aesthetic-audit §DH: this is the tracker screen's live-weight
+        // hero display, but had no shadowElevation at all.
+        shadowElevation = 6.dp,
     ) {
         Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
