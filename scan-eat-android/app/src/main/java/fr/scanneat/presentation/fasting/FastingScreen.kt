@@ -40,6 +40,11 @@ fun FastingScreen(
     // this screen's own LazyColumn reserves the same floating-bottom-nav
     // clearance the host itself is already reserving.
     embeddedBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    // Same reasoning as embeddedBottomPadding, for the host's floating header -
+    // fed into this screen's own LazyColumn contentPadding so scrolled items can
+    // still scroll up into the region behind the header instead of that region
+    // staying permanently empty.
+    embeddedTopPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onOpenCalendar: () -> Unit = {},
 ) {
     val state          = viewModel.fastingState.collectAsStateWithLifecycle()
@@ -183,7 +188,7 @@ fun FastingScreen(
 
     if (embedded) {
         Box(Modifier.fillMaxSize()) {
-            content(PaddingValues(bottom = embeddedBottomPadding))
+            content(PaddingValues(top = embeddedTopPadding, bottom = embeddedBottomPadding))
             ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {

@@ -49,6 +49,13 @@ fun WeightScreen(
     // clearance the host itself is already reserving, now that MainShell no
     // longer pads content away from that nav bar at the outer level.
     embeddedBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    // Same reasoning as embeddedBottomPadding, for the host's floating header:
+    // passed straight into this screen's own LazyColumn contentPadding (not a
+    // Modifier.padding on some wrapping Box) so scrolled items can still scroll
+    // up into the region behind the header - the whole point of a floating,
+    // blurred header is that content passes underneath it; a hard outer padding
+    // would just make that region permanently empty instead.
+    embeddedTopPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onOpenCalendar: () -> Unit = {},
 ) {
     val entries  = viewModel.entries.collectAsStateWithLifecycle()
@@ -190,7 +197,7 @@ fun WeightScreen(
 
     if (embedded) {
         Box(Modifier.fillMaxSize()) {
-            content(PaddingValues(bottom = embeddedBottomPadding))
+            content(PaddingValues(top = embeddedTopPadding, bottom = embeddedBottomPadding))
             FloatingActionButton(
                 onClick = { openAddDialog() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),

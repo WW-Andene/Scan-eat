@@ -42,6 +42,11 @@ fun MedicationScreen(
     // this screen's own LazyColumn reserves the same floating-bottom-nav
     // clearance the host itself is already reserving.
     embeddedBottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    // Same reasoning as embeddedBottomPadding, for the host's floating header -
+    // fed into this screen's own LazyColumn contentPadding so scrolled items can
+    // still scroll up into the region behind the header instead of that region
+    // staying permanently empty.
+    embeddedTopPadding: androidx.compose.ui.unit.Dp = 0.dp,
     onOpenCalendar: () -> Unit = {},
 ) {
     val medications          = viewModel.medications.collectAsStateWithLifecycle()
@@ -137,7 +142,7 @@ fun MedicationScreen(
 
     if (embedded) {
         Box(Modifier.fillMaxSize()) {
-            content(PaddingValues(bottom = embeddedBottomPadding))
+            content(PaddingValues(top = embeddedTopPadding, bottom = embeddedBottomPadding))
             FloatingActionButton(
                 onClick = { showAdd = true },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),

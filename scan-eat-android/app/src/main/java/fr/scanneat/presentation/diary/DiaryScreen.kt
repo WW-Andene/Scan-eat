@@ -136,20 +136,26 @@ fun DiaryScreen(
             .hazeSource(bottomNavHazeState)
             .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
     ) {
+        // No Modifier.padding here (previously top/bottom padded this whole Box) -
+        // that would shrink this Box's own layout bounds, meaning each tab's
+        // LazyColumn could never draw above/below those bounds even while
+        // scrolling, permanently leaving nothing for the floating header/nav to
+        // blur over. topPadding/bottomClearance below are threaded into each
+        // tab's own LazyColumn contentPadding instead, so scrolled items visually
+        // start below/above the chrome but can still scroll into those regions.
+        val topPadding = topInset + DiaryHeaderHeight
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(hazeState)
-                .padding(top = topInset + DiaryHeaderHeight)
-                .padding(bottom = bottomClearance),
+                .hazeSource(hazeState),
         ) {
             when (activeTab) {
-                DiaryTab.MEALS    -> MealsTab(viewModel, bottomPadding = bottomClearance)
-                DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.MEALS    -> MealsTab(viewModel, topPadding = topPadding, bottomPadding = bottomClearance)
+                DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
             }
         }
 
@@ -238,7 +244,7 @@ fun DiaryScreen(
 }
 
 @Composable
-private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.ui.unit.Dp = 0.dp) {
+private fun MealsTab(viewModel: DiaryViewModel, topPadding: androidx.compose.ui.unit.Dp = 0.dp, bottomPadding: androidx.compose.ui.unit.Dp = 0.dp) {
     val summary      = viewModel.summary.collectAsStateWithLifecycle()
     val selectedDate = viewModel.selectedDate.collectAsStateWithLifecycle()
     val isToday      = viewModel.isToday.collectAsStateWithLifecycle(initialValue = true)
@@ -284,7 +290,7 @@ private fun MealsTab(viewModel: DiaryViewModel, bottomPadding: androidx.compose.
     }
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
-        contentPadding = PaddingValues(bottom = bottomPadding),
+        contentPadding = PaddingValues(top = topPadding, bottom = bottomPadding),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { Spacer(Modifier.height(Spacing.XS)) }
