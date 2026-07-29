@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
@@ -17,6 +18,8 @@ internal fun WeeklyKcalBanner(weeklyTotalKcal: Int) {
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = AccentCoral.copy(0.08f),
         modifier = Modifier.fillMaxWidth(),
+        // design-aesthetic-audit §DH: had no shadowElevation at all.
+        shadowElevation = 3.dp,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S),
