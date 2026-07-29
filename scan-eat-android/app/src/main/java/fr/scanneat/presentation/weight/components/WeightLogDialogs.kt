@@ -114,5 +114,18 @@ internal fun WeightDatePickerDialog(entryDate: LocalDate, onDateSelected: (Local
             }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-    ) { DatePicker(state = datePickerState) }
+    ) {
+        // art-direction-engine §DCO5: the confirm button was already AccentCoral,
+        // but the calendar itself (the visually dominant part of this dialog) had
+        // no colors param, so it rendered with Material's default Gold selection
+        // color - two competing accents inside the same dialog.
+        DatePicker(
+            state = datePickerState,
+            colors = DatePickerDefaults.colors(
+                selectedDayContainerColor = AccentCoral,
+                todayDateBorderColor      = AccentCoral,
+                todayContentColor         = AccentCoral,
+            ),
+        )
+    }
 }
