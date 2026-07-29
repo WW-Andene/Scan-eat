@@ -16,6 +16,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -112,7 +113,14 @@ fun ScanEatCard(
         ),
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth().then(
+            // Xiaomi/MIUI-observed bug (user screenshot, Light theme): Surface's shadow
+            // is computed from [shape]'s outline and renders correctly rounded, but its
+            // own background fill isn't reliably force-clipped to that same outline on
+            // every rendering path - on the affected device the fill painted as a plain
+            // rectangle while the shadow stayed rounded, showing the rounded shadow
+            // peeking out past a square-cornered fill at all four corners. Explicit
+            // .clip(shape) forces the fill to hard-clip regardless of that path.
+            modifier = Modifier.fillMaxWidth().clip(shape).then(
                 if (onClick != null)
                     Modifier.pressScale(interactionSource)
                         .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)

@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -66,7 +67,10 @@ internal fun BioCard(
             // rectangle instead of a filled card.
             color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.85f else 0.42f),
             border = if (emphasized) BorderStroke(1.dp, Gold.copy(alpha = 0.22f)) else null,
-            modifier = Modifier.fillMaxWidth(),
+            // same fix as ScanEatCard.kt: force the fill to hard-clip to its own shape
+            // instead of relying on Surface's implicit clip, which doesn't reliably
+            // match the shadow's rounded outline on every rendering path.
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CARD)),
             shadowElevation = if (emphasized) 10.dp else 6.dp,
         ) {
             Column(Modifier.padding(Spacing.M)) {
