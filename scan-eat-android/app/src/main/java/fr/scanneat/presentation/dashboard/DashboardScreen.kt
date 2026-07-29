@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Fastfood
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.RestaurantMenu
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,6 +73,7 @@ fun DashboardScreen(
     onOpenFavorites: () -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
     onOpenCalendar: () -> Unit = {},
+    onOpenFoodSearch: () -> Unit = {},
 ) {
     val state    = viewModel.state.collectAsStateWithLifecycle()
     val s        = state.value
@@ -216,7 +218,11 @@ fun DashboardScreen(
                     // gated on recentScans.isNotEmpty() - a brand-new user with zero
                     // scans had no way to open it at all. This tile is unconditional.
                     FeatureTile(Icons.Rounded.History, stringResource(R.string.dashboard_tile_history), Modifier.weight(1f), onClick = onOpenHistory)
-                    Spacer(Modifier.weight(1f))
+                    // Previously an unused spacer slot - FOOD_DB's ~130 curated foods
+                    // (plus the user's own custom foods) were only ever reachable
+                    // through a 6-10-result Quick Add autocomplete dropdown, never as
+                    // a real browsable/filterable search tool in its own right.
+                    FeatureTile(Icons.Rounded.Search, stringResource(R.string.dashboard_tile_search), Modifier.weight(1f), onClick = onOpenFoodSearch)
                 }
             }
 

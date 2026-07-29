@@ -1120,6 +1120,17 @@
     <string name="dashboard_tile_grocery">Courses</string>
     <string name="dashboard_tile_customfoods">Mes aliments</string>
     <string name="dashboard_tile_favorites">Favoris</string>
+    <string name="dashboard_tile_search">Recherche</string>
+    <string name="foodsearch_title">Recherche</string>
+    <string name="foodsearch_filter_all">Tous</string>
+    <string name="foodsearch_filter_protein">Riche en protéines</string>
+    <string name="foodsearch_filter_low_carb">Faible en glucides</string>
+    <string name="foodsearch_filter_fiber">Riche en fibres</string>
+    <string name="foodsearch_filter_iron">Source de fer</string>
+    <string name="foodsearch_filter_calcium">Source de calcium</string>
+    <string name="foodsearch_macro_line">%1$d kcal · P %2$s g · G %3$s g · L %4$s g (pour 100 g)</string>
+    <string name="foodsearch_empty_query">Aucun résultat pour cette recherche.</string>
+    <string name="foodsearch_empty_filtered">Aucun aliment ne correspond à ce filtre.</string>
     <string name="planning_switcher_cd">Aller à…</string>
     <string name="dashboard_tile_calendar">Calendrier</string>
     <string name="dashboard_tile_history">Historique</string>

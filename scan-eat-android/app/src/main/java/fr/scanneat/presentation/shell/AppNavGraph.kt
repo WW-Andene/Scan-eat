@@ -19,6 +19,7 @@ import fr.scanneat.presentation.biolism.BiolismScreen
 import fr.scanneat.presentation.calendar.CalendarScreen
 import fr.scanneat.presentation.customfood.CustomFoodScreen
 import fr.scanneat.presentation.dashboard.DashboardScreen
+import fr.scanneat.presentation.foodsearch.FoodSearchScreen
 import fr.scanneat.presentation.diary.DiaryScreen
 import fr.scanneat.presentation.grocery.GroceryScreen
 import fr.scanneat.presentation.history.ScanHistoryScreen
@@ -138,10 +139,15 @@ fun AppNavGraph(
                 onOpenFavorites      = { navController.navigate(AppRoutes.FAVORITES) },
                 onOpenResult         = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenCalendar       = { navController.navigate(AppRoutes.CALENDAR) },
+                onOpenFoodSearch     = { navController.navigate(AppRoutes.FOOD_SEARCH) },
             )
         }
 
         composable(TopTab.Biolism.route) { BiolismScreen() }
+
+        composable(AppRoutes.FOOD_SEARCH) {
+            FoodSearchScreen(onBack = { navController.popBackStack() })
+        }
 
         composable(TopTab.Settings.route) {
             SettingsScreen(

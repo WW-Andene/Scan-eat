@@ -1075,6 +1075,17 @@
     <string name="dashboard_tile_grocery">Grocery</string>
     <string name="dashboard_tile_customfoods">My Foods</string>
     <string name="dashboard_tile_favorites">Favorites</string>
+    <string name="dashboard_tile_search">Search</string>
+    <string name="foodsearch_title">Search</string>
+    <string name="foodsearch_filter_all">All</string>
+    <string name="foodsearch_filter_protein">High protein</string>
+    <string name="foodsearch_filter_low_carb">Low carb</string>
+    <string name="foodsearch_filter_fiber">High fiber</string>
+    <string name="foodsearch_filter_iron">Iron source</string>
+    <string name="foodsearch_filter_calcium">Calcium source</string>
+    <string name="foodsearch_macro_line">%1$d kcal · P %2$s g · C %3$s g · F %4$s g (per 100 g)</string>
+    <string name="foodsearch_empty_query">No results for this search.</string>
+    <string name="foodsearch_empty_filtered">No food matches this filter.</string>
     <string name="planning_switcher_cd">Go to…</string>
     <string name="dashboard_tile_calendar">Calendar</string>
     <string name="dashboard_tile_history">History</string>
