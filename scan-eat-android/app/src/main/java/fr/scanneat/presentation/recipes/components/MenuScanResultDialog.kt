@@ -50,6 +50,9 @@ internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit)
                         Surface(
                             shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.05f),
                             modifier = Modifier.fillMaxWidth(),
+                            // app-audit §E5: matching the dialog list-row
+                            // elevation established elsewhere - had none.
+                            shadowElevation = 3.dp,
                         ) {
                             Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(dish.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
