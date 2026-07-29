@@ -1,12 +1,12 @@
 package fr.scanneat.presentation.ui.theme
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
@@ -15,9 +15,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.random.Random
 
 /**
  * A soft top-light catch + hairline edge, applied over an existing card
@@ -92,62 +93,108 @@ fun Modifier.glassSheen(
  * modifier in place of a plain `.background(Background)`.
  *
  * Settings > Appearance > "Animated background" (read here via
- * [LocalAnimatedGloom], provided by [ScanEatTheme]) makes both blobs drift
- * slowly along their own independent circular path instead of sitting fully
- * static — a generated, ever-so-slightly moving gloom rather than a fixed
- * gradient. Off by default: it's a continuous per-frame redraw for as long
- * as it's on, unlike every other setting here, which are one-time layout
- * choices. `composed {}` is required (not a plain drawWithCache chain, like
- * [glassSheen] above) because reading a CompositionLocal and driving an
- * infinite animation both need actual composition, not just a draw scope.
+ * [LocalAnimatedGloom], provided by [ScanEatTheme]) replaces the fixed
+ * blobs with a generated rain-on-a-puddle ripple pattern instead — several
+ * rings, each spawned from its own fixed point, expanding outward and
+ * fading as they grow, looping continuously and restarting from the center
+ * out, the same top-down look as rain hitting standing water. Off by
+ * default: it's a continuous per-frame redraw for as long as it's on,
+ * unlike every other setting here, which are one-time layout choices.
+ * `composed {}` is required (not a plain drawWithCache chain, like
+ * [glassSheen] above) because reading a CompositionLocal and driving a
+ * per-frame clock both need actual composition, not just a draw scope.
  */
+private data class RippleSpec(
+    val originXFrac: Float, val originYFrac: Float,
+    val periodSec: Float, val phaseSec: Float, val usePrimary: Boolean,
+)
+
 fun Modifier.ambientGloom(
     base: Color,
     primary: Color,
     secondary: Color = primary,
 ): Modifier = composed {
     val animated = LocalAnimatedGloom.current
-    val phase = if (animated) {
-        val transition = rememberInfiniteTransition(label = "ambientGloomPhase")
-        transition.animateFloat(
-            initialValue = 0f,
-            targetValue = (2.0 * Math.PI).toFloat(),
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 26_000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart,
-            ),
-            label = "ambientGloomPhaseValue",
-        ).value
-    } else 0f
+
+    // Free-running clock, not rememberInfiniteTransition - a handful of
+    // independent ripples each need their own phase/period read every
+    // frame, which one shared elapsed-time value drives more simply than a
+    // separate Animatable per ripple. Restarts (and its LaunchedEffect
+    // cancels) whenever the toggle flips, so no frames are spent while it's off.
+    var timeSec by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(animated) {
+        if (!animated) return@LaunchedEffect
+        var start = -1L
+        while (true) {
+            withFrameNanos { now ->
+                if (start < 0L) start = now
+                timeSec = (now - start) / 1_000_000_000f
+            }
+        }
+    }
+
+    // Fixed spawn points/timing, remembered once per composition so ripples
+    // don't jump around on recomposition - Random-seeded (not a literal
+    // hand-placed list) purely so different screens don't all show the exact
+    // same ripple layout.
+    val ripples = remember {
+        val rng = Random(20260729)
+        List(6) {
+            RippleSpec(
+                originXFrac = rng.nextFloat(),
+                originYFrac = rng.nextFloat(),
+                periodSec   = 3.5f + rng.nextFloat() * 3f,
+                phaseSec    = rng.nextFloat() * 6f,
+                usePrimary  = it % 2 == 0,
+            )
+        }
+    }
 
     this.drawWithCache {
-        // Drift radius scoped to a fraction of the screen so the blobs stay
-        // gentle and never swing far enough to feel like a spotlight sweeping
-        // across the content - opposite phase offsets (secondary uses
-        // phase + PI) so the two blobs don't move in lockstep.
-        val drift = size.width * 0.06f
-        val primaryCenter = Offset(
-            size.width * 0.88f + drift * cos(phase),
-            size.height * 0.04f + drift * sin(phase) * 0.4f,
-        )
-        val secondaryCenter = Offset(
-            size.width * 0.08f + drift * cos(phase + Math.PI.toFloat()),
-            size.height * 0.7f + drift * sin(phase + Math.PI.toFloat()),
-        )
         val primaryBrush = Brush.radialGradient(
             colors = listOf(primary.copy(alpha = 0.10f), Color.Transparent),
-            center = primaryCenter,
+            center = Offset(size.width * 0.88f, size.height * 0.04f),
             radius = size.width * 0.9f,
         )
         val secondaryBrush = Brush.radialGradient(
             colors = listOf(secondary.copy(alpha = 0.07f), Color.Transparent),
-            center = secondaryCenter,
+            center = Offset(size.width * 0.08f, size.height * 0.7f),
             radius = size.width * 1.1f,
         )
+        val t = timeSec
+        val maxRadius = size.minDimension * 0.32f
         onDrawBehind {
             drawRect(base)
             drawRect(primaryBrush)
             drawRect(secondaryBrush)
+            if (animated) {
+                ripples.forEach { r ->
+                    val cycle = ((t + r.phaseSec) % r.periodSec) / r.periodSec
+                    val center = Offset(size.width * r.originXFrac, size.height * r.originYFrac)
+                    val tint = if (r.usePrimary) primary else secondary
+                    // A real ripple radiates as more than one ring - a second,
+                    // slightly-delayed ring from the same origin (cycle - 0.3)
+                    // reads as a rain-drop splash instead of one static circle
+                    // expanding on its own.
+                    drawRippleRing(cycle, center, maxRadius, tint)
+                    drawRippleRing(cycle - 0.3f, center, maxRadius, tint)
+                }
+            }
         }
     }
+}
+
+private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Float, tint: Color) {
+    if (cycle <= 0f || cycle >= 1f) return
+    val radius = cycle * maxRadius
+    val fade = 1f - cycle
+    val alpha = 0.16f * fade * fade
+    if (alpha <= 0.001f) return
+    drawCircle(
+        color = tint,
+        radius = radius,
+        center = center,
+        alpha = alpha,
+        style = Stroke(width = 1.5f + 2f * fade),
+    )
 }
