@@ -188,9 +188,17 @@ private val TritanopiaSafeGradeColors = mapOf(
 
 /** The AccentCoral outlined-field color scheme repeated verbatim across ~7 screens. */
 @Composable
+// art-direction-engine §INPUTS: cursorColor/focusedLabelColor weren't set, so
+// both silently fell back to Material's default `primary` role - Gold in this
+// theme - while the border was explicitly AccentCoral. A focused field showed
+// a coral border with a gold blinking cursor and gold label inside it: two
+// different accents clashing in the same component instead of one coherent
+// focus treatment.
 fun scanEatTextFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.2f),
     focusedTextColor = OnBackground, unfocusedTextColor = OnBackground,
+    cursorColor = AccentCoral,
+    focusedLabelColor = AccentCoral,
 )
 
 @Composable
