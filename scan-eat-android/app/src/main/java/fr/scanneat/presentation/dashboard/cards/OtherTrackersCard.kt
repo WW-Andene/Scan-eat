@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.dashboard.OtherTrackersSnapshot
+import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.ScanEatCard
@@ -62,7 +63,13 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
             val fasting = snapshot.fastingActive
             TrackerStat(
                 icon = Icons.Rounded.Timer,
-                tint = semanticAmber(),
+                // app-audit §E3: Hydration's icon above correctly uses semanticBlue()
+                // (its real identity color everywhere else) and Medication's is a real
+                // status indicator (green/amber by compliance) - this was a static
+                // semanticAmber() with no status meaning, mismatched against Fasting's
+                // actual identity color (AccentCoral, used throughout ActiveFastCard/
+                // StartFastForm).
+                tint = AccentCoral,
                 value = if (fasting != null) stringResource(R.string.dashboard_other_trackers_fasting_active_value, fasting.elapsedHours.roundToInt())
                         else stringResource(R.string.dashboard_other_trackers_fasting_idle_value),
                 label = stringResource(R.string.dashboard_other_trackers_fasting_label),
