@@ -37,6 +37,10 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
+        // app-audit note: Warm/Teal here deliberately match CalendarSourceColor's
+        // Activity/Hydration entries (same screen's month grid legend, week popup,
+        // and day detail all key off that same divergent-but-internally-consistent
+        // palette) - verified this is NOT a mismatch bug before considering a change.
         listOf(
             Triple(AccentCoral, Icons.Rounded.RestaurantMenu, stringResource(R.string.calendar_month_kcal, ms.totalKcal)),
             Triple(Warm,        Icons.Rounded.DirectionsRun,  stringResource(R.string.calendar_month_minutes, ms.activeMinutes)),

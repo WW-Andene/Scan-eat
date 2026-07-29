@@ -31,7 +31,11 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 weeklyBurn.forEach { (date, _) ->
                     Text(
-                        date.dayOfWeek.name.take(1),
+                        // app-audit §N: was date.dayOfWeek.name.take(1) - the raw English
+                        // enum name ("MONDAY" -> "M") regardless of app language, unlike
+                        // Fasting7DayChart's locale-aware getDisplayName() for the identical
+                        // weekday-initials row.
+                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, java.util.Locale.getDefault()),
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
                         color = OnSurface.copy(if (date == LocalDate.now()) 0.8f else 0.4f),

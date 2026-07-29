@@ -75,6 +75,11 @@ internal fun AddActivityDialog(
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 // Type picker — Improvement: sorted by most recently used first
                 Text(stringResource(R.string.activity_type_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
+                // art-direction-engine §CARDS: Activity's real identity is Warm (see
+                // ActivityStreakRow/ActivityScreen's ambientGloom), and the established
+                // precedent (AddMedicationDialog's confirm button uses Teal, matching
+                // Medication's own identity, not a universal accent) is that entry
+                // dialogs match their own tracker - this was AccentCoral instead.
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     sortedTypes.forEach { type ->
                         val label = typeLabels[type] ?: type.name
@@ -83,7 +88,7 @@ internal fun AddActivityDialog(
                             onClick = { onSelectedTypeChange(type) },
                             label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                                selectedContainerColor = Warm.copy(0.2f), selectedLabelColor = Warm,
                                 labelColor = OnBackground.copy(0.7f),
                             ),
                         )
@@ -188,7 +193,7 @@ internal fun AddActivityDialog(
             TextButton(
                 onClick = onAdd,
                 enabled = minutesValid,
-            ) { Text(stringResource(R.string.common_add), color = if (minutesValid) AccentCoral else OnBackground.copy(0.3f)) }
+            ) { Text(stringResource(R.string.common_add), color = if (minutesValid) Warm else OnBackground.copy(0.3f)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )

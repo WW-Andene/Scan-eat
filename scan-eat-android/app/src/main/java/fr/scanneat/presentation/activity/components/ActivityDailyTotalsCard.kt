@@ -8,13 +8,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
 internal fun ActivityDailyTotalsCard(totalKcal: Int, totalMin: Int) {
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(16.dp)) {
+    // design-aesthetic-audit §DTA: was a raw PaddingValues(16.dp) literal instead of
+    // the Spacing.L token every other card's contentPadding already uses for this
+    // exact value.
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.L)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("$totalKcal", style = MaterialTheme.typography.titleLarge, color = Warm, fontWeight = FontWeight.Bold)
