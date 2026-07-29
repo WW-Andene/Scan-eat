@@ -151,7 +151,9 @@ fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
             listOf(3, 6, 9, 12).forEach { h ->
                 FilterChip(selected = s.hydrationIntervalHours == h, onClick = { viewModel.setHydration(s.hydrationOn, h) },
                     label = { Text(stringResource(R.string.reminders_every_n_hours, h)) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = semanticBlue().copy(0.2f), selectedLabelColor = semanticBlue()))
+                    // matching the ~10% alpha every Haze token in the app is built at, since
+                    // semanticBlue() has no dedicated Haze constant to reuse (it's theme-adaptive).
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = semanticBlue().copy(0.10f), selectedLabelColor = semanticBlue()))
             }
         }
         ReminderRow(defaultLabel = stringResource(R.string.reminders_custom_daily), on = s.hydrationCustomOn, time = s.hydrationCustomTime,
@@ -216,7 +218,11 @@ fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
             listOf(1, 3, 7).forEach { d ->
                 FilterChip(selected = s.activityThresholdDays == d, onClick = { viewModel.setActivity(s.activityOn, d) },
                     label = { Text(stringResource(R.string.reminders_activity_preset_n_days, d)) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = semanticGreen().copy(0.2f), selectedLabelColor = semanticGreen()))
+                    // design-aesthetic-audit §DTA: every other selected-FilterChip in the app
+                    // (History, Biolism, Weight above) uses its accent's dedicated ~10%-alpha
+                    // Haze token, not an ad-hoc .copy(0.2f) - this was the one holdout still
+                    // improvising its own translucency instead of the established token.
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MetaGreenHaze, selectedLabelColor = semanticGreen()))
             }
         }
     }

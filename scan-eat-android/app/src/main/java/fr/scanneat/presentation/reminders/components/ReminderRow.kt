@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.reminders.CustomReminder
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 
 @Composable
@@ -60,7 +59,7 @@ internal fun ReminderRow(
                     modifier = Modifier.weight(1f).padding(end = 6.dp),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
                 )
             } else {
                 Text(displayLabel, style = MaterialTheme.typography.bodyMedium, color = OnBackground, modifier = Modifier.weight(1f))
@@ -73,12 +72,12 @@ internal fun ReminderRow(
                 isError = !isValid,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 textStyle = MaterialTheme.typography.bodySmall,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Gold, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
             )
             IconButton(onClick = onTest) {
-                Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, displayLabel), tint = Gold)
+                Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, displayLabel), tint = AccentCoral)
             }
-            Switch(checked = on, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = Gold),
+            Switch(checked = on, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
                 modifier = Modifier.semantics { contentDescription = displayLabel })
         }
     }

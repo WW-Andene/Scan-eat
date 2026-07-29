@@ -9,18 +9,39 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import fr.scanneat.R
+import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
+import fr.scanneat.presentation.ui.theme.Spacing
 
 @Composable
 internal fun permissionState(): Triple<Boolean, Boolean, () -> Unit> {
@@ -55,16 +76,41 @@ internal fun permissionState(): Triple<Boolean, Boolean, () -> Unit> {
     return Triple(permissionGranted, permanentlyDenied) { launcher.launch(Manifest.permission.POST_NOTIFICATIONS) }
 }
 
+/**
+ * art-direction-engine §COMPONENTS: this was a bare ScanEatPrimaryButton floating
+ * directly in the card - no icon, no explanatory text, no surface of its own -
+ * unlike every other "this needs your attention" moment in the app (ErrorBanner,
+ * CautionBanner), which all get an icon + framed Surface treatment. A permission
+ * gate that silences every reminder in this card until resolved deserves the same
+ * material identity, not an unstyled button that reads as just another action.
+ */
 @Composable
 internal fun PermissionBanner(permissionGranted: Boolean, permanentlyDenied: Boolean, onRequest: () -> Unit) {
     val context = LocalContext.current
     if (!permissionGranted) {
-        if (permanentlyDenied) {
-            ScanEatPrimaryButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))) }) {
-                Text(stringResource(R.string.scan_open_settings_button))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = AccentCoral.copy(alpha = 0.10f), shape = RoundedCornerShape(CardRadius.CONTROL),
+            shadowElevation = 6.dp,
+        ) {
+            Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.NotificationsActive, null, tint = AccentCoral)
+                Spacer(Modifier.width(Spacing.S))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.reminders_permission_needed_title),
+                        style = MaterialTheme.typography.bodySmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(Modifier.height(Spacing.XS))
+                    if (permanentlyDenied) {
+                        ScanEatPrimaryButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))) }) {
+                            Text(stringResource(R.string.scan_open_settings_button))
+                        }
+                    } else {
+                        ScanEatPrimaryButton(onClick = onRequest) { Text(stringResource(R.string.reminders_enable_notifications)) }
+                    }
+                }
             }
-        } else {
-            ScanEatPrimaryButton(onClick = onRequest) { Text(stringResource(R.string.reminders_enable_notifications)) }
         }
     }
 }
