@@ -30,9 +30,22 @@ internal fun Fasting7DayChart(history: List<FastCompletion>) {
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant.copy(alpha = 0.42f),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+        // app-audit §E5: this standalone chart card had no shadowElevation at all,
+        // unlike its sibling stat tiles (FastingHistoryStatsCard, below) in this
+        // same file which already carry 3dp.
+        shadowElevation = 6.dp,
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.fasting_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+            // design-aesthetic-audit §DDV: same class of gap just fixed in Medication's
+            // adherence chart - bars here encode reached/partial/missed purely through
+            // color, with no textual fallback (WCAG 1.4.1). Reusing the same LegendDot
+            // component Calendar/Dashboard/Medication already share for this.
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                fr.scanneat.presentation.calendar.components.LegendDot(semanticGreen().copy(0.8f), stringResource(R.string.fasting_legend_reached))
+                fr.scanneat.presentation.calendar.components.LegendDot(semanticAmber().copy(0.7f), stringResource(R.string.fasting_legend_partial))
+                fr.scanneat.presentation.calendar.components.LegendDot(semanticRed().copy(0.5f), stringResource(R.string.fasting_legend_missed))
+            }
             Row(modifier = Modifier.fillMaxWidth().height(48.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 (6 downTo 0).forEach { daysBack ->
                     val date = today.minusDays(daysBack.toLong())

@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.fasting.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -8,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,11 +24,20 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun ActiveFastCard(fastingState: FastingState, language: String, personalRecord: Double, onCancel: () -> Unit, onStop: () -> Unit) {
     val fs = fastingState
     val pct = fs.progressFraction.coerceIn(0f, 1f)
-    CircularProgressIndicator(
-        progress = { pct }, modifier = Modifier.size(140.dp),
-        color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
-        trackColor = SurfaceVariant, strokeWidth = 10.dp,
-    )
+    // art-direction-engine §ATMOSPHERE: HydrationRingAndControls' ring already gets a
+    // radial-gradient glow backdrop behind it - this ring, the literal focal element
+    // of an active fast in progress, had none and read as flatter than its sibling.
+    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(140.dp)) {
+        Box(
+            modifier = Modifier.size(140.dp)
+                .background(Brush.radialGradient(listOf(AccentCoral.copy(alpha = 0.18f), Color.Transparent)), CircleShape),
+        )
+        CircularProgressIndicator(
+            progress = { pct }, modifier = Modifier.size(120.dp),
+            color = if (pct >= 1f) AccentCoral else AccentCoral.copy(0.6f),
+            trackColor = SurfaceVariant, strokeWidth = 10.dp,
+        )
+    }
     val (h, m, _) = hmsFromSeconds(fs.elapsedMs / 1000)
     Text("${h}h ${m.toString().padStart(2, '0')}m", style = MaterialTheme.typography.headlineMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
     Text(stringResource(R.string.fasting_target_progress, fs.targetHours), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
