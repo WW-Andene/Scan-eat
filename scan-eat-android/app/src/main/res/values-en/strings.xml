@@ -1393,6 +1393,9 @@
     <string name="medication_group_maoi">MAOIs</string>
     <string name="medication_today_summary_title">Today\'s doses</string>
     <string name="medication_7day_chart_title">Adherence — last 7 days</string>
+    <string name="medication_legend_full">Taken</string>
+    <string name="medication_legend_partial">Partial</string>
+    <string name="medication_legend_missed">Missed</string>
     <string name="activity_calendar_day_logged">%1$s: activity logged</string>
     <string name="activity_calendar_day_empty">%1$s: no activity</string>
     <string name="activity_deleted_message">Activity deleted</string>

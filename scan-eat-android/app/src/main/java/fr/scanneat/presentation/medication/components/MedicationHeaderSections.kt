@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.medication.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,7 +54,17 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
         is InteractionWarning.SsriMaoi      -> stringResource(R.string.medication_interaction_ssri_maoi)
         is InteractionWarning.AnticoagAntiplatelet -> stringResource(R.string.medication_interaction_anticoag_antiplatelet)
     }
-    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f), modifier = Modifier.fillMaxWidth()) {
+    Surface(
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f), modifier = Modifier.fillMaxWidth(),
+        // app-audit §E5: a drug-interaction warning (anticoagulant/NSAID, MAOI/SSRI,
+        // etc.) is exactly the safety-relevant surface ErrorBanner/CautionBanner
+        // already got real elevation for - this one was still flat.
+        shadowElevation = 6.dp,
+        // art-direction-engine §CARDS: CautionBanner (health-condition caution) frames
+        // its semantic tint with a matching border for extra material weight - this
+        // banner, for an active drug interaction (arguably higher severity), had none.
+        border = BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
+    ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Icon(Icons.Rounded.Warning, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
             Column {
@@ -119,6 +130,16 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>)
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.medication_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+            // design-aesthetic-audit §DDV: this is the app's one chart whose bars encode
+            // meaning purely through color (teal=full, amber=partial, red=missed, gray=no
+            // data) with no textual fallback anywhere on screen - a WCAG 1.4.1 "use of
+            // color" gap for colorblind users. Every other legend-needing surface in the
+            // app (Calendar, Dashboard) already reuses this same LegendDot component.
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                fr.scanneat.presentation.calendar.components.LegendDot(Teal, stringResource(R.string.medication_legend_full))
+                fr.scanneat.presentation.calendar.components.LegendDot(semanticAmber(), stringResource(R.string.medication_legend_partial))
+                fr.scanneat.presentation.calendar.components.LegendDot(semanticRed(), stringResource(R.string.medication_legend_missed))
+            }
             Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
                 weeklyAdherence.forEach { day ->
                     val frac = (day.pct ?: 0) / 100f
