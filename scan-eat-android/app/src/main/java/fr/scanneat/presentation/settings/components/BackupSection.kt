@@ -234,7 +234,7 @@ internal fun BackupSection(
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
             }
-            DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }) {
+            DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
                     onClick = { moreCsvExpanded = false; onPrepareWeightCsvExport() })
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },

@@ -88,7 +88,7 @@ internal fun MedicationEntryRow(
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(Icons.Rounded.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
             }
-            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.common_delete)) },
                     leadingIcon = { Icon(Icons.Rounded.Close, contentDescription = null) },

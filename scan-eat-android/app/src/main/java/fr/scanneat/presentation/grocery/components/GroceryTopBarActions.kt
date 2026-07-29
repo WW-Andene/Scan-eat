@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.grocery.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -59,7 +60,7 @@ internal fun GroceryTopBarActions(
             IconButton(onClick = { onCopyMenuExpandedChange(true) }) {
                 Icon(Icons.Rounded.ContentCopy, stringResource(R.string.common_copy), tint = AccentCoral)
             }
-            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }) {
+            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.grocery_copy_plain)) },
                     onClick = { onCopyMenuExpandedChange(false); onCopyPlain() },

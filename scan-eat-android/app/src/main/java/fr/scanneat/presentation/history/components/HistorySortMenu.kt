@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.history.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -22,7 +23,7 @@ internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> U
         IconButton(onClick = { onExpandedChange(true) }) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
+        DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
             val options = listOf(
                 HistorySort.RECENT to stringResource(R.string.history_sort_recent),
                 HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),

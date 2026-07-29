@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.shell
 
+import fr.scanneat.presentation.ui.theme.CardRadius
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -46,7 +48,7 @@ fun PlanningSwitcherMenu(current: PlanningDestination, onNavigate: (PlanningDest
     IconButton(onClick = { expanded = true }) {
         Icon(Icons.Default.SwapHoriz, stringResource(R.string.planning_switcher_cd), tint = OnBackground)
     }
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
         PlanningDestination.entries.filter { it != current }.forEach { dest ->
             DropdownMenuItem(
                 text = { Text(stringResource(dest.labelRes)) },
