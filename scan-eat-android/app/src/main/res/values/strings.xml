@@ -1030,10 +1030,10 @@
     <string name="settings_theme_high_contrast">Contraste élevé</string>
     <string name="settings_theme_low_contrast">Contraste faible</string>
     <string name="settings_section_units">Unités</string>
-    <string name="settings_section_biolism_display">Affichage Biolism</string>
+    <string name="settings_section_biolism_display">Affichage Métabolisme</string>
     <string name="settings_biolism_advanced">Vue avancée</string>
-    <string name="settings_biolism_advanced_hint">Afficher les cartes scientifiques avancées (flux de substrats, thermorégulation, hormones, formules) dans l\'onglet Données de Biolism. Désactivé : seuls le BMR, la composition corporelle, l\'énergie et les macros sont affichés.</string>
-    <string name="settings_units_hint">Utilisée dans Poids, Profil et Biolism</string>
+    <string name="settings_biolism_advanced_hint">Afficher les cartes scientifiques avancées (flux de substrats, thermorégulation, hormones, formules) dans l\'onglet Données de Métabolisme. Désactivé : seuls le BMR, la composition corporelle, l\'énergie et les macros sont affichés.</string>
+    <string name="settings_units_hint">Utilisée dans Poids, Profil et Métabolisme</string>
     <string name="settings_section_profile">Profil nutritionnel</string>
     <string name="settings_section_accessibility">Accessibilité</string>
     <string name="settings_section_reminders">Rappels</string>
@@ -1087,7 +1087,7 @@
     <string name="settings_backup_import_confirm_body">Sauvegarde du %1$s (app v%2$s), %3$d éléments. Cela remplacera vos données actuelles.</string>
     <string name="settings_backup_import_confirm_button">Restaurer</string>
     <string name="settings_csv_export_button">Exporter journal (CSV)</string>
-    <string name="settings_biolism_csv_export_button">Exporter séances Biolism (CSV)</string>
+    <string name="settings_biolism_csv_export_button">Exporter séances Métabolisme (CSV)</string>
     <string name="settings_more_csv_export_button">Autres exports (CSV)</string>
     <string name="settings_pdf_report_button">Générer un rapport PDF</string>
     <string name="settings_weight_csv_export_button">Poids (CSV)</string>

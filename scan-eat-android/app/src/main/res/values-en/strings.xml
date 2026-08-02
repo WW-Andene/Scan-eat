@@ -984,10 +984,10 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_high_contrast">High contrast</string>
     <string name="settings_section_units">Units</string>
-    <string name="settings_section_biolism_display">Biolism display</string>
+    <string name="settings_section_biolism_display">Metabolism display</string>
     <string name="settings_biolism_advanced">Advanced view</string>
-    <string name="settings_biolism_advanced_hint">Show research-grade cards (substrate flux, thermoregulation, hormones, formulas) on the Biolism Data tab. Off shows only BMR, body composition, energy and macros.</string>
-    <string name="settings_units_hint">Used in Weight, Profile, and Biolism</string>
+    <string name="settings_biolism_advanced_hint">Show research-grade cards (substrate flux, thermoregulation, hormones, formulas) on the Metabolism Data tab. Off shows only BMR, body composition, energy and macros.</string>
+    <string name="settings_units_hint">Used in Weight, Profile, and Metabolism</string>
     <string name="settings_theme_low_contrast">Low contrast</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
@@ -1042,7 +1042,7 @@
     <string name="settings_backup_import_confirm_body">Backup from %1$s (app v%2$s), %3$d items. This will overwrite your current data.</string>
     <string name="settings_backup_import_confirm_button">Restore</string>
     <string name="settings_csv_export_button">Export diary (CSV)</string>
-    <string name="settings_biolism_csv_export_button">Export Biolism sessions (CSV)</string>
+    <string name="settings_biolism_csv_export_button">Export Metabolism sessions (CSV)</string>
     <string name="settings_more_csv_export_button">More exports (CSV)</string>
     <string name="settings_pdf_report_button">Generate PDF report</string>
     <string name="settings_weight_csv_export_button">Weight (CSV)</string>
