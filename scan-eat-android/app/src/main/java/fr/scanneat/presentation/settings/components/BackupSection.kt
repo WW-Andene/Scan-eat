@@ -63,6 +63,7 @@ internal fun BackupSection(
     onPrepareHydrationCsvExport: () -> Unit,
     onPrepareMedicationCsvExport: () -> Unit,
     onPrepareFastingCsvExport: () -> Unit,
+    onPreparePricesCsvExport: () -> Unit,
     onPrepareReport: () -> Unit,
 ) {
     var showExportDialog by remember { mutableStateOf(false) }
@@ -246,6 +247,8 @@ internal fun BackupSection(
                     onClick = { moreCsvExpanded = false; onPrepareMedicationCsvExport() })
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_fasting_csv_export_button)) },
                     onClick = { moreCsvExpanded = false; onPrepareFastingCsvExport() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.settings_prices_csv_export_button)) },
+                    onClick = { moreCsvExpanded = false; onPreparePricesCsvExport() })
             }
         }
         // PDF evolution report — a formatted, printable summary of the user's own

@@ -4,6 +4,7 @@ import com.squareup.moshi.Moshi
 import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.medication.MedicationLogDao
+import fr.scanneat.data.local.db.price.PriceDao
 import fr.scanneat.data.local.prefs.SecureFieldCipher
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastingRepository
@@ -29,6 +30,7 @@ class CsvExportRepository @Inject constructor(
     private val medicationLogDao: MedicationLogDao,
     private val hydrationRepo: HydrationRepository,
     private val fastingRepo: FastingRepository,
+    private val priceDao: PriceDao,
     private val biolismRepo: BiolismRepository,
     private val moshi: Moshi,
 ) {
@@ -140,5 +142,19 @@ class CsvExportRepository @Inject constructor(
         val rows = fastingRepo.history.first()
         val lines = rows.sortedBy { it.date }.map { c -> "${c.date},${c.targetHours},${c.achievedHours},${c.reached}" }
         return buildCsv("date,targetHours,achievedHours,reached", lines)
+    }
+
+    /**
+     * Exports logged prices (Dépenses) as CSV - see [exportWeightCsv]'s own doc
+     * comment. Every other domain this session added a logging feature for
+     * (Weight/Activity/Hydration/Medication/Fasting) already got a CSV export
+     * alongside its JSON-backup coverage; price_log had neither until now.
+     */
+    suspend fun exportPricesCsv(): String {
+        val rows = priceDao.getAllForBackup()
+        val lines = rows.sortedBy { it.date }.map { e ->
+            "${e.date},${csvField(e.productName)},${e.category},${e.priceEuros},${e.weightG ?: ""},${e.pricePerKg ?: ""}"
+        }
+        return buildCsv("date,product,category,priceEuros,weightG,pricePerKg", lines)
     }
 }

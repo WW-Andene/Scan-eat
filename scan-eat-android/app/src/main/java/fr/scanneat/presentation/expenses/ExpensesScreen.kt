@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Receipt
 import androidx.compose.material3.*
@@ -58,6 +59,7 @@ fun ExpensesScreen(
                 avgPerEntry = avgPerEntry.value,
                 budgetPerMeal = budgetPerMeal.value,
                 onEditBudget = { showBudgetEdit = true },
+                onOpenCalendar = onOpenCalendar,
             )
         }
 
@@ -109,10 +111,22 @@ private fun ExpensesWeekCard(
     avgPerEntry: Double?,
     budgetPerMeal: Double?,
     onEditBudget: () -> Unit,
+    onOpenCalendar: () -> Unit,
 ) {
     ScanEatCard(contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.expenses_week_title), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Every other embedded Journal tab (Weight/Activity/Hydration/Fasting/
+                // Traitement) exposes this same shortcut into the unified Calendar -
+                // Dépenses previously accepted onOpenCalendar as a parameter but never
+                // actually called it anywhere, the one embedded tab silently missing
+                // this affordance.
+                IconButton(onClick = onOpenCalendar, modifier = Modifier.size(32.dp)) {
+                    Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.expenses_cd_calendar), tint = OnSurface.copy(0.5f))
+                }
+                Spacer(Modifier.width(Spacing.XS))
+                Text(stringResource(R.string.expenses_week_title), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f))
+            }
             TextButton(onClick = onEditBudget) {
                 Text(stringResource(R.string.expenses_edit_budget), color = AccentCoral, style = MaterialTheme.typography.labelSmall)
             }

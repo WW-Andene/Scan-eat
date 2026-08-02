@@ -301,6 +301,7 @@ fun SettingsScreen(
                     onPrepareHydrationCsvExport = { viewModel.prepareHydrationCsvExport() },
                     onPrepareMedicationCsvExport = { viewModel.prepareMedicationCsvExport() },
                     onPrepareFastingCsvExport = { viewModel.prepareFastingCsvExport() },
+                    onPreparePricesCsvExport = { viewModel.preparePricesCsvExport() },
                     onPrepareReport = { viewModel.preparePdfReport() },
                 )
             }

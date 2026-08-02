@@ -5,6 +5,7 @@ import fr.scanneat.data.local.db.consumption.ConsumptionEntity
 import fr.scanneat.data.local.db.customfood.CustomFoodEntity
 import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.price.PriceEntity
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryEntity
@@ -47,6 +48,10 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // REPLACEd in place on a rescan, so this is the only place a barcoded
 // product's score-over-time actually survives) that would otherwise be
 // silently lost on restore-to-a-new-device like every other entity above.
+// Since v10, also price_log — a 10th @Database entity (the Dépenses feature's
+// manually-logged purchase prices) that had zero presence here despite being
+// real user-entered data with no other persistence path, same class of gap
+// every entity above this line already had fixed for it in turn.
 //
 // Deliberately excludes the Groq API key from SettingsBackup — a backup file
 // shared for debugging or support must not leak a credential.
@@ -57,7 +62,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 9
+const val BACKUP_FORMAT_VERSION = 10
 
 data class ProfileBackup(
     val name: String,
@@ -126,6 +131,7 @@ data class BackupBundle(
     val manualGroceryItems: List<ManualGroceryItem> = emptyList(),
     val medicationLog: List<MedicationLogEntity> = emptyList(),
     val scanScoreHistory: List<ScanScoreHistoryEntity> = emptyList(),
+    val priceLog: List<PriceEntity> = emptyList(),
 )
 
 data class BackupSummary(
@@ -139,8 +145,9 @@ data class BackupSummary(
     val medications: Int = 0,
     val medicationLog: Int = 0,
     val scanScoreHistory: Int = 0,
+    val priceLog: Int = 0,
 ) {
-    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory
+    val total: Int get() = scanHistory + consumption + customFoods + weights + activities + mealTemplates + recipes + medications + medicationLog + scanScoreHistory + priceLog
 
     companion object {
         fun from(bundle: BackupBundle) = BackupSummary(
@@ -154,6 +161,7 @@ data class BackupSummary(
             scanScoreHistory = bundle.scanScoreHistory.size,
             medications   = bundle.medications.size,
             medicationLog = bundle.medicationLog.size,
+            priceLog      = bundle.priceLog.size,
         )
     }
 }

@@ -16,6 +16,7 @@ import fr.scanneat.data.local.db.consumption.ConsumptionDao
 import fr.scanneat.data.local.db.customfood.CustomFoodDao
 import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationLogDao
+import fr.scanneat.data.local.db.price.PriceDao
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
@@ -65,6 +66,7 @@ class BackupRepository @Inject constructor(
     private val medicationDao: MedicationDao,
     private val medicationLogDao: MedicationLogDao,
     private val scanScoreHistoryDao: ScanScoreHistoryDao,
+    private val priceDao: PriceDao,
     // Widened from private to internal so BackupRestore.kt's restoreDataStoreData()
     // extension function (extracted verbatim into its own sibling file, same
     // pattern as HealthConnectRepository's Ext files) can still reach these.
@@ -106,6 +108,7 @@ class BackupRepository @Inject constructor(
             medications   = medicationDao.getAllForBackup().map { it.decryptedForBackup() },
             medicationLog = medicationLogDao.getAllForBackup().map { it.decryptedForBackup() },
             scanScoreHistory = scanScoreHistoryDao.getAllForBackup(),
+            priceLog      = priceDao.getAllForBackup(),
             profile = ProfileBackup(
                 name = profile.name,
                 sex = profile.sex.name,
@@ -294,6 +297,11 @@ class BackupRepository @Inject constructor(
                 .map { it.matchKey to it.scannedAt }.toSet()
             val newScores = bundle.scanScoreHistory.filter { it.matchKey to it.scannedAt !in existingScoreKeys }
             scanScoreHistoryDao.insertAll(newScores.map { it.copy(id = 0) })
+
+            // price_log rows carry a stable UUID id like weights/medications - a plain
+            // REPLACE-on-id insertAll is idempotent for re-importing the same file
+            // twice, and two genuinely different entries never collide on a random UUID.
+            priceDao.insertAll(bundle.priceLog)
         }
 
         restoreDataStoreData(bundle)

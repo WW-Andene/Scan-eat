@@ -226,6 +226,10 @@ class SettingsViewModel @Inject constructor(
         _backupState.value = BackupUiState.Working
         viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportFastingCsv(), filenamePrefix = "jeune") }
     }
+    fun preparePricesCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportPricesCsv(), filenamePrefix = "depenses") }
+    }
 
     /** Settings > "Rapport PDF" — builds the multi-page evolution report (see PdfReportRepository's own doc comment) and hands it to the screen to write via SAF, same flow as the JSON/CSV exports above. */
     fun preparePdfReport() {

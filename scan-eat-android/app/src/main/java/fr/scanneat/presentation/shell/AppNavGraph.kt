@@ -187,14 +187,15 @@ fun AppNavGraph(
                 onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenProfile = { navController.navigate(AppRoutes.SCAN_PROFILE) },
                 onLog  = {
-                    // popBackStack() first - the popUpTo(startDestination){saveState=true}
-                    // below only saves each TAB's own state, it doesn't remove RESULT
-                    // (pushed on top of the Scan tab) from that saved stack. Without this,
-                    // Result stayed saved on top of Scan's own back stack: switching back
-                    // to the Scan tab later restored straight onto this Result screen (not
-                    // the camera), and a back-press from there popped out an extra level to
-                    // whatever tab was open before Scan, instead of just closing Result.
-                    navController.popBackStack()
+                    // collapseToTabRoot() first - the popUpTo(startDestination){saveState=true}
+                    // below only saves each TAB's own state, it doesn't remove whatever was
+                    // pushed on top of the tab Result was reached from (just Result itself
+                    // when reached directly from Scan/Dashboard, but History/Favorites/
+                    // Recherche when reached through one of those instead) from that saved
+                    // stack. Without this, the intermediate screen(s) stayed saved on top of
+                    // that tab's own back stack: switching back to it later restored straight
+                    // onto Result (or History/Favorites/Recherche) instead of the tab itself.
+                    navController.collapseToTabRoot()
                     // Match MainShell's tab-switch options exactly — a bare
                     // navigate{launchSingleTop} pushed Diary on top of Scan→Result
                     // instead of switching tabs, so system back from Diary
@@ -243,17 +244,12 @@ fun AppNavGraph(
                 // point, unlike popBackStack() which would land back on Dashboard when
                 // that's where the user actually came from.
                 onOpenDate = { date ->
-                    // popBackStack() first - same fix as ResultScreen's onLog
-                    // (AppNavGraph.RESULT above): the popUpTo(startDestination)
-                    // {saveState=true} below only saves each TAB's own back stack, it
-                    // doesn't remove Calendar (pushed on top of the Diary tab when
-                    // reached via Diary's own onOpenCalendar) from that saved stack.
-                    // Without this, "Ouvrir dans le journal" switched tabs but Calendar
-                    // stayed saved on top of Diary's stack - the tab appeared to land
-                    // back on Calendar (or wherever it briefly resolved to) instead of
-                    // Diary itself, requiring a manual back-press to actually see the
-                    // selected day.
-                    navController.popBackStack()
+                    // collapseToTabRoot() first - same fix as ResultScreen's onLog above,
+                    // generalized: Calendar can be reached from Diary OR Dashboard's
+                    // onOpenCalendar, and the popUpTo(startDestination){saveState=true}
+                    // below only saves each TAB's own back stack, it doesn't remove
+                    // Calendar itself from that saved stack.
+                    navController.collapseToTabRoot()
                     navController.navigate(TopTab.Diary.route) {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
@@ -283,6 +279,24 @@ fun AppNavGraph(
 /** Tab-root ↔ tab-root switches use fade-through; everything else is a peer-level push/pop (slide). */
 private fun AnimatedContentTransitionScope<NavBackStackEntry>.isTabSwitch(): Boolean =
     initialState.destination.route in TAB_ROOT_ROUTES && targetState.destination.route in TAB_ROOT_ROUTES
+
+/**
+ * Pops entries off the back stack until the current destination is a tab root
+ * (or nothing is left to pop). A single `popBackStack()` before a tab-switch
+ * `navigate(...) { popUpTo(startDestination) { saveState = true } }` only
+ * strips ONE level - correct when the screen initiating the switch (Result,
+ * Calendar) sits directly on top of its tab, but Result is also reachable two
+ * levels deep (Dashboard → History/Favorites/Recherche → Result), in which
+ * case a single pop left History/Favorites/Recherche stuck on top of the
+ * Dashboard tab's saved branch - the exact "stuck screen on return to this
+ * tab" bug class ResultScreen.onLog and CalendarScreen.onOpenDate were each
+ * already special-cased for at one level, generalized here to any depth.
+ */
+private fun NavHostController.collapseToTabRoot() {
+    while (currentDestination?.route !in TAB_ROOT_ROUTES) {
+        if (!popBackStack()) break
+    }
+}
 
 /** See PlanningSwitcherMenu's doc comment - a plain push, same as reaching any of these from Dashboard. */
 private fun NavHostController.navigateToPlanning(dest: PlanningDestination) {

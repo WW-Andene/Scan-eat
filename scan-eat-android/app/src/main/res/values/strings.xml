@@ -830,6 +830,7 @@
     <string name="expenses_avg_per_meal">Moyenne %1$.2f € / achat (objectif %2$.0f €)</string>
     <string name="expenses_budget_weekly_label">Budget hebdomadaire (€)</string>
     <string name="expenses_budget_per_meal_label">Budget par achat (€)</string>
+    <string name="expenses_cd_calendar">Calendrier</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Logger\'.</string>
@@ -1094,6 +1095,7 @@
     <string name="settings_hydration_csv_export_button">Hydratation (CSV)</string>
     <string name="settings_medication_csv_export_button">Traitement (CSV)</string>
     <string name="settings_fasting_csv_export_button">Jeûne (CSV)</string>
+    <string name="settings_prices_csv_export_button">Dépenses (CSV)</string>
     <string name="settings_section_reset">Réinitialisation</string>
     <string name="settings_reset_hint">Effacer sélectivement certaines données de l\'application.</string>
     <string name="settings_reset_button">Options de réinitialisation</string>
