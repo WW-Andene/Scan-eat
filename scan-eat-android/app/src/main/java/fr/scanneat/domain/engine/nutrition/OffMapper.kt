@@ -171,6 +171,17 @@ internal fun declaredMicronutrientsOf(n: NutritionPer100g): List<String> = build
     if (n.vitKUg != null) add("vitaminK")
     if (n.b12Ug != null) add("vitaminB12")
     if (n.b6Mg != null) add("vitaminB6")
+    // b1/b2/b3/b9/omega3/caffeine were mapped from OFF (see mapOffProduct) but never
+    // threaded through here - the same "structurally dead" gap this function's own
+    // history already fixed once for iron/calcium/etc. A product declaring only these
+    // fields reported an empty declaredMicronutrients list despite the data being
+    // present and used elsewhere (ProductHintsBenefitsRisks' own benefit lines).
+    if (n.b1Mg != null) add("vitaminB1")
+    if (n.b2Mg != null) add("vitaminB2")
+    if (n.b3Mg != null) add("vitaminB3")
+    if (n.b9Ug != null) add("vitaminB9")
+    if (n.omega3G != null) add("omega3")
+    if (n.caffeineMg != null) add("caffeine")
 }
 
 // isOffSparse() moved to OffSparsityCheck.kt

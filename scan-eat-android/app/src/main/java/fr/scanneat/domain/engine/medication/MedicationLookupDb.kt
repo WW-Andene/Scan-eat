@@ -164,6 +164,10 @@ fun findMedicationByName(context: Context, name: String): MedicationDbEntry? {
     val queryDosageTokens = queryTokens.filter(::isDosageToken)
     var best: MedicationDbEntry? = null
     var bestScore = 0.0
+    // Set when the query carried no dosage digits at all (OCR missed them) and two
+    // candidates tie on the general score while being different strengths of what
+    // otherwise reads as the same name - see doc comment below.
+    var ambiguousDosage = false
     for (entry in MedicationStore.get(context).values) {
         val candidateTokens = tokenize(normalizeForMatch(entry.name))
         if (queryDosageTokens.isNotEmpty()) {
@@ -177,7 +181,28 @@ fun findMedicationByName(context: Context, name: String): MedicationDbEntry? {
         }
         val matched = queryTokens.count { qt -> candidateTokens.any { ct -> ct.contains(qt) || qt.contains(ct) } }
         val score = matched.toDouble() / queryTokens.size
-        if (score > bestScore) { bestScore = score; best = entry }
+        when {
+            score > bestScore -> { bestScore = score; best = entry; ambiguousDosage = false }
+            score == bestScore && best != null && queryDosageTokens.isEmpty() -> {
+                // The dosage-token guard above only fires when the QUERY carries digits -
+                // if OCR failed to read them at all (common on small box print), two
+                // presentations of the same drug name at different strengths ("Doliprane"
+                // 500mg vs 1000mg) tie on every other token and previously fell back to
+                // whichever happened to be first in map iteration order, silently
+                // surfacing that entry's cautions/interactions for the wrong strength.
+                // Detect the tie: only genuinely ambiguous if the two tied candidates
+                // themselves carry different dosage tokens (i.e. really are different
+                // strengths, not just two names that happen to score equally).
+                val bestDosage = tokenize(normalizeForMatch(best.name)).filter(::isDosageToken)
+                val candidateDosage = candidateTokens.filter(::isDosageToken)
+                if (bestDosage.isNotEmpty() && candidateDosage.isNotEmpty() &&
+                    bestDosage.none { bd -> candidateDosage.any { cd -> dosageValuesEqual(bd, cd) } }
+                ) {
+                    ambiguousDosage = true
+                }
+            }
+        }
     }
+    if (ambiguousDosage) return null
     return if (bestScore >= 0.6) best else null
 }

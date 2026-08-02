@@ -163,7 +163,13 @@ internal val DIET_DEFS: Map<DietKey, DietDef> = mapOf(
 
     DietKey.LOW_FODMAP to DietDef(
         forbidden = listOf(
-            b("bl[eé]|froment|seigle|orge|oignon|ail|pomme|poire|mangue|past[eè]que|miel|sirop d'agave|sirop de ma[iï]s|fructose|inuline|chicor[eé]e|artichaut|lait(?! sans lactose)|lactose|fromage frais|yaourt|l[eé]gume sec|haricot|lentille|pois chiche|sorbitol|mannitol|xylitol|maltitol"),
+            // pomme(?! de terre) - "pomme" alone (apple) is high-FODMAP (fructose) and
+            // correctly forbidden, but the bare word "pomme" also matches inside "pomme
+            // de terre" (potato) - itself low-FODMAP - via this list's own word-boundary
+            // regex (b(), see its doc comment), which only guards against adjacent
+            // letters/digits, not the space before "de terre". Any potato-containing
+            // product was silently misclassified as FODMAP-violating.
+            b("bl[eé]|froment|seigle|orge|oignon|ail|pomme(?! de terre)|poire|mangue|past[eè]que|miel|sirop d'agave|sirop de ma[iï]s|fructose|inuline|chicor[eé]e|artichaut|lait(?! sans lactose)|lactose|fromage frais|yaourt|l[eé]gume sec|haricot|lentille|pois chiche|sorbitol|mannitol|xylitol|maltitol"),
         ),
         noteFr = "Référence Monash. Exclut oligosaccharides, disaccharides, monosaccharides et polyols mal absorbés.",
         noteEn = "Monash University reference. Excludes poorly absorbed oligos, disaccharides, monosaccharides and polyols.",

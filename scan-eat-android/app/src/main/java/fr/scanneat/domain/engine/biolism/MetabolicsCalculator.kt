@@ -79,7 +79,12 @@ fun BiolismEngine.computeMetabolics(
     // ── Substrate oxidation rates (g/min) ────────────────────────────────
     val fatOx  = (sub.fatFrac  * kcalPerMin) / 9.0
     val carbOx = (sub.carbFrac * kcalPerMin) / 4.0
-    val protOx = (sub.protFrac * kcalPerMin) / 4.1
+    // 4.0, not 4.1 - every other kcal/g-of-protein conversion in the app (DailyTargets,
+    // DietChecker, macro targets) uses the standard Atwater value. The isolated 4.1 here
+    // meant Biolism's protein-oxidation-derived figures (nitrogen excretion, GNG, ATP)
+    // were silently computed on a different kcal basis than the rest of the app's
+    // "same fact" protein-calorie conversions.
+    val protOx = (sub.protFrac * kcalPerMin) / 4.0
 
     // ── FFA lipolysis flux (Wolfe 1990) ──────────────────────────────────
     val reesterFrac = when {
