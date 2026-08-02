@@ -1,12 +1,18 @@
 package fr.scanneat.presentation.foodsearch
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,20 +29,27 @@ import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.util.formatDecimal
 
 /**
- * "Recherche" dashboard tile - a real search/browse engine over EVERY product this
- * app actually knows about: FOOD_DB's ~130 curated CIQUAL references, the user's
- * own custom foods, AND (the bulk of real coverage for an active user) every
- * product they've ever scanned - previously only searchable from ScanHistoryScreen
- * itself, not from here. A name collision shows the scanned item (real data, real
- * score) rather than the generic curated one - see FoodSearchViewModel's own doc
- * comment. Tapping a scanned result opens the full Result screen; a generic
- * FOOD_DB/custom entry (no score to show) expands an inline macro accordion instead.
+ * "Recherche" - a full search/browse engine over EVERY product this app knows
+ * about (FOOD_DB + custom foods + the user's own scan history, see
+ * FoodSearchViewModel's own doc comment), organized as category accordions
+ * instead of one long flat list - user-requested rework, since a flat list of
+ * 130+ items with no structure was hard to actually browse. Filters live behind
+ * their own collapsible section for the same reason: the chip row doesn't need
+ * to always occupy screen space above every result.
  */
 @Composable
 fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: () -> Unit, onOpenResult: (Long) -> Unit) {
     val query   = viewModel.query.collectAsStateWithLifecycle()
     val filter  = viewModel.filter.collectAsStateWithLifecycle()
-    val results = viewModel.results.collectAsStateWithLifecycle()
+    val grouped = viewModel.groupedResults.collectAsStateWithLifecycle()
+    var filtersExpanded by remember { mutableStateOf(false) }
+    // SCANNED starts expanded - a user's own scanned products are the most
+    // personally relevant/immediately useful section; the curated reference
+    // categories start folded so the screen opens uncluttered.
+    var expandedCategories by remember { mutableStateOf(setOf(FoodSearchCategory.SCANNED)) }
+    fun toggleCategory(c: FoodSearchCategory) {
+        expandedCategories = if (c in expandedCategories) expandedCategories - c else expandedCategories + c
+    }
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.foodsearch_title), color = OnBackground) },
@@ -48,29 +61,14 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
         ) {
             item { HistorySearchBar(query = query.value, onQueryChange = viewModel::setQuery) }
             item {
-                val filterOptions = listOf(
-                    FoodSearchFilter.ALL            to stringResource(R.string.foodsearch_filter_all),
-                    FoodSearchFilter.HIGH_PROTEIN    to stringResource(R.string.foodsearch_filter_protein),
-                    FoodSearchFilter.LOW_CARB        to stringResource(R.string.foodsearch_filter_low_carb),
-                    FoodSearchFilter.HIGH_FIBER      to stringResource(R.string.foodsearch_filter_fiber),
-                    FoodSearchFilter.IRON_SOURCE     to stringResource(R.string.foodsearch_filter_iron),
-                    FoodSearchFilter.CALCIUM_SOURCE  to stringResource(R.string.foodsearch_filter_calcium),
+                FiltersSection(
+                    expanded = filtersExpanded,
+                    onToggle = { filtersExpanded = !filtersExpanded },
+                    filter = filter.value,
+                    onFilterChange = viewModel::setFilter,
                 )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = Spacing.L, vertical = Spacing.XS),
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-                ) {
-                    items(filterOptions, key = { it.first.name }) { (f, label) ->
-                        FilterChip(
-                            selected = filter.value == f,
-                            onClick  = { viewModel.setFilter(f) },
-                            label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                            colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.15f), selectedLabelColor = AccentCoral),
-                        )
-                    }
-                }
             }
-            if (results.value.isEmpty()) {
+            if (grouped.value.isEmpty()) {
                 item {
                     EmptyListState(
                         Icons.Rounded.Search,
@@ -78,14 +76,116 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                     )
                 }
             } else {
-                items(results.value, key = { (it.scanId?.toString() ?: "local") + "_" + it.name }) { item ->
-                    Box(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
-                        FoodSearchRow(item, onOpenResult)
+                // Fixed, meaningful order (personal data first, then the curated
+                // reference categories) rather than whatever order groupBy happens
+                // to yield - Map iteration order isn't a UI contract to rely on.
+                val orderedCategories = listOf(
+                    FoodSearchCategory.SCANNED, FoodSearchCategory.CUSTOM,
+                    FoodSearchCategory.FRUITS_VEGETABLES, FoodSearchCategory.GRAINS_PROTEINS,
+                    FoodSearchCategory.DAIRY_LEGUMES, FoodSearchCategory.FATS_SWEETS_BEVERAGES,
+                )
+                orderedCategories.forEach { category ->
+                    val items = grouped.value[category].orEmpty()
+                    if (items.isNotEmpty()) {
+                        item(key = "header_$category") {
+                            CategoryHeader(
+                                category = category,
+                                count = items.size,
+                                expanded = category in expandedCategories,
+                                onToggle = { toggleCategory(category) },
+                            )
+                        }
+                        if (category in expandedCategories) {
+                            items(items, key = { (it.scanId?.toString() ?: "local") + "_" + it.name }) { item ->
+                                Box(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
+                                    FoodSearchRow(item, onOpenResult)
+                                }
+                            }
+                        }
                     }
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
+    }
+}
+
+@Composable
+private fun FiltersSection(
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    filter: FoodSearchFilter,
+    onFilterChange: (FoodSearchFilter) -> Unit,
+) {
+    val filterOptions = listOf(
+        FoodSearchFilter.ALL            to stringResource(R.string.foodsearch_filter_all),
+        FoodSearchFilter.HIGH_PROTEIN    to stringResource(R.string.foodsearch_filter_protein),
+        FoodSearchFilter.LOW_CARB        to stringResource(R.string.foodsearch_filter_low_carb),
+        FoodSearchFilter.HIGH_FIBER      to stringResource(R.string.foodsearch_filter_fiber),
+        FoodSearchFilter.IRON_SOURCE     to stringResource(R.string.foodsearch_filter_iron),
+        FoodSearchFilter.CALCIUM_SOURCE  to stringResource(R.string.foodsearch_filter_calcium),
+    )
+    Column(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS).animateContentSize()) {
+        Row(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)),
+            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                modifier = Modifier.weight(1f).clickable(onClick = onToggle).padding(vertical = Spacing.XS),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+            ) {
+                Icon(Icons.Rounded.FilterList, null, tint = OnBackground.copy(0.6f), modifier = Modifier.size(18.dp))
+                Text(
+                    stringResource(R.string.foodsearch_filters_label, filterOptions.first { it.first == filter }.second),
+                    style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.8f),
+                )
+            }
+            IconButton(onClick = onToggle) {
+                Icon(if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = OnBackground.copy(0.5f))
+            }
+        }
+        if (expanded) {
+            LazyRow(
+                contentPadding = PaddingValues(vertical = Spacing.XS),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+            ) {
+                items(filterOptions, key = { it.first.name }) { (f, label) ->
+                    FilterChip(
+                        selected = filter == f,
+                        onClick  = { onFilterChange(f) },
+                        label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                        colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.15f), selectedLabelColor = AccentCoral),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun categoryLabel(category: FoodSearchCategory): String = stringResource(
+    when (category) {
+        FoodSearchCategory.SCANNED               -> R.string.foodsearch_category_scanned
+        FoodSearchCategory.CUSTOM                -> R.string.foodsearch_category_custom
+        FoodSearchCategory.FRUITS_VEGETABLES      -> R.string.foodsearch_category_fruits_veg
+        FoodSearchCategory.GRAINS_PROTEINS        -> R.string.foodsearch_category_grains_proteins
+        FoodSearchCategory.DAIRY_LEGUMES          -> R.string.foodsearch_category_dairy_legumes
+        FoodSearchCategory.FATS_SWEETS_BEVERAGES  -> R.string.foodsearch_category_fats_sweets
+    },
+)
+
+@Composable
+private fun CategoryHeader(category: FoodSearchCategory, count: Int, expanded: Boolean, onToggle: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).clickable(onClick = onToggle)
+            .padding(horizontal = Spacing.L, vertical = Spacing.S),
+        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.foodsearch_category_header, categoryLabel(category), count),
+            style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
+        )
+        Icon(if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = OnBackground.copy(0.5f))
     }
 }
 
