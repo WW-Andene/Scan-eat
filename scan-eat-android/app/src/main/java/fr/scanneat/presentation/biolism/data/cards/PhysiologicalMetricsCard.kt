@@ -67,8 +67,10 @@ fun PhysiologicalMetricsCard(
                 OutlinedTextField(
                     // 0 (or negative) previously saved through unguarded, and mhr==0 divides
                     // by zero in the implied-stroke-volume text below, rendering the literal
-                    // string "Infinity mL".
-                    value = hrText, onValueChange = { hrText = it; it.toIntOrNull()?.let { bpm -> if (bpm > 0) onSaveManualHR(bpm) } },
+                    // string "Infinity mL". Upper-bounded too (a typo like "5000" was
+                    // previously persisted as-is with no ceiling) - 30-300 bpm covers real
+                    // resting-to-max-effort human heart rates with margin either side.
+                    value = hrText, onValueChange = { hrText = it; it.toIntOrNull()?.let { bpm -> if (bpm in 30..300) onSaveManualHR(bpm) } },
                     label = { Text(stringResource(R.string.biolism_physio_hr_input_label)) }, singleLine = true,
                     modifier = Modifier.width(140.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     // design-aesthetic-audit §DC3: cursorColor/focusedLabelColor weren't

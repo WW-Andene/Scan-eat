@@ -233,9 +233,13 @@ private fun BudgetEditDialog(
         },
         confirmButton = {
             TextButton(onClick = {
+                // Bounded, not just "> 0" - an unbounded budget target previously fed
+                // straight into the weekly-spend percentage/remaining-budget math shown
+                // on this screen and the Dashboard recap card, risking an absurd
+                // displayed percentage from a mistyped value.
                 onConfirm(
-                    weeklyText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 },
-                    perMealText.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 },
+                    weeklyText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 1.0..10000.0 },
+                    perMealText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.5..2000.0 },
                 )
             }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },

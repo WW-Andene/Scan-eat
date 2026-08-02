@@ -98,8 +98,12 @@ private fun ValueScoreBadge(score: ValueScore) {
 private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: () -> Unit) {
     var priceText by remember { mutableStateOf("") }
     var weightText by remember { mutableStateOf("") }
-    val price = priceText.replace(',', '.').toDoubleOrNull()
-    val weight = weightText.replace(',', '.').toDoubleOrNull()
+    // Bounded, not just "> 0" - an unbounded price field previously accepted any
+    // value (including something like a pasted "999999999"), which then flows
+    // straight into the price/kg computation and value-score comparison. Upper
+    // bounds are generous (a real grocery item, even luxury/bulk) rather than tight.
+    val price = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
+    val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.result_price_add), color = OnBackground) },
@@ -125,7 +129,7 @@ private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: ()
             }
         },
         confirmButton = {
-            TextButton(onClick = { price?.let { onConfirm(it, weight?.takeIf { w -> w > 0 }) } }, enabled = price != null && price > 0) {
+            TextButton(onClick = { price?.let { onConfirm(it, weight) } }, enabled = price != null) {
                 Text(stringResource(R.string.common_save), color = AccentCoral)
             }
         },

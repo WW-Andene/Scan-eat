@@ -52,6 +52,12 @@ internal suspend fun BackupRepository.restoreDataStoreData(bundle: BackupBundle)
         prefs.setDyslexicFont(s.dyslexicFont)
         prefs.setColorblindMode(s.colorblindMode)
         prefs.setUseImperialWeight(s.useImperialWeight)
+        prefs.setOnboardingComplete(s.onboardingComplete)
+        prefs.setAnimatedBackground(s.animatedBackground)
+        prefs.setBiolismAdvancedView(s.biolismAdvancedView)
+        prefs.setActivityBestStreak(s.activityBestStreak)
+        prefs.setBudgetWeeklyEuros(s.budgetWeeklyEuros)
+        prefs.setBudgetPerMealEuros(s.budgetPerMealEuros)
     }
     // restoreAll writes every ReminderSettings field in one transaction — the
     // previous piecemeal setBreakfast/setLunch/setDinner/setHydration/setWeight

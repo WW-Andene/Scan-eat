@@ -52,9 +52,18 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // manually-logged purchase prices) that had zero presence here despite being
 // real user-entered data with no other persistence path, same class of gap
 // every entity above this line already had fixed for it in turn.
+// Since v11, also the Dépenses budget targets (weekly/per-meal), Activité's
+// all-time best streak, the animated-background and advanced-Biolism-view
+// display toggles, and onboardingComplete - a Category B audit pass found
+// these five DataStore-backed values had never been added to SettingsBackup
+// despite this file's own header claiming exhaustive coverage since v9;
+// restoring to a new device silently reset each one (budgets back to unset,
+// best streak back to 0 - which could wrongly re-trigger a "new personal
+// record" celebration on a lower but still-real current streak - and both
+// toggles back to their defaults).
 //
-// Deliberately excludes the Groq API key from SettingsBackup — a backup file
-// shared for debugging or support must not leak a credential.
+// Deliberately excludes the Groq and Cerebras API keys from SettingsBackup —
+// a backup file shared for debugging or support must not leak a credential.
 //
 // version bumps whenever a field is added/removed/retyped, so importFromJson
 // can refuse (rather than silently corrupt) a bundle from an incompatible
@@ -62,7 +71,7 @@ import fr.scanneat.data.repository.reminders.ReminderSettings
 // file (which has none of them) still parses cleanly.
 // ============================================================================
 
-const val BACKUP_FORMAT_VERSION = 10
+const val BACKUP_FORMAT_VERSION = 11
 
 data class ProfileBackup(
     val name: String,
@@ -95,6 +104,13 @@ data class SettingsBackup(
     // toggle - previously absent here, so restoring a backup to a new device silently reset
     // an imperial-unit user back to kg and required a manual re-toggle.
     val useImperialWeight: Boolean = false,
+    // Since v11 - see this file's header comment on the class doc above.
+    val onboardingComplete: Boolean = false,
+    val animatedBackground: Boolean = false,
+    val biolismAdvancedView: Boolean = true,
+    val activityBestStreak: Int = 0,
+    val budgetWeeklyEuros: Double? = null,
+    val budgetPerMealEuros: Double? = null,
 )
 
 data class HydrationEntryBackup(val date: String, val ml: Int)
