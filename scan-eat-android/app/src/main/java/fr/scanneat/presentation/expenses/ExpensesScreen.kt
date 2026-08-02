@@ -121,7 +121,12 @@ private fun ExpensesWeekCard(
                 // Dépenses previously accepted onOpenCalendar as a parameter but never
                 // actually called it anywhere, the one embedded tab silently missing
                 // this affordance.
-                IconButton(onClick = onOpenCalendar, modifier = Modifier.size(32.dp)) {
+                // No explicit size override - every sibling embedded tab's own
+                // calendar IconButton (Weight/Medication/etc.) relies on the
+                // default 48dp minimum touch target rather than shrinking it;
+                // an earlier pass here set 32dp, undersizing this one tap target
+                // below every other IconButton in the app.
+                IconButton(onClick = onOpenCalendar) {
                     Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.expenses_cd_calendar), tint = OnSurface.copy(0.5f))
                 }
                 Spacer(Modifier.width(Spacing.XS))
