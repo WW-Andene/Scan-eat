@@ -150,6 +150,12 @@ fun GroceryScreen(
                 if (searchQuery.isBlank()) checkable.value
                 else checkable.value.filter { it.item.name.contains(searchQuery, ignoreCase = true) }
             }
+            // Was recomputed on every recomposition of the LazyColumn content scope
+            // below (including ones triggered by unrelated state, e.g. itemWarnings/
+            // manualItemKeys) - filteredCheckable itself is already remember()'d,
+            // this derived grouping wasn't. remember() must live here, not inside
+            // the LazyColumn content lambda (LazyListScope isn't @Composable).
+            val grouped = remember(filteredCheckable) { filteredCheckable.groupBy { groceryCategoryFor(it.item.name) } }
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
                 verticalArrangement = Arrangement.spacedBy(Spacing.M),
@@ -178,11 +184,6 @@ fun GroceryScreen(
                     // Previously a flat alphabetical/unsorted list with no produce/dairy/
                     // pantry sectioning at all. Fixed display order regardless of which
                     // categories this particular list actually contains.
-                    // Was recomputed on every recomposition of this scope (including ones
-                    // triggered by unrelated state below, e.g. itemWarnings/manualItemKeys) -
-                    // filteredCheckable itself is already remember()'d, this derived grouping
-                    // wasn't.
-                    val grouped = remember(filteredCheckable) { filteredCheckable.groupBy { groceryCategoryFor(it.item.name) } }
                     listOf(
                         GroceryCategory.PRODUCE, GroceryCategory.MEAT_FISH, GroceryCategory.DAIRY,
                         GroceryCategory.BAKERY, GroceryCategory.PANTRY, GroceryCategory.FROZEN,

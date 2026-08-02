@@ -138,14 +138,6 @@ fun DiaryScreen(
             viewModel.clearActionFailed()
         }
     }
-    // Weight/Activity's delete flow already offers an Undo snackbar action -
-    // Diary's equivalent "delete a logged record" action had none, so a
-    // mis-tapped delete (past the confirm dialog) was unrecoverable here
-    // while the identical action elsewhere in the app could be undone.
-    val scope = rememberCoroutineScope()
-    val deletedMessage = stringResource(R.string.diary_deleted_message)
-    val undoLabel = stringResource(R.string.diary_undo)
-
     val hazeState = remember { HazeState() }
     val bottomNavHazeState = LocalBottomNavHazeState.current
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -172,7 +164,7 @@ fun DiaryScreen(
                 .hazeSource(hazeState),
         ) {
             when (activeTab) {
-                DiaryTab.MEALS    -> MealsTab(viewModel, topPadding = topPadding, bottomPadding = bottomClearance)
+                DiaryTab.MEALS    -> MealsTab(viewModel, snackbarHostState, topPadding = topPadding, bottomPadding = bottomClearance)
                 DiaryTab.WEIGHT   -> WeightScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.WATER    -> HydrationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
@@ -267,7 +259,15 @@ fun DiaryScreen(
 }
 
 @Composable
-private fun MealsTab(viewModel: DiaryViewModel, topPadding: androidx.compose.ui.unit.Dp = 0.dp, bottomPadding: androidx.compose.ui.unit.Dp = 0.dp) {
+private fun MealsTab(
+    viewModel: DiaryViewModel,
+    snackbarHostState: SnackbarHostState,
+    topPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+) {
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.diary_deleted_message)
+    val undoLabel = stringResource(R.string.diary_undo)
     val summary      = viewModel.summary.collectAsStateWithLifecycle()
     val selectedDate = viewModel.selectedDate.collectAsStateWithLifecycle()
     val isToday      = viewModel.isToday.collectAsStateWithLifecycle(initialValue = true)
