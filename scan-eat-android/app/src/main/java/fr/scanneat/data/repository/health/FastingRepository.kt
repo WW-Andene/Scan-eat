@@ -217,7 +217,10 @@ class FastingRepository @Inject constructor(
     }.onFailure {
         // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -
         // a corrupted delimited entry here previously vanished from the fasting
-        // history/streak calculation with zero trace.
-        android.util.Log.w("FastingRepository", "Failed to parse fast completion entry: $s", it)
+        // history/streak calculation with zero trace. Logs the field count, not
+        // the raw entry itself - every sibling repository's equivalent parse-
+        // failure log (ConsumptionRepository/WeightRepository/MedicationRepository)
+        // logs only a row id, never the row's actual content.
+        android.util.Log.w("FastingRepository", "Failed to parse fast completion entry (${s.split(",").size} fields)", it)
     }.getOrNull()
 }

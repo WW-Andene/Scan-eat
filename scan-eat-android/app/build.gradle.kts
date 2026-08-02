@@ -37,8 +37,12 @@ android {
         applicationId = "fr.scanneat.app"
         minSdk        = 26          // Android 8 — covers >98 % of active devices
         targetSdk     = 35
-        versionCode   = 1
-        versionName   = "1.0.0"
+        // Was frozen at 1/1.0.0 through 20+ shipped audit-fix commits (Category
+        // A-L) with no way to tell which of those fixes a given installed build
+        // actually contains - bump before the next release, and again before
+        // every subsequent Play Store upload.
+        versionCode   = 2
+        versionName   = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
