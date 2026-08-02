@@ -63,6 +63,7 @@ internal fun BackupSection(
     onPrepareHydrationCsvExport: () -> Unit,
     onPrepareMedicationCsvExport: () -> Unit,
     onPrepareFastingCsvExport: () -> Unit,
+    onPrepareReport: () -> Unit,
 ) {
     var showExportDialog by remember { mutableStateOf(false) }
     SettingsSection(stringResource(R.string.settings_section_backup), icon = Icons.Default.Backup) {
@@ -246,6 +247,19 @@ internal fun BackupSection(
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_fasting_csv_export_button)) },
                     onClick = { moreCsvExpanded = false; onPrepareFastingCsvExport() })
             }
+        }
+        // PDF evolution report — a formatted, printable summary of the user's own
+        // logged data (weight/nutrition/activity/hydration/fasting/expenses),
+        // distinct from the raw CSV/JSON exports above. See PdfReportRepository's
+        // own doc comment on why this is explicitly NOT framed as medical advice.
+        HorizontalDivider(color = OnBackground.copy(0.08f))
+        ScanEatOutlinedButton(
+            onClick = onPrepareReport,
+            enabled = backupState !is BackupUiState.Working,
+        ) {
+            Icon(Icons.Default.PictureAsPdf, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.settings_pdf_report_button), color = OnBackground)
         }
         // Data stats — show what's stored so the user knows what they'd export or reset
         val (scanCount, diaryCount) = dataStats

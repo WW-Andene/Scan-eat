@@ -14,6 +14,7 @@ import fr.scanneat.data.local.prefs.ApiMode
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.backup.BackupRepository
 import fr.scanneat.data.repository.backup.CsvExportRepository
+import fr.scanneat.data.repository.backup.PdfReportRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HealthConnectAvailability
 import fr.scanneat.data.repository.health.HealthConnectRepository
@@ -41,6 +42,8 @@ sealed class BackupUiState {
     data class NeedsPassphrase(val json: String, val wrongPassphrase: Boolean = false) : BackupUiState()
     data class ImportSuccess(val summary: BackupSummary) : BackupUiState()
     data class Error(val messageKey: BackupErrorKey) : BackupUiState()
+    /** PDF report generated and ready — the screen writes it to a user-picked URI via PdfDocument.writeTo(), then closes it. */
+    data class PdfExportReady(val document: android.graphics.pdf.PdfDocument) : BackupUiState()
 }
 
 /** Maps to a stringResource in the screen — keeps user-facing copy out of the ViewModel. */
@@ -51,6 +54,7 @@ class SettingsViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val backupRepository: BackupRepository,
     private val csvExportRepository: CsvExportRepository,
+    private val pdfReportRepository: PdfReportRepository,
     private val healthConnect: HealthConnectRepository,
     private val fastingRepo: FastingRepository,
     @ApplicationContext private val context: Context,
@@ -221,6 +225,17 @@ class SettingsViewModel @Inject constructor(
     fun prepareFastingCsvExport() {
         _backupState.value = BackupUiState.Working
         viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportFastingCsv(), filenamePrefix = "jeune") }
+    }
+
+    /** Settings > "Rapport PDF" — builds the multi-page evolution report (see PdfReportRepository's own doc comment) and hands it to the screen to write via SAF, same flow as the JSON/CSV exports above. */
+    fun preparePdfReport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch {
+            runCatching { pdfReportRepository.generate(language.value) }.fold(
+                onSuccess = { _backupState.value = BackupUiState.PdfExportReady(it) },
+                onFailure = { _backupState.value = BackupUiState.Error(BackupErrorKey.IO) },
+            )
+        }
     }
 
     // Both previously called their repo's Room/DataStore write completely unguarded -

@@ -134,6 +134,19 @@ fun SettingsScreen(
             else -> viewModel.reportBackupIoFailed()
         }
     }
+    val pdfExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+        val state = backupState.value
+        when {
+            state !is BackupUiState.PdfExportReady -> if (uri == null) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
+            uri == null -> { state.document.close(); viewModel.clearBackupState() }
+            else -> {
+                val stream = context.contentResolver.openOutputStream(uri)
+                val wrote = stream != null && runCatching { stream.use { state.document.writeTo(it) } }.isSuccess
+                state.document.close()
+                if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
+            }
+        }
+    }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             // OpenDocument() lets the user pick ANY file, not just one this app
@@ -160,6 +173,8 @@ fun SettingsScreen(
             exportLauncher.launch("scaneat-backup-${LocalDate.now()}.json")
         } else if (state is BackupUiState.CsvExportReady) {
             csvExportLauncher.launch("scaneat-${state.filenamePrefix}-${LocalDate.now()}.csv")
+        } else if (state is BackupUiState.PdfExportReady) {
+            pdfExportLauncher.launch("scaneat-rapport-${LocalDate.now()}.pdf")
         }
     }
     var showResetDialog by remember { mutableStateOf(false) }
@@ -286,6 +301,7 @@ fun SettingsScreen(
                     onPrepareHydrationCsvExport = { viewModel.prepareHydrationCsvExport() },
                     onPrepareMedicationCsvExport = { viewModel.prepareMedicationCsvExport() },
                     onPrepareFastingCsvExport = { viewModel.prepareFastingCsvExport() },
+                    onPrepareReport = { viewModel.preparePdfReport() },
                 )
             }
 

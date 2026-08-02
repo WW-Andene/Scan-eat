@@ -1088,6 +1088,7 @@
     <string name="settings_csv_export_button">Exporter journal (CSV)</string>
     <string name="settings_biolism_csv_export_button">Exporter séances Biolism (CSV)</string>
     <string name="settings_more_csv_export_button">Autres exports (CSV)</string>
+    <string name="settings_pdf_report_button">Générer un rapport PDF</string>
     <string name="settings_weight_csv_export_button">Poids (CSV)</string>
     <string name="settings_activity_csv_export_button">Activité (CSV)</string>
     <string name="settings_hydration_csv_export_button">Hydratation (CSV)</string>

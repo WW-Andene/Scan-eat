@@ -1043,6 +1043,7 @@
     <string name="settings_csv_export_button">Export diary (CSV)</string>
     <string name="settings_biolism_csv_export_button">Export Biolism sessions (CSV)</string>
     <string name="settings_more_csv_export_button">More exports (CSV)</string>
+    <string name="settings_pdf_report_button">Generate PDF report</string>
     <string name="settings_weight_csv_export_button">Weight (CSV)</string>
     <string name="settings_activity_csv_export_button">Activity (CSV)</string>
     <string name="settings_hydration_csv_export_button">Hydration (CSV)</string>
