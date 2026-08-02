@@ -43,7 +43,11 @@ fun ExpensesScreen(
     val avgPerEntry = viewModel.avgPerEntryThisWeek.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var showBudgetEdit by remember { mutableStateOf(false) }
-    val dateFmt = remember { DateTimeFormatter.ofPattern("d MMM", Locale.getDefault()) }
+    val language = viewModel.language.collectAsStateWithLifecycle()
+    // In-app language, not Locale.getDefault() - see WeightScreen's own doc
+    // comment on the identical fix; this was the one date-heavy screen still
+    // defaulting to the device locale instead of the in-app one.
+    val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("d MMM", Locale(language.value)) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),

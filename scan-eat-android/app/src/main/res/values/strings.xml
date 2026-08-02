@@ -75,6 +75,9 @@
     <string name="hydration_suggested_goal_hint">Selon votre profil, un objectif de %1$d mL pourrait mieux vous convenir.</string>
     <string name="hydration_7day_chart_title">7 derniers jours</string>
     <string name="hydration_weekly_goal_met">%1$d/7 objectifs atteints</string>
+    <string name="hydration_week_bar_no_data">%1$s : aucune eau enregistrée</string>
+    <string name="hydration_week_bar_goal_met">%1$s : %2$d mL, objectif atteint</string>
+    <string name="hydration_week_bar_default">%1$s : %2$d mL</string>
     <string name="settings_server_url">URL du serveur</string>
     <string name="result_log_it">Logger</string>
     <string name="dashboard_title">Tableau de bord</string>
@@ -951,6 +954,7 @@
     <string name="activity_deleted_message">Activité supprimée</string>
     <string name="activity_undo">Annuler</string>
     <string name="activity_7day_chart_title">7 derniers jours</string>
+    <string name="activity_week_bar_cd">%1$s : %2$d kilocalories brûlées</string>
     <string name="activity_weekly_minutes_title">Minutes actives cette semaine</string>
     <string name="activity_who_goal_reached">Objectif OMS atteint ✓</string>
     <string name="activity_who_goal_hint">Objectif OMS : 150 min/semaine d\'activité modérée</string>

@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
@@ -23,8 +25,20 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>) {
             Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
                 weeklyBurn.forEach { (date, kcal) ->
                     val frac = kcal.toFloat() / peak
+                    // Same "Canvas/background box with no text underneath" shape as
+                    // Dashboard's WeeklyBarsCard, which needed a contentDescription
+                    // because TalkBack otherwise skipped the chart's data entirely -
+                    // this chart had the identical gap, never fixed here.
+                    val dayName = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
+                    val barDescription = stringResource(R.string.activity_week_bar_cd, dayName, kcal)
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
-                        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight(frac.coerceAtLeast(0.02f)).background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(frac.coerceAtLeast(0.02f))
+                                .background(barColor.copy(if (date == LocalDate.now()) 1f else 0.4f), RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                                .semantics { contentDescription = barDescription },
+                        )
                     }
                 }
             }

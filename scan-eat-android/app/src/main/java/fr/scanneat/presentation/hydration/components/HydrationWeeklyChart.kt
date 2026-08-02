@@ -9,6 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -42,18 +44,36 @@ internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goal
                 weeklyIntake.forEach { (date, ml) ->
                     val frac = (ml.toFloat() / peak).coerceIn(0f, 1f)
                     val isToday = date == java.time.LocalDate.now()
+                    val goalMet = ml >= goalMlCoerced
                     val color = when {
                         ml == 0    -> OnBackground.copy(0.08f)
-                        ml >= goalMlCoerced -> semanticGreen().copy(if (isToday) 1f else 0.7f)
+                        goalMet    -> semanticGreen().copy(if (isToday) 1f else 0.7f)
                         else       -> semanticBlue().copy(if (isToday) 1f else 0.6f)
+                    }
+                    // Same "Canvas/background box with no text underneath" shape as
+                    // Dashboard's WeeklyBarsCard, which needed both a contentDescription
+                    // (TalkBack otherwise skips the chart's data entirely) and a
+                    // non-color glyph (green-vs-blue is still a green-deficiency
+                    // confusion pair) - this chart had both gaps, never fixed here.
+                    val dayName = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
+                    val barDescription = when {
+                        ml == 0 -> stringResource(R.string.hydration_week_bar_no_data, dayName)
+                        goalMet -> stringResource(R.string.hydration_week_bar_goal_met, dayName, ml)
+                        else    -> stringResource(R.string.hydration_week_bar_default, dayName, ml)
                     }
                     Box(
                         Modifier
                             .weight(1f)
                             .fillMaxHeight(if (frac == 0f) 0.05f else frac.coerceAtLeast(0.05f))
                             .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                            .background(color),
-                    )
+                            .background(color)
+                            .semantics { contentDescription = barDescription },
+                        contentAlignment = Alignment.TopCenter,
+                    ) {
+                        if (goalMet) {
+                            Text("✓", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = OnBackground, fontSize = androidx.compose.ui.unit.TextUnit(9f, androidx.compose.ui.unit.TextUnitType.Sp))
+                        }
+                    }
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {

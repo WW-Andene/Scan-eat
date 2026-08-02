@@ -27,6 +27,13 @@ class ExpensesViewModel @Inject constructor(
     val budgetPerMealEuros: StateFlow<Double?> = prefs.budgetPerMealEuros
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // In-app language (Settings) can differ from the device locale - every sibling
+    // date-heavy screen (Weight/Diary/MealPlan/etc.) already threads this through
+    // instead of defaulting to Locale.getDefault(), which would show entry dates
+    // in the wrong language for a user whose in-app and device languages differ.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     // LocalDate.now() called directly inside a .map on `entries` (the previous
     // shape of both properties below) only re-evaluates when the price list
     // itself changes - a user who goes a day or more without logging a new

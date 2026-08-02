@@ -75,6 +75,9 @@
     <string name="hydration_suggested_goal_hint">Based on your profile, a goal of %1$d mL may suit you better.</string>
     <string name="hydration_7day_chart_title">Last 7 days</string>
     <string name="hydration_weekly_goal_met">%1$d/7 goals met</string>
+    <string name="hydration_week_bar_no_data">%1$s: no water logged</string>
+    <string name="hydration_week_bar_goal_met">%1$s: %2$dmL, goal met</string>
+    <string name="hydration_week_bar_default">%1$s: %2$dmL</string>
     <string name="settings_server_url">Server URL</string>
     <string name="result_log_it">Log it</string>
     <string name="dashboard_title">Dashboard</string>
@@ -1458,6 +1461,7 @@
     <string name="activity_deleted_message">Activity deleted</string>
     <string name="activity_undo">Undo</string>
     <string name="activity_7day_chart_title">Last 7 days</string>
+    <string name="activity_week_bar_cd">%1$s: %2$d kilocalories burned</string>
     <string name="activity_weekly_minutes_title">Active minutes this week</string>
     <string name="activity_who_goal_reached">WHO goal reached ✓</string>
     <string name="activity_who_goal_hint">WHO goal: 150 min/week of moderate activity</string>
