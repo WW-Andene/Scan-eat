@@ -622,7 +622,18 @@ class ScanViewModel @Inject constructor(
     private fun isOnline(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        // NET_CAPABILITY_INTERNET alone only means the network is *designed* to
+        // provide internet - a captive portal (hotel/airport Wi-Fi requiring a
+        // login page) reports this too, before the user has actually authenticated.
+        // Previously that case passed this check, proceeded to Scanning, burned
+        // through several retry-with-backoff attempts against a network that
+        // can't actually reach anything, and only then surfaced as a generic
+        // "unknown error" - confusing for a common real-world scenario. Also
+        // requiring NET_CAPABILITY_VALIDATED (the system's own captive-portal/
+        // connectivity probe result) fails fast with the existing, accurate
+        // offlineMessage() instead.
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
     private companion object {

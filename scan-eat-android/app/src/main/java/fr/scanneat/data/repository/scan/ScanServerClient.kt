@@ -2,6 +2,7 @@ package fr.scanneat.data.repository.scan
 
 import fr.scanneat.data.remote.api.*
 import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.util.serverUnreachableMessage
 import fr.scanneat.util.serverUrlMissingMessage
 import kotlinx.coroutines.delay
 import retrofit2.HttpException
@@ -33,7 +34,7 @@ internal class ScanServerClient(
      * they make. Extracted here so that logic (and any future tuning of it)
      * exists in exactly one place.
      */
-    private suspend fun <T> retryServerCall(block: suspend () -> T): T {
+    private suspend fun <T> retryServerCall(lang: String, block: suspend () -> T): T {
         var lastErr: Throwable? = null
         repeat(SERVER_MAX_ATTEMPTS) { attempt ->
             try {
@@ -46,7 +47,16 @@ internal class ScanServerClient(
             }
             if (attempt < SERVER_MAX_ATTEMPTS - 1) delay(backoffDelayMs(attempt))
         }
-        throw lastErr!!
+        // Every attempt against a *configured* server URL failed with an
+        // IOException (DNS failure, connection refused, timeout - as opposed to
+        // an HttpException, which means the server WAS reached but returned an
+        // error) - previously rethrown as-is, surfacing either a raw OkHttp
+        // exception string or falling through to the generic "unknown error"
+        // message, neither of which told a self-hosting user their server
+        // itself is unreachable rather than some other failure.
+        val err = lastErr!!
+        if (err is IOException) throw Exception(serverUnreachableMessage(lang), err)
+        throw err
     }
 
     suspend fun scoreViaServer(
@@ -64,7 +74,7 @@ internal class ScanServerClient(
             lang    = lang,
             model   = model,
         )
-        val response = retryServerCall {
+        val response = retryServerCall(lang) {
             serverApiProvider.get(serverUrl).score(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
         }
         // Same check as DIRECT mode's scoreDirectBarcode - the server already ran
@@ -100,7 +110,7 @@ internal class ScanServerClient(
     ): ScanResult {
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
         val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
-        return retryServerCall {
+        return retryServerCall(lang) {
             serverApiProvider.get(serverUrl).identify(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request).toDomain(lang)
         }
     }
@@ -128,7 +138,7 @@ internal class ScanServerClient(
     ): List<ScanResult> {
         if (serverUrl.isBlank()) error(serverUrlMissingMessage(lang))
         val request = ServerImagesRequest(images = images.map { ServerImageDto(it.base64, it.mime) }, lang = lang)
-        val response = retryServerCall {
+        val response = retryServerCall(lang) {
             serverApiProvider.get(serverUrl).identifyMulti(groqKey = apiKey.takeIf { it.isNotBlank() }, request = request)
         }
         return response.items.map { it.toDomain(lang) }
