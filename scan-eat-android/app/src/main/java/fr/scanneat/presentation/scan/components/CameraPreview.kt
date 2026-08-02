@@ -211,16 +211,25 @@ fun CameraPreview(
                         buffer.get(bytes)
                         val rotation = image.imageInfo.rotationDegrees
                         image.close()
-                        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        if (decoded == null) {
-                            onCaptureError()
-                            return
+                        // Decoding a full 1600x1200 JPEG and (when rotated) allocating a second
+                        // full-size bitmap is real CPU work - moved onto the analyzer's background
+                        // `executor` so the shutter tap doesn't jank the UI thread. Only the final
+                        // onPhotoCaptured()/onCaptureError() call is posted back to Main, preserving
+                        // the serialization-with-click-handler-thread property documented above
+                        // (and Toast's Looper requirement for onCaptureError).
+                        val mainExecutor = ContextCompat.getMainExecutor(context)
+                        executor.execute {
+                            val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                            if (decoded == null) {
+                                mainExecutor.execute { onCaptureError() }
+                                return@execute
+                            }
+                            val bmp = if (rotation != 0) {
+                                val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
+                                Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
+                            } else decoded
+                            mainExecutor.execute { onPhotoCaptured(bmp) }
                         }
-                        val bmp = if (rotation != 0) {
-                            val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
-                            Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
-                        } else decoded
-                        onPhotoCaptured(bmp)
                     }
                     // Previously unoverridden (falls back to a no-op default) - a capture
                     // failure (camera momentarily reclaimed by another process, buffer/driver

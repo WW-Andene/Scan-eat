@@ -250,7 +250,15 @@ class ScanViewModel @Inject constructor(
      */
     fun addPhoto(bitmap: Bitmap) {
         if (_images.value.size >= MAX_QUEUED_PHOTOS) return
-        _images.value = _images.value + bitmap.toPayload()
+        // toPayload() does real CPU work (two createScaledBitmap calls + a JPEG compress) -
+        // previously run synchronously on whatever thread called addPhoto (the camera
+        // capture callback), janking the UI. Rechecking the cap after the hop guards the
+        // same race the upfront check already accepted as acceptable for a single-threaded
+        // caller, now that this is async.
+        viewModelScope.launch(Dispatchers.Default) {
+            val payload = bitmap.toPayload()
+            if (_images.value.size < MAX_QUEUED_PHOTOS) _images.value = _images.value + payload
+        }
     }
 
     fun removePhoto(index: Int) {
@@ -523,7 +531,11 @@ class ScanViewModel @Inject constructor(
     suspend fun identifyShelfBox(bitmap: Bitmap): Result<Pair<ScanResult, Long>> {
         val lang = prefs.language.first()
         if (!isOnline()) return Result.failure(Exception(offlineMessage(lang)))
-        return scanRepo.identifyOrScoreFromImages(listOf(bitmap.toPayload()), lang, true, identifyMode = true)
+        // toPayload() does real CPU work (scale + JPEG compress) - this is called from
+        // ScanScreen's shelfCoroutineScope.launch { }, which defaults to Main, so without
+        // this hop the encode would run on the UI thread on every shelf-mode tap.
+        val payload = withContext(Dispatchers.Default) { bitmap.toPayload() }
+        return scanRepo.identifyOrScoreFromImages(listOf(payload), lang, true, identifyMode = true)
             .mapCatching { scanResult -> scanResult to scanRepo.persist(scanResult) }
     }
 
