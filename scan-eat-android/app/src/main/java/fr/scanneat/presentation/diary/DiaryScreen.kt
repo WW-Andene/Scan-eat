@@ -51,6 +51,7 @@ import fr.scanneat.presentation.reminders.MealRemindersCard
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.weight.WeightScreen
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -137,6 +138,13 @@ fun DiaryScreen(
             viewModel.clearActionFailed()
         }
     }
+    // Weight/Activity's delete flow already offers an Undo snackbar action -
+    // Diary's equivalent "delete a logged record" action had none, so a
+    // mis-tapped delete (past the confirm dialog) was unrecoverable here
+    // while the identical action elsewhere in the app could be undone.
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.diary_deleted_message)
+    val undoLabel = stringResource(R.string.diary_undo)
 
     val hazeState = remember { HazeState() }
     val bottomNavHazeState = LocalBottomNavHazeState.current
@@ -422,10 +430,19 @@ private fun MealsTab(viewModel: DiaryViewModel, topPadding: androidx.compose.ui.
     // Delete confirmation — shared dialog, same as Weight/Templates/Recipes/
     // Activity/History instead of a one-off hand-rolled AlertDialog.
     deleteTarget?.let { id ->
-        val name = s.entries.firstOrNull { it.id == id }?.productName
+        val target = s.entries.firstOrNull { it.id == id }
         DeleteConfirmDialog(
-            itemName  = name,
-            onConfirm = { viewModel.deleteEntry(id); deleteTarget = null },
+            itemName  = target?.productName,
+            onConfirm = {
+                viewModel.deleteEntry(id)
+                deleteTarget = null
+                if (target != null) {
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                        if (result == SnackbarResult.ActionPerformed) viewModel.restore(target)
+                    }
+                }
+            },
             onDismiss = { deleteTarget = null },
         )
     }

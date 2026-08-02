@@ -850,6 +850,8 @@
     <string name="diary_slot_short_dinner">Soir</string>
     <string name="diary_filter_all">Tout</string>
     <string name="diary_filter_empty">Aucune entrée pour ce repas.</string>
+    <string name="diary_deleted_message">Entrée supprimée</string>
+    <string name="diary_undo">Annuler</string>
     <string name="diary_meal_breakfast">Petit-déjeuner</string>
     <string name="common_delete_confirm_title">Supprimer ?</string>
     <string name="common_delete_confirm_body">Cette action est irréversible.</string>

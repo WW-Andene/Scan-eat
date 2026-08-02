@@ -139,6 +139,12 @@ class DiaryViewModel @Inject constructor(
         viewModelScope.launch { runCatching { consumptionRepo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
+    /** Re-creates a deleted entry (used by the "Undo" snackbar action) - mirrors
+     *  WeightViewModel.restore()'s identical pattern for the same delete-recovery gap. */
+    fun restore(entry: DiaryEntry) {
+        viewModelScope.launch { runCatching { consumptionRepo.log(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    }
+
     fun updateEntry(entry: DiaryEntry) {
         viewModelScope.launch { runCatching { consumptionRepo.update(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }

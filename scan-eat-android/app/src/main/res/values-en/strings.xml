@@ -846,6 +846,8 @@
     <string name="diary_slot_short_dinner">Eve.</string>
     <string name="diary_filter_all">All</string>
     <string name="diary_filter_empty">No entries for this meal slot.</string>
+    <string name="diary_deleted_message">Entry deleted</string>
+    <string name="diary_undo">Undo</string>
     <string name="diary_meal_breakfast">Breakfast</string>
     <string name="common_delete_confirm_title">Delete?</string>
     <string name="common_delete_confirm_body">This action cannot be undone.</string>
@@ -871,7 +873,7 @@
     <string name="onboarding_value_biolism_body">Beyond scanning, track your BMR, ketosis, and fasting in real time — a dedicated tab, built in.</string>
     <string name="onboarding_value_safety_title">Built-in safety checks</string>
     <string name="onboarding_value_safety_body">Every score is checked against your own allergens, and your medications are screened for known interaction risks — automatically, not as a separate step.</string>
-    <string name="onboarding_start_button">Get Started</string>
+    <string name="onboarding_start_button">Get started</string>
     <string name="onboarding_config_title">Configuration</string>
     <string name="onboarding_config_body">Scan\'eat uses an AI vision model to read labels. Choose how to call it:</string>
     <string name="onboarding_mode_direct_title">Direct Mode</string>
@@ -1057,7 +1059,7 @@
     <string name="settings_medication_csv_export_button">Medication (CSV)</string>
     <string name="settings_fasting_csv_export_button">Fasting (CSV)</string>
     <string name="settings_prices_csv_export_button">Expenses (CSV)</string>
-    <string name="settings_customfoods_csv_export_button">My Foods (CSV)</string>
+    <string name="settings_customfoods_csv_export_button">My foods (CSV)</string>
     <string name="settings_mealtemplates_csv_export_button">Meal templates (CSV)</string>
     <string name="settings_recipes_csv_export_button">Recipes (CSV)</string>
     <string name="settings_scanhistory_csv_export_button">Scan history (CSV)</string>
