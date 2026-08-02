@@ -5,8 +5,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
+import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.domain.engine.biolism.*
+import fr.scanneat.domain.engine.dashboard.CrossTrackerInsight
+import fr.scanneat.domain.engine.dashboard.weeklyCrossTrackerInsight
+import fr.scanneat.domain.engine.dashboard.weeklyRollup
+import fr.scanneat.domain.engine.scoring.dailyTargets
+import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.presentation.common.ActionFailureViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -17,8 +23,11 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(
     private val repo: BiolismRepository,
     private val consumptionRepo: ConsumptionRepository,
+    private val weightRepo: WeightRepository,
     prefs: UserPreferences,
 ) : ActionFailureViewModel() {
+
+    private val nutritionProfile = prefs.profile
 
     val profile  = repo.profile.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BiolismProfile())
     val sessions = repo.sessions.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -107,6 +116,32 @@ class DataViewModel @Inject constructor(
     // (see that file's doc comment) instead of being redefined here.
     fun saveManualHR(bpm: Int?) = guardedLaunch { repo.saveManualHR(bpm) }
     fun deleteSession(id: Long) = guardedLaunch { repo.deleteSession(id) }
+
+    // Cross-tracker insight: Diary's logged calories vs the real weight-trend
+    // direction. Métabolisme (this screen) previously never reflected anything
+    // logged in Diary at all - the two domains compute genuinely different
+    // things (this screen's own metabolics are a live physiological model, not
+    // a diary rollup, and stay that way on purpose - see BiolismRepository's
+    // TimerState.ketoHours/fastingHours doc comments) but a user reasonably
+    // expects to see the two agree or disagree somewhere, which nothing
+    // surfaced before. Reuses the exact same weeklyCrossTrackerInsight() the
+    // Dashboard's WeeklyInsightCard already renders, just recomputed against
+    // this ViewModel's own inputs instead of duplicating the formula.
+    val crossInsight: StateFlow<CrossTrackerInsight> = combine(
+        consumptionRepo.observeRange(LocalDate.now().minusDays(6), LocalDate.now()),
+        weightRepo.observeSummary(30),
+        nutritionProfile,
+    ) { weekEntries, weightSummary, nutriProfile ->
+        val targets = if (hasMinimalProfile(nutriProfile)) dailyTargets(nutriProfile) else null
+        val rollup = weeklyRollup(weekEntries)
+        weeklyCrossTrackerInsight(
+            weeklyAvgKcal        = rollup.avg.kcal,
+            kcalTarget           = targets?.kcal ?: 0.0,
+            daysLogged           = rollup.daysLogged,
+            weightTrendKgPerWeek = weightSummary?.trendKgPerWeek,
+            weeklyActiveMinutes  = 0,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CrossTrackerInsight.InsufficientData)
 }
 
 data class SessionCumulative(

@@ -52,6 +52,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
     val advanced    = viewModel.advancedView.collectAsStateWithLifecycle()
+    val crossInsight = viewModel.crossInsight.collectAsStateWithLifecycle()
     viewModel.tick.collectAsStateWithLifecycle()  // force recomposition every second
 
     // Same pattern as TrackerScreen/WeightScreen - saveManualHR()/deleteSession()
@@ -93,6 +94,15 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         item { MetabolicHealthScoreCard(met, profile.value) }
         item { BodyCompositionCard(met, profile.value, useImperial.value) }
         item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value, language.value, useImperial.value) }
+        // Diary logging previously never visibly affected this screen at all -
+        // this is the one card that cross-references Diary's actual intake
+        // against the real weight-trend direction, same insight already shown
+        // on Dashboard (WeeklyInsightCard), reused here rather than duplicated.
+        (crossInsight.value as? fr.scanneat.domain.engine.dashboard.CrossTrackerInsight.WeightVsIntake)?.let { insight ->
+            if (insight.agreement != fr.scanneat.domain.engine.dashboard.InsightAgreement.INCONCLUSIVE) {
+                item { fr.scanneat.presentation.dashboard.cards.WeeklyInsightCard(insight, useImperial = useImperial.value) }
+            }
+        }
         item { BurnRateCard(met, s, cum.value) }
         // R&D §X.0: everything below this point is the research-grade half of
         // this screen (substrate-flux biochemistry, Fanger thermoregulation,
