@@ -14,10 +14,6 @@ interface PriceDao {
     @Query("SELECT * FROM price_log WHERE date BETWEEN :from AND :to AND profileId = :profileId ORDER BY date DESC, loggedAt DESC")
     fun observeRange(from: String, to: String, profileId: String = "default"): Flow<List<PriceEntity>>
 
-    /** Same-category reference set for the value-score comparison (median price/kg actually paid, not just the static category default). */
-    @Query("SELECT * FROM price_log WHERE category = :category AND profileId = :profileId AND pricePerKg IS NOT NULL")
-    suspend fun findByCategory(category: String, profileId: String = "default"): List<PriceEntity>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: PriceEntity)
 

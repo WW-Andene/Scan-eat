@@ -32,18 +32,13 @@ class PriceRepository @Inject constructor(
     private val dao: PriceDao,
 ) {
     fun observeAll(profileId: String = "default"): Flow<List<PriceEntry>> =
-        dao.observeAll(profileId).map { list -> list.map { it.toDomain() } }
+        dao.observeAll(profileId).map { list -> list.toDomainList() }
 
     fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<PriceEntry>> =
-        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.map { it.toDomain() } }
+        dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.toDomainList() }
 
-    /**
-     * Logs a purchase. The value-score comparison prefers the user's own median
-     * price/kg for this category once at least 3 prior entries exist (a real
-     * personal baseline beats a generic EU-retail estimate) and falls back to
-     * [referencePricePerKg] otherwise — same cold-start pattern as
-     * MicronutrientEstimator's category defaults.
-     */
+    /** Logs a purchase. pricePerKg is stored pre-computed; the value-score comparison
+     *  itself happens later, at read time (see [toDomainList]). */
     suspend fun log(
         date: LocalDate,
         productName: String,
@@ -72,16 +67,30 @@ class PriceRepository @Inject constructor(
 
     suspend fun delete(id: String) = dao.delete(id)
 
-    /** Same category-median-if-enough-data-else-category-default policy [log]'s value score uses, exposed for the Result screen's live preview before saving. */
-    suspend fun valueScoreFor(category: ProductCategory, pricePerKg: Double, profileId: String = "default"): ValueScore {
-        val sameCategory = dao.findByCategory(category.key, profileId).mapNotNull { it.pricePerKg }
-        val reference = if (sameCategory.size >= 3) sameCategory.sorted()[sameCategory.size / 2] else referencePricePerKg(category)
-        return valueScoreFor(pricePerKg, reference)
+    /**
+     * Maps a batch of rows to domain entries, computing each one's value score
+     * against its category's own median price/kg within THIS SAME batch (≥3
+     * same-category entries) rather than the generic EU-retail default -  a
+     * real personal baseline beats a category-typical guess. Previously this
+     * median comparison was only ever implemented as a separate suspend
+     * function with zero callers anywhere in the app: every value-score badge
+     * actually shown to a user silently used the generic default only,
+     * regardless of how much of their own price history existed for that
+     * category. Computed once per emission from the list [observeAll]/
+     * [observeRange] already loaded, not a second DB query per category.
+     */
+    private fun List<PriceEntity>.toDomainList(): List<PriceEntry> {
+        val medians = groupBy { it.category }
+            .mapValues { (_, rows) -> rows.mapNotNull { it.pricePerKg } }
+            .filterValues { it.size >= 3 }
+            .mapValues { (_, prices) -> prices.sorted()[prices.size / 2] }
+        return map { it.toDomain(medians) }
     }
 
-    private fun PriceEntity.toDomain(): PriceEntry {
+    private fun PriceEntity.toDomain(medians: Map<String, Double>): PriceEntry {
         val cat = ProductCategory.fromKey(category)
-        val score = pricePerKg?.let { valueScoreFor(it, referencePricePerKg(cat)) }
+        val reference = medians[category] ?: referencePricePerKg(cat)
+        val score = pricePerKg?.let { valueScoreFor(it, reference) }
         return PriceEntry(
             id = id, date = date.toLocalDate(), productName = productName, barcode = barcode,
             category = cat, priceEuros = priceEuros, weightG = weightG, pricePerKg = pricePerKg,
