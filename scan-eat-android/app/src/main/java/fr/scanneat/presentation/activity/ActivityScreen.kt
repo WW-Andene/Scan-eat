@@ -144,7 +144,7 @@ fun ActivityScreen(
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.newStreakRecord.collect { days ->
-            snackbarHostState.showSnackbar(context.getString(R.string.activity_new_streak_record, days))
+            snackbarHostState.showSnackbar(CelebrationSnackbarVisuals(context.getString(R.string.activity_new_streak_record, days)))
         }
     }
 

@@ -88,6 +88,20 @@ fun OnboardingScreen(
         ) {
             Spacer(Modifier.height(40.dp))
 
+            // Pages 0-1 (Welcome/Value proposition) had no exit at all short of
+            // abandoning the app entirely - every later page already reaches its own
+            // onSkip (ApiModePage page 2, ProfileCapturePage page 3), same
+            // viewModel.finish() this jumps straight to. A returning user reinstalling,
+            // or anyone who just wants to explore the app first, previously had no way
+            // to bail out of these first two pages.
+            if (page <= 1) {
+                Box(Modifier.fillMaxWidth()) {
+                    TextButton(onClick = { viewModel.finish() }, modifier = Modifier.align(Alignment.CenterEnd)) {
+                        Text(stringResource(R.string.onboarding_skip_all), color = OnBackground.copy(0.5f))
+                    }
+                }
+            }
+
             // Improvement: step-progress dots — previously no visual indicator of how many
             // pages exist or which one you're on; users had no way to gauge remaining effort.
             if (page > 0) {

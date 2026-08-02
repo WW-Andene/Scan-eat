@@ -580,7 +580,7 @@
     <string name="history_score_range_all">All scores</string>
     <string name="history_avg_score">Avg score: %1$d</string>
     <string name="history_top_scanned_title">Frequently scanned</string>
-    <string name="history_grade_distribution_title">Grade distribution</string>
+    <string name="history_grade_distribution_title">Score distribution</string>
 
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Grocery List</string>
@@ -859,6 +859,7 @@
     <string name="diary_edit_portion_label">Portion (g)</string>
 
     <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
+    <string name="onboarding_skip_all">Skip</string>
     <string name="onboarding_welcome_body">Scan a barcode or photograph a label to get a 0–100 nutrition score based on the product\'s actual composition.</string>
     <string name="onboarding_value_title">Why Scan\'eat</string>
     <string name="onboarding_value_transparency_title">The score isn\'t a black box</string>
@@ -1053,6 +1054,11 @@
     <string name="settings_medication_csv_export_button">Medication (CSV)</string>
     <string name="settings_fasting_csv_export_button">Fasting (CSV)</string>
     <string name="settings_prices_csv_export_button">Expenses (CSV)</string>
+    <string name="settings_customfoods_csv_export_button">My Foods (CSV)</string>
+    <string name="settings_mealtemplates_csv_export_button">Meal templates (CSV)</string>
+    <string name="settings_recipes_csv_export_button">Recipes (CSV)</string>
+    <string name="settings_scanhistory_csv_export_button">Scan history (CSV)</string>
+    <string name="settings_medications_csv_export_button">Medications (CSV)</string>
     <string name="settings_section_reset">Reset</string>
     <string name="settings_reset_hint">Selectively clear some of the app\'s data.</string>
     <string name="settings_reset_button">Reset options</string>
@@ -1353,7 +1359,7 @@
     <string name="common_expanded">expanded</string>
     <string name="common_collapsed">collapsed</string>
     <string name="settings_toggle_key_visibility">Show/hide key</string>
-    <string name="history_item_summary">%1$s, grade %2$s, %3$d out of 100</string>
+    <string name="history_item_summary">%1$s, score %2$s, %3$d out of 100</string>
 
     <!-- ── Reminders ──────────────────────────────────────────────────────── -->
     <string name="reminders_channel_name">Reminders</string>

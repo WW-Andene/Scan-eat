@@ -28,10 +28,18 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
     // parent tag (e.g. "en:beverages") first, which was mis-bucketing plenty of
     // products before ever reaching their more specific tag further down the list.
     val tag = tags.joinToString(" ")
+    // sandwich/burger checked before cheese: OFF tags a grilled-cheese/
+    // croque-monsieur-type product with BOTH "en:sandwiches" and
+    // "en:cheese-sandwiches" (a real, reachable OFF tag combination), and
+    // since every branch here matches against the whole joined tag string,
+    // whichever branch came first previously won regardless of which tag was
+    // actually the more specific one for that product - a cheese sandwich was
+    // silently bucketed as CHEESE (a raw-ingredient category whose scoring
+    // pillars don't fit a prepared sandwich) instead of SANDWICH.
     return when {
         "yogurt" in tag || "yaourt" in tag || "skyr" in tag -> ProductCategory.YOGURT
-        "cheese" in tag || "fromage" in tag -> ProductCategory.CHEESE
         "sandwich" in tag || "burger" in tag -> ProductCategory.SANDWICH
+        "cheese" in tag || "fromage" in tag -> ProductCategory.CHEESE
         "cereal" in tag || "cereale" in tag || "granola" in tag -> ProductCategory.BREAKFAST_CEREAL
         "bread" in tag || "pain" in tag -> ProductCategory.BREAD
         "processed-meat" in tag || "charcuterie" in tag || "saucisson" in tag -> ProductCategory.PROCESSED_MEAT

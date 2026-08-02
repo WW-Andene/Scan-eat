@@ -133,7 +133,15 @@ fun BiolismEngine.computeHormones(
         when {
             age >= menopauseAge -> 0.2
             age >= 40.0 -> {
-                val periProg = max(0.5, 8.0 * 0.93.pow(age - 40.0))
+                // Starts at 20.0 (the under-40 branch's own cd=21 luteal peak, see the
+                // `else` branch below) rather than an independent 8.0 base - the two
+                // branches previously used unrelated peak amplitudes, so crossing age 40
+                // by a single year produced a ~60% instantaneous drop in estimated
+                // progesterone (e.g. ~12 -> ~4.6 ng/mL at cd=18) with no biological
+                // transition modeled, purely from which `when` branch matched. Now
+                // continuous at the boundary: age 40 evaluates to exactly the same peak
+                // the under-40 formula already reaches, then decays from there.
+                val periProg = max(0.5, 20.0 * 0.83.pow(age - 40.0))
                 val v = when {
                     cd <= 14 -> 0.8
                     cd <= 21 -> periProg * ((cd - 14.0) / 7.0)

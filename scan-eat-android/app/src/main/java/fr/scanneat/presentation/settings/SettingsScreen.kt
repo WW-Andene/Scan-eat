@@ -302,6 +302,11 @@ fun SettingsScreen(
                     onPrepareMedicationCsvExport = { viewModel.prepareMedicationCsvExport() },
                     onPrepareFastingCsvExport = { viewModel.prepareFastingCsvExport() },
                     onPreparePricesCsvExport = { viewModel.preparePricesCsvExport() },
+                    onPrepareCustomFoodsCsvExport = { viewModel.prepareCustomFoodsCsvExport() },
+                    onPrepareMealTemplatesCsvExport = { viewModel.prepareMealTemplatesCsvExport() },
+                    onPrepareRecipesCsvExport = { viewModel.prepareRecipesCsvExport() },
+                    onPrepareScanHistoryCsvExport = { viewModel.prepareScanHistoryCsvExport() },
+                    onPrepareMedicationsCsvExport = { viewModel.prepareMedicationsCsvExport() },
                     onPrepareReport = { viewModel.preparePdfReport() },
                 )
             }

@@ -231,6 +231,30 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportPricesCsv(), filenamePrefix = "depenses") }
     }
 
+    // CustomFoods/MealTemplates/Recipes/ScanHistory/Medications (definitions) were
+    // the last domains with JSON-backup coverage but no CSV equivalent - same
+    // pattern as the Weight/Activity/etc. batch above.
+    fun prepareCustomFoodsCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportCustomFoodsCsv(), filenamePrefix = "mes_aliments") }
+    }
+    fun prepareMealTemplatesCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportMealTemplatesCsv(), filenamePrefix = "modeles_repas") }
+    }
+    fun prepareRecipesCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportRecipesCsv(), filenamePrefix = "recettes") }
+    }
+    fun prepareScanHistoryCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportScanHistoryCsv(), filenamePrefix = "historique_scans") }
+    }
+    fun prepareMedicationsCsvExport() {
+        _backupState.value = BackupUiState.Working
+        viewModelScope.launch { _backupState.value = BackupUiState.CsvExportReady(csvExportRepository.exportMedicationsCsv(), filenamePrefix = "medicaments") }
+    }
+
     /** Settings > "Rapport PDF" — builds the multi-page evolution report (see PdfReportRepository's own doc comment) and hands it to the screen to write via SAF, same flow as the JSON/CSV exports above. */
     fun preparePdfReport() {
         _backupState.value = BackupUiState.Working

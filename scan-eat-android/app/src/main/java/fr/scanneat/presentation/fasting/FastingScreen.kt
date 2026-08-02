@@ -80,7 +80,7 @@ fun FastingScreen(
             recordCelebrated = false
         } else if (!recordCelebrated && personalRecord.value > 0 && s.elapsedHours >= personalRecord.value) {
             recordCelebrated = true
-            snackbarHostState.showSnackbar(newRecordMessage)
+            snackbarHostState.showSnackbar(CelebrationSnackbarVisuals(newRecordMessage))
         }
     }
 

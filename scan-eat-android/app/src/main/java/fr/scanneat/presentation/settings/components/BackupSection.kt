@@ -64,6 +64,11 @@ internal fun BackupSection(
     onPrepareMedicationCsvExport: () -> Unit,
     onPrepareFastingCsvExport: () -> Unit,
     onPreparePricesCsvExport: () -> Unit,
+    onPrepareCustomFoodsCsvExport: () -> Unit,
+    onPrepareMealTemplatesCsvExport: () -> Unit,
+    onPrepareRecipesCsvExport: () -> Unit,
+    onPrepareScanHistoryCsvExport: () -> Unit,
+    onPrepareMedicationsCsvExport: () -> Unit,
     onPrepareReport: () -> Unit,
 ) {
     var showExportDialog by remember { mutableStateOf(false) }
@@ -249,6 +254,18 @@ internal fun BackupSection(
                     onClick = { moreCsvExpanded = false; onPrepareFastingCsvExport() })
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_prices_csv_export_button)) },
                     onClick = { moreCsvExpanded = false; onPreparePricesCsvExport() })
+                // Last batch of domains that had JSON backup but no CSV equivalent -
+                // same reasoning/pattern as the five entries above.
+                DropdownMenuItem(text = { Text(stringResource(R.string.settings_customfoods_csv_export_button)) },
+                    onClick = { moreCsvExpanded = false; onPrepareCustomFoodsCsvExport() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.settings_mealtemplates_csv_export_button)) },
+                    onClick = { moreCsvExpanded = false; onPrepareMealTemplatesCsvExport() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.settings_recipes_csv_export_button)) },
+                    onClick = { moreCsvExpanded = false; onPrepareRecipesCsvExport() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.settings_scanhistory_csv_export_button)) },
+                    onClick = { moreCsvExpanded = false; onPrepareScanHistoryCsvExport() })
+                DropdownMenuItem(text = { Text(stringResource(R.string.settings_medications_csv_export_button)) },
+                    onClick = { moreCsvExpanded = false; onPrepareMedicationsCsvExport() })
             }
         }
         // PDF evolution report — a formatted, printable summary of the user's own

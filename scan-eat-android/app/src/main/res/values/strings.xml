@@ -581,7 +581,7 @@
     <string name="history_score_range_all">Tous les scores</string>
     <string name="history_avg_score">Score moyen : %1$d</string>
     <string name="history_top_scanned_title">Scannés fréquemment</string>
-    <string name="history_grade_distribution_title">Répartition des notes</string>
+    <string name="history_grade_distribution_title">Répartition des scores</string>
 
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Liste de courses</string>
@@ -863,6 +863,7 @@
     <string name="diary_edit_portion_label">Portion (g)</string>
 
     <!-- ── Onboarding screen ──────────────────────────────────────────────── -->
+    <string name="onboarding_skip_all">Passer</string>
     <string name="onboarding_welcome_body">Scannez un code-barres ou photographiez une étiquette pour obtenir un score nutritionnel 0–100 basé sur la composition réelle du produit.</string>
     <string name="onboarding_value_title">Pourquoi Scan\'eat</string>
     <string name="onboarding_value_transparency_title">Le calcul est visible</string>
@@ -1101,6 +1102,11 @@
     <string name="settings_medication_csv_export_button">Traitement (CSV)</string>
     <string name="settings_fasting_csv_export_button">Jeûne (CSV)</string>
     <string name="settings_prices_csv_export_button">Dépenses (CSV)</string>
+    <string name="settings_customfoods_csv_export_button">Mes aliments (CSV)</string>
+    <string name="settings_mealtemplates_csv_export_button">Modèles de repas (CSV)</string>
+    <string name="settings_recipes_csv_export_button">Recettes (CSV)</string>
+    <string name="settings_scanhistory_csv_export_button">Historique des scans (CSV)</string>
+    <string name="settings_medications_csv_export_button">Traitements (CSV)</string>
     <string name="settings_section_reset">Réinitialisation</string>
     <string name="settings_reset_hint">Effacer sélectivement certaines données de l\'application.</string>
     <string name="settings_reset_button">Options de réinitialisation</string>
@@ -1401,7 +1407,7 @@
     <string name="common_expanded">développé</string>
     <string name="common_collapsed">réduit</string>
     <string name="settings_toggle_key_visibility">Afficher/masquer la clé</string>
-    <string name="history_item_summary">%1$s, note %2$s, %3$d sur 100</string>
+    <string name="history_item_summary">%1$s, score %2$s, %3$d sur 100</string>
 
     <!-- ── Reminders ──────────────────────────────────────────────────────── -->
     <string name="reminders_channel_name">Rappels</string>

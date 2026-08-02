@@ -1,14 +1,22 @@
 package fr.scanneat.data.repository.backup
 
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import fr.scanneat.data.local.db.activity.ActivityDao
 import fr.scanneat.data.local.db.consumption.ConsumptionDao
+import fr.scanneat.data.local.db.customfood.CustomFoodDao
+import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationLogDao
 import fr.scanneat.data.local.db.price.PriceDao
+import fr.scanneat.data.local.db.recipe.RecipeDao
+import fr.scanneat.data.local.db.scan.ScanHistoryDao
+import fr.scanneat.data.local.db.template.MealTemplateDao
 import fr.scanneat.data.local.prefs.SecureFieldCipher
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.health.FastingRepository
 import fr.scanneat.data.repository.health.HydrationRepository
+import fr.scanneat.data.repository.planning.RecipeComponent
+import fr.scanneat.data.repository.planning.TemplateItem
 import fr.scanneat.data.local.db.weight.WeightDao
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -32,6 +40,11 @@ class CsvExportRepository @Inject constructor(
     private val fastingRepo: FastingRepository,
     private val priceDao: PriceDao,
     private val biolismRepo: BiolismRepository,
+    private val customFoodDao: CustomFoodDao,
+    private val mealTemplateDao: MealTemplateDao,
+    private val recipeDao: RecipeDao,
+    private val scanHistoryDao: ScanHistoryDao,
+    private val medicationDao: MedicationDao,
     private val moshi: Moshi,
 ) {
     /**
@@ -156,5 +169,80 @@ class CsvExportRepository @Inject constructor(
             "${e.date},${csvField(e.productName)},${e.category},${e.priceEuros},${e.weightG ?: ""},${e.pricePerKg ?: ""}"
         }
         return buildCsv("date,product,category,priceEuros,weightG,pricePerKg", lines)
+    }
+
+    /**
+     * Exports "Mes Aliments" (custom/saved foods) as CSV - JSON backup already
+     * covers this table (BackupRepository.exportToJson()) but, unlike Diary/
+     * Weight/Activity/etc., it had no lightweight spreadsheet export either.
+     */
+    suspend fun exportCustomFoodsCsv(): String {
+        val rows = customFoodDao.getAllForBackup()
+        val nutritionAdapter = moshi.adapter(fr.scanneat.domain.model.NutritionPer100g::class.java)
+        val lines = rows.sortedBy { it.name }.map { e ->
+            val n = runCatching { nutritionAdapter.fromJson(e.nutritionJson) }.getOrNull()
+            "${csvField(e.name)},${e.category},${(n?.energyKcal ?: 0.0).toInt()},${e.barcode ?: ""}"
+        }
+        return buildCsv("name,category,kcalPer100g,barcode", lines)
+    }
+
+    /**
+     * Exports saved meal templates as CSV - see [exportCustomFoodsCsv]'s own doc
+     * comment. Items are summarized (name + total kcal), not exploded one row
+     * per ingredient, matching this export family's "one row per record" shape.
+     */
+    suspend fun exportMealTemplatesCsv(): String {
+        val rows = mealTemplateDao.getAllForBackup()
+        val itemsAdapter = moshi.adapter<List<TemplateItem>>(Types.newParameterizedType(List::class.java, TemplateItem::class.java))
+        val lines = rows.sortedBy { it.name }.map { e ->
+            val items = runCatching { itemsAdapter.fromJson(e.itemsJson) }.getOrNull().orEmpty()
+            val totalKcal = items.sumOf { it.kcal }
+            "${csvField(e.name)},${e.meal},${items.size},${totalKcal.toInt()},${e.favorite}"
+        }
+        return buildCsv("name,meal,itemCount,totalKcal,favorite", lines)
+    }
+
+    /** Exports saved recipes as CSV - see [exportCustomFoodsCsv]'s own doc comment. */
+    suspend fun exportRecipesCsv(): String {
+        val rows = recipeDao.getAllForBackup()
+        val componentsAdapter = moshi.adapter<List<RecipeComponent>>(Types.newParameterizedType(List::class.java, RecipeComponent::class.java))
+        val lines = rows.sortedBy { it.name }.map { e ->
+            val components = runCatching { componentsAdapter.fromJson(e.componentsJson) }.getOrNull().orEmpty()
+            val totalKcal = components.sumOf { it.kcal }
+            val ingredients = components.joinToString("; ") { it.productName }
+            "${csvField(e.name)},${e.servings},${totalKcal.toInt()},${csvField(ingredients)},${e.favorite}"
+        }
+        return buildCsv("name,servings,totalKcal,ingredients,favorite", lines)
+    }
+
+    /**
+     * Exports scan history (every scanned/identified product, not just what was
+     * logged to the diary - see [exportDiaryCsv] for that) as CSV. See
+     * [exportCustomFoodsCsv]'s own doc comment for why this was missing.
+     */
+    suspend fun exportScanHistoryCsv(): String {
+        val rows = scanHistoryDao.getAllForBackup()
+        val lines = rows.sortedBy { it.scannedAt }.map { e ->
+            "${e.scannedAt},${csvField(e.productName)},${e.barcode ?: ""},${e.score},${e.grade},${e.category},${e.favorite}"
+        }
+        return buildCsv("scannedAt,product,barcode,score,grade,category,favorite", lines)
+    }
+
+    /**
+     * Exports medication *definitions* (name/dosage/schedule) as CSV - distinct
+     * from [exportMedicationCsv]'s adherence log above. name/dosage/scheduleNote
+     * are Keystore-encrypted at rest (see the encryption added earlier this
+     * session) and must be decrypted before writing a human-readable CSV, same
+     * as exportMedicationCsv's own name field.
+     */
+    suspend fun exportMedicationsCsv(): String {
+        val rows = medicationDao.getAllForBackup()
+        val lines = rows.sortedBy { it.name }.map { e ->
+            val name         = SecureFieldCipher.decryptOrNull(e.name) ?: e.name
+            val dosage       = SecureFieldCipher.decryptOrNull(e.dosage) ?: e.dosage
+            val scheduleNote = SecureFieldCipher.decryptOrNull(e.scheduleNote) ?: e.scheduleNote
+            "${csvField(name)},${csvField(dosage)},${csvField(scheduleNote)},${e.active}"
+        }
+        return buildCsv("name,dosage,scheduleNote,active", lines)
     }
 }

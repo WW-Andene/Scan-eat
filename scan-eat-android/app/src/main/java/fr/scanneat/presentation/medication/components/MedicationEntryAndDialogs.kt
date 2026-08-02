@@ -9,6 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ internal fun MedicationEntryRow(
     onDelete: () -> Unit,
 ) {
     val m = medication
+    val haptics = LocalHapticFeedback.current
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M), onClick = onEdit) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -51,7 +54,10 @@ internal fun MedicationEntryRow(
             // Left at IconButton's default 48dp touch target (Material/WCAG
             // minimum) - a UI/UX audit found this row forcing 4 icon-sized
             // controls (plus a Switch) below the 48dp minimum.
-            IconButton(onClick = onToggleTaken) {
+            // Haptic on toggle - same tactile vocabulary as Grocery's checkbox
+            // toggle (GroceryScreen.kt), a near-identical discrete on/off
+            // interaction that already had one while this one didn't.
+            IconButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onToggleTaken() }) {
                 Icon(
                     if (takenToday != null) Icons.Rounded.CheckCircle else Icons.Rounded.CheckCircleOutline,
                     stringResource(if (takenToday != null) R.string.medication_cd_undo_taken else R.string.medication_cd_taken_today),
