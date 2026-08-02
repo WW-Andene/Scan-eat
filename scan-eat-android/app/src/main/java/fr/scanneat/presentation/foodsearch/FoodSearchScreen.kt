@@ -2,8 +2,8 @@ package fr.scanneat.presentation.foodsearch
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -14,23 +14,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
-import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.history.components.HistorySearchBar
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.util.formatDecimal
 
 /**
- * "Recherche" dashboard tile - a real search engine over the app's own food
- * database (FOOD_DB + the user's custom foods), not the narrow 6-10-result Quick
- * Add autocomplete these same foods are otherwise only ever surfaced through.
- * Read-only lookup/browse tool: no diary-logging wiring here, since nothing asked
- * for a portion/meal-slot flow - Quick Add / AddDiaryEntryDialog already own that.
+ * "Recherche" dashboard tile - a real search/browse engine over EVERY product this
+ * app actually knows about: FOOD_DB's ~130 curated CIQUAL references, the user's
+ * own custom foods, AND (the bulk of real coverage for an active user) every
+ * product they've ever scanned - previously only searchable from ScanHistoryScreen
+ * itself, not from here. A name collision shows the scanned item (real data, real
+ * score) rather than the generic curated one - see FoodSearchViewModel's own doc
+ * comment. Tapping a scanned result opens the full Result screen; a generic
+ * FOOD_DB/custom entry (no score to show) expands an inline macro accordion instead.
  */
 @Composable
-fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: () -> Unit) {
+fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: () -> Unit, onOpenResult: (Long) -> Unit) {
     val query   = viewModel.query.collectAsStateWithLifecycle()
     val filter  = viewModel.filter.collectAsStateWithLifecycle()
     val results = viewModel.results.collectAsStateWithLifecycle()
@@ -75,9 +78,9 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                     )
                 }
             } else {
-                items(results.value, key = { it.name }) { entry ->
+                items(results.value, key = { (it.scanId?.toString() ?: "local") + "_" + it.name }) { item ->
                     Box(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
-                        FoodSearchRow(entry)
+                        FoodSearchRow(item, onOpenResult)
                     }
                 }
             }
@@ -87,30 +90,43 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
 }
 
 @Composable
-private fun FoodSearchRow(entry: FoodEntry) {
+private fun FoodSearchRow(item: FoodSearchItem, onOpenResult: (Long) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), onClick = { expanded = !expanded }) {
+    val onClick = if (item.scanId != null) ({ onOpenResult(item.scanId) }) else ({ expanded = !expanded })
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), onClick = onClick) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(entry.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                Text(item.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
                 Text(
-                    stringResource(R.string.foodsearch_macro_line, entry.kcal.roundToIntSafe(), entry.proteinG.formatDecimal(), entry.carbsG.formatDecimal(), entry.fatG.formatDecimal()),
+                    stringResource(R.string.foodsearch_macro_line, item.kcal.roundToIntSafe(), item.proteinG.formatDecimal(), item.carbsG.formatDecimal(), item.fatG.formatDecimal()),
                     style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f),
                 )
+            }
+            // Only ever set for a scanned product (see FoodSearchItem's own doc) -
+            // the one visual cue distinguishing "your real scanned product, tap for
+            // its full score" from "a generic curated reference, tap to expand macros."
+            item.grade?.let { grade ->
+                val gColor = gradeColor(grade)
+                Surface(shape = RoundedCornerShape(4.dp), color = gColor.copy(0.15f)) {
+                    Text(
+                        grade.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall, color = gColor, fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
         if (expanded) {
             HorizontalDivider(color = OnSurface.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                DetailStat(stringResource(R.string.dashboard_micro_fiber), "${entry.fiberG.formatDecimal()} g")
-                DetailStat(stringResource(R.string.dashboard_micro_iron), "${entry.ironMg.formatDecimal()} mg")
-                DetailStat(stringResource(R.string.dashboard_micro_calcium), "${entry.calciumMg.formatDecimal()} mg")
+                DetailStat(stringResource(R.string.dashboard_micro_fiber), "${item.fiberG.formatDecimal()} g")
+                DetailStat(stringResource(R.string.dashboard_micro_iron), "${item.ironMg.formatDecimal()} mg")
+                DetailStat(stringResource(R.string.dashboard_micro_calcium), "${item.calciumMg.formatDecimal()} mg")
             }
             Spacer(Modifier.height(Spacing.XS))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                DetailStat(stringResource(R.string.dashboard_micro_vitd), "${entry.vitDUg.formatDecimal()} µg")
-                DetailStat(stringResource(R.string.dashboard_micro_b12), "${entry.b12Ug.formatDecimal()} µg")
-                DetailStat(stringResource(R.string.result_nutri_salt), "${entry.saltG.formatDecimal()} g")
+                DetailStat(stringResource(R.string.dashboard_micro_vitd), "${item.vitDUg.formatDecimal()} µg")
+                DetailStat(stringResource(R.string.dashboard_micro_b12), "${item.b12Ug.formatDecimal()} µg")
+                DetailStat(stringResource(R.string.result_nutri_salt), "${item.saltG.formatDecimal()} g")
             }
         }
     }

@@ -146,7 +146,10 @@ fun AppNavGraph(
         composable(TopTab.Biolism.route) { BiolismScreen() }
 
         composable(AppRoutes.FOOD_SEARCH) {
-            FoodSearchScreen(onBack = { navController.popBackStack() })
+            FoodSearchScreen(
+                onBack = { navController.popBackStack() },
+                onOpenResult = { id -> navController.navigate(AppRoutes.result(id)) },
+            )
         }
 
         composable(TopTab.Settings.route) {
