@@ -233,6 +233,17 @@ fun AppNavGraph(
                 // point, unlike popBackStack() which would land back on Dashboard when
                 // that's where the user actually came from.
                 onOpenDate = { date ->
+                    // popBackStack() first - same fix as ResultScreen's onLog
+                    // (AppNavGraph.RESULT above): the popUpTo(startDestination)
+                    // {saveState=true} below only saves each TAB's own back stack, it
+                    // doesn't remove Calendar (pushed on top of the Diary tab when
+                    // reached via Diary's own onOpenCalendar) from that saved stack.
+                    // Without this, "Ouvrir dans le journal" switched tabs but Calendar
+                    // stayed saved on top of Diary's stack - the tab appeared to land
+                    // back on Calendar (or wherever it briefly resolved to) instead of
+                    // Diary itself, requiring a manual back-press to actually see the
+                    // selected day.
+                    navController.popBackStack()
                     navController.navigate(TopTab.Diary.route) {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true

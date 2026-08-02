@@ -41,12 +41,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.CrossTrackerInsight
+import fr.scanneat.domain.engine.dashboard.GapSuggestion
 import fr.scanneat.domain.engine.dashboard.InsightAgreement
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.dashboard.cards.*
 import fr.scanneat.presentation.result.LogSheet
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
+import fr.scanneat.presentation.ui.theme.ConfirmDialog
 import fr.scanneat.presentation.ui.theme.EmptyListState
 import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
 import fr.scanneat.presentation.ui.theme.HydrationBlue
@@ -85,6 +87,11 @@ fun DashboardScreen(
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var loggingScan by remember { mutableStateOf<ScanResult?>(null) }
+    // User-reported: tapping a GapCloser/ChronicGap suggestion chip logged it to the
+    // diary immediately, with no way to back out of an accidental tap - every other
+    // logging action in the app confirms first (LogSheet's own portion/meal-slot
+    // step), this was the one exception.
+    var pendingGapSuggestion by remember { mutableStateOf<GapSuggestion?>(null) }
     val gapLoggedMessage = gapLoggedName.value?.let { stringResource(R.string.dashboard_gap_logged, it) }
     LaunchedEffect(gapLoggedName.value) {
         gapLoggedMessage?.let {
@@ -172,12 +179,12 @@ fun DashboardScreen(
 
             // ---- Gap-closer suggestions ----
             if (s.gapSuggestions.isNotEmpty()) {
-                item { GapCloserCard(gaps = s.gapSuggestions, onSuggestionClick = viewModel::logGapSuggestion) }
+                item { GapCloserCard(gaps = s.gapSuggestions, onSuggestionClick = { pendingGapSuggestion = it }) }
             }
 
             // ---- Chronic (recurring, multi-day) nutrient gaps ----
             if (s.chronicGaps.isNotEmpty()) {
-                item { ChronicGapCard(gaps = s.chronicGaps, onSuggestionClick = viewModel::logGapSuggestion) }
+                item { ChronicGapCard(gaps = s.chronicGaps, onSuggestionClick = { pendingGapSuggestion = it }) }
             }
 
             // ---- Scanned today but never logged ----
@@ -254,7 +261,10 @@ fun DashboardScreen(
                     EmptyListState(Icons.Rounded.History, stringResource(R.string.dashboard_recent_scans_empty))
                 }
             } else {
-                items(s.recentScans, key = { it.dbId }) { scan ->
+                // User-requested cap - the rest is one tap away via "View all" /
+                // onOpenHistory above, this section doesn't need to double as a
+                // second full history list on the same screen.
+                items(s.recentScans.take(5), key = { it.dbId }) { scan ->
                     ScanHistoryCard(scan, warning = recentScanWarnings.value[scan.dbId], onItemClick = onOpenResult)
                 }
             }
@@ -274,6 +284,20 @@ fun DashboardScreen(
                 loggingScan = null
             },
             onDismiss  = { loggingScan = null },
+        )
+    }
+
+    pendingGapSuggestion?.let { suggestion ->
+        ConfirmDialog(
+            title = stringResource(R.string.dashboard_gap_confirm_title),
+            body  = stringResource(R.string.dashboard_gap_confirm_body, suggestion.name, suggestion.grams),
+            confirmLabel = stringResource(R.string.common_log),
+            confirmColor = AccentCoral,
+            onConfirm = {
+                viewModel.logGapSuggestion(suggestion)
+                pendingGapSuggestion = null
+            },
+            onDismiss = { pendingGapSuggestion = null },
         )
     }
 }
