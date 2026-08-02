@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.mealplan.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.rounded.*
@@ -9,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.*
@@ -26,6 +29,13 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
                 value = text, onValueChange = { text = it },
                 modifier = Modifier.weight(1f), singleLine = true,
                 colors = scanEatTextFieldColors(),
+                // Previously no imeAction/KeyboardActions at all - the only way to
+                // confirm the edit was tapping the separate checkmark IconButton
+                // below, since the default IME action does nothing here. A
+                // Bluetooth-keyboard/switch-access user had no keyboard-driven way
+                // to submit.
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { onEdit(text); editing = false }),
             )
             // IconButtons left at their default 48dp touch target (Material/WCAG
             // minimum) below - a UI/UX audit found this row forcing every control

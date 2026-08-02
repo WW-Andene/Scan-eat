@@ -1,6 +1,12 @@
 package fr.scanneat.presentation.biolism.data.cards
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -71,7 +77,16 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
                         Text(stringResource(R.string.biolism_sesshist_fat_lost_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
                     }
                 }
-                AnimatedVisibility(isExpanded) {
+                // Gated on rememberReducedMotion(), like every other prominent
+                // animation in the app (see Motion.kt's own doc comment) -
+                // previously left at Compose's default expand/fade regardless
+                // of the system setting.
+                val reduceMotion = rememberReducedMotion()
+                AnimatedVisibility(
+                    visible = isExpanded,
+                    enter = if (reduceMotion) EnterTransition.None else fadeIn() + expandVertically(),
+                    exit = if (reduceMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
+                ) {
                     Column(Modifier.padding(top = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         InfoRow(stringResource(R.string.biolism_sesshist_avg_rate), "%.3f kcal/min".format(Locale.US, sess.kcalPerMin), "", TextSecondary)
                         InfoRow(stringResource(R.string.biolism_sesshist_bmr_tdee), stringResource(R.string.biolism_sesshist_bmr_tdee_value, sess.bmrDay, sess.tdeeDay), "", TextSecondary)

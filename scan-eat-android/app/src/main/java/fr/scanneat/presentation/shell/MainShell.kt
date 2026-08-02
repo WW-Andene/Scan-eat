@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.shell
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -58,10 +60,14 @@ fun MainShell(
                 modifier         = Modifier.fillMaxSize(),
             )
         }
+        // Gated on rememberReducedMotion(), like every other prominent animation
+        // in the app (see Motion.kt's own doc comment) - this one was added
+        // without the check, unlike ambientGloom/pressScale/rememberHeroEntrance.
+        val reduceMotion = rememberReducedMotion()
         AnimatedVisibility(
             visible  = showNav,
-            enter    = fadeIn(),
-            exit     = fadeOut(),
+            enter    = if (reduceMotion) EnterTransition.None else fadeIn(),
+            exit     = if (reduceMotion) ExitTransition.None else fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter),
         ) {
             // Floating/detached bottom nav — margin on every side instead of the

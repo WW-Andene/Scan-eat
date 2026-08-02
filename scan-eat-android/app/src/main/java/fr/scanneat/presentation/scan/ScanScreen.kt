@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ImageCapture
@@ -202,8 +201,10 @@ fun ScanScreen(
                 onCameraError     = { cameraUnavailable = true },
                 // A capture failure is transient (unlike a bind failure) - don't drop into
                 // the full manual-entry fallback, just surface it so the shutter button
-                // doesn't look silently broken.
-                onCaptureError    = { Toast.makeText(context, captureErrorMessage, Toast.LENGTH_SHORT).show() },
+                // doesn't look silently broken. Routed through ScanViewModel's
+                // ScanUiState.Error (an announced, TalkBack-visible banner) rather than
+                // a bare Toast - see reportCaptureError()'s own doc comment.
+                onCaptureError    = { viewModel.reportCaptureError(captureErrorMessage) },
                 onBarcodesInFrame = { boxes, w, h ->
                     barcodesInFrame = Triple(boxes, w, h)
                     viewModel.onBarcodesVisible(boxes.map { it.value })

@@ -1,6 +1,12 @@
 package fr.scanneat.presentation.biolism.data
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -88,7 +94,16 @@ internal fun BioCard(
                     badge?.invoke()
                     Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(IconSize.Inline))
                 }
-                AnimatedVisibility(open) {
+                // Gated on rememberReducedMotion(), like every other prominent
+                // animation in the app (see Motion.kt's own doc comment) -
+                // previously left at Compose's default expand/fade regardless
+                // of the system setting.
+                val reduceMotion = rememberReducedMotion()
+                AnimatedVisibility(
+                    visible = open,
+                    enter = if (reduceMotion) EnterTransition.None else fadeIn() + expandVertically(),
+                    exit = if (reduceMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
+                ) {
                     Column(Modifier.padding(top = Spacing.M), content = content)
                 }
             }

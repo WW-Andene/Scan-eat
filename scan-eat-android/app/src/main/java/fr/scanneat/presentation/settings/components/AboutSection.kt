@@ -2,7 +2,6 @@ package fr.scanneat.presentation.settings.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,7 +24,7 @@ import fr.scanneat.domain.engine.scoring.ENGINE_VERSION
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun AboutSection(onShowLicenses: () -> Unit) {
+internal fun AboutSection(onShowLicenses: () -> Unit, onNoCrashLog: () -> Unit) {
     val context = LocalContext.current
     SettingsSection(stringResource(R.string.settings_section_about), icon = Icons.Default.Info) {
         Text(stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
@@ -40,12 +39,14 @@ internal fun AboutSection(onShowLicenses: () -> Unit) {
         // plain text (not a file attachment) so no FileProvider/manifest
         // <provider> entry is needed, mirroring ResultScreen's existing
         // ACTION_SEND text-share pattern.
-        val noCrashLogMessage = stringResource(R.string.settings_about_no_crash_log)
         TextButton(
             onClick = {
                 val log = CrashLogger.readLastCrash(context)
                 if (log.isNullOrBlank()) {
-                    Toast.makeText(context, noCrashLogMessage, Toast.LENGTH_SHORT).show()
+                    // Routed through the screen's own snackbar (onNoCrashLog, wired to
+                    // ScanEatSnackbarHost's announced/liveRegion snackbar) rather than a
+                    // bare Toast - a Toast gives TalkBack users no reliable announcement.
+                    onNoCrashLog()
                 } else {
                     val sendIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"

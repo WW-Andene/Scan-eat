@@ -39,6 +39,7 @@ import fr.scanneat.presentation.settings.components.ServerUrlSection
 import fr.scanneat.presentation.settings.components.ThemeSection
 import fr.scanneat.presentation.settings.components.UnitsSection
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -89,6 +90,7 @@ fun SettingsScreen(
     // A failed write now surfaces here as a one-shot snackbar instead of
     // silently leaving the field unsaved with no feedback.
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val actionFailedMessage = stringResource(R.string.common_log_failed)
     LaunchedEffect(actionFailed.value) {
@@ -97,6 +99,9 @@ fun SettingsScreen(
             viewModel.clearActionFailed()
         }
     }
+    // AboutSection's "no crash log to share" case - previously a bare Toast, no
+    // reliable TalkBack announcement, unlike everything else on this screen.
+    val noCrashLogMessage = stringResource(R.string.settings_about_no_crash_log)
 
     val context = LocalContext.current
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -324,7 +329,12 @@ fun SettingsScreen(
             }
 
             // About
-            item { AboutSection(onShowLicenses = { showLicensesDialog = true }) }
+            item {
+                AboutSection(
+                    onShowLicenses = { showLicensesDialog = true },
+                    onNoCrashLog = { coroutineScope.launch { snackbarHostState.showSnackbar(noCrashLogMessage) } },
+                )
+            }
 
             // Legal — every claim this app makes (scores, personal adjustments, hints,
             // metabolisme estimates, medication tracking) is a heuristic or a published

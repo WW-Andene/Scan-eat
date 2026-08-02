@@ -543,6 +543,20 @@ class ScanViewModel @Inject constructor(
     fun dismissError() { _state.value = ScanUiState.Idle }
 
     /**
+     * Reports a camera-capture failure (bind failure, buffer/driver fault, storage
+     * pressure - see CameraPreview's own onCaptureError doc comment). Previously
+     * shown via a bare Toast, unlike every other error in this screen (ScanUiState.Error,
+     * rendered as an announced, TalkBack-visible banner via ScanStateOverlay) - a
+     * screen-reader user had no reliable way to learn the shutter tap silently failed.
+     * Only surfaces when nothing else is already showing (Scanning/a Found dialog/an
+     * existing error) - a capture failure this transient shouldn't interrupt something
+     * already in progress.
+     */
+    fun reportCaptureError(message: String) {
+        if (_state.value is ScanUiState.Idle) _state.value = ScanUiState.Error(message)
+    }
+
+    /**
      * Dismisses a MedicationFound/NonConsumableFound dialog without saving it -
      * distinct from dismissError() because it also clears the photo queue and any
      * held barcode, matching saveDetectedMedication()'s confirm path below.

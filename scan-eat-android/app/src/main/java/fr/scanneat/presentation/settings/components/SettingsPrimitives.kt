@@ -1,6 +1,12 @@
 package fr.scanneat.presentation.settings.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -27,6 +33,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.rememberReducedMotion
 
 /** Reusable, stateless layout primitives local to the Settings screen. */
 
@@ -63,7 +70,15 @@ internal fun SaveButtonRow(saved: Boolean, onSave: () -> Unit) {
         ScanEatPrimaryButton(onClick = onSave) {
             Text(stringResource(R.string.common_save))
         }
-        AnimatedVisibility(visible = saved) {
+        // Gated on rememberReducedMotion(), like every other prominent animation
+        // in the app (see Motion.kt's own doc comment) - previously left at
+        // Compose's default enter/exit regardless of the system setting.
+        val reduceMotion = rememberReducedMotion()
+        AnimatedVisibility(
+            visible = saved,
+            enter = if (reduceMotion) EnterTransition.None else fadeIn() + expandVertically(),
+            exit = if (reduceMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                 Text(stringResource(R.string.settings_saved_confirmation), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
