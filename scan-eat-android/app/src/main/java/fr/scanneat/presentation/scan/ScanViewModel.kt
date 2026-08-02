@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import java.io.File
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -71,6 +72,46 @@ class ScanViewModel @Inject constructor(
 
     private val _images = MutableStateFlow<List<ImagePayload>>(emptyList())
     val images: StateFlow<List<ImagePayload>> = _images.asStateFlow()
+
+    // Disk-backed cache of the photo queue - a ViewModel is a fresh instance after
+    // process death (only config-change survives it, not this), so the in-memory
+    // _images StateFlow above was previously the only copy: backgrounding mid
+    // multi-photo shelf/scan capture under memory pressure silently discarded every
+    // queued photo with no way back, forcing the whole capture sequence to be redone.
+    // filesDir (not cacheDir) - this represents real, deliberately-captured user
+    // input the OS shouldn't be free to opportunistically wipe under storage
+    // pressure the way it can with cacheDir, even though it's still transient data
+    // this ViewModel itself deletes once consumed (see persistQueue()'s callers).
+    // One newline-delimited base64 string per photo - base64 (NO_WRAP) never
+    // contains a newline itself, so no escaping/JSON parsing is needed.
+    private val queueFile: File get() = File(appContext.filesDir, "scan_photo_queue")
+
+    private fun persistQueue() {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val images = _images.value
+                if (images.isEmpty()) queueFile.delete()
+                else queueFile.writeText(images.joinToString("\n") { it.base64 })
+            }
+        }
+    }
+
+    init {
+        // Best-effort restore, off Main - see queueFile's own doc comment. Wrapped
+        // in runCatching (not just relying on individual restoreImagePayload() null
+        // returns) so a corrupt/unreadable cache file can never crash the app on
+        // launch, only silently lose the recovery opportunity.
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                if (queueFile.exists()) {
+                    val restored = queueFile.readText().split("\n")
+                        .filter { it.isNotBlank() }
+                        .mapNotNull { restoreImagePayload(it) }
+                    if (restored.isNotEmpty()) _images.value = restored else queueFile.delete()
+                }
+            }
+        }
+    }
 
     private val _scannedBarcode = MutableStateFlow<String?>(null)
     // Debounce state for onBarcodeDetected() - see its own doc comment for why
@@ -246,6 +287,7 @@ class ScanViewModel @Inject constructor(
         // left over from an unrelated candidate).
         pendingBarcode = null
         pendingBarcodeStreak = 0
+        persistQueue()
     }
 
     /**
@@ -267,10 +309,12 @@ class ScanViewModel @Inject constructor(
     fun addPhoto(payload: ImagePayload) {
         if (_images.value.size >= MAX_QUEUED_PHOTOS) return
         _images.value = _images.value + payload
+        persistQueue()
     }
 
     fun removePhoto(index: Int) {
         _images.value = _images.value.toMutableList().also { it.removeAt(index) }
+        persistQueue()
     }
 
     fun clearQueue() {
@@ -283,6 +327,7 @@ class ScanViewModel @Inject constructor(
         // after onBarcodeDetected()'s guard suppressed the debounce for a while.
         pendingBarcode = null
         pendingBarcodeStreak = 0
+        persistQueue()
     }
 
     /**

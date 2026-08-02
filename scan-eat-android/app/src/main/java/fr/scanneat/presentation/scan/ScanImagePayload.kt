@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.scan
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Base64
 import fr.scanneat.data.remote.api.ImagePayload
 import java.io.ByteArrayOutputStream
@@ -41,4 +42,24 @@ internal fun Bitmap.toPayload(): ImagePayload {
         base64    = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP),
         thumbnail = thumb,
     )
+}
+
+/**
+ * Rebuilds an ImagePayload from a disk-persisted base64 string (see
+ * ScanViewModel's photo-queue disk cache, added so process death mid-scan
+ * doesn't silently discard queued photos). [base64] is already the
+ * upload-resolution (<=1024px) JPEG this file's own toPayload() produced, so
+ * only the thumbnail needs regenerating - no second upload-scale pass.
+ * Returns null on a corrupt/undecodable entry rather than throwing, since
+ * this only ever runs against this app's own previously-written cache file.
+ */
+internal fun restoreImagePayload(base64: String): ImagePayload? {
+    val bytes = runCatching { Base64.decode(base64, Base64.NO_WRAP) }.getOrNull() ?: return null
+    val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
+    val thumbScale = THUMBNAIL_MAX_PX.toFloat() / maxOf(decoded.width, decoded.height)
+    val thumb = if (thumbScale < 1f) {
+        Bitmap.createScaledBitmap(decoded, (decoded.width * thumbScale).toInt(), (decoded.height * thumbScale).toInt(), true)
+    } else decoded
+    if (thumb !== decoded) decoded.recycle()
+    return ImagePayload(base64 = base64, thumbnail = thumb)
 }
