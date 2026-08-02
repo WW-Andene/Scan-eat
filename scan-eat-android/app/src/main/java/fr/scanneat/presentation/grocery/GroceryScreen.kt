@@ -130,11 +130,20 @@ fun GroceryScreen(
                 // full screen height - every sibling feature (Diary/Recipes/Templates/
                 // CustomFood) places this same component near the top of the content
                 // instead, under the header row.
+                // Previously told the user what to do ("create/plan a recipe") with no
+                // shortcut to do it, unlike Recipes' own empty state which pairs the same
+                // kind of message with a CTA button - added the matching navigation here.
                 EmptyListState(
                     icon = Icons.Rounded.ShoppingCart,
                     message = stringResource(
                         if (scopeToPlanned.value) R.string.grocery_empty_planned_body else R.string.grocery_empty_body
                     ),
+                    ctaLabel = stringResource(
+                        if (scopeToPlanned.value) R.string.grocery_empty_planned_cta else R.string.grocery_empty_cta
+                    ),
+                    onCta = {
+                        onNavigateToPlanning(if (scopeToPlanned.value) PlanningDestination.MEAL_PLAN else PlanningDestination.RECIPES)
+                    },
                 )
             } else {
             val filteredCheckable = remember(checkable.value, searchQuery) {

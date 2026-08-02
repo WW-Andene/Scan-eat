@@ -585,6 +585,8 @@
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Grocery List</string>
     <string name="grocery_empty_body">Create recipes to automatically generate your grocery list.</string>
+    <string name="grocery_empty_cta">Create a recipe</string>
+    <string name="grocery_empty_planned_cta">Plan a meal</string>
     <string name="grocery_search_no_results">No items match your search.</string>
     <plurals name="grocery_item_count">
         <item quantity="one">%1$d item · aggregated from your recipes</item>
@@ -1111,7 +1113,7 @@
     <string name="dashboard_tile_calendar">Calendar</string>
     <string name="dashboard_tile_history">History</string>
     <string name="dashboard_recent_scans_title">Recent Scans</string>
-    <string name="dashboard_recent_scans_empty">No scans yet.</string>
+    <string name="dashboard_recent_scans_empty">No scans yet. Tap Scan to get started.</string>
     <string name="dashboard_view_all">View all</string>
     <string name="dashboard_today_label">Today</string>
     <string name="dashboard_week_title">This Week</string>
@@ -1365,8 +1367,8 @@
     <string name="notif_channel_custom">Custom reminders</string>
     <string name="notif_summary_title">Daily digest</string>
     <string name="notif_summary_body">%1$d kcal logged · %2$d meals</string>
-    <string name="notif_streak_risk_title">Your streak is about to break</string>
-    <string name="notif_streak_risk_body">%1$d-day logging streak — log something before midnight to keep it going.</string>
+    <string name="notif_streak_risk_title">Keep your streak going?</string>
+    <string name="notif_streak_risk_body">%1$d-day logging streak — log something before midnight to extend it. And if today doesn\'t work out, that\'s okay too.</string>
     <string name="reminders_daily_digest_title">Daily digest (9:00 PM)</string>
     <string name="reminders_daily_digest_subtitle">Summary of today\'s scans, hydration, and meals</string>
     <string name="reminders_title">Reminders</string>

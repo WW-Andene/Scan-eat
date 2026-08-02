@@ -586,6 +586,11 @@
     <!-- ── Grocery list screen ────────────────────────────────────────────── -->
     <string name="grocery_title">Liste de courses</string>
     <string name="grocery_empty_body">Créez des recettes pour générer la liste de courses automatiquement.</string>
+    <!-- CTA on the two grocery empty states below - previously told the user what to do
+         ("create a recipe" / "plan a recipe") with no shortcut to actually do it, unlike
+         Recipes' own empty state which pairs its message with a "create" button. -->
+    <string name="grocery_empty_cta">Créer une recette</string>
+    <string name="grocery_empty_planned_cta">Planifier un repas</string>
     <string name="grocery_search_no_results">Aucun article ne correspond à votre recherche.</string>
     <plurals name="grocery_item_count">
         <item quantity="one">%1$d article · agrégé depuis vos recettes</item>
@@ -822,11 +827,11 @@
     <string name="diary_tab_treatment">Traitement</string>
     <string name="diary_tab_expenses">Dépenses</string>
     <string name="expenses_history_title">Historique des achats</string>
-    <string name="expenses_empty_body">Aucune dépense enregistrée. Ajoute un prix depuis une fiche produit après un scan.</string>
+    <string name="expenses_empty_body">Aucune dépense enregistrée. Ajoutez un prix depuis une fiche produit après un scan.</string>
     <string name="expenses_week_title">Cette semaine</string>
     <string name="expenses_edit_budget">Objectif</string>
     <string name="expenses_of_budget">sur %.0f € cette semaine</string>
-    <string name="expenses_no_budget_hint">Définis un objectif hebdomadaire pour suivre ton budget</string>
+    <string name="expenses_no_budget_hint">Définissez un objectif hebdomadaire pour suivre votre budget</string>
     <string name="expenses_avg_per_meal">Moyenne %1$.2f € / achat (objectif %2$.0f €)</string>
     <string name="expenses_budget_weekly_label">Budget hebdomadaire (€)</string>
     <string name="expenses_budget_per_meal_label">Budget par achat (€)</string>
@@ -852,7 +857,7 @@
     <string name="diary_macro_carbs">Glucides</string>
     <string name="diary_macro_fat">Lipides</string>
     <string name="diary_goal_targets_title">Objectif (poids idéal : %1$s)</string>
-    <string name="diary_low_carb_hint">Glucides plafonnés volontairement par ton régime actuel (fourchette clinique de cétose de Volek &amp; Phinney, 20–50 g nets/jour) : en cétose, le cerveau fonctionne majoritairement aux corps cétoniques, et le glucose restant nécessaire est produit par néoglucogenèse — ce n\'est pas une erreur de calcul.</string>
+    <string name="diary_low_carb_hint">Glucides plafonnés volontairement par votre régime actuel (fourchette clinique de cétose de Volek &amp; Phinney, 20–50 g nets/jour) : en cétose, le cerveau fonctionne majoritairement aux corps cétoniques, et le glucose restant nécessaire est produit par néoglucogenèse — ce n\'est pas une erreur de calcul.</string>
     <string name="diary_low_carb_hint_cd">Pourquoi les glucides sont plafonnés</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
     <string name="diary_edit_portion_label">Portion (g)</string>
@@ -1156,7 +1161,7 @@
     <string name="dashboard_tile_calendar">Calendrier</string>
     <string name="dashboard_tile_history">Historique</string>
     <string name="dashboard_recent_scans_title">Scans récents</string>
-    <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant.</string>
+    <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant. Appuyez sur Scanner pour commencer.</string>
     <string name="dashboard_view_all">Voir tout</string>
     <string name="dashboard_today_label">Aujourd\'hui</string>
     <string name="dashboard_week_title">Cette semaine</string>
@@ -1180,7 +1185,7 @@
     <string name="dashboard_never_logged_action">Journaliser</string>
     <string name="dashboard_gap_logged">%1$s ajouté au journal</string>
     <string name="dashboard_gap_confirm_title">Ajouter au journal ?</string>
-    <string name="dashboard_gap_confirm_body">Ajouter %1$s (%2$d g) à ton journal du jour ?</string>
+    <string name="dashboard_gap_confirm_body">Ajouter %1$s (%2$d g) à votre journal du jour ?</string>
     <string name="dashboard_chronic_gap_title">Écarts récurrents</string>
     <string name="dashboard_chronic_gap_entry">%1$s : bas %2$d/%3$d jours (%4$d %% de l\'objectif en moyenne)</string>
     <string name="dashboard_insight_title">Cohérence hebdo</string>
@@ -1410,8 +1415,8 @@
     <string name="notif_channel_custom">Rappels personnalisés</string>
     <string name="notif_summary_title">Bilan du jour</string>
     <string name="notif_summary_body">%1$d kcal journalisées · %2$d repas</string>
-    <string name="notif_streak_risk_title">Votre série est sur le point de s\'arrêter</string>
-    <string name="notif_streak_risk_body">Série de %1$d jours — enregistrez quelque chose avant minuit pour la conserver.</string>
+    <string name="notif_streak_risk_title">Continuez votre série ?</string>
+    <string name="notif_streak_risk_body">Série de %1$d jours — enregistrez quelque chose avant minuit pour la prolonger. Et si ce n\'est pas possible aujourd\'hui, ce n\'est pas grave.</string>
     <string name="reminders_daily_digest_title">Bilan quotidien (21h00)</string>
     <string name="reminders_daily_digest_subtitle">Résumé de vos scans, hydratation et repas du jour</string>
     <string name="reminders_title">Rappels</string>
