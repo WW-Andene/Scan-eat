@@ -1,7 +1,6 @@
 package fr.scanneat.presentation.scan
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.lifecycle.ViewModel
@@ -248,17 +247,15 @@ class ScanViewModel @Inject constructor(
      * Silently ignored past the cap rather than surfaced as an error, matching this
      * screen's other silent caps (e.g. recentBarcodes.takeLast(5)).
      */
-    fun addPhoto(bitmap: Bitmap) {
+    // Takes an already-built ImagePayload rather than a raw Bitmap - toPayload()'s
+    // CPU work (two createScaledBitmap calls + a JPEG compress) is now done by the
+    // caller (CameraPreview's background capture executor), not here. Keeping this
+    // synchronous - rather than wrapping it in viewModelScope.launch(Dispatchers.Default) -
+    // avoids making photo-queue mutation non-deterministic from the caller's point of
+    // view, which ScanViewModelTest's synchronous addPhoto()-then-assert calls rely on.
+    fun addPhoto(payload: ImagePayload) {
         if (_images.value.size >= MAX_QUEUED_PHOTOS) return
-        // toPayload() does real CPU work (two createScaledBitmap calls + a JPEG compress) -
-        // previously run synchronously on whatever thread called addPhoto (the camera
-        // capture callback), janking the UI. Rechecking the cap after the hop guards the
-        // same race the upfront check already accepted as acceptable for a single-threaded
-        // caller, now that this is async.
-        viewModelScope.launch(Dispatchers.Default) {
-            val payload = bitmap.toPayload()
-            if (_images.value.size < MAX_QUEUED_PHOTOS) _images.value = _images.value + payload
-        }
+        _images.value = _images.value + payload
     }
 
     fun removePhoto(index: Int) {
@@ -528,13 +525,11 @@ class ScanViewModel @Inject constructor(
      * scored as food in this first version rather than gaining its own
      * dedicated dialog treatment here too.
      */
-    suspend fun identifyShelfBox(bitmap: Bitmap): Result<Pair<ScanResult, Long>> {
+    // Takes an already-built ImagePayload - see addPhoto()'s doc comment above for why
+    // this shape (caller builds the payload, off Main) replaced accepting a raw Bitmap.
+    suspend fun identifyShelfBox(payload: ImagePayload): Result<Pair<ScanResult, Long>> {
         val lang = prefs.language.first()
         if (!isOnline()) return Result.failure(Exception(offlineMessage(lang)))
-        // toPayload() does real CPU work (scale + JPEG compress) - this is called from
-        // ScanScreen's shelfCoroutineScope.launch { }, which defaults to Main, so without
-        // this hop the encode would run on the UI thread on every shelf-mode tap.
-        val payload = withContext(Dispatchers.Default) { bitmap.toPayload() }
         return scanRepo.identifyOrScoreFromImages(listOf(payload), lang, true, identifyMode = true)
             .mapCatching { scanResult -> scanResult to scanRepo.persist(scanResult) }
     }

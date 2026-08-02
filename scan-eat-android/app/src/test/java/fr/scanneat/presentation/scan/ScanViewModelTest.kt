@@ -1,18 +1,15 @@
 package fr.scanneat.presentation.scan
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.ConnectivityManager
-import android.util.Base64
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.model.Profile
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -54,33 +51,22 @@ class ScanViewModelTest {
         every { scanRepo.observeTodayScanCount() } returns flowOf(0)
         coEvery { scanRepo.getCachedByBarcode(any(), any()) } returns null
 
-        // addPhoto()'s toPayload() calls the real android.util.Base64 - a
-        // no-op stub in the plain android.jar this test compiles/runs
-        // against, so it must be faked rather than left to throw.
-        mockkStatic(Base64::class)
-        every { Base64.encodeToString(any(), any()) } returns "fake-base64"
-
         viewModel = ScanViewModel(scanRepo, prefs, connectivityManager, medicationRepo, appContext)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        unmockkStatic(Base64::class)
     }
 
     /**
-     * Sized so toPayload()'s upload/thumbnail scale factors (1024/size,
-     * 160/size) are both >= 1 - neither branch calls the real (native,
-     * un-mocked here) Bitmap.createScaledBitmap, only the instance's own
-     * compress()/recycle(), which the relaxed mock already handles.
+     * addPhoto()/identifyShelfBox() now take an already-built ImagePayload -
+     * toPayload()'s Bitmap scale/compress work moved to the caller (CameraPreview's
+     * background capture executor / ScanScreen's Dispatchers.Default block), so
+     * these tests (which only exercise the photo-queue guard logic, not image
+     * processing) no longer need to fake a Bitmap or mock android.util.Base64 at all.
      */
-    private fun fakeBitmap(size: Int = 100): Bitmap {
-        val bmp = mockk<Bitmap>(relaxed = true)
-        every { bmp.width } returns size
-        every { bmp.height } returns size
-        return bmp
-    }
+    private fun fakePayload() = ImagePayload(base64 = "fake-base64")
 
     /**
      * onBarcodeDetected() now requires the same *new* barcode to win several
@@ -114,7 +100,7 @@ class ScanViewModelTest {
     fun `new barcode is ignored once a photo has been queued`() {
         // The exact user-reported scenario: photos taken first (no barcode
         // held yet), then the live feed incidentally detects one.
-        viewModel.addPhoto(fakeBitmap())
+        viewModel.addPhoto(fakePayload())
         viewModel.onBarcodeDetected("3017620422003")
         assertNull(
             "a barcode detected after photos exist must not be adopted",
@@ -129,7 +115,7 @@ class ScanViewModelTest {
         // scoreBarcode() to combine with follow-up photos when OFF's own
         // entry for it is sparse.
         detectStably("3017620422003")
-        viewModel.addPhoto(fakeBitmap())
+        viewModel.addPhoto(fakePayload())
         assertEquals(
             "a barcode already held before photos existed must be kept",
             "3017620422003", viewModel.scannedBarcode.value,
@@ -138,7 +124,7 @@ class ScanViewModelTest {
 
     @Test
     fun `clearQueue lets a fresh barcode be adopted again`() {
-        viewModel.addPhoto(fakeBitmap())
+        viewModel.addPhoto(fakePayload())
         detectStably("111")
         assertNull(viewModel.scannedBarcode.value)
 
@@ -165,7 +151,7 @@ class ScanViewModelTest {
         // Without this, a leftover photo from a just-completed scan would combine
         // with the barcode-queue guard above to permanently block every future
         // barcode detection, not just resubmit stale photos.
-        viewModel.addPhoto(fakeBitmap())
+        viewModel.addPhoto(fakePayload())
         assertEquals(1, viewModel.images.value.size)
 
         viewModel.resultConsumed()

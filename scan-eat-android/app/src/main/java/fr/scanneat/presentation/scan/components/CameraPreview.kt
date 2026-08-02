@@ -37,6 +37,8 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.objects.ObjectDetection
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 import fr.scanneat.R
+import fr.scanneat.data.remote.api.ImagePayload
+import fr.scanneat.presentation.scan.toPayload
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -46,7 +48,7 @@ import java.util.concurrent.Executors
 @Composable
 fun CameraPreview(
     onBarcodeDetected: (String) -> Unit,
-    onPhotoCaptured: (Bitmap) -> Unit,
+    onPhotoCaptured: (ImagePayload) -> Unit,
     onCameraError: () -> Unit = {},
     onCaptureError: () -> Unit = {},
     onBarcodesInFrame: ((List<DetectedBarcode>, Int, Int) -> Unit)? = null,
@@ -211,12 +213,16 @@ fun CameraPreview(
                         buffer.get(bytes)
                         val rotation = image.imageInfo.rotationDegrees
                         image.close()
-                        // Decoding a full 1600x1200 JPEG and (when rotated) allocating a second
-                        // full-size bitmap is real CPU work - moved onto the analyzer's background
-                        // `executor` so the shutter tap doesn't jank the UI thread. Only the final
-                        // onPhotoCaptured()/onCaptureError() call is posted back to Main, preserving
-                        // the serialization-with-click-handler-thread property documented above
-                        // (and Toast's Looper requirement for onCaptureError).
+                        // Decoding a full 1600x1200 JPEG, (when rotated) allocating a second
+                        // full-size bitmap, and toPayload()'s own scale+compress work are all
+                        // real CPU work - all of it moved onto the analyzer's background
+                        // `executor` so the shutter tap doesn't jank the UI thread. Only the
+                        // final onPhotoCaptured()/onCaptureError() call is posted back to Main,
+                        // preserving the serialization-with-click-handler-thread property
+                        // documented above (and Toast's Looper requirement for onCaptureError).
+                        // onPhotoCaptured takes the finished ImagePayload rather than a raw
+                        // Bitmap so ScanViewModel.addPhoto() can stay a plain synchronous state
+                        // update - see that function's own doc comment.
                         val mainExecutor = ContextCompat.getMainExecutor(context)
                         executor.execute {
                             val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
@@ -228,7 +234,8 @@ fun CameraPreview(
                                 val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
                                 Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
                             } else decoded
-                            mainExecutor.execute { onPhotoCaptured(bmp) }
+                            val payload = bmp.toPayload()
+                            mainExecutor.execute { onPhotoCaptured(payload) }
                         }
                     }
                     // Previously unoverridden (falls back to a no-op default) - a capture

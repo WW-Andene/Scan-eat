@@ -377,27 +377,29 @@ fun ScanScreen(
                                             // executor hop - shelfPeeks is only ever written from this single
                                             // shelfCoroutineScope.launch block per tap, so no new race.
                                             shelfCoroutineScope.launch {
-                                                val cropped = withContext(Dispatchers.Default) {
+                                                // Builds the finished ImagePayload (decode + crop + toPayload's own
+                                                // scale/compress) entirely on Dispatchers.Default, so
+                                                // identifyShelfBox() itself can stay a plain suspend function with
+                                                // no CPU work of its own - same shape as CameraPreview's fix above.
+                                                val payload = withContext(Dispatchers.Default) {
                                                     val full = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return@withContext null
                                                     val c = cropAroundBox(full, box.rect, w, h)
                                                     // Bitmap.createBitmap(source, x, y, w, h) returns `source` itself,
                                                     // not a copy, when the requested region is the whole bitmap (x=0,
                                                     // y=0, w/h matching) - which cropAroundBox's own clamping can produce
                                                     // for a box spanning nearly the entire frame. Recycling unconditionally
-                                                    // would then recycle `c` out from under identifyShelfBox() too.
+                                                    // would then recycle `c` out from under toPayload() below too.
                                                     // Only recycle `full` when cropAroundBox actually produced a distinct
                                                     // bitmap - otherwise this leaked ~7.7MB (1600x1200 ARGB_8888) per
-                                                    // shelf-mode tap, unlike the main capture path's
-                                                    // ScanImagePayload.toPayload(), which already recycles every
-                                                    // intermediate bitmap it creates.
+                                                    // shelf-mode tap.
                                                     if (c !== full) full.recycle()
-                                                    c
+                                                    c.toPayload()
                                                 }
-                                                if (cropped == null) {
+                                                if (payload == null) {
                                                     shelfPeeks = shelfPeeks.map { if (it.id == peekId) it.copy(status = ShelfPeekStatus.Failed(captureErrorMessage)) else it }
                                                     return@launch
                                                 }
-                                                val result = viewModel.identifyShelfBox(cropped)
+                                                val result = viewModel.identifyShelfBox(payload)
                                                 shelfPeeks = shelfPeeks.map { p ->
                                                     if (p.id != peekId) p else p.copy(
                                                         status = result.fold(
