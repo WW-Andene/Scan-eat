@@ -826,7 +826,7 @@
     <string name="expenses_edit_budget">Target</string>
     <string name="expenses_of_budget">of %.0f € this week</string>
     <string name="expenses_no_budget_hint">Set a weekly target to track your budget</string>
-    <string name="expenses_avg_per_meal">Average %.2f € / purchase (target %.0f €)</string>
+    <string name="expenses_avg_per_meal">Average %1$.2f € / purchase (target %2$.0f €)</string>
     <string name="expenses_budget_weekly_label">Weekly budget (€)</string>
     <string name="expenses_budget_per_meal_label">Budget per purchase (€)</string>
     <string name="diary_note_label">Note of the day</string>

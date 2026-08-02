@@ -66,4 +66,5 @@ object DatabaseModule {
     @Provides fun provideMedicationDao(db: AppDatabase)   = db.medicationDao()
     @Provides fun provideMedicationLogDao(db: AppDatabase) = db.medicationLogDao()
     @Provides fun provideScanScoreHistoryDao(db: AppDatabase) = db.scanScoreHistoryDao()
+    @Provides fun providePriceDao(db: AppDatabase) = db.priceDao()
 }
