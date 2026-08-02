@@ -108,6 +108,10 @@ fun ExpensesScreen(
     }
 }
 
+/** Rounds a euro amount to whole cents for an exact over/under-budget comparison -
+ *  see ExpensesWeekCard's own comment on why a raw Double `>` isn't safe here. */
+private fun centsOf(euros: Double): Long = Math.round(euros * 100)
+
 @Composable
 private fun ExpensesWeekCard(
     weekTotal: Double,
@@ -148,22 +152,30 @@ private fun ExpensesWeekCard(
         )
         if (budgetWeekly != null && budgetWeekly > 0) {
             val pct = (weekTotal / budgetWeekly).toFloat().coerceIn(0f, 1.5f)
+            // weekTotal is a Double sum of per-entry prices, so a spend that's
+            // mathematically exactly at budget can drift a fraction of a cent
+            // either way from float summation - comparing to the nearest cent
+            // (not a raw > 1f/Double >) avoids a budget met to the cent
+            // flip-flopping between "over" and "under" depending on entry order.
+            val isOverWeekly = centsOf(weekTotal) > centsOf(budgetWeekly)
             LinearProgressIndicator(
                 progress = { pct.coerceAtMost(1f) },
                 modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                color = if (pct > 1f) AccentCoral else semanticGreen(),
+                color = if (isOverWeekly) AccentCoral else semanticGreen(),
                 trackColor = OnSurface.copy(0.1f),
             )
             Text(
                 stringResource(R.string.expenses_of_budget, budgetWeekly),
                 style = MaterialTheme.typography.labelSmall,
-                color = if (pct > 1f) AccentCoral else OnSurface.copy(0.5f),
+                color = if (isOverWeekly) AccentCoral else OnSurface.copy(0.5f),
             )
         } else {
             Text(stringResource(R.string.expenses_no_budget_hint), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         }
         if (avgPerEntry != null && budgetPerMeal != null && budgetPerMeal > 0) {
-            val over = avgPerEntry > budgetPerMeal
+            // Same cent-rounded comparison as isOverWeekly above - avgPerEntry is
+            // also a Double average of summed prices, subject to the same drift.
+            val over = centsOf(avgPerEntry) > centsOf(budgetPerMeal)
             Text(
                 stringResource(R.string.expenses_avg_per_meal, avgPerEntry, budgetPerMeal),
                 style = MaterialTheme.typography.labelSmall,

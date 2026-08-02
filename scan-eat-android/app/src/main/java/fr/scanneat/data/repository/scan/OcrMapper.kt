@@ -33,6 +33,18 @@ internal fun coerceDouble(v: Any?, max: Double = 100.0): Double {
     return raw.coerceIn(0.0, max)
 }
 
+// coerceDouble above only ever covered the macros (energy/fat/carbs/protein/
+// salt) - every micronutrient/trans-fat/caffeine field below was passed
+// straight through as a nullable Double with no ceiling at all, unlike its
+// macro siblings. A hallucinated/misread per-100g figure here (e.g.
+// "iron_mg: 999999999" from a misread decimal, or a mg/µg unit confusion)
+// would silently corrupt DiaryEntry's running micronutrient totals and any
+// score/warning derived from them - null still means "not detected" and is
+// preserved, only a present value is clamped. Ceilings are generous per-100g
+// real-world maxima (e.g. liver for iron/vitA/B12, acerola for vitC, natto
+// for vitK, cod liver oil for vitD) so no legitimate extreme food is clipped.
+private fun coerceNullableDouble(v: Double?, max: Double): Double? = v?.coerceIn(0.0, max)
+
 internal fun mapLlmToProduct(dto: LlmProductDto): Product {
     val n = dto.nutrition
     val nutrition = NutritionPer100g(
@@ -41,28 +53,28 @@ internal fun mapLlmToProduct(dto: LlmProductDto): Product {
         saturatedFatG = coerceDouble(n?.saturated_fat_g),
         carbsG        = coerceDouble(n?.carbs_g),
         sugarsG       = coerceDouble(n?.sugars_g),
-        addedSugarsG  = n?.added_sugars_g,
+        addedSugarsG  = coerceNullableDouble(n?.added_sugars_g, max = 100.0),
         fiberG        = coerceDouble(n?.fiber_g),
         proteinG      = coerceDouble(n?.protein_g),
         saltG         = coerceDouble(n?.salt_g),
-        transFatG     = n?.trans_fat_g,
-        ironMg        = n?.iron_mg,
-        calciumMg     = n?.calcium_mg,
-        magnesiumMg   = n?.magnesium_mg,
-        potassiumMg   = n?.potassium_mg,
-        zincMg        = n?.zinc_mg,
-        vitAUg        = n?.vit_a_ug,
-        vitCMg        = n?.vit_c_mg,
-        vitDUg        = n?.vit_d_ug,
-        vitEMg        = n?.vit_e_mg,
-        vitKUg        = n?.vit_k_ug,
-        b12Ug         = n?.b12_ug,
+        transFatG     = coerceNullableDouble(n?.trans_fat_g, max = 100.0),
+        ironMg        = coerceNullableDouble(n?.iron_mg, max = 100.0),
+        calciumMg     = coerceNullableDouble(n?.calcium_mg, max = 3000.0),
+        magnesiumMg   = coerceNullableDouble(n?.magnesium_mg, max = 1000.0),
+        potassiumMg   = coerceNullableDouble(n?.potassium_mg, max = 5000.0),
+        zincMg        = coerceNullableDouble(n?.zinc_mg, max = 50.0),
+        vitAUg        = coerceNullableDouble(n?.vit_a_ug, max = 30000.0),
+        vitCMg        = coerceNullableDouble(n?.vit_c_mg, max = 2000.0),
+        vitDUg        = coerceNullableDouble(n?.vit_d_ug, max = 250.0),
+        vitEMg        = coerceNullableDouble(n?.vit_e_mg, max = 150.0),
+        vitKUg        = coerceNullableDouble(n?.vit_k_ug, max = 1000.0),
+        b12Ug         = coerceNullableDouble(n?.b12_ug, max = 100.0),
         // Photo/OCR-identified products previously never got a caffeine value
         // at all (unlike barcode-scanned ones, which read it straight from
         // OFF's own nutriments map) - the hypertension caffeine check could
         // only ever fire for a product found via barcode, silently missing
         // a caffeinated drink identified purely from its label photo.
-        caffeineMg    = n?.caffeine_mg,
+        caffeineMg    = coerceNullableDouble(n?.caffeine_mg, max = 1000.0),
     )
     return Product(
         name      = dto.name?.trim() ?: "(produit sans nom)",

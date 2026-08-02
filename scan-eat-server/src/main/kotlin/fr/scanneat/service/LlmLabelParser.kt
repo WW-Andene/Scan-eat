@@ -167,6 +167,18 @@ Output ONLY the JSON.
 private fun coerceNutrient(v: Double?, max: Double = 100.0): Double =
     (v ?: 0.0).coerceIn(0.0, max)
 
+// coerceNutrient above only ever covered the macros (energy/fat/carbs/protein/
+// salt) - every micronutrient/trans-fat/caffeine field below was passed
+// straight through as a nullable Double with no ceiling at all, unlike its
+// macro siblings. A hallucinated/misread per-100g figure here (e.g.
+// "iron_mg: 999999999" from a misread decimal, or a mg/µg unit confusion)
+// would silently corrupt the Android client's diary micronutrient totals and
+// any score/warning derived from them - null still means "not detected" and
+// is preserved, only a present value is clamped. Mirrors the identical fix in
+// the Android client's OcrMapper.kt (coerceNullableDouble); ceilings are
+// generous per-100g real-world maxima so no legitimate extreme food is clipped.
+private fun coerceNutrientNullable(v: Double?, max: Double): Double? = v?.coerceIn(0.0, max)
+
 // Named thresholds shared by every LLM-parsing entry point in this file, so the
 // per-100g energy cap and the barcode-plausibility check are each defined once
 // instead of repeated as bare literals at each call site. Keep these numerically
@@ -219,31 +231,31 @@ private fun mapToProduct(dto: LlmProductDto): Product {
         saturatedFatG = coerceNutrient(n?.saturatedFatG),
         carbsG        = coerceNutrient(n?.carbsG),
         sugarsG       = coerceNutrient(n?.sugarsG),
-        addedSugarsG  = n?.addedSugarsG,
+        addedSugarsG  = coerceNutrientNullable(n?.addedSugarsG, max = 100.0),
         fiberG        = coerceNutrient(n?.fiberG),
         proteinG      = coerceNutrient(n?.proteinG),
         saltG         = coerceNutrient(n?.saltG),
-        transFatG     = n?.transFatG,
-        ironMg        = n?.ironMg,
-        calciumMg     = n?.calciumMg,
-        magnesiumMg   = n?.magnesiumMg,
-        potassiumMg   = n?.potassiumMg,
-        zincMg        = n?.zincMg,
-        vitAUg        = n?.vitAUg,
-        vitCMg        = n?.vitCMg,
-        vitDUg        = n?.vitDUg,
-        vitEMg        = n?.vitEMg,
+        transFatG     = coerceNutrientNullable(n?.transFatG, max = 100.0),
+        ironMg        = coerceNutrientNullable(n?.ironMg, max = 100.0),
+        calciumMg     = coerceNutrientNullable(n?.calciumMg, max = 3000.0),
+        magnesiumMg   = coerceNutrientNullable(n?.magnesiumMg, max = 1000.0),
+        potassiumMg   = coerceNutrientNullable(n?.potassiumMg, max = 5000.0),
+        zincMg        = coerceNutrientNullable(n?.zincMg, max = 50.0),
+        vitAUg        = coerceNutrientNullable(n?.vitAUg, max = 30000.0),
+        vitCMg        = coerceNutrientNullable(n?.vitCMg, max = 2000.0),
+        vitDUg        = coerceNutrientNullable(n?.vitDUg, max = 250.0),
+        vitEMg        = coerceNutrientNullable(n?.vitEMg, max = 150.0),
         // vitKUg was already declared on LlmNutritionDto but neither requested in
         // the prompt's JSON schema above nor read here - a structurally-present
         // field that could never actually carry a value end to end.
-        vitKUg        = n?.vitKUg,
-        b12Ug         = n?.b12Ug,
+        vitKUg        = coerceNutrientNullable(n?.vitKUg, max = 1000.0),
+        b12Ug         = coerceNutrientNullable(n?.b12Ug, max = 100.0),
         // Photo/OCR-identified products previously never got a caffeine value at
         // all (unlike barcode-scanned ones, which read it straight from OFF's own
         // nutriments map) - the hypertension caffeine check could only ever fire
         // for a product found via barcode. Mirrors the identical Android-side fix
         // in OcrParser.kt.
-        caffeineMg    = n?.caffeineMg,
+        caffeineMg    = coerceNutrientNullable(n?.caffeineMg, max = 1000.0),
     )
     return Product(
         name      = dto.name?.trim() ?: "(produit sans nom)",
