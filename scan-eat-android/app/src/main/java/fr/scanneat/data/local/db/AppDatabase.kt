@@ -15,6 +15,8 @@ import fr.scanneat.data.local.db.medication.MedicationDao
 import fr.scanneat.data.local.db.medication.MedicationEntity
 import fr.scanneat.data.local.db.medication.MedicationLogDao
 import fr.scanneat.data.local.db.medication.MedicationLogEntity
+import fr.scanneat.data.local.db.price.PriceDao
+import fr.scanneat.data.local.db.price.PriceEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
@@ -38,8 +40,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationEntity::class,
         MedicationLogEntity::class,
         ScanScoreHistoryEntity::class,
+        PriceEntity::class,
     ],
-    version = 25,
+    version = 26,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -53,6 +56,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun medicationDao(): MedicationDao
     abstract fun medicationLogDao(): MedicationLogDao
     abstract fun scanScoreHistoryDao(): ScanScoreHistoryDao
+    abstract fun priceDao(): PriceDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -380,5 +384,32 @@ val MIGRATION_24_25 = object : Migration(24, 25) {
         // of trusting a pre-classifier score forever - see ScanHistoryEntity's own
         // doc comment on the field.
         db.execSQL("ALTER TABLE `scan_history` ADD COLUMN `nonFoodChecked` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+val MIGRATION_25_26 = object : Migration(25, 26) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v25 → v26: new `price_log` table backing the "Dépenses" (Expenses) Journal
+        // tab - a manual "I paid X for this" entry logged from the Result screen,
+        // paired with a per-category price/kg reference (ValueScoreEstimator) to
+        // flag whether a purchase was a good or poor value. Manual entry only:
+        // automatic price-tag OCR was considered but isn't reliable enough to build
+        // honestly, same scoping call already made for MicronutrientEstimator's
+        // category-typical fallbacks rather than fabricating precision.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `price_log` (" +
+                "`id` TEXT NOT NULL, " +
+                "`date` TEXT NOT NULL, " +
+                "`productName` TEXT NOT NULL, " +
+                "`barcode` TEXT, " +
+                "`category` TEXT NOT NULL, " +
+                "`priceEuros` REAL NOT NULL, " +
+                "`weightG` REAL, " +
+                "`pricePerKg` REAL, " +
+                "`loggedAt` INTEGER NOT NULL, " +
+                "`profileId` TEXT NOT NULL, " +
+                "PRIMARY KEY(`id`))"
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_price_log_date_profileId` ON `price_log` (`date`, `profileId`)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_price_log_barcode_profileId` ON `price_log` (`barcode`, `profileId`)")
     }
 }

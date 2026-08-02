@@ -49,6 +49,8 @@ class UserPreferences @Inject constructor(
         val KEY_ANIMATED_BACKGROUND  = booleanPreferencesKey("animated_background")
         val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
+        val KEY_BUDGET_WEEKLY        = floatPreferencesKey("budget_weekly_euros")
+        val KEY_BUDGET_PER_MEAL      = floatPreferencesKey("budget_per_meal_euros")
         // Profile — flat keys
         val KEY_PROFILE_NAME         = stringPreferencesKey("profile_name")
         val KEY_PROFILE_SEX          = stringPreferencesKey("profile_sex")
@@ -216,6 +218,15 @@ class UserPreferences @Inject constructor(
 
     /** Convenience — update only weight (used by WeightRepository after logging). */
     suspend fun updateWeight(kg: Double) = store.edit { it[KEY_PROFILE_WEIGHT] = kg.toFloat() }
+
+    // ---- Expenses (Dépenses) budget targets ----
+    // Both null means "no target set yet" - ExpensesScreen shows spend-only
+    // (no over/under budget framing) until the user opts into one, same as
+    // goalWeightKg's null-means-unset convention on Profile.
+    val budgetWeeklyEuros: Flow<Double?> = storeData.map { it[KEY_BUDGET_WEEKLY]?.toDouble() }.distinctUntilChanged()
+    val budgetPerMealEuros: Flow<Double?> = storeData.map { it[KEY_BUDGET_PER_MEAL]?.toDouble() }.distinctUntilChanged()
+    suspend fun setBudgetWeeklyEuros(v: Double?) = store.edit { p -> v?.let { p[KEY_BUDGET_WEEKLY] = it.toFloat() } ?: p.remove(KEY_BUDGET_WEEKLY) }
+    suspend fun setBudgetPerMealEuros(v: Double?) = store.edit { p -> v?.let { p[KEY_BUDGET_PER_MEAL] = it.toFloat() } ?: p.remove(KEY_BUDGET_PER_MEAL) }
 }
 
 enum class ApiMode(val key: String) {

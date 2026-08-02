@@ -819,6 +819,16 @@
     <string name="diary_tab_activity">Activity</string>
     <string name="diary_tab_fasting">Fasting</string>
     <string name="diary_tab_treatment">Treatment</string>
+    <string name="diary_tab_expenses">Expenses</string>
+    <string name="expenses_history_title">Purchase history</string>
+    <string name="expenses_empty_body">No expense logged yet. Add a price from a product page after scanning.</string>
+    <string name="expenses_week_title">This week</string>
+    <string name="expenses_edit_budget">Target</string>
+    <string name="expenses_of_budget">of %.0f € this week</string>
+    <string name="expenses_no_budget_hint">Set a weekly target to track your budget</string>
+    <string name="expenses_avg_per_meal">Average %.2f € / purchase (target %.0f €)</string>
+    <string name="expenses_budget_weekly_label">Weekly budget (€)</string>
+    <string name="expenses_budget_per_meal_label">Budget per purchase (€)</string>
     <string name="diary_note_label">Note of the day</string>
     <string name="diary_cd_save_note">Save</string>
     <string name="diary_empty_body">Nothing logged yet. Scan a product and tap \'Log it\'.</string>
@@ -1269,6 +1279,16 @@
     <string name="result_score_history_cd">Score trend: from %1$d to %2$d</string>
     <string name="result_macro_contribution_title">Per 100 g contribution (%% DRV)</string>
     <string name="result_macro_contribution_note">DRV = EU Daily Reference Values (adult)</string>
+    <string name="result_price_title">Price</string>
+    <string name="result_price_add">Add a price</string>
+    <string name="result_price_empty">No price logged for this product yet</string>
+    <string name="result_price_field_euros">Price paid (€)</string>
+    <string name="result_price_field_weight">Net weight (g)</string>
+    <string name="result_price_field_weight_hint">Weight lets us compute price/kg and a value score</string>
+    <string name="result_price_value_great">Great value</string>
+    <string name="result_price_value_good">Good value</string>
+    <string name="result_price_value_average">Average price</string>
+    <string name="result_price_value_poor">Expensive</string>
     <string name="result_macro_kcal">Energy</string>
     <string name="result_macro_protein">Protein</string>
     <string name="result_macro_carbs">Carbs</string>

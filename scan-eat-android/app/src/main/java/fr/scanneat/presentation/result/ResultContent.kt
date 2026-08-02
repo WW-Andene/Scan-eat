@@ -43,6 +43,9 @@ internal fun ResultContent(
     language: String = "fr",
     scoreDelta: Int? = null,
     scoreHistory: List<Int> = emptyList(),
+    priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
+    onSavePrice: (Double, Double?) -> Unit = { _, _ -> },
+    onDeletePrice: (String) -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
     onOpenProfile: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -136,6 +139,10 @@ internal fun ResultContent(
 
         // Pillars
         PillarsSection(pillars = audit.pillars)
+
+        // Price / value-score tracking — manual entry only (no OCR price-tag
+        // detection), see PriceEntryCard's own doc comment.
+        PriceEntryCard(entries = priceEntries, onSave = onSavePrice, onDelete = onDeletePrice)
 
         // Nutrition table
         NutritionTable(nutrition = scan.product.nutrition)

@@ -76,6 +76,7 @@ fun DashboardScreen(
     onOpenResult: (Long) -> Unit = {},
     onOpenCalendar: () -> Unit = {},
     onOpenFoodSearch: () -> Unit = {},
+    onOpenExpenses: () -> Unit = {},
 ) {
     val state    = viewModel.state.collectAsStateWithLifecycle()
     val s        = state.value
@@ -176,6 +177,9 @@ fun DashboardScreen(
             s.weightSummary?.let { ws ->
                 item { WeightCard(summary = ws, forecast = s.weightForecast, useImperial = useImperialWeight.value) }
             }
+
+            // ---- Expenses recap (self-contained, own hiltViewModel - see ExpensesRecapCard's doc comment) ----
+            item { fr.scanneat.presentation.dashboard.cards.ExpensesRecapCard(onClick = onOpenExpenses) }
 
             // ---- Gap-closer suggestions ----
             if (s.gapSuggestions.isNotEmpty()) {

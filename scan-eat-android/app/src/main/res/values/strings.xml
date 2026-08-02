@@ -820,6 +820,16 @@
     <string name="diary_tab_activity">Activité</string>
     <string name="diary_tab_fasting">Jeûne</string>
     <string name="diary_tab_treatment">Traitement</string>
+    <string name="diary_tab_expenses">Dépenses</string>
+    <string name="expenses_history_title">Historique des achats</string>
+    <string name="expenses_empty_body">Aucune dépense enregistrée. Ajoute un prix depuis une fiche produit après un scan.</string>
+    <string name="expenses_week_title">Cette semaine</string>
+    <string name="expenses_edit_budget">Objectif</string>
+    <string name="expenses_of_budget">sur %.0f € cette semaine</string>
+    <string name="expenses_no_budget_hint">Définis un objectif hebdomadaire pour suivre ton budget</string>
+    <string name="expenses_avg_per_meal">Moyenne %.2f € / achat (objectif %.0f €)</string>
+    <string name="expenses_budget_weekly_label">Budget hebdomadaire (€)</string>
+    <string name="expenses_budget_per_meal_label">Budget par achat (€)</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Logger\'.</string>
@@ -1314,6 +1324,16 @@
     <string name="result_score_history_cd">Évolution du score : de %1$d à %2$d</string>
     <string name="result_macro_contribution_title">Apport pour 100 g (%% VNR)</string>
     <string name="result_macro_contribution_note">VNR = Valeurs nutritionnelles de référence UE (adulte)</string>
+    <string name="result_price_title">Prix</string>
+    <string name="result_price_add">Ajouter un prix</string>
+    <string name="result_price_empty">Aucun prix enregistré pour ce produit</string>
+    <string name="result_price_field_euros">Prix payé (€)</string>
+    <string name="result_price_field_weight">Poids net (g)</string>
+    <string name="result_price_field_weight_hint">Le poids permet de calculer le prix au kg et un score de rentabilité</string>
+    <string name="result_price_value_great">Excellent prix</string>
+    <string name="result_price_value_good">Bon prix</string>
+    <string name="result_price_value_average">Prix moyen</string>
+    <string name="result_price_value_poor">Prix élevé</string>
     <string name="result_macro_kcal">Énergie</string>
     <string name="result_macro_protein">Protéines</string>
     <string name="result_macro_carbs">Glucides</string>

@@ -8,6 +8,8 @@ import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.scan.ComparisonRepository
 import fr.scanneat.data.repository.scan.ComparisonResult
+import fr.scanneat.data.repository.expense.PriceEntry
+import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.planning.ManualGroceryRepository
@@ -67,6 +69,7 @@ class ResultViewModel @Inject constructor(
     internal val customFoodRepo: CustomFoodRepository,
     internal val recipeRepo: RecipeRepository,
     internal val manualGroceryRepo: ManualGroceryRepository,
+    private val priceRepo: PriceRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -160,6 +163,35 @@ class ResultViewModel @Inject constructor(
     }
 
     fun clearLogState() { _logState.value = LogState.Idle }
+
+    // Price history for this exact product — matched by barcode when the scan has
+    // one, else falls back to matching by name (LLM-identified/no-barcode scans
+    // still worth tracking a price against). Empty until a scan is loaded.
+    val priceEntries: StateFlow<List<PriceEntry>> = combine(state, priceRepo.observeAll()) { s, all ->
+        val scan = s.scanResult ?: return@combine emptyList()
+        if (scan.barcode != null) all.filter { it.barcode == scan.barcode }
+        else all.filter { it.barcode == null && it.productName == scan.product.name }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun savePrice(priceEuros: Double, weightG: Double?) {
+        val scan = state.value.scanResult ?: return
+        viewModelScope.launch {
+            runCatching {
+                priceRepo.log(
+                    date = LocalDate.now(),
+                    productName = scan.product.name,
+                    barcode = scan.barcode,
+                    category = scan.product.category,
+                    priceEuros = priceEuros,
+                    weightG = weightG,
+                )
+            }
+        }
+    }
+
+    fun deletePrice(id: String) {
+        viewModelScope.launch { runCatching { priceRepo.delete(id) } }
+    }
 
     // saveToDestinations (the "Save to..." popup's multi-destination write) is
     // implemented as an internal extension function in ResultSaveDestinations.kt

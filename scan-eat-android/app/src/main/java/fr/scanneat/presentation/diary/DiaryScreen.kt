@@ -43,6 +43,7 @@ import fr.scanneat.presentation.diary.components.DiarySlotFilterRow
 import fr.scanneat.presentation.diary.components.diaryLabel
 import fr.scanneat.presentation.diary.components.EditPortionDialog
 import fr.scanneat.presentation.diary.components.MacroSummaryCard
+import fr.scanneat.presentation.expenses.ExpensesScreen
 import fr.scanneat.presentation.fasting.FastingScreen
 import fr.scanneat.presentation.hydration.HydrationScreen
 import fr.scanneat.presentation.medication.MedicationScreen
@@ -60,6 +61,7 @@ private enum class DiaryTab(val labelRes: Int) {
     ACTIVITY(R.string.diary_tab_activity),
     FASTING(R.string.diary_tab_fasting),
     TREATMENT(R.string.diary_tab_treatment),
+    EXPENSES(R.string.diary_tab_expenses),
 }
 
 /** Bundle doesn't natively round-trip an enum - process death (a low-memory
@@ -98,6 +100,12 @@ fun DiaryScreen(
     // to land on Journal already showing a specific past day picked from Calendar.
     pendingSelectedDate: String? = null,
     onPendingDateConsumed: () -> Unit = {},
+    // Dashboard's expenses recap card hands the target sub-tab back the same
+    // SavedStateHandle "return a result" way Calendar's pendingSelectedDate
+    // does above - opening Journal from there previously always landed on
+    // Meals regardless of which card the user actually tapped.
+    pendingTab: String? = null,
+    onPendingTabConsumed: () -> Unit = {},
 ) {
     var activeTab by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.MEALS) }
     var showAddEntry by remember { mutableStateOf(false) }
@@ -109,6 +117,12 @@ fun DiaryScreen(
             activeTab = DiaryTab.MEALS
         }
         onPendingDateConsumed()
+    }
+
+    LaunchedEffect(pendingTab) {
+        val tab = pendingTab?.let { runCatching { DiaryTab.valueOf(it) }.getOrNull() }
+        if (tab != null) activeTab = tab
+        onPendingTabConsumed()
     }
 
     // Same pattern as WeightScreen - a failed Room write (delete/update/log/note) now
@@ -156,6 +170,7 @@ fun DiaryScreen(
                 DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.EXPENSES -> ExpensesScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
             }
         }
 

@@ -123,6 +123,8 @@ fun AppNavGraph(
                 onOpenCalendar = { navController.navigate(AppRoutes.CALENDAR) },
                 pendingSelectedDate = backStackEntry.savedStateHandle.get<String>("diary_selected_date"),
                 onPendingDateConsumed = { backStackEntry.savedStateHandle.remove<String>("diary_selected_date") },
+                pendingTab = backStackEntry.savedStateHandle.get<String>("diary_selected_tab"),
+                onPendingTabConsumed = { backStackEntry.savedStateHandle.remove<String>("diary_selected_tab") },
             )
         }
 
@@ -140,6 +142,14 @@ fun AppNavGraph(
                 onOpenResult         = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenCalendar       = { navController.navigate(AppRoutes.CALENDAR) },
                 onOpenFoodSearch     = { navController.navigate(AppRoutes.FOOD_SEARCH) },
+                onOpenExpenses       = {
+                    navController.getBackStackEntry(TopTab.Diary.route).savedStateHandle["diary_selected_tab"] = "EXPENSES"
+                    navController.navigate(TopTab.Diary.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
             )
         }
 
