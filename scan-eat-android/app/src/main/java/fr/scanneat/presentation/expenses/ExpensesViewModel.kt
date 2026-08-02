@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.data.repository.expense.PriceRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -26,6 +27,19 @@ class ExpensesViewModel @Inject constructor(
     val budgetPerMealEuros: StateFlow<Double?> = prefs.budgetPerMealEuros
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // LocalDate.now() called directly inside a .map on `entries` (the previous
+    // shape of both properties below) only re-evaluates when the price list
+    // itself changes - a user who goes a day or more without logging a new
+    // purchase kept both figures pinned to whatever "today" was on their last
+    // purchase, past midnight. Same bug class WeightViewModel.weeklyAvg already
+    // guards against by combining with a ticking Flow<LocalDate>, applied here too.
+    private val today: Flow<LocalDate> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+
     // Trailing 7-day window ending today (today-6..today), NOT an ISO calendar
     // week - matches the "this week" convention every other feature in the app
     // already uses (DashboardAggregator.weeklyRollup, the cross-tracker insight,
@@ -34,18 +48,16 @@ class ExpensesViewModel @Inject constructor(
     // meant a different span here than everywhere else spend/intake/activity is
     // summarized - e.g. on a Wednesday, Dashboard's cross-tracker window and
     // this screen's own header covered different date ranges.
-    val weekTotal: StateFlow<Double> = entries.map { list ->
-        val today = LocalDate.now()
-        val weekStart = today.minusDays(6)
-        list.filter { !it.date.isBefore(weekStart) && !it.date.isAfter(today) }.sumOf { it.priceEuros }
+    val weekTotal: StateFlow<Double> = combine(entries, today) { list, todayDate ->
+        val weekStart = todayDate.minusDays(6)
+        list.filter { !it.date.isBefore(weekStart) && !it.date.isAfter(todayDate) }.sumOf { it.priceEuros }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     /** Average price paid per logged purchase this week - a rough stand-in for
      *  "per meal" since price_log isn't tied to a specific diary meal slot. */
-    val avgPerEntryThisWeek: StateFlow<Double?> = entries.map { list ->
-        val today = LocalDate.now()
-        val weekStart = today.minusDays(6)
-        val thisWeek = list.filter { !it.date.isBefore(weekStart) && !it.date.isAfter(today) }
+    val avgPerEntryThisWeek: StateFlow<Double?> = combine(entries, today) { list, todayDate ->
+        val weekStart = todayDate.minusDays(6)
+        val thisWeek = list.filter { !it.date.isBefore(weekStart) && !it.date.isAfter(todayDate) }
         if (thisWeek.isEmpty()) null else thisWeek.sumOf { it.priceEuros } / thisWeek.size
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 

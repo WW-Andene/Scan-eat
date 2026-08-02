@@ -14,11 +14,13 @@ import fr.scanneat.domain.engine.dashboard.weeklyRollup
 import fr.scanneat.domain.engine.scoring.dailyTargets
 import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.presentation.common.ActionFailureViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import java.time.LocalDate
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class DataViewModel @Inject constructor(
     private val repo: BiolismRepository,
@@ -39,10 +41,23 @@ class DataViewModel @Inject constructor(
     val advancedView: StateFlow<Boolean> = prefs.biolismAdvancedView
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    // LocalDate.now() called directly as a one-time argument (the previous shape of
+    // both todayIntakeKcal and crossInsight below) is captured once at ViewModel-
+    // construction time and never re-evaluated - a screen/tab left open across
+    // midnight kept both pinned to the day this ViewModel happened to be created
+    // on. Same bug class WeightViewModel/HydrationViewModel already fixed with a
+    // ticking Flow<LocalDate> + distinctUntilChanged, applied here too.
+    private val today: Flow<LocalDate> = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }.distinctUntilChanged()
+
     // Real intake — sourced from the Diary's scanned/logged food (single source of truth for
     // calorie tracking), so Biolism's energy figures reflect actual consumption instead of a
     // separate manual entry system.
-    val todayIntakeKcal: StateFlow<Double> = consumptionRepo.observeDay(LocalDate.now())
+    val todayIntakeKcal: StateFlow<Double> = today.flatMapLatest { consumptionRepo.observeDay(it) }
         .map { it.totals.energyKcal }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
@@ -128,7 +143,7 @@ class DataViewModel @Inject constructor(
     // Dashboard's WeeklyInsightCard already renders, just recomputed against
     // this ViewModel's own inputs instead of duplicating the formula.
     val crossInsight: StateFlow<CrossTrackerInsight> = combine(
-        consumptionRepo.observeRange(LocalDate.now().minusDays(6), LocalDate.now()),
+        today.flatMapLatest { consumptionRepo.observeRange(it.minusDays(6), it) },
         weightRepo.observeSummary(30),
         nutritionProfile,
     ) { weekEntries, weightSummary, nutriProfile ->
