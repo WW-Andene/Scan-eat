@@ -235,6 +235,17 @@ class ScanViewModel @Inject constructor(
         _scannedBarcode.value = null
         _images.value = emptyList()
         _state.value = ScanUiState.Idle
+        // onBarcodeDetected() bails out before touching these two whenever
+        // _images is non-empty (its images-queue guard above), so a debounce
+        // streak in progress before photos were queued was left stale rather
+        // than reset - the same barcode reappearing after the queue clears
+        // resumed from that stale count instead of a fresh debounce, weakening
+        // the anti-flicker protection onBarcodeDetected's own doc comment
+        // describes (BARCODE_STABILITY_FRAMES exists precisely so a genuinely
+        // isolated barcode still needs its own full streak, not a partial one
+        // left over from an unrelated candidate).
+        pendingBarcode = null
+        pendingBarcodeStreak = 0
     }
 
     /**
@@ -266,6 +277,12 @@ class ScanViewModel @Inject constructor(
         _images.value = emptyList()
         _scannedBarcode.value = null
         _state.value = ScanUiState.Idle
+        // See resultConsumed()'s own doc comment for why this stale-streak leak
+        // needs resetting here too - clearQueue() is the other path (dismissed
+        // found-dialog, manual queue clear) that can leave photos empty again
+        // after onBarcodeDetected()'s guard suppressed the debounce for a while.
+        pendingBarcode = null
+        pendingBarcodeStreak = 0
     }
 
     /**
@@ -498,10 +515,19 @@ class ScanViewModel @Inject constructor(
      * Room/DataStore write this ViewModel performs (all wrapped and surfaced via
      * ScanUiState.Error above), so a save failure (e.g. disk full) crashed the app instead
      * of leaving the confirm dialog up with a visible error.
+     *
+     * dosage is left blank (not entry.form) - form is the pharmaceutical form (e.g.
+     * "comprimé pelliculé", "solution buvable"), not a strength/quantity. The
+     * dosage field's own UI label/hint (medication_field_dosage/_hint, "ex. 500 mg,
+     * 2 comprimés") sets a strength expectation that entry.form doesn't meet - BDPM's
+     * MedicationDbEntry carries no per-unit-mg field at all, so silently putting form
+     * there looked like a parsed dosage the app got wrong rather than what it was:
+     * unrelated data in the wrong field. Left for the user to fill in themselves,
+     * same as the manual-add flow already does.
      */
     fun saveDetectedMedication(entry: MedicationDbEntry) {
         viewModelScope.launch {
-            runCatching { medicationRepo.save(name = entry.name, dosage = entry.form, barcode = entry.barcode) }
+            runCatching { medicationRepo.save(name = entry.name, barcode = entry.barcode) }
                 .onFailure { e ->
                     if (e is CancellationException) throw e
                     val lang = prefs.language.first()
