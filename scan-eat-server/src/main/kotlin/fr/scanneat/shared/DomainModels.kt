@@ -115,6 +115,12 @@ fun declaredMicronutrientsOf(n: NutritionPer100g): List<String> = buildList {
     if (n.vitKUg != null) add("vitaminK")
     if (n.b12Ug != null) add("vitaminB12")
     if (n.b6Mg != null) add("vitaminB6")
+    if (n.b1Mg != null) add("vitaminB1")
+    if (n.b2Mg != null) add("vitaminB2")
+    if (n.b3Mg != null) add("vitaminB3")
+    if (n.b9Ug != null) add("vitaminB9")
+    if (n.omega3G != null) add("omega3")
+    if (n.caffeineMg != null) add("caffeine")
 }
 
 data class Ingredient(
