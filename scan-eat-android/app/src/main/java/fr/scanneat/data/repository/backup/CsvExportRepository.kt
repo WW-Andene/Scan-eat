@@ -18,6 +18,7 @@ import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.data.repository.planning.TemplateItem
 import fr.scanneat.data.local.db.weight.WeightDao
+import fr.scanneat.util.formatDecimal
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -93,9 +94,9 @@ class CsvExportRepository @Inject constructor(
     suspend fun exportBiolismSessionsCsv(): String {
         val rows = biolismRepo.sessions.first()
         val lines = rows.sortedBy { it.timestamp }.map { s ->
-            "${s.timestamp},${s.elapsedSec.toInt()},${s.kcalBurned.toInt()},${"%.1f".format(java.util.Locale.US, s.kcalPerMin)}," +
+            "${s.timestamp},${s.elapsedSec.toInt()},${s.kcalBurned.toInt()},${s.kcalPerMin.formatDecimal(1)}," +
                 "${s.bmrDay.toInt()},${s.tdeeDay.toInt()},${csvField(s.activityLabel)},${s.ketosis},${s.startWeightKg},${s.endWeightKg}," +
-                "${"%.3f".format(java.util.Locale.US, s.fatFrac)},${s.fatLostKg}"
+                "${s.fatFrac.formatDecimal(3)},${s.fatLostKg}"
         }
         return buildCsv("timestamp,elapsedSec,kcalBurned,kcalPerMin,bmrDay,tdeeDay,activity,ketosis,startWeightKg,endWeightKg,fatFrac,fatLostKg", lines)
     }

@@ -43,6 +43,7 @@ ANDROID_NUTRITION_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/d
 # copy inline in OffService.kt (see that file's own "manual sync" comment).
 ANDROID_UTIL_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/util"
 SERVER_SERVICE_DIR = REPO / "scan-eat-server/src/main/kotlin/fr/scanneat/service"
+ANDROID_SCAN_DIR = REPO / "scan-eat-android/app/src/main/java/fr/scanneat/data/repository/scan"
 
 # (function name, server path, android path) — pure-logic functions that must
 # stay identical between the two hand-maintained copies.
@@ -131,6 +132,21 @@ PAIRS = [
     # one canonical (tag -> key) direction needs checking here.
     ("OFF_ALLERGEN_TAG_MAP", SERVER_SERVICE_DIR / "LlmLabelParser.kt", ANDROID_SCORING_DIR / "AllergenDetector.kt"),
 ]
+
+# NutritionLimits (server: LlmLabelParser.kt / android: OcrMapper.kt) is a
+# `private object { ... }` literal, not a top-level `fun`/`val` - extract_val's
+# VAL_START_RE_TMPL anchors on column 0 and PAIRS' extract_declaration only
+# knows brace-matching (fun) or paren-matching (val), neither of which fits an
+# indented object member. Both files' own comments say to "keep these
+# numerically in sync," but nothing outside that comment ever verified it -
+# checked directly here (by name, not through PAIRS/extract_declaration)
+# rather than stretching the generic extractor to a shape it wasn't designed
+# for and risking false negatives on the 52 pairs it already covers correctly.
+NUTRITION_LIMITS_PAIR = (
+    SERVER_SERVICE_DIR / "LlmLabelParser.kt",
+    ANDROID_SCAN_DIR / "OcrMapper.kt",
+)
+NUTRITION_LIMITS_RE = re.compile(r"object NutritionLimits\s*\{(.*?)\n\s*\}", re.DOTALL)
 
 FUNC_START_RE_TMPL = r"^(?:private |internal |public )?fun {name}\b"
 VAL_START_RE_TMPL = r"^(?:private |internal |public )?val {name}\b"
@@ -371,8 +387,32 @@ def extract_declaration(path: Path, name: str) -> str:
         return extract_val(path, name)
 
 
+def check_nutrition_limits() -> str | None:
+    """Direct check for NUTRITION_LIMITS_PAIR - see that constant's comment
+    for why this bypasses extract_declaration/PAIRS entirely."""
+    server_path, android_path = NUTRITION_LIMITS_PAIR
+    server_m = NUTRITION_LIMITS_RE.search(server_path.read_text())
+    android_m = NUTRITION_LIMITS_RE.search(android_path.read_text())
+    if server_m is None:
+        return f"[NutritionLimits] object not found in {server_path.relative_to(REPO)}"
+    if android_m is None:
+        return f"[NutritionLimits] object not found in {android_path.relative_to(REPO)}"
+    norm_server = normalize(server_m.group(1))
+    norm_android = normalize(android_m.group(1))
+    if norm_server != norm_android:
+        return (
+            f"[NutritionLimits] DRIFT between {server_path.relative_to(REPO)} and "
+            f"{android_path.relative_to(REPO)}:\n"
+            f"--- server ---\n{norm_server}\n--- android ---\n{norm_android}\n"
+        )
+    return None
+
+
 def main() -> int:
     failures = []
+    nutrition_limits_failure = check_nutrition_limits()
+    if nutrition_limits_failure:
+        failures.append(nutrition_limits_failure)
     for name, server_path, android_path in PAIRS:
         try:
             server_body = extract_declaration(server_path, name)
@@ -399,7 +439,7 @@ def main() -> int:
         print("\n".join(failures))
         return 1
 
-    print(f"OK — {len(PAIRS)} matched declarations are in sync between server and android.")
+    print(f"OK — {len(PAIRS)} matched declarations + NutritionLimits are in sync between server and android.")
     return 0
 
 

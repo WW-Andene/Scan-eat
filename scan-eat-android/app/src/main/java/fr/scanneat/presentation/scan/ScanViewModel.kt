@@ -40,7 +40,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import retrofit2.HttpException
 import java.io.File
 import javax.inject.Inject
 
@@ -373,7 +372,7 @@ class ScanViewModel @Inject constructor(
                             }
                         }
                     },
-                    onFailure = { e -> _state.value = ScanUiState.Error(e.message ?: genericErrorMessage(lang)) },
+                    onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
                 )
             } finally {
                 scoreMutex.unlock()
@@ -426,7 +425,7 @@ class ScanViewModel @Inject constructor(
                             ScanUiState.MultiFoodFound(items = edibleResults.map { it to scanRepo.persist(it) })
                         }
                     },
-                    onFailure = { e -> _state.value = ScanUiState.Error(e.message ?: genericErrorMessage(lang)) },
+                    onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
                 )
             } finally {
                 scoreMutex.unlock()
@@ -514,17 +513,11 @@ class ScanViewModel @Inject constructor(
                             }
                             e is ProductNotFoundException ->
                                 ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
-                            // A rejected API key (invalid/revoked, not just missing — that
-                            // case is already caught earlier as a friendly message) would
-                            // otherwise surface as a bare "HTTP 401 " to the user with no
-                            // indication of what to actually do about it.
-                            e is HttpException && (e.code() == 401 || e.code() == 403) ->
-                                ScanUiState.Error(invalidApiKeyMessage(lang))
-                            e is HttpException && (e.code() == 400 || e.code() == 404) ->
-                                ScanUiState.Error(invalidModelMessage(lang))
-                            e is HttpException && e.code() == 429 ->
-                                ScanUiState.Error(rateLimitedMessage(lang))
-                            else -> ScanUiState.Error(e.message ?: genericErrorMessage(lang))
+                            // A rejected API key/retired model/rate limit would otherwise
+                            // surface as a bare "HTTP 401 " with no indication of what to
+                            // actually do about it - same mapping identifyFromPhotos()/
+                            // identifyMultiFromPhotos() use for these same HTTP codes.
+                            else -> ScanUiState.Error(httpFriendlyMessage(e, lang))
                         }
                     },
                 )

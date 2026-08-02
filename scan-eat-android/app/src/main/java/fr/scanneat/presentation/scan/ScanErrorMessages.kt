@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.scan
 
+import retrofit2.HttpException
+
 /** Reaches the user verbatim in the scan error banner — needs to actually say what to do. */
 internal fun invalidApiKeyMessage(lang: String) =
     if (lang == "en") "Groq rejected this API key — check it in Settings"
@@ -63,3 +65,21 @@ internal fun genericErrorMessage(lang: String) =
 internal fun noFoodsDetectedMessage(lang: String) =
     if (lang == "en") "No distinct foods were detected in the photo(s) — try a clearer shot"
     else "Aucun aliment distinct détecté sur la ou les photos — essayez une photo plus nette"
+
+/**
+ * Shared HttpException-code-to-friendly-message mapping - score()'s own failure
+ * branch already special-cased 401/403/400/404/429 so a rejected API key/retired
+ * model/rate limit reads as actionable guidance rather than "HTTP 401 ", but
+ * identifyFromPhotos()/identifyMultiFromPhotos() previously fell straight through
+ * to `e.message ?: genericErrorMessage(lang)` for the exact same failure modes,
+ * leaking the raw OkHttp/Retrofit exception string on the identify path only.
+ * Falls back to e.message for anything already wrapped with a localized message
+ * elsewhere (e.g. ScanServerClient's serverUnreachableMessage), and to
+ * genericErrorMessage(lang) only when there's truly nothing better to show.
+ */
+internal fun httpFriendlyMessage(e: Throwable, lang: String): String = when {
+    e is HttpException && (e.code() == 401 || e.code() == 403) -> invalidApiKeyMessage(lang)
+    e is HttpException && (e.code() == 400 || e.code() == 404) -> invalidModelMessage(lang)
+    e is HttpException && e.code() == 429 -> rateLimitedMessage(lang)
+    else -> e.message ?: genericErrorMessage(lang)
+}
