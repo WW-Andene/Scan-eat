@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-internal class PremiumGateViewModel @Inject constructor(prefs: UserPreferences) : ViewModel() {
+class PremiumGateViewModel @Inject constructor(prefs: UserPreferences) : ViewModel() {
     val isPremium: StateFlow<Boolean> = prefs.isPremium.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 }
 
