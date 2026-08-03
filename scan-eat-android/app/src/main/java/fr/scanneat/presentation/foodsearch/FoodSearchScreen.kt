@@ -85,8 +85,12 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                 // to yield - Map iteration order isn't a UI contract to rely on.
                 val orderedCategories = listOf(
                     FoodSearchCategory.SCANNED, FoodSearchCategory.CUSTOM,
-                    FoodSearchCategory.FRUITS_VEGETABLES, FoodSearchCategory.GRAINS_PROTEINS,
-                    FoodSearchCategory.DAIRY_LEGUMES, FoodSearchCategory.FATS_SWEETS_BEVERAGES,
+                    FoodSearchCategory.FRUITS, FoodSearchCategory.VEGETABLES,
+                    FoodSearchCategory.GRAINS_STARCHES, FoodSearchCategory.PROTEINS,
+                    FoodSearchCategory.LEGUMES_NUTS_SEEDS, FoodSearchCategory.DAIRY,
+                    FoodSearchCategory.FATS_OILS, FoodSearchCategory.SWEETS_SNACKS,
+                    FoodSearchCategory.BEVERAGES, FoodSearchCategory.PREPARED_MEALS,
+                    FoodSearchCategory.OTHER,
                 )
                 orderedCategories.forEach { category ->
                     val items = grouped.value[category].orEmpty()
@@ -169,12 +173,19 @@ private fun FiltersSection(
 @Composable
 private fun categoryLabel(category: FoodSearchCategory): String = stringResource(
     when (category) {
-        FoodSearchCategory.SCANNED               -> R.string.foodsearch_category_scanned
-        FoodSearchCategory.CUSTOM                -> R.string.foodsearch_category_custom
-        FoodSearchCategory.FRUITS_VEGETABLES      -> R.string.foodsearch_category_fruits_veg
-        FoodSearchCategory.GRAINS_PROTEINS        -> R.string.foodsearch_category_grains_proteins
-        FoodSearchCategory.DAIRY_LEGUMES          -> R.string.foodsearch_category_dairy_legumes
-        FoodSearchCategory.FATS_SWEETS_BEVERAGES  -> R.string.foodsearch_category_fats_sweets
+        FoodSearchCategory.SCANNED             -> R.string.foodsearch_category_scanned
+        FoodSearchCategory.CUSTOM              -> R.string.foodsearch_category_custom
+        FoodSearchCategory.FRUITS              -> R.string.foodsearch_category_fruits
+        FoodSearchCategory.VEGETABLES          -> R.string.foodsearch_category_vegetables
+        FoodSearchCategory.GRAINS_STARCHES     -> R.string.foodsearch_category_grains
+        FoodSearchCategory.PROTEINS            -> R.string.foodsearch_category_proteins
+        FoodSearchCategory.LEGUMES_NUTS_SEEDS  -> R.string.foodsearch_category_legumes_nuts
+        FoodSearchCategory.DAIRY               -> R.string.foodsearch_category_dairy
+        FoodSearchCategory.FATS_OILS           -> R.string.foodsearch_category_fats_oils
+        FoodSearchCategory.SWEETS_SNACKS       -> R.string.foodsearch_category_sweets
+        FoodSearchCategory.BEVERAGES           -> R.string.foodsearch_category_beverages
+        FoodSearchCategory.PREPARED_MEALS      -> R.string.foodsearch_category_prepared_meals
+        FoodSearchCategory.OTHER               -> R.string.foodsearch_category_other
     },
 )
 

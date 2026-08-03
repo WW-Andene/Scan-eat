@@ -6,10 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
-import fr.scanneat.domain.engine.nutrition.FOOD_DB_DAIRY_AND_LEGUMES
-import fr.scanneat.domain.engine.nutrition.FOOD_DB_FATS_SWEETS_AND_MEALS
-import fr.scanneat.domain.engine.nutrition.FOOD_DB_FRUITS_AND_VEGETABLES
-import fr.scanneat.domain.engine.nutrition.FOOD_DB_GRAINS_AND_PROTEINS
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.model.Grade
@@ -23,22 +19,94 @@ import javax.inject.Inject
 enum class FoodSearchFilter { ALL, HIGH_PROTEIN, LOW_CARB, HIGH_FIBER, IRON_SOURCE, CALCIUM_SOURCE }
 
 /**
- * Which accordion section a result groups under. Deliberately NOT ProductCategory
+ * Which accordion section a result groups under. NOT ProductCategory
  * (SANDWICH/YOGURT/CHEESE/...) - that enum is retail-product-oriented and would
- * misclassify most whole foods (an apple, a lentil) as OTHER. FOOD_DB is already
- * hand-organized into exactly these four buckets across its own source files
- * (FoodDbFruitsAndVegetables.kt etc.) - reusing that real curation instead of
- * inventing a second, worse one via name-sniffing.
+ * misclassify most whole foods (an apple, a lentil) as OTHER.
+ *
+ * Previously this reused FOOD_DB's four *source-file* buckets directly
+ * (FRUITS_VEGETABLES, GRAINS_PROTEINS, DAIRY_LEGUMES, FATS_SWEETS_BEVERAGES) -
+ * those groupings exist purely to split one large Kotlin file into four smaller
+ * ones and were never meant to be nutritionally coherent categories (e.g.
+ * "grains and proteins" lumping bread in with chicken and beef, "fats, sweets,
+ * and beverages" lumping olive oil in with soda and pizza). Reported as
+ * confusing - reworked into the actual food-group taxonomy below, built via an
+ * explicit per-item map ([FOOD_DB_CATEGORY_BY_NAME]) rather than reusing the
+ * source-file split.
  */
-enum class FoodSearchCategory { SCANNED, CUSTOM, FRUITS_VEGETABLES, GRAINS_PROTEINS, DAIRY_LEGUMES, FATS_SWEETS_BEVERAGES }
+enum class FoodSearchCategory {
+    SCANNED, CUSTOM,
+    FRUITS, VEGETABLES, GRAINS_STARCHES, PROTEINS, LEGUMES_NUTS_SEEDS,
+    DAIRY, FATS_OILS, SWEETS_SNACKS, BEVERAGES, PREPARED_MEALS,
+    // Catch-all: every FOOD_DB entry is explicitly classified above, so this
+    // should never actually be hit - only exists so a future FOOD_DB addition
+    // that's forgotten in the classification lists above still lands somewhere
+    // visible instead of silently defaulting into an unrelated real category.
+    OTHER,
+}
 
-// Built once at class-init, not per search - same precompute-don't-repeat strategy
-// FoodDb.kt's own NORMALIZED_FOOD_DB already uses for this exact list.
-private val FOOD_DB_CATEGORY_BY_NAME: Map<String, FoodSearchCategory> =
-    FOOD_DB_FRUITS_AND_VEGETABLES.associate { it.name to FoodSearchCategory.FRUITS_VEGETABLES } +
-        FOOD_DB_GRAINS_AND_PROTEINS.associate { it.name to FoodSearchCategory.GRAINS_PROTEINS } +
-        FOOD_DB_DAIRY_AND_LEGUMES.associate { it.name to FoodSearchCategory.DAIRY_LEGUMES } +
-        FOOD_DB_FATS_SWEETS_AND_MEALS.associate { it.name to FoodSearchCategory.FATS_SWEETS_BEVERAGES }
+// Explicit per-item classification, built once at class-init (not per search) -
+// unlike the old per-source-file assoc, this actually reflects each item's real
+// food group rather than which of the four FoodDb*.kt files it happened to be
+// declared in.
+private val FOOD_DB_CATEGORY_BY_NAME: Map<String, FoodSearchCategory> = buildMap {
+    listOf(
+        "pomme", "banane", "orange", "fraise", "myrtille", "avocat", "kiwi", "raisin",
+        "pêche", "poire", "ananas", "mangue", "pastèque", "melon", "cerise", "framboise",
+        "mûre", "abricot", "prune", "pamplemousse", "citron", "clémentine", "figue",
+        "datte", "noix de coco",
+    ).forEach { put(it, FoodSearchCategory.FRUITS) }
+
+    listOf(
+        "tomate", "carotte", "brocoli", "épinard", "concombre", "courgette", "poivron",
+        "oignon", "salade verte", "pomme de terre", "chou-fleur", "chou",
+        "chou de bruxelles", "aubergine", "haricot vert", "petit pois", "asperge",
+        "champignon", "betterave", "radis", "céleri", "poireau", "artichaut",
+        "patate douce", "maïs", "ail",
+    ).forEach { put(it, FoodSearchCategory.VEGETABLES) }
+
+    listOf(
+        "riz blanc cuit", "pâtes cuites", "pain blanc", "pain complet", "baguette",
+        "croissant", "avoine", "quinoa cuit", "riz complet cuit", "semoule cuite",
+        "boulgour cuit", "sarrasin cuit", "pain de mie", "tortilla de blé",
+    ).forEach { put(it, FoodSearchCategory.GRAINS_STARCHES) }
+
+    listOf(
+        "poulet rôti", "boeuf haché 5%", "boeuf haché 15%", "saumon", "thon", "oeuf",
+        "jambon blanc", "dinde", "porc", "agneau", "canard", "crevette", "moules",
+        "cabillaud", "maquereau", "sardine", "tofu", "jambon cru", "saucisse", "bacon",
+    ).forEach { put(it, FoodSearchCategory.PROTEINS) }
+
+    listOf(
+        "lentille cuite", "pois chiche cuit", "amandes", "noix", "haricot rouge cuit",
+        "haricot blanc cuit", "edamame", "noisette", "noix de cajou", "pistache",
+        "graine de chia", "graine de lin", "beurre de cacahuète", "cacahuète",
+    ).forEach { put(it, FoodSearchCategory.LEGUMES_NUTS_SEEDS) }
+
+    listOf(
+        "lait demi-écrémé", "yaourt nature", "skyr", "fromage blanc 0%", "emmental",
+        "camembert", "fromage de chèvre", "mozzarella", "feta", "parmesan",
+        "lait entier", "crème fraîche", "lait de soja", "lait d'amande",
+    ).forEach { put(it, FoodSearchCategory.DAIRY) }
+
+    listOf(
+        "huile d'olive", "beurre", "huile de colza", "huile de coco", "margarine", "mayonnaise",
+    ).forEach { put(it, FoodSearchCategory.FATS_OILS) }
+
+    listOf(
+        "chocolat noir 70%", "chocolat au lait", "biscuit", "miel", "pâte à tartiner",
+        "confiture", "chips", "pop-corn", "glace", "crêpe nature",
+    ).forEach { put(it, FoodSearchCategory.SWEETS_SNACKS) }
+
+    listOf(
+        "café noir", "thé", "jus d'orange", "coca-cola", "bière", "vin rouge",
+        "jus de pomme", "eau gazeuse", "lait chocolaté",
+    ).forEach { put(it, FoodSearchCategory.BEVERAGES) }
+
+    listOf(
+        "pizza margherita", "hamburger", "frites", "sushi saumon", "houmous",
+        "falafel", "quiche lorraine", "lasagne",
+    ).forEach { put(it, FoodSearchCategory.PREPARED_MEALS) }
+}
 
 /**
  * Unified row shown by FoodSearchScreen, regardless of whether it came from the
@@ -67,7 +135,7 @@ private fun FoodEntry.toItem(isCustom: Boolean) = FoodSearchItem(
     name = name, kcal = kcal, proteinG = proteinG, carbsG = carbsG, fatG = fatG,
     fiberG = fiberG, saltG = saltG, ironMg = ironMg, calciumMg = calciumMg, vitDUg = vitDUg, b12Ug = b12Ug,
     category = if (isCustom) FoodSearchCategory.CUSTOM
-               else FOOD_DB_CATEGORY_BY_NAME[name] ?: FoodSearchCategory.FATS_SWEETS_BEVERAGES,
+               else FOOD_DB_CATEGORY_BY_NAME[name] ?: FoodSearchCategory.OTHER,
 )
 
 private fun ScanResult.toItem(): FoodSearchItem {
