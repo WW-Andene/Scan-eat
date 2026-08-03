@@ -162,6 +162,7 @@ fun RecipesScreen(
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val logFailedMessage = stringResource(R.string.common_log_failed)
     val recipeDeletedMessage = stringResource(R.string.recipes_deleted_message)
+    val recipeScaledMessage = stringResource(R.string.recipes_scaled_message)
     val undoLabel = stringResource(R.string.diary_undo)
     LaunchedEffect(actionFailed.value) {
         if (actionFailed.value) {
@@ -317,7 +318,7 @@ fun RecipesScreen(
     }
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
     logOfficialTarget?.let { recipe ->
-        LogOfficialRecipeDialog(recipe = recipe, isFrench = language.value == "fr", onDismiss = { logOfficialTarget = null }, onLog = { slot -> viewModel.logOfficial(recipe, slot); logOfficialTarget = null })
+        LogOfficialRecipeDialog(recipe = recipe, isFrench = language.value == "fr", onDismiss = { logOfficialTarget = null }, onLog = { slot, portionFraction -> viewModel.logOfficial(recipe, slot, portionFraction); logOfficialTarget = null })
     }
     renameTarget?.let { recipe ->
         RenameDialog(
@@ -340,7 +341,17 @@ fun RecipesScreen(
         ScaleRecipeDialog(
             currentServings = recipe.servings,
             onDismiss = { scaleTarget = null },
-            onConfirm = { newServings -> viewModel.scale(recipe, newServings); scaleTarget = null },
+            onConfirm = { newServings ->
+                viewModel.scale(recipe, newServings)
+                scaleTarget = null
+                // scale() permanently overwrites every stored gram/kcal/macro with no
+                // confirmation step (unlike delete, which already had DeleteConfirmDialog
+                // + undo) - a fat-fingered serving count had no way back until now.
+                coroutineScope.launch {
+                    val result = snackbarHostState.showSnackbar(recipeScaledMessage, actionLabel = undoLabel)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoScale()
+                }
+            },
         )
     }
 

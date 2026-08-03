@@ -1334,6 +1334,7 @@
     <string name="recipes_ingredients_label">Ingrédients</string>
     <string name="recipes_ingredient_summary_compact">• %1$s %2$dg %3$dkcal</string>
     <string name="recipes_field_ingredient">Ingrédient</string>
+    <string name="recipes_manual_ingredient_hint">Sans correspondance dans la base : seules les calories seront comptées (protéines, glucides, lipides non estimés).</string>
     <string name="recipes_add_ingredient_button">+ Ajouter ingrédient</string>
     <string name="recipes_log_dialog_title">Logger « %1$s »</string>
     <string name="recipes_field_servings">Portions (nombre)</string>
@@ -1345,11 +1346,13 @@
     <string name="recipes_cd_save_as_template">Sauvegarder comme modèle de repas</string>
     <string name="recipes_cd_duplicate">Dupliquer</string>
     <string name="recipes_deleted_message">Recette supprimée</string>
+    <string name="recipes_scaled_message">Portions ajustées</string>
     <string name="recipes_save_as_template_title">Sauvegarder « %1$s » comme modèle</string>
     <string name="recipes_scale_title">Ajuster les portions</string>
     <string name="recipes_scale_servings_label">Nombre de portions</string>
     <string name="recipes_servings_to_log_label">Portions à logger (sur %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g par portion</string>
+    <string name="recipes_portion_grams_label">Grammes consommés (sur %1$d g)</string>
     <string name="recipes_macro_per_serving_label">Par portion</string>
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->

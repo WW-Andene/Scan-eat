@@ -125,6 +125,17 @@ internal fun AddRecipeDialog(
                             colors = scanEatTextFieldColors())
                     }
                 }
+                // An ingredient added without picking a database/custom-food match only
+                // ever stores name/grams/kcal (RecipeComponent's other macro fields
+                // default to 0.0) - this recipe's protein/carbs/fat/fiber totals, diet
+                // checks, and any diary entry logged from it will silently under-report
+                // for that ingredient with no other indication why.
+                if (selectedFood == null && newIngName.isNotBlank()) {
+                    Text(
+                        stringResource(R.string.recipes_manual_ingredient_hint),
+                        style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f),
+                    )
+                }
                 // FOOD_DB + custom-food search results - previously this dialog had no
                 // lookup at all, so ingredients could never carry real protein/carbs/
                 // fat/fiber, and a user's own custom food could never be reused here.

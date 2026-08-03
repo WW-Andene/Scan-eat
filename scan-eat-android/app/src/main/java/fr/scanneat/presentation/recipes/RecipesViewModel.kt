@@ -268,13 +268,28 @@ class RecipesViewModel @Inject constructor(
         viewModelScope.launch { runCatching { repo.save(recipe.name, recipe.components, recipe.servings, id = recipe.id, notes = notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
+    // Same undo pattern as delete above - scale() permanently overwrites every
+    // component's stored grams/kcal/macros with no confirmation step, so a
+    // fat-fingered "40 servings" instead of "4" previously had no way back.
+    private var lastPreScale: Recipe? = null
+
     /** Permanently rescales every component's stored quantity (grams/kcal/macros) for a new serving count. */
     fun scale(recipe: Recipe, newServings: Int) {
         if (newServings <= 0) return
         viewModelScope.launch {
             runCatching {
                 repo.save(recipe.name, recipe.scaledComponents(newServings), newServings, id = recipe.id, notes = recipe.notes)
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            }.onSuccess { lastPreScale = recipe }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    fun undoScale() {
+        val entry = lastPreScale ?: return
+        lastPreScale = null
+        viewModelScope.launch {
+            runCatching { repo.save(entry.name, entry.components, entry.servings, id = entry.id, notes = entry.notes) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -287,7 +302,11 @@ class RecipesViewModel @Inject constructor(
     }
 
     /** Logs an official recipe straight to the diary, no cloning required first. */
-    fun logOfficial(recipe: OfficialRecipe, mealSlot: MealSlot) {
+    // portionFraction lets a user who only ate part of an official recipe log that
+    // fraction directly - previously always logged the full totalGrams, so eating
+    // half a "Poulet basquaise" meant cloning it into an editable recipe just to
+    // reach LogRecipeDialog's serving-fraction slider.
+    fun logOfficial(recipe: OfficialRecipe, mealSlot: MealSlot, portionFraction: Double = 1.0) {
         viewModelScope.launch {
             val basis = recipe.totalGrams.takeIf { it > 0 } ?: 100.0
             fun per100(v: Double) = v * 100.0 / basis
@@ -298,7 +317,7 @@ class RecipesViewModel @Inject constructor(
                         mealSlot    = mealSlot,
                         productName = recipe.nameFr,
                         barcode     = null,
-                        portionG    = basis,
+                        portionG    = basis * portionFraction,
                         nutrition   = NutritionPer100g(
                             energyKcal    = per100(recipe.totalKcal),
                             fatG          = per100(recipe.totalFatG),

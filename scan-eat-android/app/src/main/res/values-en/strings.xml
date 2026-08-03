@@ -1282,6 +1282,7 @@
     <string name="recipes_ingredients_label">Ingredients</string>
     <string name="recipes_ingredient_summary_compact">• %1$s %2$dg %3$dkcal</string>
     <string name="recipes_field_ingredient">Ingredient</string>
+    <string name="recipes_manual_ingredient_hint">No database match: only calories will be counted (protein/carbs/fat not estimated).</string>
     <string name="recipes_add_ingredient_button">+ Add ingredient</string>
     <string name="recipes_log_dialog_title">Log “%1$s”</string>
     <string name="recipes_field_servings">Servings (count)</string>
@@ -1293,11 +1294,13 @@
     <string name="recipes_cd_save_as_template">Save as meal template</string>
     <string name="recipes_cd_duplicate">Duplicate</string>
     <string name="recipes_deleted_message">Recipe deleted</string>
+    <string name="recipes_scaled_message">Servings adjusted</string>
     <string name="recipes_save_as_template_title">Save “%1$s” as a template</string>
     <string name="recipes_scale_title">Adjust servings</string>
     <string name="recipes_scale_servings_label">Number of servings</string>
     <string name="recipes_servings_to_log_label">Servings to log (of %1$d)</string>
     <string name="recipes_per_serving_hint">≈ %1$d g per serving</string>
+    <string name="recipes_portion_grams_label">Grams eaten (of %1$d g)</string>
     <string name="recipes_macro_per_serving_label">Per serving</string>
 
     <!-- ── Result screen ──────────────────────────────────────────────────── -->
