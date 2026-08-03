@@ -120,7 +120,14 @@ fun Modifier.ambientGloom(
     primary: Color,
     secondary: Color = primary,
 ): Modifier = composed {
-    val animated = LocalAnimatedGloom.current
+    // app-audit §G4/§IV: every other continuous/prominent animation in the app
+    // (rememberBreathingPulse, MainShell's tab transitions, expand/collapse
+    // sections) is gated on rememberReducedMotion() - this one only checked
+    // the user's own "Animated background" Settings toggle, so a user with
+    // the system-level "remove animations" accessibility setting on (e.g. for
+    // vestibular disorders) still got the continuous drift+ripple effect if
+    // they'd also opted into the app's own toggle.
+    val animated = LocalAnimatedGloom.current && !rememberReducedMotion()
 
     // Blob drift phase - rememberInfiniteTransition suits this one on its
     // own (a single float looping 0..2π), unlike the ripple clock below
