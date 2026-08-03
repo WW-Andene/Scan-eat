@@ -7,6 +7,10 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -40,7 +44,7 @@ internal fun MealPlanDayCard(
     // "Clear day" wiped all 4 meal slots on a single tap with no confirmation
     // or undo - every other whole-list-wiping action in the app (Grocery's
     // clear-checked) gates behind a confirm dialog first.
-    var showClearConfirm by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showClearConfirm by remember { mutableStateOf(false) }
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         verticalArrangement = Arrangement.spacedBy(Spacing.S),
