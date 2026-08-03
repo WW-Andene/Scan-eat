@@ -100,6 +100,7 @@ STRATÉGIE :
 | F18 | Direction de lumière non déclarée explicitement | 6 |
 | F26 | 420ms/700ms non nommés comme constantes partagées | 9 |
 | F27 | Feedback tactile custom limité aux boutons | 9 |
+| **F35** | Le widget home-screen (`TodayWidget.kt`, API Glance) utilise `GlanceTheme.colors` pour le fond et les textes secondaires — un système de theming séparé du reste de l'app, potentiellement dérivé de la couleur dynamique (Material You) du fond d'écran de l'utilisateur plutôt que de la palette Scan'eat. Seuls l'accent corail et les couleurs sémantiques sont tirés manuellement du système de tokens de l'app ; le reste peut varier selon le téléphone. Trouvé lors d'une vérification de complétude post-audit (Glance a un moteur de rendu RemoteViews séparé de Compose, ce qui explique pourquoi il n'a pas été capturé par les agents d'exploration initiaux qui cherchaient des patterns Compose classiques). | Moyenne | Étape 6 (Couleur), gap de couverture identifié après coup |
 
 ### ℹ️ Info / à vérifier visuellement (pas des findings actionnables en l'état)
 
