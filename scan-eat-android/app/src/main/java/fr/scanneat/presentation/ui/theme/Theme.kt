@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -198,8 +199,17 @@ private fun Typography.withDyslexicSpacing(): Typography = copy(
 )
 
 /**
- * Root theme. Pass [theme] from UserPreferences ("oled" | "dark" | "light").
+ * Root theme. Pass [theme] from UserPreferences
+ * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "system").
  * All screens in the app use this — both Scan'eat and Biolism sections.
+ *
+ * "system" follows the phone's own OS-level dark/light setting instead of a
+ * theme fixed in Settings — resolved once here via [isSystemInDarkTheme] into
+ * "dark" or "light" so the rest of this function (and every screen downstream)
+ * never needs to know "system" exists as a concept. Deliberately maps the
+ * system's dark state to the warmed "dark" scheme rather than "oled": true
+ * pure-black OLED is a battery-saving choice a user opts into explicitly, not
+ * something the OS's day/night switch should silently turn on.
  */
 @Composable
 fun ScanEatTheme(
@@ -209,14 +219,17 @@ fun ScanEatTheme(
     animatedBackground: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = when (theme) {
+    val resolvedTheme = if (theme == "system") {
+        if (isSystemInDarkTheme()) "dark" else "light"
+    } else theme
+    val colorScheme = when (resolvedTheme) {
         "dark"           -> DarkColors
         "light"          -> LightColors
         "high_contrast"  -> HighContrastColors
         "low_contrast"   -> LowContrastColors
         else             -> OledColors
     }
-    val goldAccent = if (theme == "light") LightGoldAccent else Gold
+    val goldAccent = if (resolvedTheme == "light") LightGoldAccent else Gold
     val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography
     CompositionLocalProvider(
         LocalGoldAccent provides goldAccent,

@@ -27,6 +27,7 @@ internal fun ThemeSection(
     SettingsSection(stringResource(R.string.settings_section_theme), icon = Icons.Default.Palette) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             listOf(
+                "system" to stringResource(R.string.settings_theme_system),
                 "oled" to stringResource(R.string.settings_theme_oled),
                 "dark" to stringResource(R.string.settings_theme_dark),
                 "light" to stringResource(R.string.settings_theme_light),
