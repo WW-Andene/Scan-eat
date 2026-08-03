@@ -3,7 +3,11 @@ package fr.scanneat.presentation.ui.theme
 import android.provider.Settings
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -72,6 +76,33 @@ fun rememberHeroEntrance(visible: Boolean): HeroEntranceState {
 }
 
 data class HeroEntranceState(val alpha: Float, val scale: Float)
+
+/**
+ * The "second skin" signature motion (docs/design-audit-art-direction-brief.md):
+ * a slow resting-heart-rate breathing pulse — ~65bpm, ~920ms per half-cycle —
+ * meant to read as "this interface is alive with you," never as an alert.
+ * Deliberately gentle (0.85→1.0, not a hard on/off blink) so it stays ambient
+ * rather than urgent. Applied to the score ring's glow at rest and available
+ * for any other element meant to carry this same signature. Returns a flat
+ * 1f (no pulsing) under reduced-motion, same gating as every other animation
+ * in this file.
+ */
+@Composable
+fun rememberBreathingPulse(): Float {
+    val reduced = rememberReducedMotion()
+    if (reduced) return 1f
+    val transition = rememberInfiniteTransition(label = "breathingPulse")
+    val pulse by transition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(durationMillis = 920, easing = ScoreRevealEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "breathingPulseValue",
+    )
+    return pulse
+}
 
 /** Applies a [HeroEntranceState] to this Modifier's graphicsLayer in one call. */
 fun Modifier.heroEntrance(state: HeroEntranceState): Modifier = this.graphicsLayer {

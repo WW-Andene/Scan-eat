@@ -15,8 +15,15 @@ import fr.scanneat.domain.model.Grade
 //   Scan'eat: AccentCoral — scan scoring, diary, nutrition feedback
 //   Biolism:  Gold/Teal/Violet — metabolic science, timers, analytics
 //
-// Spacing follows φ = 1.618 (matches Biolism CSS variables exactly):
-//   sp1=4, sp2=6, sp3=10, sp4=16, sp5=26, sp6=42, sp7=68
+// This file previously documented a φ = 1.618 spacing scale here (sp1=4,
+// sp2=6, sp3=10, sp4=16, sp5=26, sp6=42, sp7=68) as if Spacing.kt implemented
+// it — it never did; Spacing.kt's actual scale is 4/8/10/12/16/24/32, a
+// separate, rounder progression. Audit F1 (docs/design-audit-step1-identity-
+// profile.md, docs/design-audit-step5-tokens.md) flagged the two as
+// inconsistent with no record of which was authoritative. Removing the
+// unimplemented φ comment here rather than rewriting Spacing.kt's real
+// values, which are already in production use at ~35+ call sites — see
+// Spacing.kt itself for the scale that is actually in effect.
 // ============================================================================
 
 // ── Shared neutrals ──────────────────────────────────────────────────────────
@@ -27,10 +34,22 @@ import fr.scanneat.domain.model.Grade
 // or bad," and the two must never be the same hue or they stop being readable.
 // Raw OLED literals — consumed only by Theme.kt to build the OLED color scheme
 // (can't reference MaterialTheme.colorScheme while constructing it).
+// Background stays true pure black — the whole point of the OLED theme is
+// every pixel physically off for battery, so this is the one background this
+// audit's "never a pure black/white" rule (docs/design-audit-step6-color-
+// atmosphere.md, F15) deliberately does NOT apply to. Surface/SurfaceVariant
+// below carry the "second skin" warmth instead, since cards/chrome sit on top
+// of that true black rather than being it.
 internal val OledBackgroundRaw     = Color(0xFF000000)  // true pure black — every OLED pixel off, not a darker Dark
 internal val OledOnBackgroundRaw   = Color(0xFFEFEAE6)
-internal val OledSurfaceRaw        = Color(0xFF141118)
-internal val OledSurfaceVariantRaw = Color(0xFF241F29)  // one step lighter than surface — the elevation tier Dark already has
+// Warmed off cool violet-black (was 0xFF141118) toward the same coral-adjacent
+// hue as the accent, per docs/design-audit-art-direction-brief.md — a card
+// floating over true-black should feel like skin catching light, not a
+// separate cool-toned panel. SurfaceVariant shifts hue again (not just
+// lightness) one step further, for the perceived-depth cue F17 flagged as
+// missing between elevation tiers.
+internal val OledSurfaceRaw        = Color(0xFF181310)
+internal val OledSurfaceVariantRaw = Color(0xFF2A2018)  // one step lighter than surface — the elevation tier Dark already has
 internal val OledOnSurfaceRaw      = Color(0xFFCFC7CC)
 
 // High/Low Contrast — WCAG-maximal variants, not brand-color re-tunes.

@@ -104,13 +104,17 @@ internal fun ScoreDeltaChip(delta: Int) {
 internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
     val color = gradeColor(grade)
     val (animatedProgress, completion) = rememberScoreReveal(score / 100f)
+    // The app's one signature ambient motion (docs/design-audit-art-direction-brief.md):
+    // once the reveal completes, the glow keeps breathing gently rather than
+    // freezing static — this ring is the "second skin" pulse's home.
+    val breathingPulse = rememberBreathingPulse()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(modifier = Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
             Box(
                 modifier = Modifier
                     .size(210.dp)
                     .background(
-                        Brush.radialGradient(listOf(color.copy(alpha = 0.24f * completion), Color.Transparent)),
+                        Brush.radialGradient(listOf(color.copy(alpha = 0.24f * completion * breathingPulse), Color.Transparent)),
                         CircleShape,
                     ),
             )

@@ -35,6 +35,12 @@ import kotlin.random.Random
  * [shape] so the overlay never peeks past a rounded corner — pass the same
  * shape used by the card's own Surface/background underneath.
  *
+ * Declared light source: top-center, zenithal — every highlight in this file
+ * (this hairline, [ambientGloom]'s glow blobs) faces up for that reason. Any
+ * future glow/highlight added anywhere else in the app should face the same
+ * direction rather than picking one ad hoc, or depth will read as inconsistent
+ * once more than one surface is on screen at once.
+ *
  * Reference pass: compared directly against Whispering Wishes' own glass
  * chrome (backdrop-filter: blur() + box-shadow + a single hairline border,
  * nothing else layered on top) after this app's version kept showing a

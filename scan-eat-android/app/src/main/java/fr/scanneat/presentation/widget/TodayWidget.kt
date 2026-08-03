@@ -9,7 +9,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
 import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionStartActivity
@@ -55,6 +54,20 @@ import fr.scanneat.util.localizedString
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import kotlin.math.roundToInt
+
+// Audit F35 (docs/design-audit-step12-synthesis.md): this widget used to read
+// GlanceTheme.colors for background/onSurfaceVariant/onBackground, which on
+// most launchers resolves to the *system's* dynamic Material You palette
+// (derived from the user's wallpaper) rather than this app's own warmed dark
+// palette (Colors.kt/Theme.kt's DarkColors, see docs/design-audit-art-
+// direction-brief.md) — meaning the one place users see Scan'eat before even
+// opening it could look nothing like the app itself, on a per-phone basis.
+// Fixed constants below mirror DarkColors so the widget always carries the
+// app's own "second skin" identity regardless of the device's wallpaper.
+private val WidgetBackground     = ColorProvider(Color(0xFF1B1611))
+private val WidgetSurfaceVariant = ColorProvider(Color(0xFF362C1F))
+private val WidgetOnBackground   = ColorProvider(Color(0xFFEFEAE6))
+private val WidgetOnSurfaceVariant = ColorProvider(Color(0xFFCFC7CC))
 
 // ============================================================================
 // TODAY WIDGET — home-screen glance at today's kcal progress + logging streak,
@@ -142,28 +155,29 @@ class TodayWidget : GlanceAppWidget() {
         provideContent {
             // semanticBlue() (used by the hydration row below) reads LocalColorblindMode,
             // which otherwise silently defaults to "none" here — the in-app screens all
-            // pick it up via ScanEatTheme's own CompositionLocalProvider, but the widget's
-            // GlanceTheme never provided it, so a colorblind-mode user got the widget's
-            // hydration chip in the un-adjusted blue regardless of their in-app setting.
+            // pick it up via ScanEatTheme's own CompositionLocalProvider, but the widget
+            // never provided it, so a colorblind-mode user got the widget's hydration
+            // chip in the un-adjusted blue regardless of their in-app setting.
             CompositionLocalProvider(LocalColorblindMode provides colorblindMode) {
-                GlanceTheme {
-                    // LocalSize.current resolves to whichever of sizeMode's declared buckets
-                    // best fits the space the host actually gave this instance.
-                    val compact = LocalSize.current.height < FULL_SIZE.height
-                    TodayWidgetContent(
-                        kcal = kcal,
-                        targetKcal = targetKcal,
-                        progress = progress,
-                        kcalLabel = kcalLabel,
-                        streakLabel = streakLabel,
-                        noTargetLabel = noTargetLabel,
-                        hydrationLabel = hydrationLabel,
-                        addGlassLabel = addGlassLabel,
-                        macroLabel = macroLabel,
-                        medsLabel = medsLabel,
-                        compact = compact,
-                    )
-                }
+                // No GlanceTheme wrapper (see the F35 comment above this class) — every
+                // color below is one of this file's own Widget* constants or an in-app
+                // token (AccentCoral, semanticBlue()), never a dynamic system color.
+                // LocalSize.current resolves to whichever of sizeMode's declared buckets
+                // best fits the space the host actually gave this instance.
+                val compact = LocalSize.current.height < FULL_SIZE.height
+                TodayWidgetContent(
+                    kcal = kcal,
+                    targetKcal = targetKcal,
+                    progress = progress,
+                    kcalLabel = kcalLabel,
+                    streakLabel = streakLabel,
+                    noTargetLabel = noTargetLabel,
+                    hydrationLabel = hydrationLabel,
+                    addGlassLabel = addGlassLabel,
+                    macroLabel = macroLabel,
+                    medsLabel = medsLabel,
+                    compact = compact,
+                )
             }
         }
     }
@@ -194,16 +208,16 @@ private fun TodayWidgetContent(
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(GlanceTheme.colors.background)
+            .background(WidgetBackground)
             .padding(12.dp)
             .clickable(actionStartActivity<MainActivity>()),
     ) {
-        Text(kcalLabel, style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp))
+        Text(kcalLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 11.sp))
         Spacer(modifier = GlanceModifier.height(2.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("$kcal", style = TextStyle(color = GlanceTheme.colors.onBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold))
+            Text("$kcal", style = TextStyle(color = WidgetOnBackground, fontSize = 28.sp, fontWeight = FontWeight.Bold))
             if (targetKcal != null) {
-                Text(" / $targetKcal", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 16.sp))
+                Text(" / $targetKcal", style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 16.sp))
             }
         }
         Spacer(modifier = GlanceModifier.height(8.dp))
@@ -212,10 +226,10 @@ private fun TodayWidgetContent(
                 modifier = GlanceModifier.fillMaxWidth().height(6.dp),
                 progress = progress,
                 color = ColorProvider(AccentCoral),
-                backgroundColor = GlanceTheme.colors.surfaceVariant,
+                backgroundColor = WidgetSurfaceVariant,
             )
         } else {
-            Text(noTargetLabel, style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp))
+            Text(noTargetLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 11.sp))
         }
         // Compact bucket (widget shrunk to roughly its minimum size): kcal + progress
         // only. Streak and the hydration quick-add row are the first things to go -
@@ -225,7 +239,7 @@ private fun TodayWidgetContent(
             Spacer(modifier = GlanceModifier.height(6.dp))
             Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoral), fontSize = 12.sp, fontWeight = FontWeight.Medium))
             Spacer(modifier = GlanceModifier.height(4.dp))
-            Text(macroLabel, style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp))
+            Text(macroLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 11.sp))
             Spacer(modifier = GlanceModifier.height(10.dp))
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
@@ -253,7 +267,7 @@ private fun TodayWidgetContent(
             // undifferentiated tap the way logging a hydration glass is.
             if (medsLabel != null) {
                 Spacer(modifier = GlanceModifier.height(6.dp))
-                Text(medsLabel, style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                Text(medsLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
             }
         }
     }

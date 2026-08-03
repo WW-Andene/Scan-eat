@@ -37,17 +37,22 @@ private val OledColors = darkColorScheme(
     outline          = Color(0xFF4E4A56),
 )
 
+// Warmed off a cool violet cast (was background 0xFF17141B / surface
+// 0xFF221E27 / surfaceVariant 0xFF322C38) toward the accent's own hue, per
+// docs/design-audit-art-direction-brief.md — unlike OledColors above, this
+// theme's background isn't constrained to pure black, so it carries the
+// warmth directly instead of only its surfaces.
 private val DarkColors = darkColorScheme(
     primary          = Gold,
     onPrimary        = Color.Black,
     secondary        = AccentCoral,
     onSecondary      = Color.Black,
     tertiary         = Teal,
-    background       = Color(0xFF17141B),
+    background       = Color(0xFF1B1611),
     onBackground     = Color(0xFFEFEAE6),
-    surface          = Color(0xFF221E27),
+    surface          = Color(0xFF261F17),
     onSurface        = Color(0xFFCFC7CC),
-    surfaceVariant   = Color(0xFF322C38),
+    surfaceVariant   = Color(0xFF362C1F),
     onSurfaceVariant = Color(0xFFCFC7CC),
     error            = FlagRed,
     onError          = Color.White,
