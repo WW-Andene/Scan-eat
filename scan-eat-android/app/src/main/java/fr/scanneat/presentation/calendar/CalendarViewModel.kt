@@ -224,7 +224,7 @@ class CalendarViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    /** Aggregated detail for [selectedDate], reactive to any of the six sources changing. */
+    /** Aggregated detail for [selectedDate], reactive to any of the eight sources changing. */
     val dayDetail: StateFlow<CalendarDayDetail> = _selectedDate.flatMapLatest { date ->
         combine(
             consumptionRepo.observeDay(date),
