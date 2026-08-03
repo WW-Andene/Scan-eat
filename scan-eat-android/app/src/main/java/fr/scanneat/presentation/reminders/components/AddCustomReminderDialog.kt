@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,6 +24,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.semanticRed
 
 @Composable
 internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDismiss: () -> Unit) {
@@ -36,9 +38,13 @@ internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDism
         title = { Text(stringResource(R.string.reminders_add_custom), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+                // Was no example anywhere for what to type here (unlike the time field's
+                // sensible pre-filled "09:00" default) - a first-time user had no cue what
+                // kind of thing a "custom reminder" is meant to hold.
                 OutlinedTextField(
                     value = label, onValueChange = { label = it }, singleLine = true,
                     label = { Text(stringResource(R.string.reminders_custom_label_hint)) },
+                    placeholder = { Text(stringResource(R.string.reminders_custom_label_example), color = OnBackground.copy(0.3f)) },
                     colors = scanEatTextFieldColors(),
                 )
                 OutlinedTextField(
@@ -48,6 +54,12 @@ internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDism
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     colors = scanEatTextFieldColors(),
                 )
+                // Turning the field red on invalid input with no explanation of why -
+                // same gap StartFastForm's custom time fields had, already fixed there
+                // with this identical inline-hint pattern.
+                if (!timeValid) {
+                    Text(stringResource(R.string.fasting_custom_time_error), style = MaterialTheme.typography.bodySmall, color = semanticRed())
+                }
             }
         },
         confirmButton = {

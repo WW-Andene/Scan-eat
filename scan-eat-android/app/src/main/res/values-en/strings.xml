@@ -832,10 +832,13 @@
     <string name="expenses_week_title">This week</string>
     <string name="expenses_edit_budget">Target</string>
     <string name="expenses_of_budget">of %.0f € this week</string>
+    <string name="expenses_over_budget_suffix">over budget</string>
     <string name="expenses_no_budget_hint">Set a weekly target to track your budget</string>
     <string name="expenses_avg_per_meal">Average %1$.2f € / purchase (target %2$.0f €)</string>
     <string name="expenses_budget_weekly_label">Weekly budget (€)</string>
     <string name="expenses_budget_per_meal_label">Budget per purchase (€)</string>
+    <string name="expenses_budget_weekly_hint">E.g. €60 — leave blank to skip tracking</string>
+    <string name="expenses_budget_per_meal_hint">E.g. €15 — leave blank to skip tracking</string>
     <string name="expenses_cd_calendar">Calendar</string>
     <string name="diary_note_label">Note of the day</string>
     <string name="diary_cd_save_note">Save</string>
@@ -1439,6 +1442,7 @@
     <string name="reminders_custom_daily">Custom daily reminder</string>
     <string name="reminders_add_custom">Add reminder</string>
     <string name="reminders_custom_label_hint">Reminder name</string>
+    <string name="reminders_custom_label_example">e.g. Take vitamins</string>
     <string name="reminders_custom_time_hint">Time (HH:mm)</string>
     <string name="reminders_weight_preset_day">1 day</string>
     <string name="reminders_weight_preset_week">1 week</string>

@@ -3,6 +3,7 @@ package fr.scanneat.presentation.mealplan
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.*
@@ -95,7 +96,17 @@ fun MealPlanScreen(
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
+        // Was a plain LazyColumn with no scroll state - the list always opened
+        // scrolled to the top (Monday), so on a Friday/Saturday a user had to
+        // manually scroll past several already-past days to reach the one card
+        // (bold-labeled "today" in MealPlanDayCard) that actually matters.
+        val listState = rememberLazyListState()
+        LaunchedEffect(weekDates.value) {
+            val todayIndex = weekDates.value.indexOf(LocalDate.now())
+            if (todayIndex > 0) listState.scrollToItem(todayIndex)
+        }
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize()
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Teal)
                 .padding(horizontal = Spacing.L),

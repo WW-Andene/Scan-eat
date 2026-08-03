@@ -210,8 +210,12 @@ private fun ExpensesWeekCard(
                 color = if (isOverWeekly) AccentCoral else semanticGreen(),
                 trackColor = OnSurface.copy(0.1f),
             )
+            // Was color-only (a thin 8dp bar + small label hue switch) - easy to miss,
+            // and not a real "helpful warning vs. scolding" signal since nothing here
+            // said "over budget" in words, only in a subtle color shift.
             Text(
-                stringResource(R.string.expenses_of_budget, budgetWeekly),
+                stringResource(R.string.expenses_of_budget, budgetWeekly) +
+                    if (isOverWeekly) " · " + stringResource(R.string.expenses_over_budget_suffix) else "",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isOverWeekly) AccentCoral else OnSurface.copy(0.5f),
             )
@@ -223,7 +227,8 @@ private fun ExpensesWeekCard(
             // also a Double average of summed prices, subject to the same drift.
             val over = centsOf(avgPerEntry) > centsOf(budgetPerMeal)
             Text(
-                stringResource(R.string.expenses_avg_per_meal, avgPerEntry, budgetPerMeal),
+                stringResource(R.string.expenses_avg_per_meal, avgPerEntry, budgetPerMeal) +
+                    if (over) " · " + stringResource(R.string.expenses_over_budget_suffix) else "",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (over) AccentCoral else OnSurface.copy(0.5f),
             )
@@ -294,9 +299,13 @@ private fun BudgetEditDialog(
         title = { Text(stringResource(R.string.expenses_edit_budget), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                // Neither field previously explained what leaving it blank does (both
+                // are optional and silently skip that budget check entirely) or gave
+                // an example value - a first-time user had to guess.
                 OutlinedTextField(
                     value = weeklyText, onValueChange = { weeklyText = it },
                     label = { Text(stringResource(R.string.expenses_budget_weekly_label)) },
+                    supportingText = { Text(stringResource(R.string.expenses_budget_weekly_hint)) },
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
@@ -305,6 +314,7 @@ private fun BudgetEditDialog(
                 OutlinedTextField(
                     value = perMealText, onValueChange = { perMealText = it },
                     label = { Text(stringResource(R.string.expenses_budget_per_meal_label)) },
+                    supportingText = { Text(stringResource(R.string.expenses_budget_per_meal_hint)) },
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
