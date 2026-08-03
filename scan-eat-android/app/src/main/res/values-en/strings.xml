@@ -1421,6 +1421,7 @@
     <string name="reminders_notif_fasting_body">You\'ve reached your fasting goal — well done!</string>
     <string name="reminders_notif_medication_title">Medication</string>
     <string name="reminders_notif_medication_body">Time to take: %1$s</string>
+    <string name="reminders_notif_medication_body_repeat">Friendly reminder: you haven\'t logged %1$s yet today</string>
     <string name="reminders_notif_activity_title">Activity</string>
     <string name="reminders_notif_activity_body">It\'s been a while since your last workout — get moving!</string>
     <string name="reminders_breakfast">Breakfast</string>

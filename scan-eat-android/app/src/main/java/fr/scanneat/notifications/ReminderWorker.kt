@@ -114,7 +114,12 @@ class ReminderWorker @AssistedInject constructor(
             val alreadyFiredToday = justFired || remindersRepo.wasFiredToday(remindersRepo.medicationLastFiredKey(med.id))
             if (!justFired && alreadyFiredToday && med.id !in takenMedIds &&
                 remindersRepo.medicationRenotifyDueAndMark(med.id, MEDICATION_RENOTIFY_MINUTES)) {
-                NotificationHelper.show(applicationContext, med.id.hashCode(), title, body, NotifChannel.MEDICATION)
+                // Was the exact same title/body as the original on-time reminder,
+                // repeated verbatim every hour indefinitely until logged - reads as
+                // naggy rather than a helpful nudge, with no acknowledgment this is
+                // a repeat.
+                val repeatBody = String.format(localizedString(lang, R.string.reminders_notif_medication_body_repeat), med.name)
+                NotificationHelper.show(applicationContext, med.id.hashCode(), title, repeatBody, NotifChannel.MEDICATION)
             }
         }
 

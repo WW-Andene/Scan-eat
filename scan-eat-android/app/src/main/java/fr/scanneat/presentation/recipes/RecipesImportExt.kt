@@ -3,8 +3,10 @@ package fr.scanneat.presentation.recipes
 import androidx.lifecycle.viewModelScope
 import fr.scanneat.data.remote.api.ImagePayload
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
+import fr.scanneat.util.serverUnreachableMessage
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.io.IOException
 
 // ── Import from URL — wires up the server's fetch-recipe route (SSRF-guarded
 // HTML fetch + schema.org Recipe JSON-LD extraction), which existed with no
@@ -118,5 +120,11 @@ private fun importErrorMessage(e: Throwable, lang: String): String = when {
         if (lang == "en") "Too many requests — try again in a minute" else "Trop de requêtes — réessayez dans une minute"
     e is HttpException && e.code() == 400 ->
         if (lang == "en") "Invalid or unreachable URL" else "URL invalide ou inaccessible"
+    // A no-connection/DNS-failure/timeout against the app's own configured server
+    // (fetchRecipeFromUrl/identify-recipe both go through it, see this file's own
+    // header comment) previously fell straight through to e.message, surfacing a
+    // raw OkHttp string like "Unable to resolve host" - the exact failure mode
+    // serverUnreachableMessage() was already built for on the scan/server-URL path.
+    e is IOException -> serverUnreachableMessage(lang)
     else -> e.message ?: (if (lang == "en") "Import failed" else "Échec de l'import")
 }

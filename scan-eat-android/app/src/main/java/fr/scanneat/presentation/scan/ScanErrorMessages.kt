@@ -57,6 +57,16 @@ internal fun genericErrorMessage(lang: String) =
     else "Erreur inconnue"
 
 /**
+ * Fallback for ProductNotFoundException's `e.message ?: ...` in ScanViewModel -
+ * the exception's own message is always lang-aware in practice, but this
+ * `?:` fallback previously hardcoded the French literal "Produit introuvable",
+ * same landmine class genericErrorMessage's own doc comment describes.
+ */
+internal fun productNotFoundMessage(lang: String) =
+    if (lang == "en") "Product not found"
+    else "Produit introuvable"
+
+/**
  * identifyMultiFromPhotos()'s empty-list fallback - the server can legitimately
  * return zero items (no distinct food detected on the plate) without that being
  * a request failure, so this needs its own message rather than reusing

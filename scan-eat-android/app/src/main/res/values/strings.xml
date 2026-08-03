@@ -1471,6 +1471,7 @@
     <string name="reminders_notif_fasting_body">Vous avez atteint votre objectif de jeûne — bravo !</string>
     <string name="reminders_notif_medication_title">Traitement</string>
     <string name="reminders_notif_medication_body">C\'est l\'heure de prendre : %1$s</string>
+    <string name="reminders_notif_medication_body_repeat">Petit rappel : vous n\'avez pas encore noté %1$s aujourd\'hui</string>
     <string name="reminders_notif_activity_title">Activité</string>
     <string name="reminders_notif_activity_body">Ça fait un moment sans séance enregistrée — bouge un peu !</string>
     <string name="reminders_breakfast">Petit-déjeuner</string>

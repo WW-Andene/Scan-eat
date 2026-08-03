@@ -6,8 +6,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.StarBorder
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -110,11 +110,15 @@ fun ResultScreen(
                     // This opens SaveDestinationsPopup (a multi-select "save to..." dialog),
                     // not a direct favorite toggle - unlike the star buttons in
                     // TemplatesScreen/ScanHistoryScreen/RecipeCard, which do flip favorite
-                    // status directly and correctly reuse result_cd_favorite/unfavorite.
-                    // Using those same strings here told screen-reader users the tap would
-                    // directly toggle favorite status when it actually opens a dialog.
+                    // status directly. Content description already said "save options"
+                    // (not "favorite") for screen readers, but the star glyph itself is
+                    // used app-wide as the direct-toggle affordance - a sighted user
+                    // familiar with that pattern elsewhere taps expecting an instant
+                    // favorite and gets a dialog instead. Bookmark (still filled when
+                    // favorited) keeps the same at-a-glance favorite state without
+                    // borrowing the direct-toggle star glyph.
                     Icon(
-                        if (scan.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                        if (scan.favorite) Icons.Rounded.Bookmark else Icons.Rounded.BookmarkBorder,
                         stringResource(R.string.result_cd_save_options),
                         tint = if (scan.favorite) Gold else OnBackground,
                     )

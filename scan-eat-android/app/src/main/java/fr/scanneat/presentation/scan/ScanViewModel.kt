@@ -509,10 +509,16 @@ class ScanViewModel @Inject constructor(
                             e is ProductNotFoundException && barcode != null && online -> {
                                 val opfEntry = scanRepo.findNonConsumableViaOpf(barcode)
                                 if (opfEntry != null) ScanUiState.NonConsumableFound(opfEntry)
-                                else ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
+                                // e.message is always lang-aware in practice (ScanOffLookup
+                                // already threads lang into ProductNotFoundException), so this
+                                // fallback is currently dead - but a hardcoded French literal
+                                // here was a landmine: any future throw site that omits a
+                                // message would silently show French to an English user,
+                                // unlike every other branch in this function which threads lang.
+                                else ScanUiState.Error(e.message ?: productNotFoundMessage(lang), needsPhoto = true)
                             }
                             e is ProductNotFoundException ->
-                                ScanUiState.Error(e.message ?: "Produit introuvable", needsPhoto = true)
+                                ScanUiState.Error(e.message ?: productNotFoundMessage(lang), needsPhoto = true)
                             // A rejected API key/retired model/rate limit would otherwise
                             // surface as a bare "HTTP 401 " with no indication of what to
                             // actually do about it - same mapping identifyFromPhotos()/
