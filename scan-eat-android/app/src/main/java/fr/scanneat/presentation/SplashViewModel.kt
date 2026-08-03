@@ -37,7 +37,15 @@ class SplashViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            needsOnboarding = !prefs.onboardingComplete.first()
+            // If this DataStore read throws (corrupt prefs file, IO error), _ready
+            // previously never flipped to true - the whole app hung on the splash
+            // screen forever with no fallback, the one unguarded write/read left in
+            // the entire ViewModel layer. Defaults to "onboarding not needed" on
+            // failure so the app still boots into the main flow rather than
+            // getting stuck; a genuinely new user who hits this rare failure just
+            // sees onboarding again later from Settings instead of being locked out.
+            runCatching { !prefs.onboardingComplete.first() }
+                .onSuccess { needsOnboarding = it }
             _ready.value = true
         }
     }

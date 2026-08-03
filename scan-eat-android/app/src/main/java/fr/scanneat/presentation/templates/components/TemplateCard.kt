@@ -32,6 +32,7 @@ internal fun TemplateCard(
     onLog: () -> Unit,
     onSaveAsRecipe: () -> Unit,
     onRename: () -> Unit,
+    onDuplicate: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val hintsRiskCount = hints.risks.size + hints.conditionRisks.size
@@ -104,6 +105,13 @@ internal fun TemplateCard(
                         text = { Text(stringResource(R.string.common_rename)) },
                         leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
                         onClick = { menuExpanded = false; onRename() },
+                    )
+                    // Fork into an independent copy (e.g. "Breakfast" -> "Breakfast
+                    // (weekend)") - same duplicate action RecipeCard already has.
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.recipes_cd_duplicate)) },
+                        leadingIcon = { Icon(Icons.Rounded.ContentCopy, contentDescription = null) },
+                        onClick = { menuExpanded = false; onDuplicate() },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_delete)) },

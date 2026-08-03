@@ -173,4 +173,15 @@ class TemplatesViewModel @Inject constructor(
             runCatching { repo.save(template.name, template.meal, items, id = template.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
+
+    /** Forks a template into an independent copy (e.g. clone "Breakfast" into
+     *  "Breakfast (weekend)") - same save-a-copy shape RecipesViewModel.duplicate()
+     *  already uses for Recipes, extended here so a "Saved Meal" a user wants to
+     *  tweak doesn't have to be rebuilt item-by-item from scratch. No id passed,
+     *  so repo.save() inserts a new row rather than editing the original. */
+    fun duplicate(template: MealTemplate) {
+        viewModelScope.launch {
+            runCatching { repo.save("${template.name} (copie)", template.meal, template.items) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
 }

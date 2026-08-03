@@ -100,6 +100,7 @@ fun TemplatesScreen(
                     onLog = { logTarget = template },
                     onSaveAsRecipe = { viewModel.saveAsRecipe(template) },
                     onRename = { renameTarget = template },
+                    onDuplicate = { viewModel.duplicate(template) },
                     onDelete = { deleteTarget = template.id },
                 )
             }
