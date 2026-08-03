@@ -1,0 +1,1 @@
+Improved search: search by any macronutrient (custom thresholds), online Open Food Facts search by ingredient/additive, links to official sources (USDA, EFSA, ANSES, PubChem). "Recommended / not recommended" suggestions in your diary, tailored to your health profile. Digestive conditions (IBS, Crohn's, chronic diarrhea) now factored into scoring.

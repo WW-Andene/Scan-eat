@@ -1,0 +1,1 @@
+Scan your food, understand its score, eat according to your health profile.

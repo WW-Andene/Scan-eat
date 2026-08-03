@@ -1,0 +1,18 @@
+Scan'eat helps you understand what you eat — in the context of who you are.
+
+SCAN AND UNDERSTAND
+Scan a product's barcode or photograph its label to get a clear nutrition score, with the exact reasons behind every point gained or lost.
+
+TAILORED TO YOUR PROFILE
+Declare your allergens, diet, and health conditions (diabetes, pregnancy, kidney disease, IBS, Crohn's disease, and more): every score, recommendation, and warning adjusts accordingly — no generic advice.
+
+TRACK YOUR JOURNAL
+Meals, weight, hydration, activity, intermittent fasting, medication, and food spending — all in one journal, with "recommended / not recommended" suggestions tailored to your profile.
+
+SEARCH FOR ANYTHING
+Search covers your own scan history, a curated reference database, and — to go further — an online search by name, ingredient, or additive against Open Food Facts, with links to official sources (USDA, EFSA, ANSES/CIQUAL, PubChem).
+
+YOUR DATA STAYS WITH YOU
+No account, no central server. Your profile and health data are encrypted and stored on your device only.
+
+Scan'eat does not provide medical advice — it's an information tool, not a substitute for a healthcare professional.
