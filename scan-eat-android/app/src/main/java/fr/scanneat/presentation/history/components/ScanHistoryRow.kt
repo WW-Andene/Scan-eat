@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.history.components
 
+import compose.icons.tablericons.AlertTriangle
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
@@ -72,7 +73,7 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
                     // DiaryEntryCard's identical safety-relevant warning styling.
                     if (warning != null) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
                             Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }

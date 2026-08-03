@@ -1,5 +1,9 @@
 package fr.scanneat.presentation.result
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertCircle
+import compose.icons.tablericons.AlertTriangle
+import compose.icons.tablericons.Bulb
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -79,7 +83,7 @@ fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize:
         },
     ) {
         IconButton(onClick = { showHints = true }) {
-            Icon(Icons.Rounded.Lightbulb, cd, tint = if (hasRisks) semanticRed() else semanticAmber(), modifier = Modifier.size(iconSize))
+            Icon(TablerIcons.Bulb, cd, tint = if (hasRisks) semanticRed() else semanticAmber(), modifier = Modifier.size(iconSize))
         }
     }
     if (showHints) {
@@ -121,12 +125,12 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
                     shownAny = true
                 }
                 section(stringResource(R.string.hint_section_information), hints.keyInfo, neutral, Icons.Rounded.Info)
-                section(stringResource(R.string.hint_section_risks), hints.risks, amber, Icons.Rounded.WarningAmber)
-                section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, Icons.Rounded.ErrorOutline)
+                section(stringResource(R.string.hint_section_risks), hints.risks, amber, TablerIcons.AlertTriangle)
+                section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, TablerIcons.AlertCircle)
                 section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Rounded.ThumbUp)
                 section(stringResource(R.string.hint_section_pair_well), hints.pairWell, green, Icons.Rounded.Restaurant)
                 section(stringResource(R.string.hint_section_avoid_pairing), hints.avoidPairing, amber, Icons.Rounded.Block)
-                section(stringResource(R.string.hint_section_facts), hints.facts, neutral, Icons.Rounded.Lightbulb)
+                section(stringResource(R.string.hint_section_facts), hints.facts, neutral, TablerIcons.Bulb)
                 if (isEmpty) {
                     Text(stringResource(R.string.hint_panel_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                 }
@@ -150,13 +154,13 @@ fun FactsCautionsColumn(facts: List<String>, cautions: List<String>) {
     val neutral = OnBackground.copy(0.7f)
     Column(modifier = Modifier.heightIn(max = 300.dp).verticalScroll(rememberScrollState())) {
         if (cautions.isNotEmpty()) {
-            HintSection(stringResource(R.string.hint_section_risks), cautions, amber, Icons.Rounded.WarningAmber)
+            HintSection(stringResource(R.string.hint_section_risks), cautions, amber, TablerIcons.AlertTriangle)
         }
         if (cautions.isNotEmpty() && facts.isNotEmpty()) {
             HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
         }
         if (facts.isNotEmpty()) {
-            HintSection(stringResource(R.string.hint_section_facts), facts, neutral, Icons.Rounded.Lightbulb)
+            HintSection(stringResource(R.string.hint_section_facts), facts, neutral, TablerIcons.Bulb)
         }
     }
 }

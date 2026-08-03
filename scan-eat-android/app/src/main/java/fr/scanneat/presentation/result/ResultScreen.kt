@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.result
 
+import compose.icons.tablericons.AlertCircle
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import android.content.Intent
@@ -138,7 +139,7 @@ fun ResultScreen(
             // history entry, not "still loading". Previously indistinguishable from
             // the pre-load state (both had scanResult == null), so this spun the
             // loading indicator forever with no way out but the back arrow.
-            EmptyListState(Icons.Rounded.ErrorOutline, stringResource(R.string.result_not_found_body))
+            EmptyListState(TablerIcons.AlertCircle, stringResource(R.string.result_not_found_body))
         } else if (s.scanResult == null) {
             // Matches ScoreRing's own size/stroke/track exactly, so the loading
             // state visually sets up the score reveal instead of being a generic

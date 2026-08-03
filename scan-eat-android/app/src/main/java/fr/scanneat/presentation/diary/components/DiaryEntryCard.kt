@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.diary.components
 
+import compose.icons.tablericons.CircleCheck
+import compose.icons.tablericons.AlertTriangle
+import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Arrangement
@@ -57,7 +60,7 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommen
                 // accessor exists for; AccentCoral doesn't adapt under colorblind mode.
                 if (warning != null) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
+                        Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
                         Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 // Positive counterpart to the warning above - only shown when the
@@ -67,7 +70,7 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommen
                 // default shown on every single entry.
                 } else if (recommended) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = semanticGreen(), modifier = Modifier.size(14.dp))
+                        Icon(TablerIcons.CircleCheck, contentDescription = null, tint = semanticGreen(), modifier = Modifier.size(14.dp))
                         Text(stringResource(R.string.diary_entry_recommended), style = MaterialTheme.typography.bodySmall, color = semanticGreen(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
@@ -75,7 +78,7 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommen
             // Left at IconButton's default 48dp touch target (Material/WCAG minimum) -
             // a UI/UX audit found this row forcing both controls to 32dp.
             IconButton(onClick = onEdit) {
-                Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete) {
                 Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))

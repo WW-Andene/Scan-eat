@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.biolism.evolution.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -61,7 +63,7 @@ fun HormonesEvolutionCard(today: HormoneResult?, trends: HormoneTrends, language
         val warnColor = semanticAmber()
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
             modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(6.dp)).padding(Spacing.S)) {
-            Icon(Icons.Outlined.WarningAmber, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
+            Icon(TablerIcons.AlertTriangle, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
             Text(
                 stringResource(R.string.biolism_evo_hormones_caption),
                 style = MaterialTheme.typography.labelSmall,

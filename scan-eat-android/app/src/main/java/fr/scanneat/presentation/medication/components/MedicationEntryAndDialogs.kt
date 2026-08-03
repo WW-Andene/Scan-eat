@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.medication.components
 
+import compose.icons.tablericons.Bell
+import compose.icons.tablericons.DotsVertical
+import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
@@ -81,7 +84,7 @@ internal fun MedicationEntryRow(
             // "reminder on/off" indicator, unlike Rename/Delete.
             IconButton(onClick = onOpenReminder) {
                 Icon(
-                    Icons.Rounded.Notifications,
+                    TablerIcons.Bell,
                     stringResource(R.string.medication_reminder_cd),
                     tint = if (m.reminderOn) Teal else OnSurface.copy(0.4f),
                 )
@@ -94,11 +97,11 @@ internal fun MedicationEntryRow(
             // icons than Weight/Activity - taken-today + reminder - so there isn't
             // row width for a 5th icon button).
             IconButton(onClick = onEdit) {
-                Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f))
+                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f))
             }
             var menuExpanded by remember { mutableStateOf(false) }
             IconButton(onClick = { menuExpanded = true }) {
-                Icon(Icons.Rounded.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
             }
             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
                 DropdownMenuItem(

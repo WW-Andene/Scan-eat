@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.mealplan.components
 
+import compose.icons.tablericons.AlertTriangle
+import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Check
 import compose.icons.tablericons.X
@@ -67,7 +69,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
                 // Diary already show for the exact same items - this weekly grid previously
                 // showed zero allergen/diet warning no matter what was planned here.
                 if (warning != null) {
-                    Icon(Icons.Rounded.WarningAmber, contentDescription = warning, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                    Icon(TablerIcons.AlertTriangle, contentDescription = warning, tint = semanticAmber(), modifier = Modifier.size(12.dp))
                 }
             }
             // Editing as free text only makes sense for a note (or an empty slot) — a
@@ -76,7 +78,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // assignment. Recipe/Template slots use the clear (X) button to remove instead.
             if (slot == null || slot is MealPlanSlot.NoteSlot) {
                 IconButton(onClick = { editing = true }) {
-                    Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                 }
             }
             // A planned Recipe/Template slot previously only ever persisted the plan

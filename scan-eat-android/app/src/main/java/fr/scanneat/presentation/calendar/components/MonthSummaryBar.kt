@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.calendar.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Calendar
+import compose.icons.tablericons.Droplet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,8 +47,8 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
         listOf(
             Triple(AccentCoral, Icons.Rounded.RestaurantMenu, stringResource(R.string.calendar_month_kcal, ms.totalKcal)),
             Triple(Warm,        Icons.Rounded.DirectionsRun,  stringResource(R.string.calendar_month_minutes, ms.activeMinutes)),
-            Triple(Teal,        Icons.Rounded.WaterDrop,       stringResource(R.string.calendar_month_hydration, ms.hydrationMl)),
-            Triple(Gold,        Icons.Rounded.CalendarMonth,   stringResource(R.string.calendar_month_days, ms.activeDays)),
+            Triple(Teal,        TablerIcons.Droplet,       stringResource(R.string.calendar_month_hydration, ms.hydrationMl)),
+            Triple(Gold,        TablerIcons.Calendar,   stringResource(R.string.calendar_month_days, ms.activeDays)),
         ).forEach { (color, icon, label) ->
             Surface(
                 modifier = Modifier.weight(1f),

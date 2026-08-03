@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.fasting.components
 
+import compose.icons.tablericons.CircleCheck
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.background
@@ -133,7 +134,7 @@ internal fun FastingHistoryRow(completion: FastCompletion, onDelete: () -> Unit)
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(c.date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         Text(stringResource(R.string.fasting_history_entry, c.achievedHours, c.targetHours), style = MaterialTheme.typography.bodySmall, color = if (c.reached) semanticGreen() else semanticAmber())
-        Icon(if (c.reached) Icons.Rounded.CheckCircle else TablerIcons.X, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
+        Icon(if (c.reached) TablerIcons.CircleCheck else TablerIcons.X, null, tint = if (c.reached) semanticGreen() else OnSurface.copy(0.3f), modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(Spacing.XS))
         // Previously the only way to fix a mis-tapped Finish (wrong hours logged)
         // was clearHistory(), which wipes all 90 entries and zeroes the streak -

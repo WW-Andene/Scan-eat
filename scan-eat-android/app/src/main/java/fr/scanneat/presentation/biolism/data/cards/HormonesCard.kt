@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.biolism.data.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,7 +34,7 @@ fun HormonesCard(h: HormoneResult, s: TimerState, met: MetabolicResult, profile:
         val warnColor = semanticAmber()
         Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
             modifier = Modifier.background(warnColor.copy(0.08f), RoundedCornerShape(6.dp)).padding(Spacing.S)) {
-            Icon(Icons.Outlined.WarningAmber, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
+            Icon(TablerIcons.AlertTriangle, null, tint = warnColor, modifier = Modifier.size(IconSize.Inline))
             Text(stringResource(R.string.biolism_hormones_disclaimer),
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.85f), fontWeight = FontWeight.Medium)
         }

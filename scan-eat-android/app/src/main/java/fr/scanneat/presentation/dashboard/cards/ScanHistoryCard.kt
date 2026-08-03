@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -51,7 +53,7 @@ internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemCl
                 // of a conflict the Result screen had already flagged for that product.
                 if (warning != null) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                        Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
                         Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }

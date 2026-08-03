@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.dashboard
 
+import compose.icons.tablericons.Calendar
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.Arrangement
@@ -210,7 +211,7 @@ fun DashboardScreen(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     FeatureTile(Icons.Rounded.RestaurantMenu, stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
                     FeatureTile(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
-                    FeatureTile(Icons.Rounded.CalendarMonth, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
+                    FeatureTile(TablerIcons.Calendar, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
                 }
             }
             item {
@@ -227,7 +228,7 @@ fun DashboardScreen(
                     // Previously no single place showed everything logged on a given
                     // day - Diary/Weight/Activity/Hydration each embedded their own
                     // siloed single-domain mini-calendar with no cross-tracker view.
-                    // Was sharing Icons.Rounded.CalendarMonth with Meal Plan's tile above -
+                    // Was sharing TablerIcons.Calendar with Meal Plan's tile above -
                     // same icon, two different destinations in the same grid, so users
                     // couldn't tell them apart at a glance.
                     FeatureTile(Icons.Rounded.EventNote, stringResource(R.string.dashboard_tile_calendar), Modifier.weight(1f), onClick = onOpenCalendar)

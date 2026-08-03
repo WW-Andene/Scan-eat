@@ -1,5 +1,9 @@
 package fr.scanneat.presentation.recipes.components
 
+import compose.icons.tablericons.AlertTriangle
+import compose.icons.tablericons.Copy
+import compose.icons.tablericons.DotsVertical
+import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import android.content.Intent
@@ -93,7 +97,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 IconButton(onClick = onLog) { Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = AccentCoral) }
                 var menuExpanded by remember { mutableStateOf(false) }
                 IconButton(onClick = { menuExpanded = true }) {
-                    Icon(Icons.Rounded.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                    Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
                     // Previously a recipe could only leave the app via the whole-database
@@ -140,7 +144,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_rename)) },
-                        leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.Edit, contentDescription = null) },
                         onClick = { menuExpanded = false; onRename() },
                     )
                     // Fork a variant (e.g. "Curry — spicy version") without altering the
@@ -149,7 +153,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                     // user's own saved list.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.recipes_cd_duplicate)) },
-                        leadingIcon = { Icon(Icons.Rounded.ContentCopy, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.Copy, contentDescription = null) },
                         onClick = { menuExpanded = false; onDuplicate() },
                     )
                     DropdownMenuItem(
@@ -195,7 +199,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
         // (allergen or diet violation) had no warning anywhere in this screen.
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

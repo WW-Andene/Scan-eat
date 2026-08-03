@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.activity.components
 
+import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
@@ -44,7 +45,7 @@ internal fun ActivityEntryRow(entry: ActivityEntry, typeLabels: Map<ActivityType
                 }
             }
             IconButton(onClick = onEdit) {
-                Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete) {
                 Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))

@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.reminders.components
 
+import compose.icons.tablericons.Bell
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Arrangement
@@ -81,7 +82,7 @@ internal fun ReminderRow(
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
             )
             IconButton(onClick = onTest, enabled = permGranted) {
-                Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, displayLabel), tint = if (permGranted) AccentCoral else OnBackground.copy(0.3f))
+                Icon(TablerIcons.Bell, stringResource(R.string.reminders_cd_test, displayLabel), tint = if (permGranted) AccentCoral else OnBackground.copy(0.3f))
             }
             Switch(checked = on, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
                 modifier = Modifier.semantics { contentDescription = displayLabel })
@@ -121,7 +122,7 @@ internal fun CustomReminderRow(
         )
         // Both icon-only buttons previously had a null contentDescription - a
         // TalkBack user got no signal at all for what "test" or "delete" would do.
-        IconButton(onClick = onTest, enabled = permGranted) { Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, labelText.ifBlank { reminder.label }), tint = if (permGranted) AccentCoral else OnBackground.copy(0.3f)) }
+        IconButton(onClick = onTest, enabled = permGranted) { Icon(TablerIcons.Bell, stringResource(R.string.reminders_cd_test, labelText.ifBlank { reminder.label }), tint = if (permGranted) AccentCoral else OnBackground.copy(0.3f)) }
         Switch(checked = reminder.on, onCheckedChange = { onUpdate(reminder.copy(on = it)) }, colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             modifier = Modifier.semantics { contentDescription = labelText })
         IconButton(onClick = onDelete) { Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnBackground.copy(0.4f), modifier = Modifier.size(16.dp)) }

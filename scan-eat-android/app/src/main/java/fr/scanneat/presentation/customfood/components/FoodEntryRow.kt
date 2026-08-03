@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.customfood.components
 
+import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Arrangement
@@ -106,7 +107,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
             // a UI/UX audit found this row forcing both controls to 32dp.
             IconButton(onClick = onRename) {
                 Icon(
-                    Icons.Rounded.Edit, stringResource(R.string.common_rename),
+                    TablerIcons.Edit, stringResource(R.string.common_rename),
                     tint = OnSurface.copy(0.5f),
                     modifier = Modifier.size(16.dp),
                 )

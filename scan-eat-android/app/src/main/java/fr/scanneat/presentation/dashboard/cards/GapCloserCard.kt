@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,7 +51,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggesti
                 // (TemplateCard, HormonesEvolutionCard, HealthConditionCaution) pairs a
                 // WarningAmber icon with the text - this was bare amber text alone.
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                     Text(
                         stringResource(R.string.dashboard_gap_entry, nutrientLabel(gap.nutrient), gap.deficit.formatDecimal()),
                         style = MaterialTheme.typography.labelMedium, color = semanticAmber(),

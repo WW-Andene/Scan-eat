@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.fasting
 
 
+import compose.icons.tablericons.Calendar
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
@@ -126,7 +127,7 @@ fun FastingScreen(
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     IconButton(onClick = onOpenCalendar) {
-                        Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.fasting_cd_calendar), tint = OnBackground.copy(0.6f))
+                        Icon(TablerIcons.Calendar, stringResource(R.string.fasting_cd_calendar), tint = OnBackground.copy(0.6f))
                     }
                 }
             }

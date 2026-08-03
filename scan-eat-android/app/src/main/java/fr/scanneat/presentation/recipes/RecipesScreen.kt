@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes
 
+import compose.icons.tablericons.Bulb
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import android.graphics.Bitmap
@@ -192,7 +193,7 @@ fun RecipesScreen(
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
-            IconButton(onClick = { showSuggest = true }) { Icon(Icons.Rounded.Lightbulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
+            IconButton(onClick = { showSuggest = true }) { Icon(TablerIcons.Bulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }
             IconButton(onClick = { showImportUrl = true }) { Icon(Icons.Rounded.Link, stringResource(R.string.recipes_cd_import_url), tint = OnBackground) }
             IconButton(onClick = {
                 photoImportLauncher.launch(

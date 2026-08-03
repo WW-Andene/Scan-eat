@@ -1,5 +1,10 @@
 package fr.scanneat.presentation.templates.components
 
+import compose.icons.tablericons.AlertTriangle
+import compose.icons.tablericons.Bulb
+import compose.icons.tablericons.Copy
+import compose.icons.tablericons.DotsVertical
+import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
@@ -77,7 +82,7 @@ internal fun TemplateCard(
                 // directly visible at full size.
                 var menuExpanded by remember { mutableStateOf(false) }
                 IconButton(onClick = { menuExpanded = true }) {
-                    Icon(Icons.Rounded.MoreVert, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
+                    Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
                     // The "💡 Bon à savoir" hint panel was previously reachable
@@ -90,7 +95,7 @@ internal fun TemplateCard(
                     // (Favorite/Manage-items/Log/More).
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.hint_panel_title)) },
-                        leadingIcon = { Icon(Icons.Rounded.Lightbulb, contentDescription = null, tint = if (hintsHaveRisks) semanticRed() else semanticAmber()) },
+                        leadingIcon = { Icon(TablerIcons.Bulb, contentDescription = null, tint = if (hintsHaveRisks) semanticRed() else semanticAmber()) },
                         trailingIcon = { if (hintsHaveRisks) Badge(containerColor = semanticRed()) { Text("$hintsRiskCount") } },
                         onClick = { menuExpanded = false; showHints = true },
                     )
@@ -105,14 +110,14 @@ internal fun TemplateCard(
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_rename)) },
-                        leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.Edit, contentDescription = null) },
                         onClick = { menuExpanded = false; onRename() },
                     )
                     // Fork into an independent copy (e.g. "Breakfast" -> "Breakfast
                     // (weekend)") - same duplicate action RecipeCard already has.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.recipes_cd_duplicate)) },
-                        leadingIcon = { Icon(Icons.Rounded.ContentCopy, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.Copy, contentDescription = null) },
                         onClick = { menuExpanded = false; onDuplicate() },
                     )
                     DropdownMenuItem(
@@ -139,7 +144,7 @@ internal fun TemplateCard(
         // repeatedly.
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

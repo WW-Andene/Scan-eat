@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.biolism.tracker.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -84,7 +86,7 @@ private fun CautionBanner(text: String) {
             horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             verticalAlignment = Alignment.Top,
         ) {
-            Icon(Icons.Outlined.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.padding(top = 2.dp))
+            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.padding(top = 2.dp))
             Text(text, style = MaterialTheme.typography.labelSmall, color = semanticAmber())
         }
     }

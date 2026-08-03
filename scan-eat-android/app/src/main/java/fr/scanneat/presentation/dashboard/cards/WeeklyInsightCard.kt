@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.tablericons.CircleCheck
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -53,7 +56,7 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(
-                if (consistent) Icons.Rounded.CheckCircle else Icons.Rounded.WarningAmber,
+                if (consistent) TablerIcons.CircleCheck else TablerIcons.AlertTriangle,
                 null, tint = color, modifier = Modifier.size(18.dp),
             )
             Text(stringResource(R.string.dashboard_insight_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)

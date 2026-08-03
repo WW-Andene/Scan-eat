@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
+import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Filter
 import androidx.compose.foundation.clickable
@@ -53,7 +54,7 @@ fun CollapsibleFilterBar(
                 Icon(TablerIcons.Filter, null, tint = OnBackground.copy(0.6f), modifier = Modifier.size(18.dp))
                 Text(summaryLabel, style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.8f))
             }
-            Icon(Icons.Rounded.ExpandMore, null, tint = OnBackground.copy(0.5f))
+            Icon(TablerIcons.ChevronDown, null, tint = OnBackground.copy(0.5f))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = onToggle, content = content)
     }

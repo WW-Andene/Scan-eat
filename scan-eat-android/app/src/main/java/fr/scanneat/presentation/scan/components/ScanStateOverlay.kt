@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.tablericons.Camera
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Arrangement
@@ -70,7 +71,7 @@ internal fun BoxScope.ScanStateOverlay(
                         .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
                         color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL), shadowElevation = 3.dp) {
                         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.CameraAlt, null, tint = AccentCoral)
+                            Icon(TablerIcons.Camera, null, tint = AccentCoral)
                             Spacer(Modifier.width(Spacing.S))
                             Text(stringResource(R.string.scan_needs_photo),
                                 Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = OnSurface)

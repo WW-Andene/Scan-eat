@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Camera
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -251,7 +253,7 @@ fun CameraPreview(
             modifier       = Modifier.align(Alignment.BottomCenter).padding(bottom = bottomNavClearance + Spacing.L),
             containerColor = SurfaceVariant,
         ) {
-            Icon(Icons.Rounded.CameraAlt, stringResource(R.string.scan_capture), tint = OnSurface)
+            Icon(TablerIcons.Camera, stringResource(R.string.scan_capture), tint = OnSurface)
         }
     }
 }

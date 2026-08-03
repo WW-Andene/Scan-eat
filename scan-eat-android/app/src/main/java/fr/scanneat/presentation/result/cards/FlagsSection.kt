@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.result.cards
 
+import compose.icons.tablericons.CircleCheck
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,7 +42,7 @@ private fun FlagRow(text: String, isRed: Boolean) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
-        Icon(if (isRed) Icons.Rounded.Warning else Icons.Rounded.CheckCircle, null,
+        Icon(if (isRed) TablerIcons.AlertTriangle else TablerIcons.CircleCheck, null,
             tint = color, modifier = Modifier.size(16.dp))
         Text(text, style = MaterialTheme.typography.bodySmall, color = OnBackground, modifier = Modifier.weight(1f))
     }

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Clock
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -65,7 +67,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
             )
             val fasting = snapshot.fastingActive
             TrackerStat(
-                icon = Icons.Rounded.Timer,
+                icon = TablerIcons.Clock,
                 // app-audit §E3: Hydration's icon above correctly uses semanticBlue()
                 // (its real identity color everywhere else) and Medication's is a real
                 // status indicator (green/amber by compliance) - this was a static

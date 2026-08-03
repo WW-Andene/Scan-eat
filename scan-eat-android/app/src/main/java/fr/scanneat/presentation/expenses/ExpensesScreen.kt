@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.expenses
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Calendar
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -190,7 +192,7 @@ private fun ExpensesWeekCard(
                 // an earlier pass here set 32dp, undersizing this one tap target
                 // below every other IconButton in the app.
                 IconButton(onClick = onOpenCalendar) {
-                    Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.expenses_cd_calendar), tint = OnSurface.copy(0.5f))
+                    Icon(TablerIcons.Calendar, stringResource(R.string.expenses_cd_calendar), tint = OnSurface.copy(0.5f))
                 }
                 Spacer(Modifier.width(Spacing.XS))
                 Text(stringResource(R.string.expenses_week_title), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f))

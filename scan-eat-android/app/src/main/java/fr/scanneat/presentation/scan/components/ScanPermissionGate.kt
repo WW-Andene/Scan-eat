@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Camera
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,7 +40,7 @@ internal fun ScanPermissionRequestColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(Icons.Rounded.CameraAlt, null, tint = OnBackground, modifier = Modifier.size(64.dp))
+        Icon(TablerIcons.Camera, null, tint = OnBackground, modifier = Modifier.size(64.dp))
         Spacer(Modifier.height(Spacing.L))
         Text(stringResource(R.string.scan_camera_permission_title), style = MaterialTheme.typography.titleMedium,
             color = OnBackground, textAlign = TextAlign.Center)

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.foodsearch
 
+import compose.icons.tablericons.ChevronDown
+import compose.icons.tablericons.ChevronUp
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import compose.icons.tablericons.Check
@@ -347,7 +349,7 @@ private fun CategoryHeader(category: FoodSearchCategory, count: Int, expanded: B
             stringResource(R.string.foodsearch_category_header, categoryLabel(category), count),
             style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
         )
-        Icon(if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = OnBackground.copy(0.5f))
+        Icon(if (expanded) TablerIcons.ChevronUp else TablerIcons.ChevronDown, null, tint = OnBackground.copy(0.5f))
     }
 }
 
@@ -394,7 +396,7 @@ private fun FoodSearchRow(
             // another type expanded a detail panel, with no visible cue why.
             if (item.grade == null) {
                 Icon(
-                    if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                    if (expanded) TablerIcons.ChevronUp else TablerIcons.ChevronDown,
                     null, tint = OnSurface.copy(0.4f),
                 )
             }

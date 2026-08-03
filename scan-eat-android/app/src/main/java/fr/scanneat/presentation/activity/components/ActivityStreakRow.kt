@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.activity.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Calendar
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -25,7 +27,7 @@ internal fun ActivityStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
             Spacer(Modifier.width(1.dp))
         }
         IconButton(onClick = onOpenCalendar) {
-            Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
+            Icon(TablerIcons.Calendar, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
         }
     }
 }

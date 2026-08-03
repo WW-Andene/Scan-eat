@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.recipes.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
+import compose.icons.tablericons.Copy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
@@ -49,7 +52,7 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
                 // minimum) - a UI/UX audit found this row forcing 36dp.
                 HintIconButton(hints = hints)
                 IconButton(onClick = onLog) { Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = AccentCoral) }
-                IconButton(onClick = onClone) { Icon(Icons.Rounded.ContentCopy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
+                IconButton(onClick = onClone) { Icon(TablerIcons.Copy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
             }
         }
         recipe.ingredients.take(4).forEach { ing ->
@@ -57,7 +60,7 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
         }
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

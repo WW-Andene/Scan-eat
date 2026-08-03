@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.medication.components
 
+import compose.icons.tablericons.AlertTriangle
+import compose.icons.tablericons.Calendar
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Check
 import compose.icons.tablericons.X
@@ -35,7 +37,7 @@ internal fun MedicationStreakRow(streakDays: Int, onOpenCalendar: () -> Unit) {
             Spacer(Modifier.width(1.dp))
         }
         IconButton(onClick = onOpenCalendar) {
-            Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.medication_cd_calendar), tint = OnBackground.copy(0.6f))
+            Icon(TablerIcons.Calendar, stringResource(R.string.medication_cd_calendar), tint = OnBackground.copy(0.6f))
         }
     }
 }
@@ -70,7 +72,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
         border = BorderStroke(1.dp, semanticRed().copy(alpha = 0.35f)),
     ) {
         Row(modifier = Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Rounded.Warning, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
             Column {
                 Text(stringResource(R.string.medication_interaction_title), style = MaterialTheme.typography.labelMedium, color = semanticRed(), fontWeight = FontWeight.Bold)
                 Text(message, style = MaterialTheme.typography.bodySmall, color = semanticRed().copy(0.8f))

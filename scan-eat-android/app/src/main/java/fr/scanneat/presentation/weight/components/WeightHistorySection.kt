@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.weight.components
 
+import compose.icons.tablericons.Calendar
+import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
@@ -27,7 +29,7 @@ import java.time.format.DateTimeFormatter
 internal fun WeightUnitToggleRow(useImperial: Boolean, onUnitChange: (Boolean) -> Unit, onOpenCalendar: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = onOpenCalendar) {
-            Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
+            Icon(TablerIcons.Calendar, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf(false to "kg", true to "lb").forEach { (imperial, label) ->
@@ -235,7 +237,7 @@ internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boo
             }
             Text(dispWeight(e.weightKg), style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
             IconButton(onClick = onEdit) {
-                Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete) {
                 Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))

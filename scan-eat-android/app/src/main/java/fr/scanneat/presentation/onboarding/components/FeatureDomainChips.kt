@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.onboarding.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Clock
+import compose.icons.tablericons.Droplet
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,8 +28,8 @@ internal fun FeatureDomainChips() {
     val domains = listOf(
         Icons.Rounded.QrCodeScanner to R.string.onboarding_domain_scan,
         Icons.Rounded.RestaurantMenu to R.string.onboarding_domain_diet,
-        Icons.Rounded.WaterDrop to R.string.onboarding_domain_hydration,
-        Icons.Rounded.Timer to R.string.onboarding_domain_fasting,
+        TablerIcons.Droplet to R.string.onboarding_domain_hydration,
+        TablerIcons.Clock to R.string.onboarding_domain_fasting,
         Icons.Rounded.Scale to R.string.onboarding_domain_weight,
         Icons.Rounded.DirectionsRun to R.string.onboarding_domain_activity,
         Icons.Rounded.Medication to R.string.onboarding_domain_medication,

@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.mealplan
 
+import compose.icons.tablericons.Copy
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
@@ -92,7 +93,7 @@ fun MealPlanScreen(
             PlanningSwitcherMenu(current = PlanningDestination.MEAL_PLAN, onNavigate = onNavigateToPlanning)
             if (weekHasAnyPlan) {
                 IconButton(onClick = { viewModel.duplicateWeek() }) {
-                    Icon(Icons.Rounded.ContentCopy, stringResource(R.string.mealplan_duplicate_week), tint = OnBackground)
+                    Icon(TablerIcons.Copy, stringResource(R.string.mealplan_duplicate_week), tint = OnBackground)
                 }
             }
         },

@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.diary.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Calendar
+import compose.icons.tablericons.Copy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,10 +43,10 @@ internal fun DiaryDayNavigationRow(
                 Icon(Icons.Rounded.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday) OnBackground else OnBackground.copy(0.3f))
             }
             IconButton(onClick = onToggleCalendar) {
-                Icon(Icons.Rounded.CalendarMonth, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
+                Icon(TablerIcons.Calendar, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))
             }
             IconButton(onClick = onCopyPreviousDay) {
-                Icon(Icons.Rounded.ContentCopy, stringResource(R.string.diary_cd_copy_previous_day), tint = OnBackground.copy(0.5f))
+                Icon(TablerIcons.Copy, stringResource(R.string.diary_cd_copy_previous_day), tint = OnBackground.copy(0.5f))
             }
         }
         if (!isToday) {

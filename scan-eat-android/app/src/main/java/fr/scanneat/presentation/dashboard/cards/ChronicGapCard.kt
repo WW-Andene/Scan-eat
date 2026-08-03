@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,7 +54,7 @@ internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSugge
                 // design-aesthetic-audit §DC: same gap as GapCloserCard - every other
                 // amber-warning text in the app pairs a WarningAmber icon with the text.
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
                     Text(
                         stringResource(
                             R.string.dashboard_chronic_gap_entry,

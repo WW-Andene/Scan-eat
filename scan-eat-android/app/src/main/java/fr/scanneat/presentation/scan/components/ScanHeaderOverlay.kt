@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -137,7 +139,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                     ) {
-                        Icon(Icons.Rounded.WarningAmber, null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
+                        Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
                         Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber())
                     }
                 }

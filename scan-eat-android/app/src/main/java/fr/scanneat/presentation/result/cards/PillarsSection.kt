@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.result.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ChevronDown
+import compose.icons.tablericons.ChevronUp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -85,7 +88,7 @@ private fun PillarRow(pillar: PillarScore) {
                 Text(pillar.name, style = MaterialTheme.typography.labelMedium, color = OnBackground)
                 if (reasons.isNotEmpty()) {
                     Icon(
-                        if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null,
+                        if (expanded) TablerIcons.ChevronUp else TablerIcons.ChevronDown, null,
                         tint = OnBackground.copy(0.4f), modifier = Modifier.size(IconSize.Inline),
                     )
                 }

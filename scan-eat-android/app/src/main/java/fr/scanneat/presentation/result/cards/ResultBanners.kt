@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.result.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -143,7 +145,7 @@ internal fun AllergenUnverifiedBanner() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Rounded.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
             Text(stringResource(R.string.result_allergens_unverified), style = MaterialTheme.typography.bodySmall,
                 color = OnBackground, modifier = Modifier.weight(1f))
         }
@@ -158,7 +160,7 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(Icons.Rounded.Warning, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
+            Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Inline))
             Text(stringResource(R.string.result_allergens_title), style = MaterialTheme.typography.labelMedium,
                 color = semanticAmber(), fontWeight = FontWeight.SemiBold)
         }

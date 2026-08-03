@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.hydration.components
 
+import compose.icons.tablericons.CircleCheck
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Edit
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -59,7 +62,7 @@ internal fun HydrationRingAndControls(
             Text("$intakeMl", style = MaterialTheme.typography.headlineLarge, color = semanticBlue(), fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(stringResource(R.string.hydration_goal_ml, goalMl), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                Icon(Icons.Rounded.Edit, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(12.dp))
+                Icon(TablerIcons.Edit, null, tint = OnBackground.copy(0.4f), modifier = Modifier.size(12.dp))
             }
             Text(stringResource(R.string.hydration_glasses_count, glasses, goalGlasses), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
         }
@@ -94,7 +97,7 @@ internal fun HydrationRingAndControls(
         Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticGreen().copy(0.15f), shadowElevation = 3.dp) {
                 Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    Icon(Icons.Rounded.CheckCircle, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
+                    Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
                     Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())
                 }
             }
