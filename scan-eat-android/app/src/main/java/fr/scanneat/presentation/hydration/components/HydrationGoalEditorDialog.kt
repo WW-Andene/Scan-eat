@@ -23,6 +23,11 @@ internal fun HydrationGoalEditorDialog(
     onConfirm: (String) -> Unit,
 ) {
     var goalText by rememberSaveable { mutableStateOf(initialGoalText) }
+    // Was a silent no-op: an empty/zero/out-of-range value just closed the dialog
+    // with the previous goal quietly left in place, no isError/message telling the
+    // user why nothing happened - same fix AddExpenseDialog's price/weight fields
+    // got this round for the identical "typed something invalid" case.
+    val goalValid = goalText.toIntOrNull()?.let { it in 1..10000 } == true
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
@@ -34,6 +39,7 @@ internal fun HydrationGoalEditorDialog(
                     value = goalText,
                     onValueChange = { goalText = it.filter(Char::isDigit) },
                     label = { Text(stringResource(R.string.hydration_goal_ml_hint)) },
+                    isError = goalText.isNotBlank() && !goalValid,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     // app-audit §E6: had no colors at all - fell back fully to
@@ -48,7 +54,9 @@ internal fun HydrationGoalEditorDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(goalText) }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
+            TextButton(onClick = { onConfirm(goalText) }, enabled = goalValid) {
+                Text(stringResource(R.string.common_save), color = if (goalValid) AccentCoral else OnBackground.copy(0.3f))
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }

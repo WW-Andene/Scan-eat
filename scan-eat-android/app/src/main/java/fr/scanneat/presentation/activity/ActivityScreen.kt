@@ -259,7 +259,11 @@ fun ActivityScreen(
                 onWeightUsedTextChange = { weightUsedText = it },
                 onMinutesTextChange = { minutesText = it },
             ),
-            onDismiss = { openAddDialog(); showAdd = false },
+            // openAddDialog() already resets every field whenever the Add dialog is
+            // reopened (FAB/CTA) - calling it again here on dismiss was redundant and
+            // composed an extra recomposition of a now-empty dialog right before it
+            // closed, unlike Weight/Medication which only reset fields at the open call site.
+            onDismiss = { showAdd = false },
             onAdd = {
                 minutesText.toIntOrNull()?.let { min ->
                     // Clamped to sane ranges, same rationale as Profile/Weight/CustomFood's

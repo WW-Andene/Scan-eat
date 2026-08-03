@@ -564,6 +564,8 @@
     <string name="biolism_sessctrl_saved">Sauvegardé</string>
     <string name="biolism_sessctrl_save">Sauver</string>
     <string name="biolism_sessctrl_reset">Réinitialiser</string>
+    <string name="biolism_tracker_reset_confirm_title">Réinitialiser la session ?</string>
+    <string name="biolism_tracker_reset_confirm_body">Le temps écoulé et les calculs en cours seront perdus.</string>
     <string name="biolism_datascreen_empty_tab_hint">Onglet Profil</string>
     <string name="biolism_unit_week">s</string>
     <string name="biolism_unit_day">j</string>

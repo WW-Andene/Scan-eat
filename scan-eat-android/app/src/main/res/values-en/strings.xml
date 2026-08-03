@@ -563,6 +563,8 @@
     <string name="biolism_sessctrl_saved">Saved</string>
     <string name="biolism_sessctrl_save">Save</string>
     <string name="biolism_sessctrl_reset">Reset</string>
+    <string name="biolism_tracker_reset_confirm_title">Reset this session?</string>
+    <string name="biolism_tracker_reset_confirm_body">Elapsed time and in-progress calculations will be lost.</string>
     <string name="biolism_datascreen_empty_tab_hint">Profile tab</string>
     <string name="biolism_unit_week">w</string>
     <string name="biolism_unit_day">d</string>

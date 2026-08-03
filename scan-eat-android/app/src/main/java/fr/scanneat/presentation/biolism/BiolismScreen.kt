@@ -51,7 +51,11 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
         return
     }
 
-    var activeTab by remember { mutableStateOf(BiolismTab.TRACKER) }
+    // Was plain remember - MainShell's bottom-nav switch uses popUpTo(saveState=true)/
+    // restoreState=true, so leaving Biolism (e.g. to check Dashboard) and coming back
+    // silently reset the user to Tracker, discarding their place on Data/Evolution/
+    // Profile - same rememberSaveable pattern DiaryScreen's own sub-tab already uses.
+    var activeTab by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(BiolismTab.TRACKER) }
     val hazeState = remember { HazeState() }
 
     val fgColor = MaterialTheme.colorScheme.onBackground

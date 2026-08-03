@@ -12,7 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -27,6 +30,7 @@ import fr.scanneat.presentation.biolism.tracker.cards.*
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.ConfirmDialog
 import fr.scanneat.presentation.ui.theme.ambientGloom
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.IconSize
@@ -68,6 +72,12 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     // silent. No Scaffold on this screen (it's always embedded as a BiolismScreen
     // tab), so the host is overlaid directly like WeightScreen's embedded=true path.
     val snackbarHostState = remember { SnackbarHostState() }
+    // Reset instantly wiped accumulatedMs/ketoAccumulatedMs/saved with no confirmation
+    // or undo - a session can represent many hours of tracked time, and Reset sits
+    // one tap away from Pause. Every comparable destructive action elsewhere
+    // (Weight/Activity/Medication delete, MealPlan's clear-day) now gates behind a
+    // confirm dialog first.
+    var showResetConfirm by remember { mutableStateOf(false) }
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val logFailedMessage = stringResource(R.string.common_log_failed)
     LaunchedEffect(actionFailed.value) {
@@ -242,11 +252,20 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
                 saved    = saved.value,
                 onStartPause = viewModel::startOrPause,
                 onSave   = viewModel::saveSession,
-                onReset  = viewModel::reset,
+                onReset  = { showResetConfirm = true },
             )
         }
     }
     ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+    if (showResetConfirm) {
+        ConfirmDialog(
+            title = stringResource(R.string.biolism_tracker_reset_confirm_title),
+            body = stringResource(R.string.biolism_tracker_reset_confirm_body),
+            confirmLabel = stringResource(R.string.biolism_sessctrl_reset),
+            onConfirm = { viewModel.reset(); showResetConfirm = false },
+            onDismiss = { showResetConfirm = false },
+        )
+    }
     }
 }
 
