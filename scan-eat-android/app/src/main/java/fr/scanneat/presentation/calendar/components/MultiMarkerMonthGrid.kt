@@ -68,6 +68,18 @@ internal fun MultiMarkerMonthGrid(
             )
             IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) { Icon(Icons.Rounded.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground) }
         }
+        // Was strictly one month at a time via the chevrons with no fast way back -
+        // a user drilling several months into the past (e.g. checking an old
+        // adherence gap) had to repeatedly tap the right chevron to get back to now.
+        val today = java.time.LocalDate.now()
+        if (month != java.time.YearMonth.from(today)) {
+            androidx.compose.material3.TextButton(
+                onClick = { onMonthChange(java.time.YearMonth.from(today)); onDayClick(today) },
+                modifier = Modifier.padding(start = 40.dp),
+            ) {
+                Text(stringResource(R.string.calendar_today), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
+            }
+        }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             // Matches the week-number column's 48dp width below so these labels
             // land over the day columns they actually label, not shifted left of them.

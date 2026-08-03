@@ -257,12 +257,33 @@ private fun ExpensesWeekCard(
     }
 }
 
-/** No dedicated per-category string table exists for ProductCategory anywhere in
- *  the app (it's a scoring-engine classification, not a user-facing label
- *  elsewhere) - a readable fallback derived from the enum key rather than adding
- *  18 new translated strings just for this one breakdown row. */
-private fun ProductCategory.displayLabel(): String =
-    key.replace('_', ' ').replaceFirstChar { it.uppercase() }
+/** Was falling back to the raw enum key with underscores swapped for spaces
+ *  (e.g. "Dairy products"-style English leaking into an otherwise fully French
+ *  screen) since no per-category string table existed - this breakdown row is
+ *  the only place ProductCategory needs a user-facing label at all. */
+@Composable
+private fun ProductCategory.displayLabel(): String = stringResource(
+    when (this) {
+        ProductCategory.SANDWICH          -> R.string.category_sandwich
+        ProductCategory.READY_MEAL        -> R.string.category_ready_meal
+        ProductCategory.SOUP              -> R.string.category_soup
+        ProductCategory.BREAD             -> R.string.category_bread
+        ProductCategory.BREAKFAST_CEREAL  -> R.string.category_breakfast_cereal
+        ProductCategory.YOGURT            -> R.string.category_yogurt
+        ProductCategory.CHEESE            -> R.string.category_cheese
+        ProductCategory.PROCESSED_MEAT    -> R.string.category_processed_meat
+        ProductCategory.FRESH_MEAT        -> R.string.category_fresh_meat
+        ProductCategory.FISH              -> R.string.category_fish
+        ProductCategory.SNACK_SWEET       -> R.string.category_snack_sweet
+        ProductCategory.SNACK_SALTY       -> R.string.category_snack_salty
+        ProductCategory.BEVERAGE_SOFT     -> R.string.category_beverage_soft
+        ProductCategory.BEVERAGE_JUICE    -> R.string.category_beverage_juice
+        ProductCategory.BEVERAGE_WATER    -> R.string.category_beverage_water
+        ProductCategory.CONDIMENT         -> R.string.category_condiment
+        ProductCategory.OIL_FAT           -> R.string.category_oil_fat
+        ProductCategory.OTHER             -> R.string.category_other
+    },
+)
 
 @Composable
 private fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, onDelete: () -> Unit) {
@@ -372,10 +393,15 @@ private fun AddExpenseDialog(onConfirm: (name: String, price: Double, weight: Do
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
                 )
+                // Was giving no visual feedback for an out-of-range value - the Save
+                // button just silently stayed disabled, unlike AddWeightDialog/
+                // MedicationReminderDialog's identical isError pattern for the same
+                // "typed something, but it's out of bounds" case.
                 OutlinedTextField(
                     value = priceText, onValueChange = { priceText = it },
                     label = { Text(stringResource(R.string.result_price_field_euros)) },
                     singleLine = true,
+                    isError = priceText.isNotBlank() && price == null,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
@@ -384,6 +410,7 @@ private fun AddExpenseDialog(onConfirm: (name: String, price: Double, weight: Do
                     value = weightText, onValueChange = { weightText = it },
                     label = { Text(stringResource(R.string.result_price_field_weight)) },
                     singleLine = true,
+                    isError = weightText.isNotBlank() && weight == null,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
