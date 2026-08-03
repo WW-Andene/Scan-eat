@@ -97,10 +97,14 @@ class TodayWidget : GlanceAppWidget() {
         // Same Biolism-override rule as Dashboard/Diary (see DiaryViewModel.targets) -
         // without this, the widget silently showed a different kcal target than the
         // in-app screens for the same day, for any user with a valid Biolism profile
-        // (the common case, since it auto-populates from the main Profile).
-        val bioProfile = biolismRepo.profile.first()
+        // (the common case, since it auto-populates from the main Profile). Gated
+        // behind isPremium (see UserPreferences.isPremium) same as every other
+        // Biolism surface - a non-Premium user (or a former Premium user who kept an
+        // old bioProfile after downgrading) never has it silently applied here.
+        val isPremium = prefs.isPremium.first()
+        val bioProfile = if (isPremium) biolismRepo.profile.first() else null
         val baseTargets = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
-        val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
+        val bioTdee = if (bioProfile?.isValid == true) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
         val targets = baseTargets?.let { if (bioTdee != null) it.withKcalOverride(bioTdee, profile.goal) else it }
         // getAllLoggedDates() is a cheap DISTINCT-date query (no row hydration, no
         // nutrition JSON parsing) - unlike a bounded observeRange(), it can't silently

@@ -187,10 +187,19 @@ class ScanViewModel @Inject constructor(
     val todayScanCount: StateFlow<Int> = scanRepo.observeTodayScanCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    /** Freemium gate - see UserPreferences.isPremium's own doc comment. Instant
+     *  mode and multi-food identify are Premium; toggleInstantMode()/
+     *  identifyMultiFromPhotos() below both no-op for a non-Premium user, so a
+     *  stale/bypassed UI state can never actually trigger either. */
+    val isPremium = prefs.isPremium.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     private val _instantMode = MutableStateFlow(false)
     val instantMode: StateFlow<Boolean> = _instantMode.asStateFlow()
 
-    fun toggleInstantMode() { _instantMode.value = !_instantMode.value }
+    fun toggleInstantMode() {
+        if (!isPremium.value) return
+        _instantMode.value = !_instantMode.value
+    }
 
     fun onBarcodeDetected(barcode: String) {
         // Previously only guarded Scanning — while a MedicationFound/NonConsumableFound/
@@ -397,6 +406,7 @@ class ScanViewModel @Inject constructor(
      * persisted straight into scan_history with a nutrition-based score.
      */
     fun identifyMultiFromPhotos() {
+        if (!isPremium.value) return
         val imgs = _images.value
         if (imgs.isEmpty()) return
         if (!scoreMutex.tryLock()) return

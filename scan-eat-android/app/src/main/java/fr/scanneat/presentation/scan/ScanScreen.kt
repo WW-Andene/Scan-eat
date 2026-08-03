@@ -72,6 +72,7 @@ fun ScanScreen(
     val images      = viewModel.images.collectAsStateWithLifecycle()
     val barcode     = viewModel.scannedBarcode.collectAsStateWithLifecycle()
     val instantMode = viewModel.instantMode.collectAsStateWithLifecycle()
+    val isPremium   = viewModel.isPremium.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val healthConditions = viewModel.healthConditions.collectAsStateWithLifecycle()
     val recentBarcodes = viewModel.recentBarcodes.collectAsStateWithLifecycle()
@@ -304,7 +305,10 @@ fun ScanScreen(
                     // Long-press: same photos, but routes to /api/identify-multi so a
                     // plate with several distinct foods returns one item per food
                     // instead of collapsing the whole plate into a single result.
-                    onLongClick = { viewModel.identifyMultiFromPhotos() },
+                    // Premium-gated (see UserPreferences.isPremium) - identifyMultiFromPhotos()
+                    // already no-ops for a non-Premium user, but routing to Settings here
+                    // instead of silently doing nothing tells the user why.
+                    onLongClick = { if (isPremium.value) viewModel.identifyMultiFromPhotos() else onOpenSettings() },
                 )
             }
 
@@ -317,11 +321,14 @@ fun ScanScreen(
                 )
             }
 
-            // ── Instant mode FAB — bottom-start ──
+            // ── Instant mode FAB — bottom-start. Premium-gated (see
+            // UserPreferences.isPremium) - toggleInstantMode() already no-ops for a
+            // non-Premium user; routing to Settings here instead of silently doing
+            // nothing tells the user why the FAB didn't respond. ──
             ScanInstantModeFab(
                 instantMode = instantMode.value,
                 bottomNavClearance = bottomNavClearance,
-                onClick = { viewModel.toggleInstantMode() },
+                onClick = { if (isPremium.value) viewModel.toggleInstantMode() else onOpenSettings() },
             )
 
             // ── Shelf-scan mode toggle — top-end, below the flash toggle ──
