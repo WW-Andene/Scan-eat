@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -120,15 +121,22 @@ fun ScanEatCard(
             // rectangle while the shadow stayed rounded, showing the rounded shadow
             // peeking out past a square-cornered fill at all four corners. Explicit
             // .clip(shape) forces the fill to hard-clip regardless of that path.
-            modifier = Modifier.fillMaxWidth().clip(shape).then(
-                if (onClick != null)
-                    Modifier.pressScale(interactionSource)
-                        .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
-                else Modifier
-            ),
+            // F16 (docs/design-audit-step6-color-atmosphere.md): shadow drawn explicitly
+            // here with a warm-tinted color instead of via Surface's own shadowElevation
+            // param, which always renders Compose's neutral default shadow color
+            // regardless of the palette — Surface's shadowElevation stays at 0 below so
+            // the two don't stack.
+            modifier = Modifier.fillMaxWidth()
+                .shadow(elevation = spec.elevation, shape = shape, ambientColor = ShadowTint, spotColor = ShadowTint)
+                .clip(shape).then(
+                    if (onClick != null)
+                        Modifier.pressScale(interactionSource)
+                            .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
+                    else Modifier
+                ),
             shape = shape,
             color = color,
-            shadowElevation = spec.elevation,
+            shadowElevation = 0.dp,
             border = if (spec.borderAlpha > 0f) BorderStroke(1.dp, accent.copy(alpha = spec.borderAlpha)) else null,
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)

@@ -73,6 +73,15 @@ internal val LowContrastSurfaceRaw = Color(0xFF454545)
 internal val LowContrastOnSurfaceRaw = Color(0xFFAFAFAF)
 internal val LowContrastOutlineRaw = Color(0xFF6A6A6A)
 
+// Audit F16 (docs/design-audit-step6-color-atmosphere.md): shadows app-wide
+// rendered via Compose's default `Modifier.shadow`/Surface `shadowElevation`
+// color, an unthemed near-black — inconsistent with the warmed "second skin"
+// palette everything else in this file now carries (docs/design-audit-art-
+// direction-brief.md). A warm near-black instead of a neutral one, applied
+// via explicit `Modifier.shadow(ambientColor = ShadowTint, spotColor =
+// ShadowTint)` at call sites that opt in (ScanEatCard first).
+val ShadowTint: Color = Color(0xFF120D0A)
+
 // ═══ LAYER 2 — SEMANTIC (meaning-bearing roles; theme-reactive where noted) ══
 // Theme-reactive roles. Every screen reads these instead of a fixed literal, so
 // switching OLED/Sombre/Clair in Settings actually repaints the app — previously
