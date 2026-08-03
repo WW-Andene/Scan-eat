@@ -143,6 +143,10 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>)
                 fr.scanneat.presentation.calendar.components.LegendDot(Teal, stringResource(R.string.medication_legend_full))
                 fr.scanneat.presentation.calendar.components.LegendDot(semanticAmber(), stringResource(R.string.medication_legend_partial))
                 fr.scanneat.presentation.calendar.components.LegendDot(semanticRed(), stringResource(R.string.medication_legend_missed))
+                // The gray "no data" bar (day.pct == null, e.g. a recently-added
+                // medication with under 7 days of history) had no legend entry at
+                // all, contradicting this legend's own purpose.
+                fr.scanneat.presentation.calendar.components.LegendDot(OnSurface.copy(0.12f), stringResource(R.string.medication_legend_no_data))
             }
             Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
                 weeklyAdherence.forEach { day ->

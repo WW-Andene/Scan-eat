@@ -71,24 +71,34 @@ internal fun ColumnScope.ApiModePage(
         )
         Text(stringResource(R.string.onboarding_api_key_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
     } else {
+        // Was accepting any non-blank text with no scheme check - a typo (missing
+        // "https://", stray whitespace) sailed past onboarding and only surfaced
+        // later as a disconnected "server unreachable" error during the first scan.
+        val urlSchemeValid = serverUrl.isBlank() || serverUrl.startsWith("http://") || serverUrl.startsWith("https://")
         OutlinedTextField(
             value = serverUrl, onValueChange = onServerUrlChange,
             label = { Text(stringResource(R.string.settings_server_url)) },
             modifier = Modifier.fillMaxWidth(), singleLine = true,
+            isError = !urlSchemeValid,
             colors = scanEatTextFieldColors(),
             shape = RoundedCornerShape(CardRadius.CONTROL),
         )
         // Direct mode's key field gets a hint caption below it; Server mode
         // (the more technical, more error-prone path) had none at all.
-        Text(stringResource(R.string.onboarding_server_url_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
+        Text(
+            stringResource(if (urlSchemeValid) R.string.onboarding_server_url_hint else R.string.onboarding_server_url_error),
+            style = MaterialTheme.typography.bodySmall,
+            color = if (urlSchemeValid) OnBackground.copy(0.4f) else semanticRed(),
+        )
     }
 
     Spacer(Modifier.weight(1f))
+    val serverUrlValid = serverUrl.isNotBlank() && (serverUrl.startsWith("http://") || serverUrl.startsWith("https://"))
     ScanEatPrimaryButton(
         onClick = onContinue,
         modifier = Modifier.fillMaxWidth(),
         enabled = (selectedMode == ApiMode.DIRECT && apiKey.isNotBlank()) ||
-                  (selectedMode == ApiMode.SERVER && serverUrl.isNotBlank()),
+                  (selectedMode == ApiMode.SERVER && serverUrlValid),
     ) { Text(stringResource(R.string.onboarding_continue_button), style = MaterialTheme.typography.titleMedium) }
     TextButton(
         onClick = onSkip,

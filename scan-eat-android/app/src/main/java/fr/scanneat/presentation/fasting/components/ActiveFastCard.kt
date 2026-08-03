@@ -55,8 +55,10 @@ internal fun ActiveFastCard(fastingState: FastingState, language: String, person
         }
     }
     // Personal-record chip — shown when the current fast already
-    // beats the user's longest historically completed fast.
-    if (personalRecord > 0 && h >= personalRecord) {
+    // beats the user's longest historically completed fast. Was ">=", so
+    // merely tying a prior best also showed "new record" (hollow/inaccurate
+    // for a user repeating the same fast length every week).
+    if (personalRecord > 0 && h > personalRecord) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Gold.copy(0.15f), border = androidx.compose.foundation.BorderStroke(1.dp, Gold.copy(0.4f))) {
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),

@@ -893,6 +893,7 @@
     <string name="onboarding_api_key_label">Groq key (gsk_…)</string>
     <string name="onboarding_api_key_hint">Free key at console.groq.com</string>
     <string name="onboarding_server_url_hint">e.g. https://my-server.example.com:8080</string>
+    <string name="onboarding_server_url_error">The address must start with http:// or https://</string>
     <string name="onboarding_continue_button">Continue</string>
     <string name="onboarding_api_skip">Skip, scan without AI for now</string>
     <string name="onboarding_profile_title">Personalization</string>
@@ -1486,6 +1487,7 @@
     <string name="medication_legend_full">Taken</string>
     <string name="medication_legend_partial">Partial</string>
     <string name="medication_legend_missed">Missed</string>
+    <string name="medication_legend_no_data">No data</string>
     <string name="fasting_legend_reached">Reached</string>
     <string name="fasting_legend_partial">Partial</string>
     <string name="fasting_legend_missed">Missed</string>

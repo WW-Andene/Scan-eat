@@ -897,6 +897,7 @@
     <string name="onboarding_api_key_label">Clé Groq (gsk_…)</string>
     <string name="onboarding_api_key_hint">Clé gratuite sur console.groq.com</string>
     <string name="onboarding_server_url_hint">ex : https://mon-serveur.exemple.com:8080</string>
+    <string name="onboarding_server_url_error">L\'adresse doit commencer par http:// ou https://</string>
     <string name="onboarding_continue_button">Continuer</string>
     <string name="onboarding_api_skip">Passer, scanner sans IA pour l\'instant</string>
     <string name="onboarding_profile_title">Personnalisation</string>
@@ -962,6 +963,7 @@
     <string name="medication_legend_full">Pris</string>
     <string name="medication_legend_partial">Partiel</string>
     <string name="medication_legend_missed">Manqué</string>
+    <string name="medication_legend_no_data">Aucune donnée</string>
     <string name="fasting_legend_reached">Atteint</string>
     <string name="fasting_legend_partial">Partiel</string>
     <string name="fasting_legend_missed">Manqué</string>

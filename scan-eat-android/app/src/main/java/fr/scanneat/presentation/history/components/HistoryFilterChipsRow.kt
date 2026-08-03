@@ -21,19 +21,26 @@ internal fun HistoryFilterChipsRow(
     gradeFilterOptions: List<Pair<Grade?, String>>,
     gradeFilter: Grade?,
     onGradeFilterChange: (Grade?) -> Unit,
+    // False when this screen instance was opened as the dedicated Favorites tile
+    // (startFavoritesOnly) - showing an interactive chip there let users toggle
+    // off the very filter the "Favoris" app-bar title promises, with no way back
+    // to a favorites-only view except re-entering from Dashboard.
+    showFavoritesChip: Boolean = true,
 ) {
     LazyRow(
         contentPadding = PaddingValues(horizontal = Spacing.L, vertical = Spacing.XS),
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
-        item {
-            FilterChip(
-                selected = favoritesOnly,
-                onClick  = onToggleFavoritesOnly,
-                label    = { Text(stringResource(R.string.history_favorites_only)) },
-                leadingIcon = { Icon(Icons.Rounded.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
-                colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
-            )
+        if (showFavoritesChip) {
+            item {
+                FilterChip(
+                    selected = favoritesOnly,
+                    onClick  = onToggleFavoritesOnly,
+                    label    = { Text(stringResource(R.string.history_favorites_only)) },
+                    leadingIcon = { Icon(Icons.Rounded.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
+                    colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
+                )
+            }
         }
         items(gradeFilterOptions, key = { it.first?.name ?: "all" }) { (grade, label) ->
             val isSelected = gradeFilter == grade

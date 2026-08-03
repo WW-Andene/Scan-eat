@@ -100,6 +100,7 @@ fun ScanHistoryScreen(
                 gradeFilterOptions = gradeFilterOptions,
                 gradeFilter = gradeFilter.value,
                 onGradeFilterChange = { viewModel.setGradeFilter(it) },
+                showFavoritesChip = !startFavoritesOnly,
             )
 
             avgScore.value?.let { avg -> HistoryAvgScoreBanner(avg) }
