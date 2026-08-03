@@ -5,8 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ChevronLeft
-import androidx.compose.material.icons.automirrored.filled.ChevronRight
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,14 +58,14 @@ fun MonthCalendar(
             // Both chevrons previously had a null contentDescription - a TalkBack
             // user heard only "button" for month navigation.
             IconButton(onClick = { onMonthChange(month.minusMonths(1)) }) {
-                Icon(Icons.AutoMirrored.Filled.ChevronLeft, stringResource(R.string.calendar_cd_prev_month), tint = OnBackground)
+                Icon(Icons.Filled.ChevronLeft, stringResource(R.string.calendar_cd_prev_month), tint = OnBackground)
             }
             Text(
                 month.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() } + " " + month.year,
                 style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
             )
             IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) {
-                Icon(Icons.AutoMirrored.Filled.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground)
+                Icon(Icons.Filled.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground)
             }
         }
         Row(Modifier.fillMaxWidth()) {
