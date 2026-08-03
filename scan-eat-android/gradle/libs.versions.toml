@@ -68,6 +68,11 @@ compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-mani
 compose-ui-test-junit4   = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 compose-material3        = { group = "androidx.compose.material3", name = "material3" }
 compose-material-icons   = { group = "androidx.compose.material", name = "material-icons-extended" }
+# F19 (docs/design-audit-step7-typography.md): brand typeface via Android's
+# Downloadable Fonts API (Google Play Services) instead of bundling a font
+# binary — resolves at runtime, no asset file needed, falls back gracefully
+# to the system font on devices without Play Services.
+compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
 activity-compose         = { group = "androidx.activity", name = "activity-compose",         version.ref = "activity-compose" }
 
 # Navigation
