@@ -97,50 +97,56 @@ val FlagRed         = Color(0xFFEF5350)
 val FlagGreen       = Color(0xFF66BB6A)
 val AmberWarning    = Color(0xFFFFA726)
 
+// The five φ = 1.618 alpha steps (1.0 / 0.618 / 0.236 / 0.162 / 0.10 / 0.062)
+// as named Float constants — the actual primitive layer F13 (docs/design-
+// audit-step5-tokens.md) found missing. Previously each of Gold/Teal/Violet's
+// five alpha tiers was a separately hand-packed ARGB hex literal (0x9DC9A84C,
+// 0x3CC9A84C, ...) that happened to compute to these ratios rather than being
+// derived from them — correct today, but any future accent color's tiers
+// would need re-deriving each alpha by hand again instead of reusing this
+// scale. `.copy(alpha = ...)` below reads only from these five constants.
+const val PHI_DIM_ALPHA: Float = 0.618f
+const val PHI_GLOW_ALPHA: Float = 0.236f
+const val GLOW_BORDER_ALPHA: Float = 0.162f
+const val GLOW_HAZE_ALPHA: Float = 0.10f
+const val PHI_TRACE_ALPHA: Float = 0.062f
+
 // ── Biolism accent system (φ-derived) ─────────────────────────────────────────
 // Gold — primary action, live timer, BMR hero
 val Gold            = Color(0xFFC9A84C)
-val GoldDim         = Color(0x9DC9A84C)  // 0.618 α
-val GoldGlow        = Color(0x3CC9A84C)  // 0.236 α
-val GoldBorder      = Color(0x29C9A84C)  // 0.162 α
-val GoldHaze        = Color(0x1AC9A84C)  // 0.10  α
-val GoldTrace       = Color(0x0FC9A84C)  // 0.062 α
+val GoldDim         = Gold.copy(alpha = PHI_DIM_ALPHA)
+val GoldGlow        = Gold.copy(alpha = PHI_GLOW_ALPHA)
+val GoldBorder      = Gold.copy(alpha = GLOW_BORDER_ALPHA)
+val GoldHaze        = Gold.copy(alpha = GLOW_HAZE_ALPHA)
+val GoldTrace       = Gold.copy(alpha = PHI_TRACE_ALPHA)
 
 // Teal — secondary: substrate, ketosis, VO2
 val Teal            = Color(0xFF38C8C8)
-val TealGlow        = Color(0x3C38C8C8)
-val TealBorder      = Color(0x2938C8C8)
-val TealHaze        = Color(0x1A38C8C8)
-val TealTrace       = Color(0x0F38C8C8)
+val TealGlow        = Teal.copy(alpha = PHI_GLOW_ALPHA)
+val TealBorder      = Teal.copy(alpha = GLOW_BORDER_ALPHA)
+val TealHaze        = Teal.copy(alpha = GLOW_HAZE_ALPHA)
+val TealTrace       = Teal.copy(alpha = PHI_TRACE_ALPHA)
 
 // Violet — tertiary: fasting, hormones, protein
 val Violet          = Color(0xFF9275E0)
-val VioletGlow      = Color(0x3C9275E0)
-val VioletBorder    = Color(0x299275E0)
-val VioletHaze      = Color(0x1A9275E0)
-val VioletTrace     = Color(0x0F9275E0)
+val VioletGlow      = Violet.copy(alpha = PHI_GLOW_ALPHA)
+val VioletBorder    = Violet.copy(alpha = GLOW_BORDER_ALPHA)
+val VioletHaze      = Violet.copy(alpha = GLOW_HAZE_ALPHA)
+val VioletTrace     = Violet.copy(alpha = PHI_TRACE_ALPHA)
 
 // Warm orange — fat substrate (non-keto)
 val Warm            = Color(0xFFE8A87C)
-val WarmGlow        = Color(0x3CE8A87C)
-val WarmHaze        = Color(0x1AE8A87C)
+val WarmGlow        = Warm.copy(alpha = PHI_GLOW_ALPHA)
+val WarmHaze        = Warm.copy(alpha = GLOW_HAZE_ALPHA)
 
 // Danger/severe
 val Danger          = Color(0xFFC0392B)
-val DangerGlow      = Color(0x3CC0392B)
+val DangerGlow      = Danger.copy(alpha = PHI_GLOW_ALPHA)
 val Severe          = Color(0xFFE06C5A)
 
 // Fibre green
 val MetaGreen       = Color(0xFFA0C878)
-val MetaGreenHaze   = Color(0x1AA0C878)
-
-// The two alpha steps above (0.10/0.162) as bare Float constants, for
-// composables (e.g. TintedPanel) that tint an arbitrary passed-in accent
-// color rather than one of the fixed named Color values above - keeps
-// any such call site on the same phi-derived alpha scale instead of
-// re-deriving its own ad hoc alpha.
-const val GLOW_HAZE_ALPHA: Float = 0.10f
-const val GLOW_BORDER_ALPHA: Float = 0.162f
+val MetaGreenHaze   = MetaGreen.copy(alpha = GLOW_HAZE_ALPHA)
 
 // Icon inactive
 val IconInactive    = Color(0xFF4E5468)
