@@ -53,7 +53,7 @@ private fun rememberScoreReveal(target: Float): Pair<Float, Float> {
     LaunchedEffect(Unit) { started = true }
     val animatedProgress by animateFloatAsState(
         targetValue   = if (started) target else 0f,
-        animationSpec = if (reducedMotion) snap() else tween(durationMillis = 700, easing = ScoreRevealEasing),
+        animationSpec = if (reducedMotion) snap() else tween(durationMillis = SCORE_REVEAL_DURATION_MS, easing = ScoreRevealEasing),
         label         = "scoreRingProgress",
     )
     val completion = if (target > 0f) (animatedProgress / target).coerceIn(0f, 1f) else 1f

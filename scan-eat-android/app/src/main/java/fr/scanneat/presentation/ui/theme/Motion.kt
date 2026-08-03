@@ -34,6 +34,15 @@ import androidx.compose.ui.platform.LocalContext
  */
 val ScoreRevealEasing: Easing = CubicBezierEasing(0.16f, 0.84f, 0.28f, 1f)
 
+// Audit F4/F26 (docs/design-audit-step1-identity-profile.md,
+// docs/design-audit-step9-interaction-motion-states.md): these two durations
+// were each a single call-site magic number (rememberHeroEntrance, the score
+// reveal in ScoreDisplay.kt) rather than shared tokens — named here so a
+// future third "prominent moment" animation reaches for one of these instead
+// of introducing an unrelated third duration by accident.
+const val HERO_ENTRANCE_DURATION_MS = 420
+const val SCORE_REVEAL_DURATION_MS = 700
+
 /**
  * True when the system's "Remove animations" accessibility setting is on
  * (Settings.Global.ANIMATOR_DURATION_SCALE == 0). Every new prominent
@@ -69,7 +78,7 @@ fun rememberReducedMotion(): Boolean {
 @Composable
 fun rememberHeroEntrance(visible: Boolean): HeroEntranceState {
     val reduced = rememberReducedMotion()
-    val spec = if (reduced) snap() else tween<Float>(durationMillis = 420, easing = ScoreRevealEasing)
+    val spec = if (reduced) snap() else tween<Float>(durationMillis = HERO_ENTRANCE_DURATION_MS, easing = ScoreRevealEasing)
     val alpha by animateFloatAsState(targetValue = if (visible) 1f else 0f, animationSpec = spec, label = "heroEntranceAlpha")
     val scale by animateFloatAsState(targetValue = if (visible) 1f else 0.94f, animationSpec = spec, label = "heroEntranceScale")
     return HeroEntranceState(alpha, scale)
