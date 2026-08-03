@@ -1278,6 +1278,7 @@
     <string name="recipes_summary">%1$d kcal · %2$d ingredients · %3$d g</string>
     <string name="recipes_pairs_well_with">Pairs well with: %1$s</string>
     <string name="recipes_add_dialog_title">New Recipe</string>
+    <string name="recipes_edit_dialog_title">Edit recipe</string>
     <string name="recipes_field_name">Recipe name</string>
     <string name="recipes_ingredients_label">Ingredients</string>
     <string name="recipes_ingredient_summary_compact">• %1$s %2$dg %3$dkcal</string>
@@ -1288,6 +1289,7 @@
     <string name="recipes_field_servings">Servings (count)</string>
     <string name="recipes_field_notes">Instructions / notes</string>
     <string name="recipes_cd_notes">Edit instructions</string>
+    <string name="recipes_cd_edit_ingredients">Edit ingredients</string>
     <string name="recipes_cd_share">Share recipe</string>
     <string name="recipes_cd_more_actions">More actions</string>
     <string name="recipes_cd_scale">Adjust servings</string>
@@ -1295,6 +1297,10 @@
     <string name="recipes_cd_duplicate">Duplicate</string>
     <string name="recipes_deleted_message">Recipe deleted</string>
     <string name="recipes_scaled_message">Servings adjusted</string>
+    <plurals name="recipes_clone_unmatched">
+        <item quantity="one">Cloned — %1$d ingredient had no match (calories/macros incomplete)</item>
+        <item quantity="other">Cloned — %1$d ingredients had no match (calories/macros incomplete)</item>
+    </plurals>
     <string name="recipes_save_as_template_title">Save “%1$s” as a template</string>
     <string name="recipes_scale_title">Adjust servings</string>
     <string name="recipes_scale_servings_label">Number of servings</string>

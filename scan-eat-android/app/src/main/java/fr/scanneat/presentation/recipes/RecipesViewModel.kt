@@ -103,6 +103,16 @@ class RecipesViewModel @Inject constructor(
     // Activity/Dashboard/MealPlan/Templates all wrap theirs in runCatching), so a
     // write failure here wasn't just silent, it was an uncaught exception that would
     // crash the app.
+    // cloneOfficial() only knows a picked FOOD_DB entry's macros via an exact
+    // (case-insensitive) name match against OfficialRecipeDb's French labels - an
+    // ingredient with no match silently clones in at kcal/protein/carbs/fat/fiber
+    // = 0, with nothing telling the user the clone is macro-incomplete. Surfaced
+    // as a one-shot count the screen can snackbar, same shape as MealPlanViewModel's
+    // lastPrunedOrphanCount for its own silent-cleanup case.
+    private val _cloneUnmatchedCount = MutableStateFlow(0)
+    val cloneUnmatchedCount: StateFlow<Int> = _cloneUnmatchedCount.asStateFlow()
+    fun clearCloneUnmatchedCount() { _cloneUnmatchedCount.value = 0 }
+
     private val _actionFailed = MutableStateFlow(false)
     /** True briefly after a failed write, for a one-shot error snackbar. */
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
@@ -255,6 +265,17 @@ class RecipesViewModel @Inject constructor(
         runCatching { templateRepo.save(recipe.name, meal, recipe.toTemplateItems(meal)) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
+    /** Replaces a saved recipe's name/servings/ingredient list in place - previously
+     *  the only way to change a saved recipe's ingredients was delete-and-recreate
+     *  from scratch, or duplicate (which just copies the same list unchanged). */
+    fun updateRecipe(recipe: Recipe, name: String, components: List<RecipeComponent>, servings: Int, notes: String) {
+        if (name.isBlank() || components.isEmpty()) return
+        viewModelScope.launch {
+            runCatching { repo.save(name, components, servings.coerceAtLeast(1), id = recipe.id, notes = notes) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     fun rename(recipe: Recipe, newName: String) {
         if (newName.isBlank()) return
         // notes = recipe.notes - without this, renaming (a distinct UI action from
@@ -342,8 +363,10 @@ class RecipesViewModel @Inject constructor(
 
     /** Clones an official recipe into the user's own editable recipe list. */
     fun cloneOfficial(recipe: OfficialRecipe) {
+        var unmatched = 0
         val components = recipe.ingredients.map { ing ->
             val food = FOOD_DB.firstOrNull { it.name.equals(ing.foodName, ignoreCase = true) }
+            if (food == null) unmatched++
             RecipeComponent(
                 productName = ing.foodName,
                 grams       = ing.grams,
@@ -355,6 +378,7 @@ class RecipesViewModel @Inject constructor(
             )
         }
         save(recipe.nameFr, components)
+        if (unmatched > 0) _cloneUnmatchedCount.value = unmatched
     }
 
     // ── Import from URL — wires up the server's fetch-recipe route (SSRF-guarded

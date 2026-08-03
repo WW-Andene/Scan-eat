@@ -16,6 +16,7 @@ import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Notes
+import androidx.compose.material.icons.rounded.RestaurantMenu
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarBorder
@@ -53,7 +54,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit, onDuplicate: () -> Unit) {
+internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit, onDuplicate: () -> Unit, onEditIngredients: () -> Unit) {
     val context = LocalContext.current
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), verticalArrangement = Arrangement.spacedBy(Spacing.S),
@@ -111,6 +112,15 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         text = { Text(stringResource(R.string.recipes_cd_notes)) },
                         leadingIcon = { Icon(Icons.Rounded.Notes, contentDescription = null) },
                         onClick = { menuExpanded = false; onEditNotes() },
+                    )
+                    // Previously the only way to change a saved recipe's ingredient list
+                    // was delete-and-recreate from scratch, or duplicate (which just
+                    // copies the same list) - AddRecipeDialog already supports arbitrary
+                    // add/remove of ingredients, this just reopens it pre-filled.
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.recipes_cd_edit_ingredients)) },
+                        leadingIcon = { Icon(Icons.Rounded.RestaurantMenu, contentDescription = null) },
+                        onClick = { menuExpanded = false; onEditIngredients() },
                     )
                     // Previously servings only ever affected a one-off logged portion
                     // (LogRecipeDialog) - no way to permanently rescale the recipe itself.

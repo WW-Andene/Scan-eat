@@ -64,11 +64,15 @@ internal fun AddRecipeDialog(
     // the fetched ingredient/step text has nowhere structured to go (see FetchedRecipeResult's
     // own doc comment on why it isn't RecipeComponents), so it lands in initialNotes for the
     // user to read and transcribe into tracked ingredients via the normal search flow below.
+    // Also reused for editing a saved recipe's ingredient list (RecipesScreen's
+    // editIngredientsTarget) - initialComponents/isEdit prefill the same fields
+    // instead of always starting from an empty ingredient list.
     initialName: String = "", initialServings: Int = 1, initialNotes: String = "",
+    initialComponents: List<RecipeComponent> = emptyList(), isEdit: Boolean = false,
 ) {
     var name by rememberSaveable { mutableStateOf(initialName) }
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
-    var components by rememberSaveable(stateSaver = componentsSaver) { mutableStateOf(listOf<RecipeComponent>()) }
+    var components by rememberSaveable(stateSaver = componentsSaver) { mutableStateOf(initialComponents) }
     var newIngName by rememberSaveable { mutableStateOf("") }
     var newIngGrams by rememberSaveable { mutableStateOf("") }
     var newIngKcal by rememberSaveable { mutableStateOf("") }
@@ -89,7 +93,7 @@ internal fun AddRecipeDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
         shape = RoundedCornerShape(CardRadius.PROMINENT),
-        title = { Text(stringResource(R.string.recipes_add_dialog_title), color = OnBackground) },
+        title = { Text(stringResource(if (isEdit) R.string.recipes_edit_dialog_title else R.string.recipes_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
@@ -197,7 +201,10 @@ internal fun AddRecipeDialog(
                     onConfirm(name, components, servings, notes.trim())
                 }
             }, enabled = name.isNotBlank() && components.isNotEmpty()) {
-                Text(stringResource(R.string.common_create), color = if (name.isNotBlank() && components.isNotEmpty()) AccentCoral else OnBackground.copy(0.3f))
+                Text(
+                    stringResource(if (isEdit) R.string.common_save else R.string.common_create),
+                    color = if (name.isNotBlank() && components.isNotEmpty()) AccentCoral else OnBackground.copy(0.3f),
+                )
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },

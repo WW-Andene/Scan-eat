@@ -17,6 +17,7 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -129,6 +130,7 @@ fun RecipesScreen(
     var renameTarget by remember { mutableStateOf<Recipe?>(null) }
     var notesTarget by remember { mutableStateOf<Recipe?>(null) }
     var scaleTarget by remember { mutableStateOf<Recipe?>(null) }
+    var editIngredientsTarget by remember { mutableStateOf<Recipe?>(null) }
     var saveAsTemplateTarget by remember { mutableStateOf<Recipe?>(null) }
     var logOfficialTarget by remember { mutableStateOf<OfficialRecipe?>(null) }
 
@@ -168,6 +170,18 @@ fun RecipesScreen(
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
             viewModel.clearActionFailed()
+        }
+    }
+
+    // cloneOfficial() silently drops macros for any ingredient it can't exact-match
+    // against FOOD_DB - a one-shot snackbar surfaces that instead of the clone
+    // just quietly looking "complete" with several ingredients actually at 0 macros.
+    val cloneUnmatchedCount = viewModel.cloneUnmatchedCount.collectAsStateWithLifecycle()
+    val cloneUnmatchedMessage = pluralStringResource(R.plurals.recipes_clone_unmatched, cloneUnmatchedCount.value, cloneUnmatchedCount.value)
+    LaunchedEffect(cloneUnmatchedCount.value) {
+        if (cloneUnmatchedCount.value > 0) {
+            snackbarHostState.showSnackbar(cloneUnmatchedMessage)
+            viewModel.clearCloneUnmatchedCount()
         }
     }
 
@@ -245,7 +259,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), hints = hints.value[recipe.id] ?: ProductHints.EMPTY, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe }, onSaveAsTemplate = { saveAsTemplateTarget = recipe }, onDuplicate = { viewModel.duplicate(recipe) })
+                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), hints = hints.value[recipe.id] ?: ProductHints.EMPTY, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe }, onSaveAsTemplate = { saveAsTemplateTarget = recipe }, onDuplicate = { viewModel.duplicate(recipe) }, onEditIngredients = { editIngredientsTarget = recipe })
             }
 
             item { Spacer(Modifier.height(Spacing.L)) }
@@ -314,6 +328,24 @@ fun RecipesScreen(
             initialName     = prefill?.name ?: "",
             initialServings = prefill?.servings?.toIntOrNull() ?: 1,
             initialNotes    = prefill?.let { formatImportedNotes(it) } ?: "",
+        )
+    }
+    editIngredientsTarget?.let { recipe ->
+        val searchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
+        AddRecipeDialog(
+            onDismiss = { editIngredientsTarget = null; viewModel.setIngredientQuery("") },
+            onConfirm = { name, comps, servings, notes ->
+                viewModel.updateRecipe(recipe, name, comps, servings, notes)
+                editIngredientsTarget = null
+                viewModel.setIngredientQuery("")
+            },
+            searchResults = searchResults.value,
+            onQueryChange = viewModel::setIngredientQuery,
+            initialName = recipe.name,
+            initialServings = recipe.servings,
+            initialNotes = recipe.notes,
+            initialComponents = recipe.components,
+            isEdit = true,
         )
     }
     logTarget?.let { LogRecipeDialog(recipe = it, onDismiss = { logTarget = null }, onLog = { slot, frac -> viewModel.log(it, slot, frac); logTarget = null }) }
