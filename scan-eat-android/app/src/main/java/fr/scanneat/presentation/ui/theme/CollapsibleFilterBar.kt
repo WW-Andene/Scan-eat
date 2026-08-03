@@ -65,7 +65,18 @@ fun CollapsibleFilterBar(
         // User-reported: the popup's own container used Material3's default
         // (cool gray) surfaceContainer color, standing out against the app's
         // warm palette — pinned to SurfaceVariant like every other themed
-        // surface in the app.
-        DropdownMenu(expanded = expanded, onDismissRequest = onToggle, containerColor = SurfaceVariant, content = content)
+        // surface in the app. Also carries the same glass treatment
+        // (tinted shadow + hairline sheen) as the app's cards — see
+        // glassPopupSurface()'s doc comment for why it stops short of real
+        // backdrop blur (DropdownMenu renders in its own Popup window).
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onToggle,
+            shape = RoundedCornerShape(CardRadius.CONTROL),
+            containerColor = SurfaceVariant.copy(alpha = 0.94f),
+            shadowElevation = 0.dp,
+            modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
+            content = content,
+        )
     }
 }

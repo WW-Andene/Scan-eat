@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.shadow
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -217,6 +218,24 @@ fun Modifier.ambientGloom(
         }
     }
 }
+
+/**
+ * The glass treatment for `DropdownMenu`-based popups: tinted shadow +
+ * hairline sheen, same recipe as [ScanEatCard]'s Surface — minus real-time
+ * backdrop blur, which `Modifier.hazeEffect` cannot provide here. Material3's
+ * `DropdownMenu` renders inside its own `Popup`/`PopupWindow`, a separate
+ * Android window from the screen content behind it; Haze captures the blur
+ * source via a `GraphicsLayer` that belongs to the *originating* window's
+ * Compose tree, so a popup in a different window has no access to it — this
+ * is a structural Android/Compose limitation, not a per-device rendering gap.
+ * [glassSheen]'s hairline and [ShadowTint]'s shadow tint are pure draw-scope
+ * effects with no cross-window dependency, so they still apply cleanly; pair
+ * with a translucent `containerColor` (e.g. `SurfaceVariant.copy(alpha = 0.94f)`)
+ * at the call site for the closest achievable match to the app's card glass.
+ */
+fun Modifier.glassPopupSurface(shape: Shape = RoundedCornerShape(CardRadius.CONTROL)): Modifier = this
+    .shadow(elevation = 6.dp, shape = shape, ambientColor = ShadowTint, spotColor = ShadowTint)
+    .glassSheen(edgeAlpha = 0.22f, shape = shape, glowAlpha = 0.05f)
 
 private fun DrawScope.drawRippleRing(cycle: Float, center: Offset, maxRadius: Float, tint: Color) {
     if (cycle <= 0f || cycle >= 1f) return

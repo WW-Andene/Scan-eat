@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.presentation.shell.PlanningDestination
@@ -63,7 +64,7 @@ internal fun GroceryTopBarActions(
             IconButton(onClick = { onCopyMenuExpandedChange(true) }) {
                 Icon(TablerIcons.Copy, stringResource(R.string.common_copy), tint = AccentCoral)
             }
-            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant) {
+            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL))) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.grocery_copy_plain)) },
                     onClick = { onCopyMenuExpandedChange(false); onCopyPlain() },

@@ -249,7 +249,7 @@ fun DiaryScreen(
                                 Icon(TablerIcons.ChevronDown, contentDescription = null, tint = AccentCoral)
                             }
                         }
-                        DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant) {
+                        DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL))) {
                             DiaryTab.entries.forEach { tab ->
                                 val isActive = tab == activeTab
                                 val label = stringResource(tab.labelRes)

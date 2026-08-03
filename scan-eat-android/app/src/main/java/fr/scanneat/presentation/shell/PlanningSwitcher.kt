@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +24,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.glassPopupSurface
 
 /**
  * Recipes, Meal Templates, Meal Plan, Grocery, and Custom Foods constantly
@@ -48,7 +51,7 @@ fun PlanningSwitcherMenu(current: PlanningDestination, onNavigate: (PlanningDest
     IconButton(onClick = { expanded = true }) {
         Icon(Icons.Default.SwapHoriz, stringResource(R.string.planning_switcher_cd), tint = OnBackground)
     }
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant) {
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL))) {
         PlanningDestination.entries.filter { it != current }.forEach { dest ->
             DropdownMenuItem(
                 text = { Text(stringResource(dest.labelRes)) },
