@@ -1,12 +1,12 @@
 package fr.scanneat.presentation.ui.theme
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Trophy
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
@@ -76,7 +76,7 @@ fun ScanEatSnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modif
                 actionContentColor = Gold,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.EmojiEvents, contentDescription = null, tint = Gold, modifier = Modifier.size(20.dp))
+                    Icon(TablerIcons.Trophy, contentDescription = null, tint = Gold, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(Spacing.S))
                     Text(data.visuals.message, style = MaterialTheme.typography.bodyMedium)
                 }

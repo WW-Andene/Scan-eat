@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.fasting.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Trophy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -66,7 +68,7 @@ internal fun ActiveFastCard(fastingState: FastingState, language: String, person
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 // Icon, not the 🏆 emoji baked into the string before.
-                Icon(Icons.Rounded.EmojiEvents, null, tint = Gold, modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.Trophy, null, tint = Gold, modifier = Modifier.size(16.dp))
                 Text(stringResource(R.string.fasting_new_record), style = MaterialTheme.typography.labelMedium, color = Gold, fontWeight = FontWeight.Bold)
             }
         }
