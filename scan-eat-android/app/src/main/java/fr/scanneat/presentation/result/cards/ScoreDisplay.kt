@@ -110,6 +110,18 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
     val breathingPulse = rememberBreathingPulse()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(modifier = Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
+            // F9/F23 (docs/design-audit-step3-brand-identity.md, docs/design-audit-
+            // step8-components-shape.md): the app's one deliberate non-rectangular
+            // element — a soft organic "aura" ring around the main glow, using
+            // OrganicBlobShape's asymmetric corners so its edge (a flat low-alpha
+            // fill, not a gradient fade) is actually visible rather than lost inside
+            // the radial gradient below. Reserved for this one ring only, per
+            // CardEmphasis.HERO's own "at most one element" principle.
+            Box(
+                modifier = Modifier
+                    .size(224.dp)
+                    .background(color.copy(alpha = 0.05f * completion * breathingPulse), OrganicBlobShape),
+            )
             Box(
                 modifier = Modifier
                     .size(210.dp)

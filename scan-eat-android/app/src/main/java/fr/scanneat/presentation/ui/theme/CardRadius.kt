@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -25,3 +26,25 @@ object CardRadius {
     val CARD: Dp = 16.dp
     val PROMINENT: Dp = 20.dp
 }
+
+/**
+ * F9/F23 (docs/design-audit-step3-brand-identity.md, docs/design-audit-
+ * step8-components-shape.md): the app had zero non-rectangular elements
+ * anywhere — every shape in circulation was a rounded rectangle at one of
+ * the three [CardRadius] tiers or a perfect circle. Per docs/design-audit-
+ * art-direction-brief.md's "second skin" direction, one deliberately
+ * asymmetric, organic (cell-like) shape is introduced as the app's one
+ * signature non-rectangular gesture — reserved for the score ring's ambient
+ * glow ([fr.scanneat.presentation.result.cards.ScoreRing]) only, never the
+ * circular progress arc itself (which must stay a true circle — it's the
+ * one place shape communicates a literal 0–100% quantity, so distorting it
+ * would misrepresent the score, not just look different). Deliberately
+ * subtle (46/54/48/52, not an exaggerated blob) per the user's explicit
+ * "not cyberpunk/sci-fi, this app is for everyone" constraint — reads as
+ * "softly alive," not as a shape a casual glance would even register as
+ * asymmetric.
+ */
+val OrganicBlobShape = RoundedCornerShape(
+    topStartPercent = 46, topEndPercent = 54,
+    bottomEndPercent = 48, bottomStartPercent = 52,
+)
