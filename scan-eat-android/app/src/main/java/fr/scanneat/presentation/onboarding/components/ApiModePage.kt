@@ -78,6 +78,9 @@ internal fun ColumnScope.ApiModePage(
             colors = scanEatTextFieldColors(),
             shape = RoundedCornerShape(CardRadius.CONTROL),
         )
+        // Direct mode's key field gets a hint caption below it; Server mode
+        // (the more technical, more error-prone path) had none at all.
+        Text(stringResource(R.string.onboarding_server_url_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
     }
 
     Spacer(Modifier.weight(1f))

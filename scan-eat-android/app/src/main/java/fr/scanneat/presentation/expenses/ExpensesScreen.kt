@@ -109,7 +109,16 @@ fun ExpensesScreen(
             }
 
             if (entries.value.isEmpty()) {
-                item { EmptyListState(Icons.Rounded.Receipt, stringResource(R.string.expenses_empty_body)) }
+                // Was the only tracker's empty state with no CTA - every other tracker
+                // (Weight/Activity/Medication/Grocery/Templates/etc.) routes straight
+                // into its add flow from here.
+                item {
+                    EmptyListState(
+                        Icons.Rounded.Receipt, stringResource(R.string.expenses_empty_body),
+                        ctaLabel = stringResource(R.string.expenses_add_entry),
+                        onCta = { showAddEntry = true },
+                    )
+                }
             } else {
                 items(entries.value, key = { it.id }) { entry ->
                     ExpenseEntryRow(entry = entry, dateFmt = dateFmt, onDelete = { deleteTarget = entry.id })

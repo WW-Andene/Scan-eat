@@ -567,6 +567,7 @@
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">History</string>
+    <string name="favorites_title">Favorites</string>
     <string name="history_search_placeholder">Search…</string>
     <string name="history_favorites_only">Favorites only</string>
     <string name="history_score_category">%1$d/100 · %2$s</string>
@@ -891,6 +892,7 @@
     <string name="onboarding_mode_server_subtitle">Your own Ktor backend. No data leaves your infrastructure.</string>
     <string name="onboarding_api_key_label">Groq key (gsk_…)</string>
     <string name="onboarding_api_key_hint">Free key at console.groq.com</string>
+    <string name="onboarding_server_url_hint">e.g. https://my-server.example.com:8080</string>
     <string name="onboarding_continue_button">Continue</string>
     <string name="onboarding_api_skip">Skip, scan without AI for now</string>
     <string name="onboarding_profile_title">Personalization</string>

@@ -75,7 +75,10 @@ fun ScanHistoryScreen(
     LaunchedEffect(Unit) { if (startFavoritesOnly) viewModel.setFavoritesOnly(true) }
 
     FloatingScreenScaffold(
-        title = { Text(stringResource(R.string.history_title), color = OnBackground) },
+        // Was hardcoded to history_title even when reached via the dedicated
+        // Favorites tile, so the app bar read "Historique" for a screen the
+        // user tapped expecting "Favoris" — mismatched destination naming.
+        title = { Text(stringResource(if (startFavoritesOnly) R.string.favorites_title else R.string.history_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             HistorySortMenu(

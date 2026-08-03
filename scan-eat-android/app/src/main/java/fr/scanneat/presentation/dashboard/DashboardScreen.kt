@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.EventNote
 import androidx.compose.material.icons.rounded.Fastfood
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.RestaurantMenu
@@ -224,7 +225,10 @@ fun DashboardScreen(
                     // Previously no single place showed everything logged on a given
                     // day - Diary/Weight/Activity/Hydration each embedded their own
                     // siloed single-domain mini-calendar with no cross-tracker view.
-                    FeatureTile(Icons.Rounded.CalendarMonth, stringResource(R.string.dashboard_tile_calendar), Modifier.weight(1f), onClick = onOpenCalendar)
+                    // Was sharing Icons.Rounded.CalendarMonth with Meal Plan's tile above -
+                    // same icon, two different destinations in the same grid, so users
+                    // couldn't tell them apart at a glance.
+                    FeatureTile(Icons.Rounded.EventNote, stringResource(R.string.dashboard_tile_calendar), Modifier.weight(1f), onClick = onOpenCalendar)
                     // A UI/UX audit found ScanHistoryScreen (search/sort/favorite/
                     // delete) was reachable ONLY via the "View all" link below, itself
                     // gated on recentScans.isNotEmpty() - a brand-new user with zero

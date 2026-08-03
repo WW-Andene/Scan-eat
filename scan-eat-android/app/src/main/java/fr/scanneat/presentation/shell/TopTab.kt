@@ -41,4 +41,7 @@ val HIDDEN_NAV_ROUTES = setOf(
     // every route above it, so leaving it out left the bottom nav visible
     // underneath that back arrow too.
     AppRoutes.REMINDERS,
+    // Same gap again for Food Search (reachable from Dashboard) — same
+    // own-Scaffold-with-back-arrow pattern as every route above it.
+    AppRoutes.FOOD_SEARCH,
 )

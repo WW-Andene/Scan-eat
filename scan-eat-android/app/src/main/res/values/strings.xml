@@ -568,6 +568,7 @@
 
     <!-- ── Scan history screen ────────────────────────────────────────────── -->
     <string name="history_title">Historique</string>
+    <string name="favorites_title">Favoris</string>
     <string name="history_search_placeholder">Rechercher…</string>
     <string name="history_favorites_only">Favoris uniquement</string>
     <string name="history_score_category">%1$d/100 · %2$s</string>
@@ -895,6 +896,7 @@
     <string name="onboarding_mode_server_subtitle">Votre propre backend Ktor. Aucune donnée ne quitte votre infrastructure.</string>
     <string name="onboarding_api_key_label">Clé Groq (gsk_…)</string>
     <string name="onboarding_api_key_hint">Clé gratuite sur console.groq.com</string>
+    <string name="onboarding_server_url_hint">ex : https://mon-serveur.exemple.com:8080</string>
     <string name="onboarding_continue_button">Continuer</string>
     <string name="onboarding_api_skip">Passer, scanner sans IA pour l\'instant</string>
     <string name="onboarding_profile_title">Personnalisation</string>
