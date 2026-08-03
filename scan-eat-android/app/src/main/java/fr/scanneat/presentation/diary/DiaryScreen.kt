@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.diary
 
 import compose.icons.tablericons.ClipboardList
+import compose.icons.tablericons.Droplet
+import compose.icons.tablericons.Pill
 import compose.icons.tablericons.FileInvoice
 import compose.icons.tablericons.Plus
 import compose.icons.tablericons.Clock
@@ -64,10 +66,10 @@ import java.util.Locale
 private enum class DiaryTab(val labelRes: Int, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     MEALS(R.string.diary_tab_meals, TablerIcons.ClipboardList),
     WEIGHT(R.string.diary_tab_weight, Icons.Rounded.Scale),
-    WATER(R.string.diary_tab_water, Icons.Rounded.Opacity),
+    WATER(R.string.diary_tab_water, TablerIcons.Droplet),
     ACTIVITY(R.string.diary_tab_activity, Icons.Rounded.FitnessCenter),
     FASTING(R.string.diary_tab_fasting, TablerIcons.Clock),
-    TREATMENT(R.string.diary_tab_treatment, Icons.Rounded.Medication),
+    TREATMENT(R.string.diary_tab_treatment, TablerIcons.Pill),
     EXPENSES(R.string.diary_tab_expenses, TablerIcons.FileInvoice),
 }
 

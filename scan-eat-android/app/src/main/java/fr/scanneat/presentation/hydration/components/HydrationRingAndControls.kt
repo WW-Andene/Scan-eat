@@ -5,6 +5,7 @@ import compose.icons.tablericons.Plus
 import compose.icons.tablericons.CircleCheck
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Edit
+import compose.icons.tablericons.Droplet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -82,7 +83,7 @@ internal fun HydrationRingAndControls(
                         val filled = i < glasses
                         val overGoal = i >= goalGlasses
                         Icon(
-                            Icons.Rounded.Opacity,
+                            TablerIcons.Droplet,
                             contentDescription = null,
                             tint = when {
                                 !filled -> OnBackground.copy(0.15f)

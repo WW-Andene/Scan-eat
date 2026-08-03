@@ -3,6 +3,7 @@ package fr.scanneat.presentation.medication
 import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.Pill
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -127,7 +128,7 @@ fun MedicationScreen(
             if (medications.value.isEmpty()) {
                 item {
                     EmptyListState(
-                        Icons.Rounded.Medication, stringResource(R.string.medication_empty_body),
+                        TablerIcons.Pill, stringResource(R.string.medication_empty_body),
                         ctaLabel = stringResource(R.string.medication_cd_new), onCta = { showAdd = true },
                     )
                 }

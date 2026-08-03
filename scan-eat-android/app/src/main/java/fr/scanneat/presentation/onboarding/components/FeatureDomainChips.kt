@@ -6,6 +6,7 @@ import compose.icons.tablericons.Activity
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Clock
 import compose.icons.tablericons.Droplet
+import compose.icons.tablericons.Pill
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,7 +38,7 @@ internal fun FeatureDomainChips() {
         TablerIcons.Clock to R.string.onboarding_domain_fasting,
         Icons.Rounded.Scale to R.string.onboarding_domain_weight,
         TablerIcons.Activity to R.string.onboarding_domain_activity,
-        Icons.Rounded.Medication to R.string.onboarding_domain_medication,
+        TablerIcons.Pill to R.string.onboarding_domain_medication,
     )
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Text(

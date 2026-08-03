@@ -2,6 +2,8 @@ package fr.scanneat.presentation.dashboard.cards
 
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Clock
+import compose.icons.tablericons.Droplet
+import compose.icons.tablericons.Pill
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,9 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FitnessCenter
-import androidx.compose.material.icons.rounded.Medication
-import androidx.compose.material.icons.rounded.Opacity
-import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,7 +58,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             val hydrationPct = if (snapshot.hydrationGoalMl > 0) (snapshot.hydrationMl * 100 / snapshot.hydrationGoalMl) else 0
             TrackerStat(
-                icon = Icons.Rounded.Opacity,
+                icon = TablerIcons.Droplet,
                 tint = semanticBlue(),
                 value = stringResource(R.string.dashboard_other_trackers_hydration_value, hydrationPct.coerceAtMost(999)),
                 label = stringResource(R.string.dashboard_other_trackers_hydration_label),
@@ -81,7 +80,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
                 modifier = Modifier.weight(1f),
             )
             TrackerStat(
-                icon = Icons.Rounded.Medication,
+                icon = TablerIcons.Pill,
                 tint = if (snapshot.medsActiveCount == 0 || snapshot.medsTakenCount == snapshot.medsActiveCount) semanticGreen() else semanticAmber(),
                 value = stringResource(R.string.dashboard_other_trackers_meds_value, snapshot.medsTakenCount, snapshot.medsActiveCount),
                 label = stringResource(R.string.dashboard_other_trackers_meds_label),

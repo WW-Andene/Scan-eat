@@ -2,6 +2,7 @@ package fr.scanneat.presentation.settings.components
 
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Barcode
+import compose.icons.tablericons.Table
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -219,7 +220,7 @@ internal fun BackupSection(
             onClick = onPrepareCsvExport,
             enabled = backupState !is BackupUiState.Working,
         ) {
-            Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.settings_csv_export_button), color = OnBackground)
         }
@@ -229,7 +230,7 @@ internal fun BackupSection(
             onClick = onPrepareBiolismCsvExport,
             enabled = backupState !is BackupUiState.Working,
         ) {
-            Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.settings_biolism_csv_export_button), color = OnBackground)
         }
@@ -243,7 +244,7 @@ internal fun BackupSection(
                 onClick = { moreCsvExpanded = true },
                 enabled = backupState !is BackupUiState.Working,
             ) {
-                Icon(Icons.Default.TableChart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
             }
