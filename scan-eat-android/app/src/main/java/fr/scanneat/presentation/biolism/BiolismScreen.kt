@@ -55,7 +55,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     // restoreState=true, so leaving Biolism (e.g. to check Dashboard) and coming back
     // silently reset the user to Tracker, discarding their place on Data/Evolution/
     // Profile - same rememberSaveable pattern DiaryScreen's own sub-tab already uses.
-    var activeTab by rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver()) { mutableStateOf(BiolismTab.TRACKER) }
+    var activeTab by androidx.compose.runtime.saveable.rememberSaveable(stateSaver = fr.scanneat.presentation.onboarding.enumSaver<BiolismTab>()) { mutableStateOf(BiolismTab.TRACKER) }
     val hazeState = remember { HazeState() }
 
     val fgColor = MaterialTheme.colorScheme.onBackground
