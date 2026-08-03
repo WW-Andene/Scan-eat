@@ -114,18 +114,12 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
     val breathingPulse = rememberBreathingPulse()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(modifier = Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
-            // F9/F23 (docs/design-audit-step3-brand-identity.md, docs/design-audit-
-            // step8-components-shape.md): the app's one deliberate non-rectangular
-            // element — a soft organic "aura" ring around the main glow, using
-            // OrganicBlobShape's asymmetric corners so its edge (a flat low-alpha
-            // fill, not a gradient fade) is actually visible rather than lost inside
-            // the radial gradient below. Reserved for this one ring only, per
-            // CardEmphasis.HERO's own "at most one element" principle.
-            Box(
-                modifier = Modifier
-                    .size(224.dp)
-                    .background(color.copy(alpha = 0.05f * completion * breathingPulse), OrganicBlobShape),
-            )
+            // User-reported regression: the OrganicBlobShape aura layer here read as a
+            // rendering bug ("un cercle un peu déformé derrière"), not a deliberate
+            // signature — reverted to a plain circular glow. OrganicBlobShape itself
+            // stays available (docs/design-audit-art-direction-brief.md's "second skin"
+            // shape) for a future, more clearly-intentional use; this ring keeps only
+            // the breathing-pulse glow, no asymmetric aura.
             Box(
                 modifier = Modifier
                     .size(210.dp)
@@ -142,7 +136,9 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
                 trackColor  = SurfaceVariant,
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(grade.label, style = HeroNumberStyle.copy(fontSize = 56.sp), color = color)
+                // User-reported: 56sp read as too large for a single-score display
+                // (DualScoreRing's 26sp comparison view was unaffected/correctly sized).
+                Text(grade.label, style = HeroNumberStyle.copy(fontSize = 44.sp), color = color)
                 Text(stringResource(R.string.result_score_out_of_100, score),
                     style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground.copy(0.6f))
             }

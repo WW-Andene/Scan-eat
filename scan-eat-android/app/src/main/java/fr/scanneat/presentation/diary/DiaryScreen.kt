@@ -24,6 +24,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -194,9 +195,13 @@ fun DiaryScreen(
             Surface(
                 shape           = RoundedCornerShape(CardRadius.PROMINENT),
                 color           = Color.Transparent,
-                shadowElevation = 8.dp,
+                // User-reported: this header used an untinted shadowElevation while
+                // FloatingTopBar/ScanEatCard/MainShell's nav all moved to a tinted
+                // Modifier.shadow — standardized here too.
+                shadowElevation = 0.dp,
                 modifier        = Modifier
                     .fillMaxWidth()
+                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
                     .clip(RoundedCornerShape(CardRadius.PROMINENT))
                     .hazeEffect(state = hazeState, style = FrostedGlassStyle),
             ) {
@@ -207,7 +212,10 @@ fun DiaryScreen(
                                 Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground)
                             }
                         }
-                        Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
+                        // User-reported: was headlineSmall — every other screen's title
+                        // (via FloatingTopBar, Dashboard being the cited reference) renders
+                        // at titleLarge; standardized here so font size actually matches.
+                        Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.height(10.dp))
                     // Was a fixed Row with each tab forced to Modifier.weight(1f), then a

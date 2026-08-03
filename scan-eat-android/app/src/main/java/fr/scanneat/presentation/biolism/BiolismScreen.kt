@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -98,9 +99,13 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
         Surface(
             shape           = RoundedCornerShape(CardRadius.PROMINENT),
             color           = Color.Transparent,
-            shadowElevation = 8.dp,
+            // User-reported: this header used an untinted shadowElevation while
+            // FloatingTopBar/ScanEatCard/MainShell's nav all moved to a tinted
+            // Modifier.shadow — standardized here too.
+            shadowElevation = 0.dp,
             modifier        = Modifier
                 .fillMaxWidth()
+                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
@@ -110,7 +115,11 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                 .padding(top = Spacing.M, bottom = Spacing.S),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Text(stringResource(R.string.tab_biolism), style = MaterialTheme.typography.headlineSmall, color = LocalGoldAccent.current)
+                // User-reported: was headlineSmall — every other screen's title (via
+                // FloatingTopBar, Dashboard being the cited reference) renders at
+                // titleLarge; standardized here too. Gold tint kept (deliberate,
+                // Biolism's own accent — see this header's own doc comment above).
+                Text(stringResource(R.string.tab_biolism), style = MaterialTheme.typography.titleLarge, color = LocalGoldAccent.current, fontWeight = FontWeight.Bold)
             }
             Text(stringResource(R.string.biolism_subtitle), style = MaterialTheme.typography.labelSmall, color = fgColor.copy(0.4f), letterSpacing = 1.sp)
             Spacer(Modifier.height(10.dp))
