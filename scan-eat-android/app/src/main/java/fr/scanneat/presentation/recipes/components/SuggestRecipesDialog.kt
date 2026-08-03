@@ -36,12 +36,12 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.ErrorBanner
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
-import fr.scanneat.presentation.ui.theme.semanticRed
 
 private enum class SuggestMode { INGREDIENT, PANTRY, HISTORY }
 
@@ -165,7 +165,9 @@ internal fun SuggestRecipesDialog(
                 if (isLoading) {
                     CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                 }
-                errorMessage?.let { Text(it, color = semanticRed()) }
+                // F21 (docs/design-audit-step8-components-shape.md): was a bare
+                // semanticRed() Text — migrated to the app's one shared error surface.
+                errorMessage?.let { ErrorBanner(message = it) }
                 if (results != null && results.isEmpty()) {
                     Text(stringResource(R.string.recipes_suggest_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                 }

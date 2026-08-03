@@ -22,12 +22,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.ErrorBanner
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
-import fr.scanneat.presentation.ui.theme.semanticRed
 
 /**
  * Entry dialog for RecipesViewModel.importRecipeFromUrl() — wires up the server's
@@ -71,7 +71,10 @@ internal fun ImportRecipeUrlDialog(
                 if (isLoading) {
                     CircularProgressIndicator(color = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                 }
-                errorMessage?.let { Text(it, color = semanticRed()) }
+                // F21 (docs/design-audit-step8-components-shape.md): was a bare
+                // semanticRed() Text — migrated to the app's one shared error
+                // surface for consistency with other persistent failure states.
+                errorMessage?.let { ErrorBanner(message = it) }
             }
         },
         confirmButton = {

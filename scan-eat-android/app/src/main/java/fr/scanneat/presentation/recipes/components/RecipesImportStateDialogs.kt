@@ -17,11 +17,11 @@ import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.ErrorBanner
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
-import fr.scanneat.presentation.ui.theme.semanticRed
 
 @Composable
 internal fun RecipesImportStateDialogs(
@@ -78,7 +78,11 @@ internal fun RecipesImportStateDialogs(
                 onDismissRequest = onClearImportState,
                 containerColor = SurfaceVariant,
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
-                text = { Text(importState.message, color = semanticRed()) },
+                // F21 (docs/design-audit-step8-components-shape.md): was a bare
+                // semanticRed() Text — the dialog itself stays modal (this error
+                // needs an explicit "OK" to clear), but the body now uses the
+                // app's shared error surface instead of plain colored text.
+                text = { ErrorBanner(message = importState.message) },
                 confirmButton = { TextButton(onClick = onClearImportState) { Text(stringResource(R.string.common_ok), color = AccentCoral) } },
             )
             is RecipesViewModel.ImportUiState.MenuSuccess -> MenuScanResultDialog(

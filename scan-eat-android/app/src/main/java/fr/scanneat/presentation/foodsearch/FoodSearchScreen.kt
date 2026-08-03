@@ -249,10 +249,12 @@ private fun OnlineSearchSection(
                 Spacer(Modifier.width(Spacing.S))
                 Text(stringResource(R.string.foodsearch_online_loading), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
             }
-            OnlineSearchState.ERROR -> Text(
-                stringResource(R.string.foodsearch_online_error),
-                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error,
-            )
+            // F21 (docs/design-audit-step8-components-shape.md): was a bare Text in
+            // MaterialTheme.colorScheme.error — this app's default Material error color,
+            // not ErrorBanner's shared semanticRed()/icon/surface language every other
+            // persistent (non-transient) error in the app now uses. The retry button
+            // is already rendered right below regardless of state, so no actionLabel here.
+            OnlineSearchState.ERROR -> ErrorBanner(message = stringResource(R.string.foodsearch_online_error))
             OnlineSearchState.EMPTY -> Text(
                 stringResource(R.string.foodsearch_online_empty, query),
                 style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
