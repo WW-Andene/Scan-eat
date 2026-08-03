@@ -178,10 +178,13 @@ class TemplatesViewModel @Inject constructor(
      *  "Breakfast (weekend)") - same save-a-copy shape RecipesViewModel.duplicate()
      *  already uses for Recipes, extended here so a "Saved Meal" a user wants to
      *  tweak doesn't have to be rebuilt item-by-item from scratch. No id passed,
-     *  so repo.save() inserts a new row rather than editing the original. */
+     *  so repo.save() inserts a new row rather than editing the original. Suffix
+     *  follows the in-app language (not hardcoded French), same fix as
+     *  RecipesViewModel.duplicate(). */
     fun duplicate(template: MealTemplate) {
+        val suffix = if (language.value == "en") " (copy)" else " (copie)"
         viewModelScope.launch {
-            runCatching { repo.save("${template.name} (copie)", template.meal, template.items) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.save("${template.name}$suffix", template.meal, template.items) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }

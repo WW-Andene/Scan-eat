@@ -77,8 +77,10 @@ class ProfileViewModel @Inject constructor(
     val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    // Was a bare viewModelScope.launch with no guard - the one remaining unguarded
+    // write in this file, inconsistent with save() below (already guardedSuspend).
     fun setUseImperial(v: Boolean) {
-        viewModelScope.launch { prefs.setUseImperialWeight(v) }
+        guardedLaunch { prefs.setUseImperialWeight(v) }
     }
 
     /**

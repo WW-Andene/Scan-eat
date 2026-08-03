@@ -241,9 +241,12 @@ class RecipesViewModel @Inject constructor(
     /** Forks a user's own recipe into a new, independent copy - e.g. to try a
      *  variant ("Curry — spicy version") without altering the original.
      *  cloneOfficial() already proved this save-a-copy shape for official
-     *  recipes; this extends it to the user's own saved list. */
+     *  recipes; this extends it to the user's own saved list. Suffix follows
+     *  the in-app language (not hardcoded French) - the same [language]
+     *  StateFlow every other language-aware ViewModel decision already uses. */
     fun duplicate(recipe: Recipe) {
-        save("${recipe.name} (copie)", recipe.components, recipe.servings, notes = recipe.notes)
+        val suffix = if (language.value == "en") " (copy)" else " (copie)"
+        save("${recipe.name}$suffix", recipe.components, recipe.servings, notes = recipe.notes)
     }
 
     /** Inverse of TemplatesViewModel.saveAsRecipe() - a Recipe has no meal of its own,
