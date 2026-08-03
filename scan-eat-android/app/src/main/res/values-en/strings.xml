@@ -125,6 +125,8 @@
     <string name="mealplan_title">Meal Plan</string>
     <string name="mealplan_day_today">%1$s · Today</string>
     <string name="mealplan_clear_day">Clear day</string>
+    <string name="mealplan_clear_day_confirm_title">Clear this day?</string>
+    <string name="mealplan_clear_day_confirm_body">All 4 planned meals for this day will be removed.</string>
     <string name="mealplan_duplicate_day">Duplicate to next week</string>
     <string name="mealplan_duplicate_week">Duplicate week to next week</string>
     <plurals name="mealplan_orphan_pruned">

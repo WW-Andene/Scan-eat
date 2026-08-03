@@ -37,6 +37,10 @@ internal fun MealPlanDayCard(
     slotWarnings: Map<String, String>,
 ) {
     val isToday = date == LocalDate.now()
+    // "Clear day" wiped all 4 meal slots on a single tap with no confirmation
+    // or undo - every other whole-list-wiping action in the app (Grocery's
+    // clear-checked) gates behind a confirm dialog first.
+    var showClearConfirm by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         verticalArrangement = Arrangement.spacedBy(Spacing.S),
@@ -63,7 +67,7 @@ internal fun MealPlanDayCard(
                     IconButton(onClick = onDuplicateDay) {
                         Icon(Icons.Rounded.ContentCopy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
-                    IconButton(onClick = onClearDay) {
+                    IconButton(onClick = { showClearConfirm = true }) {
                         Icon(Icons.Rounded.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }
@@ -105,5 +109,15 @@ internal fun MealPlanDayCard(
                 )
             }
         }
+    }
+
+    if (showClearConfirm) {
+        ConfirmDialog(
+            title = stringResource(R.string.mealplan_clear_day_confirm_title),
+            body = stringResource(R.string.mealplan_clear_day_confirm_body),
+            confirmLabel = stringResource(R.string.mealplan_clear_day),
+            onConfirm = { onClearDay(); showClearConfirm = false },
+            onDismiss = { showClearConfirm = false },
+        )
     }
 }

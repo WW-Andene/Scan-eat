@@ -258,10 +258,11 @@ fun DashboardScreen(
                     // onOpenHistory had no call site anywhere in the composable -
                     // ScanHistoryScreen (search/sort/favorite/delete) was completely
                     // unreachable from any UI gesture.
-                    if (s.recentScans.isNotEmpty()) {
-                        TextButton(onClick = onOpenHistory) {
-                            Text(stringResource(R.string.dashboard_view_all), color = AccentCoral)
-                        }
+                    // Was gated on recentScans.isNotEmpty(), so this section's own
+                    // entry into full history appeared/disappeared depending on data
+                    // state - a stable tap target is clearer than one that comes and goes.
+                    TextButton(onClick = onOpenHistory) {
+                        Text(stringResource(R.string.dashboard_view_all), color = AccentCoral)
                     }
                 }
             }
