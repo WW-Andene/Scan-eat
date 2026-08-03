@@ -31,6 +31,11 @@ data class PriceEntry(
 class PriceRepository @Inject constructor(
     private val dao: PriceDao,
 ) {
+    /** Same cap ConsumptionRepository/WeightRepository/ScanRepository already use. */
+    private companion object {
+        const val MAX_HISTORY_ROWS = 5000
+    }
+
     fun observeAll(profileId: String = "default"): Flow<List<PriceEntry>> =
         dao.observeAll(profileId).map { list -> list.toDomainList() }
 
@@ -63,6 +68,10 @@ class PriceRepository @Inject constructor(
                 profileId = profileId,
             )
         )
+        // price_log was the one log table in the app with no retention cap at
+        // all (app-audit §O1) - every sibling log table (consumption, weight,
+        // activity, medication, scan history) already trims to MAX_HISTORY_ROWS.
+        dao.trim(MAX_HISTORY_ROWS, profileId)
     }
 
     suspend fun delete(id: String) = dao.delete(id)

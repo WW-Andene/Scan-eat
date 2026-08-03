@@ -25,4 +25,14 @@ interface PriceDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<PriceEntity>)
+
+    /** Bounds unbounded growth the same way ConsumptionDao.trim does for consumption_log -
+     *  price_log was the one log table in the app missing this cap entirely. */
+    @Query("""
+        DELETE FROM price_log
+        WHERE profileId = :profileId AND id NOT IN (
+            SELECT id FROM price_log WHERE profileId = :profileId ORDER BY loggedAt DESC LIMIT :keepCount
+        )
+    """)
+    suspend fun trim(keepCount: Int, profileId: String = "default")
 }
