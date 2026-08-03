@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -57,14 +58,14 @@ import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private enum class DiaryTab(val labelRes: Int) {
-    MEALS(R.string.diary_tab_meals),
-    WEIGHT(R.string.diary_tab_weight),
-    WATER(R.string.diary_tab_water),
-    ACTIVITY(R.string.diary_tab_activity),
-    FASTING(R.string.diary_tab_fasting),
-    TREATMENT(R.string.diary_tab_treatment),
-    EXPENSES(R.string.diary_tab_expenses),
+private enum class DiaryTab(val labelRes: Int, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    MEALS(R.string.diary_tab_meals, Icons.Rounded.RestaurantMenu),
+    WEIGHT(R.string.diary_tab_weight, Icons.Rounded.Scale),
+    WATER(R.string.diary_tab_water, Icons.Rounded.Opacity),
+    ACTIVITY(R.string.diary_tab_activity, Icons.Rounded.FitnessCenter),
+    FASTING(R.string.diary_tab_fasting, Icons.Rounded.Timer),
+    TREATMENT(R.string.diary_tab_treatment, Icons.Rounded.Medication),
+    EXPENSES(R.string.diary_tab_expenses, Icons.Rounded.Receipt),
 }
 
 /** Bundle doesn't natively round-trip an enum - process death (a low-memory
@@ -207,36 +208,55 @@ fun DiaryScreen(
                         Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.height(10.dp))
-                    // Was a fixed Row with each tab forced to Modifier.weight(1f) -
-                    // seven equal-width tabs (Meals/Weight/Water/Activity/Fasting/
-                    // Treatment/Expenses) squeezed labels illegibly on narrower phones,
-                    // especially once localized (e.g. French "Traitement" is longer
-                    // than "Meds"), and any 8th tracker added later would only make it
-                    // worse. Horizontally scrollable with each tab sized to its own
-                    // content instead of forced-equal-width, so labels never truncate/
-                    // wrap regardless of screen width or tab count.
+                    // Was a fixed Row with each tab forced to Modifier.weight(1f), then
+                    // (once Expenses became the 7th tab) a horizontally-scrollable Row
+                    // with a full icon+label per tab - both still forced a horizontal
+                    // scroll to reach Treatment/Expenses on most phone widths, one more
+                    // scroll gesture on top of the day-picker/list scrolling this screen
+                    // already asks for. Icon-primary instead: every tab always shows its
+                    // icon (a stable, tappable 48dp target and enough on its own once the
+                    // user's learned the row once), and only the ACTIVE tab also spells
+                    // out its label - inactive tabs stay icon-only. That's roughly a third
+                    // of the previous per-tab width, so all seven fit with no scroll on
+                    // every phone width this app targets, while the active tab is still
+                    // named in full (in whichever language) for anyone who hasn't
+                    // memorized the icons yet.
                     Row(
                         modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         DiaryTab.entries.forEach { tab ->
                             val isActive = tab == activeTab
+                            val label = stringResource(tab.labelRes)
                             Surface(
                                 onClick = { activeTab = tab },
-                                modifier = Modifier.heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
+                                modifier = Modifier
+                                    .heightIn(min = 48.dp)
+                                    .semantics { role = Role.Tab; selected = isActive; contentDescription = label },
                                 shape = RoundedCornerShape(8.dp),
                                 color = if (isActive) AccentCoral.copy(0.15f) else Color.Transparent,
                                 border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
                             ) {
-                                Box(Modifier.padding(horizontal = Spacing.M), contentAlignment = Alignment.Center) {
-                                    Text(
-                                        stringResource(tab.labelRes),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (isActive) AccentCoral else OnBackground.copy(0.5f),
-                                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                                        textAlign = TextAlign.Center,
-                                        maxLines = 1,
+                                Row(
+                                    Modifier.heightIn(min = 48.dp).padding(horizontal = if (isActive) Spacing.M else Spacing.S),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
+                                    Icon(
+                                        tab.icon, contentDescription = null,
+                                        tint = if (isActive) AccentCoral else OnBackground.copy(0.5f),
+                                        modifier = Modifier.size(20.dp),
                                     )
+                                    if (isActive) {
+                                        Text(
+                                            label,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = AccentCoral,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1,
+                                        )
+                                    }
                                 }
                             }
                         }
