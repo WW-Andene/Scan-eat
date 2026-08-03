@@ -104,8 +104,17 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
             contentPadding = PaddingValues(Spacing.XL),
             accent = Gold,
         ) {
+            // Reported: on step 2 (Mesures corporelles), the user was stuck with no
+            // visible Next button - the button row lived INSIDE this scrollable
+            // Column with no scroll indicator, so on a device/content combination
+            // where the step's fields plus the button row exceeded the visible
+            // card height, the button scrolled off-screen with nothing suggesting
+            // more content existed below the last field. Moved the button row
+            // outside the scroll area as a fixed footer so it's always visible
+            // regardless of how tall a given step's field content is.
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.L)) {
             Column(
-                Modifier.verticalScroll(rememberScrollState()).heightIn(max = 560.dp),
+                Modifier.verticalScroll(rememberScrollState()).weight(1f, fill = false).heightIn(max = 480.dp),
                 verticalArrangement = Arrangement.spacedBy(Spacing.L),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -192,7 +201,11 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                         }
                     }
                 }
+            }
 
+                // Fixed footer - always visible regardless of how tall the scrollable
+                // step content above is (see comment above on why this moved out of
+                // the scrollable Column).
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     // Skip must stay reachable from every step, not just the
                     // first — a user mid-way through (e.g. stuck on step 1's
