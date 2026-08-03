@@ -8,6 +8,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -22,6 +24,7 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Unit, onToggleFavorite: () -> Unit, onDelete: () -> Unit) {
     val gradeColor = gradeColor(scan.audit.grade)
+    val haptics = LocalHapticFeedback.current
     // Appended rather than a new formatted string resource — the warning text
     // itself already comes pre-localized out of checkUserAllergens()/checkDiet().
     // Without this, a TalkBack user would never hear about the same allergen/
@@ -73,7 +76,11 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
                     }
                 }
             }
-            IconButton(onClick = onToggleFavorite) {
+            // Was a silent Room write with only the icon's color swap as feedback -
+            // a quick tap on a scrolling list gave no confirmation the action
+            // registered. A short haptic tick matches the confirmation every other
+            // toggle-style action in the app already gives (Grocery's check-off, etc.).
+            IconButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onToggleFavorite() }) {
                 Icon(
                     if (scan.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
                     stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),

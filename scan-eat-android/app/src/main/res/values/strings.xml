@@ -1455,6 +1455,7 @@
     <string name="reminders_title">Rappels</string>
     <string name="reminders_enable_notifications">Activer les notifications</string>
     <string name="reminders_permission_needed_title">Les rappels ont besoin des notifications</string>
+    <string name="reminders_permission_rationale">Sans cette autorisation, vos rappels de médicaments, hydratation et jeûne ne pourront pas s\'afficher.</string>
     <string name="reminders_notif_breakfast_title">Petit-déjeuner</string>
     <string name="reminders_notif_breakfast_body">N\'oubliez pas de journaliser votre petit-déjeuner.</string>
     <string name="reminders_notif_snack_title">Collation</string>

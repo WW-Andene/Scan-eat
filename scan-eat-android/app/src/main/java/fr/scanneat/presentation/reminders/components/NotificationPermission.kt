@@ -101,6 +101,14 @@ internal fun PermissionBanner(permissionGranted: Boolean, permanentlyDenied: Boo
                         stringResource(R.string.reminders_permission_needed_title),
                         style = MaterialTheme.typography.bodySmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
                     )
+                    // ScanPermissionGate's camera rationale explains WHY before the OS
+                    // prompt appears - this banner only ever showed a bare title + button,
+                    // the one first-run permission flow in the app with no "why" before
+                    // asking, inconsistent with the camera flow's own explain-before-ask pattern.
+                    Text(
+                        stringResource(R.string.reminders_permission_rationale),
+                        style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+                    )
                     Spacer(Modifier.height(Spacing.XS))
                     if (permanentlyDenied) {
                         ScanEatPrimaryButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))) }) {

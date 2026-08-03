@@ -1405,6 +1405,7 @@
     <string name="reminders_title">Reminders</string>
     <string name="reminders_enable_notifications">Enable notifications</string>
     <string name="reminders_permission_needed_title">Reminders need notifications turned on</string>
+    <string name="reminders_permission_rationale">Without this, your medication, hydration, and fasting reminders won\'t be able to show up.</string>
     <string name="reminders_notif_breakfast_title">Breakfast</string>
     <string name="reminders_notif_breakfast_body">Don\'t forget to log your breakfast.</string>
     <string name="reminders_notif_snack_title">Snack</string>
