@@ -72,9 +72,12 @@ class DiaryViewModel @Inject constructor(
     // body-composition-aware TDEE) over the plain PAL-based profile estimate
     // whenever one exists, so Journal and Dashboard could silently disagree on
     // the same day's calorie target. Same override rule, applied here too.
-    val targets: StateFlow<DailyTargets?> = combine(prefs.profile, biolismRepo.profile) { profile, bioProfile ->
+    val targets: StateFlow<DailyTargets?> = combine(prefs.profile, biolismRepo.profile, prefs.isPremium) { profile, bioProfile, isPremium ->
         val base = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
-        val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
+        // Biolism is Premium-gated (see UserPreferences.isPremium) - a non-Premium
+        // user's target must never reflect a stored bioProfile, even a stale one
+        // from before downgrading or before this gate existed.
+        val bioTdee = if (isPremium && bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile)?.tdeeDay else null
         // Previously only kcal was swapped for Biolism's tdee, leaving fat/carbs
         // computed from the old profile-only kcal - the shown macros no longer
         // summed to the kcal figure right next to them. withKcalOverride rescales
@@ -87,11 +90,11 @@ class DiaryViewModel @Inject constructor(
     // user who set a goal weight in Profile explicitly to plan around it. Only
     // emits when a goal weight is actually set and differs from the current one
     // (otherwise it would just silently duplicate the row above).
-    val goalTargets: StateFlow<DailyTargets?> = combine(prefs.profile, biolismRepo.profile) { profile, bioProfile ->
+    val goalTargets: StateFlow<DailyTargets?> = combine(prefs.profile, biolismRepo.profile, prefs.isPremium) { profile, bioProfile, isPremium ->
         val goalWeight = profile.goalWeightKg
         if (!hasMinimalProfile(profile) || goalWeight == null || goalWeight == profile.weightKg) return@combine null
         val base = dailyTargets(profile, weightKgOverride = goalWeight) ?: return@combine null
-        val bioTdee = if (bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile.copy(weightKg = goalWeight))?.tdeeDay else null
+        val bioTdee = if (isPremium && bioProfile.isValid) BiolismEngine.computeMetabolics(bioProfile.copy(weightKg = goalWeight))?.tdeeDay else null
         if (bioTdee != null) base.withKcalOverride(bioTdee, profile.goal) else base
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 

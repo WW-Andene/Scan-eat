@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
+import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.data.repository.scan.ComparisonRepository
 import fr.scanneat.data.repository.scan.ComparisonResult
 import fr.scanneat.data.repository.expense.PriceEntry
@@ -109,8 +110,12 @@ class ResultViewModel @Inject constructor(
     private val scanLoader = ResultScanLoader(scanId, isFreshScan, scanRepo, comparisonRepo)
 
     // Fix 2: Use a typed sealed class instead of Pair<Triple<...>> — clean and null-safe
-    private val scanLoad: Flow<ScanLoad> = combine(prefs.profile, prefs.language, biolismRepo.profile) { profile, lang, bioProfile -> Triple(profile, lang, bioProfile) }.flatMapLatest { (profile, lang, bioProfile) ->
-        scanLoader.build(profile, lang, bioProfile)
+    private val scanLoad: Flow<ScanLoad> = combine(prefs.profile, prefs.language, biolismRepo.profile, prefs.isPremium) { profile, lang, bioProfile, isPremium -> Quadruple(profile, lang, bioProfile, isPremium) }.flatMapLatest { (profile, lang, bioProfile, isPremium) ->
+        // Biolism is Premium-gated (see UserPreferences.isPremium) - a non-Premium
+        // user's personal-score kcal-budget adjustments must come from the plain
+        // profile estimate only, never a stored bioProfile from before downgrading
+        // or before this gate existed.
+        scanLoader.build(profile, lang, if (isPremium) bioProfile else BiolismProfile())
     }
 
     val state: StateFlow<ResultUiState> = combine(scanLoad, _logState, favoriteOverride) { load, logState, favOverride ->

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
+import fr.scanneat.domain.engine.biolism.BiolismProfile
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.data.repository.health.ActivityRepository
@@ -102,13 +103,18 @@ class DashboardViewModel @Inject constructor(
                 // DashboardHeavyState.kt (same package) - moved verbatim, this
                 // flatMapLatest just wires its inputs/output.
                 flow {
+                    // Biolism is Premium-gated (see UserPreferences.isPremium) - a
+                    // non-Premium user's TDEE/macro targets must come from the plain
+                    // profile estimate only, even if a bioProfile from before
+                    // downgrading (or before this gate existed) is still stored.
+                    val gatedBioProfile = if (prefs.isPremium.first()) bioProfile else BiolismProfile()
                     emit(
                         buildHeavyDashboardState(
                             date = date,
                             todayData = todayData,
                             allEntries = allEntries,
                             profile = profile,
-                            bioProfile = bioProfile,
+                            bioProfile = gatedBioProfile,
                             foodDb = foodDb,
                             consumptionRepo = consumptionRepo,
                             weightRepo = weightRepo,
