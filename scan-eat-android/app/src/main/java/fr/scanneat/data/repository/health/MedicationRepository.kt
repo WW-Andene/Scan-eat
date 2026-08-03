@@ -151,7 +151,7 @@ class MedicationRepository @Inject constructor(
                 profileId      = profileId,
             )
         }
-        logDao.trim(MAX_LOG_HISTORY_ROWS, profileId)
+        logDao.trim(MAX_HISTORY_ROWS, profileId)
     }
 
     suspend fun deleteLogEntry(id: String) = logDao.delete(id)
@@ -176,6 +176,6 @@ class MedicationRepository @Inject constructor(
 
     companion object {
         /** Same retention rationale as ScanRepository.MAX_HISTORY_ROWS. */
-        const val MAX_LOG_HISTORY_ROWS = 5000
+        const val MAX_HISTORY_ROWS = 5000
     }
 }

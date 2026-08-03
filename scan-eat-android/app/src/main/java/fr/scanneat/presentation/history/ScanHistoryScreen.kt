@@ -24,6 +24,7 @@ import fr.scanneat.presentation.history.components.HistoryTopScannedRow
 import fr.scanneat.presentation.history.components.ScanHistoryRow
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 
 
@@ -52,6 +53,9 @@ fun ScanHistoryScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val logFailedMessage = stringResource(R.string.common_log_failed)
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.history_deleted_message)
+    val undoLabel = stringResource(R.string.history_undo)
     LaunchedEffect(actionFailed.value) {
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
@@ -160,7 +164,14 @@ fun ScanHistoryScreen(
         val name = scans.value.firstOrNull { it.dbId == id }?.product?.name
         DeleteConfirmDialog(
             itemName  = name,
-            onConfirm = { viewModel.delete(id); deleteTarget = null },
+            onConfirm = {
+                viewModel.delete(id)
+                deleteTarget = null
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                }
+            },
             onDismiss = { deleteTarget = null },
         )
     }

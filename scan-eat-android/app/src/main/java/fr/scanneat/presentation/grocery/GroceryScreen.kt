@@ -60,6 +60,8 @@ fun GroceryScreen(
     val scope = rememberCoroutineScope()
     val copiedMessage = stringResource(R.string.grocery_copied)
     val clearedMessage = stringResource(R.string.grocery_cleared_confirmation)
+    val deletedMessage = stringResource(R.string.grocery_item_deleted_message)
+    val undoLabel = stringResource(R.string.diary_undo)
     var copyMenuExpanded by remember { mutableStateOf(false) }
     var showClearConfirm by remember { mutableStateOf(false) }
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
@@ -202,7 +204,13 @@ fun GroceryScreen(
                                 checkableItem, warning = itemWarnings.value[checkableItem.item.key],
                                 isManual = checkableItem.item.key in manualItemKeys.value,
                                 onToggleChecked = { checked -> haptics.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.toggleChecked(checkableItem.item, checked) },
-                                onDeleteManual = { viewModel.deleteManualContribution(checkableItem.item.key) },
+                                onDeleteManual = {
+                                viewModel.deleteManualContribution(checkableItem.item.key)
+                                scope.launch {
+                                    val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDeleteManual()
+                                }
+                            },
                             )
                         }
                     }
@@ -212,7 +220,13 @@ fun GroceryScreen(
                             checkableItem, warning = itemWarnings.value[checkableItem.item.key],
                             isManual = checkableItem.item.key in manualItemKeys.value,
                             onToggleChecked = { checked -> haptics.performHapticFeedback(HapticFeedbackType.LongPress); viewModel.toggleChecked(checkableItem.item, checked) },
-                            onDeleteManual = { viewModel.deleteManualContribution(checkableItem.item.key) },
+                            onDeleteManual = {
+                                viewModel.deleteManualContribution(checkableItem.item.key)
+                                scope.launch {
+                                    val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDeleteManual()
+                                }
+                            },
                         )
                     }
                 }

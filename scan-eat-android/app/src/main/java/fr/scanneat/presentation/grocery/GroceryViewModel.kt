@@ -47,6 +47,12 @@ class GroceryViewModel @Inject constructor(
     private val prefs: UserPreferences,
 ) : ViewModel() {
 
+    // Standalone field so GroceryScreen can read the in-app language directly
+    // (Locale(language.value)) the same way ~20 other screens already do,
+    // instead of only reaching prefs.language buried inside itemWarnings' combine().
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     // "Planned this week only" scope: when on, the grocery list is built from the
     // recipes actually assigned to a day in the current 7-day meal plan window
     // (MealPlanRepository/MealPlanScreen), not from every recipe ever saved. A
@@ -257,15 +263,33 @@ class GroceryViewModel @Inject constructor(
         viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
+    // Same undo-delete pattern as Diary/Weight/ScanHistory/Medication - snapshots
+    // the removed manual entries (there can be more than one contributing to the
+    // same aggregated row) right before removal so a snackbar "Undo" can re-add
+    // them. Re-added rows get fresh ids via add() rather than the originals',
+    // same as every other ManualGroceryRepository.add() call site.
+    private var lastDeleted: List<fr.scanneat.data.repository.planning.ManualGroceryItem>? = null
+
     /** Removes every manual entry that contributed to the aggregated row keyed [groceryKey] — a recipe-sourced contribution to the same row, if any, is untouched. */
     fun deleteManualContribution(groceryKey: String) {
         viewModelScope.launch {
             runCatching {
                 val existingKeys = rawItems.value.map { it.key }.toSet()
-                manualGroceryRepo.items.first()
+                val toRemove = manualGroceryRepo.items.first()
                     .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
-                    .forEach { manualGroceryRepo.remove(it.id) }
-            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                toRemove.forEach { manualGroceryRepo.remove(it.id) }
+                toRemove
+            }.onSuccess { removed -> lastDeleted = removed }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    fun undoDeleteManual() {
+        val removed = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch {
+            runCatching { removed.forEach { manualGroceryRepo.add(it.name, it.grams) } }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }

@@ -852,6 +852,10 @@
     <string name="diary_filter_empty">Aucune entrée pour ce repas.</string>
     <string name="diary_deleted_message">Entrée supprimée</string>
     <string name="diary_undo">Annuler</string>
+    <string name="history_deleted_message">Scan supprimé</string>
+    <string name="history_undo">Annuler</string>
+    <string name="medication_deleted_message">Traitement supprimé</string>
+    <string name="grocery_item_deleted_message">Article supprimé</string>
     <string name="diary_meal_breakfast">Petit-déjeuner</string>
     <string name="common_delete_confirm_title">Supprimer ?</string>
     <string name="common_delete_confirm_body">Cette action est irréversible.</string>

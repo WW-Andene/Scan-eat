@@ -253,7 +253,29 @@ class MedicationViewModel @Inject constructor(
         viewModelScope.launch { runCatching { repo.setActive(medication, active) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
-    fun delete(id: String) = viewModelScope.launch {
-        runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    // Same undo-delete pattern as DiaryViewModel/WeightViewModel/ScanHistoryViewModel -
+    // snapshots the row right before deleting it so a snackbar "Undo" can restore it.
+    // repo.save(id = ...) re-upserts the exact same row (same id, so its
+    // MedicationLogEntry history stays associated) rather than creating a new one.
+    private var lastDeleted: Medication? = null
+
+    fun delete(id: String) {
+        val entry = medications.value.firstOrNull { it.id == id }
+        viewModelScope.launch {
+            runCatching { repo.delete(id) }
+                .onSuccess { lastDeleted = entry }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    fun undoDelete() {
+        val entry = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch {
+            runCatching {
+                repo.save(entry.name, entry.dosage, entry.scheduleNote, entry.barcode, entry.active, id = entry.id,
+                    reminderOn = entry.reminderOn, reminderTime = entry.reminderTime)
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 }

@@ -24,6 +24,7 @@ import fr.scanneat.presentation.medication.components.MedicationStreakRow
 import fr.scanneat.presentation.medication.components.MedicationTodaySummaryCard
 import fr.scanneat.presentation.medication.components.MedicationWeeklyAdherenceChart
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.launch
 
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar - used when
@@ -60,6 +61,9 @@ fun MedicationScreen(
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val logFailedMessage = stringResource(R.string.common_log_failed)
+    val scope = rememberCoroutineScope()
+    val deletedMessage = stringResource(R.string.medication_deleted_message)
+    val undoLabel = stringResource(R.string.diary_undo)
     LaunchedEffect(actionFailed.value) {
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
@@ -179,7 +183,18 @@ fun MedicationScreen(
 
     deleteTarget?.let { id ->
         val name = medications.value.find { it.id == id }?.name
-        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        DeleteConfirmDialog(
+            itemName = name,
+            onConfirm = {
+                viewModel.delete(id)
+                deleteTarget = null
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                }
+            },
+            onDismiss = { deleteTarget = null },
+        )
     }
 
     reminderTarget?.let { m ->

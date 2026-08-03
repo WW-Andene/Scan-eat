@@ -198,7 +198,28 @@ class ScanHistoryViewModel @Inject constructor(
         }
     }
 
+    // Same undo-delete pattern as DiaryViewModel/WeightViewModel.restore() -
+    // snapshots the row right before deleting it so a snackbar "Undo" can
+    // bring it back. repo.persist() re-upserts by barcode (or inserts fresh
+    // for a photo-identified scan with no barcode), same path a live rescan
+    // already goes through.
+    private var lastDeleted: ScanResult? = null
+
     fun delete(id: Long) {
-        viewModelScope.launch { runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        val entry = allScans.value.firstOrNull { it.dbId == id }
+            ?: favoriteScans.value.firstOrNull { it.dbId == id }
+        viewModelScope.launch {
+            runCatching { repo.delete(id) }
+                .onSuccess { lastDeleted = entry }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    fun undoDelete() {
+        val entry = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch {
+            runCatching { repo.persist(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 }
