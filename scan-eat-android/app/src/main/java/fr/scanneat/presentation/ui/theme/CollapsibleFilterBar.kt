@@ -45,7 +45,13 @@ fun CollapsibleFilterBar(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Box(modifier) {
+    // User-reported: the pill sat flush against the screen's left edge with no
+    // margin (History/Favorites screens) - a regression from the full-width
+    // rewrite above, which used to inherit its horizontal inset from the
+    // screen's own Column/padding when it spanned the full width. As a
+    // self-contained pill it now needs to carry that inset itself, matching
+    // the search bar directly above it on every call site.
+    Box(modifier.padding(horizontal = Spacing.L)) {
         Surface(
             onClick = onToggle,
             shape = RoundedCornerShape(8.dp),
