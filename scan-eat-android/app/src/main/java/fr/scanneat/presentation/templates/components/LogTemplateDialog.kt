@@ -56,7 +56,7 @@ internal fun LogTemplateDialog(template: MealTemplate, onDismiss: () -> Unit, on
                 HorizontalDivider(color = OnBackground.copy(0.08f))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.templates_log_portion_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                    Text(stringResource(R.string.templates_log_portion_value, portion.formatDecimal(1), (t.totalKcal * portion).toInt()), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
+                    Text(stringResource(R.string.templates_log_portion_value, portion.toDouble().formatDecimal(1), (t.totalKcal * portion).toInt()), style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                 }
                 Slider(
                     value = portion, onValueChange = { portion = it },
