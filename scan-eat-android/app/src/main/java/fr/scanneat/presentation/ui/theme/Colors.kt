@@ -189,8 +189,21 @@ fun ScanEatDivider(color: Color = SeparatorLight) = androidx.compose.material3.H
 // per theme, including Light's separately-calibrated near-black — fixes this
 // for every theme at once instead of hand-picking five more literals.
 val TextSecondary: Color @Composable get() = OnBackground.copy(alpha = 0.65f)
-val TextMuted:     Color @Composable get() = OnBackground.copy(alpha = 0.38f)
-val TextLabel:     Color @Composable get() = OnBackground.copy(alpha = 0.55f)
+
+// design-aesthetic-audit §E3 (WCAG contrast pass): a flat alpha across every
+// theme assumes contrast only depends on picking the right onBackground per
+// theme (this file's own comment above), but composited-alpha contrast also
+// depends on the specific background luminance behind it - Light's near-white
+// background (0xF6F1EC) needs meaningfully more opacity than Dark/OLED's dark
+// ones to land at the same real ratio. Verified by relative-luminance
+// calculation: the old flat 0.38 TextMuted computed to 2.97:1 on OLED and
+// 2.3:1 on Light - both below even the 3:1 floor for large/bold text, not
+// just the 4.5:1 body-text tier. TextLabel's flat 0.55 similarly only reached
+// 3.69:1 on Light (below 4.5:1 AA). Split per isLightBackground() so the same
+// "muted"/"label" role reads at the same real contrast in every theme instead
+// of silently failing accessibility only in Light.
+val TextMuted: Color @Composable get() = OnBackground.copy(alpha = if (isLightBackground()) 0.50f else 0.40f)
+val TextLabel: Color @Composable get() = OnBackground.copy(alpha = if (isLightBackground()) 0.68f else 0.55f)
 
 // ── Feature accents outside the Scan'eat/Biolism systems ──────────────────────
 val HydrationBlue   = Color(0xFF29B6F6)

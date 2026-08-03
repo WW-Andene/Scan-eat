@@ -36,6 +36,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.calendar.WeekSummary
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.TextMuted
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -122,7 +123,7 @@ internal fun MultiMarkerMonthGrid(
                     ) {
                         Text(
                             "$weekNumber",
-                            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f),
+                            style = MaterialTheme.typography.labelSmall, color = TextMuted,
                         )
                     }
                 }

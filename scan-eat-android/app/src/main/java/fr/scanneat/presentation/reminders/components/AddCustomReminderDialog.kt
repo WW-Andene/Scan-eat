@@ -23,6 +23,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.TextMuted
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.semanticRed
 
@@ -44,7 +45,7 @@ internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDism
                 OutlinedTextField(
                     value = label, onValueChange = { label = it }, singleLine = true,
                     label = { Text(stringResource(R.string.reminders_custom_label_hint)) },
-                    placeholder = { Text(stringResource(R.string.reminders_custom_label_example), color = OnBackground.copy(0.3f)) },
+                    placeholder = { Text(stringResource(R.string.reminders_custom_label_example), color = TextMuted) },
                     colors = scanEatTextFieldColors(),
                 )
                 OutlinedTextField(

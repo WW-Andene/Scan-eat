@@ -65,7 +65,7 @@ internal fun ResultContent(
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
             Text(scan.product.category.key.replace('_', ' ').replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
-            Text("•", color = OnBackground.copy(0.3f))
+            Text("•", color = TextMuted)
             // Was scan.source.name.lowercase().replace('_', ' ') - the internal
             // ScanSource enum's own identifier (e.g. "open food facts", "llm")
             // shown verbatim as user-facing copy, same class of leak as the

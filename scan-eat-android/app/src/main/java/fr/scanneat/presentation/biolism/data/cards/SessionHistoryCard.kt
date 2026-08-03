@@ -74,7 +74,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text("%.4f kg".format(Locale.US, sess.fatLostKg), style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.SemiBold)
-                        Text(stringResource(R.string.biolism_sesshist_fat_lost_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.3f))
+                        Text(stringResource(R.string.biolism_sesshist_fat_lost_label), style = MaterialTheme.typography.labelSmall, color = TextMuted)
                     }
                 }
                 // Gated on rememberReducedMotion(), like every other prominent

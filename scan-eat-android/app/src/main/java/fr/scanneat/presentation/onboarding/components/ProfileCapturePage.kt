@@ -100,7 +100,7 @@ internal fun ColumnScope.ProfileCapturePage(
         Text(
             stringResource(R.string.onboarding_profile_skip_consequence),
             style = MaterialTheme.typography.labelSmall,
-            color = OnBackground.copy(0.35f),
+            color = TextMuted,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
         )
