@@ -70,7 +70,10 @@ fun MonthCalendar(
         }
         Row(Modifier.fillMaxWidth()) {
             weekdayLabels.forEach { label ->
-                Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), textAlign = TextAlign.Center)
+                // §E3 contrast: 0.4f alpha failed even the 3:1 large-text floor on
+                // Light (2.43:1) and barely cleared it on Dark/OLED - TextMuted is
+                // theme-tuned to clear 3:1 everywhere.
+                Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = TextMuted, textAlign = TextAlign.Center)
             }
         }
         val totalCells = leadingBlanks + daysInMonth

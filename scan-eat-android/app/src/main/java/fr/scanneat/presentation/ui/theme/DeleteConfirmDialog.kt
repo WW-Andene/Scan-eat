@@ -28,7 +28,9 @@ fun ConfirmDialog(title: String, body: String, confirmLabel: String, confirmColo
         title   = { Text(title, color = OnBackground) },
         text    = { Text(body, color = OnBackground.copy(0.7f)) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirmLabel, color = confirmColor) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        // §E3 contrast: 0.6f alpha only reached 4.25:1 on Light (below 4.5:1 AA) -
+        // TextSecondary clears AA in every theme.
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = TextSecondary) } },
     )
 }
 

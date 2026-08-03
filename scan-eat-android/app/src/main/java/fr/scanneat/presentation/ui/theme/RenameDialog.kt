@@ -48,7 +48,7 @@ fun RenameDialog(currentName: String, onConfirm: (String) -> Unit, onDismiss: ()
                 Text(stringResource(R.string.common_save), color = if (enabled) AccentCoral else OnBackground.copy(0.3f))
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = TextSecondary) } },
     )
 }
 
@@ -72,6 +72,6 @@ fun EditNotesDialog(title: String, currentNotes: String, onConfirm: (String) -> 
                 Text(stringResource(R.string.common_save), color = AccentCoral)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = TextSecondary) } },
     )
 }

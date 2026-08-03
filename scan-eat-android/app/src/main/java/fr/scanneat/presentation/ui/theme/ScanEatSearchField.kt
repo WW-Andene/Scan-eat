@@ -52,7 +52,12 @@ fun ScanEatSearchField(
         onValueChange = onQueryChange,
         modifier = modifier.fillMaxWidth().heightIn(min = 48.dp),
         textStyle = MaterialTheme.typography.bodyMedium,
-        placeholder = { Text(placeholder, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.4f)) },
+        // §E3 contrast: 0.4f alpha at body-text size failed even the 3:1
+        // large-text floor on Light (2.43:1) - this is the app's one shared
+        // search field, used on every "Rechercher..." bar app-wide, so
+        // TextSecondary (theme-tuned, clears 4.5:1 AA everywhere) fixes every
+        // instance at once.
+        placeholder = { Text(placeholder, style = MaterialTheme.typography.bodyMedium, color = TextSecondary) },
         leadingIcon = { Icon(TablerIcons.Search, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(18.dp)) },
         trailingIcon = {
             // IconButton kept at its default 48dp touch target (Material/WCAG
