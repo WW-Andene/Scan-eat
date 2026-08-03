@@ -33,6 +33,12 @@ class HydrationViewModel @Inject constructor(
     val intake: StateFlow<Int> = today.flatMapLatest { date -> repo.observe(date) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    // In-app language (Settings) can differ from the device locale - the weekly
+    // chart's weekday labels/content descriptions previously built off
+    // Locale.getDefault() instead, unlike every sibling date-heavy screen.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     private val formulaGoal: Flow<Int> = prefs.profile
         .map { repo.goalMl(it.sex, it.activityLevel, it.healthConditions) }
 

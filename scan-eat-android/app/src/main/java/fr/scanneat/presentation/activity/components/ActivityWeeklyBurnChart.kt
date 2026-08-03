@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -16,7 +17,11 @@ import fr.scanneat.presentation.ui.theme.*
 import java.time.LocalDate
 
 @Composable
-internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>) {
+internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>, language: String) {
+    // In-app language, not Locale.getDefault() - this file's own comment below
+    // (line ~48) claimed this chart was already the "locale-aware" example
+    // Fasting7DayChart should copy, but it was still device-locale-driven itself.
+    val locale = remember(language) { java.util.Locale(language) }
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
         val peak = weeklyBurn.maxOf { it.second }.coerceAtLeast(1)
         val barColor = Warm
@@ -29,7 +34,7 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>) {
                     // Dashboard's WeeklyBarsCard, which needed a contentDescription
                     // because TalkBack otherwise skipped the chart's data entirely -
                     // this chart had the identical gap, never fixed here.
-                    val dayName = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
+                    val dayName = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
                     val barDescription = stringResource(R.string.activity_week_bar_cd, dayName, kcal)
                     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
                         Box(
@@ -46,10 +51,9 @@ internal fun ActivityWeeklyBurnChart(weeklyBurn: List<Pair<LocalDate, Int>>) {
                 weeklyBurn.forEach { (date, _) ->
                     Text(
                         // app-audit §N: was date.dayOfWeek.name.take(1) - the raw English
-                        // enum name ("MONDAY" -> "M") regardless of app language, unlike
-                        // Fasting7DayChart's locale-aware getDisplayName() for the identical
-                        // weekday-initials row.
-                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, java.util.Locale.getDefault()),
+                        // enum name ("MONDAY" -> "M") regardless of app language. Now uses
+                        // the in-app language, not device locale (see comment above).
+                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, locale),
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
                         color = OnSurface.copy(if (date == LocalDate.now()) 0.8f else 0.4f),

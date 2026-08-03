@@ -28,7 +28,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.domain.engine.expense.ValueScore
 import fr.scanneat.presentation.ui.theme.*
-import java.util.Locale
+import fr.scanneat.util.formatDecimal
 
 /**
  * Manual price entry for the scanned product — no OCR price-tag detection
@@ -59,10 +59,10 @@ internal fun PriceEntryCard(
             entries.take(3).forEach { entry ->
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column {
-                        Text(String.format(Locale.getDefault(), "%.2f €", entry.priceEuros), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                        Text("${entry.priceEuros.formatDecimal(2)} €", style = MaterialTheme.typography.bodyMedium, color = OnBackground)
                         entry.pricePerKg?.let { perKg ->
                             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
-                                Text(String.format(Locale.getDefault(), "%.2f €/kg", perKg), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Text("${perKg.formatDecimal(2)} €/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                 entry.valueScore?.let { ValueScoreBadge(it) }
                             }
                         }

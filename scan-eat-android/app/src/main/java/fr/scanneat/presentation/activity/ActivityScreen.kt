@@ -93,6 +93,7 @@ fun ActivityScreen(
     val weekTrendPct     = viewModel.weekTrendPct.collectAsStateWithLifecycle()
     val sortedTypes      = viewModel.sortedActivityTypes.collectAsStateWithLifecycle()
     val streak           = viewModel.streak.collectAsStateWithLifecycle()
+    val language         = viewModel.language.collectAsStateWithLifecycle()
     var selectedType by remember { mutableStateOf(ActivityType.WALKING_BRISK) }
     var minutesText by rememberSaveable { mutableStateOf("30") }
     var selectedSubType by rememberSaveable { mutableStateOf<String?>(null) }
@@ -144,7 +145,12 @@ fun ActivityScreen(
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.newStreakRecord.collect { days ->
-            snackbarHostState.showSnackbar(CelebrationSnackbarVisuals(context.getString(R.string.activity_new_streak_record, days)))
+            // Was a plain string with %1$d always followed by plural "jours"/"days" -
+            // a first-ever streak (days == 1, reachable since best starts at 0) read
+            // "New record: 1 days in a row!". Same <plurals> pattern this app already
+            // uses for the equivalent widget/fasting streak counts.
+            val message = context.resources.getQuantityString(R.plurals.activity_new_streak_record, days, days)
+            snackbarHostState.showSnackbar(CelebrationSnackbarVisuals(message))
         }
     }
 
@@ -168,7 +174,7 @@ fun ActivityScreen(
 
             // Improvement: 7-day kcal burn bar chart
             if (weeklyBurn.value.any { it.second > 0 }) {
-                item { ActivityWeeklyBurnChart(weeklyBurn.value) }
+                item { ActivityWeeklyBurnChart(weeklyBurn.value, language.value) }
             }
 
             // New: weekly active minutes vs WHO 150 min/week goal + week-over-week trend

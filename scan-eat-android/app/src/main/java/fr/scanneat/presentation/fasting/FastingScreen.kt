@@ -174,7 +174,7 @@ fun FastingScreen(
 
             // History stats summary card
             if (history.value.isNotEmpty()) {
-                item { FastingHistoryStatsCard(history.value) }
+                item { FastingHistoryStatsCard(history.value, language.value) }
             }
 
             // History list

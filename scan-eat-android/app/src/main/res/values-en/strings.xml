@@ -964,7 +964,10 @@
     <string name="fasting_phase_label">Phase · %1$s</string>
     <string name="fasting_phase_next">Next: %1$s at %2$dh</string>
     <string name="fasting_new_record">New personal record!</string>
-    <string name="activity_new_streak_record">New record: %1$d days in a row!</string>
+    <plurals name="activity_new_streak_record">
+        <item quantity="one">New record: %1$d day in a row!</item>
+        <item quantity="other">New record: %1$d days in a row!</item>
+    </plurals>
     <string name="fasting_cancel_confirm_title">Cancel fast?</string>
     <string name="fasting_cancel_confirm_body">This fast in progress will be discarded without being saved to your history. This action cannot be undone.</string>
     <string name="fasting_cancel_confirm_action">Discard</string>

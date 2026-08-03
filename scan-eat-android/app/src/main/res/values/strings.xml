@@ -1013,7 +1013,10 @@
     <string name="fasting_phase_label">Phase · %1$s</string>
     <string name="fasting_phase_next">Prochain : %1$s à %2$dh</string>
     <string name="fasting_new_record">Nouveau record !</string>
-    <string name="activity_new_streak_record">Nouveau record : %1$d jours d\'affilée !</string>
+    <plurals name="activity_new_streak_record">
+        <item quantity="one">Nouveau record : %1$d jour d\'affilée !</item>
+        <item quantity="other">Nouveau record : %1$d jours d\'affilée !</item>
+    </plurals>
     <string name="fasting_cancel_confirm_title">Annuler le jeûne ?</string>
     <string name="fasting_cancel_confirm_body">Ce jeûne en cours sera abandonné sans être enregistré dans l\'historique. Cette action est irréversible.</string>
     <string name="fasting_cancel_confirm_action">Abandonner</string>

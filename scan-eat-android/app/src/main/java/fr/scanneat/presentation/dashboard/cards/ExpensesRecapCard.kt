@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.presentation.expenses.ExpensesViewModel
 import fr.scanneat.presentation.ui.theme.*
-import java.util.Locale
+import fr.scanneat.util.formatDecimal
 
 /**
  * Dashboard glance at this week's spend — reuses ExpensesViewModel directly
@@ -54,7 +54,7 @@ fun ExpensesRecapCard(onClick: () -> Unit, viewModel: ExpensesViewModel = hiltVi
             Text(stringResource(R.string.expenses_week_title), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f), fontWeight = FontWeight.SemiBold)
         }
         Text(
-            String.format(Locale.getDefault(), "%.2f €", weekTotal.value),
+            "${weekTotal.value.formatDecimal(2)} €",
             style = MaterialTheme.typography.titleLarge,
             color = OnBackground,
             fontWeight = FontWeight.Bold,

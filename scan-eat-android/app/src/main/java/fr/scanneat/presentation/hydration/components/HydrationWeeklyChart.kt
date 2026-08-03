@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,7 +20,8 @@ import java.time.LocalDate
 import java.util.Locale
 
 @Composable
-internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goalMl: Int, weeklyGoalMetDays: Int) {
+internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goalMl: Int, weeklyGoalMetDays: Int, language: String) {
+    val locale = remember(language) { Locale(language) }
     val goalMlCoerced = goalMl.coerceAtLeast(1)
     val peak = weeklyIntake.maxOfOrNull { it.second }?.coerceAtLeast(goalMlCoerced) ?: goalMlCoerced
     Surface(
@@ -55,7 +57,7 @@ internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goal
                     // (TalkBack otherwise skips the chart's data entirely) and a
                     // non-color glyph (green-vs-blue is still a green-deficiency
                     // confusion pair) - this chart had both gaps, never fixed here.
-                    val dayName = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())
+                    val dayName = date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
                     val barDescription = when {
                         ml == 0 -> stringResource(R.string.hydration_week_bar_no_data, dayName)
                         goalMet -> stringResource(R.string.hydration_week_bar_goal_met, dayName, ml)
@@ -79,7 +81,7 @@ internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goal
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 weeklyIntake.forEach { (date, _) ->
                     Text(
-                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, Locale.getDefault()).replaceFirstChar { it.uppercaseChar() },
+                        date.dayOfWeek.getDisplayName(java.time.format.TextStyle.NARROW, locale).replaceFirstChar { it.uppercaseChar() },
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (date == java.time.LocalDate.now()) semanticBlue() else OnBackground.copy(0.35f),

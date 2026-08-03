@@ -22,7 +22,7 @@ import java.time.format.TextStyle as JTextStyle
 import java.util.Locale
 
 @Composable
-internal fun Fasting7DayChart(history: List<FastCompletion>) {
+internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
     val today = LocalDate.now()
     // Map date-string → FastCompletion for quick lookup (one entry per day)
     val byDate = history.associateBy { it.date }
@@ -73,7 +73,12 @@ internal fun Fasting7DayChart(history: List<FastCompletion>) {
                 (6 downTo 0).forEach { daysBack ->
                     val date = today.minusDays(daysBack.toLong())
                     Text(
-                        date.dayOfWeek.getDisplayName(JTextStyle.NARROW, Locale.getDefault()).replaceFirstChar { it.uppercaseChar() },
+                        // In-app language, not Locale.getDefault() - see WeightScreen's own
+                        // doc comment on the identical fix; this file's own header comment
+                        // on ActivityWeeklyBurnChart claimed this exact chart was already the
+                        // "good example" other charts should copy, but it was still
+                        // device-locale-driven itself.
+                        date.dayOfWeek.getDisplayName(JTextStyle.NARROW, Locale(language)).replaceFirstChar { it.uppercaseChar() },
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall,
                         color = if (daysBack == 0) AccentCoral else OnSurface.copy(0.35f),
@@ -87,7 +92,7 @@ internal fun Fasting7DayChart(history: List<FastCompletion>) {
 }
 
 @Composable
-internal fun FastingHistoryStatsCard(history: List<FastCompletion>) {
+internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: String) {
     val completed = history
     val successCount = completed.count { it.reached }
     val avgHours = completed.map { it.achievedHours }.average()
@@ -116,7 +121,7 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>) {
     }
     Spacer(Modifier.height(Spacing.M))
     // 7-day consistency mini-chart: one bar per day, height = achieved/target
-    Fasting7DayChart(completed)
+    Fasting7DayChart(completed, language)
 }
 
 @Composable

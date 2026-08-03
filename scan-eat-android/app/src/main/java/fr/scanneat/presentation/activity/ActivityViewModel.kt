@@ -22,6 +22,12 @@ class ActivityViewModel @Inject constructor(
     private val prefs: UserPreferences,
 ) : ViewModel() {
 
+    // In-app language (Settings) can differ from the device locale - the weekly
+    // burn chart's weekday labels/content description previously built off
+    // Locale.getDefault() instead, unlike every sibling date-heavy screen.
+    val language: StateFlow<String> = prefs.language
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
     init {
         // Sync was previously write-only for Activité too (log() mirrors into
         // Health Connect, but nothing ever read external data back) - a

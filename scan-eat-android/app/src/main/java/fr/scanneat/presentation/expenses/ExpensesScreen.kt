@@ -23,6 +23,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.domain.engine.expense.ValueScore
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -145,7 +146,7 @@ private fun ExpensesWeekCard(
             }
         }
         Text(
-            String.format(Locale.getDefault(), "%.2f €", weekTotal),
+            "${weekTotal.formatDecimal(2)} €",
             style = MaterialTheme.typography.headlineMedium,
             color = OnBackground,
             fontWeight = FontWeight.Bold,
@@ -193,9 +194,9 @@ private fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, onDel
                 Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnBackground, maxLines = 1)
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
                     Text(entry.date.format(dateFmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                    Text(String.format(Locale.getDefault(), "%.2f €", entry.priceEuros), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                    Text("${entry.priceEuros.formatDecimal(2)} €", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                     entry.pricePerKg?.let {
-                        Text(String.format(Locale.getDefault(), "%.2f €/kg", it), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                        Text("${it.formatDecimal(2)} €/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
                     }
                     entry.valueScore?.let { score ->
                         val (label, color) = when (score) {

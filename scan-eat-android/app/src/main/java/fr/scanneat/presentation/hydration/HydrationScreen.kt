@@ -51,6 +51,7 @@ fun HydrationScreen(
     val suggestedGoal   = viewModel.suggestedGoalMl.collectAsStateWithLifecycle()
     val weeklyIntake    = viewModel.weeklyIntake.collectAsStateWithLifecycle()
     val weeklyGoalMetDays = viewModel.weeklyGoalMetDays.collectAsStateWithLifecycle()
+    val language        = viewModel.language.collectAsStateWithLifecycle()
     val customGoal      = viewModel.customGoalMl.collectAsStateWithLifecycle()
     var showGoalEditor by remember { mutableStateOf(false) }
     val glasses     = intake.value / HYD_GLASS_ML
@@ -103,7 +104,7 @@ fun HydrationScreen(
 
         // 7-day intake chart
         if (weeklyIntake.value.isNotEmpty()) {
-            item { HydrationWeeklyChart(weeklyIntake = weeklyIntake.value, goalMl = goal.value, weeklyGoalMetDays = weeklyGoalMetDays.value) }
+            item { HydrationWeeklyChart(weeklyIntake = weeklyIntake.value, goalMl = goal.value, weeklyGoalMetDays = weeklyGoalMetDays.value, language = language.value) }
         }
 
         item { Spacer(Modifier.height(Spacing.XXL)) }
