@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.FileInvoice
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -50,7 +52,7 @@ fun ExpensesRecapCard(onClick: () -> Unit, viewModel: ExpensesViewModel = hiltVi
         onClick = onClick,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-            Icon(Icons.Rounded.Receipt, null, tint = OnSurface.copy(0.6f))
+            Icon(TablerIcons.FileInvoice, null, tint = OnSurface.copy(0.6f))
             Text(stringResource(R.string.expenses_week_title), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f), fontWeight = FontWeight.SemiBold)
         }
         Text(

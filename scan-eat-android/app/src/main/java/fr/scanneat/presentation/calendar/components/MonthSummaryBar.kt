@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.calendar.components
 
+import compose.icons.tablericons.Activity
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Calendar
 import compose.icons.tablericons.Droplet
@@ -46,7 +47,7 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
         // palette) - verified this is NOT a mismatch bug before considering a change.
         listOf(
             Triple(AccentCoral, Icons.Rounded.RestaurantMenu, stringResource(R.string.calendar_month_kcal, ms.totalKcal)),
-            Triple(Warm,        Icons.Rounded.DirectionsRun,  stringResource(R.string.calendar_month_minutes, ms.activeMinutes)),
+            Triple(Warm,        TablerIcons.Activity,  stringResource(R.string.calendar_month_minutes, ms.activeMinutes)),
             Triple(Teal,        TablerIcons.Droplet,       stringResource(R.string.calendar_month_hydration, ms.hydrationMl)),
             Triple(Gold,        TablerIcons.Calendar,   stringResource(R.string.calendar_month_days, ms.activeDays)),
         ).forEach { (color, icon, label) ->

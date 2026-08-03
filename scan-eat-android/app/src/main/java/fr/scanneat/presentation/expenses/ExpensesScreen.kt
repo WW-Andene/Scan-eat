@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.expenses
 
+import compose.icons.tablericons.FileInvoice
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Calendar
 import androidx.compose.foundation.layout.*
@@ -116,7 +117,7 @@ fun ExpensesScreen(
                 // into its add flow from here.
                 item {
                     EmptyListState(
-                        Icons.Rounded.Receipt, stringResource(R.string.expenses_empty_body),
+                        TablerIcons.FileInvoice, stringResource(R.string.expenses_empty_body),
                         ctaLabel = stringResource(R.string.expenses_add_entry),
                         onCta = { showAddEntry = true },
                     )

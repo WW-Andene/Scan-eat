@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.activity
 
+import compose.icons.tablericons.Activity
 import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
@@ -205,7 +206,7 @@ fun ActivityScreen(
             if (entries.value.isEmpty()) {
                 item {
                     EmptyListState(
-                        Icons.Rounded.DirectionsRun, stringResource(R.string.activity_empty),
+                        TablerIcons.Activity, stringResource(R.string.activity_empty),
                         ctaLabel = stringResource(R.string.activity_add_cta), onCta = { openAddDialog() },
                     )
                 }

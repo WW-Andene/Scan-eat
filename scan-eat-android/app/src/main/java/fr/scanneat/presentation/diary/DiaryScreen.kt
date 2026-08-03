@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.diary
 
+import compose.icons.tablericons.FileInvoice
 import compose.icons.tablericons.Plus
 import compose.icons.tablericons.Clock
 import compose.icons.TablerIcons
@@ -65,7 +66,7 @@ private enum class DiaryTab(val labelRes: Int, val icon: androidx.compose.ui.gra
     ACTIVITY(R.string.diary_tab_activity, Icons.Rounded.FitnessCenter),
     FASTING(R.string.diary_tab_fasting, TablerIcons.Clock),
     TREATMENT(R.string.diary_tab_treatment, Icons.Rounded.Medication),
-    EXPENSES(R.string.diary_tab_expenses, Icons.Rounded.Receipt),
+    EXPENSES(R.string.diary_tab_expenses, TablerIcons.FileInvoice),
 }
 
 /** Bundle doesn't natively round-trip an enum - process death (a low-memory

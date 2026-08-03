@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.onboarding.components
 
+import compose.icons.tablericons.Activity
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Clock
 import compose.icons.tablericons.Droplet
@@ -31,7 +32,7 @@ internal fun FeatureDomainChips() {
         TablerIcons.Droplet to R.string.onboarding_domain_hydration,
         TablerIcons.Clock to R.string.onboarding_domain_fasting,
         Icons.Rounded.Scale to R.string.onboarding_domain_weight,
-        Icons.Rounded.DirectionsRun to R.string.onboarding_domain_activity,
+        TablerIcons.Activity to R.string.onboarding_domain_activity,
         Icons.Rounded.Medication to R.string.onboarding_domain_medication,
     )
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
