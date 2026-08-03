@@ -65,4 +65,26 @@ internal val FOOD_DB_FRUITS_AND_VEGETABLES: List<FoodEntry> = listOf(
     FoodEntry("patate douce",  86.0,  1.6,  20.0,  0.1,  3.0, aliases = listOf("sweet potato")),
     FoodEntry("maïs",          86.0,  3.2,  19.0,  1.2,  2.7, aliases = listOf("mais", "corn", "sweetcorn")),
     FoodEntry("ail",          149.0,  6.4,  33.0,  0.5,  2.1, aliases = listOf("garlic")),
+
+    // Fruits (extension 2026-08-03 - user-reported: category rework surfaced how thin
+    // the fruit/veg coverage was outside the original ~130-food set)
+    FoodEntry("fruit de la passion", 68.0, 1.1, 12.0, 0.7, 3.3, aliases = listOf("passion fruit")),
+    FoodEntry("litchi",        66.0,  0.8,  17.0,  0.4,  1.3, aliases = listOf("litchis", "lychee")),
+    FoodEntry("nectarine",     44.0,  1.1,  10.0,  0.3,  1.7),
+    FoodEntry("rhubarbe",      21.0,  0.9,   4.5,  0.2,  1.8, calciumMg = 86.0, aliases = listOf("rhubarb")),
+    FoodEntry("groseille",     56.0,  1.4,  13.0,  0.2,  4.3, aliases = listOf("groseilles", "redcurrant")),
+    FoodEntry("goyave",        68.0,  2.6,  14.0,  1.0,  5.4, aliases = listOf("guava")),
+    FoodEntry("papaye",        43.0,  0.5,  11.0,  0.3,  1.7, aliases = listOf("papaya")),
+    FoodEntry("fruit du dragon", 60.0, 1.2, 13.0,  0.4,  3.0, aliases = listOf("pitaya", "dragon fruit")),
+
+    // Légumes (extension)
+    FoodEntry("fenouil",       31.0,  1.2,   7.3,  0.2,  3.1, aliases = listOf("fennel")),
+    FoodEntry("panais",        75.0,  1.2,  18.0,  0.3,  4.9, aliases = listOf("parsnip")),
+    FoodEntry("navet",         28.0,  0.9,   6.4,  0.1,  1.8, aliases = listOf("turnip")),
+    FoodEntry("endive",        17.0,  1.3,   3.2,  0.1,  3.1, aliases = listOf("chicon")),
+    FoodEntry("roquette",      25.0,  2.6,   3.7,  0.7,  1.6, calciumMg = 160.0, ironMg = 1.5, aliases = listOf("arugula", "rocket")),
+    FoodEntry("courge butternut", 45.0, 1.0, 12.0,  0.1,  2.0, aliases = listOf("butternut squash")),
+    FoodEntry("potiron",       26.0,  1.0,   6.5,  0.1,  0.5, aliases = listOf("citrouille", "pumpkin")),
+    FoodEntry("germe de soja", 30.0,  3.0,   6.0,  0.2,  1.8, aliases = listOf("soja germé", "bean sprout")),
+    FoodEntry("topinambour",   73.0,  2.0,  17.0,  0.0,  1.6, aliases = listOf("jerusalem artichoke")),
 )

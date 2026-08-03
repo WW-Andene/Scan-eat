@@ -42,4 +42,21 @@ internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     FoodEntry("graine de lin",       534.0, 18.0, 29.0, 42.0, 27.3, ironMg = 5.7, aliases = listOf("flaxseed")),
     FoodEntry("beurre de cacahuète", 588.0, 25.0, 20.0, 50.0, 6.0, aliases = listOf("peanut butter")),
     FoodEntry("cacahuète",           567.0, 26.0, 16.0, 49.0, 8.5, aliases = listOf("cacahuètes", "peanut")),
+
+    // Produits laitiers (extension 2026-08-03)
+    FoodEntry("fromage cottage",  98.0, 11.0,  3.4,  4.3, 0.0, calciumMg = 61.0, aliases = listOf("cottage cheese")),
+    FoodEntry("ricotta",         174.0, 11.0,  3.0, 13.0, 0.0, calciumMg = 207.0),
+    FoodEntry("fromage à raclette", 380.0, 25.0, 0.5, 31.0, 0.0, saltG = 1.5, calciumMg = 750.0, aliases = listOf("raclette cheese")),
+    FoodEntry("kéfir",            41.0,  3.3,  4.0,  1.0, 0.0, calciumMg = 120.0, b12Ug = 0.4, aliases = listOf("kefir")),
+    FoodEntry("lait d'avoine",    47.0,  1.0,  6.7,  1.5, 0.8, calciumMg = 120.0, aliases = listOf("oat milk")),
+    FoodEntry("yaourt grec",      97.0,  9.0,  4.0,  5.0, 0.0, calciumMg = 110.0, b12Ug = 0.5, aliases = listOf("greek yogurt")),
+
+    // Légumineuses / oléagineux (extension)
+    FoodEntry("fève cuite",       88.0,  7.6, 17.0,  0.5,  6.9, ironMg = 1.5, aliases = listOf("fèves cuites", "fava bean")),
+    FoodEntry("soja cuit",       173.0, 16.6,  9.9,  9.0,  6.0, ironMg = 5.1, calciumMg = 102.0, aliases = listOf("soybean")),
+    FoodEntry("noix du brésil",  656.0, 14.0, 12.0, 66.0,  7.5, aliases = listOf("brazil nut")),
+    FoodEntry("noix de pécan",   691.0,  9.2, 14.0, 72.0,  9.6, aliases = listOf("pecan")),
+    FoodEntry("graine de tournesol", 584.0, 21.0, 20.0, 51.0, 8.6, ironMg = 5.0, aliases = listOf("sunflower seed")),
+    FoodEntry("graine de courge",  559.0, 30.0, 11.0, 49.0,  6.0, ironMg = 8.8, aliases = listOf("pumpkin seed")),
+    FoodEntry("beurre d'amande",  614.0, 21.0, 19.0, 56.0, 10.3, calciumMg = 270.0, aliases = listOf("almond butter")),
 )

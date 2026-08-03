@@ -12,12 +12,15 @@ import java.text.Normalizer
 // ⚠️  PROVENANCE NOTICE:
 //   Values are hand-transcribed approximations of CIQUAL 2020
 //   (ANSES, https://ciqual.anses.fr/, DOI 10.5281/zenodo.4770600).
-//   NOT a bit-for-bit export. Accurate to ±10 % for these ~130 foods
-//   (expanded 2026-07-17 from the original ~54 - Quick Add search and
-//   LLM reconciliation previously missed most common everyday foods
-//   outside that initial set, e.g. peach, cauliflower, turkey, tofu,
-//   hazelnut, hummus - falling back to the LLM's own rough macro guess
-//   instead of a grounded CIQUAL-style value for anything not in it).
+//   NOT a bit-for-bit export. Accurate to ±10 % for these ~230 foods
+//   (expanded 2026-07-17 from the original ~54, then again 2026-08-03 from
+//   ~146 to ~230 - Quick Add search and LLM reconciliation previously
+//   missed most common everyday foods outside the smaller sets, e.g.
+//   peach/cauliflower/turkey/tofu/hazelnut/hummus in the first expansion,
+//   then passion fruit/fennel/sourdough bread/rabbit/pecan/raclette/
+//   maple syrup/ratatouille/kebab and more in the second - falling back to
+//   the LLM's own rough macro guess instead of a grounded CIQUAL-style
+//   value for anything not in it).
 //   Do not use for clinical or research work without verifying against
 //   the canonical ANSES XML distribution.
 //

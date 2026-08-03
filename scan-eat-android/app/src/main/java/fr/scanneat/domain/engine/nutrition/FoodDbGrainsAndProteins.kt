@@ -48,4 +48,28 @@ internal val FOOD_DB_GRAINS_AND_PROTEINS: List<FoodEntry> = listOf(
     FoodEntry("jambon cru",      195.0, 27.0,  0.5,  9.0, 0.0, saltG = 5.0, b12Ug = 1.0, aliases = listOf("prosciutto")),
     FoodEntry("saucisse",        300.0, 13.0,  3.0, 26.0, 0.0, saltG = 1.5, aliases = listOf("sausage")),
     FoodEntry("bacon",           400.0, 25.0,  1.0, 33.0, 0.0, saltG = 2.5),
+
+    // Céréales / féculents (extension 2026-08-03)
+    FoodEntry("riz basmati cuit", 130.0, 2.7, 28.0,  0.3,  0.5, aliases = listOf("basmati rice")),
+    FoodEntry("pain au levain",   250.0, 8.0, 49.0,  1.2,  3.0, aliases = listOf("sourdough bread")),
+    FoodEntry("galette de sarrasin", 200.0, 6.0, 40.0, 1.5, 2.5, aliases = listOf("buckwheat galette")),
+    FoodEntry("muesli",           360.0, 9.0, 66.0,  6.0,  8.0),
+    FoodEntry("céréales petit-déjeuner", 380.0, 7.0, 84.0, 1.0, 3.0, aliases = listOf("corn flakes", "cereal")),
+    FoodEntry("pain pita",        275.0, 9.0, 55.0,  1.2,  2.5, aliases = listOf("pita bread")),
+    FoodEntry("polenta cuite",     70.0, 1.6, 15.0,  0.3,  1.0, aliases = listOf("cooked polenta")),
+    FoodEntry("millet cuit",      119.0, 3.5, 23.0,  1.0,  1.3, ironMg = 0.6),
+
+    // Protéines animales (extension)
+    FoodEntry("steak de boeuf",   190.0, 26.0,  0.0,  9.0, 0.0, ironMg = 2.5, b12Ug = 2.0, aliases = listOf("beef steak")),
+    FoodEntry("escalope de veau", 172.0, 30.0,  0.0,  5.0, 0.0, b12Ug = 1.5, aliases = listOf("veal cutlet")),
+    FoodEntry("foie de veau",     140.0, 20.0,  4.0,  4.0, 0.0, ironMg = 6.0, vitDUg = 0.5, b12Ug = 45.0, aliases = listOf("veal liver")),
+    FoodEntry("lapin",            173.0, 21.0,  0.0,  9.0, 0.0, b12Ug = 5.0, aliases = listOf("rabbit")),
+    FoodEntry("pintade",          158.0, 22.0,  0.0,  7.5, 0.0, aliases = listOf("guinea fowl")),
+    FoodEntry("lieu noir",         87.0, 18.0,  0.0,  1.0, 0.0, b12Ug = 2.0, aliases = listOf("pollock", "colin")),
+    FoodEntry("truite",           148.0, 20.0,  0.0,  7.0, 0.0, vitDUg = 10.0, b12Ug = 4.0, aliases = listOf("trout")),
+    FoodEntry("merlan",            84.0, 18.0,  0.0,  1.0, 0.0, b12Ug = 1.2, aliases = listOf("whiting")),
+    FoodEntry("calamar",           92.0, 16.0,  3.0,  1.4, 0.0, aliases = listOf("calmar", "squid")),
+    FoodEntry("poulpe",            82.0, 15.0,  2.0,  1.0, 0.0, ironMg = 5.3, b12Ug = 20.0, aliases = listOf("octopus")),
+    FoodEntry("seitan",           370.0, 75.0, 14.0,  1.9, 6.0),
+    FoodEntry("oeuf de caille",   158.0, 13.0,  0.4, 11.0, 0.0, ironMg = 3.7, aliases = listOf("œuf de caille", "quail egg")),
 )

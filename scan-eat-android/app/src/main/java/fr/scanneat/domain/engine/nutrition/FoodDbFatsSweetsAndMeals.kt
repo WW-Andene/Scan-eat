@@ -51,4 +51,47 @@ internal val FOOD_DB_FATS_SWEETS_AND_MEALS: List<FoodEntry> = listOf(
     FoodEntry("falafel",           333.0, 13.3, 32.0, 18.0, 8.0, ironMg = 3.4),
     FoodEntry("quiche lorraine",   300.0,  9.0, 18.0, 22.0, 1.0),
     FoodEntry("lasagne",           145.0,  8.0, 13.0,  7.0, 1.2, aliases = listOf("lasagnes", "lasagna")),
+
+    // Matières grasses (extension 2026-08-03)
+    FoodEntry("huile de tournesol", 900.0, 0.0, 0.0, 100.0, 0.0, aliases = listOf("sunflower oil")),
+    FoodEntry("huile de sésame",    900.0, 0.0, 0.0, 100.0, 0.0, aliases = listOf("sesame oil")),
+    FoodEntry("huile de lin",       900.0, 0.0, 0.0, 100.0, 0.0, aliases = listOf("flaxseed oil")),
+    FoodEntry("saindoux",           897.0, 0.0, 0.0,  99.6, 0.0, aliases = listOf("lard")),
+    FoodEntry("beurre demi-sel",    745.0, 0.7, 0.7,  82.0, 0.0, saltG = 1.5, vitDUg = 0.76, aliases = listOf("salted butter")),
+
+    // Sucreries / snacks (extension)
+    FoodEntry("barre chocolatée",  470.0, 6.0, 60.0, 22.0, 2.0, aliases = listOf("candy bar")),
+    FoodEntry("bonbon",            340.0, 0.0, 85.0,  0.0, 0.0, aliases = listOf("bonbons", "candy")),
+    FoodEntry("sirop d'érable",    260.0, 0.0, 67.0,  0.2, 0.0, aliases = listOf("maple syrup")),
+    FoodEntry("sucre blanc",       400.0, 0.0, 100.0, 0.0, 0.0, aliases = listOf("sugar")),
+    FoodEntry("gaufre",            291.0, 6.0, 42.0, 11.0, 1.5, aliases = listOf("waffle")),
+    FoodEntry("madeleine",         400.0, 6.0, 55.0, 18.0, 1.0),
+    FoodEntry("pain d'épices",     360.0, 5.0, 70.0,  5.0, 2.5, aliases = listOf("gingerbread")),
+    FoodEntry("fruits secs mélangés", 400.0, 8.0, 55.0, 18.0, 6.0, ironMg = 2.0, aliases = listOf("trail mix")),
+
+    // Boissons (extension)
+    FoodEntry("kombucha",          30.0, 0.0,  7.0,  0.0, 0.0),
+    FoodEntry("jus de raisin",     60.0, 0.3, 15.0,  0.1, 0.1, aliases = listOf("grape juice")),
+    FoodEntry("smoothie fruits",   55.0, 0.6, 13.0,  0.2, 1.0, aliases = listOf("fruit smoothie")),
+    FoodEntry("boisson énergisante", 45.0, 0.0, 11.0, 0.0, 0.0, aliases = listOf("energy drink")),
+    FoodEntry("champagne",         76.0, 0.2,  1.5,  0.0, 0.0),
+    FoodEntry("whisky",           250.0, 0.0,  0.0,  0.0, 0.0, aliases = listOf("whiskey")),
+    FoodEntry("lait de riz",       47.0, 0.3,  9.2,  1.0, 0.1, calciumMg = 120.0, aliases = listOf("rice milk")),
+
+    // Plats préparés (extension)
+    FoodEntry("ratatouille",       60.0, 1.5,  6.0,  3.0, 2.5),
+    FoodEntry("couscous royal",   150.0, 8.0, 18.0,  5.0, 2.5, aliases = listOf("couscous royale")),
+    FoodEntry("chili con carne",  130.0, 9.0, 10.0,  6.0, 3.0),
+    FoodEntry("curry de poulet",  160.0, 12.0, 8.0,  9.0, 1.5, aliases = listOf("chicken curry")),
+    FoodEntry("risotto",          175.0, 4.0, 25.0,  6.0, 1.0),
+    FoodEntry("paella",           160.0, 8.0, 20.0,  5.0, 1.5),
+    FoodEntry("gratin dauphinois",150.0, 3.0, 15.0,  9.0, 1.2),
+    FoodEntry("soupe de légumes", 35.0,  1.5,  5.0,  1.0, 1.5, aliases = listOf("vegetable soup")),
+    FoodEntry("sandwich jambon-beurre", 260.0, 11.0, 33.0, 9.0, 2.0, saltG = 1.6, aliases = listOf("ham sandwich")),
+    FoodEntry("burrito",          210.0, 9.0, 25.0,  8.0, 3.0),
+    FoodEntry("ramen",            130.0, 5.0, 20.0,  3.0, 1.0),
+    FoodEntry("pad thaï",         160.0, 6.0, 22.0,  5.0, 1.5, aliases = listOf("pad thai")),
+    FoodEntry("kebab",            220.0, 12.0, 20.0, 10.0, 2.0),
+    FoodEntry("taboulé",          120.0, 3.0, 18.0,  4.0, 2.0, aliases = listOf("tabbouleh")),
+    FoodEntry("gaspacho",          30.0, 1.0,  4.0,  1.0, 1.0, aliases = listOf("gazpacho")),
 )
