@@ -191,7 +191,11 @@ fun RecipesScreen(
     }
 
     FloatingScreenScaffold(
-        title = { Text(stringResource(R.string.recipes_title), color = OnBackground) },
+        // User-reported: title wrapped to 2 lines ("Rece/ttes") when squeezed by
+        // this screen's unusually wide actions row (7 icons) - forced single-line
+        // with ellipsis so it truncates instead of wrapping, matching every other
+        // FloatingTopBar screen's effective single-line behavior.
+        title = { Text(stringResource(R.string.recipes_title), color = OnBackground, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
