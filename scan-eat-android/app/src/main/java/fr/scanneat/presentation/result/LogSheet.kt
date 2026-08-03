@@ -190,7 +190,14 @@ fun LogSheet(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(color = Color.Black, strokeWidth = 2.dp, modifier = Modifier.size(IconSize.Inline))
+                    // §E6/state-design: ScanEatPrimaryButton is disabled while isLoading
+                    // (enabled = ... && !isLoading), so its contentColor is really the
+                    // dimmed disabledContentColor (Color.Black.copy(alpha=0.38f)) - a
+                    // hardcoded opaque Color.Black here bypassed that, the exact same
+                    // "disabled state stays full-opacity" bug ScanEatButton.kt's own
+                    // label already got fixed for. LocalContentColor.current picks up
+                    // whichever contentColor Button() actually set for the current state.
+                    CircularProgressIndicator(color = LocalContentColor.current, strokeWidth = 2.dp, modifier = Modifier.size(IconSize.Inline))
                 } else {
                     Text(kcalPreview?.let { stringResource(R.string.logsheet_confirm_with_kcal, it) } ?: stringResource(R.string.logsheet_confirm_plain))
                 }
