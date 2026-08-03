@@ -89,6 +89,27 @@ private fun FoodSearchItem.matches(filter: FoodSearchFilter): Boolean = when (fi
     FoodSearchFilter.CALCIUM_SOURCE -> calciumMg >= 100.0
 }
 
+// Typing a nutrient word ("fiber"/"fibre", "protein"/"protéine", "iron"/"fer",
+// "calcium") into the search box previously did nothing but a literal name
+// search - no product in FOOD_DB or scan history is actually named "fiber",
+// so the user got an empty result with no indication the HIGH_FIBER filter
+// chip above the list was what they actually wanted. Recognizing these
+// keywords and OR-ing in the matching nutrient threshold (on top of, not
+// instead of, the normal name search) makes typing the nutrient work the
+// same as tapping its filter chip.
+private val NUTRIENT_KEYWORD_FILTER: Map<String, FoodSearchFilter> = mapOf(
+    "fiber" to FoodSearchFilter.HIGH_FIBER, "fibre" to FoodSearchFilter.HIGH_FIBER,
+    "fibres" to FoodSearchFilter.HIGH_FIBER,
+    "protein" to FoodSearchFilter.HIGH_PROTEIN, "protéine" to FoodSearchFilter.HIGH_PROTEIN,
+    "proteine" to FoodSearchFilter.HIGH_PROTEIN, "protéines" to FoodSearchFilter.HIGH_PROTEIN,
+    "proteines" to FoodSearchFilter.HIGH_PROTEIN,
+    "iron" to FoodSearchFilter.IRON_SOURCE, "fer" to FoodSearchFilter.IRON_SOURCE,
+    "calcium" to FoodSearchFilter.CALCIUM_SOURCE,
+)
+
+private fun keywordFilterFor(query: String): FoodSearchFilter? =
+    NUTRIENT_KEYWORD_FILTER[query.trim().lowercase()]
+
 /**
  * "Recherche" — a full browse/search engine over EVERY product this app actually
  * knows about, not just the ~130-entry curated FOOD_DB (a user's reasonable first
@@ -121,14 +142,20 @@ class FoodSearchViewModel @Inject constructor(
 
     private val debouncedQuery = _query.debounce(150)
 
+    // If the typed query is itself a nutrient keyword ("fiber", "protein", "iron",
+    // "calcium"...), search by name for it would always come back empty - browse
+    // the full dataset instead and let the nutrient-threshold filter below do the
+    // matching, same as if the user had tapped the corresponding filter chip.
+    private val effectiveSearchQuery: Flow<String> = debouncedQuery.map { q -> if (keywordFilterFor(q) != null) "" else q }
+
     // searchByName(query="") still matches every row (SQL LIKE '%%') and is already
     // ordered most-recent-first, capped at 300 - a real, DB-level search, not a
     // client-side filter over some already-loaded "recent" window.
-    private val scannedItems: Flow<List<FoodSearchItem>> = debouncedQuery
+    private val scannedItems: Flow<List<FoodSearchItem>> = effectiveSearchQuery
         .flatMapLatest { q -> scanRepo.searchHistory(q) }
         .map { results -> results.map { it.toItem() }.distinctBy { it.name.lowercase() } }
 
-    private val localItems: Flow<List<FoodSearchItem>> = combine(debouncedQuery, customFoods) { q, customs ->
+    private val localItems: Flow<List<FoodSearchItem>> = combine(effectiveSearchQuery, customFoods) { q, customs ->
         if (q.isBlank()) {
             val customNames = customs.map { it.name }.toSet()
             customs.map { it.toItem(isCustom = true) } +
@@ -142,10 +169,13 @@ class FoodSearchViewModel @Inject constructor(
 
     /** Grouped by [FoodSearchCategory] (accordion sections), each sorted alphabetically. */
     val groupedResults: StateFlow<Map<FoodSearchCategory, List<FoodSearchItem>>> =
-        combine(scannedItems, localItems, _filter) { scanned, local, f ->
+        combine(scannedItems, localItems, _filter, debouncedQuery) { scanned, local, f, q ->
+            // An explicitly-tapped filter chip always wins; a typed nutrient keyword
+            // only kicks in while the chip row is still on its default ALL state.
+            val effectiveFilter = if (f == FoodSearchFilter.ALL) keywordFilterFor(q) ?: f else f
             val scannedNames = scanned.map { it.name.lowercase() }.toSet()
             (scanned + local.filterNot { it.name.lowercase() in scannedNames })
-                .filter { it.matches(f) }
+                .filter { it.matches(effectiveFilter) }
                 .groupBy { it.category }
                 .mapValues { (_, items) -> items.sortedBy { it.name } }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
