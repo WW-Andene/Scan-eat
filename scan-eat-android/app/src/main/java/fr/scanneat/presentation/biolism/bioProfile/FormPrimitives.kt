@@ -73,7 +73,13 @@ internal fun BioInputUnit(
                 else -> input
             })
         },
-        label = { Text(if (useImperial) imperialLabel else metricLabel, style = MaterialTheme.typography.labelMedium) },
+        // User-reported: an explicit style override here (labelMedium) broke
+        // OutlinedTextField's own floating-label scale/position animation -
+        // the label rendered permanently detached above the border instead of
+        // cutting into it. Matches the un-styled label pattern used correctly
+        // everywhere else in the app (e.g. WeightLogDialogs.kt) - Material3
+        // already sizes the label correctly in both states on its own.
+        label = { Text(if (useImperial) imperialLabel else metricLabel) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         shape = RoundedCornerShape(CardRadius.CONTROL),
@@ -87,7 +93,7 @@ internal fun BioInputUnit(
 @Composable
 internal fun BioInput(label: String, value: String, keyboardType: KeyboardType = KeyboardType.Text, onValue: (String) -> Unit) {
     OutlinedTextField(
-        value = value, onValueChange = onValue, label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+        value = value, onValueChange = onValue, label = { Text(label) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(CardRadius.CONTROL),

@@ -245,7 +245,10 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
 @Composable
 private fun OnboardField(label: String, value: String, keyboardType: KeyboardType, onValue: (String) -> Unit) {
     OutlinedTextField(
-        value = value, onValueChange = onValue, label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+        // User-reported: an explicit style override here broke the floating
+        // label's own scale/position animation (label rendered detached above
+        // the border) - see FormPrimitives.kt's BioInput for the same fix.
+        value = value, onValueChange = onValue, label = { Text(label) },
         modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(CardRadius.CONTROL),
