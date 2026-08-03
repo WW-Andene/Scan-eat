@@ -26,6 +26,7 @@ import fr.scanneat.domain.engine.scoring.PersonalScoreResult
 import fr.scanneat.domain.engine.scoring.personalGrade
 import fr.scanneat.domain.model.NutritionPer100g
 import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.domain.model.ScanSource
 import fr.scanneat.presentation.result.cards.*
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
@@ -65,7 +66,11 @@ internal fun ResultContent(
             Text(scan.product.category.key.replace('_', ' ').replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
             Text("•", color = OnBackground.copy(0.3f))
-            Text(scan.source.name.lowercase().replace('_', ' '),
+            // Was scan.source.name.lowercase().replace('_', ' ') - the internal
+            // ScanSource enum's own identifier (e.g. "open food facts", "llm")
+            // shown verbatim as user-facing copy, same class of leak as the
+            // FOOD_DB placeholder fixed earlier this round.
+            Text(stringResource(scan.source.labelRes()),
                 style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
         }
 
@@ -167,6 +172,15 @@ internal fun ResultContent(
 
         Spacer(Modifier.height(Spacing.XXL))
     }
+}
+
+/** Localized, user-meaningful label for where a scan's data came from - see
+ *  the call site's own comment on the raw-enum-name leak this replaces. */
+private fun ScanSource.labelRes(): Int = when (this) {
+    ScanSource.OPEN_FOOD_FACTS -> R.string.result_source_off
+    ScanSource.LLM             -> R.string.result_source_photo
+    ScanSource.MERGED          -> R.string.result_source_merged
+    ScanSource.MANUAL          -> R.string.result_source_manual
 }
 
 /** Compact card showing how much of the EU daily reference values (per 100 g) this product covers. */

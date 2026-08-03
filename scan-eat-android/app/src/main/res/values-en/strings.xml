@@ -960,6 +960,7 @@
     <string name="fasting_start_button">Start %1$dh</string>
     <string name="fasting_custom_chip">Custom</string>
     <string name="fasting_custom_start_label">Start</string>
+    <string name="fasting_custom_time_error">Use 24h format, e.g. 18:00</string>
     <string name="fasting_custom_end_label">End</string>
     <string name="fasting_history_title">History</string>
     <string name="fasting_history_entry">%1$sh / %2$dh</string>
@@ -1086,6 +1087,8 @@
     <string name="settings_reset_confirm_body_fasting">This action is irreversible and will delete your entire fasting history. Confirm?</string>
     <string name="settings_reset_confirm_body_all">This action is irreversible and will delete ALL app data — profile, history, preferences, API keys. The app will restart as if freshly installed. Confirm?</string>
     <string name="settings_reset_confirm_button">Yes, clear it</string>
+    <string name="settings_reset_confirm_button_scans">Clear scan history</string>
+    <string name="settings_reset_confirm_button_fasting">Clear fasting history</string>
     <string name="settings_data_stats_scans">%1$d scan(s) stored</string>
     <string name="settings_data_stats_diary">%1$d diary entr(y/ies)</string>
     <string name="settings_section_health_connect">Health Connect</string>
@@ -1309,6 +1312,10 @@
     <string name="result_macro_contribution_title">Per 100 g contribution (%% DRV)</string>
     <string name="result_macro_contribution_note">DRV = EU Daily Reference Values (adult)</string>
     <string name="result_price_title">Price</string>
+    <string name="result_source_off">Open Food Facts database</string>
+    <string name="result_source_photo">Photo recognition</string>
+    <string name="result_source_merged">Label + AI</string>
+    <string name="result_source_manual">Manual entry</string>
     <string name="result_price_add">Add a price</string>
     <string name="result_price_empty">No price logged for this product yet</string>
     <string name="result_price_field_euros">Price paid (€)</string>

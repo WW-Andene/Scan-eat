@@ -57,7 +57,11 @@ internal fun ResetConfirmDialog(
                         TextButton(onClick = onConfirmClearScans) {
                             Icon(Icons.Default.QrCodeScanner, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(Spacing.XS))
-                            Text(stringResource(R.string.settings_reset_confirm_button), color = semanticRed(), fontWeight = FontWeight.Bold)
+                            // Was the same "Yes, clear everything" label shared by all three
+                            // tiers - a user confirming "clear scan history" read a button
+                            // that literally said "everything," either causing hesitation or
+                            // false confidence the action was narrower than it visibly claimed.
+                            Text(stringResource(R.string.settings_reset_confirm_button_scans), color = semanticRed(), fontWeight = FontWeight.Bold)
                         }
                     }
                     ResetTarget.FASTING -> {
@@ -65,7 +69,7 @@ internal fun ResetConfirmDialog(
                         TextButton(onClick = onConfirmClearFasting) {
                             Icon(Icons.Default.Timer, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(Spacing.XS))
-                            Text(stringResource(R.string.settings_reset_confirm_button), color = semanticRed(), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.settings_reset_confirm_button_fasting), color = semanticRed(), fontWeight = FontWeight.Bold)
                         }
                     }
                     ResetTarget.ALL -> {

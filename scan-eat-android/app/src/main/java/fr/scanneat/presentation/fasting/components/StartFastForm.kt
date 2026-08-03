@@ -44,12 +44,19 @@ internal fun StartFastForm(
         )
     }
     if (customMode) {
+        // Was silent: an unparseable time (e.g. "6pm" instead of "18:00") just left
+        // customHours null with no isError/hint anywhere, unlike MedicationReminderDialog's
+        // identical HH:MM field which does set isError - a first-time user typing the
+        // wrong format saw only a dead Start button with zero explanation why.
+        val bothFilled = customStart.isNotBlank() && customEnd.isNotBlank()
+        val showError = bothFilled && customHours == null
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = customStart, onValueChange = onCustomStartChange,
                 label = { Text(stringResource(R.string.fasting_custom_start_label)) },
                 singleLine = true, modifier = Modifier.width(110.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
+                isError = showError,
                 // app-audit §E6: had no colors at all - fell back fully to Material's
                 // default Gold-tinted field, unlike every other themed input in the app.
                 colors = scanEatTextFieldColors(),
@@ -60,11 +67,14 @@ internal fun StartFastForm(
                 label = { Text(stringResource(R.string.fasting_custom_end_label)) },
                 singleLine = true, modifier = Modifier.width(110.dp),
                 textStyle = MaterialTheme.typography.bodySmall,
+                isError = showError,
                 colors = scanEatTextFieldColors(),
             )
         }
         if (customHours != null) {
             Text(stringResource(R.string.fasting_target_progress, customHours.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+        } else if (showError) {
+            Text(stringResource(R.string.fasting_custom_time_error), style = MaterialTheme.typography.bodySmall, color = semanticRed())
         }
     }
     val effectiveHours = if (customMode) customHours?.toInt() else targetHours

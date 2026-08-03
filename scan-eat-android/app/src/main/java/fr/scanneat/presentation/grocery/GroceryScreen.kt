@@ -191,7 +191,14 @@ fun GroceryScreen(
                         GroceryCategory.BAKERY, GroceryCategory.PANTRY, GroceryCategory.FROZEN,
                         GroceryCategory.BEVERAGES, GroceryCategory.OTHER,
                     ).forEach { category ->
-                        val itemsInCategory = grouped[category] ?: return@forEach
+                        // Checked items previously stayed exactly where they started -
+                        // in the middle of a long shopping trip, the remaining unchecked
+                        // items get increasingly scattered among faded/struck-through
+                        // checked ones, making "what's left in produce?" harder to scan
+                        // the further along the trip you are. sortedBy is stable, so
+                        // relative order within "still needed" / "already checked" is
+                        // preserved, only the two groups are separated.
+                        val itemsInCategory = (grouped[category] ?: return@forEach).sortedBy { it.checked }
                         item(key = "header_$category") {
                             Text(
                                 categoryLabel(category), style = MaterialTheme.typography.labelMedium,
@@ -215,7 +222,9 @@ fun GroceryScreen(
                         }
                     }
                 } else {
-                    items(filteredCheckable, key = { it.item.key }) { checkableItem ->
+                    // Same checked-items-to-bottom fix as the aisle-grouped branch above.
+                    val sortedCheckable = remember(filteredCheckable) { filteredCheckable.sortedBy { it.checked } }
+                    items(sortedCheckable, key = { it.item.key }) { checkableItem ->
                         GroceryItemRow(
                             checkableItem, warning = itemWarnings.value[checkableItem.item.key],
                             isManual = checkableItem.item.key in manualItemKeys.value,
