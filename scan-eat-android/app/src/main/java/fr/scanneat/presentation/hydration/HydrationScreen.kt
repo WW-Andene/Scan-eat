@@ -88,7 +88,7 @@ fun HydrationScreen(
 
         // New: smart goal suggestion banner
         suggestedGoal.value?.let { suggested ->
-            item { HydrationSuggestedGoalBanner(suggested) }
+            item { HydrationSuggestedGoalBanner(suggested, onApply = { viewModel.setCustomGoal(it) }) }
         }
 
         item {

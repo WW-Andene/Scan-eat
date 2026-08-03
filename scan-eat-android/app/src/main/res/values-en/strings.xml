@@ -74,6 +74,7 @@
     <string name="hydration_calendar_day_logged">%1$s: hydration logged</string>
     <string name="hydration_calendar_day_empty">%1$s: no data</string>
     <string name="hydration_suggested_goal_hint">Based on your profile, a goal of %1$d mL may suit you better.</string>
+    <string name="hydration_suggested_goal_apply">Use this</string>
     <string name="hydration_7day_chart_title">Last 7 days</string>
     <string name="hydration_weekly_goal_met">%1$d/7 goals met</string>
     <string name="hydration_week_bar_no_data">%1$s: no water logged</string>
@@ -1126,6 +1127,7 @@
     <string name="settings_healthconnect_connect_button">Connect</string>
     <string name="settings_healthconnect_connected">Connected</string>
     <string name="settings_healthconnect_not_installed">Health Connect app not installed on this device.</string>
+    <string name="settings_healthconnect_install_button">Install Health Connect</string>
     <string name="settings_healthconnect_unsupported">Health Connect isn\'t available on this device.</string>
 
     <!-- ── Dashboard screen ───────────────────────────────────────────────── -->

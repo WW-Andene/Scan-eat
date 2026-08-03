@@ -172,10 +172,15 @@ internal fun MedicationReminderDialog(medication: Medication, onDismiss: () -> U
             }
         },
         confirmButton = {
+            // Time correctness is irrelevant when the reminder is being turned off -
+            // was gating Save on isValidTime unconditionally, so a stale/blank time
+            // field blocked a user from saving even when their only intent was to
+            // disable the reminder.
+            val canSave = !on || isValidTime
             TextButton(
                 onClick = { onSave(on, time) },
-                enabled = isValidTime,
-            ) { Text(stringResource(R.string.common_save), color = Teal) }
+                enabled = canSave,
+            ) { Text(stringResource(R.string.common_save), color = if (canSave) Teal else OnBackground.copy(0.3f)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
     )

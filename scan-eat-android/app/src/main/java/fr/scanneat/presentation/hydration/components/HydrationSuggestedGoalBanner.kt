@@ -14,7 +14,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
 
 @Composable
-internal fun HydrationSuggestedGoalBanner(suggestedGoalMl: Int) {
+internal fun HydrationSuggestedGoalBanner(suggestedGoalMl: Int, onApply: (Int) -> Unit) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = semanticBlue().copy(0.1f),
@@ -32,7 +32,14 @@ internal fun HydrationSuggestedGoalBanner(suggestedGoalMl: Int) {
                 stringResource(R.string.hydration_suggested_goal_hint, suggestedGoalMl),
                 style = MaterialTheme.typography.bodySmall,
                 color = semanticBlue(),
+                modifier = Modifier.weight(1f),
             )
+            // Was purely informational - the user had to remember this number, open
+            // the separate goal-editor dialog, and retype it themselves. One tap
+            // closes the loop on the app's own recommendation.
+            TextButton(onClick = { onApply(suggestedGoalMl) }) {
+                Text(stringResource(R.string.hydration_suggested_goal_apply), style = MaterialTheme.typography.labelSmall, color = semanticBlue())
+            }
         }
     }
 }
