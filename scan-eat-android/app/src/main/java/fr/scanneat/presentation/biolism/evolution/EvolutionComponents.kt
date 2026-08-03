@@ -66,7 +66,7 @@ internal fun LineTrendChart(
     // description ("...sur les N dernières pesées") is worded specifically for
     // weigh-ins, not generic "points" — parameterized instead of forcing every
     // caller to accept the Biolism-worded default below.
-    contentDescription: String? = null,
+    contentDescriptionOverride: String? = null,
 ) {
     if (points.size < 2) {
         NotEnoughDataNote()
@@ -76,7 +76,7 @@ internal fun LineTrendChart(
     val allValues = sorted.map { it.second } + listOfNotNull(targetValue)
     val minV = allValues.min()
     val maxV = allValues.max().coerceAtLeast(minV + 0.0001)
-    val trendDescription = contentDescription ?: stringResource(
+    val trendDescription = contentDescriptionOverride ?: stringResource(
         R.string.biolism_evo_chart_cd,
         valueLabel(sorted.first().second),
         valueLabel(sorted.last().second),

@@ -163,7 +163,7 @@ internal fun WeightTrendChart(chartEntries: List<WeightEntry>, goalKg: Double?, 
             valueLabel = { v -> dispWeight(v) },
             targetValue = goalKg,
             targetColor = semanticGreen(),
-            contentDescription = stringResource(
+            contentDescriptionOverride = stringResource(
                 R.string.weight_trend_cd,
                 dispWeight(chartEntries.first().weightKg),
                 dispWeight(chartEntries.last().weightKg),
