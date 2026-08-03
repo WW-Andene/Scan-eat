@@ -150,6 +150,13 @@ fun AppNavGraph(
                         restoreState = true
                     }
                 },
+                onOpenScan           = {
+                    navController.navigate(TopTab.Scan.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
             )
         }
 

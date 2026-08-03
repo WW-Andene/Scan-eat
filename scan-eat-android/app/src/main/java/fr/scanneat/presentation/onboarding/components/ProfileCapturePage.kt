@@ -94,5 +94,15 @@ internal fun ColumnScope.ProfileCapturePage(
             onClick = onSkip,
             modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(R.string.onboarding_profile_skip), color = OnBackground.copy(0.5f)) }
+        // The consequence of skipping (no personalized score/targets until Profile
+        // is filled in later) was previously only ever noted in a code comment -
+        // nothing visible told the user this trade-off at the actual decision point.
+        Text(
+            stringResource(R.string.onboarding_profile_skip_consequence),
+            style = MaterialTheme.typography.labelSmall,
+            color = OnBackground.copy(0.35f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }

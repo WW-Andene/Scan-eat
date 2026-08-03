@@ -1,6 +1,8 @@
 package fr.scanneat.presentation.diary
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -205,20 +207,28 @@ fun DiaryScreen(
                         Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.height(10.dp))
+                    // Was a fixed Row with each tab forced to Modifier.weight(1f) -
+                    // seven equal-width tabs (Meals/Weight/Water/Activity/Fasting/
+                    // Treatment/Expenses) squeezed labels illegibly on narrower phones,
+                    // especially once localized (e.g. French "Traitement" is longer
+                    // than "Meds"), and any 8th tracker added later would only make it
+                    // worse. Horizontally scrollable with each tab sized to its own
+                    // content instead of forced-equal-width, so labels never truncate/
+                    // wrap regardless of screen width or tab count.
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         DiaryTab.entries.forEach { tab ->
                             val isActive = tab == activeTab
                             Surface(
                                 onClick = { activeTab = tab },
-                                modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
+                                modifier = Modifier.heightIn(min = 48.dp).semantics { role = Role.Tab; selected = isActive },
                                 shape = RoundedCornerShape(8.dp),
                                 color = if (isActive) AccentCoral.copy(0.15f) else Color.Transparent,
                                 border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
                             ) {
-                                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Box(Modifier.padding(horizontal = Spacing.M), contentAlignment = Alignment.Center) {
                                     Text(
                                         stringResource(tab.labelRes),
                                         style = MaterialTheme.typography.labelSmall,

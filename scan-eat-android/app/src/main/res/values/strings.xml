@@ -743,7 +743,7 @@
 
     <!-- ── Custom food screen ─────────────────────────────────────────────── -->
     <string name="customfood_title">Mes aliments</string>
-    <string name="customfood_search_placeholder">Rechercher dans FOOD_DB + vos aliments…</string>
+    <string name="customfood_search_placeholder">Rechercher un aliment (base + les vôtres)…</string>
     <string name="customfood_empty_body">Aucun aliment personnalisé.\nAppuyez sur + pour en créer un.</string>
     <string name="customfood_empty_query">Aucun résultat pour « %1$s »</string>
     <string name="customfood_macro_summary">%1$d kcal · P %2$dg · G %3$dg · L %4$dg / 100g</string>
@@ -898,6 +898,7 @@
     <string name="onboarding_profile_body">Ces quelques infos permettent un score et des objectifs personnalisés. Régime, allergènes et autres détails se règlent plus tard dans l\'onglet Profil.</string>
     <string name="onboarding_profile_cta">Plus d\'options (régime, allergènes…)</string>
     <string name="onboarding_profile_skip">Passer, configurer plus tard</string>
+    <string name="onboarding_profile_skip_consequence">Vos scores ne seront pas personnalisés tant que ce profil n\'est pas rempli</string>
     <string name="onboarding_domains_title">Ce que vous suivrez</string>
     <string name="onboarding_domain_scan">Scan</string>
     <string name="onboarding_domain_diet">Journal</string>
@@ -1184,6 +1185,7 @@
     <string name="dashboard_tile_history">Historique</string>
     <string name="dashboard_recent_scans_title">Scans récents</string>
     <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant. Appuyez sur Scanner pour commencer.</string>
+    <string name="dashboard_recent_scans_empty_cta">Scanner un produit</string>
     <string name="dashboard_view_all">Voir tout</string>
     <string name="dashboard_today_label">Aujourd\'hui</string>
     <string name="dashboard_week_title">Cette semaine</string>

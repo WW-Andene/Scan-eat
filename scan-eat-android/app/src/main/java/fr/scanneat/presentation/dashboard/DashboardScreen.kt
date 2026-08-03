@@ -77,6 +77,7 @@ fun DashboardScreen(
     onOpenCalendar: () -> Unit = {},
     onOpenFoodSearch: () -> Unit = {},
     onOpenExpenses: () -> Unit = {},
+    onOpenScan: () -> Unit = {},
 ) {
     val state    = viewModel.state.collectAsStateWithLifecycle()
     val s        = state.value
@@ -262,7 +263,13 @@ fun DashboardScreen(
             }
             if (s.recentScans.isEmpty()) {
                 item {
-                    EmptyListState(Icons.Rounded.History, stringResource(R.string.dashboard_recent_scans_empty))
+                    // Previously a dead end for a brand-new user - Scan is only one
+                    // tap away via the bottom nav, but this empty state gave no hint
+                    // of that, unlike every other first-run empty state in the app.
+                    EmptyListState(
+                        Icons.Rounded.History, stringResource(R.string.dashboard_recent_scans_empty),
+                        ctaLabel = stringResource(R.string.dashboard_recent_scans_empty_cta), onCta = onOpenScan,
+                    )
                 }
             } else {
                 // User-requested cap - the rest is one tap away via "View all" /

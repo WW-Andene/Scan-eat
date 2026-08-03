@@ -739,7 +739,7 @@
 
     <!-- ── Custom food screen ─────────────────────────────────────────────── -->
     <string name="customfood_title">My Foods</string>
-    <string name="customfood_search_placeholder">Search FOOD_DB + your foods…</string>
+    <string name="customfood_search_placeholder">Search foods (built-in + yours)…</string>
     <string name="customfood_empty_body">No custom foods yet.\nTap + to create one.</string>
     <string name="customfood_empty_query">No results for “%1$s”</string>
     <string name="customfood_macro_summary">%1$d kcal · P %2$dg · C %3$dg · F %4$dg / 100g</string>
@@ -894,6 +894,7 @@
     <string name="onboarding_profile_body">A few quick details power a personal score and targets. Diet, allergens, and other details can be set later from the Profile tab.</string>
     <string name="onboarding_profile_cta">More options (diet, allergens…)</string>
     <string name="onboarding_profile_skip">Skip, set up later</string>
+    <string name="onboarding_profile_skip_consequence">Your scores won\'t be personalized until this profile is filled in</string>
     <string name="onboarding_domains_title">What you\'ll track</string>
     <string name="onboarding_domain_scan">Scan</string>
     <string name="onboarding_domain_diet">Diary</string>
@@ -1134,6 +1135,7 @@
     <string name="dashboard_tile_history">History</string>
     <string name="dashboard_recent_scans_title">Recent Scans</string>
     <string name="dashboard_recent_scans_empty">No scans yet. Tap Scan to get started.</string>
+    <string name="dashboard_recent_scans_empty_cta">Scan a product</string>
     <string name="dashboard_view_all">View all</string>
     <string name="dashboard_today_label">Today</string>
     <string name="dashboard_week_title">This Week</string>
