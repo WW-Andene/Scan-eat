@@ -213,7 +213,10 @@ internal class ScanOffLookup(
     }
 
     private fun mapSearchResult(dto: fr.scanneat.data.remote.api.OffProductDto, lang: String): ScanResult? {
-        val barcode = dto.code ?: return null
+        // Blank (not just null) rejected too - FoodSearchViewModel.openOnlineItem matches
+        // results back to their raw ScanResult by barcode, so multiple blank-barcode OFF
+        // entries would all collide on the same "" key and always resolve to the first one.
+        val barcode = dto.code?.takeIf { it.isNotBlank() } ?: return null
         val name = dto.productNameFr ?: dto.productName ?: dto.genericNameFr
         if (name.isNullOrBlank()) return null
         if (classifyNonFood(dto.categoriesTags, name, dto.brands) != null) return null

@@ -395,14 +395,18 @@ class FoodSearchViewModel @Inject constructor(
                 _onlineSearchState.value = OnlineSearchState.ERROR
                 return@launch
             }
-            onlineRaw = results
+            // distinctBy barcode - OFF's own search results can repeat the same barcode
+            // (e.g. regional variants indexed separately but sharing a code); without this,
+            // openOnlineItem's onlineRaw.firstOrNull { it.barcode == item.barcode } lookup
+            // is ambiguous and every duplicate row would silently resolve to the same one.
+            onlineRaw = results.distinctBy { it.barcode }
             // toItem() sets scanId = dbId, which defaults to 0 (not null) for a
             // ScanResult that was never persisted - left as-is, FoodSearchRow's
             // `item.scanId != null` check would treat 0 as "already in this
             // user's history" and call onOpenResult(0) instead of the
             // online-persist path below. Forced back to null here since these
             // results are never actually in scan_history yet.
-            _onlineResults.value = results.map { it.toItem().copy(scanId = null, barcode = it.barcode) }
+            _onlineResults.value = onlineRaw.map { it.toItem().copy(scanId = null, barcode = it.barcode) }
             _onlineSearchState.value = if (results.isEmpty()) OnlineSearchState.EMPTY else OnlineSearchState.SUCCESS
         }
     }
