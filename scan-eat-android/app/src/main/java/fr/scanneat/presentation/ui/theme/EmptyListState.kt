@@ -1,16 +1,20 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
@@ -28,12 +32,33 @@ import androidx.compose.ui.unit.dp
  * own blacklist names, on the one component every list-empty moment in the
  * app shares. Tinted with the app's own accent instead, kept restrained
  * (still just icon+text) per this file's own doc comment above.
+ *
+ * Audit F5/F31 (docs/design-audit-step11-icons-illustration-dataviz-copy.md):
+ * every empty state in the app was icon+text with zero illustration or
+ * ambient life behind it — the least resolved of the app's contact points.
+ * NOT a mascot or figurative illustration (explicitly ruled out) — just the
+ * same breathing glow behind the icon that the score ring already carries
+ * (rememberBreathingPulse, docs/design-audit-art-direction-brief.md), so an
+ * empty list reads as "quietly alive, nothing to show yet" rather than dead.
  */
 @Composable
 fun EmptyListState(icon: ImageVector, message: String, ctaLabel: String? = null, onCta: (() -> Unit)? = null) {
+    val breathingPulse = rememberBreathingPulse()
     Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Icon(icon, null, tint = AccentCoral.copy(0.45f), modifier = Modifier.size(IconSize.EmptyState))
+            Box(contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .size(IconSize.EmptyState * 2.2f)
+                        .background(
+                            Brush.radialGradient(
+                                listOf(AccentCoral.copy(alpha = 0.14f * breathingPulse), Color.Transparent),
+                            ),
+                            CircleShape,
+                        ),
+                )
+                Icon(icon, null, tint = AccentCoral.copy(0.45f), modifier = Modifier.size(IconSize.EmptyState))
+            }
             Text(message, color = OnBackground.copy(0.5f))
             if (ctaLabel != null && onCta != null) {
                 ScanEatPrimaryButton(onClick = onCta) { Text(ctaLabel) }
