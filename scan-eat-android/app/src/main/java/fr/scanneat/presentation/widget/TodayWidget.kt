@@ -87,6 +87,7 @@ class TodayWidget : GlanceAppWidget() {
         val consumptionRepo = entryPoint.consumptionRepository()
         val hydrationRepo = entryPoint.hydrationRepository()
         val biolismRepo = entryPoint.biolismRepository()
+        val medicationRepo = entryPoint.medicationRepository()
 
         val lang = prefs.language.first()
         val colorblindMode = prefs.colorblindMode.first()
@@ -108,6 +109,12 @@ class TodayWidget : GlanceAppWidget() {
         val loggedDates = consumptionRepo.getAllLoggedDates()
         val streak = logStreakDays(loggedDates, today)
         val hydrationMl = hydrationRepo.observe(today).first()
+        // Same taken/active join DashboardViewModel.otherTrackers already does for its
+        // "meds: taken/active" glance card - the widget just never surfaced it.
+        val activeMeds = medicationRepo.observeAll().first().filter { it.active }
+        val takenMedIds = medicationRepo.observeLogByDate(today).first().map { it.medicationId }.toSet()
+        val medsTakenCount = activeMeds.count { it.id in takenMedIds }
+        val medsActiveCount = activeMeds.size
 
         val kcal = summary.totals.energyKcal.roundToInt()
         val targetKcal = targets?.kcal?.roundToInt()
@@ -118,6 +125,9 @@ class TodayWidget : GlanceAppWidget() {
         val noTargetLabel = localizedString(context, lang, R.string.widget_today_no_target)
         val hydrationLabel = localizedString(context, lang, R.string.widget_today_hydration_ml, hydrationMl)
         val addGlassLabel = localizedString(context, lang, R.string.widget_today_add_glass, HYD_GLASS_ML)
+        val medsLabel = if (medsActiveCount > 0) {
+            localizedString(context, lang, R.string.widget_today_meds, medsTakenCount, medsActiveCount)
+        } else null
         // Widget hasn't tracked Dashboard/Diary's macro breakdown at all since it was
         // built - reuse the same single-letter abbreviations (P/G/L fr, P/C/F en)
         // Templates/Recipes cards already use, rather than a widget-only string.
@@ -146,6 +156,7 @@ class TodayWidget : GlanceAppWidget() {
                         hydrationLabel = hydrationLabel,
                         addGlassLabel = addGlassLabel,
                         macroLabel = macroLabel,
+                        medsLabel = medsLabel,
                         compact = compact,
                     )
                 }
@@ -155,9 +166,10 @@ class TodayWidget : GlanceAppWidget() {
 
     companion object {
         val COMPACT_SIZE = DpSize(180.dp, 90.dp)
-        // Grew from 130dp when the macro (P/C/F) row was added below the streak line -
-        // see today_widget_info.xml's matching minHeight bump.
-        val FULL_SIZE = DpSize(180.dp, 148.dp)
+        // Grew from 130dp when the macro (P/C/F) row was added below the streak line,
+        // then again from 148dp for the meds-adherence row - see today_widget_info.xml's
+        // matching minHeight bump.
+        val FULL_SIZE = DpSize(180.dp, 164.dp)
     }
 }
 
@@ -172,6 +184,7 @@ private fun TodayWidgetContent(
     hydrationLabel: String,
     addGlassLabel: String,
     macroLabel: String,
+    medsLabel: String?,
     compact: Boolean,
 ) {
     Column(
@@ -230,6 +243,13 @@ private fun TodayWidgetContent(
                 ) {
                     Text(addGlassLabel, style = TextStyle(color = ColorProvider(Color.White), fontSize = 11.sp, fontWeight = FontWeight.Bold))
                 }
+            }
+            // Meds adherence was already computed for Dashboard's OtherTrackersCard but
+            // never made it to the widget - a read-only row, since "take" isn't a single
+            // undifferentiated tap the way logging a hydration glass is.
+            if (medsLabel != null) {
+                Spacer(modifier = GlanceModifier.height(6.dp))
+                Text(medsLabel, style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
             }
         }
     }
