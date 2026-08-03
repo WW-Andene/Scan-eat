@@ -18,7 +18,7 @@ import fr.scanneat.domain.engine.biolism.KetoPhaseInfo
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
-import java.util.Locale
+import fr.scanneat.util.formatDecimal
 import kotlin.math.roundToInt
 
 @Composable
@@ -49,7 +49,7 @@ internal fun PhaseStrip(phase: KetoPhaseInfo, ketoHours: Double, color: Color) {
                     overflow = TextOverflow.Ellipsis)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(String.format(Locale.US, "%.1f h", ketoHours), style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+                Text("${ketoHours.formatDecimal(1)} h", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
                 Text("${phase.progressPct.roundToInt()}%", style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
             }
         }

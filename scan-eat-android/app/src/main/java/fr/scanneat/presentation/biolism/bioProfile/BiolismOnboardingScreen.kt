@@ -27,6 +27,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
 import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
 
 private data class OnboardStep(val icon: ImageVector, val title: String, val sub: String, val optional: Boolean = false)
 
@@ -160,7 +161,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                             }
                             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(1.dp, bmiColor.copy(0.3f)), shadowElevation = 3.dp) {
                                 Text(
-                                    stringResource(R.string.biolism_onboard_bmi_preview, "%.1f".format(java.util.Locale.US, bmi)),
+                                    stringResource(R.string.biolism_onboard_bmi_preview, bmi.formatDecimal(1)),
                                     modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),
                                     style = MaterialTheme.typography.labelMedium, color = bmiColor, fontWeight = FontWeight.SemiBold,
                                 )

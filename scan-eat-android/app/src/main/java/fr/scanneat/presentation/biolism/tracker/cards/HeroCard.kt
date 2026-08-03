@@ -18,10 +18,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.util.Locale
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.formatElapsed
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
 
 @Composable
 internal fun HeroCard(
@@ -52,7 +52,7 @@ internal fun HeroCard(
                 letterSpacing = 1.sp, fontWeight = FontWeight.Bold)
 
             Text(
-                if (precision) String.format(Locale.US, "%.4f", displayValue) else String.format(Locale.US, "%.2f", displayValue),
+                if (precision) displayValue.formatDecimal(4) else displayValue.formatDecimal(2),
                 style = HeroNumberStyle.copy(fontSize = 42.sp),
                 color = heroColor,
             )

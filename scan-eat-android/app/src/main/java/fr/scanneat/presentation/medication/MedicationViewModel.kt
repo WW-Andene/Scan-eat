@@ -46,6 +46,13 @@ sealed class InteractionWarning {
     // instance of this exact risk class (someone on warfarin also taking
     // daily low-dose aspirin).
     data object AnticoagAntiplatelet : InteractionWarning()
+    // NSAID + antiplatelet (e.g. ibuprofen + aspirin) is itself a well-known
+    // additional bleeding-risk combo, distinct from the anticoagulant-based
+    // pairings above - this detector already had both group's keyword lists
+    // but never cross-checked NSAID against antiplatelet directly, silently
+    // missing this equally common real-world instance (someone taking daily
+    // low-dose aspirin who also reaches for ibuprofen for pain).
+    data object NsaidAntiplatelet : InteractionWarning()
 }
 
 // Known high-risk keyword patterns: maps a drug class to a set of name substrings.
@@ -89,6 +96,9 @@ private fun detectInteractions(meds: List<Medication>): List<InteractionWarning>
     // see InteractionWarning.AnticoagAntiplatelet's own doc comment.
     val hasAntiplatelet = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.ANTIPLATELETS]!!.any { name.contains(it) } }
     if (hasAnticoag && hasAntiplatelet) warnings += InteractionWarning.AnticoagAntiplatelet
+    // NSAID + antiplatelet cross-group bleeding risk (e.g. ibuprofen + aspirin) -
+    // see InteractionWarning.NsaidAntiplatelet's own doc comment.
+    if (hasAin && hasAntiplatelet) warnings += InteractionWarning.NsaidAntiplatelet
     // SSRI/SNRI + MAOI serotonin syndrome risk
     val hasSsri = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.SSRI_SNRI]!!.any { name.contains(it) } }
     val hasMaoi = activeNames.any { name -> INTERACTION_GROUPS[DrugGroup.MAOI]!!.any { name.contains(it) } }

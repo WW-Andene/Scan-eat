@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.FastCompletion
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.formatDecimal
 import java.time.LocalDate
 import java.time.format.TextStyle as JTextStyle
 import java.util.Locale
@@ -103,7 +104,7 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
         listOf(
             stringResource(R.string.fasting_stat_total)   to "${completed.size}",
             stringResource(R.string.fasting_stat_success) to "$successCount/${completed.size}",
-            stringResource(R.string.fasting_stat_avg)     to "${String.format(Locale.US, "%.1f", avgHours)}h",
+            stringResource(R.string.fasting_stat_avg)     to "${avgHours.formatDecimal(1)}h",
             stringResource(R.string.fasting_stat_record)  to "${longestH}h",
         ).forEach { (label, value) ->
             Surface(

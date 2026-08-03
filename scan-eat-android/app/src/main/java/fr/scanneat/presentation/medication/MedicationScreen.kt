@@ -101,6 +101,7 @@ fun MedicationScreen(
                         InteractionWarning.AnticoagNsaid -> "anticoag-nsaid"
                         InteractionWarning.SsriMaoi -> "ssri-maoi"
                         InteractionWarning.AnticoagAntiplatelet -> "anticoag-antiplatelet"
+                        InteractionWarning.NsaidAntiplatelet -> "nsaid-antiplatelet"
                     }
                 }) { warning -> MedicationInteractionWarningBanner(warning) }
             }

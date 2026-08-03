@@ -38,6 +38,7 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.util.formatDecimal
 import kotlin.math.abs
 
 @Composable
@@ -112,7 +113,7 @@ private fun ReasonRow(d: Deduction) {
     val color = reasonColor(d)
     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
         Text(
-            if (d.points > 0) "+${"%.0f".format(d.points)}" else "%.0f".format(d.points),
+            if (d.points > 0) "+${d.points.formatDecimal(0)}" else d.points.formatDecimal(0),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.SemiBold,
             modifier = Modifier.width(32.dp),
         )

@@ -1,7 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.*
-import java.util.Locale
+import fr.scanneat.util.formatDecimal
 
 // ============================================================================
 // DIET CHECKER — port of public/core/diets.js
@@ -90,10 +90,10 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
         val netCarbs = (product.nutrition.carbsG - product.nutrition.fiberG).coerceAtLeast(0.0)
         val maxNet   = def.maxNetCarbsG ?: 10.0
         if (netCarbs > maxNet) {
-            // %.1f with no explicit Locale renders "15,0" on comma-decimal devices,
-            // which then glued onto an English/French unit suffix looked mixed-up
-            // twice over - Locale.US keeps the number format independent of that.
-            val netCarbsStr = String.format(Locale.US, "%.1f", netCarbs)
+            // formatDecimal() pins Locale.US - %.1f with no explicit Locale renders
+            // "15,0" on comma-decimal devices, which then glued onto an English/
+            // French unit suffix looked mixed-up twice over.
+            val netCarbsStr = netCarbs.formatDecimal(1)
             violations += if (lang == "en") "$netCarbsStr g net carbs/100 g" else "$netCarbsStr g glucides nets/100 g"
         }
 

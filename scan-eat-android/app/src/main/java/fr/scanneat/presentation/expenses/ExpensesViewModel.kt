@@ -6,6 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.data.repository.expense.PriceRepository
+import fr.scanneat.domain.model.ProductCategory
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -68,7 +70,51 @@ class ExpensesViewModel @Inject constructor(
         if (thisWeek.isEmpty()) null else thisWeek.sumOf { it.priceEuros } / thisWeek.size
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun setBudgetWeekly(v: Double?) { viewModelScope.launch { prefs.setBudgetWeeklyEuros(v) } }
-    fun setBudgetPerMeal(v: Double?) { viewModelScope.launch { prefs.setBudgetPerMealEuros(v) } }
-    fun deleteEntry(id: String) { viewModelScope.launch { runCatching { priceRepo.delete(id) } } }
+    // Category breakdown for the current trailing-7-day window (same window as
+    // weekTotal/avgPerEntryThisWeek above), sorted highest-spend first - price_log
+    // already stores each entry's category (populated from the scanned product, or
+    // OTHER for a manually-added entry, see addEntry() below), but nothing in this
+    // ViewModel ever aggregated it: the week card previously showed only a single
+    // total, with no way to see which category actually drove the spend.
+    val spendByCategory: StateFlow<List<Pair<ProductCategory, Double>>> = combine(entries, today) { list, todayDate ->
+        val weekStart = todayDate.minusDays(6)
+        list.filter { !it.date.isBefore(weekStart) && !it.date.isAfter(todayDate) }
+            .groupBy { it.category }
+            .mapValues { (_, rows) -> rows.sumOf { it.priceEuros } }
+            .entries.sortedByDescending { it.value }
+            .map { it.key to it.value }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed write, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
+    fun setBudgetWeekly(v: Double?) {
+        viewModelScope.launch { runCatching { prefs.setBudgetWeeklyEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    }
+    fun setBudgetPerMeal(v: Double?) {
+        viewModelScope.launch { runCatching { prefs.setBudgetPerMealEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    }
+    fun deleteEntry(id: String) {
+        viewModelScope.launch { runCatching { priceRepo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    }
+
+    /**
+     * Logs a purchase directly, with no scanned product behind it - previously the
+     * ONLY way to add a price_log row at all was ResultViewModel's barcode-scan
+     * flow (see PriceRepository.log's callers), so a cash purchase, a recipe
+     * ingredient bought at a market, or literally anything without a barcode could
+     * never be logged, silently defeating "track my spending" for a large share of
+     * real grocery shopping. Manual entries have no scanned product to classify
+     * them, so they're logged as [ProductCategory.OTHER] - still counted in
+     * weekTotal/spendByCategory, just not attributed to a specific food category.
+     */
+    fun addEntry(date: LocalDate, productName: String, priceEuros: Double, weightG: Double?) {
+        if (productName.isBlank()) return
+        viewModelScope.launch {
+            runCatching { priceRepo.log(date, productName.trim(), barcode = null, category = ProductCategory.OTHER, priceEuros = priceEuros, weightG = weightG) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
 }
