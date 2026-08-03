@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.templates
 
+import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
@@ -66,7 +67,7 @@ fun TemplatesScreen(
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.TEMPLATES, onNavigate = onNavigateToPlanning)
-            IconButton(onClick = { showAdd = true }) { Icon(Icons.Rounded.Add, stringResource(R.string.templates_cd_new), tint = AccentCoral) }
+            IconButton(onClick = { showAdd = true }) { Icon(TablerIcons.Plus, stringResource(R.string.templates_cd_new), tint = AccentCoral) }
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->

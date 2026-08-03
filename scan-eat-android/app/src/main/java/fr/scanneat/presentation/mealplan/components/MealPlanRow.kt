@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.mealplan.components
 
+import compose.icons.tablericons.Plus
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
@@ -87,7 +88,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // template is assigned; a note has no nutrition to log.
             if (slot is MealPlanSlot.RecipeSlot || slot is MealPlanSlot.TemplateSlot) {
                 IconButton(onClick = { onLog(slot) }) {
-                    Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                    Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral, modifier = Modifier.size(18.dp))
                 }
             }
             // Lets a saved Recipe/Template actually be planned onto this slot — until

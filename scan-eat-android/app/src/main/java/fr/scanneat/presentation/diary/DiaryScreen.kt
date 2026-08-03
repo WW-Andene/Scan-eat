@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.diary
 
+import compose.icons.tablericons.Plus
 import compose.icons.tablericons.Clock
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
@@ -264,7 +265,7 @@ fun DiaryScreen(
                 containerColor = AccentCoral,
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = bottomClearance + Spacing.L, end = Spacing.L),
             ) {
-                Icon(Icons.Rounded.Add, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
+                Icon(TablerIcons.Plus, stringResource(R.string.diary_add_entry_title), tint = Color.Black)
             }
         }
 

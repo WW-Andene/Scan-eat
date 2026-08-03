@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes
 
+import compose.icons.tablericons.Plus
 import compose.icons.tablericons.Bulb
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
@@ -213,7 +214,7 @@ fun RecipesScreen(
             }) {
                 Icon(Icons.Rounded.Restaurant, stringResource(R.string.recipes_cd_menu_scan), tint = OnBackground)
             }
-            IconButton(onClick = { showAdd = true }) { Icon(Icons.Rounded.Add, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
+            IconButton(onClick = { showAdd = true }) { Icon(TablerIcons.Plus, stringResource(R.string.recipes_cd_new), tint = AccentCoral) }
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->

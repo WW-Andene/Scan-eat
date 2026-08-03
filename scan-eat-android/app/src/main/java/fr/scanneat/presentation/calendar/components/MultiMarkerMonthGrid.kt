@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.calendar.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ChevronRight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -66,7 +68,7 @@ internal fun MultiMarkerMonthGrid(
                 month.month.getDisplayName(TextStyle.FULL, locale).replaceFirstChar { it.uppercase() } + " " + month.year,
                 style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
             )
-            IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) { Icon(Icons.Rounded.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground) }
+            IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) { Icon(TablerIcons.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground) }
         }
         // Was strictly one month at a time via the chevrons with no fast way back -
         // a user drilling several months into the past (e.g. checking an old

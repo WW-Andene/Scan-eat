@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.grocery.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Plus
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -37,7 +39,7 @@ internal fun GroceryQuickAddRow(quickAddText: String, onQuickAddTextChange: (Str
             enabled = quickAddText.isNotBlank(),
             modifier = Modifier.minTouchTarget(), // was a fixed 40dp, below the 48dp WCAG/Material minimum
         ) {
-            Icon(Icons.Rounded.Add, stringResource(R.string.grocery_quick_add_cd), tint = if (quickAddText.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
+            Icon(TablerIcons.Plus, stringResource(R.string.grocery_quick_add_cd), tint = if (quickAddText.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
         }
     }
 }

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard
 
+import compose.icons.tablericons.Search
+import compose.icons.tablericons.ShoppingCart
 import compose.icons.tablericons.Calendar
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
@@ -216,7 +218,7 @@ fun DashboardScreen(
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FeatureTile(Icons.Rounded.ShoppingCart, stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
+                    FeatureTile(TablerIcons.ShoppingCart, stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
                     // onOpenCustomFoods had no call site anywhere in the composable -
                     // CustomFoodScreen was completely unreachable from any UI gesture.
                     FeatureTile(Icons.Rounded.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
@@ -241,7 +243,7 @@ fun DashboardScreen(
                     // (plus the user's own custom foods) were only ever reachable
                     // through a 6-10-result Quick Add autocomplete dropdown, never as
                     // a real browsable/filterable search tool in its own right.
-                    FeatureTile(Icons.Rounded.Search, stringResource(R.string.dashboard_tile_search), Modifier.weight(1f), onClick = onOpenFoodSearch)
+                    FeatureTile(TablerIcons.Search, stringResource(R.string.dashboard_tile_search), Modifier.weight(1f), onClick = onOpenFoodSearch)
                 }
             }
 

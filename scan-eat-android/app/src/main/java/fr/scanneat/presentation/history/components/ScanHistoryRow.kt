@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.history.components
 
+import compose.icons.tablericons.ChevronRight
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
@@ -94,7 +95,7 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
             IconButton(onClick = onDelete) {
                 Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
             }
-            Icon(Icons.Rounded.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
+            Icon(TablerIcons.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
         }
     }
 }

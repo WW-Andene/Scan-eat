@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.customfood
 
+import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
@@ -68,7 +69,7 @@ fun CustomFoodScreen(
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.CUSTOM_FOODS, onNavigate = onNavigateToPlanning)
             IconButton(onClick = { showAdd = true }) {
-                Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = AccentCoral)
+                Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = AccentCoral)
             }
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
@@ -133,7 +134,7 @@ fun CustomFoodScreen(
                         // minimum, was 32dp) and given a real contentDescription (was
                         // null - a TalkBack user heard nothing for this import action).
                         IconButton(onClick = { viewModel.importFromScan(scan) }) {
-                            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.customfood_import_from_scan, scan.product.name), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                            Icon(TablerIcons.Plus, contentDescription = stringResource(R.string.customfood_import_from_scan, scan.product.name), tint = AccentCoral, modifier = Modifier.size(18.dp))
                         }
                     }
                 }

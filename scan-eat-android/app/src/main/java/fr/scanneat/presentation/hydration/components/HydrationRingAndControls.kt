@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.hydration.components
 
+import compose.icons.tablericons.Minus
+import compose.icons.tablericons.Plus
 import compose.icons.tablericons.CircleCheck
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Edit
@@ -111,7 +113,7 @@ internal fun HydrationRingAndControls(
             containerColor = if (intakeMl > 0) SurfaceVariant else SurfaceVariant.copy(alpha = 0.4f),
             shape = CircleShape,
             modifier = Modifier.size(56.dp),
-        ) { Icon(Icons.Rounded.Remove, stringResource(R.string.common_remove), tint = if (intakeMl > 0) OnSurface else OnSurface.copy(0.3f)) }
+        ) { Icon(TablerIcons.Minus, stringResource(R.string.common_remove), tint = if (intakeMl > 0) OnSurface else OnSurface.copy(0.3f)) }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(stringResource(R.string.hydration_glass_ml, HYD_GLASS_ML), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.5f))
@@ -123,7 +125,7 @@ internal fun HydrationRingAndControls(
             containerColor = semanticBlue(),
             shape = CircleShape,
             modifier = Modifier.size(56.dp),
-        ) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = Color.Black) }
+        ) { Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = Color.Black) }
     }
 
     Text(

@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.medication
 
+import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
@@ -154,14 +155,14 @@ fun MedicationScreen(
                 onClick = { showAdd = true },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = Teal,
-            ) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = androidx.compose.ui.graphics.Color.Black) }
+            ) { Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = androidx.compose.ui.graphics.Color.Black) }
             ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.medication_title), color = OnBackground) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
-            actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Rounded.Add, stringResource(R.string.medication_cd_new), tint = Teal) } },
+            actions = { IconButton(onClick = { showAdd = true }) { Icon(TablerIcons.Plus, stringResource(R.string.medication_cd_new), tint = Teal) } },
             snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }

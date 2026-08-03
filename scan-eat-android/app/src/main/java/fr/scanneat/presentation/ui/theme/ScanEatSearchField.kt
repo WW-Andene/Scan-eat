@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
+import compose.icons.tablericons.Search
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,7 +53,7 @@ fun ScanEatSearchField(
         modifier = modifier.fillMaxWidth().heightIn(min = 48.dp),
         textStyle = MaterialTheme.typography.bodyMedium,
         placeholder = { Text(placeholder, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.4f)) },
-        leadingIcon = { Icon(Icons.Rounded.Search, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(18.dp)) },
+        leadingIcon = { Icon(TablerIcons.Search, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(18.dp)) },
         trailingIcon = {
             // IconButton kept at its default 48dp touch target (Material/WCAG
             // minimum) even though the field itself is compacted - only the

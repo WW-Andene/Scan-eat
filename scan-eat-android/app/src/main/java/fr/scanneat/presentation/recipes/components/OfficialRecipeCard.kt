@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes.components
 
+import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.Copy
@@ -51,7 +52,7 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
                 // Left at IconButton's default 48dp touch target (Material/WCAG
                 // minimum) - a UI/UX audit found this row forcing 36dp.
                 HintIconButton(hints = hints)
-                IconButton(onClick = onLog) { Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                IconButton(onClick = onLog) { Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral) }
                 IconButton(onClick = onClone) { Icon(TablerIcons.Copy, stringResource(R.string.recipes_official_clone_cd), tint = OnSurface.copy(0.5f)) }
             }
         }

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.recipes.components
 
+import compose.icons.tablericons.Plus
+import compose.icons.tablericons.Share
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.Copy
 import compose.icons.tablericons.DotsVertical
@@ -94,7 +96,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 // (Share/Notes/Scale/Save-as-Template/Rename/Delete) moves into
                 // an overflow menu so each remaining control can sit at a
                 // compliant 48dp instead of being squeezed to fit seven-wide.
-                IconButton(onClick = onLog) { Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = AccentCoral) }
+                IconButton(onClick = onLog) { Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = AccentCoral) }
                 var menuExpanded by remember { mutableStateOf(false) }
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
@@ -104,7 +106,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                     // backup - no way to send just this one recipe to someone else.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.recipes_cd_share)) },
-                        leadingIcon = { Icon(Icons.Rounded.Share, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.Share, contentDescription = null) },
                         onClick = {
                             menuExpanded = false
                             val sendIntent = Intent(Intent.ACTION_SEND).apply {

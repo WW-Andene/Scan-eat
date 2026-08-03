@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.result
 
+import compose.icons.tablericons.Share
 import compose.icons.tablericons.AlertCircle
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
@@ -106,7 +107,7 @@ fun ResultScreen(
                     }
                     context.startActivity(Intent.createChooser(sendIntent, null))
                 }) {
-                    Icon(Icons.Rounded.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
+                    Icon(TablerIcons.Share, stringResource(R.string.result_cd_share), tint = OnBackground)
                 }
                 HintIconButton(hints = generateProductHints(scan.product, profile.value, language.value))
                 IconButton(onClick = { showSaveMenu = true }) {

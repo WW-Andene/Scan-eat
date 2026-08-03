@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.weight
 
+import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
@@ -204,14 +205,14 @@ fun WeightScreen(
                 onClick = { openAddDialog() },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = embeddedBottomPadding + Spacing.L, end = Spacing.L),
                 containerColor = AccentCoral,
-            ) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = Color.Black) }
+            ) { Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = Color.Black) }
             ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
         }
     } else {
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
             navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
-            actions = { IconButton(onClick = { openAddDialog() }) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
+            actions = { IconButton(onClick = { openAddDialog() }) { Icon(TablerIcons.Plus, stringResource(R.string.common_add), tint = AccentCoral) } },
             snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }
     }

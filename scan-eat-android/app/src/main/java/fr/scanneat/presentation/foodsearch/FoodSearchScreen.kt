@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.foodsearch
 
+import compose.icons.tablericons.Search
 import compose.icons.tablericons.ChevronDown
 import compose.icons.tablericons.ChevronUp
 import compose.icons.TablerIcons
@@ -118,7 +119,7 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                 if (grouped.value.isEmpty()) {
                     item {
                         EmptyListState(
-                            Icons.Rounded.Search,
+                            TablerIcons.Search,
                             if (query.value.isBlank()) stringResource(R.string.foodsearch_empty_filtered)
                             // Was a flat "No results for this search." with no echo of what
                             // was actually typed - unlike CustomFood/Recipes' identical empty
@@ -269,7 +270,7 @@ private fun OnlineSearchSection(
         if (state == OnlineSearchState.IDLE || state == OnlineSearchState.ERROR || state == OnlineSearchState.EMPTY) {
             Spacer(Modifier.height(Spacing.XS))
             OutlinedButton(onClick = onSearchOnline, shape = RoundedCornerShape(CardRadius.CONTROL)) {
-                Icon(Icons.Rounded.Search, null, modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.Search, null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(Spacing.XS))
                 Text(stringResource(R.string.foodsearch_online_search_button), style = MaterialTheme.typography.labelMedium)
             }

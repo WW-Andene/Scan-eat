@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.grocery
 
+import compose.icons.tablericons.ShoppingCart
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import android.content.Intent
@@ -137,7 +138,7 @@ fun GroceryScreen(
                 // shortcut to do it, unlike Recipes' own empty state which pairs the same
                 // kind of message with a CTA button - added the matching navigation here.
                 EmptyListState(
-                    icon = Icons.Rounded.ShoppingCart,
+                    icon = TablerIcons.ShoppingCart,
                     message = stringResource(
                         if (scopeToPlanned.value) R.string.grocery_empty_planned_body else R.string.grocery_empty_body
                     ),

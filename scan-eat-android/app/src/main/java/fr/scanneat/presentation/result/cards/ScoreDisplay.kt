@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.result.cards
 
+import compose.icons.tablericons.Minus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ChevronDown
 import compose.icons.tablericons.ChevronUp
@@ -86,7 +87,7 @@ internal fun ScoreDeltaChip(delta: Int) {
         ) {
             Icon(
                 imageVector = when {
-                    neutral  -> Icons.Rounded.Remove
+                    neutral  -> TablerIcons.Minus
                     positive -> TablerIcons.ChevronUp
                     else     -> TablerIcons.ChevronDown
                 },

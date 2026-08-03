@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Search
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -62,7 +64,7 @@ internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: D
             is ScanUiState.Idle, is ScanUiState.Success, is ScanUiState.Error,
             is ScanUiState.MedicationFound, is ScanUiState.NonConsumableFound,
             is ScanUiState.MultiFoodFound ->
-                Icon(Icons.Rounded.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
+                Icon(TablerIcons.Search, stringResource(R.string.scan_cd_scan), tint = Color.Black)
         }
     }
 }

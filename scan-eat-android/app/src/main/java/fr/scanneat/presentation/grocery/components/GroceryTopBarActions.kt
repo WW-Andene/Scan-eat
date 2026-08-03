@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.grocery.components
 
+import compose.icons.tablericons.Share
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Copy
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,7 +57,7 @@ internal fun GroceryTopBarActions(
         // Previously the only way out of the app was clipboard copy-then-paste -
         // mirrors ResultScreen's existing ACTION_SEND share pattern.
         IconButton(onClick = onShare) {
-            Icon(Icons.Rounded.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
+            Icon(TablerIcons.Share, stringResource(R.string.grocery_cd_share), tint = OnBackground.copy(0.7f))
         }
         Box {
             IconButton(onClick = { onCopyMenuExpandedChange(true) }) {

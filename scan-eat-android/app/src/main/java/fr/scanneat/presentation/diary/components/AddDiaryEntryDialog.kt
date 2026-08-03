@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.diary.components
 
+import compose.icons.tablericons.Search
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
@@ -96,7 +97,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                     onValueChange = { viewModel.setSearchQuery(it) },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text(stringResource(R.string.diary_add_entry_search_hint), color = OnBackground.copy(0.4f)) },
-                    leadingIcon = { Icon(Icons.Rounded.Search, null, tint = OnBackground.copy(0.5f)) },
+                    leadingIcon = { Icon(TablerIcons.Search, null, tint = OnBackground.copy(0.5f)) },
                     trailingIcon = {
                         if (query.value.isNotEmpty()) {
                             IconButton(onClick = { viewModel.clearSearch() }) {

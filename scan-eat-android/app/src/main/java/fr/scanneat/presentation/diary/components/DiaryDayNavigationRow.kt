@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.diary.components
 
+import compose.icons.tablericons.ChevronRight
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Calendar
 import compose.icons.tablericons.Copy
@@ -40,7 +41,7 @@ internal fun DiaryDayNavigationRow(
             IconButton(onClick = onPrevDay) { Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
             Text(dateLabel, style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
             IconButton(onClick = onNextDay, enabled = !isToday) {
-                Icon(Icons.Rounded.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday) OnBackground else OnBackground.copy(0.3f))
+                Icon(TablerIcons.ChevronRight, stringResource(R.string.diary_cd_next_day), tint = if (!isToday) OnBackground else OnBackground.copy(0.3f))
             }
             IconButton(onClick = onToggleCalendar) {
                 Icon(TablerIcons.Calendar, stringResource(R.string.diary_cd_calendar), tint = if (showCalendar) AccentCoral else OnBackground.copy(0.5f))

@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.templates.components
 
+import compose.icons.tablericons.Plus
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.Bulb
 import compose.icons.tablericons.Copy
@@ -75,7 +76,7 @@ internal fun TemplateCard(
                     Icon(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.templates_manage_items_cd), tint = Teal)
                 }
                 IconButton(onClick = onLog, enabled = template.items.isNotEmpty()) {
-                    Icon(Icons.Rounded.Add, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
+                    Icon(TablerIcons.Plus, stringResource(R.string.common_log), tint = if (template.items.isNotEmpty()) AccentCoral else OnSurface.copy(0.25f))
                 }
                 // Save-as-Recipe/Rename/Delete moved into an overflow menu -
                 // Favorite/Manage-items/Log are the frequent actions and stay

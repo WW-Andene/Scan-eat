@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.settings.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Trash
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -21,10 +23,10 @@ internal const val MAX_BACKUP_IMPORT_BYTES = 50L * 1024 * 1024
 
 @Composable
 internal fun DataResetSection(onShowResetDialog: () -> Unit) {
-    SettingsSection(stringResource(R.string.settings_section_reset), icon = Icons.Default.DeleteForever) {
+    SettingsSection(stringResource(R.string.settings_section_reset), icon = TablerIcons.Trash) {
         Text(stringResource(R.string.settings_reset_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         ScanEatOutlinedButton(onClick = onShowResetDialog) {
-            Icon(Icons.Default.DeleteForever, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.settings_reset_button), color = semanticRed())
         }
@@ -75,7 +77,7 @@ internal fun ResetConfirmDialog(
                     ResetTarget.ALL -> {
                         Text(stringResource(R.string.settings_reset_confirm_body_all), style = MaterialTheme.typography.bodySmall, color = semanticRed(), fontWeight = FontWeight.Bold)
                         TextButton(onClick = onConfirmClearAll) {
-                            Icon(Icons.Default.DeleteForever, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(Spacing.XS))
                             Text(stringResource(R.string.settings_reset_confirm_button), color = semanticRed(), fontWeight = FontWeight.Bold)
                         }
@@ -94,7 +96,7 @@ internal fun ResetConfirmDialog(
                         }
                         HorizontalDivider(color = OnBackground.copy(0.1f))
                         TextButton(onClick = { onSetPendingReset(ResetTarget.ALL) }) {
-                            Icon(Icons.Default.DeleteForever, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
+                            Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(Spacing.XS))
                             Text(stringResource(R.string.settings_reset_clear_all), color = semanticRed(), fontWeight = FontWeight.Bold)
                         }
