@@ -1,21 +1,21 @@
 package fr.scanneat.presentation.templates.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.*
 
 /**
- * Was a permanently-visible LazyRow - now hidden behind a "Filtres: <current>"
- * toggle, same collapsible pattern Recherche/FoodSearch and Recipes use (see
- * CollapsibleFilterBar).
+ * Popup menu behind a "Filtres : <current>" button (see CollapsibleFilterBar's
+ * own doc comment for why this is a popup, not an inline expandable list).
  */
 @Composable
 internal fun TemplatesMealFilterRow(
@@ -30,15 +30,13 @@ internal fun TemplatesMealFilterRow(
         expanded = expanded, onToggle = onToggle,
         summaryLabel = stringResource(R.string.foodsearch_filters_label, selected?.label() ?: allLabel),
     ) {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-            items(mealOptions, key = { it?.name ?: "all" }) { slot ->
-                FilterChip(
-                    selected = selected == slot,
-                    onClick = { onSelect(slot) },
-                    label = { Text(slot?.label() ?: allLabel) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-                )
-            }
+        mealOptions.forEach { slot ->
+            val isSelected = selected == slot
+            DropdownMenuItem(
+                text = { Text(slot?.label() ?: allLabel) },
+                trailingIcon = { if (isSelected) Icon(Icons.Rounded.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                onClick = { onSelect(slot); onToggle() },
+            )
         }
     }
 }

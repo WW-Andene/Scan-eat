@@ -1,8 +1,6 @@
 package fr.scanneat.presentation.diary
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,11 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -208,56 +201,47 @@ fun DiaryScreen(
                         Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.height(10.dp))
-                    // Was a fixed Row with each tab forced to Modifier.weight(1f), then
-                    // (once Expenses became the 7th tab) a horizontally-scrollable Row
-                    // with a full icon+label per tab - both still forced a horizontal
-                    // scroll to reach Treatment/Expenses on most phone widths, one more
-                    // scroll gesture on top of the day-picker/list scrolling this screen
-                    // already asks for. Icon-primary instead: every tab always shows its
-                    // icon (a stable, tappable 48dp target and enough on its own once the
-                    // user's learned the row once), and only the ACTIVE tab also spells
-                    // out its label - inactive tabs stay icon-only. That's roughly a third
-                    // of the previous per-tab width, so all seven fit with no scroll on
-                    // every phone width this app targets, while the active tab is still
-                    // named in full (in whichever language) for anyone who hasn't
-                    // memorized the icons yet.
-                    Row(
-                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        DiaryTab.entries.forEach { tab ->
-                            val isActive = tab == activeTab
-                            val label = stringResource(tab.labelRes)
-                            Surface(
-                                onClick = { activeTab = tab },
-                                modifier = Modifier
-                                    .heightIn(min = 48.dp)
-                                    .semantics { role = Role.Tab; selected = isActive; contentDescription = label },
-                                shape = RoundedCornerShape(8.dp),
-                                color = if (isActive) AccentCoral.copy(0.15f) else Color.Transparent,
-                                border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)) else null,
+                    // Was a fixed Row with each tab forced to Modifier.weight(1f), then a
+                    // horizontally-scrollable icon+label row - both still forced a
+                    // horizontal scroll to reach Treatment/Expenses on most phone widths,
+                    // one more scroll gesture on top of the day-picker/list scrolling this
+                    // screen already asks for, and it turned out inactive icon-only tabs
+                    // still didn't reliably fit either. Replaced with a single button
+                    // showing the active tab, opening a popup menu (DropdownMenu) listing
+                    // all seven - same pattern CollapsibleFilterBar now uses for filters,
+                    // so there is no list to scroll or expand at all, on any screen width.
+                    var tabMenuExpanded by remember { mutableStateOf(false) }
+                    Box {
+                        Surface(
+                            onClick = { tabMenuExpanded = true },
+                            shape = RoundedCornerShape(8.dp),
+                            color = AccentCoral.copy(0.15f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)),
+                        ) {
+                            Row(
+                                Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
-                                Row(
-                                    Modifier.heightIn(min = 48.dp).padding(horizontal = if (isActive) Spacing.M else Spacing.S),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                ) {
-                                    Icon(
-                                        tab.icon, contentDescription = null,
-                                        tint = if (isActive) AccentCoral else OnBackground.copy(0.5f),
-                                        modifier = Modifier.size(20.dp),
-                                    )
-                                    if (isActive) {
-                                        Text(
-                                            label,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = AccentCoral,
-                                            fontWeight = FontWeight.Bold,
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1,
-                                        )
-                                    }
-                                }
+                                Icon(activeTab.icon, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(20.dp))
+                                Text(
+                                    stringResource(activeTab.labelRes),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = AccentCoral, fontWeight = FontWeight.Bold,
+                                )
+                                Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = AccentCoral)
+                            }
+                        }
+                        DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }) {
+                            DiaryTab.entries.forEach { tab ->
+                                val isActive = tab == activeTab
+                                val label = stringResource(tab.labelRes)
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    leadingIcon = { Icon(tab.icon, null, tint = if (isActive) AccentCoral else OnBackground.copy(0.6f)) },
+                                    trailingIcon = { if (isActive) Icon(Icons.Rounded.Check, null, tint = AccentCoral) },
+                                    onClick = { activeTab = tab; tabMenuExpanded = false },
+                                )
                             }
                         }
                     }

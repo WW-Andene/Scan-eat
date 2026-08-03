@@ -6,12 +6,12 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.FilterList
@@ -301,18 +301,13 @@ private fun FiltersSection(
         summaryLabel = stringResource(R.string.foodsearch_filters_label, filterOptions.first { it.first == filter }.second),
         modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
     ) {
-        LazyRow(
-            contentPadding = PaddingValues(vertical = Spacing.XS),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-        ) {
-            items(filterOptions, key = { it.first.name }) { (f, label) ->
-                FilterChip(
-                    selected = filter == f,
-                    onClick  = { onFilterChange(f) },
-                    label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                    colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.15f), selectedLabelColor = AccentCoral),
-                )
-            }
+        filterOptions.forEach { (f, label) ->
+            val isSelected = filter == f
+            DropdownMenuItem(
+                text = { Text(label) },
+                trailingIcon = { if (isSelected) Icon(Icons.Rounded.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                onClick = { onFilterChange(f); onToggle() },
+            )
         }
     }
 }
