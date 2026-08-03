@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.history.components
 
+import compose.icons.tablericons.Star
 import compose.icons.tablericons.ChevronRight
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.TablerIcons
@@ -85,8 +86,12 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
             // registered. A short haptic tick matches the confirmation every other
             // toggle-style action in the app already gives (Grocery's check-off, etc.).
             IconButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onToggleFavorite() }) {
+                // F32 (docs/design-audit-step11-icons-illustration-dataviz-copy.md):
+                // Tabler's outline-only icon set has no filled/outline Star pair like
+                // Material's Star/StarBorder — the on/off favorite state is carried by
+                // tint alone now (already partly the case here) rather than a shape swap.
                 Icon(
-                    if (scan.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                    TablerIcons.Star,
                     stringResource(if (scan.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                     tint = if (scan.favorite) Gold else OnSurface.copy(0.3f),
                     modifier = Modifier.size(18.dp),

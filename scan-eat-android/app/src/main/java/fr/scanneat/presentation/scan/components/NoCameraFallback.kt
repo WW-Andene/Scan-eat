@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Barcode
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -52,7 +54,7 @@ internal fun NoCameraFallback(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(Icons.Rounded.QrCodeScanner, null, tint = OnBackground, modifier = Modifier.size(64.dp))
+        Icon(TablerIcons.Barcode, null, tint = OnBackground, modifier = Modifier.size(64.dp))
         Spacer(Modifier.height(Spacing.L))
         Text(stringResource(titleRes), style = MaterialTheme.typography.titleMedium, color = OnBackground, textAlign = TextAlign.Center)
         Spacer(Modifier.height(Spacing.S))

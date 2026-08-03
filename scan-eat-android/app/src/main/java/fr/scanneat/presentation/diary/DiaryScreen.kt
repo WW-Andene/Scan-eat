@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.diary
 
+import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.FileInvoice
 import compose.icons.tablericons.Plus
 import compose.icons.tablericons.Clock
@@ -60,7 +61,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private enum class DiaryTab(val labelRes: Int, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    MEALS(R.string.diary_tab_meals, Icons.Rounded.RestaurantMenu),
+    MEALS(R.string.diary_tab_meals, TablerIcons.ClipboardList),
     WEIGHT(R.string.diary_tab_weight, Icons.Rounded.Scale),
     WATER(R.string.diary_tab_water, Icons.Rounded.Opacity),
     ACTIVITY(R.string.diary_tab_activity, Icons.Rounded.FitnessCenter),
@@ -420,7 +421,7 @@ private fun MealsTab(
                 fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = Spacing.S))
         }
         if (s.entries.isEmpty()) {
-            item { EmptyListState(Icons.Rounded.RestaurantMenu, stringResource(R.string.diary_empty_body)) }
+            item { EmptyListState(TablerIcons.ClipboardList, stringResource(R.string.diary_empty_body)) }
         } else {
             MealSlot.values().forEach { slot ->
                 val slotEntries = filteredBySlot[slot].orEmpty()

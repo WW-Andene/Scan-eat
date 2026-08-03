@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.history.components
 
+import compose.icons.tablericons.Star
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Check
 import androidx.compose.foundation.layout.*
@@ -46,7 +47,7 @@ internal fun HistoryFilterChipsRow(
         if (showFavoritesChip) {
             DropdownMenuItem(
                 text = { Text(favoritesLabel) },
-                leadingIcon = { Icon(Icons.Rounded.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(18.dp)) },
+                leadingIcon = { Icon(TablerIcons.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(18.dp)) },
                 trailingIcon = { if (favoritesOnly) Icon(TablerIcons.Check, null, tint = Gold, modifier = Modifier.size(18.dp)) },
                 onClick = { onToggleFavoritesOnly(); onToggle() },
             )

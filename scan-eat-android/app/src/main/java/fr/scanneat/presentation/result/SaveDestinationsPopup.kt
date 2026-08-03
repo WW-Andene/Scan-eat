@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.result
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Star
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -99,7 +101,10 @@ private fun DestinationRow(
         // Scan'eat/nutrition feature whose own confirm button is already
         // AccentCoral. Cross-domain accent mismatch within the same dialog.
         Checkbox(checked = checked, onCheckedChange = null, colors = CheckboxDefaults.colors(checkedColor = AccentCoral))
-        Icon(if (checked) Icons.Rounded.Star else Icons.Rounded.StarBorder, null, tint = AccentCoral, modifier = Modifier.padding(end = Spacing.XS))
+        // F32 (docs/design-audit-step11-icons-illustration-dataviz-copy.md): Tabler has
+        // no Star/StarBorder filled/outline pair — checked state now carried by tint
+        // (the adjacent Checkbox already shows it too, so this is a secondary echo).
+        Icon(TablerIcons.Star, null, tint = if (checked) AccentCoral else OnBackground.copy(0.3f), modifier = Modifier.padding(end = Spacing.XS))
         Text(label, style = MaterialTheme.typography.bodyMedium, color = OnBackground)
     }
 }

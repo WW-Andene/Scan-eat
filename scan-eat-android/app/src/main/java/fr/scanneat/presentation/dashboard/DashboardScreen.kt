@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard
 
+import compose.icons.tablericons.Star
+import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.History
 import compose.icons.tablericons.Search
 import compose.icons.tablericons.ShoppingCart
@@ -212,7 +214,7 @@ fun DashboardScreen(
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FeatureTile(Icons.Rounded.RestaurantMenu, stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
+                    FeatureTile(TablerIcons.ClipboardList, stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
                     FeatureTile(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
                     FeatureTile(TablerIcons.Calendar, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
                 }
@@ -223,7 +225,7 @@ fun DashboardScreen(
                     // onOpenCustomFoods had no call site anywhere in the composable -
                     // CustomFoodScreen was completely unreachable from any UI gesture.
                     FeatureTile(Icons.Rounded.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
-                    FeatureTile(Icons.Rounded.Star, stringResource(R.string.dashboard_tile_favorites), Modifier.weight(1f), onClick = onOpenFavorites)
+                    FeatureTile(TablerIcons.Star, stringResource(R.string.dashboard_tile_favorites), Modifier.weight(1f), onClick = onOpenFavorites)
                 }
             }
             item {

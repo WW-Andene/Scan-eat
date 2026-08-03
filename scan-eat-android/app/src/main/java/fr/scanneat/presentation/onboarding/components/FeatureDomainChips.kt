@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.onboarding.components
 
+import compose.icons.tablericons.Barcode
+import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.Activity
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Clock
@@ -27,8 +29,8 @@ import fr.scanneat.presentation.ui.theme.*
 @Composable
 internal fun FeatureDomainChips() {
     val domains = listOf(
-        Icons.Rounded.QrCodeScanner to R.string.onboarding_domain_scan,
-        Icons.Rounded.RestaurantMenu to R.string.onboarding_domain_diet,
+        TablerIcons.Barcode to R.string.onboarding_domain_scan,
+        TablerIcons.ClipboardList to R.string.onboarding_domain_diet,
         TablerIcons.Droplet to R.string.onboarding_domain_hydration,
         TablerIcons.Clock to R.string.onboarding_domain_fasting,
         Icons.Rounded.Scale to R.string.onboarding_domain_weight,

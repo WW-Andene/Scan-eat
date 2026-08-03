@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.settings.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Barcode
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -290,7 +292,7 @@ internal fun BackupSection(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.M),
             ) {
                 DataStatChip(
-                    icon = Icons.Default.QrCodeScanner,
+                    icon = TablerIcons.Barcode,
                     label = stringResource(R.string.settings_data_stats_scans, scanCount),
                     modifier = Modifier.weight(1f),
                 )

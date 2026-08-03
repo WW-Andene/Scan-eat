@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.customfood
 
+import compose.icons.tablericons.Barcode
+import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.Plus
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
@@ -123,7 +125,7 @@ fun CustomFoodScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                     ) {
-                        Icon(Icons.Rounded.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                        Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                         Text(
                             stringResource(R.string.customfood_import_from_scan, scan.product.name),
                             style = MaterialTheme.typography.bodySmall,
@@ -147,7 +149,7 @@ fun CustomFoodScreen(
                 if (displayList.isEmpty()) {
                     item {
                         EmptyListState(
-                            Icons.Rounded.RestaurantMenu,
+                            TablerIcons.ClipboardList,
                             if (query.value.isBlank()) stringResource(R.string.customfood_empty_body)
                             else stringResource(R.string.customfood_empty_query, query.value),
                         )

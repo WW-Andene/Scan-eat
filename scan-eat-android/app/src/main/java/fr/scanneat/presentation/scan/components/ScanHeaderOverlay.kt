@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.tablericons.Barcode
 import compose.icons.TablerIcons
 import compose.icons.tablericons.AlertTriangle
 import androidx.compose.foundation.Canvas
@@ -103,7 +104,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
         ) {
             Column {
                 Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                    Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(Spacing.S))
                     Text(barcode, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
                     // "Already scanned this" cue — the local-cache lookup

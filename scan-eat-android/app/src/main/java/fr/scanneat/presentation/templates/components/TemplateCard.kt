@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.templates.components
 
+import compose.icons.tablericons.Star
+import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.Plus
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.Bulb
@@ -63,8 +65,10 @@ internal fun TemplateCard(
                 // minimum) - a UI/UX audit found 6 icon-sized controls competing
                 // for width in this row, each forced below the 48dp minimum.
                 IconButton(onClick = onToggleFavorite) {
+                    // F32: Tabler has no Star/StarBorder filled/outline pair — tint alone
+                    // (already the case here) carries the on/off favorite state.
                     Icon(
-                        if (template.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                        TablerIcons.Star,
                         stringResource(if (template.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                         tint = if (template.favorite) Gold else OnSurface.copy(0.3f),
                     )
@@ -105,7 +109,7 @@ internal fun TemplateCard(
                     // this saves a copy into the user's Recipes library.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.templates_cd_save_as_recipe)) },
-                        leadingIcon = { Icon(Icons.Rounded.RestaurantMenu, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.ClipboardList, contentDescription = null) },
                         enabled = template.items.isNotEmpty(),
                         onClick = { menuExpanded = false; onSaveAsRecipe() },
                     )

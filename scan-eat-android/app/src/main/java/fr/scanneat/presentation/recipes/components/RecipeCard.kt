@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.recipes.components
 
+import compose.icons.tablericons.Star
+import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.Plus
 import compose.icons.tablericons.Share
 import compose.icons.tablericons.AlertTriangle
@@ -80,8 +82,10 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
             // action - a UI/UX audit found 8 icon-sized controls competing for
             // width in this one row, each below the 48dp minimum tappable size.
             IconButton(onClick = onToggleFavorite) {
+                // F32: Tabler has no Star/StarBorder filled/outline pair — tint alone
+                // (already the case here) carries the on/off favorite state.
                 Icon(
-                    if (recipe.favorite) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                    TablerIcons.Star,
                     stringResource(if (recipe.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
                     tint = if (recipe.favorite) Gold else OnSurface.copy(0.3f),
                 )
@@ -127,7 +131,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                     // add/remove of ingredients, this just reopens it pre-filled.
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.recipes_cd_edit_ingredients)) },
-                        leadingIcon = { Icon(Icons.Rounded.RestaurantMenu, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.ClipboardList, contentDescription = null) },
                         onClick = { menuExpanded = false; onEditIngredients() },
                     )
                     // Previously servings only ever affected a one-off logged portion

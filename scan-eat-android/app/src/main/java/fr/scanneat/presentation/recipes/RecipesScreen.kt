@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes
 
+import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.Plus
 import compose.icons.tablericons.Bulb
 import compose.icons.TablerIcons
@@ -254,11 +255,11 @@ fun RecipesScreen(
                 item {
                     if (recipeQuery.value.isBlank() && goalFilter.value == RecipesViewModel.GoalFilter.ALL) {
                         EmptyListState(
-                            Icons.Rounded.RestaurantMenu, stringResource(R.string.recipes_empty_body),
+                            TablerIcons.ClipboardList, stringResource(R.string.recipes_empty_body),
                             ctaLabel = stringResource(R.string.recipes_cd_new), onCta = { showAdd = true },
                         )
                     } else {
-                        EmptyListState(Icons.Rounded.RestaurantMenu, stringResource(R.string.recipes_empty_query, recipeQuery.value))
+                        EmptyListState(TablerIcons.ClipboardList, stringResource(R.string.recipes_empty_query, recipeQuery.value))
                     }
                 }
             }

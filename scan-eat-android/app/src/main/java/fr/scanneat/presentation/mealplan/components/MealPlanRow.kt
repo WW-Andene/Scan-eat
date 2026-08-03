@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.mealplan.components
 
+import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.Plus
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.Edit
@@ -61,7 +62,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             }
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 when (slot) {
-                    is MealPlanSlot.RecipeSlot   -> Icon(Icons.Rounded.RestaurantMenu, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
+                    is MealPlanSlot.RecipeSlot   -> Icon(TablerIcons.ClipboardList, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
                     is MealPlanSlot.TemplateSlot -> Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
                     else -> {}
                 }
@@ -95,7 +96,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // now MealPlanSlot.RecipeSlot/TemplateSlot could only ever be produced by
             // deserializing a backup, never by anything reachable from the UI.
             IconButton(onClick = onAssign) {
-                Icon(Icons.Rounded.RestaurantMenu, stringResource(R.string.mealplan_assign_cd), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.ClipboardList, stringResource(R.string.mealplan_assign_cd), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             if (slot != null) {
                 IconButton(onClick = onClear) {

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.mealplan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ClipboardList
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -44,7 +46,7 @@ internal fun AssignSlotDialog(
             if (recipes.isEmpty() && templates.isEmpty()) {
                 // Was plain Text() - every other empty condition in the app
                 // routes through this shared icon+message component.
-                EmptyListState(Icons.Rounded.RestaurantMenu, stringResource(R.string.mealplan_assign_empty))
+                EmptyListState(TablerIcons.ClipboardList, stringResource(R.string.mealplan_assign_empty))
             } else {
                 LazyColumn(modifier = Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     if (recipes.isNotEmpty()) {
@@ -54,7 +56,7 @@ internal fun AssignSlotDialog(
                                 Modifier.fillMaxWidth().clickable { onPickRecipe(recipe) }.padding(vertical = Spacing.S),
                                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
-                                Icon(Icons.Rounded.RestaurantMenu, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                                Icon(TablerIcons.ClipboardList, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
                                 Text(recipe.name, style = MaterialTheme.typography.bodyMedium, color = OnSurface)
                             }
                         }

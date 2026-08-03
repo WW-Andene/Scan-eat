@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.onboarding.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Barcode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
@@ -45,7 +47,7 @@ internal fun ColumnScope.WelcomePage(onNext: () -> Unit) {
                     CircleShape,
                 ),
         )
-        Icon(Icons.Rounded.QrCodeScanner, null, tint = AccentCoral, modifier = Modifier.size(64.dp))
+        Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(64.dp))
     }
     Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge, color = OnBackground, fontWeight = FontWeight.Bold)
     Text(
