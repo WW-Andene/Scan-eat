@@ -56,7 +56,11 @@ internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemCl
                     }
                 }
             }
-            Text("${scan.audit.score}", style = MaterialTheme.typography.titleMedium, color = gradeColor, fontWeight = FontWeight.Bold)
+            // Was a bare number - the subtitle above already spells out "X/100 ·
+            // category", but this trailing large bold number (the row's visual
+            // focal point) repeated the same score with no unit, readable as a
+            // count/calorie value/rank rather than a /100 score at a glance.
+            Text("${scan.audit.score}/100", style = MaterialTheme.typography.titleMedium, color = gradeColor, fontWeight = FontWeight.Bold)
         }
     }
 }

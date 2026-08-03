@@ -84,7 +84,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
 @Composable
 internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTaken: List<MedicationLogEntry>) {
     val active = medications.filter { it.active }
-    val allTaken = active.all { m -> todayTaken.any { it.medicationId == m.id } }
+    val allTaken = active.isNotEmpty() && active.all { m -> todayTaken.any { it.medicationId == m.id } }
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = 0.42f),
@@ -92,10 +92,13 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
         shadowElevation = 6.dp,
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            // Was the static "Prise du jour" title regardless of completion - only
+            // the card's background tint changed color, unlike Hydration/Activity's
+            // explicit "goal reached" copy for the equivalent all-done moment.
             Text(
-                stringResource(R.string.medication_today_summary_title),
+                stringResource(if (allTaken) R.string.medication_all_taken_today else R.string.medication_today_summary_title),
                 style = MaterialTheme.typography.labelSmall,
-                color = OnSurface.copy(0.5f),
+                color = if (allTaken) Teal else OnSurface.copy(0.5f),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), modifier = Modifier.fillMaxWidth()) {
                 active.forEach { m ->

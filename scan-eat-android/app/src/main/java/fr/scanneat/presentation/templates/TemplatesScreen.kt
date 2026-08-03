@@ -23,6 +23,7 @@ import fr.scanneat.presentation.templates.components.EditTemplateItemsDialog
 import fr.scanneat.presentation.templates.components.LogTemplateDialog
 import fr.scanneat.presentation.templates.components.TemplateCard
 import fr.scanneat.presentation.templates.components.TemplatesMealFilterRow
+import fr.scanneat.presentation.templates.components.TemplatesSearchField
 import fr.scanneat.presentation.templates.components.TemplatesStatsRow
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
@@ -35,6 +36,7 @@ fun TemplatesScreen(
     onNavigateToPlanning: (PlanningDestination) -> Unit = {},
 ) {
     val templates = viewModel.templates.collectAsStateWithLifecycle()
+    val templateQuery = viewModel.templateQuery.collectAsStateWithLifecycle()
     val mealFilter = viewModel.mealFilter.collectAsStateWithLifecycle()
     val libraryTotalKcal = viewModel.libraryTotalKcal.collectAsStateWithLifecycle()
     val ingredientSearchResults = viewModel.ingredientSearchResults.collectAsStateWithLifecycle()
@@ -74,6 +76,11 @@ fun TemplatesScreen(
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item {
+                // Templates had no way to search by name at all - only the meal-type
+                // filter chips below - unlike Recipes' identical RecipesSearchField.
+                TemplatesSearchField(query = templateQuery.value, onQueryChange = { viewModel.setTemplateQuery(it) })
+            }
+            item {
                 // Templates had zero list-level filtering despite MealTemplate.meal being
                 // the exact same ready-made filter dimension Recipes already uses for its
                 // own GoalFilter chips.
@@ -85,7 +92,8 @@ fun TemplatesScreen(
                 item {
                     EmptyListState(
                         Icons.AutoMirrored.Filled.ListAlt,
-                        if (mealFilter.value != null) stringResource(R.string.templates_empty_filtered)
+                        if (templateQuery.value.isNotBlank()) stringResource(R.string.recipes_empty_query, templateQuery.value)
+                        else if (mealFilter.value != null) stringResource(R.string.templates_empty_filtered)
                         else stringResource(R.string.templates_empty_body),
                     )
                 }

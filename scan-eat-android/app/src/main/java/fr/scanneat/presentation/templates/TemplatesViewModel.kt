@@ -15,6 +15,7 @@ import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.domain.engine.nutrition.generateProductHints
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.planning.normalizeKey
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.MealSlot
@@ -42,11 +43,22 @@ class TemplatesViewModel @Inject constructor(
     val mealFilter: StateFlow<MealSlot?> = _mealFilter.asStateFlow()
     fun setMealFilter(m: MealSlot?) { _mealFilter.value = m }
 
-    val templates: StateFlow<List<MealTemplate>> = combine(_allTemplates, _mealFilter) { list, filter ->
+    // Templates had no way to search by name at all - only the meal-slot filter
+    // chips - unlike Recipes' identical fix (RecipesViewModel._recipeQuery). Same
+    // in-memory contains() approach: the list already lives fully in _allTemplates.
+    private val _templateQuery = MutableStateFlow("")
+    val templateQuery: StateFlow<String> = _templateQuery.asStateFlow()
+    fun setTemplateQuery(q: String) { _templateQuery.value = q }
+
+    val templates: StateFlow<List<MealTemplate>> = combine(_allTemplates, _mealFilter, _templateQuery.debounce(150)) { list, filter, query ->
         val filtered = if (filter == null) list else list.filter { it.meal == filter }
+        val searched = if (query.isBlank()) filtered else {
+            val key = normalizeKey(query)
+            filtered.filter { normalizeKey(it.name).contains(key) }
+        }
         // Favorites first - same pattern as RecipesViewModel.recipes; sortedByDescending
         // is stable, so observeAll()'s createdAt-DESC ordering is preserved within each group.
-        filtered.sortedByDescending { it.favorite }
+        searched.sortedByDescending { it.favorite }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun toggleFavorite(template: MealTemplate) = viewModelScope.launch {

@@ -72,7 +72,11 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                 item {
                     EmptyListState(
                         Icons.Rounded.Search,
-                        stringResource(if (query.value.isBlank()) R.string.foodsearch_empty_filtered else R.string.foodsearch_empty_query),
+                        if (query.value.isBlank()) stringResource(R.string.foodsearch_empty_filtered)
+                        // Was a flat "No results for this search." with no echo of what
+                        // was actually typed - unlike CustomFood/Recipes' identical empty
+                        // state, which both interpolate the query back to the user.
+                        else stringResource(R.string.foodsearch_empty_query, query.value),
                     )
                 }
             } else {
