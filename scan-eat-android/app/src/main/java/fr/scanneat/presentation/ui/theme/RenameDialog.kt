@@ -40,8 +40,11 @@ fun RenameDialog(currentName: String, onConfirm: (String) -> Unit, onDismiss: ()
             // over Material's disabled-content dimming, so a blank name left this
             // "disabled" button rendering at full-opacity AccentCoral with no visual
             // cue that tapping it does nothing.
-            val enabled = name.isNotBlank()
-            TextButton(onClick = { if (enabled) onConfirm(name) }, enabled = enabled) {
+            // isNotBlank() alone let a string of only spaces through - trimmed both the
+            // enabled check and the saved value, so a whitespace-only rename can no
+            // longer save as a visually-empty name.
+            val enabled = name.isNotBlank() && name.trim().isNotBlank()
+            TextButton(onClick = { if (enabled) onConfirm(name.trim()) }, enabled = enabled) {
                 Text(stringResource(R.string.common_save), color = if (enabled) AccentCoral else OnBackground.copy(0.3f))
             }
         },

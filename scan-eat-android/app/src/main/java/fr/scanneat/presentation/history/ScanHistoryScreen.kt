@@ -114,8 +114,13 @@ fun ScanHistoryScreen(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
                 verticalArrangement = Arrangement.spacedBy(Spacing.M),
             ) {
-                // New: frequently scanned section — top 3 products by scan count
-                if (topScanned.value.isNotEmpty()) {
+                // New: frequently scanned section — top 3 products by scan count.
+                // Both this and the grade distribution below are computed from the
+                // user's ENTIRE scan history, not favorites - showing them on the
+                // dedicated Favorites screen (startFavoritesOnly) surfaced stats
+                // about products the user never favorited, with nothing indicating
+                // these sections were history-wide rather than favorites-scoped.
+                if (!startFavoritesOnly && topScanned.value.isNotEmpty()) {
                     item {
                         Text(
                             stringResource(R.string.history_top_scanned_title),
@@ -128,7 +133,7 @@ fun ScanHistoryScreen(
                 }
 
                 // Grade distribution — A/B/C/D breakdown across full scan history
-                if (gradeDistribution.value.isNotEmpty()) {
+                if (!startFavoritesOnly && gradeDistribution.value.isNotEmpty()) {
                     item { HistoryGradeDistributionSection(gradeDistribution.value) }
                     item {
                         HorizontalDivider(modifier = Modifier.padding(vertical = Spacing.S), color = OnBackground.copy(0.08f))

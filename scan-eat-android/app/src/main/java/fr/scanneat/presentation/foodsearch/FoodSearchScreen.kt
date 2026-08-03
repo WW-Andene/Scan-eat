@@ -218,6 +218,16 @@ private fun FoodSearchRow(item: FoodSearchItem, onOpenResult: (Long) -> Unit) {
                     )
                 }
             }
+            // Rows with no grade (i.e. not a scanned product) expand in place instead
+            // of navigating away - nothing signaled that distinction before, so a tap
+            // on one row type could unexpectedly navigate while the same tap on
+            // another type expanded a detail panel, with no visible cue why.
+            if (item.grade == null) {
+                Icon(
+                    if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                    null, tint = OnSurface.copy(0.4f),
+                )
+            }
         }
         if (expanded) {
             HorizontalDivider(color = OnSurface.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))

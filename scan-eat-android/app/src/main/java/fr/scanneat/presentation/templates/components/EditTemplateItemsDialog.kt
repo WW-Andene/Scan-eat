@@ -70,6 +70,7 @@ internal fun EditTemplateItemsDialog(
                         colors = scanEatTextFieldColors(),
                     )
                     OutlinedTextField(value = newGrams, onValueChange = { newGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
+                        isError = newGrams.isNotBlank() && (newGrams.replace(',', '.').toDoubleOrNull()?.let { it > 0 } != true),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = scanEatTextFieldColors())
                     // Manual kcal entry only matters as a fallback once no database match
                     // is picked - hidden once one is, since its full macros are used instead.
@@ -96,6 +97,12 @@ internal fun EditTemplateItemsDialog(
                         }
                     }
                 }
+                // Was gated only inside the click handler (silent return@TextButton on
+                // invalid grams/blank name) with no enabled/error state - a mistyped
+                // grams field (e.g. "0" or blank) made "Add" visibly do nothing, with
+                // no signal the tap even registered.
+                val addGramsValid = newGrams.replace(',', '.').toDoubleOrNull()?.let { it > 0 } == true
+                val canAdd = addGramsValid && newName.isNotBlank()
                 TextButton(onClick = {
                     val g = newGrams.replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return@TextButton
                     if (newName.isBlank()) return@TextButton
@@ -116,7 +123,7 @@ internal fun EditTemplateItemsDialog(
                     }
                     onAdd(item)
                     newName = ""; newGrams = ""; newKcal = ""; selectedFood = null; onQueryChange("")
-                }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentCoral) }
+                }, enabled = canAdd) { Text(stringResource(R.string.recipes_add_ingredient_button), color = if (canAdd) AccentCoral else OnBackground.copy(0.3f)) }
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = AccentCoral) } },

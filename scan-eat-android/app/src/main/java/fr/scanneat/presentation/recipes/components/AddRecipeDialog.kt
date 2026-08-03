@@ -119,6 +119,7 @@ internal fun AddRecipeDialog(
                         colors = scanEatTextFieldColors(),
                     )
                     OutlinedTextField(value = newIngGrams, onValueChange = { newIngGrams = it }, label = { Text("g") }, modifier = Modifier.weight(1f), singleLine = true,
+                        isError = newIngGrams.isNotBlank() && (newIngGrams.replace(',', '.').toDoubleOrNull()?.let { it > 0 } != true),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = scanEatTextFieldColors())
                     // Manual kcal entry only matters as a fallback once no database match is
@@ -157,6 +158,10 @@ internal fun AddRecipeDialog(
                         }
                     }
                 }
+                // Was gated only inside the click handler with no enabled/error state -
+                // a mistyped grams field made "Add" visibly do nothing.
+                val addIngGramsValid = newIngGrams.replace(',', '.').toDoubleOrNull()?.let { it > 0 } == true
+                val canAddIng = addIngGramsValid && newIngName.isNotBlank()
                 TextButton(onClick = {
                     // A zero/negative gram amount would divide-by-zero or invert the
                     // per-100g nutrition math wherever this component is later scaled.
@@ -184,7 +189,7 @@ internal fun AddRecipeDialog(
                     }
                     components = components + component
                     newIngName = ""; newIngGrams = ""; newIngKcal = ""; selectedFood = null; onQueryChange("")
-                }) { Text(stringResource(R.string.recipes_add_ingredient_button), color = AccentCoral) }
+                }, enabled = canAddIng) { Text(stringResource(R.string.recipes_add_ingredient_button), color = if (canAddIng) AccentCoral else OnBackground.copy(0.3f)) }
                 HorizontalDivider(color = OnBackground.copy(0.1f))
                 OutlinedTextField(
                     value = notes, onValueChange = { notes = it },
