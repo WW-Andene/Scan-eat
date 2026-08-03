@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.templates.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -115,7 +117,7 @@ internal fun TemplateCard(
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_delete)) },
-                        leadingIcon = { Icon(Icons.Rounded.Close, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.X, contentDescription = null) },
                         onClick = { menuExpanded = false; onDelete() },
                     )
                 }

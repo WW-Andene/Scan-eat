@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.history.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Check
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -45,7 +47,7 @@ internal fun HistoryFilterChipsRow(
             DropdownMenuItem(
                 text = { Text(favoritesLabel) },
                 leadingIcon = { Icon(Icons.Rounded.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(18.dp)) },
-                trailingIcon = { if (favoritesOnly) Icon(Icons.Rounded.Check, null, tint = Gold, modifier = Modifier.size(18.dp)) },
+                trailingIcon = { if (favoritesOnly) Icon(TablerIcons.Check, null, tint = Gold, modifier = Modifier.size(18.dp)) },
                 onClick = { onToggleFavoritesOnly(); onToggle() },
             )
             HorizontalDivider(color = OnSurface.copy(0.08f))
@@ -54,7 +56,7 @@ internal fun HistoryFilterChipsRow(
             val isSelected = gradeFilter == grade
             DropdownMenuItem(
                 text = { Text(label) },
-                trailingIcon = { if (isSelected) Icon(Icons.Rounded.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
                 onClick = { onGradeFilterChange(if (isSelected) null else grade); onToggle() },
             )
         }

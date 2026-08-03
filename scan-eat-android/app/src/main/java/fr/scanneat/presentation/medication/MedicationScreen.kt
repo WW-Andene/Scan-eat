@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.medication
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -158,7 +160,7 @@ fun MedicationScreen(
     } else {
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.medication_title), color = OnBackground) },
-            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
             actions = { IconButton(onClick = { showAdd = true }) { Icon(Icons.Rounded.Add, stringResource(R.string.medication_cd_new), tint = Teal) } },
             snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }

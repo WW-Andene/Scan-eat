@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.templates
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -61,7 +63,7 @@ fun TemplatesScreen(
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.templates_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.TEMPLATES, onNavigate = onNavigateToPlanning)
             IconButton(onClick = { showAdd = true }) { Icon(Icons.Rounded.Add, stringResource(R.string.templates_cd_new), tint = AccentCoral) }

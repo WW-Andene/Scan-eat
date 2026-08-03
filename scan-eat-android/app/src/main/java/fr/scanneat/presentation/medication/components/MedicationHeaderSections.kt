@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.medication.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Check
+import compose.icons.tablericons.X
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -110,7 +113,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
                             horizontalArrangement = Arrangement.spacedBy(3.dp),
                         ) {
                             Icon(
-                                if (taken) Icons.Rounded.Check else Icons.Rounded.Close,
+                                if (taken) TablerIcons.Check else TablerIcons.X,
                                 null,
                                 tint = if (taken) Teal else OnSurface.copy(0.35f),
                                 modifier = Modifier.size(10.dp),

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.ui.theme
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -75,7 +77,7 @@ fun ErrorBanner(
                 // 48dp WCAG/Material minimum — IconButton's own default already
                 // provides that minimum, so overriding it here undid it.
                 IconButton(onClick = onDismiss, modifier = Modifier.minTouchTarget()) {
-                    Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = OnBackground.copy(0.7f))
+                    Icon(TablerIcons.X, stringResource(R.string.common_close), tint = OnBackground.copy(0.7f))
                 }
             }
         }

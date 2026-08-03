@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.profile
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -113,7 +115,7 @@ fun ProfileScreen(
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.profile_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             TextButton(onClick = {
                 // No bound at all previously - an errant value here (e.g. a typo'd

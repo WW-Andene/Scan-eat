@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.templates.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -57,7 +59,7 @@ internal fun EditTemplateItemsDialog(
                         Text(stringResource(R.string.recipes_ingredient_summary_compact, item.productName, item.grams.toInt(), item.kcal.toInt()),
                             style = MaterialTheme.typography.bodySmall, color = OnSurface, modifier = Modifier.weight(1f))
                         IconButton(onClick = { onRemove(index) }) {
-                            Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
+                            Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
                         }
                     }
                 }

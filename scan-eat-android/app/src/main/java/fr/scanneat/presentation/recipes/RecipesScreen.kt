@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.recipes
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -187,7 +189,7 @@ fun RecipesScreen(
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.recipes_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             PlanningSwitcherMenu(current = PlanningDestination.RECIPES, onNavigate = onNavigateToPlanning)
             IconButton(onClick = { showSuggest = true }) { Icon(Icons.Rounded.Lightbulb, stringResource(R.string.recipes_cd_suggest), tint = OnBackground) }

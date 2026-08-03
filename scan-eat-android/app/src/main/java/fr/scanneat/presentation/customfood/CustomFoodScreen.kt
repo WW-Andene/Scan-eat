@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.customfood
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -60,7 +62,7 @@ fun CustomFoodScreen(
         title = { Text(stringResource(R.string.customfood_title), color = OnBackground) },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+                Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground)
             }
         },
         actions = {

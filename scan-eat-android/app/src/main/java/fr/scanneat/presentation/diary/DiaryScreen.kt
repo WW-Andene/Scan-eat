@@ -1,5 +1,10 @@
 package fr.scanneat.presentation.diary
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.Check
+import compose.icons.tablericons.ChevronDown
+import compose.icons.tablericons.Filter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -195,7 +200,7 @@ fun DiaryScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (!isTabRoot) {
                             IconButton(onClick = onBack, modifier = Modifier.padding(end = Spacing.XS)) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+                                Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground)
                             }
                         }
                         Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.headlineSmall, color = OnBackground, fontWeight = FontWeight.Bold)
@@ -229,7 +234,7 @@ fun DiaryScreen(
                                     style = MaterialTheme.typography.labelMedium,
                                     color = AccentCoral, fontWeight = FontWeight.Bold,
                                 )
-                                Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = AccentCoral)
+                                Icon(TablerIcons.ChevronDown, contentDescription = null, tint = AccentCoral)
                             }
                         }
                         DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }) {
@@ -239,7 +244,7 @@ fun DiaryScreen(
                                 DropdownMenuItem(
                                     text = { Text(label) },
                                     leadingIcon = { Icon(tab.icon, null, tint = if (isActive) AccentCoral else OnBackground.copy(0.6f)) },
-                                    trailingIcon = { if (isActive) Icon(Icons.Rounded.Check, null, tint = AccentCoral) },
+                                    trailingIcon = { if (isActive) Icon(TablerIcons.Check, null, tint = AccentCoral) },
                                     onClick = { activeTab = tab; tabMenuExpanded = false },
                                 )
                             }
@@ -431,7 +436,7 @@ private fun MealsTab(
                 }
             }
             if (filteredBySlot.values.all { it.isEmpty() }) {
-                item { EmptyListState(Icons.Rounded.FilterList, stringResource(R.string.diary_filter_empty)) }
+                item { EmptyListState(TablerIcons.Filter, stringResource(R.string.diary_filter_empty)) }
             }
         }
         item {

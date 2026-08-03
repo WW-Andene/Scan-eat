@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.grocery.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -79,7 +81,7 @@ internal fun GroceryItemRow(
                 // Left at IconButton's default 48dp touch target (Material/WCAG
                 // minimum) - a UI/UX audit found this forced to 32dp.
                 IconButton(onClick = { showDeleteConfirm = true }) {
-                    Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                 }
             }
         }

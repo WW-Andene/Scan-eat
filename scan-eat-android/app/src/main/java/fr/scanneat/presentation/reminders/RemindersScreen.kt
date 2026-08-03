@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.reminders
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -43,7 +45,7 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = hiltView
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.reminders_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(

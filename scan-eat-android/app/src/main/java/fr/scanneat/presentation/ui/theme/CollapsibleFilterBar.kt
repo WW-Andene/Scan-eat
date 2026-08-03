@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.ui.theme
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Filter
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,7 +50,7 @@ fun CollapsibleFilterBar(
             Row(
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
             ) {
-                Icon(Icons.Rounded.FilterList, null, tint = OnBackground.copy(0.6f), modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.Filter, null, tint = OnBackground.copy(0.6f), modifier = Modifier.size(18.dp))
                 Text(summaryLabel, style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.8f))
             }
             Icon(Icons.Rounded.ExpandMore, null, tint = OnBackground.copy(0.5f))

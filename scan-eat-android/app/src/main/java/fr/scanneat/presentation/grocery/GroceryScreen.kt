@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.grocery
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -75,7 +77,7 @@ fun GroceryScreen(
     FloatingScreenScaffold(
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         title = { Text(stringResource(R.string.grocery_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             GroceryTopBarActions(
                 onNavigateToPlanning = onNavigateToPlanning,

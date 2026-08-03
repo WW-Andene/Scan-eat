@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.diary.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -98,7 +100,7 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                     trailingIcon = {
                         if (query.value.isNotEmpty()) {
                             IconButton(onClick = { viewModel.clearSearch() }) {
-                                Icon(Icons.Rounded.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
+                                Icon(TablerIcons.X, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
                             }
                         }
                     },

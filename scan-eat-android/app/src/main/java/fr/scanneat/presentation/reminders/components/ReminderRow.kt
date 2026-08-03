@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.reminders.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
@@ -122,6 +124,6 @@ internal fun CustomReminderRow(
         IconButton(onClick = onTest, enabled = permGranted) { Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, labelText.ifBlank { reminder.label }), tint = if (permGranted) AccentCoral else OnBackground.copy(0.3f)) }
         Switch(checked = reminder.on, onCheckedChange = { onUpdate(reminder.copy(on = it)) }, colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             modifier = Modifier.semantics { contentDescription = labelText })
-        IconButton(onClick = onDelete) { Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.4f), modifier = Modifier.size(16.dp)) }
+        IconButton(onClick = onDelete) { Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnBackground.copy(0.4f), modifier = Modifier.size(16.dp)) }
     }
 }

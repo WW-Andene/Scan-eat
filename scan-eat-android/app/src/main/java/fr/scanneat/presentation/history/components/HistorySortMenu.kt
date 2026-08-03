@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.history.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Check
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -35,7 +37,7 @@ internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> U
                 DropdownMenuItem(
                     text = { Text(label, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
                     leadingIcon = {
-                        if (isSelected) Icon(Icons.Rounded.Check, contentDescription = null, tint = AccentCoral)
+                        if (isSelected) Icon(TablerIcons.Check, contentDescription = null, tint = AccentCoral)
                     },
                     modifier = Modifier.semantics { selected = isSelected; role = Role.RadioButton },
                     onClick = { onSortChange(value); onExpandedChange(false) },

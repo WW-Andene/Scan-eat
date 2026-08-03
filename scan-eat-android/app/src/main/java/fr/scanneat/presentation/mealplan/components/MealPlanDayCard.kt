@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.mealplan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -72,7 +74,7 @@ internal fun MealPlanDayCard(
                         Icon(Icons.Rounded.ContentCopy, stringResource(R.string.mealplan_duplicate_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                     IconButton(onClick = { showClearConfirm = true }) {
-                        Icon(Icons.Rounded.Close, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                        Icon(TablerIcons.X, stringResource(R.string.mealplan_clear_day), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
                     }
                 }
             }

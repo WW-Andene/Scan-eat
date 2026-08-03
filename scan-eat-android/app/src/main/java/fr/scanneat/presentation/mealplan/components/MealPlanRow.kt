@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.mealplan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Check
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,10 +44,10 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // minimum) below - a UI/UX audit found this row forcing every control
             // to 32dp. The inner Icon's own smaller size keeps the glyph compact.
             IconButton(onClick = { onEdit(text); editing = false }) {
-                Icon(Icons.Rounded.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
             }
             IconButton(onClick = { editing = false }) {
-                Icon(Icons.Rounded.Close, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
         } else {
             val label = when (slot) {
@@ -93,7 +96,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             }
             if (slot != null) {
                 IconButton(onClick = onClear) {
-                    Icon(Icons.Rounded.Close, stringResource(R.string.common_clear), tint = OnSurface.copy(0.3f), modifier = Modifier.size(14.dp))
+                    Icon(TablerIcons.X, stringResource(R.string.common_clear), tint = OnSurface.copy(0.3f), modifier = Modifier.size(14.dp))
                 }
             }
         }

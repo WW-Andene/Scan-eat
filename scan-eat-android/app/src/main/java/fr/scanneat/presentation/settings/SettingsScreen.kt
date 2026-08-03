@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.settings
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.health.connect.client.PermissionController
@@ -201,7 +203,7 @@ fun SettingsScreen(
         title = { Text(stringResource(R.string.settings_title), color = OnBackground) },
         navigationIcon = {
             if (!isTabRoot) {
-                IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) }
+                IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) }
             }
         },
         showBottomNavClearance = isTabRoot,

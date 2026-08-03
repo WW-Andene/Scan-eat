@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.result
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -90,7 +92,7 @@ fun ResultScreen(
         title = { Text(stringResource(R.string.result_title), color = OnBackground) },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+                Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground)
             }
         },
         actions = {

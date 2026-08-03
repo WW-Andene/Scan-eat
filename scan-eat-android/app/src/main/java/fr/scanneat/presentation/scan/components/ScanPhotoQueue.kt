@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -91,7 +93,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
                                 IconButton(onClick = { onRemovePhoto(index) },
                                     modifier = Modifier.align(Alignment.TopEnd).minTouchTarget()) {
                                     Box(Modifier.size(20.dp).background(Background.copy(0.6f), CircleShape), contentAlignment = Alignment.Center) {
-                                        Icon(Icons.Rounded.Close, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
+                                        Icon(TablerIcons.X, stringResource(R.string.common_remove), tint = OnSurface, modifier = Modifier.size(12.dp))
                                     }
                                 }
                             }

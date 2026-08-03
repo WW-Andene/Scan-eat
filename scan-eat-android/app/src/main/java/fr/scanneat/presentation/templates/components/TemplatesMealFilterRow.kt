@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.templates.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Check
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
@@ -35,7 +37,7 @@ internal fun TemplatesMealFilterRow(
             val isSelected = selected == slot
             DropdownMenuItem(
                 text = { Text(slot?.label() ?: allLabel) },
-                trailingIcon = { if (isSelected) Icon(Icons.Rounded.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
                 onClick = { onSelect(slot); onToggle() },
             )
         }

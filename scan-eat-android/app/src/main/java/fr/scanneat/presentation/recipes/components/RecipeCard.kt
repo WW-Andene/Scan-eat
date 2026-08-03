@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.recipes.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -152,7 +154,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_delete)) },
-                        leadingIcon = { Icon(Icons.Rounded.Close, contentDescription = null) },
+                        leadingIcon = { Icon(TablerIcons.X, contentDescription = null) },
                         onClick = { menuExpanded = false; onDelete() },
                     )
                 }

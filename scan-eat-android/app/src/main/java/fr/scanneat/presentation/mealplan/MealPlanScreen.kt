@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.mealplan
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -82,7 +84,7 @@ fun MealPlanScreen(
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.mealplan_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         // Repeating a whole week's plan previously meant re-assigning all 28
         // slots (7 days x 4 meals) by hand - this duplicates the displayed
         // week onto the next 7 days in one tap.

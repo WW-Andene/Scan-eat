@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.diary.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
@@ -76,7 +78,7 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommen
                 Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
         }
     }

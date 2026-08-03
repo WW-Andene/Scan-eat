@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.calendar
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -51,7 +53,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.calendar_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
     ) { padding ->
         // A single LazyColumn item wrapping this screen's whole (non-lazy) Column
         // body — not worth decomposing into per-section items, but still gets the

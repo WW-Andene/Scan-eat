@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.recipes.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Check
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
@@ -48,7 +50,7 @@ internal fun RecipesFilterChipsRow(
                 val isSelected = goalFilter == filter
                 DropdownMenuItem(
                     text = { Text(label) },
-                    trailingIcon = { if (isSelected) Icon(Icons.Rounded.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                    trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
                     onClick = { onFilterChange(filter); onToggle() },
                 )
             }

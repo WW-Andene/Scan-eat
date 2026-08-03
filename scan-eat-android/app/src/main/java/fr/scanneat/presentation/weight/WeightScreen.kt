@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.weight
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -208,7 +210,7 @@ fun WeightScreen(
     } else {
         FloatingScreenScaffold(
             title = { Text(stringResource(R.string.weight_title), color = OnBackground) },
-            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
             actions = { IconButton(onClick = { openAddDialog() }) { Icon(Icons.Rounded.Add, stringResource(R.string.common_add), tint = AccentCoral) } },
             snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
         ) { padding -> content(padding) }

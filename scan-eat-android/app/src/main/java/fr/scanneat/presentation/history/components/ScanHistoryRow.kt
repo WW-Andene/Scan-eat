@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.history.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -89,7 +91,7 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
                 )
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
             }
             Icon(Icons.Rounded.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
         }

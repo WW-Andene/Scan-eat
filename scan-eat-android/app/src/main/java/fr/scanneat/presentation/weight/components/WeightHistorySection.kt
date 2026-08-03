@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.weight.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -236,7 +238,7 @@ internal fun WeightEntryRow(entry: WeightEntry, delta: Double?, useImperial: Boo
                 Icon(Icons.Rounded.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
             }
         }
     }

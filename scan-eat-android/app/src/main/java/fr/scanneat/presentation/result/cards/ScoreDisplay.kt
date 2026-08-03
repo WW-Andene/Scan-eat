@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.result.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ChevronDown
+import compose.icons.tablericons.ChevronUp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -84,8 +87,8 @@ internal fun ScoreDeltaChip(delta: Int) {
             Icon(
                 imageVector = when {
                     neutral  -> Icons.Rounded.Remove
-                    positive -> Icons.Rounded.ArrowDropUp
-                    else     -> Icons.Rounded.ArrowDropDown
+                    positive -> TablerIcons.ChevronUp
+                    else     -> TablerIcons.ChevronDown
                 },
                 contentDescription = null,
                 tint     = textColor,

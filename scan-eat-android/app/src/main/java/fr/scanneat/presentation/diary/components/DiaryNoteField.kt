@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.diary.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Check
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,7 +32,7 @@ internal fun DiaryNoteField(noteText: String, onNoteTextChange: (String) -> Unit
         trailingIcon = {
             if (isDirty) {
                 IconButton(onClick = onSave) {
-                    Icon(Icons.Rounded.Check, stringResource(R.string.diary_cd_save_note), tint = AccentCoral)
+                    Icon(TablerIcons.Check, stringResource(R.string.diary_cd_save_note), tint = AccentCoral)
                 }
             }
         },

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.ui.theme
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
@@ -59,7 +61,7 @@ fun ScanEatSearchField(
             // Diary tab row above.
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Rounded.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f), modifier = Modifier.size(18.dp))
+                    Icon(TablerIcons.X, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f), modifier = Modifier.size(18.dp))
                 }
             }
         },

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -76,7 +78,7 @@ internal fun BoxScope.ScanStateOverlay(
                             // target (WCAG 2.5.5/2.5.8) - sizing it down to 32dp shrank the
                             // tappable area, not just the glyph. Constrain the icon instead.
                             IconButton(onClick = onDismissError) {
-                                Icon(Icons.Rounded.Close, stringResource(R.string.common_close), tint = OnSurface, modifier = Modifier.size(IconSize.Inline))
+                                Icon(TablerIcons.X, stringResource(R.string.common_close), tint = OnSurface, modifier = Modifier.size(IconSize.Inline))
                             }
                         }
                     }

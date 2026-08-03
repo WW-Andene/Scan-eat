@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.customfood.components
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.X
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
@@ -111,7 +113,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
             }
             IconButton(onClick = onDelete) {
                 Icon(
-                    Icons.Rounded.Close, stringResource(R.string.common_delete),
+                    TablerIcons.X, stringResource(R.string.common_delete),
                     tint = OnSurface.copy(0.4f),
                     modifier = Modifier.size(16.dp),
                 )

@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.foodsearch
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.Check
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
@@ -67,7 +70,7 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.foodsearch_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Teal),
@@ -307,7 +310,7 @@ private fun FiltersSection(
             val isSelected = filter == f
             DropdownMenuItem(
                 text = { Text(label) },
-                trailingIcon = { if (isSelected) Icon(Icons.Rounded.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
                 onClick = { onFilterChange(f); onToggle() },
             )
         }

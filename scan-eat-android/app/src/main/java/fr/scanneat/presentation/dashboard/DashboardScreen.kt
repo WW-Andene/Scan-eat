@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -117,7 +119,7 @@ fun DashboardScreen(
         navigationIcon = {
             if (!isTabRoot) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground)
+                    Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground)
                 }
             }
         },

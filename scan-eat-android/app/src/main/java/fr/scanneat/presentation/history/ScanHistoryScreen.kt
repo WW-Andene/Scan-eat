@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.history
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -79,7 +81,7 @@ fun ScanHistoryScreen(
         // Favorites tile, so the app bar read "Historique" for a screen the
         // user tapped expecting "Favoris" — mismatched destination naming.
         title = { Text(stringResource(if (startFavoritesOnly) R.string.favorites_title else R.string.history_title), color = OnBackground) },
-        navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.common_back), tint = OnBackground) } },
+        navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
         actions = {
             HistorySortMenu(
                 expanded = sortMenuExpanded,
