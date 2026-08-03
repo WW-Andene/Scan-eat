@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.weight.components
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -9,20 +8,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.WeightEntry
 import fr.scanneat.data.repository.health.WeightSummary
 import fr.scanneat.domain.engine.dashboard.WeightForecast
+import fr.scanneat.presentation.biolism.evolution.LineTrendChart
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.ui.theme.dispWeight as sharedDispWeight
 import fr.scanneat.util.formatDecimal
@@ -149,88 +142,34 @@ internal fun WeightSummaryCard(
     }
 }
 
+// F22 (docs/design-audit-step8-components-shape.md): this composable used to
+// hand-roll its own Canvas fill+line+dots+dashed-goal-line chart, independently
+// duplicating Biolism's LineTrendChart (EvolutionComponents.kt) pixel-for-pixel
+// — two implementations that could silently drift apart (a stroke width or dot
+// radius tweaked in one and not the other). Now defers to the shared primitive
+// for the actual drawing; only the ScanEatCard header/footer chrome stays here.
 @Composable
 internal fun WeightTrendChart(chartEntries: List<WeightEntry>, goalKg: Double?, fmt: DateTimeFormatter, dispWeight: (Double) -> String) {
-    // Improvement: include goal weight in range so the dashed goal line is always visible
-    val allWeights = chartEntries.map { it.weightKg } + listOfNotNull(goalKg)
-    val minW = allWeights.min()
-    val maxW = allWeights.max().coerceAtLeast(minW + 0.5)
-    val lineColor = AccentCoral
-    val dotColor  = AccentCoral
-    val goalLineColor = semanticGreen()
-    val trendDescription = stringResource(
-        R.string.weight_trend_cd,
-        dispWeight(chartEntries.first().weightKg),
-        dispWeight(chartEntries.last().weightKg),
-        chartEntries.size,
-    )
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(stringResource(R.string.weight_trend_caption, chartEntries.size), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
             Text(dispWeight(chartEntries.last().weightKg), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = AccentCoral)
         }
         Spacer(Modifier.height(Spacing.S))
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .clearAndSetSemantics { contentDescription = trendDescription },
-        ) {
-            val w = size.width
-            val h = size.height
-            val n = chartEntries.size
-            if (n < 2) return@Canvas
-            val xStep = w / (n - 1).toFloat()
-            fun xAt(i: Int) = i * xStep
-            fun yAt(kg: Double) = h * (1f - ((kg - minW) / (maxW - minW)).toFloat()).coerceIn(0f, 1f)
-
-            // Fill area under the line
-            val fillPath = Path().apply {
-                moveTo(xAt(0), h)
-                chartEntries.forEachIndexed { i, e -> lineTo(xAt(i), yAt(e.weightKg)) }
-                lineTo(xAt(n - 1), h)
-                close()
-            }
-            drawPath(fillPath, color = lineColor.copy(alpha = 0.12f))
-
-            // Line
-            val linePath = Path().apply {
-                chartEntries.forEachIndexed { i, e ->
-                    val x = xAt(i); val y = yAt(e.weightKg)
-                    if (i == 0) moveTo(x, y) else lineTo(x, y)
-                }
-            }
-            drawPath(linePath, color = lineColor, style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round))
-
-            // Dots
-            chartEntries.forEachIndexed { i, e ->
-                val isLast = i == n - 1
-                drawCircle(
-                    color = if (isLast) dotColor else dotColor.copy(0.4f),
-                    radius = if (isLast) 5.dp.toPx() else 3.dp.toPx(),
-                    center = Offset(xAt(i), yAt(e.weightKg)),
-                )
-            }
-
-            // Goal line — dashed horizontal at the target weight
-            goalKg?.let { gk ->
-                val gy = yAt(gk)
-                drawLine(
-                    color = goalLineColor.copy(0.7f),
-                    start = Offset(0f, gy),
-                    end   = Offset(w, gy),
-                    strokeWidth = 1.5.dp.toPx(),
-                    pathEffect  = PathEffect.dashPathEffect(floatArrayOf(8f, 6f)),
-                )
-            }
-        }
-        Spacer(Modifier.height(Spacing.XS))
-        // Bumped from 0.35f - a UI/UX audit flagged these axis dates
-        // as real chart data rendered too faint against the dark surface.
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(chartEntries.first().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-            Text(chartEntries.last().date.format(fmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-        }
+        LineTrendChart(
+            points = chartEntries.map { it.date to it.weightKg },
+            color = AccentCoral,
+            dateFmt = fmt,
+            valueLabel = { v -> dispWeight(v) },
+            targetValue = goalKg,
+            targetColor = semanticGreen(),
+            contentDescription = stringResource(
+                R.string.weight_trend_cd,
+                dispWeight(chartEntries.first().weightKg),
+                dispWeight(chartEntries.last().weightKg),
+                chartEntries.size,
+            ),
+        )
     }
 }
 
