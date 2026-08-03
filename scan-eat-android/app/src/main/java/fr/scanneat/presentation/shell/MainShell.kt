@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -87,9 +88,13 @@ fun MainShell(
             Surface(
                 shape           = RoundedCornerShape(CardRadius.PROMINENT),
                 color           = Color.Transparent,
-                shadowElevation = 8.dp,
+                // F16 (docs/design-audit-step6-color-atmosphere.md): tinted shadow via
+                // Modifier.shadow below, matching FloatingTopBar and ScanEatCard —
+                // Surface's own shadowElevation stays 0 so the two don't stack.
+                shadowElevation = 0.dp,
                 modifier        = Modifier
                     .fillMaxWidth()
+                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
                     .clip(RoundedCornerShape(CardRadius.PROMINENT))
                     .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle),
             ) {

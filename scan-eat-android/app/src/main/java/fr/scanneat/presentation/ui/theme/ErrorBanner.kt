@@ -18,6 +18,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
@@ -52,10 +53,15 @@ fun ErrorBanner(
     // banner (allergen/diet veto, scan failure) is exactly the surface that
     // should read as MORE prominent than an ordinary card, not less - HERO-tier
     // elevation, matching the emphasis this content actually carries.
+    // F16 (docs/design-audit-step6-color-atmosphere.md): shadow tinted warm via
+    // Modifier.shadow instead of Surface's shadowElevation, matching ScanEatCard/
+    // FloatingBars — Surface's own shadowElevation stays 0 so the two don't stack.
     Surface(
-        modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Assertive },
+        modifier = modifier.fillMaxWidth()
+            .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .semantics { liveRegion = LiveRegionMode.Assertive },
         color = semanticRed().copy(alpha = 0.15f), shape = RoundedCornerShape(CardRadius.CONTROL),
-        shadowElevation = 10.dp,
+        shadowElevation = 0.dp,
     ) {
         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.ErrorOutline, null, tint = semanticRed())
