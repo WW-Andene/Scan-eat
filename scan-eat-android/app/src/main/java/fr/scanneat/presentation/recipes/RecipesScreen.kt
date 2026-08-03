@@ -161,6 +161,8 @@ fun RecipesScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val logFailedMessage = stringResource(R.string.common_log_failed)
+    val recipeDeletedMessage = stringResource(R.string.recipes_deleted_message)
+    val undoLabel = stringResource(R.string.diary_undo)
     LaunchedEffect(actionFailed.value) {
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
@@ -256,7 +258,7 @@ fun RecipesScreen(
                 }
             }
             items(recipes.value, key = { it.id }) { recipe ->
-                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), hints = hints.value[recipe.id] ?: ProductHints.EMPTY, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe }, onSaveAsTemplate = { saveAsTemplateTarget = recipe })
+                RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), hints = hints.value[recipe.id] ?: ProductHints.EMPTY, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe }, onSaveAsTemplate = { saveAsTemplateTarget = recipe }, onDuplicate = { viewModel.duplicate(recipe) })
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }
@@ -342,7 +344,18 @@ fun RecipesScreen(
 
     deleteTarget?.let { id ->
         val name = recipes.value.find { it.id == id }?.name
-        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        DeleteConfirmDialog(
+            itemName = name,
+            onConfirm = {
+                viewModel.delete(id)
+                deleteTarget = null
+                coroutineScope.launch {
+                    val result = snackbarHostState.showSnackbar(recipeDeletedMessage, actionLabel = undoLabel)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                }
+            },
+            onDismiss = { deleteTarget = null },
+        )
     }
 
 }

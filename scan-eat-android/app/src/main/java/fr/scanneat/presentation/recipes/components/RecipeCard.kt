@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Notes
@@ -52,7 +53,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 
 @Composable
-internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit) {
+internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit, onDuplicate: () -> Unit) {
     val context = LocalContext.current
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), verticalArrangement = Arrangement.spacedBy(Spacing.S),
@@ -129,6 +130,15 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                         text = { Text(stringResource(R.string.common_rename)) },
                         leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
                         onClick = { menuExpanded = false; onRename() },
+                    )
+                    // Fork a variant (e.g. "Curry — spicy version") without altering the
+                    // original - cloneOfficial() already proved this save-a-copy shape
+                    // for official/starter recipes, previously never extended to a
+                    // user's own saved list.
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.recipes_cd_duplicate)) },
+                        leadingIcon = { Icon(Icons.Rounded.ContentCopy, contentDescription = null) },
+                        onClick = { menuExpanded = false; onDuplicate() },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.common_delete)) },

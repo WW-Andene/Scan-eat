@@ -170,7 +170,7 @@ fun DiaryScreen(
                 DiaryTab.ACTIVITY -> ActivityScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.FASTING  -> FastingScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
                 DiaryTab.TREATMENT -> MedicationScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
-                DiaryTab.EXPENSES -> ExpensesScreen(onBack = {}, embedded = true, embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
+                DiaryTab.EXPENSES -> ExpensesScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance, onOpenCalendar = onOpenCalendar)
             }
         }
 

@@ -96,20 +96,25 @@ class SettingsViewModel @Inject constructor(
 
     fun saveApiKey(key: String) = saveField("apiKey") { prefs.setGroqApiKey(key.trim()) }
     fun saveCerebrasApiKey(key: String) = saveField("cerebrasApiKey") { prefs.setCerebrasApiKey(key.trim()) }
-    fun setMode(m: ApiMode)        = viewModelScope.launch { prefs.setApiMode(m) }
+    fun setMode(m: ApiMode)        = guardedLaunch { prefs.setApiMode(m) }
     fun saveServerUrl(url: String) = saveField("serverUrl") { prefs.setServerUrl(url.trim()) }
     fun clearSavedField() { _savedField.value = null }
     fun setLanguage(lang: String) {
         // Drives both the OCR prompt language (persisted) and the actual app UI locale.
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
-        viewModelScope.launch { prefs.setLanguage(lang) }
+        guardedLaunch { prefs.setLanguage(lang) }
     }
-    fun setTheme(t: String)        = viewModelScope.launch { prefs.setTheme(t) }
-    fun setDyslexicFont(v: Boolean)     = viewModelScope.launch { prefs.setDyslexicFont(v) }
-    fun setColorblindMode(mode: String) = viewModelScope.launch { prefs.setColorblindMode(mode) }
-    fun setUseImperialWeight(v: Boolean) = viewModelScope.launch { prefs.setUseImperialWeight(v) }
-    fun setBiolismAdvancedView(v: Boolean) = viewModelScope.launch { prefs.setBiolismAdvancedView(v) }
-    fun setAnimatedBackground(v: Boolean) = viewModelScope.launch { prefs.setAnimatedBackground(v) }
+    // These seven setters previously wrote to DataStore via a bare
+    // viewModelScope.launch with no guard - unlike saveApiKey/saveCerebrasApiKey/
+    // saveServerUrl/clearScanHistory/clearFastingHistory in this same class,
+    // a failed write here (disk full, corrupt prefs file) silently no-opped
+    // with no snackbar, the one inconsistency left in this file's write paths.
+    fun setTheme(t: String)        = guardedLaunch { prefs.setTheme(t) }
+    fun setDyslexicFont(v: Boolean)     = guardedLaunch { prefs.setDyslexicFont(v) }
+    fun setColorblindMode(mode: String) = guardedLaunch { prefs.setColorblindMode(mode) }
+    fun setUseImperialWeight(v: Boolean) = guardedLaunch { prefs.setUseImperialWeight(v) }
+    fun setBiolismAdvancedView(v: Boolean) = guardedLaunch { prefs.setBiolismAdvancedView(v) }
+    fun setAnimatedBackground(v: Boolean) = guardedLaunch { prefs.setAnimatedBackground(v) }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Backup export/import

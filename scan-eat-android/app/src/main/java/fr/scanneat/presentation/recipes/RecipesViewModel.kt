@@ -214,8 +214,36 @@ class RecipesViewModel @Inject constructor(
         viewModelScope.launch { runCatching { repo.save(name, components, servings, notes = notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
-    fun delete(id: String) = viewModelScope.launch {
-        runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    // Same undo-delete pattern as Diary/Weight/ScanHistory/Medication/Grocery -
+    // snapshots the row right before deleting it so a snackbar "Undo" can bring
+    // it back. repo.save(id = ...) re-upserts the exact same row (same id), same
+    // mechanism rename()/updateNotes()/scale() above already use for in-place edits.
+    private var lastDeleted: Recipe? = null
+
+    fun delete(id: String) {
+        val entry = _allRecipes.value.firstOrNull { it.id == id }
+        viewModelScope.launch {
+            runCatching { repo.delete(id) }
+                .onSuccess { lastDeleted = entry }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    fun undoDelete() {
+        val entry = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch {
+            runCatching { repo.save(entry.name, entry.components, entry.servings, id = entry.id, notes = entry.notes) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Forks a user's own recipe into a new, independent copy - e.g. to try a
+     *  variant ("Curry — spicy version") without altering the original.
+     *  cloneOfficial() already proved this save-a-copy shape for official
+     *  recipes; this extends it to the user's own saved list. */
+    fun duplicate(recipe: Recipe) {
+        save("${recipe.name} (copie)", recipe.components, recipe.servings, notes = recipe.notes)
     }
 
     /** Inverse of TemplatesViewModel.saveAsRecipe() - a Recipe has no meal of its own,

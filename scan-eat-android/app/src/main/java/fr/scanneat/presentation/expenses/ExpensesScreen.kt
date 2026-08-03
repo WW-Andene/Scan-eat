@@ -29,12 +29,15 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-/** [embedded] mirrors WeightScreen/ActivityScreen/etc. - see their own doc comments. */
+/**
+ * Unlike WeightScreen/ActivityScreen/etc., this screen only ever runs embedded
+ * (its sole call site is DiaryScreen's Dépenses tab, always passing embedded
+ * semantics) - no standalone Scaffold/TopAppBar path exists, so there's no
+ * `embedded` toggle or `onBack` here to begin with.
+ */
 @Composable
 fun ExpensesScreen(
     viewModel: ExpensesViewModel = hiltViewModel(),
-    onBack: () -> Unit,
-    embedded: Boolean = false,
     embeddedBottomPadding: Dp = 0.dp,
     embeddedTopPadding: Dp = 0.dp,
     onOpenCalendar: () -> Unit = {},

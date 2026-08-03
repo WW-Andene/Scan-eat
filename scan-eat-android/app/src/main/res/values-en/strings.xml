@@ -1265,6 +1265,8 @@
     <string name="recipes_cd_more_actions">More actions</string>
     <string name="recipes_cd_scale">Adjust servings</string>
     <string name="recipes_cd_save_as_template">Save as meal template</string>
+    <string name="recipes_cd_duplicate">Duplicate</string>
+    <string name="recipes_deleted_message">Recipe deleted</string>
     <string name="recipes_save_as_template_title">Save “%1$s” as a template</string>
     <string name="recipes_scale_title">Adjust servings</string>
     <string name="recipes_scale_servings_label">Number of servings</string>
