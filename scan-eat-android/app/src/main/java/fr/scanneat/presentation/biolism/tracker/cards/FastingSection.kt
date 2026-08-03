@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.StepperChip
@@ -24,13 +25,15 @@ internal fun FastingRow(
 ) {
     val fastFmt = formatFastingTime(fastingHours, stringResource(R.string.biolism_unit_week), stringResource(R.string.biolism_unit_day), stringResource(R.string.biolism_unit_month))
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (active && fastingHours > 0) VioletHaze else VioletTrace,
         border = BorderStroke(1.dp, if (active && fastingHours > 0) VioletBorder else VioletTrace),
         // art-direction-engine §CARDS: top-level Biolism tracker card with no
         // shadowElevation at all, unlike the rest of the card system.
-        shadowElevation = 6.dp,
+        shadowElevation = 0.dp,
     ) {
         Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {

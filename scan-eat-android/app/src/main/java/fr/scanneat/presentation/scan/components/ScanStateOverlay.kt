@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.medication.generateMedicationHints
@@ -37,6 +39,7 @@ import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
 import fr.scanneat.presentation.result.FactsCautionsColumn
 import fr.scanneat.presentation.scan.ScanUiState
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
 import fr.scanneat.presentation.ui.theme.IconSize
@@ -68,8 +71,10 @@ internal fun BoxScope.ScanStateOverlay(
             if (hasCamera && !cameraUnavailable) {
                 if (s.needsPhoto) {
                     Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp)
-                        .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-                        color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL), shadowElevation = 3.dp) {
+                        .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                        .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                        .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                        color = SurfaceVariant.copy(alpha = 0.42f), shape = RoundedCornerShape(CardRadius.CONTROL), shadowElevation = 0.dp) {
                         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
                             Icon(TablerIcons.Camera, null, tint = AccentCoral)
                             Spacer(Modifier.width(Spacing.S))

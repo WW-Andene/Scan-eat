@@ -21,10 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
@@ -64,10 +67,12 @@ internal fun MultiFoodFoundDialog(
                             shape = RoundedCornerShape(CardRadius.CONTROL),
                             color = OnBackground.copy(0.05f),
                             onClick = { onPick(persistedId) },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth()
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                                .clip(RoundedCornerShape(CardRadius.CONTROL)),
                             // design-aesthetic-audit §DH: matching the dialog
                             // list-row elevation established elsewhere - had none.
-                            shadowElevation = 3.dp,
+                            shadowElevation = 0.dp,
                         ) {
                             Row(
                                 modifier = Modifier.padding(Spacing.SM),

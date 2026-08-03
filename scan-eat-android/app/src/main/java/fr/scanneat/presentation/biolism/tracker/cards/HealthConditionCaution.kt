@@ -17,8 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticAmber
 
@@ -72,14 +75,16 @@ private val KETOSIS_CAUTIONS: Map<String, Pair<String, String>> = mapOf(
 @Composable
 private fun CautionBanner(text: String) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = semanticAmber().copy(alpha = 0.12f),
         border = BorderStroke(1.dp, semanticAmber().copy(alpha = 0.35f)),
         // art-direction-engine §CARDS: a health-safety caution (ketosis +
         // diabetes/kidney disease/pregnancy) deserves real prominence, matching
         // ErrorBanner's own reasoning - had no shadowElevation at all.
-        shadowElevation = 6.dp,
+        shadowElevation = 0.dp,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S),

@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -127,8 +129,10 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                             shape = RoundedCornerShape(CardRadius.CONTROL),
                             color = SurfaceVariant.copy(alpha = 0.42f),
                             modifier = Modifier.fillMaxWidth()
-                                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-                            shadowElevation = 3.dp,
+                                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                                .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                            shadowElevation = 0.dp,
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),
@@ -148,8 +152,10 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
                             shape = RoundedCornerShape(CardRadius.CONTROL),
                             color = SurfaceVariant.copy(alpha = 0.42f),
                             modifier = Modifier.fillMaxWidth()
-                                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-                            shadowElevation = 3.dp,
+                                .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                                .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                            shadowElevation = 0.dp,
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(horizontal = Spacing.M, vertical = Spacing.S),

@@ -11,10 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.Gold
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
@@ -41,10 +44,12 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = color.copy(0.04f),
         border = BorderStroke(1.dp, color.copy(0.15f)),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // design-aesthetic-audit §DH: this is the tracker screen's live-weight
         // hero display, but had no shadowElevation at all.
-        shadowElevation = 6.dp,
+        shadowElevation = 0.dp,
     ) {
         Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {

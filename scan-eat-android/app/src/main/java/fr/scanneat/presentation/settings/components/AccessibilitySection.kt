@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.Grade
@@ -58,7 +60,7 @@ internal fun AccessibilitySection(
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Grade.entries.forEach { grade ->
                 val c = gradeColor(grade)
-                Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f), shadowElevation = 3.dp) {
+                Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(6.dp), ambientColor = ShadowTint, spotColor = ShadowTint).clip(RoundedCornerShape(6.dp))) {
                     Text(
                         grade.label,
                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),

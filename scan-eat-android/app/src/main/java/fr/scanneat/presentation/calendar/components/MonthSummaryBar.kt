@@ -26,10 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.calendar.MonthSummary
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -53,14 +56,16 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
             Triple(Gold,        TablerIcons.Calendar,   stringResource(R.string.calendar_month_days, ms.activeDays)),
         ).forEach { (color, icon, label) ->
             Surface(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 color = color.copy(0.08f),
                 // art-direction-engine §CARDS: matching the small-stat-tile
                 // elevation tier already applied to FastingHistorySection/
                 // HistoryTopScannedRow - this was a plain flat Surface with
                 // no depth cue at all.
-                shadowElevation = 3.dp,
+                shadowElevation = 0.dp,
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.S),

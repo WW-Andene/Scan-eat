@@ -31,10 +31,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
 import fr.scanneat.presentation.ui.theme.IconSize
@@ -177,10 +180,13 @@ internal fun SuggestRecipesDialog(
                         itemsIndexed(results, key = { index, idea -> "$index-${idea.name}" }) { _, idea ->
                             Surface(
                                 shape = RoundedCornerShape(10.dp), color = OnBackground.copy(0.05f),
-                                onClick = { onPick(idea) }, modifier = Modifier.fillMaxWidth(),
+                                onClick = { onPick(idea) },
+                                modifier = Modifier.fillMaxWidth()
+                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(10.dp), ambientColor = ShadowTint, spotColor = ShadowTint)
+                                    .clip(RoundedCornerShape(10.dp)),
                                 // app-audit §E5: matching AddDiaryEntryDialog's
                                 // list-row elevation - had none.
-                                shadowElevation = 3.dp,
+                                shadowElevation = 0.dp,
                             ) {
                                 Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                     Text(idea.name, style = MaterialTheme.typography.bodyMedium, color = AccentCoral)

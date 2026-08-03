@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.*
 
@@ -31,10 +33,12 @@ internal fun ModeCard(selected: Boolean, title: String, subtitle: String, onClic
         // card already commits to when selected. A selected card showed a
         // coral tint with a plain gray border around it.
         border  = if (selected) BorderStroke(1.5.dp, AccentCoral) else null,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // design-aesthetic-audit §DH: this standalone selectable card had no
         // shadowElevation at all, unlike the rest of the card system.
-        shadowElevation = 3.dp,
+        shadowElevation = 0.dp,
     ) {
         Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
             // onClick = null: the whole Surface above is already clickable (onClick = onClick) —

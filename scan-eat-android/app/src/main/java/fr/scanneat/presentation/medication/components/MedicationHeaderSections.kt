@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.Medication
@@ -61,11 +63,14 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
         is InteractionWarning.NsaidAntiplatelet -> stringResource(R.string.medication_interaction_nsaid_antiplatelet)
     }
     Surface(
-        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f), modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f),
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // app-audit §E5: a drug-interaction warning (anticoagulant/NSAID, MAOI/SSRI,
         // etc.) is exactly the safety-relevant surface ErrorBanner/CautionBanner
         // already got real elevation for - this one was still flat.
-        shadowElevation = 6.dp,
+        shadowElevation = 0.dp,
         // art-direction-engine §CARDS: CautionBanner (health-condition caution) frames
         // its semantic tint with a matching border for extra material weight - this
         // banner, for an active drug interaction (arguably higher severity), had none.
@@ -93,8 +98,10 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = 0.42f),
-        modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
-        shadowElevation = 6.dp,
+        modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
+        shadowElevation = 0.dp,
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             // Was the static "Prise du jour" title regardless of completion - only

@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -168,7 +169,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                                 bmi < 30.0 -> semanticAmber()
                                 else       -> semanticRed()
                             }
-                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(1.dp, bmiColor.copy(0.3f)), shadowElevation = 3.dp) {
+                            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = bmiColor.copy(0.12f), border = androidx.compose.foundation.BorderStroke(1.dp, bmiColor.copy(0.3f)), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint).clip(RoundedCornerShape(CardRadius.CONTROL))) {
                                 Text(
                                     stringResource(R.string.biolism_onboard_bmi_preview, bmi.formatDecimal(1)),
                                     modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.XS),

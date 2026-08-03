@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
@@ -18,9 +20,11 @@ internal fun HydrationSuggestedGoalBanner(suggestedGoalMl: Int, onApply: (Int) -
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = semanticBlue().copy(0.1f),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // design-aesthetic-audit §DH: had no shadowElevation at all.
-        shadowElevation = 3.dp,
+        shadowElevation = 0.dp,
     ) {
         Row(
             modifier = Modifier.padding(Spacing.M),

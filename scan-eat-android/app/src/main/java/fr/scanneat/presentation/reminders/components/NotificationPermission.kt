@@ -41,7 +41,10 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 
 @Composable
 internal fun permissionState(): Triple<Boolean, Boolean, () -> Unit> {
@@ -89,9 +92,11 @@ internal fun PermissionBanner(permissionGranted: Boolean, permanentlyDenied: Boo
     val context = LocalContext.current
     if (!permissionGranted) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .clip(RoundedCornerShape(CardRadius.CONTROL)),
             color = AccentCoral.copy(alpha = 0.10f), shape = RoundedCornerShape(CardRadius.CONTROL),
-            shadowElevation = 6.dp,
+            shadowElevation = 0.dp,
         ) {
             Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.NotificationsActive, null, tint = AccentCoral)

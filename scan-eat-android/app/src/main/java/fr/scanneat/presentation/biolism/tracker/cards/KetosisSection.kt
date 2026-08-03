@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.tracker.StepperChip
@@ -25,13 +26,15 @@ internal fun KetosisToggleRow(
     val bgColor     = if (active) TealHaze   else TealTrace
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = bgColor,
         border = BorderStroke(1.dp, borderColor),
         // app-audit §E5: top-level Biolism tracker card with no shadowElevation
         // at all, unlike the rest of the card system.
-        shadowElevation = 6.dp,
+        shadowElevation = 0.dp,
     ) {
         Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
@@ -88,11 +91,13 @@ internal fun KetosisToggleRow(
 internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -> Unit) {
     val threeWeeks = ketoHours >= 504.0
     Surface(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).clickable { onToggle() },
+        modifier = Modifier.fillMaxWidth()
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)).clickable { onToggle() },
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = if (active) GoldHaze else GoldTrace,
         border = BorderStroke(1.dp, if (active) GoldBorder else GoldTrace),
-        shadowElevation = 6.dp,
+        shadowElevation = 0.dp,
     ) {
         Row(Modifier.fillMaxWidth().padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             // Same weight(1f) fix as KetosisToggleRow above - reserves the fixed

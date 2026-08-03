@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.Grade
@@ -146,9 +147,12 @@ fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenRes
             shape = RoundedCornerShape(CardRadius.CONTROL),
             color = SurfaceVariant.copy(0.94f),
             onClick = { if (peek.status is ShelfPeekStatus.Ready) onOpenResult(peek.status.resultId) else onDismiss() },
+            modifier = Modifier
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .clip(RoundedCornerShape(CardRadius.CONTROL)),
             // design-aesthetic-audit §DH: floats freely over the live camera
             // preview like ScanBarcodeChip/ScanHeaderOverlay, but had none.
-            shadowElevation = 6.dp,
+            shadowElevation = 0.dp,
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
