@@ -1,18 +1,33 @@
 package fr.scanneat.presentation.shell
 
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import compose.icons.TablerIcons
+import compose.icons.tablericons.Barcode
+import compose.icons.tablericons.Book
+import compose.icons.tablericons.ChartBar
+import compose.icons.tablericons.Heart
+import compose.icons.tablericons.Settings
 import fr.scanneat.R
 
+// F32 (docs/design-audit-step11-icons-illustration-dataviz-copy.md): pilot
+// batch of the icon-set migration — Material Rounded → Tabler Icons. Bottom
+// nav is the single most visible icon surface in the app, and a small,
+// individually-verified batch (each name confirmed against Tabler's own
+// generated icon list before use, not guessed from Material's naming) rather
+// than all ~250 usages at once. Barcode stands in for the Scan tab (Tabler
+// has no direct "QrCode"/"Scan" icon); Heart stands in for Biolism (Material's
+// MonitorHeart — a heart with a pulse line — has no exact Tabler equivalent;
+// a plain heart still reads as "vital signs" in context). Remaining ~245
+// Material icon usages across the rest of the app are unchanged — tracked as
+// incremental follow-up batches, same rollout pattern already used for
+// CollapsibleFilterBar/ScanEatDivider elsewhere in this codebase.
 sealed class TopTab(val route: String, @StringRes val labelRes: Int, val icon: ImageVector) {
-    data object Scan      : TopTab(AppRoutes.SCAN,      R.string.tab_scan,      Icons.Default.QrCodeScanner)
-    data object Diary     : TopTab(AppRoutes.DIARY,     R.string.tab_diary,     Icons.AutoMirrored.Filled.MenuBook)
-    data object Dashboard : TopTab(AppRoutes.DASHBOARD, R.string.tab_dashboard, Icons.Default.BarChart)
-    data object Biolism   : TopTab(AppRoutes.BIOLISM,   R.string.tab_biolism,   Icons.Default.MonitorHeart)
-    data object Settings  : TopTab(AppRoutes.SETTINGS,  R.string.tab_settings,  Icons.Default.Settings)
+    data object Scan      : TopTab(AppRoutes.SCAN,      R.string.tab_scan,      TablerIcons.Barcode)
+    data object Diary     : TopTab(AppRoutes.DIARY,     R.string.tab_diary,     TablerIcons.Book)
+    data object Dashboard : TopTab(AppRoutes.DASHBOARD, R.string.tab_dashboard, TablerIcons.ChartBar)
+    data object Biolism   : TopTab(AppRoutes.BIOLISM,   R.string.tab_biolism,   TablerIcons.Heart)
+    data object Settings  : TopTab(AppRoutes.SETTINGS,  R.string.tab_settings,  TablerIcons.Settings)
 }
 
 val TOP_TABS = listOf(TopTab.Dashboard, TopTab.Diary, TopTab.Scan, TopTab.Biolism, TopTab.Settings)

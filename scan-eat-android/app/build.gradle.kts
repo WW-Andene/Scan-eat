@@ -159,6 +159,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons)
     implementation(libs.compose.ui.text.google.fonts) // F19: brand typeface via Downloadable Fonts
+    implementation(libs.compose.icons.tabler) // F32: Tabler Icons, migrating incrementally from Material
     implementation(libs.activity.compose)
     implementation(libs.haze) // real backdrop blur for the floating glass chrome
     debugImplementation(libs.compose.ui.tooling)

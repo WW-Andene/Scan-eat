@@ -73,6 +73,13 @@ compose-material-icons   = { group = "androidx.compose.material", name = "materi
 # binary — resolves at runtime, no asset file needed, falls back gracefully
 # to the system font on devices without Play Services.
 compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
+# F32 (docs/design-audit-step11-icons-illustration-dataviz-copy.md): Tabler
+# Icons replace Material Rounded — Maven Central, no JitPack repo needed.
+# Migrating incrementally (bottom nav first) rather than all ~250 usages at
+# once, since Tabler's naming diverges enough from Material's (no direct
+# "Settings"/"Scan"/"QrCode" equivalents in some cases) that each icon needs
+# individual verification.
+compose-icons-tabler = { group = "br.com.devsrsouza.compose.icons", name = "tabler-icons", version = "1.1.1" }
 activity-compose         = { group = "androidx.activity", name = "activity-compose",         version.ref = "activity-compose" }
 
 # Navigation
