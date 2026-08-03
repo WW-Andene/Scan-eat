@@ -38,9 +38,11 @@ import fr.scanneat.util.formatDecimal
  */
 @Composable
 fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: () -> Unit, onOpenResult: (Long) -> Unit) {
-    val query   = viewModel.query.collectAsStateWithLifecycle()
-    val filter  = viewModel.filter.collectAsStateWithLifecycle()
-    val grouped = viewModel.groupedResults.collectAsStateWithLifecycle()
+    val query        = viewModel.query.collectAsStateWithLifecycle()
+    val filter       = viewModel.filter.collectAsStateWithLifecycle()
+    val grouped      = viewModel.groupedResults.collectAsStateWithLifecycle()
+    val onlineResults = viewModel.onlineResults.collectAsStateWithLifecycle()
+    val onlineState   = viewModel.onlineSearchState.collectAsStateWithLifecycle()
     var filtersExpanded by remember { mutableStateOf(false) }
     // SCANNED starts expanded - a user's own scanned products are the most
     // personally relevant/immediately useful section; the curated reference
@@ -49,6 +51,11 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
     fun toggleCategory(c: FoodSearchCategory) {
         expandedCategories = if (c in expandedCategories) expandedCategories - c else expandedCategories + c
     }
+
+    // A new typed query invalidates whatever the last "Rechercher en ligne" tap
+    // fetched - without this, changing the search box left a prior query's
+    // online results (and its barcodes) visible under an unrelated new query.
+    LaunchedEffect(query.value) { viewModel.clearOnlineResults() }
 
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.foodsearch_title), color = OnBackground) },
@@ -72,6 +79,17 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                     filter = filter.value,
                     onFilterChange = viewModel::setFilter,
                 )
+            }
+            if (query.value.isNotBlank()) {
+                item {
+                    OnlineSearchSection(
+                        query = query.value,
+                        state = onlineState.value,
+                        results = onlineResults.value,
+                        onSearchOnline = viewModel::searchOnline,
+                        onOpenItem = { item -> viewModel.openOnlineItem(item, onOpenResult) },
+                    )
+                }
             }
             if (grouped.value.isEmpty()) {
                 item {
@@ -119,6 +137,69 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
+        }
+    }
+}
+
+/**
+ * "Rechercher en ligne" - explicit-only (never auto-fires on typing, see
+ * FoodSearchViewModel.searchOnline's own doc comment), so it's a button + its
+ * own result state rather than folding into the always-live local search
+ * above. Shown whenever the query box isn't empty, regardless of whether the
+ * three local sources already found something - a name/ingredient/additive
+ * this user has never scanned or added is still a legitimate reason to look
+ * further even if a same-named local item exists.
+ */
+@Composable
+private fun OnlineSearchSection(
+    query: String,
+    state: OnlineSearchState,
+    results: List<FoodSearchItem>,
+    onSearchOnline: () -> Unit,
+    onOpenItem: (FoodSearchItem) -> Unit,
+) {
+    Column(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
+        if (state == OnlineSearchState.IDLE) {
+            Text(
+                stringResource(R.string.foodsearch_online_hint),
+                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+            )
+            Spacer(Modifier.height(Spacing.XS))
+        }
+        when (state) {
+            OnlineSearchState.LOADING -> Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = AccentCoral)
+                Spacer(Modifier.width(Spacing.S))
+                Text(stringResource(R.string.foodsearch_online_loading), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+            }
+            OnlineSearchState.ERROR -> Text(
+                stringResource(R.string.foodsearch_online_error),
+                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error,
+            )
+            OnlineSearchState.EMPTY -> Text(
+                stringResource(R.string.foodsearch_online_empty, query),
+                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+            )
+            else -> {}
+        }
+        if (state == OnlineSearchState.IDLE || state == OnlineSearchState.ERROR || state == OnlineSearchState.EMPTY) {
+            Spacer(Modifier.height(Spacing.XS))
+            OutlinedButton(onClick = onSearchOnline, shape = RoundedCornerShape(CardRadius.CONTROL)) {
+                Icon(Icons.Rounded.Search, null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(Spacing.XS))
+                Text(stringResource(R.string.foodsearch_online_search_button), style = MaterialTheme.typography.labelMedium)
+            }
+        }
+        if (state == OnlineSearchState.SUCCESS && results.isNotEmpty()) {
+            Spacer(Modifier.height(Spacing.S))
+            Text(
+                stringResource(R.string.foodsearch_online_section_header, results.size),
+                style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.height(Spacing.XS))
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                results.forEach { item -> FoodSearchRow(item, onOpenResult = {}, onOpenOnline = onOpenItem) }
+            }
         }
     }
 }
@@ -194,9 +275,21 @@ private fun CategoryHeader(category: FoodSearchCategory, count: Int, expanded: B
 }
 
 @Composable
-private fun FoodSearchRow(item: FoodSearchItem, onOpenResult: (Long) -> Unit) {
+private fun FoodSearchRow(
+    item: FoodSearchItem,
+    onOpenResult: (Long) -> Unit,
+    onOpenOnline: ((FoodSearchItem) -> Unit)? = null,
+) {
     var expanded by remember { mutableStateOf(false) }
-    val onClick = if (item.scanId != null) ({ onOpenResult(item.scanId) }) else ({ expanded = !expanded })
+    val onClick = when {
+        item.scanId != null -> ({ onOpenResult(item.scanId) })
+        // Online (Open Food Facts search) result, never scanned/saved by this
+        // user yet - tapping persists it first (see
+        // FoodSearchViewModel.openOnlineItem) then opens the real Result
+        // screen, same as item.scanId != null above.
+        item.barcode != null && onOpenOnline != null -> ({ onOpenOnline(item) })
+        else -> ({ expanded = !expanded })
+    }
     ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), onClick = onClick) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {

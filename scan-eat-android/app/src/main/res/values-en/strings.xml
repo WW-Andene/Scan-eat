@@ -1179,6 +1179,12 @@
     <string name="foodsearch_category_beverages">Beverages</string>
     <string name="foodsearch_category_prepared_meals">Prepared meals</string>
     <string name="foodsearch_category_other">Other</string>
+    <string name="foodsearch_online_hint">No local results? Search the Open Food Facts database (name, brand, ingredient, additive…).</string>
+    <string name="foodsearch_online_search_button">Search online</string>
+    <string name="foodsearch_online_loading">Searching online…</string>
+    <string name="foodsearch_online_empty">No online results for "%1$s".</string>
+    <string name="foodsearch_online_error">Online search failed. Check your connection and try again.</string>
+    <string name="foodsearch_online_section_header">Online results (%1$d)</string>
     <string name="planning_switcher_cd">Go to…</string>
     <string name="dashboard_tile_calendar">Calendar</string>
     <string name="dashboard_tile_history">History</string>

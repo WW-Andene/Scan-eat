@@ -18,6 +18,20 @@ interface OpenFoodFactsApi {
         @Query("fields") fields: String = OFF_FIELDS,
         @Query("lc") lang: String = "fr",
     ): OffResponse
+
+    // Legacy search endpoint, not the v2 barcode-lookup one above - OFF's v2 API
+    // has no free-text/ingredient search of its own, only this CGI endpoint does
+    // (search_terms matches name/brand/ingredients text server-side). Lets
+    // "Recherche" query the full Open Food Facts catalog by ingredient, additive,
+    // or any other keyword, not just the user's own scan history/curated DB.
+    @GET("cgi/search.pl")
+    suspend fun searchProducts(
+        @Query("search_terms") searchTerms: String,
+        @Query("page_size") pageSize: Int = 24,
+        @Query("fields") fields: String = OFF_SEARCH_FIELDS,
+        @Query("lc") lang: String = "fr",
+        @Query("json") json: Int = 1,
+    ): OffSearchResponse
 }
 
 val OFF_FIELDS = listOf(
@@ -27,6 +41,12 @@ val OFF_FIELDS = listOf(
     "quantity", "ecoscore_grade", "ecoscore_score", "nutrition_grades",
     "allergens_tags", "additives_tags",
 ).joinToString(",")
+
+// Same field set as a single-product lookup, plus "code" (the barcode) - the
+// search endpoint returns a list, so each result needs its own barcode to open
+// the full Result screen for it, unlike getProduct() where the caller already
+// knows the barcode it asked for.
+val OFF_SEARCH_FIELDS = "$OFF_FIELDS,code"
 
 const val OFF_USER_AGENT = "ScanEat/0.1 (Android; +https://github.com/scanneat)"
 
@@ -59,4 +79,12 @@ data class OffProductDto(
     @Json(name = "nutrition_grades") val nutritionGrades: String?,
     @Json(name = "allergens_tags") val allergensTags: List<String>?,
     @Json(name = "additives_tags") val additivesTags: List<String>?,
+    // Only populated by searchProducts() (see OFF_SEARCH_FIELDS) - null and
+    // unused on the single-barcode getProduct() path.
+    val code: String? = null,
+)
+
+@JsonClass(generateAdapter = true)
+data class OffSearchResponse(
+    val products: List<OffProductDto>?,
 )

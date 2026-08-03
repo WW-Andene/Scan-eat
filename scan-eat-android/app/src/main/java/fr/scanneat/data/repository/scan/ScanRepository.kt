@@ -170,6 +170,15 @@ class ScanRepository @Inject constructor(
     fun searchHistory(query: String, profileId: String = "default"): Flow<List<ScanResult>> =
         dao.searchByName(query, profileId).map { entities -> entities.mapNotNull { it.toDomain() } }
 
+    /**
+     * Free-text search against the whole Open Food Facts catalog (name, brand,
+     * ingredient, additive - whatever OFF's own search matches), unlike
+     * [searchHistory] above which only covers products this user has personally
+     * scanned before. Delegates to [offLookup] - see its own doc comment.
+     */
+    suspend fun searchOffProducts(query: String, lang: String): List<ScanResult> =
+        offLookup.searchOffProducts(query, lang)
+
     suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
 
     // ScanViewModel.todayScanCount collects this once at property-init time and keeps

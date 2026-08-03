@@ -1,6 +1,7 @@
 package fr.scanneat.data.repository.scan
 
 import fr.scanneat.data.remote.api.OffResponse
+import fr.scanneat.data.remote.api.OffSearchResponse
 import fr.scanneat.data.remote.api.OpenFoodFactsApi
 import fr.scanneat.domain.engine.nutrition.OffProductResponse
 import fr.scanneat.domain.engine.nutrition.classifyNonFood
@@ -176,6 +177,69 @@ internal class ScanOffLookup(
         )
         val audit = scoreProduct(estimatedProduct, lang)
         return ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
+    }
+
+    /**
+     * Free-text search against the whole Open Food Facts catalog - name, brand,
+     * or ingredient/additive keyword, whatever OFF's own search_terms matches
+     * server-side - not limited to the user's own scan history or the ~230-entry
+     * curated FOOD_DB the way FoodSearchViewModel's other two sources are. Each
+     * hit is scored the same way a direct barcode scan would be (estimated
+     * micronutrients + scoreProduct) so results carry a real grade, not just
+     * bare macros. Non-food OFF entries (household products, pet food, etc.) and
+     * results missing a barcode or usable name are silently dropped rather than
+     * surfaced as broken rows.
+     */
+    suspend fun searchOffProducts(query: String, lang: String, limit: Int = 24): List<ScanResult> {
+        if (query.isBlank()) return emptyList()
+        val response = fetchOffSearch(query, lang, limit) ?: return emptyList()
+        return response.products.orEmpty().mapNotNull { dto -> mapSearchResult(dto, lang) }
+    }
+
+    private suspend fun fetchOffSearch(query: String, lang: String, limit: Int): OffSearchResponse? {
+        var lastErr: Throwable? = null
+        repeat(OFF_MAX_ATTEMPTS) { attempt ->
+            try {
+                return offApi.searchProducts(searchTerms = query, pageSize = limit, lang = lang)
+            } catch (e: HttpException) {
+                if (e.code() != 429 && e.code() !in 500..599) return null
+                lastErr = e
+            } catch (e: IOException) {
+                lastErr = e
+            }
+            if (attempt < OFF_MAX_ATTEMPTS - 1) delay(backoffDelayMs(attempt))
+        }
+        return null
+    }
+
+    private fun mapSearchResult(dto: fr.scanneat.data.remote.api.OffProductDto, lang: String): ScanResult? {
+        val barcode = dto.code ?: return null
+        val name = dto.productNameFr ?: dto.productName ?: dto.genericNameFr
+        if (name.isNullOrBlank()) return null
+        if (classifyNonFood(dto.categoriesTags, name, dto.brands) != null) return null
+        val product = mapOffProduct(OffProductResponse(
+            productName       = dto.productName,
+            productNameFr     = dto.productNameFr,
+            genericNameFr     = dto.genericNameFr,
+            brands            = dto.brands,
+            categoriesTags    = dto.categoriesTags,
+            ingredientsTextFr = dto.ingredientsTextFr,
+            ingredientsText   = dto.ingredientsText,
+            novaGroup         = dto.novaGroup,
+            nutriments        = dto.nutriments?.mapValues { it.value },
+            labelsTags        = dto.labelsTags,
+            origins           = dto.origins,
+            countriesTags     = dto.countriesTags,
+            quantity          = dto.quantity,
+            ecoscoreGrade     = dto.ecoscoreGrade,
+            ecoscoreScore     = dto.ecoscoreScore,
+            nutritionGrades   = dto.nutritionGrades,
+            allergensTags     = dto.allergensTags,
+            additivesTags     = dto.additivesTags,
+        )) ?: return null
+        val estimated = product.copy(nutrition = product.nutrition.withEstimatedMicronutrients(product.category))
+        val audit = scoreProduct(estimated, lang)
+        return ScanResult(product = estimated, audit = audit, warnings = emptyList(), source = ScanSource.OPEN_FOOD_FACTS, barcode = barcode)
     }
 
     private companion object {

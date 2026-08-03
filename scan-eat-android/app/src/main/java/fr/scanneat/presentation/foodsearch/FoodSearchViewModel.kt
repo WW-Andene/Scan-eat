@@ -3,6 +3,7 @@ package fr.scanneat.presentation.foodsearch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
@@ -13,6 +14,7 @@ import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Simple threshold-based filters over the unified fields both sources below map into. */
@@ -150,6 +152,11 @@ data class FoodSearchItem(
     val category: FoodSearchCategory,
     val grade: Grade? = null,
     val scanId: Long? = null,
+    // Only set for an online (Open Food Facts search) result not yet saved to
+    // this user's own scan history - lets tapping the row persist it on demand
+    // (see FoodSearchViewModel.openOnlineItem) so it opens the real Result
+    // screen exactly like tapping a product they'd scanned themselves.
+    val barcode: String? = null,
 )
 
 private fun FoodEntry.toItem(isCustom: Boolean) = FoodSearchItem(
@@ -178,26 +185,57 @@ private fun FoodSearchItem.matches(filter: FoodSearchFilter): Boolean = when (fi
     FoodSearchFilter.CALCIUM_SOURCE -> calciumMg >= 100.0
 }
 
-// Typing a nutrient word ("fiber"/"fibre", "protein"/"protéine", "iron"/"fer",
-// "calcium") into the search box previously did nothing but a literal name
-// search - no product in FOOD_DB or scan history is actually named "fiber",
-// so the user got an empty result with no indication the HIGH_FIBER filter
-// chip above the list was what they actually wanted. Recognizing these
-// keywords and OR-ing in the matching nutrient threshold (on top of, not
-// instead of, the normal name search) makes typing the nutrient work the
-// same as tapping its filter chip.
-private val NUTRIENT_KEYWORD_FILTER: Map<String, FoodSearchFilter> = mapOf(
-    "fiber" to FoodSearchFilter.HIGH_FIBER, "fibre" to FoodSearchFilter.HIGH_FIBER,
-    "fibres" to FoodSearchFilter.HIGH_FIBER,
-    "protein" to FoodSearchFilter.HIGH_PROTEIN, "protéine" to FoodSearchFilter.HIGH_PROTEIN,
-    "proteine" to FoodSearchFilter.HIGH_PROTEIN, "protéines" to FoodSearchFilter.HIGH_PROTEIN,
-    "proteines" to FoodSearchFilter.HIGH_PROTEIN,
-    "iron" to FoodSearchFilter.IRON_SOURCE, "fer" to FoodSearchFilter.IRON_SOURCE,
-    "calcium" to FoodSearchFilter.CALCIUM_SOURCE,
-)
+/**
+ * One nutrient's alias words (French/English) plus its accessor on
+ * [FoodSearchItem] and, when meaningful, a "high X" default threshold used
+ * when the nutrient is typed bare with no comparison ("protéine" alone means
+ * "high protein", same as tapping the HIGH_PROTEIN chip). Nutrients with no
+ * sensible bare-word meaning (kcal, carbs, vitamins) require an explicit
+ * operator+number instead (see [NUTRIENT_QUERY_REGEX]).
+ */
+private class NutrientAlias(val getter: (FoodSearchItem) -> Double, val highThreshold: Double?)
 
-private fun keywordFilterFor(query: String): FoodSearchFilter? =
-    NUTRIENT_KEYWORD_FILTER[query.trim().lowercase()]
+private val NUTRIENT_ALIASES: Map<String, NutrientAlias> = buildMap {
+    fun reg(names: List<String>, highThreshold: Double?, getter: (FoodSearchItem) -> Double) {
+        val alias = NutrientAlias(getter, highThreshold)
+        names.forEach { put(it, alias) }
+    }
+    reg(listOf("kcal", "calorie", "calories", "energie", "énergie"), null) { it.kcal }
+    reg(listOf("protein", "proteine", "proteines", "protéine", "protéines"), 15.0) { it.proteinG }
+    reg(listOf("carb", "carbs", "glucide", "glucides"), null) { it.carbsG }
+    reg(listOf("fat", "gras", "lipide", "lipides", "matieres grasses", "matières grasses"), 17.5) { it.fatG }
+    reg(listOf("fiber", "fibre", "fibres"), 3.0) { it.fiberG }
+    reg(listOf("salt", "sel", "sodium"), 1.5) { it.saltG }
+    reg(listOf("iron", "fer"), 2.0) { it.ironMg }
+    reg(listOf("calcium"), 100.0) { it.calciumMg }
+    reg(listOf("vitamine d", "vitamined", "vitd"), null) { it.vitDUg }
+    reg(listOf("b12", "vitamine b12", "vitaminb12"), null) { it.b12Ug }
+}
+
+// Recognizes "<nutrient> <operator> <number>", e.g. "sucre<5", "sodium >= 200",
+// "protéine > 20" - a real threshold query over ANY nutrient FoodSearchItem
+// exposes, not just the 5 fixed filter chips above. Falls back, for a bare
+// nutrient word with no operator, to that nutrient's own "high X" default
+// (matching the old keyword-only behavior for fiber/protein/iron/calcium, now
+// extended to fat/salt too).
+private val NUTRIENT_QUERY_REGEX =
+    Regex("""^\s*([a-zàâäéèêëïîôöùûüç ]+?)\s*(<=|>=|<|>)\s*(\d+(?:[.,]\d+)?)\s*$""", RegexOption.IGNORE_CASE)
+
+private fun predicateFor(query: String): ((FoodSearchItem) -> Boolean)? {
+    val trimmed = query.trim().lowercase()
+    NUTRIENT_QUERY_REGEX.matchEntire(trimmed)?.let { m ->
+        val (rawName, op, rawNum) = m.destructured
+        val alias = NUTRIENT_ALIASES[rawName.trim()] ?: return null
+        val num = rawNum.replace(',', '.').toDoubleOrNull() ?: return null
+        return { item: FoodSearchItem ->
+            val v = alias.getter(item)
+            when (op) { "<" -> v < num; "<=" -> v <= num; ">" -> v > num; else -> v >= num }
+        }
+    }
+    val alias = NUTRIENT_ALIASES[trimmed] ?: return null
+    val threshold = alias.highThreshold ?: return null
+    return { item: FoodSearchItem -> alias.getter(item) >= threshold }
+}
 
 /**
  * "Recherche" — a full browse/search engine over EVERY product this app actually
@@ -216,6 +254,7 @@ private fun keywordFilterFor(query: String): FoodSearchFilter? =
 class FoodSearchViewModel @Inject constructor(
     private val customFoodRepo: CustomFoodRepository,
     private val scanRepo: ScanRepository,
+    private val prefs: UserPreferences,
 ) : ViewModel() {
 
     private val customFoods: StateFlow<List<FoodEntry>> = customFoodRepo.observeAll()
@@ -231,11 +270,11 @@ class FoodSearchViewModel @Inject constructor(
 
     private val debouncedQuery = _query.debounce(150)
 
-    // If the typed query is itself a nutrient keyword ("fiber", "protein", "iron",
-    // "calcium"...), search by name for it would always come back empty - browse
-    // the full dataset instead and let the nutrient-threshold filter below do the
+    // If the typed query is itself a nutrient query ("fiber", "protéine>20",
+    // "sel<0.3"...), search by name for it would always come back empty - browse
+    // the full dataset instead and let the nutrient predicate below do the
     // matching, same as if the user had tapped the corresponding filter chip.
-    private val effectiveSearchQuery: Flow<String> = debouncedQuery.map { q -> if (keywordFilterFor(q) != null) "" else q }
+    private val effectiveSearchQuery: Flow<String> = debouncedQuery.map { q -> if (predicateFor(q) != null) "" else q }
 
     // searchByName(query="") still matches every row (SQL LIKE '%%') and is already
     // ordered most-recent-first, capped at 300 - a real, DB-level search, not a
@@ -259,13 +298,76 @@ class FoodSearchViewModel @Inject constructor(
     /** Grouped by [FoodSearchCategory] (accordion sections), each sorted alphabetically. */
     val groupedResults: StateFlow<Map<FoodSearchCategory, List<FoodSearchItem>>> =
         combine(scannedItems, localItems, _filter, debouncedQuery) { scanned, local, f, q ->
-            // An explicitly-tapped filter chip always wins; a typed nutrient keyword
+            // An explicitly-tapped filter chip always wins; a typed nutrient query
             // only kicks in while the chip row is still on its default ALL state.
-            val effectiveFilter = if (f == FoodSearchFilter.ALL) keywordFilterFor(q) ?: f else f
+            val typedPredicate = if (f == FoodSearchFilter.ALL) predicateFor(q) else null
+            val effectivePredicate: (FoodSearchItem) -> Boolean = typedPredicate ?: { it.matches(f) }
             val scannedNames = scanned.map { it.name.lowercase() }.toSet()
             (scanned + local.filterNot { it.name.lowercase() in scannedNames })
-                .filter { it.matches(effectiveFilter) }
+                .filter(effectivePredicate)
                 .groupBy { it.category }
                 .mapValues { (_, items) -> items.sortedBy { it.name } }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    // Online (Open Food Facts search) results below are explicit-only
+    // ("Rechercher en ligne" button), never auto-triggered on typing - OFF is a
+    // public, rate-limited API, unlike the two local sources above which can
+    // safely re-query on every keystroke. Covers ingredient/additive/molecule
+    // search, which only scanned OFF products (not FOOD_DB/custom foods) carry
+    // data for - see ScanOffLookup.searchOffProducts.
+    //
+    // onlineRaw is kept alongside the flattened FoodSearchItem list so a tap on
+    // an online result can find its full ScanResult back (needed to persist it
+    // - see openOnlineItem) without threading the barcode through a lookup
+    // elsewhere.
+    private var onlineRaw: List<ScanResult> = emptyList()
+
+    private val _onlineResults = MutableStateFlow<List<FoodSearchItem>>(emptyList())
+    val onlineResults: StateFlow<List<FoodSearchItem>> = _onlineResults.asStateFlow()
+
+    private val _onlineSearchState = MutableStateFlow(OnlineSearchState.IDLE)
+    val onlineSearchState: StateFlow<OnlineSearchState> = _onlineSearchState.asStateFlow()
+
+    fun searchOnline() {
+        val q = _query.value.trim()
+        if (q.isBlank()) return
+        _onlineSearchState.value = OnlineSearchState.LOADING
+        viewModelScope.launch {
+            val lang = prefs.language.first()
+            val results = try {
+                scanRepo.searchOffProducts(q, lang)
+            } catch (e: Exception) {
+                _onlineSearchState.value = OnlineSearchState.ERROR
+                return@launch
+            }
+            onlineRaw = results
+            // toItem() sets scanId = dbId, which defaults to 0 (not null) for a
+            // ScanResult that was never persisted - left as-is, FoodSearchRow's
+            // `item.scanId != null` check would treat 0 as "already in this
+            // user's history" and call onOpenResult(0) instead of the
+            // online-persist path below. Forced back to null here since these
+            // results are never actually in scan_history yet.
+            _onlineResults.value = results.map { it.toItem().copy(scanId = null, barcode = it.barcode) }
+            _onlineSearchState.value = if (results.isEmpty()) OnlineSearchState.EMPTY else OnlineSearchState.SUCCESS
+        }
+    }
+
+    fun clearOnlineResults() {
+        onlineRaw = emptyList()
+        _onlineResults.value = emptyList()
+        _onlineSearchState.value = OnlineSearchState.IDLE
+    }
+
+    /**
+     * An online result isn't in this user's scan history yet - tapping it saves
+     * it first (same [ScanRepository.persist] every real scan goes through) so
+     * it opens the real, full Result screen exactly like any other product they
+     * scanned themselves, rather than a bare read-only macro preview.
+     */
+    fun openOnlineItem(item: FoodSearchItem, onOpened: (Long) -> Unit) {
+        val raw = onlineRaw.firstOrNull { it.barcode == item.barcode } ?: return
+        viewModelScope.launch { onOpened(scanRepo.persist(raw)) }
+    }
 }
+
+enum class OnlineSearchState { IDLE, LOADING, SUCCESS, EMPTY, ERROR }
