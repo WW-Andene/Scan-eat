@@ -215,6 +215,12 @@ class ActivityRepository @Inject constructor(
     fun observeRange(from: LocalDate, to: LocalDate, profileId: String = "default"): Flow<List<ActivityEntry>> =
         dao.observeRange(from.toIsoString(), to.toIsoString(), profileId).map { list -> list.mapNotNull { it.toDomain() } }
 
+    /** All distinct workout dates across full history — for logStreakDays/longestLogStreak,
+     * which need every date ever logged, not just whatever a fixed-size getRange window
+     * happens to cover. Same pattern as ConsumptionRepository.getAllLoggedDates(). */
+    suspend fun getAllLoggedDates(profileId: String = "default"): Set<LocalDate> =
+        dao.getAllLoggedDates(profileId).mapNotNullTo(mutableSetOf()) { runCatching { it.toLocalDate() }.getOrNull() }
+
     /**
      * Pulls in workouts Health Connect has from an *external* source (a
      * fitness tracker's own app, etc.) that aren't already imported - sync

@@ -1168,6 +1168,10 @@
         <item quantity="one">Record : %1$d jour</item>
         <item quantity="other">Record : %1$d jours</item>
     </plurals>
+    <plurals name="dashboard_workout_streak">
+        <item quantity="one">Série sport : %1$d jour</item>
+        <item quantity="other">Série sport : %1$d jours</item>
+    </plurals>
     <string name="dashboard_features_title">Fonctionnalités</string>
     <string name="dashboard_tile_recipes">Recettes</string>
     <string name="dashboard_tile_templates">Modèles</string>

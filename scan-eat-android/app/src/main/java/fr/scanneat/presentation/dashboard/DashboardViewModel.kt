@@ -206,7 +206,12 @@ class DashboardViewModel @Inject constructor(
                 medsTakenCount  = activeMeds.count { it.id in takenIds },
                 medsActiveCount = activeMeds.size,
             )
-        }
+        }.combine(
+            // Same window-capping trap logStreakDays' own doc comment warns about -
+            // getAllLoggedDates() (not a fixed observeRange window) is the only safe
+            // input, same as the diary-logging streak above.
+            flow { emit(activityRepo.getAllLoggedDates()) },
+        ) { snapshot, workoutDates -> snapshot.copy(workoutStreak = logStreakDays(workoutDates, date)) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OtherTrackersSnapshot())
 
     // Gap-suggestion / never-logged-scan logging state+actions extracted to

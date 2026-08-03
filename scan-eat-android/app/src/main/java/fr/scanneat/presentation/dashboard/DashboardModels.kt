@@ -74,4 +74,8 @@ data class OtherTrackersSnapshot(
     val fastingActive: FastingState? = null,
     val medsTakenCount: Int = 0,
     val medsActiveCount: Int = 0,
+    // Same logStreakDays engine the diary-logging streak already uses (see
+    // DashboardHeavyState), just fed workout dates instead of diary dates -
+    // Activity has never had its own streak surfaced anywhere in the app.
+    val workoutStreak: Int = 0,
 )

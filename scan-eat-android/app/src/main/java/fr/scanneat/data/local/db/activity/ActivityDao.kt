@@ -18,6 +18,12 @@ interface ActivityDao {
     @Query("SELECT * FROM activity_log WHERE date BETWEEN :from AND :to AND profileId = :profileId ORDER BY date ASC")
     fun observeRange(from: String, to: String, profileId: String = "default"): Flow<List<ActivityEntity>>
 
+    /** Distinct logged dates across all history — for streak calculations, which need the
+     * true unbroken run length rather than whatever a fixed lookback window happens to contain.
+     * Same pattern as ConsumptionDao.getAllLoggedDates(). */
+    @Query("SELECT DISTINCT date FROM activity_log WHERE profileId = :profileId")
+    suspend fun getAllLoggedDates(profileId: String = "default"): List<String>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ActivityEntity): Long
 

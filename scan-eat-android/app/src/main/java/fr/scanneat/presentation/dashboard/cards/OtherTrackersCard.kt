@@ -7,15 +7,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.FitnessCenter
 import androidx.compose.material.icons.rounded.Medication
 import androidx.compose.material.icons.rounded.Opacity
 import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -82,6 +85,27 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
                 label = stringResource(R.string.dashboard_other_trackers_meds_label),
                 modifier = Modifier.weight(1f),
             )
+        }
+        // Activity has never had its own streak surfaced anywhere in the app,
+        // unlike diary-logging (CalorieBalanceCard) - same logStreakDays engine,
+        // just fed workout dates. A separate line rather than a 4th column so
+        // the existing 3-column row's equal-weight alignment isn't disturbed.
+        if (snapshot.workoutStreak > 0) {
+            androidx.compose.foundation.layout.Spacer(Modifier.size(Spacing.SM))
+            HorizontalDivider(modifier = Modifier.fillMaxWidth(), color = OnSurface.copy(0.07f))
+            androidx.compose.foundation.layout.Spacer(Modifier.size(Spacing.SM))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Rounded.FitnessCenter, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                Text(
+                    pluralStringResource(R.plurals.dashboard_workout_streak, snapshot.workoutStreak, snapshot.workoutStreak),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = OnSurface.copy(0.6f),
+                )
+            }
         }
     }
 }
