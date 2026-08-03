@@ -59,7 +59,11 @@ fun EmptyListState(icon: ImageVector, message: String, ctaLabel: String? = null,
                 )
                 Icon(icon, null, tint = AccentCoral.copy(0.45f), modifier = Modifier.size(IconSize.EmptyState))
             }
-            Text(message, color = OnBackground.copy(0.5f))
+            // §E3 contrast audit: OnBackground.copy(0.5f) only reaches 3.18:1 on
+            // Light (below 4.5:1 AA) - TextSecondary is theme-tuned to clear AA
+            // in every theme, and this is the app's one shared empty-state
+            // component, so the fix reaches every empty state at once.
+            Text(message, color = TextSecondary)
             if (ctaLabel != null && onCta != null) {
                 ScanEatPrimaryButton(onClick = onCta) { Text(ctaLabel) }
             }
