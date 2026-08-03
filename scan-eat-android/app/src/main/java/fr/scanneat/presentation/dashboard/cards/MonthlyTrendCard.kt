@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowDownRight
+import compose.icons.tablericons.ArrowUpRight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,7 +62,7 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
             val color = if (d.kcal <= 0) semanticGreen() else semanticAmber()
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(
-                    if (d.kcal >= 0) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
+                    if (d.kcal >= 0) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
                     null, tint = color, modifier = Modifier.size(14.dp),
                 )
                 Text(

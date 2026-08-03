@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.dashboard
 
+import compose.icons.tablericons.History
 import compose.icons.tablericons.Search
 import compose.icons.tablericons.ShoppingCart
 import compose.icons.tablericons.Calendar
@@ -238,7 +239,7 @@ fun DashboardScreen(
                     // delete) was reachable ONLY via the "View all" link below, itself
                     // gated on recentScans.isNotEmpty() - a brand-new user with zero
                     // scans had no way to open it at all. This tile is unconditional.
-                    FeatureTile(Icons.Rounded.History, stringResource(R.string.dashboard_tile_history), Modifier.weight(1f), onClick = onOpenHistory)
+                    FeatureTile(TablerIcons.History, stringResource(R.string.dashboard_tile_history), Modifier.weight(1f), onClick = onOpenHistory)
                     // Previously an unused spacer slot - FOOD_DB's ~130 curated foods
                     // (plus the user's own custom foods) were only ever reachable
                     // through a 6-10-result Quick Add autocomplete dropdown, never as
@@ -277,7 +278,7 @@ fun DashboardScreen(
                     // tap away via the bottom nav, but this empty state gave no hint
                     // of that, unlike every other first-run empty state in the app.
                     EmptyListState(
-                        Icons.Rounded.History, stringResource(R.string.dashboard_recent_scans_empty),
+                        TablerIcons.History, stringResource(R.string.dashboard_recent_scans_empty),
                         ctaLabel = stringResource(R.string.dashboard_recent_scans_empty_cta), onCta = onOpenScan,
                     )
                 }

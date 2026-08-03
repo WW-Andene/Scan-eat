@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.tablericons.ArrowDownRight
+import compose.icons.tablericons.ArrowUpRight
 import compose.icons.tablericons.CircleCheck
 import compose.icons.TablerIcons
 import compose.icons.tablericons.AlertTriangle
@@ -70,7 +72,7 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
         if (insight.weeklyActiveMinutes > 0) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(
-                    if (insight.weeklyActiveMinutes >= 150) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
+                    if (insight.weeklyActiveMinutes >= 150) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
                     null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(14.dp),
                 )
                 Text(

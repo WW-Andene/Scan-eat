@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.scan.components
 
+import compose.icons.tablericons.History
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Search
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -124,7 +125,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                     shadowElevation = 3.dp,
                 ) {
                     Row(Modifier.padding(horizontal = Spacing.SM, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Icon(Icons.Rounded.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
+                        Icon(TablerIcons.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
                         Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
                     }
                 }

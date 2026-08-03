@@ -1,5 +1,8 @@
 package fr.scanneat.presentation.dashboard.cards
 
+import compose.icons.TablerIcons
+import compose.icons.tablericons.ArrowDownRight
+import compose.icons.tablericons.ArrowUpRight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,7 +39,7 @@ internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Icon(
-            if (delta.kcal >= 0) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
+            if (delta.kcal >= 0) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
             null, tint = color, modifier = Modifier.size(16.dp),
         )
         Text(

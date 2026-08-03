@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.history
 
+import compose.icons.tablericons.History
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.*
@@ -154,7 +155,7 @@ fun ScanHistoryScreen(
                 if (scans.value.isEmpty()) {
                     item {
                         EmptyListState(
-                            Icons.Rounded.History,
+                            TablerIcons.History,
                             when {
                                 query.value.isNotBlank() -> stringResource(R.string.history_empty_query, query.value)
                                 favoritesOnly.value       -> stringResource(R.string.history_empty_favorites)
