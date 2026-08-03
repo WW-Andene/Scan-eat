@@ -51,6 +51,7 @@ class UserPreferences @Inject constructor(
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         val KEY_BUDGET_WEEKLY        = floatPreferencesKey("budget_weekly_euros")
         val KEY_BUDGET_PER_MEAL      = floatPreferencesKey("budget_per_meal_euros")
+        val KEY_IS_PREMIUM           = booleanPreferencesKey("is_premium")
         // Profile — flat keys
         val KEY_PROFILE_NAME         = stringPreferencesKey("profile_name")
         val KEY_PROFILE_SEX          = stringPreferencesKey("profile_sex")
@@ -162,6 +163,17 @@ class UserPreferences @Inject constructor(
     suspend fun setUseImperialWeight(v: Boolean)  = store.edit { it[KEY_USE_IMPERIAL_WEIGHT] = v }
     suspend fun setBiolismAdvancedView(v: Boolean) = store.edit { it[KEY_BIOLISM_ADVANCED] = v }
     suspend fun setAnimatedBackground(v: Boolean)  = store.edit { it[KEY_ANIMATED_BACKGROUND] = v }
+
+    /**
+     * Freemium gate: Biolism (metabolism tracking) and AI-powered photo/label
+     * scanning are the two paid-tier features - everything else stays free.
+     * No real payment processor is wired up yet (Google Play Billing requires
+     * Play Console product configuration first); this flag is the single
+     * source of truth every gated screen reads, so wiring Billing later only
+     * means replacing setIsPremium's caller, not touching any gated screen.
+     */
+    val isPremium: Flow<Boolean> = storeData.map { it[KEY_IS_PREMIUM] ?: false }.distinctUntilChanged()
+    suspend fun setIsPremium(v: Boolean) = store.edit { it[KEY_IS_PREMIUM] = v }
 
     // ---- Profile ----
 

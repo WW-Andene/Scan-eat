@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -15,7 +16,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import fr.scanneat.R
 import fr.scanneat.presentation.biolism.BiolismScreen
+import fr.scanneat.presentation.premium.PremiumGate
 import fr.scanneat.presentation.calendar.CalendarScreen
 import fr.scanneat.presentation.customfood.CustomFoodScreen
 import fr.scanneat.presentation.dashboard.DashboardScreen
@@ -160,7 +163,18 @@ fun AppNavGraph(
             )
         }
 
-        composable(TopTab.Biolism.route) { BiolismScreen() }
+        composable(TopTab.Biolism.route) {
+            PremiumGate(
+                lockedMessage = stringResource(R.string.settings_premium_required_biolism),
+                onOpenSettings = {
+                    navController.navigate(TopTab.Settings.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+            ) { BiolismScreen() }
+        }
 
         composable(AppRoutes.FOOD_SEARCH) {
             FoodSearchScreen(

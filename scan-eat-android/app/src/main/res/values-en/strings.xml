@@ -1016,6 +1016,16 @@
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Settings</string>
+    <string name="settings_section_premium">Premium</string>
+    <string name="settings_premium_active">Premium active — metabolism tracking and AI photo scanning unlocked.</string>
+    <string name="settings_premium_pitch">Everything in Scan\'eat is free, except metabolism tracking (Biolism) and AI-assisted photo scanning.</string>
+    <string name="settings_premium_upgrade_hint">Unlock these two features.</string>
+    <string name="settings_premium_downgrade_hint">You can disable Premium at any time.</string>
+    <string name="settings_premium_enable_button">Go Premium</string>
+    <string name="settings_premium_disable_button">Disable</string>
+    <string name="settings_premium_required_biolism">Metabolism tracking (Biolism) is a Premium feature.</string>
+    <string name="settings_premium_required_ai_scan">AI-assisted photo scanning is a Premium feature.</string>
+    <string name="settings_premium_go_to_settings">See Premium in Settings</string>
     <string name="settings_section_api_mode">API Mode</string>
     <string name="settings_api_mode_hint">Barcode scanning always works with nothing configured here. This only affects AI recognition — photographing a label for a product with no barcode, or one whose listing is incomplete.</string>
     <string name="settings_mode_direct">Direct</string>

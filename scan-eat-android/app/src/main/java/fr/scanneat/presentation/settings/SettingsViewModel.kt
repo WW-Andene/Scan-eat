@@ -74,6 +74,8 @@ class SettingsViewModel @Inject constructor(
     val useImperialWeight = prefs.useImperialWeight.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val biolismAdvancedView = prefs.biolismAdvancedView.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
     val animatedBackground = prefs.animatedBackground.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    /** Freemium gate - see UserPreferences.isPremium's own doc comment. */
+    val isPremium = prefs.isPremium.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private val _savedField = MutableStateFlow<String?>(null)
     /** Which field was just saved — SettingsScreen shows a brief confirmation, then clears it. */
@@ -115,6 +117,12 @@ class SettingsViewModel @Inject constructor(
     fun setUseImperialWeight(v: Boolean) = guardedLaunch { prefs.setUseImperialWeight(v) }
     fun setBiolismAdvancedView(v: Boolean) = guardedLaunch { prefs.setBiolismAdvancedView(v) }
     fun setAnimatedBackground(v: Boolean) = guardedLaunch { prefs.setAnimatedBackground(v) }
+    // No payment processor wired up yet (Google Play Billing needs Play Console
+    // product configuration first) - this setter is the temporary manual toggle
+    // until a real purchase flow replaces this call site. Every gated screen
+    // reads UserPreferences.isPremium, not this ViewModel, so swapping the
+    // caller later requires no change to the gated screens themselves.
+    fun setIsPremium(v: Boolean) = guardedLaunch { prefs.setIsPremium(v) }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Backup export/import

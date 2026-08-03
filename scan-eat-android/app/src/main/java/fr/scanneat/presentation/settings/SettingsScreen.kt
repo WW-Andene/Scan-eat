@@ -31,11 +31,13 @@ import fr.scanneat.presentation.settings.components.LanguageSection
 import fr.scanneat.presentation.settings.components.LegalSection
 import fr.scanneat.presentation.settings.components.MAX_BACKUP_IMPORT_BYTES
 import fr.scanneat.presentation.settings.components.OssLicensesDialog
+import fr.scanneat.presentation.settings.components.PremiumSection
 import fr.scanneat.presentation.settings.components.ProfileSection
 import fr.scanneat.presentation.settings.components.RemindersSection
 import fr.scanneat.presentation.settings.components.ResetConfirmDialog
 import fr.scanneat.presentation.settings.components.ResetTarget
 import fr.scanneat.presentation.settings.components.ServerUrlSection
+import fr.scanneat.presentation.settings.components.SettingsSection
 import fr.scanneat.presentation.settings.components.ThemeSection
 import fr.scanneat.presentation.settings.components.UnitsSection
 import fr.scanneat.presentation.ui.theme.*
@@ -62,6 +64,7 @@ fun SettingsScreen(
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
     val animatedBackground = viewModel.animatedBackground.collectAsStateWithLifecycle()
+    val isPremium = viewModel.isPremium.collectAsStateWithLifecycle()
     val savedField = viewModel.savedField.collectAsStateWithLifecycle()
     val backupState = viewModel.backupState.collectAsStateWithLifecycle()
     val healthConnectAvailability = viewModel.healthConnectAvailability.collectAsStateWithLifecycle()
@@ -222,32 +225,52 @@ fun SettingsScreen(
             // weigh-ins, activity, and fasting targets app-wide. ----
             item { RemindersSection(onOpenReminders) }
 
+            // ---- Premium — everything else is free; this gates Biolism (metabolism)
+            // and AI photo scanning only. Placed above the AI key sections below since
+            // it's the reason those are locked out for a non-Premium user. ----
+            item { PremiumSection(isPremium.value, onSetPremium = viewModel::setIsPremium) }
+
             // ---- API Mode ----
             item { ApiModeSection(mode.value, onModeChange = viewModel::setMode) }
 
-            // ---- Groq API key ----
+            // ---- Groq/Cerebras API keys — AI photo scanning is Premium-gated. Without
+            // a configured key, OcrParser's callers already fall back to "add a photo to
+            // continue" / barcode-only scoring (see ScanOffLookup.scoreDirectBarcode) -
+            // gating key *entry* here is enough to gate the whole AI path, no change
+            // needed to the scan flow itself. ----
             if (mode.value == ApiMode.DIRECT) {
-                item {
-                    GroqKeySection(
-                        localKey = localKey, onLocalKeyChange = { localKey = it },
-                        keyVisible = keyVisible, onToggleVisible = { keyVisible = !keyVisible },
-                        saved = savedField.value == "apiKey", onSave = { viewModel.saveApiKey(localKey) },
-                    )
-                }
+                if (isPremium.value) {
+                    item {
+                        GroqKeySection(
+                            localKey = localKey, onLocalKeyChange = { localKey = it },
+                            keyVisible = keyVisible, onToggleVisible = { keyVisible = !keyVisible },
+                            saved = savedField.value == "apiKey", onSave = { viewModel.saveApiKey(localKey) },
+                        )
+                    }
 
-                // ---- Cerebras API key — second provider, automatic fallback ----
-                // Previously this section let the user pick a specific Groq model by
-                // name — but Groq model names get retired/renamed, and there was no
-                // way to recover except opening this screen and picking a new one.
-                // The app now cycles through models/providers automatically (see
-                // OcrParser); the only thing left to configure here is a second
-                // provider's key so scanning survives Groq being down entirely.
-                item {
-                    CerebrasKeySection(
-                        localCerebrasKey = localCerebrasKey, onLocalCerebrasKeyChange = { localCerebrasKey = it },
-                        cerebrasKeyVisible = cerebrasKeyVisible, onToggleVisible = { cerebrasKeyVisible = !cerebrasKeyVisible },
-                        saved = savedField.value == "cerebrasApiKey", onSave = { viewModel.saveCerebrasApiKey(localCerebrasKey) },
-                    )
+                    // ---- Cerebras API key — second provider, automatic fallback ----
+                    // Previously this section let the user pick a specific Groq model by
+                    // name — but Groq model names get retired/renamed, and there was no
+                    // way to recover except opening this screen and picking a new one.
+                    // The app now cycles through models/providers automatically (see
+                    // OcrParser); the only thing left to configure here is a second
+                    // provider's key so scanning survives Groq being down entirely.
+                    item {
+                        CerebrasKeySection(
+                            localCerebrasKey = localCerebrasKey, onLocalCerebrasKeyChange = { localCerebrasKey = it },
+                            cerebrasKeyVisible = cerebrasKeyVisible, onToggleVisible = { cerebrasKeyVisible = !cerebrasKeyVisible },
+                            saved = savedField.value == "cerebrasApiKey", onSave = { viewModel.saveCerebrasApiKey(localCerebrasKey) },
+                        )
+                    }
+                } else {
+                    item {
+                        SettingsSection(stringResource(R.string.settings_section_groq_key), icon = null) {
+                            Text(
+                                stringResource(R.string.settings_premium_required_ai_scan),
+                                style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
+                            )
+                        }
+                    }
                 }
             }
 

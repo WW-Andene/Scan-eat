@@ -1068,6 +1068,16 @@
 
     <!-- ── Settings screen ────────────────────────────────────────────────── -->
     <string name="settings_title">Paramètres</string>
+    <string name="settings_section_premium">Premium</string>
+    <string name="settings_premium_active">Premium actif — métabolisme et scan par photo IA débloqués.</string>
+    <string name="settings_premium_pitch">Tout est gratuit dans Scan\'eat, sauf le suivi du métabolisme (Biolism) et le scan par photo assisté par IA.</string>
+    <string name="settings_premium_upgrade_hint">Débloquez ces deux fonctionnalités.</string>
+    <string name="settings_premium_downgrade_hint">Vous pouvez désactiver Premium à tout moment.</string>
+    <string name="settings_premium_enable_button">Passer Premium</string>
+    <string name="settings_premium_disable_button">Désactiver</string>
+    <string name="settings_premium_required_biolism">Le suivi du métabolisme (Biolism) est une fonctionnalité Premium.</string>
+    <string name="settings_premium_required_ai_scan">Le scan par photo assisté par IA est une fonctionnalité Premium.</string>
+    <string name="settings_premium_go_to_settings">Voir Premium dans les Réglages</string>
     <string name="settings_section_api_mode">Mode API</string>
     <string name="settings_api_mode_hint">Scanner un code-barres fonctionne toujours sans rien configurer ici. Ceci ne s\'applique qu\'à la reconnaissance par IA — photographier une étiquette pour un produit sans code-barres, ou un produit dont la fiche est incomplète.</string>
     <string name="settings_mode_direct">Direct</string>
