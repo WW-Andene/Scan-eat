@@ -16,6 +16,7 @@ import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.engine.scoring.healthConditionCautions
 import fr.scanneat.domain.engine.scoring.dailyTargets
 import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.domain.engine.scoring.withKcalOverride
@@ -107,17 +108,52 @@ class DiaryViewModel @Inject constructor(
      * a product containing one of their declared allergens and see the
      * warning on Result once, then never again anywhere in the Journal.
      */
-    val diaryWarnings: StateFlow<Map<Long, String>> = combine(summary, prefs.profile, language) { s, profile, lang ->
-        s.entries.mapNotNull { entry ->
+    // entry id -> (warning text or null, "recommended" flag) - single pass shared
+    // by diaryWarnings and diaryRecommended below so the allergen/diet/condition
+    // checks only run once per entry per recomposition, not twice.
+    private data class FoodProfileStatus(val warning: String?, val recommended: Boolean)
+
+    private val diaryFoodStatus: StateFlow<Map<Long, FoodProfileStatus>> = combine(summary, prefs.profile, language) { s, profile, lang ->
+        s.entries.associate { entry ->
             val product = entry.toCheckProduct()
             val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
             val dietResult = checkDiet(product, profile.diet, lang)
+            // Same profile.healthConditions the score itself reads (diabetes/
+            // hypertension/ibs/crohn_ibd/... - see healthConditionCautions()) -
+            // previously only allergens/diet ever resurfaced here, so a logged
+            // product that tripped one of the user's health conditions never
+            // showed anything once it left the Result screen.
+            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
             val parts = mutableListOf<String>()
             allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
             dietResult.reason?.let { parts += it }
-            if (parts.isEmpty()) null else entry.id to parts.joinToString(" · ")
-        }.toMap()
+            conditionHits.firstOrNull()?.let { parts += it }
+            val warning = if (parts.isEmpty()) null else parts.joinToString(" · ")
+            // Only surface a positive "recommended" badge when the user has
+            // actually declared something to be recommended against (allergens,
+            // a diet, or a health condition) - otherwise every entry would show
+            // it, which communicates nothing.
+            val hasDeclaredProfile = profile.allergens.isNotEmpty() || profile.diet != fr.scanneat.domain.engine.scoring.DietKey.NONE || profile.healthConditions.isNotEmpty()
+            entry.id to FoodProfileStatus(warning, recommended = warning == null && hasDeclaredProfile)
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * entry id -> short warning, e.g. "Allergen: gluten" or a diet-compliance
+     * reason - same checkUserAllergens()/checkDiet() pattern already used live
+     * by RecipesViewModel.recipeWarnings/GroceryViewModel/TemplatesViewModel.
+     * Previously nothing in the Diary ever ran either check: a user could log
+     * a product containing one of their declared allergens and see the
+     * warning on Result once, then never again anywhere in the Journal.
+     */
+    val diaryWarnings: StateFlow<Map<Long, String>> = diaryFoodStatus
+        .map { statuses -> statuses.mapNotNull { (id, status) -> status.warning?.let { id to it } }.toMap() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /** Entry ids with no allergen/diet/condition issue, when the user has declared at least one of those. */
+    val diaryRecommended: StateFlow<Set<Long>> = diaryFoodStatus
+        .map { statuses -> statuses.filterValues { it.recommended }.keys }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     fun goToPreviousDay() { _selectedDate.value = _selectedDate.value.minusDays(1) }
     fun goToNextDay()     { _selectedDate.value = _selectedDate.value.plusDays(1) }

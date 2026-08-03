@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.WarningAmber
@@ -28,10 +29,11 @@ import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.semanticAmber
+import fr.scanneat.presentation.ui.theme.semanticGreen
 import kotlin.math.roundToInt
 
 @Composable
-internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, onDelete: () -> Unit, onEdit: () -> Unit) {
+internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommended: Boolean = false, onDelete: () -> Unit, onEdit: () -> Unit) {
     ScanEatCard(
         onClick = onEdit,
         shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M),
@@ -55,6 +57,16 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, onDelete
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(Icons.Rounded.WarningAmber, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
                         Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                // Positive counterpart to the warning above - only shown when the
+                // user has actually declared an allergen/diet/health condition (see
+                // DiaryViewModel.diaryFoodStatus.hasDeclaredProfile), so this reads
+                // as "checked against your profile and fine", not a meaningless
+                // default shown on every single entry.
+                } else if (recommended) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = semanticGreen(), modifier = Modifier.size(14.dp))
+                        Text(stringResource(R.string.diary_entry_recommended), style = MaterialTheme.typography.bodySmall, color = semanticGreen(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }

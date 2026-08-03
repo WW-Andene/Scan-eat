@@ -15,6 +15,7 @@ import fr.scanneat.data.repository.planning.RecipeRepository
 import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
+import fr.scanneat.domain.engine.scoring.healthConditionCautions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -173,9 +174,11 @@ class GroceryViewModel @Inject constructor(
             val product = item.toCheckProduct()
             val allergenHits = if (profile.allergens.isNotEmpty()) checkUserAllergens(product, profile.allergens, lang) else emptyList()
             val dietResult = checkDiet(product, profile.diet, lang)
+            val conditionHits = healthConditionCautions(product, profile.healthConditions, lang)
             val parts = mutableListOf<String>()
             allergenHits.firstOrNull()?.let { parts += if (lang == "en") "Allergen: ${it.labelEn}" else "Allergène : ${it.labelFr}" }
             dietResult.reason?.let { parts += it }
+            conditionHits.firstOrNull()?.let { parts += it }
             if (parts.isEmpty()) null else item.key to parts.joinToString(" · ")
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())

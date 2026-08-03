@@ -287,6 +287,7 @@ private fun MealsTab(
     val goalTargets  = viewModel.goalTargets.collectAsStateWithLifecycle()
     val goalWeightKg = viewModel.goalWeightKg.collectAsStateWithLifecycle()
     val diaryWarnings = viewModel.diaryWarnings.collectAsStateWithLifecycle()
+    val diaryRecommended = viewModel.diaryRecommended.collectAsStateWithLifecycle()
     val useImperial  = viewModel.useImperial.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show the day name in the wrong language.
@@ -421,7 +422,7 @@ private fun MealsTab(
                         )
                     }
                     items(slotEntries, key = { it.id }) { entry ->
-                        DiaryEntryCard(entry = entry, warning = diaryWarnings.value[entry.id], onDelete = { deleteTarget = entry.id }, onEdit = { editTarget = entry })
+                        DiaryEntryCard(entry = entry, warning = diaryWarnings.value[entry.id], recommended = entry.id in diaryRecommended.value, onDelete = { deleteTarget = entry.id }, onEdit = { editTarget = entry })
                     }
                 }
             }

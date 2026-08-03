@@ -209,6 +209,7 @@ class ScanRepository @Inject constructor(
         scan: ScanResult,
         allergens: Set<String> = emptySet(),
         dietKey: DietKey = DietKey.NONE,
+        healthConditions: Set<String> = emptySet(),
         lang: String = "fr",
         profileId: String = "default",
     ): ScanResult? {
@@ -220,7 +221,15 @@ class ScanRepository @Inject constructor(
         ).mapNotNull { it.toDomain() }
         return candidates.firstOrNull { candidate ->
             val allergenHits = if (allergens.isNotEmpty()) checkUserAllergens(candidate.product, allergens, lang) else emptyList()
-            allergenHits.isEmpty() && checkDiet(candidate.product, dietKey, lang).compliant
+            // Previously only allergens/diet were re-checked - a diabetic or IBS
+            // user could be shown a "better score" alternative that itself
+            // tripped their own health condition (e.g. a high-sugar candidate for
+            // a diabetic profile), since nothing downstream ever re-checked it,
+            // the exact same class of bug this file's allergen check already
+            // fixed once for allergens specifically.
+            allergenHits.isEmpty() &&
+                checkDiet(candidate.product, dietKey, lang).compliant &&
+                healthConditionCautions(candidate.product, healthConditions, lang).isEmpty()
         }
     }
 
