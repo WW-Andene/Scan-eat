@@ -61,7 +61,7 @@
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
     <string name="hydration_title">Hydratation</string>
     <string name="hydration_goal_ml">/ %1$d mL</string>
-    <string name="hydration_glasses_count">%1$d / %2$d verres</string>
+    <string name="hydration_glasses_count">%1$d/%2$d verres</string>
     <string name="hydration_goal_reached">Objectif atteint !</string>
     <string name="hydration_glass_ml">%1$d mL</string>
     <string name="hydration_per_glass_label">par verre</string>
@@ -417,7 +417,7 @@
 
     <!-- ── Biolism: Onboarding wizard ─────────────────────────────────────── -->
     <string name="biolism_onboard_step0_title">Bienvenue dans Métabolisme</string>
-    <string name="biolism_onboard_step0_sub">Configurons votre profil en 3 étapes rapides. Ces données restent sur votre appareil et alimentent chaque calcul.</string>
+    <string name="biolism_onboard_step0_sub">Ce profil est distinct de celui du Profil principal et sert uniquement à la simulation métabolique. Configurons-le en 3 étapes rapides : ces données restent sur votre appareil et alimentent chaque calcul.</string>
     <string name="biolism_onboard_step1_title">Qui êtes-vous ?</string>
     <string name="biolism_onboard_step1_sub">Sexe et âge calibrent votre formule de BMR. Taille et poids sont les entrées principales.</string>
     <string name="biolism_onboard_step2_title">Mesures corporelles</string>
@@ -602,7 +602,7 @@
     <string name="grocery_grams">%1$d g</string>
     <string name="grocery_copied">Liste copiée dans le presse-papiers</string>
     <string name="grocery_sort_alpha">Trier par ordre alphabétique</string>
-    <string name="grocery_checked_progress">%1$d / %2$d articles cochés</string>
+    <string name="grocery_checked_progress">%1$d/%2$d articles cochés</string>
     <string name="grocery_copy_plain">Copier (texte)</string>
     <string name="grocery_copy_checklist">Copier (liste à cocher Markdown)</string>
     <string name="grocery_cd_share">Partager la liste</string>

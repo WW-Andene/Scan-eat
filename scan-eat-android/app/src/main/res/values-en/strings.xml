@@ -61,7 +61,7 @@
     <!-- ── Hydration screen ───────────────────────────────────────────────── -->
     <string name="hydration_title">Hydration</string>
     <string name="hydration_goal_ml">/ %1$d mL</string>
-    <string name="hydration_glasses_count">%1$d / %2$d glasses</string>
+    <string name="hydration_glasses_count">%1$d/%2$d glasses</string>
     <string name="hydration_goal_reached">Goal reached!</string>
     <string name="hydration_glass_ml">%1$d mL</string>
     <string name="hydration_per_glass_label">per glass</string>
@@ -416,7 +416,7 @@
 
     <!-- ── Biolism: Onboarding wizard ─────────────────────────────────────── -->
     <string name="biolism_onboard_step0_title">Welcome to Metabolism</string>
-    <string name="biolism_onboard_step0_sub">Let\'s set up your profile in 3 quick steps. This data stays on your device and feeds every calculation.</string>
+    <string name="biolism_onboard_step0_sub">This profile is separate from your main Profile and is only used for the metabolic simulation. Let\'s set it up in 3 quick steps: this data stays on your device and feeds every calculation.</string>
     <string name="biolism_onboard_step1_title">Who are you?</string>
     <string name="biolism_onboard_step1_sub">Sex and age calibrate your BMR formula. Height and weight are the main inputs.</string>
     <string name="biolism_onboard_step2_title">Body measurements</string>
@@ -598,7 +598,7 @@
     <string name="grocery_grams">%1$d g</string>
     <string name="grocery_copied">Grocery list copied to clipboard</string>
     <string name="grocery_sort_alpha">Sort alphabetically</string>
-    <string name="grocery_checked_progress">%1$d / %2$d items checked</string>
+    <string name="grocery_checked_progress">%1$d/%2$d items checked</string>
     <string name="grocery_copy_plain">Copy (plain text)</string>
     <string name="grocery_copy_checklist">Copy (Markdown checklist)</string>
     <string name="grocery_cd_share">Share list</string>

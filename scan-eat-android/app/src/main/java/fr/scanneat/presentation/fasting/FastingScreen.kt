@@ -129,13 +129,12 @@ fun FastingScreen(
                 }
             }
 
-            // Streak
+            // Streak — was a hand-rolled Row (different icon variant, no pill
+            // background, full-sentence text) instead of the shared StreakBadge
+            // component Activity/Hydration/Medication already use.
             if (streak.value > 0) {
                 item {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        Icon(Icons.Rounded.LocalFireDepartment, null, tint = CalorieOrange)
-                        Text(pluralStringResource(R.plurals.fasting_streak, streak.value, streak.value), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
-                    }
+                    StreakBadge(streakDays = streak.value, accentColor = CalorieOrange)
                 }
             }
 
