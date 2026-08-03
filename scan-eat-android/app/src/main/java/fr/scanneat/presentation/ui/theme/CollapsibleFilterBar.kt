@@ -3,36 +3,39 @@ package fr.scanneat.presentation.ui.theme
 import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Filter
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
  * A "Filtres : <current>" button that opens its options in a popup menu
  * (Material `DropdownMenu`, floating over the content) rather than an inline
- * expandable list — the previous shape (this same component, before this
- * rewrite) pushed the list/chips below it down every time it opened, which
- * read as a collapsible section, not a filter picker. A popup overlays
- * instead of displacing anything, and closes itself the moment an option is
- * picked (each caller's item composable calls onToggle() after selecting).
+ * expandable list.
+ *
+ * User-reported (visual review of the running app): the previous shape — a
+ * full-width Row with SpaceBetween icon/label/chevron — read as a list row
+ * or a collapsible section (something you'd expect to expand in place), not
+ * as a button that opens a popup; the mismatch between "looks like a list"
+ * and "behaves like a popup" was the actual complaint, not the popup itself.
+ * Rebuilt to match Journal's own tab-picker button exactly (DiaryScreen.kt) —
+ * a compact, self-contained accent-tinted pill (not full-width), so its shape
+ * alone signals "tap to open a menu" the same way Journal's does.
  */
 @Composable
 fun CollapsibleFilterBar(
@@ -43,19 +46,26 @@ fun CollapsibleFilterBar(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(modifier) {
-        Row(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL))
-                .clickable(onClick = onToggle).padding(vertical = Spacing.XS),
-            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
+        Surface(
+            onClick = onToggle,
+            shape = RoundedCornerShape(8.dp),
+            color = AccentCoral.copy(0.15f),
+            border = BorderStroke(1.dp, AccentCoral.copy(0.4f)),
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Icon(TablerIcons.Filter, null, tint = OnBackground.copy(0.6f), modifier = Modifier.size(18.dp))
-                Text(summaryLabel, style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.8f))
+                Icon(TablerIcons.Filter, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Text(summaryLabel, style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
+                Icon(TablerIcons.ChevronDown, null, tint = AccentCoral)
             }
-            Icon(TablerIcons.ChevronDown, null, tint = OnBackground.copy(0.5f))
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = onToggle, content = content)
+        // User-reported: the popup's own container used Material3's default
+        // (cool gray) surfaceContainer color, standing out against the app's
+        // warm palette — pinned to SurfaceVariant like every other themed
+        // surface in the app.
+        DropdownMenu(expanded = expanded, onDismissRequest = onToggle, containerColor = SurfaceVariant, content = content)
     }
 }

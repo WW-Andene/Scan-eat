@@ -25,7 +25,7 @@ internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> U
         IconButton(onClick = { onExpandedChange(true) }) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
+        DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant) {
             val options = listOf(
                 HistorySort.RECENT to stringResource(R.string.history_sort_recent),
                 HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),

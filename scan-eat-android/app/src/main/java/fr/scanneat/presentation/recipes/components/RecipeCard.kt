@@ -105,7 +105,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
-                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant) {
                     // Previously a recipe could only leave the app via the whole-database
                     // backup - no way to send just this one recipe to someone else.
                     DropdownMenuItem(

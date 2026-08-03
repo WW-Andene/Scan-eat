@@ -89,7 +89,7 @@ internal fun TemplateCard(
                 IconButton(onClick = { menuExpanded = true }) {
                     Icon(TablerIcons.DotsVertical, stringResource(R.string.recipes_cd_more_actions), tint = OnSurface.copy(0.5f))
                 }
-                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant) {
                     // The "💡 Bon à savoir" hint panel was previously reachable
                     // only from a scanned product's Result screen - a template's
                     // items already carry real per-100g nutrition (see

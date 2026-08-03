@@ -63,7 +63,7 @@ internal fun GroceryTopBarActions(
             IconButton(onClick = { onCopyMenuExpandedChange(true) }) {
                 Icon(TablerIcons.Copy, stringResource(R.string.common_copy), tint = AccentCoral)
             }
-            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL)) {
+            DropdownMenu(expanded = copyMenuExpanded, onDismissRequest = { onCopyMenuExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.grocery_copy_plain)) },
                     onClick = { onCopyMenuExpandedChange(false); onCopyPlain() },
