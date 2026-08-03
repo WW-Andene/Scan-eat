@@ -63,8 +63,12 @@ internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDism
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(label, time) }, enabled = label.isNotBlank() && timeValid) {
-                Text(stringResource(R.string.common_add), color = if (label.isNotBlank() && timeValid) AccentCoral else OnBackground.copy(0.3f))
+            // Was saving the raw untrimmed label - a " Meds " reminder displayed with
+            // stray whitespace in every row, the "next reminder" chip, and the fired
+            // notification's own title. Same trim fix as RenameDialog/AddTemplateDialog.
+            val labelValid = label.trim().isNotBlank()
+            TextButton(onClick = { onConfirm(label.trim(), time) }, enabled = labelValid && timeValid) {
+                Text(stringResource(R.string.common_add), color = if (labelValid && timeValid) AccentCoral else OnBackground.copy(0.3f))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },

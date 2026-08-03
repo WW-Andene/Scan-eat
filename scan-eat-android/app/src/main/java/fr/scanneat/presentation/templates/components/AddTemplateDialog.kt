@@ -46,8 +46,13 @@ internal fun AddTemplateDialog(onDismiss: () -> Unit, onCreate: (name: String, m
             }
         },
         confirmButton = {
-            TextButton(onClick = { onCreate(name, meal) }, enabled = name.isNotBlank()) {
-                Text(stringResource(R.string.common_create), color = if (name.isNotBlank()) AccentCoral else OnBackground.copy(0.3f))
+            // Was passing the raw untrimmed name straight through - a name typed with
+            // leading/trailing spaces saved verbatim, looking subtly "off" wherever
+            // it's rendered and defeating exact-match lookups elsewhere. Same trim
+            // fix RenameDialog already got this session, applied to template creation.
+            val nameValid = name.trim().isNotBlank()
+            TextButton(onClick = { onCreate(name.trim(), meal) }, enabled = nameValid) {
+                Text(stringResource(R.string.common_create), color = if (nameValid) AccentCoral else OnBackground.copy(0.3f))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },

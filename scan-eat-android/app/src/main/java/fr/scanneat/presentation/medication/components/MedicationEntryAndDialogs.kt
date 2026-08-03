@@ -64,8 +64,12 @@ internal fun MedicationEntryRow(
                     tint = if (takenToday != null) Teal else OnSurface.copy(0.4f),
                 )
             }
+            // Was the only toggle in this row with no haptic feedback - the adjacent
+            // "taken today" IconButton already fires one, so two binary toggles
+            // right next to each other gave inconsistent tactile confirmation.
             Switch(
-                checked = m.active, onCheckedChange = onSetActive,
+                checked = m.active,
+                onCheckedChange = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onSetActive(it) },
                 colors = SwitchDefaults.colors(checkedTrackColor = Teal),
             )
             // Previously "schedule" was display-only text — no way to actually

@@ -49,6 +49,10 @@ internal fun ReminderRow(
     var labelText by remember(customLabel) { mutableStateOf(customLabel) }
     val isValid = remember(timeText) { runCatching { java.time.LocalTime.parse(timeText) }.isSuccess }
     val displayLabel = labelText.ifBlank { defaultLabel }
+    // The bell silently no-ops when POST_NOTIFICATIONS is denied (NotificationHelper.show()
+    // is a no-op without it) - a tapped bell that "does nothing" with zero explanation
+    // left the user unsure whether their reminder was even configured correctly.
+    val (permGranted, _, _) = permissionState()
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             if (onLabelChange != null) {
@@ -74,8 +78,8 @@ internal fun ReminderRow(
                 textStyle = MaterialTheme.typography.bodySmall,
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
             )
-            IconButton(onClick = onTest) {
-                Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, displayLabel), tint = AccentCoral)
+            IconButton(onClick = onTest, enabled = permGranted) {
+                Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, displayLabel), tint = if (permGranted) AccentCoral else OnBackground.copy(0.3f))
             }
             Switch(checked = on, onCheckedChange = onToggle, colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
                 modifier = Modifier.semantics { contentDescription = displayLabel })
@@ -93,6 +97,7 @@ internal fun CustomReminderRow(
     var labelText by remember(reminder.label) { mutableStateOf(reminder.label) }
     var timeText  by remember(reminder.time)  { mutableStateOf(reminder.time) }
     val isValid = remember(timeText) { runCatching { java.time.LocalTime.parse(timeText) }.isSuccess }
+    val (permGranted, _, _) = permissionState()
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = labelText,
@@ -114,7 +119,7 @@ internal fun CustomReminderRow(
         )
         // Both icon-only buttons previously had a null contentDescription - a
         // TalkBack user got no signal at all for what "test" or "delete" would do.
-        IconButton(onClick = onTest) { Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, labelText.ifBlank { reminder.label }), tint = AccentCoral) }
+        IconButton(onClick = onTest, enabled = permGranted) { Icon(Icons.Rounded.Notifications, stringResource(R.string.reminders_cd_test, labelText.ifBlank { reminder.label }), tint = if (permGranted) AccentCoral else OnBackground.copy(0.3f)) }
         Switch(checked = reminder.on, onCheckedChange = { onUpdate(reminder.copy(on = it)) }, colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             modifier = Modifier.semantics { contentDescription = labelText })
         IconButton(onClick = onDelete) { Icon(Icons.Rounded.Close, stringResource(R.string.common_delete), tint = OnBackground.copy(0.4f), modifier = Modifier.size(16.dp)) }
