@@ -26,6 +26,14 @@ import fr.scanneat.domain.model.Grade
 // Spacing.kt itself for the scale that is actually in effect.
 // ============================================================================
 
+// Audit F12 (docs/design-audit-step5-tokens.md): this file mixed the
+// semantic layer (theme-reactive roles like Background/OnBackground below)
+// and the raw/primitive layer (fixed hex constants like AccentCoral, Gold,
+// the OLED/HighContrast/LowContrast *Raw values) with no marker distinguishing
+// them, risking a future color being added at the wrong layer. Three banners
+// below mark where each layer starts; nothing was moved, only labeled.
+
+// ═══ LAYER 1 — PRIMITIVES (raw hex, never theme-reactive) ════════════════════
 // ── Shared neutrals ──────────────────────────────────────────────────────────
 // Nectar: a near-black ground with a faint warm undertone (not flat OLED grey),
 // paired with one sober warm-coral brand accent used app-wide for actions and
@@ -65,6 +73,7 @@ internal val LowContrastSurfaceRaw = Color(0xFF454545)
 internal val LowContrastOnSurfaceRaw = Color(0xFFAFAFAF)
 internal val LowContrastOutlineRaw = Color(0xFF6A6A6A)
 
+// ═══ LAYER 2 — SEMANTIC (meaning-bearing roles; theme-reactive where noted) ══
 // Theme-reactive roles. Every screen reads these instead of a fixed literal, so
 // switching OLED/Sombre/Clair in Settings actually repaints the app — previously
 // these were hardcoded OLED-black constants and the theme picker changed nothing.
@@ -141,6 +150,9 @@ val SeparatorHeavy:  Color @Composable get() = OnBackground.copy(alpha = 0.20f)
 val SeparatorLight:  Color @Composable get() = OnBackground.copy(alpha = 0.08f)
 val SeparatorAccent: Color @Composable get() = AccentCoral.copy(alpha = 0.30f)
 
+// LAYER 3 (component-specific, not a general role) — see the fuller LAYER 3
+// banner further below before scanEatTextFieldColors(); this one composable
+// sits early only because it's a small divider tied to the separators above.
 /**
  * The hairline `HorizontalDivider(color = OnBackground.copy(0.06f/0.08f/0.1f))`
  * pattern was hand-copied across many screens with the alpha literal drifting
@@ -150,7 +162,7 @@ val SeparatorAccent: Color @Composable get() = AccentCoral.copy(alpha = 0.30f)
 @Composable
 fun ScanEatDivider(color: Color = SeparatorLight) = androidx.compose.material3.HorizontalDivider(color = color)
 
-// ── Label & secondary text ────────────────────────────────────────────────────
+// ── Label & secondary text (back to LAYER 2 — semantic) ──────────────────────
 // Category E audit (§E3 Color Craft & Contrast): these were flat literals
 // tuned by eye against the dark themes only — Color(0xFF7E859E) against the
 // OLED/Dark backgrounds clears ~5:1 (barely, on Dark) to ~5.75:1 (OLED), but
@@ -205,6 +217,7 @@ private val TritanopiaSafeGradeColors = mapOf(
     Grade.F      to Color(0xFFA62B2B),
 )
 
+// ═══ LAYER 3 — COMPONENT (specific to one composable, not a general role) ════
 /** The AccentCoral outlined-field color scheme repeated verbatim across ~7 screens. */
 @Composable
 // art-direction-engine §INPUTS: cursorColor/focusedLabelColor weren't set, so
@@ -220,6 +233,9 @@ fun scanEatTextFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors
     focusedLabelColor = AccentCoral,
 )
 
+// Back to LAYER 2 — semantic (a meaning-bearing accessor used all over the
+// app, not tied to one composable) — scanEatTextFieldColors() above was the
+// exception, not the start of a new section.
 @Composable
 fun gradeColor(grade: Grade): Color {
     val palette = when (LocalColorblindMode.current) {
@@ -230,7 +246,7 @@ fun gradeColor(grade: Grade): Color {
     return palette.getValue(grade)
 }
 
-// ── Colorblind-safe semantic color accessors (Okabe-Ito 2008 palette) ─────────
+// ── Colorblind-safe semantic color accessors (Okabe-Ito 2008 palette) — LAYER 2 ─
 // All UI code should read these instead of the raw constants so that colorblind
 // mode actually affects every element, not just grade chips.
 
