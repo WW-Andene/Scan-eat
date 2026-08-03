@@ -676,7 +676,9 @@
     <string name="condition_pregnancy">Grossesse</string>
     <string name="condition_kidney_disease">Maladie rénale</string>
     <string name="condition_thyroid_disorder">Trouble thyroïdien</string>
-    <string name="condition_digestive_disorders">Troubles digestifs</string>
+    <string name="condition_ibs">Syndrome de l\'intestin irritable (SII)</string>
+    <string name="condition_crohn_ibd">Maladie de Crohn / MICI</string>
+    <string name="condition_chronic_diarrhea">Diarrhée chronique</string>
     <string name="condition_cancer">Cancer / traitement oncologique</string>
     <string name="condition_depression">Dépression</string>
     <string name="sex_male">Homme</string>

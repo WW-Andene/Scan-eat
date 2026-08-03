@@ -172,7 +172,13 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     "pregnancy" to stringResource(R.string.condition_pregnancy),
     "kidney_disease" to stringResource(R.string.condition_kidney_disease),
     "thyroid_disorder" to stringResource(R.string.condition_thyroid_disorder),
-    "digestive_disorders" to stringResource(R.string.condition_digestive_disorders),
+    // Replaced the old single "digestive_disorders" catch-all (which had no
+    // scoring effect at all - see DietAndConditionAdjustments.kt's header) with
+    // three specific conditions, each backed by its own real dietary guidance
+    // and ingredient-level scoring rules.
+    "ibs" to stringResource(R.string.condition_ibs),
+    "crohn_ibd" to stringResource(R.string.condition_crohn_ibd),
+    "chronic_diarrhea" to stringResource(R.string.condition_chronic_diarrhea),
     "cancer" to stringResource(R.string.condition_cancer),
     "depression" to stringResource(R.string.condition_depression),
 )

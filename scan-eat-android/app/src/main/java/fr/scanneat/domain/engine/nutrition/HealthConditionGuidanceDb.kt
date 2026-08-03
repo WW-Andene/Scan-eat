@@ -24,10 +24,18 @@ import fr.scanneat.domain.model.Ingredient
 //    deliberately framed as "if undergoing treatment", not "cancer
 //    causes/is caused by this ingredient" — no diet-causes-cancer claim
 //    is made anywhere in this file.
-// Not attempting condition x ingredient matrices where no comparably
-// authoritative, stable public guidance exists (e.g. "digestive_disorders"
-// is too heterogeneous a bucket to map to specific ingredients without
-// guessing).
+//  - ibs: Monash University's Low FODMAP Diet research (the protocol NICE/
+//    British Dietetic Association guidelines recommend for IBS).
+//  - crohn_ibd: Crohn's & Colitis Foundation / NHS low-residue-during-a-flare
+//    guidance.
+//  - chronic_diarrhea: NHS / Mayo Clinic diarrhea-diet guidance, plus the
+//    EU's own mandatory polyol "may induce laxative effects" label warning
+//    (Regulation (EC) 1169/2011 Annex III) above 10g/100g.
+// The old single "digestive_disorders" bucket this replaced was too
+// heterogeneous to map to specific ingredients without guessing - splitting
+// it into these three specific, separately-sourced conditions is what makes
+// a real ingredient dictionary possible here (see DietAndConditionAdjustments.kt
+// for the numeric scoring side of the same split).
 // ============================================================================
 
 private data class ConditionGuidance(
@@ -88,9 +96,57 @@ private val CANCER_GUIDANCE: List<ConditionGuidance> = listOf(
         "Raw sprouts: elevated bacterial-contamination risk if immunocompromised — typically recommended to cook per standard oncology guidance."),
 )
 
+// Monash University Low FODMAP Diet ingredient list (the protocol NICE/
+// British Dietetic Association guidelines recommend for IBS) - fructan/GOS
+// sources and sugar alcohols, the two ingredient classes most consistently
+// linked to IBS symptom flares.
+private val IBS_GUIDANCE: List<ConditionGuidance> = listOf(
+    ConditionGuidance(listOf("oignon", "onion", "ail", "garlic"),
+        "Oignon/ail : source de fructanes, un FODMAP fréquemment associé aux poussées de symptômes du syndrome de l'intestin irritable (recherche de l'université Monash).",
+        "Onion/garlic: a fructan (FODMAP) source frequently linked to IBS symptom flares (Monash University research)."),
+    ConditionGuidance(listOf("blé", "wheat", "seigle", "rye", "orge", "barley", "inuline", "inulin", "chicorée", "chicory"),
+        "Blé/seigle/orge ou inuline : sources de fructanes, un FODMAP fréquemment associé aux poussées de symptômes du SII (recherche de l'université Monash).",
+        "Wheat/rye/barley or inulin: fructan (FODMAP) sources frequently linked to IBS symptom flares (Monash University research)."),
+    ConditionGuidance(listOf("pois chiches", "chickpeas", "lentilles", "lentils"),
+        "Légumineuses (pois chiches, lentilles) : source de galacto-oligosaccharides (GOS), un FODMAP fréquemment associé aux poussées de symptômes du SII (recherche de l'université Monash).",
+        "Legumes (chickpeas, lentils): a galacto-oligosaccharide (GOS/FODMAP) source frequently linked to IBS symptom flares (Monash University research)."),
+    ConditionGuidance(listOf("sorbitol", "mannitol", "xylitol", "maltitol", "erythritol", "isomalt", "lactitol", "polyols"),
+        "Polyol (sorbitol, mannitol, xylitol...) : mal absorbé et osmotiquement actif, un déclencheur connu des symptômes du SII (régime pauvre en FODMAP, université Monash).",
+        "Sugar alcohol (sorbitol, mannitol, xylitol...): poorly absorbed and osmotically active, a known IBS symptom trigger (Monash Low FODMAP research)."),
+)
+
+// Crohn's & Colitis Foundation / NHS "eating during a flare" guidance: whole
+// grains/bran/nuts/seeds/raw skins are the concrete insoluble-fiber sources
+// most consistently named as harder to pass through an inflamed gut.
+private val CROHN_IBD_GUIDANCE: List<ConditionGuidance> = listOf(
+    ConditionGuidance(listOf("son de blé", "son d'avoine", "bran", "graines de lin", "flaxseed", "graines de chia", "chia seeds", "noix", "amandes", "nuts", "almonds", "pop-corn", "popcorn"),
+        "Fibres insolubles (son, graines, noix, pop-corn) : un régime pauvre en résidus est généralement conseillé lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation, NHS).",
+        "Insoluble fiber (bran, seeds, nuts, popcorn): a low-residue diet is commonly advised during a Crohn's/IBD flare (Crohn's & Colitis Foundation, NHS)."),
+    ConditionGuidance(listOf("pain complet", "pain intégral", "whole wheat bread", "wholegrain", "farine complète", "whole grain"),
+        "Céréales complètes : riches en fibres insolubles, généralement déconseillées lors d'une poussée de Crohn/MICI au profit d'un régime pauvre en résidus (Crohn's & Colitis Foundation, NHS).",
+        "Whole grains: high in insoluble fiber, commonly discouraged during a Crohn's/IBD flare in favor of a low-residue diet (Crohn's & Colitis Foundation, NHS)."),
+)
+
+// NHS / Mayo Clinic diarrhea-diet guidance, plus the EU's own mandatory
+// polyol "may induce laxative effects" label warning (Regulation (EC)
+// 1169/2011 Annex III) above 10g/100g - the same osmotic mechanism IBS's
+// polyol entry above cites, just sourced to the general diarrhea-diet
+// guidance rather than the IBS-specific Monash protocol.
+private val CHRONIC_DIARRHEA_GUIDANCE: List<ConditionGuidance> = listOf(
+    ConditionGuidance(listOf("sorbitol", "mannitol", "xylitol", "maltitol", "erythritol", "isomalt", "lactitol", "polyols"),
+        "Polyol (sorbitol, mannitol, xylitol...) : attire l'eau dans l'intestin par effet osmotique et peut aggraver la diarrhée — l'UE impose un étiquetage \"effet laxatif\" au-delà de 10 g/100 g (règlement (UE) n°1169/2011).",
+        "Sugar alcohol (sorbitol, mannitol, xylitol...): osmotically draws water into the bowel and can worsen diarrhea — the EU mandates a \"may have a laxative effect\" label above 10 g/100 g (Regulation (EU) 1169/2011)."),
+    ConditionGuidance(listOf("café", "coffee", "thé", "tea", "cacao", "cocoa", "caféine", "caffeine"),
+        "Caféine : stimulant intestinal pouvant aggraver la diarrhée (recommandations NHS sur l'alimentation en cas de diarrhée).",
+        "Caffeine: a gut stimulant that can worsen diarrhea (NHS diarrhea-diet guidance)."),
+)
+
 private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
     "pregnancy" to PREGNANCY_GUIDANCE,
     "cancer" to CANCER_GUIDANCE,
+    "ibs" to IBS_GUIDANCE,
+    "crohn_ibd" to CROHN_IBD_GUIDANCE,
+    "chronic_diarrhea" to CHRONIC_DIARRHEA_GUIDANCE,
 )
 
 /**
