@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,12 +71,28 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
                         frac > 0.5f   -> semanticAmber().copy(0.7f)
                         else          -> semanticRed().copy(0.5f)
                     }
+                    // app-audit §XVIII/§G2: same "Canvas/background box with no text
+                    // underneath" shape as ActivityWeeklyBurnChart/Dashboard's WeeklyBarsCard,
+                    // which both needed a contentDescription because TalkBack otherwise
+                    // skips a chart's data entirely - this chart had the identical gap.
+                    val dayFullName = date.dayOfWeek.getDisplayName(JTextStyle.FULL, Locale(language)).replaceFirstChar { it.uppercaseChar() }
+                    val barDescription = if (entry == null) {
+                        stringResource(R.string.fasting_week_bar_empty_cd, dayFullName)
+                    } else {
+                        val statusLabel = when {
+                            entry.reached -> stringResource(R.string.fasting_legend_reached)
+                            frac > 0.5f   -> stringResource(R.string.fasting_legend_partial)
+                            else          -> stringResource(R.string.fasting_legend_missed)
+                        }
+                        stringResource(R.string.fasting_week_bar_cd, dayFullName, statusLabel, entry.achievedHours.formatDecimal(1), entry.targetHours)
+                    }
                     Box(
                         Modifier
                             .weight(1f)
                             .fillMaxHeight(if (frac == 0f) 0.06f else frac.coerceAtLeast(0.06f))
                             .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                            .background(color),
+                            .background(color)
+                            .semantics { contentDescription = barDescription },
                     )
                 }
             }
