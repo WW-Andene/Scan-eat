@@ -158,6 +158,10 @@ fun GroceryScreen(
             // this derived grouping wasn't. remember() must live here, not inside
             // the LazyColumn content lambda (LazyListScope isn't @Composable).
             val grouped = remember(filteredCheckable) { filteredCheckable.groupBy { groceryCategoryFor(it.item.name) } }
+            // Same checked-items-to-bottom fix as the aisle-grouped branch below - must
+            // live here, not inside the LazyColumn content lambda (LazyListScope isn't
+            // @Composable, same bug class grouped/filteredCheckable above already guard against).
+            val sortedCheckable = remember(filteredCheckable) { filteredCheckable.sortedBy { it.checked } }
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
                 verticalArrangement = Arrangement.spacedBy(Spacing.M),
@@ -222,8 +226,6 @@ fun GroceryScreen(
                         }
                     }
                 } else {
-                    // Same checked-items-to-bottom fix as the aisle-grouped branch above.
-                    val sortedCheckable = remember(filteredCheckable) { filteredCheckable.sortedBy { it.checked } }
                     items(sortedCheckable, key = { it.item.key }) { checkableItem ->
                         GroceryItemRow(
                             checkableItem, warning = itemWarnings.value[checkableItem.item.key],
