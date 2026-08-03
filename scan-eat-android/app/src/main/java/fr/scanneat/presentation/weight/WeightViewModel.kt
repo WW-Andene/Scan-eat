@@ -27,7 +27,13 @@ class WeightViewModel @Inject constructor(
         // readings straight into Health Connect never reached this screen. Runs
         // once per screen open rather than on a timer; no-ops entirely if Health
         // Connect isn't available/permitted, so this is always safe to call.
-        viewModelScope.launch { repo.syncFromHealthConnect() }
+        // A revoked Health Connect permission mid-session, or the provider app
+        // itself missing/outdated, makes readExternalWeights() throw rather than
+        // return an empty list - previously unguarded, unlike every other Room/
+        // DataStore write in this ViewModel layer. Background best-effort sync
+        // with nothing for the user to retry, so failures are swallowed rather
+        // than surfaced as an error snackbar.
+        viewModelScope.launch { runCatching { repo.syncFromHealthConnect() }.onFailure { e -> if (e is CancellationException) throw e } }
     }
 
     val entries: StateFlow<List<WeightEntry>> = repo.observeAll()

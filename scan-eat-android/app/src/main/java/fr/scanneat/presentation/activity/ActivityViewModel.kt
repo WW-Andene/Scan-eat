@@ -36,7 +36,13 @@ class ActivityViewModel @Inject constructor(
         // reads back. Same as WeightViewModel's identical init call: runs
         // once per screen open, no-ops entirely if Health Connect isn't
         // available/permitted, so always safe to call.
-        viewModelScope.launch { repo.syncFromHealthConnect() }
+        // A revoked Health Connect permission mid-session, or the provider app
+        // itself missing/outdated, makes readExternalActivity() throw rather than
+        // return an empty list - previously unguarded here, unlike every other
+        // Room/DataStore write in this ViewModel layer. This is a background
+        // best-effort sync with nothing for the user to retry, so failures are
+        // swallowed rather than surfaced as an error snackbar.
+        viewModelScope.launch { runCatching { repo.syncFromHealthConnect() }.onFailure { e -> if (e is CancellationException) throw e } }
     }
 
     // Polling + distinctUntilChanged, not a fixed `val` set once at construction

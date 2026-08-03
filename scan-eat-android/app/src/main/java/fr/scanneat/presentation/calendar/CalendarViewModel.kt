@@ -12,6 +12,7 @@ import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.MedicationLogEntry
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.health.WeightRepository
+import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,7 +36,7 @@ data class WeekSummary(
 )
 
 /** Which tracker(s) have data on a given day - drives the small per-source dots under each date. */
-enum class CalendarSource { MEALS, WEIGHT, ACTIVITY, HYDRATION, FASTING, MEDICATION, NOTE }
+enum class CalendarSource { MEALS, WEIGHT, ACTIVITY, HYDRATION, FASTING, MEDICATION, NOTE, EXPENSES }
 
 data class CalendarDayDetail(
     val date: LocalDate,
@@ -50,9 +51,14 @@ data class CalendarDayDetail(
     // but nothing surfaced the actual note text anywhere - tapping a day with that dot
     // to read the note found nothing, a dead end.
     val note: String = "",
+    // Expenses was the one tracker (added after this Calendar screen already
+    // unified the other six) never wired in here at all - a user tracking
+    // spend via price_log had no way to see "how much did I spend on the 12th"
+    // alongside everything else logged that day.
+    val expensesTotal: Double = 0.0,
 ) {
     val isEmpty: Boolean get() = mealCount == 0 && weightKg == null && activities.isEmpty() &&
-        hydrationMl == 0 && fastCompletion == null && medicationsTaken.isEmpty() && note.isBlank()
+        hydrationMl == 0 && fastCompletion == null && medicationsTaken.isEmpty() && note.isBlank() && expensesTotal == 0.0
 }
 
 /**
@@ -77,6 +83,7 @@ class CalendarViewModel @Inject constructor(
     private val fastingRepo: FastingRepository,
     private val medicationRepo: MedicationRepository,
     private val dayNotesRepo: DayNotesRepository,
+    private val priceRepo: PriceRepository,
     prefs: UserPreferences,
 ) : ViewModel() {
 
@@ -158,6 +165,11 @@ class CalendarViewModel @Inject constructor(
         }.combine(flow { emit(dayNotesRepo.listDates()) }) { out, noteDates ->
             noteDates.filter { it in start..end }.forEach { d -> out.getOrPut(d) { mutableSetOf() } += CalendarSource.NOTE }
             out
+        }.combine(priceRepo.observeRange(start, end)) { out, expenseEntries ->
+            expenseEntries.forEach { entry ->
+                if (entry.date in start..end) out.getOrPut(entry.date) { mutableSetOf() } += CalendarSource.EXPENSES
+            }
+            out
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
@@ -234,6 +246,8 @@ class CalendarViewModel @Inject constructor(
             detail.copy(medicationsTaken = medsTaken)
         }.combine(dayNotesRepo.observe(date)) { detail, note ->
             detail.copy(note = note)
+        }.combine(priceRepo.observeRange(date, date)) { detail, expenseEntries ->
+            detail.copy(expensesTotal = expenseEntries.sumOf { it.priceEuros })
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalendarDayDetail(LocalDate.now()))
 }

@@ -80,13 +80,23 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                 // on every single scan-result save just to detect a duplicate name,
                 // growing with the recipe count. findByName does the same lookup in SQL.
                 val existingId = recipeRepo.findByName(scan.product.name)?.id
+                // Was hardcoded to 100g while the COURSES branch just above was fixed
+                // to use the real package weight - a scanned 1.5kg product saved as a
+                // recipe ingredient reported nutrition as if it were 100g. n.* are
+                // per-100g values (NutritionPer100g), so grams and every macro must
+                // scale together by the same factor, not just grams alone - RecipeComponent's
+                // kcal/proteinG/etc are absolute totals for its own `grams` (see
+                // RecipeComponent's own doc comment), same scaling cloneOfficial()
+                // already applies per-ingredient.
+                val weight = scan.product.weightG ?: 100.0
+                val factor = weight / 100.0
                 recipeRepo.save(
                     name = scan.product.name,
                     components = listOf(
                         RecipeComponent(
-                            productName = scan.product.name, grams = 100.0,
-                            kcal = n.energyKcal, proteinG = n.proteinG, carbsG = n.carbsG,
-                            fatG = n.fatG, saltG = n.saltG, fiberG = n.fiberG,
+                            productName = scan.product.name, grams = weight,
+                            kcal = n.energyKcal * factor, proteinG = n.proteinG * factor, carbsG = n.carbsG * factor,
+                            fatG = n.fatG * factor, saltG = n.saltG * factor, fiberG = n.fiberG * factor,
                         ),
                     ),
                     id = existingId,

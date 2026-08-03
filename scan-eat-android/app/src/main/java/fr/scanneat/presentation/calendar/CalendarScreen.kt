@@ -91,6 +91,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
                     LegendDot(colorFor(CalendarSource.FASTING), stringResource(R.string.calendar_legend_fasting))
                     LegendDot(colorFor(CalendarSource.MEDICATION), stringResource(R.string.calendar_legend_medication))
                     LegendDot(colorFor(CalendarSource.NOTE), stringResource(R.string.calendar_legend_note))
+                    LegendDot(colorFor(CalendarSource.EXPENSES), stringResource(R.string.calendar_legend_expenses))
                 }
             }
 

@@ -28,6 +28,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.dispWeight
+import fr.scanneat.util.formatDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -88,6 +89,11 @@ internal fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, useImperia
             // day with a note to actually read it found nothing here.
             if (detail.note.isNotBlank()) {
                 DetailRow(colorFor(CalendarSource.NOTE), stringResource(R.string.calendar_day_note, detail.note))
+            }
+            // Expenses was the one tracker never surfaced in this unified day panel -
+            // see CalendarDayDetail.expensesTotal's own doc comment.
+            if (detail.expensesTotal > 0.0) {
+                DetailRow(colorFor(CalendarSource.EXPENSES), stringResource(R.string.calendar_day_expenses, detail.expensesTotal.formatDecimal(2)))
             }
         }
     }

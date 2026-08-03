@@ -20,4 +20,5 @@ internal fun colorFor(source: CalendarSource): Color = when (source) {
     CalendarSource.FASTING    -> Violet
     CalendarSource.MEDICATION -> semanticGreen()
     CalendarSource.NOTE       -> OnBackground.copy(0.5f)
+    CalendarSource.EXPENSES   -> AccentCoral.copy(0.6f)
 }
