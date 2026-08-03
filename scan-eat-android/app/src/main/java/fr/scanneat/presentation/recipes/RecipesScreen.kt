@@ -39,7 +39,6 @@ import fr.scanneat.presentation.recipes.components.OfficialRecipeCard
 import fr.scanneat.presentation.recipes.components.RecipeCard
 import fr.scanneat.presentation.recipes.components.RecipesFilterChipsRow
 import fr.scanneat.presentation.recipes.components.RecipesImportStateDialogs
-import fr.scanneat.presentation.recipes.components.RecipesSearchField
 import fr.scanneat.presentation.recipes.components.SaveAsTemplateDialog
 import fr.scanneat.presentation.recipes.components.ScaleRecipeDialog
 import fr.scanneat.presentation.shell.PlanningDestination
@@ -120,6 +119,7 @@ fun RecipesScreen(
     val totalRecipesCount = viewModel.totalRecipesCount.collectAsStateWithLifecycle()
     val historyItems = viewModel.historyItems.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
+    var filtersExpanded by remember { mutableStateOf(false) }
     var showImportUrl by remember { mutableStateOf(false) }
     var showSuggest by remember { mutableStateOf(false) }
     var importPrefill by remember { mutableStateOf<FetchedRecipeResult?>(null) }
@@ -206,38 +206,24 @@ fun RecipesScreen(
             contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            // ---- Official starter recipes — real CIQUAL/ANSES-sourced nutrition,
-            // built to the Santé publique France / PNNS "assiette-type" portion
-            // model. Read-only: log them directly, or clone into an editable
-            // recipe of your own. See OfficialRecipeDb.kt for full provenance. ----
-            item {
-                Text(stringResource(R.string.recipes_official_section_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-            }
-            item {
-                Text(stringResource(R.string.recipes_official_section_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
-            }
-            items(viewModel.officialRecipes, key = { it.nameFr }) { recipe ->
-                OfficialRecipeCard(
-                    recipe   = recipe,
-                    isFrench = language.value == "fr",
-                    warning  = officialWarnings.value[recipe.nameFr],
-                    pairings = viewModel.officialRecipePairings[recipe.nameFr] ?: emptyList(),
-                    hints    = officialHints.value[recipe.nameFr] ?: ProductHints.EMPTY,
-                    onLog    = { logOfficialTarget = recipe },
-                    onClone  = { viewModel.cloneOfficial(recipe) },
-                )
-            }
-            item { Spacer(Modifier.height(Spacing.M)) }
+            // "Mes recettes" (search + filters + the user's own recipes) now comes
+            // FIRST - was previously below the whole "Recettes officielles" section,
+            // so reaching the search field meant scrolling past every official
+            // recipe card first (reported: "why is the search bar at the bottom?").
+            // The user's own recipes are what they're actively managing/searching;
+            // the read-only official reference list is secondary.
             item {
                 Text(stringResource(R.string.recipes_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
             }
             item {
-                // Recipes previously had no way to search by name - only the macro-based
-                // filter chips below - unlike History/CustomFood's real text search.
-                RecipesSearchField(query = recipeQuery.value, onQueryChange = { viewModel.setRecipeQuery(it) })
+                ScanEatSearchField(
+                    query = recipeQuery.value, onQueryChange = { viewModel.setRecipeQuery(it) },
+                    placeholder = stringResource(R.string.recipes_search_placeholder),
+                )
             }
             item {
                 RecipesFilterChipsRow(
+                    expanded = filtersExpanded, onToggle = { filtersExpanded = !filtersExpanded },
                     goalFilter = goalFilter.value,
                     onFilterChange = { viewModel.setGoalFilter(it) },
                     filtered = recipes.value.size,
@@ -259,6 +245,30 @@ fun RecipesScreen(
             }
             items(recipes.value, key = { it.id }) { recipe ->
                 RecipeCard(recipe, warning = warnings.value[recipe.id], pairings = pairings.value[recipe.id] ?: emptyList(), hints = hints.value[recipe.id] ?: ProductHints.EMPTY, onLog = { logTarget = recipe }, onDelete = { deleteTarget = recipe.id }, onRename = { renameTarget = recipe }, onEditNotes = { notesTarget = recipe }, onToggleFavorite = { viewModel.toggleFavorite(recipe) }, onScale = { scaleTarget = recipe }, onSaveAsTemplate = { saveAsTemplateTarget = recipe }, onDuplicate = { viewModel.duplicate(recipe) })
+            }
+
+            item { Spacer(Modifier.height(Spacing.L)) }
+
+            // ---- Official starter recipes — real CIQUAL/ANSES-sourced nutrition,
+            // built to the Santé publique France / PNNS "assiette-type" portion
+            // model. Read-only: log them directly, or clone into an editable
+            // recipe of your own. See OfficialRecipeDb.kt for full provenance. ----
+            item {
+                Text(stringResource(R.string.recipes_official_section_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
+            }
+            item {
+                Text(stringResource(R.string.recipes_official_section_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+            }
+            items(viewModel.officialRecipes, key = { it.nameFr }) { recipe ->
+                OfficialRecipeCard(
+                    recipe   = recipe,
+                    isFrench = language.value == "fr",
+                    warning  = officialWarnings.value[recipe.nameFr],
+                    pairings = viewModel.officialRecipePairings[recipe.nameFr] ?: emptyList(),
+                    hints    = officialHints.value[recipe.nameFr] ?: ProductHints.EMPTY,
+                    onLog    = { logOfficialTarget = recipe },
+                    onClone  = { viewModel.cloneOfficial(recipe) },
+                )
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
         }

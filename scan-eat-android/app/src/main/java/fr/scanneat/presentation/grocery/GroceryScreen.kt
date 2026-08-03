@@ -23,7 +23,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.planning.*
-import fr.scanneat.presentation.history.components.HistorySearchBar
 import fr.scanneat.presentation.grocery.components.GroceryItemRow
 import fr.scanneat.presentation.grocery.components.GroceryProgressRow
 import fr.scanneat.presentation.grocery.components.GroceryQuickAddRow
@@ -176,7 +175,13 @@ fun GroceryScreen(
                         onAdd = { viewModel.quickAdd(quickAddText); quickAddText = "" },
                     )
                 }
-                item { HistorySearchBar(query = searchQuery, onQueryChange = { searchQuery = it }) }
+                item {
+                    ScanEatSearchField(
+                        query = searchQuery, onQueryChange = { searchQuery = it },
+                        placeholder = stringResource(R.string.history_search_placeholder),
+                        modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S),
+                    )
+                }
                 item { GroceryProgressRow(itemCount = items.value.size, checkedProgress = checkedProgress.value) }
                 if (searchQuery.isNotBlank() && filteredCheckable.isEmpty()) {
                     item {

@@ -23,7 +23,6 @@ import fr.scanneat.presentation.templates.components.EditTemplateItemsDialog
 import fr.scanneat.presentation.templates.components.LogTemplateDialog
 import fr.scanneat.presentation.templates.components.TemplateCard
 import fr.scanneat.presentation.templates.components.TemplatesMealFilterRow
-import fr.scanneat.presentation.templates.components.TemplatesSearchField
 import fr.scanneat.presentation.templates.components.TemplatesStatsRow
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
@@ -46,6 +45,7 @@ fun TemplatesScreen(
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var renameTarget by remember { mutableStateOf<MealTemplate?>(null) }
     var showAdd by remember { mutableStateOf(false) }
+    var filtersExpanded by remember { mutableStateOf(false) }
     var itemsTarget by remember { mutableStateOf<MealTemplate?>(null) }
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -77,14 +77,20 @@ fun TemplatesScreen(
         ) {
             item {
                 // Templates had no way to search by name at all - only the meal-type
-                // filter chips below - unlike Recipes' identical RecipesSearchField.
-                TemplatesSearchField(query = templateQuery.value, onQueryChange = { viewModel.setTemplateQuery(it) })
+                // filter chips below - unlike Recipes' identical search field.
+                ScanEatSearchField(
+                    query = templateQuery.value, onQueryChange = { viewModel.setTemplateQuery(it) },
+                    placeholder = stringResource(R.string.templates_search_placeholder),
+                )
             }
             item {
                 // Templates had zero list-level filtering despite MealTemplate.meal being
                 // the exact same ready-made filter dimension Recipes already uses for its
                 // own GoalFilter chips.
-                TemplatesMealFilterRow(selected = mealFilter.value, onSelect = { viewModel.setMealFilter(it) })
+                TemplatesMealFilterRow(
+                    expanded = filtersExpanded, onToggle = { filtersExpanded = !filtersExpanded },
+                    selected = mealFilter.value, onSelect = { viewModel.setMealFilter(it) },
+                )
             }
             if (templates.value.isNotEmpty()) {
                 item { TemplatesStatsRow(count = templates.value.size, totalKcal = libraryTotalKcal.value) }

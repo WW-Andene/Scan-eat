@@ -13,11 +13,20 @@ import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.CollapsibleFilterBar
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 
+/**
+ * Was a permanently-visible LazyRow taking up space above the recipe list even
+ * when the user wasn't filtering - now hidden behind a "Filtres: <current>"
+ * toggle, same collapsible pattern Recherche/FoodSearch already used and
+ * History/Templates now share too (see CollapsibleFilterBar).
+ */
 @Composable
 internal fun RecipesFilterChipsRow(
+    expanded: Boolean,
+    onToggle: () -> Unit,
     goalFilter: RecipesViewModel.GoalFilter,
     onFilterChange: (RecipesViewModel.GoalFilter) -> Unit,
     filtered: Int,
@@ -30,14 +39,19 @@ internal fun RecipesFilterChipsRow(
         RecipesViewModel.GoalFilter.LOW_FAT     to stringResource(R.string.recipes_filter_low_fat),
     )
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-            items(filterOptions, key = { it.first.name }) { (filter, label) ->
-                FilterChip(
-                    selected = goalFilter == filter,
-                    onClick = { onFilterChange(filter) },
-                    label = { Text(label) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-                )
+        CollapsibleFilterBar(
+            expanded = expanded, onToggle = onToggle,
+            summaryLabel = stringResource(R.string.foodsearch_filters_label, filterOptions.first { it.first == goalFilter }.second),
+        ) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                items(filterOptions, key = { it.first.name }) { (filter, label) ->
+                    FilterChip(
+                        selected = goalFilter == filter,
+                        onClick = { onFilterChange(filter) },
+                        label = { Text(label) },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                    )
+                }
             }
         }
         if (goalFilter != RecipesViewModel.GoalFilter.ALL && total > 0) {

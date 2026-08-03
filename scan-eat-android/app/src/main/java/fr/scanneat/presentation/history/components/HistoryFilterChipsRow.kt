@@ -14,8 +14,16 @@ import fr.scanneat.R
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.ui.theme.*
 
+/**
+ * Was a permanently-visible LazyRow - now hidden behind a "Filtres: <current>"
+ * toggle, same collapsible pattern Recherche/FoodSearch/Recipes/Templates use
+ * (see CollapsibleFilterBar). Two independent filter dimensions here
+ * (favorites-only + grade), so the summary label combines both when active.
+ */
 @Composable
 internal fun HistoryFilterChipsRow(
+    expanded: Boolean,
+    onToggle: () -> Unit,
     favoritesOnly: Boolean,
     onToggleFavoritesOnly: () -> Unit,
     gradeFilterOptions: List<Pair<Grade?, String>>,
@@ -27,32 +35,41 @@ internal fun HistoryFilterChipsRow(
     // to a favorites-only view except re-entering from Dashboard.
     showFavoritesChip: Boolean = true,
 ) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = Spacing.L, vertical = Spacing.XS),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+    val gradeLabel = gradeFilterOptions.first { it.first == gradeFilter }.second
+    val favoritesLabel = stringResource(R.string.history_favorites_only)
+    val summary = if (favoritesOnly && showFavoritesChip) "$favoritesLabel · $gradeLabel" else gradeLabel
+
+    CollapsibleFilterBar(
+        expanded = expanded, onToggle = onToggle,
+        summaryLabel = stringResource(R.string.foodsearch_filters_label, summary),
     ) {
-        if (showFavoritesChip) {
-            item {
+        LazyRow(
+            contentPadding = PaddingValues(vertical = Spacing.XS),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+        ) {
+            if (showFavoritesChip) {
+                item {
+                    FilterChip(
+                        selected = favoritesOnly,
+                        onClick  = onToggleFavoritesOnly,
+                        label    = { Text(favoritesLabel) },
+                        leadingIcon = { Icon(Icons.Rounded.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
+                        colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
+                    )
+                }
+            }
+            items(gradeFilterOptions, key = { it.first?.name ?: "all" }) { (grade, label) ->
+                val isSelected = gradeFilter == grade
                 FilterChip(
-                    selected = favoritesOnly,
-                    onClick  = onToggleFavoritesOnly,
-                    label    = { Text(stringResource(R.string.history_favorites_only)) },
-                    leadingIcon = { Icon(Icons.Rounded.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(16.dp)) },
-                    colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = GoldHaze, selectedLabelColor = Gold),
+                    selected = isSelected,
+                    onClick  = { onGradeFilterChange(if (isSelected) null else grade) },
+                    label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                    colors   = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AccentCoral.copy(0.15f),
+                        selectedLabelColor     = AccentCoral,
+                    ),
                 )
             }
-        }
-        items(gradeFilterOptions, key = { it.first?.name ?: "all" }) { (grade, label) ->
-            val isSelected = gradeFilter == grade
-            FilterChip(
-                selected = isSelected,
-                onClick  = { onGradeFilterChange(if (isSelected) null else grade) },
-                label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                colors   = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = AccentCoral.copy(0.15f),
-                    selectedLabelColor     = AccentCoral,
-                ),
-            )
         }
     }
 }

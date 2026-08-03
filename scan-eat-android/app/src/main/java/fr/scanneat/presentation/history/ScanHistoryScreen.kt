@@ -18,7 +18,6 @@ import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.history.components.HistoryAvgScoreBanner
 import fr.scanneat.presentation.history.components.HistoryFilterChipsRow
 import fr.scanneat.presentation.history.components.HistoryGradeDistributionSection
-import fr.scanneat.presentation.history.components.HistorySearchBar
 import fr.scanneat.presentation.history.components.HistorySortMenu
 import fr.scanneat.presentation.history.components.HistoryTopScannedRow
 import fr.scanneat.presentation.history.components.ScanHistoryRow
@@ -47,6 +46,7 @@ fun ScanHistoryScreen(
     val historyWarnings = viewModel.historyWarnings.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<Long?>(null) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
+    var filtersExpanded by remember { mutableStateOf(false) }
     // Same pattern as WeightScreen - toggleFavorite()/delete() previously called
     // repo's Room writes completely unguarded; a failed write now surfaces here
     // as a one-shot snackbar instead of going back to silent.
@@ -91,10 +91,15 @@ fun ScanHistoryScreen(
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
-            HistorySearchBar(query = query.value, onQueryChange = { viewModel.setQuery(it) })
+            ScanEatSearchField(
+                query = query.value, onQueryChange = { viewModel.setQuery(it) },
+                placeholder = stringResource(R.string.history_search_placeholder),
+                modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S),
+            )
 
             // Improvement: score-range filter chips so users can drill into a grade band
             HistoryFilterChipsRow(
+                expanded = filtersExpanded, onToggle = { filtersExpanded = !filtersExpanded },
                 favoritesOnly = favoritesOnly.value,
                 onToggleFavoritesOnly = { viewModel.setFavoritesOnly(!favoritesOnly.value) },
                 gradeFilterOptions = gradeFilterOptions,

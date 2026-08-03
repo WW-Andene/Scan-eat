@@ -73,24 +73,10 @@ fun CustomFoodScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = CalorieOrange)) {
             // Search bar
-            OutlinedTextField(
-                value = query.value,
-                onValueChange = { viewModel.setQuery(it) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Spacing.L, vertical = Spacing.S),
-                placeholder = { Text(stringResource(R.string.customfood_search_placeholder), color = OnBackground.copy(0.4f)) },
-                leadingIcon = { Icon(Icons.Rounded.Search, null, tint = OnBackground.copy(0.5f)) },
-                trailingIcon = {
-                    if (query.value.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.setQuery("") }) {
-                            Icon(Icons.Rounded.Close, stringResource(R.string.common_clear_search), tint = OnBackground.copy(0.5f))
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(CardRadius.CONTROL),
-                colors = scanEatTextFieldColors(),
+            ScanEatSearchField(
+                query = query.value, onQueryChange = { viewModel.setQuery(it) },
+                placeholder = stringResource(R.string.customfood_search_placeholder),
+                modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S),
             )
 
             // Library stat chips — count + avg kcal, shown once there's at least one custom food.

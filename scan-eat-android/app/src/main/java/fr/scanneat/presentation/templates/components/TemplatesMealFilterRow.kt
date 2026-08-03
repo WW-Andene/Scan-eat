@@ -12,17 +12,33 @@ import fr.scanneat.R
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.*
 
+/**
+ * Was a permanently-visible LazyRow - now hidden behind a "Filtres: <current>"
+ * toggle, same collapsible pattern Recherche/FoodSearch and Recipes use (see
+ * CollapsibleFilterBar).
+ */
 @Composable
-internal fun TemplatesMealFilterRow(selected: MealSlot?, onSelect: (MealSlot?) -> Unit) {
+internal fun TemplatesMealFilterRow(
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    selected: MealSlot?,
+    onSelect: (MealSlot?) -> Unit,
+) {
     val mealOptions = listOf<MealSlot?>(null) + MealSlot.values().toList()
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-        items(mealOptions, key = { it?.name ?: "all" }) { slot ->
-            FilterChip(
-                selected = selected == slot,
-                onClick = { onSelect(slot) },
-                label = { Text(slot?.label() ?: stringResource(R.string.recipes_filter_all)) },
-                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
-            )
+    val allLabel = stringResource(R.string.recipes_filter_all)
+    CollapsibleFilterBar(
+        expanded = expanded, onToggle = onToggle,
+        summaryLabel = stringResource(R.string.foodsearch_filters_label, selected?.label() ?: allLabel),
+    ) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            items(mealOptions, key = { it?.name ?: "all" }) { slot ->
+                FilterChip(
+                    selected = selected == slot,
+                    onClick = { onSelect(slot) },
+                    label = { Text(slot?.label() ?: allLabel) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
+                )
+            }
         }
     }
 }

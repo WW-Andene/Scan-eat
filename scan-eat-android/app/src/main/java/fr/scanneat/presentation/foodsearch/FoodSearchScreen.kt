@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
-import fr.scanneat.presentation.history.components.HistorySearchBar
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.util.formatDecimal
 
@@ -59,7 +58,13 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
             modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Teal),
             contentPadding = padding,
         ) {
-            item { HistorySearchBar(query = query.value, onQueryChange = viewModel::setQuery) }
+            item {
+                ScanEatSearchField(
+                    query = query.value, onQueryChange = viewModel::setQuery,
+                    placeholder = stringResource(R.string.history_search_placeholder),
+                    modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S),
+                )
+            }
             item {
                 FiltersSection(
                     expanded = filtersExpanded,
@@ -133,38 +138,22 @@ private fun FiltersSection(
         FoodSearchFilter.IRON_SOURCE     to stringResource(R.string.foodsearch_filter_iron),
         FoodSearchFilter.CALCIUM_SOURCE  to stringResource(R.string.foodsearch_filter_calcium),
     )
-    Column(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS).animateContentSize()) {
-        Row(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)),
-            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
+    CollapsibleFilterBar(
+        expanded = expanded, onToggle = onToggle,
+        summaryLabel = stringResource(R.string.foodsearch_filters_label, filterOptions.first { it.first == filter }.second),
+        modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
+    ) {
+        LazyRow(
+            contentPadding = PaddingValues(vertical = Spacing.XS),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
         ) {
-            Row(
-                modifier = Modifier.weight(1f).clickable(onClick = onToggle).padding(vertical = Spacing.XS),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
-            ) {
-                Icon(Icons.Rounded.FilterList, null, tint = OnBackground.copy(0.6f), modifier = Modifier.size(18.dp))
-                Text(
-                    stringResource(R.string.foodsearch_filters_label, filterOptions.first { it.first == filter }.second),
-                    style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.8f),
+            items(filterOptions, key = { it.first.name }) { (f, label) ->
+                FilterChip(
+                    selected = filter == f,
+                    onClick  = { onFilterChange(f) },
+                    label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                    colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.15f), selectedLabelColor = AccentCoral),
                 )
-            }
-            IconButton(onClick = onToggle) {
-                Icon(if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = OnBackground.copy(0.5f))
-            }
-        }
-        if (expanded) {
-            LazyRow(
-                contentPadding = PaddingValues(vertical = Spacing.XS),
-                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-            ) {
-                items(filterOptions, key = { it.first.name }) { (f, label) ->
-                    FilterChip(
-                        selected = filter == f,
-                        onClick  = { onFilterChange(f) },
-                        label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                        colors   = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.15f), selectedLabelColor = AccentCoral),
-                    )
-                }
             }
         }
     }
