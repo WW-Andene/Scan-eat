@@ -237,6 +237,34 @@ private fun predicateFor(query: String): ((FoodSearchItem) -> Boolean)? {
     return { item: FoodSearchItem -> alias.getter(item) >= threshold }
 }
 
+/** One external reference link offered for the current query - opened in the
+ *  device's browser, never fetched/scraped in-app. */
+data class SourceLink(val label: String, val url: String)
+
+/** Which of Products/Links/Both the "Recherche" screen currently shows -
+ *  cycled by a single button (see FoodSearchViewModel.cycleDisplayMode). */
+enum class SearchDisplayMode { PRODUCTS, LINKS, BOTH }
+
+/**
+ * A handful of well-known, query-parameterized reference sites - not a scraped
+ * or fabricated result list, just the same "search on X" links a user could
+ * type into their browser by hand, offered up front for whatever they typed
+ * here (a food name, an additive code like "E330", a molecule). Wikipedia's
+ * domain follows the app's own language so results come back in the right
+ * language rather than always French.
+ */
+private fun buildSourceLinks(query: String, lang: String): List<SourceLink> {
+    if (query.isBlank()) return emptyList()
+    val q = java.net.URLEncoder.encode(query, "UTF-8")
+    val wikiDomain = if (lang == "en") "en.wikipedia.org" else "fr.wikipedia.org"
+    return listOf(
+        SourceLink("Wikipédia", "https://$wikiDomain/wiki/Special:Search?search=$q"),
+        SourceLink("Open Food Facts", "https://world.openfoodfacts.org/cgi/search.pl?search_terms=$q"),
+        SourceLink("PubChem", "https://pubchem.ncbi.nlm.nih.gov/#query=$q"),
+        SourceLink("ANSES – Table CIQUAL", "https://ciqual.anses.fr/#/aliments?query=$q"),
+    )
+}
+
 /**
  * "Recherche" — a full browse/search engine over EVERY product this app actually
  * knows about, not just the ~130-entry curated FOOD_DB (a user's reasonable first
@@ -268,7 +296,26 @@ class FoodSearchViewModel @Inject constructor(
     val filter: StateFlow<FoodSearchFilter> = _filter.asStateFlow()
     fun setFilter(f: FoodSearchFilter) { _filter.value = f }
 
+    private val _displayMode = MutableStateFlow(SearchDisplayMode.PRODUCTS)
+    val displayMode: StateFlow<SearchDisplayMode> = _displayMode.asStateFlow()
+
+    /** Single button, three states, cycling forward - Produits -> Liens -> Produits et liens -> Produits. */
+    fun cycleDisplayMode() {
+        _displayMode.value = when (_displayMode.value) {
+            SearchDisplayMode.PRODUCTS -> SearchDisplayMode.LINKS
+            SearchDisplayMode.LINKS    -> SearchDisplayMode.BOTH
+            SearchDisplayMode.BOTH     -> SearchDisplayMode.PRODUCTS
+        }
+    }
+
     private val debouncedQuery = _query.debounce(150)
+
+    /** Recomputed on every query change, not gated behind a button - unlike
+     *  [searchOnline], this never leaves the device (URL construction only,
+     *  no network call), so there's no rate limit to protect. */
+    val sourceLinks: StateFlow<List<SourceLink>> = debouncedQuery
+        .map { q -> buildSourceLinks(q, prefs.language.first()) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // If the typed query is itself a nutrient query ("fiber", "protéine>20",
     // "sel<0.3"...), search by name for it would always come back empty - browse

@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.foodsearch
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,11 +15,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,6 +49,8 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
     val grouped      = viewModel.groupedResults.collectAsStateWithLifecycle()
     val onlineResults = viewModel.onlineResults.collectAsStateWithLifecycle()
     val onlineState   = viewModel.onlineSearchState.collectAsStateWithLifecycle()
+    val displayMode   = viewModel.displayMode.collectAsStateWithLifecycle()
+    val sourceLinks   = viewModel.sourceLinks.collectAsStateWithLifecycle()
     var filtersExpanded by remember { mutableStateOf(false) }
     // SCANNED starts expanded - a user's own scanned products are the most
     // personally relevant/immediately useful section; the curated reference
@@ -73,63 +81,75 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                 )
             }
             item {
-                FiltersSection(
-                    expanded = filtersExpanded,
-                    onToggle = { filtersExpanded = !filtersExpanded },
-                    filter = filter.value,
-                    onFilterChange = viewModel::setFilter,
-                )
+                DisplayModeButton(mode = displayMode.value, onClick = viewModel::cycleDisplayMode)
             }
-            if (query.value.isNotBlank()) {
+            val showProducts = displayMode.value != SearchDisplayMode.LINKS
+            val showLinks = displayMode.value != SearchDisplayMode.PRODUCTS
+            if (showProducts) {
                 item {
-                    OnlineSearchSection(
-                        query = query.value,
-                        state = onlineState.value,
-                        results = onlineResults.value,
-                        onSearchOnline = viewModel::searchOnline,
-                        onOpenItem = { item -> viewModel.openOnlineItem(item, onOpenResult) },
+                    FiltersSection(
+                        expanded = filtersExpanded,
+                        onToggle = { filtersExpanded = !filtersExpanded },
+                        filter = filter.value,
+                        onFilterChange = viewModel::setFilter,
                     )
                 }
-            }
-            if (grouped.value.isEmpty()) {
-                item {
-                    EmptyListState(
-                        Icons.Rounded.Search,
-                        if (query.value.isBlank()) stringResource(R.string.foodsearch_empty_filtered)
-                        // Was a flat "No results for this search." with no echo of what
-                        // was actually typed - unlike CustomFood/Recipes' identical empty
-                        // state, which both interpolate the query back to the user.
-                        else stringResource(R.string.foodsearch_empty_query, query.value),
-                    )
+                if (query.value.isNotBlank()) {
+                    item {
+                        OnlineSearchSection(
+                            query = query.value,
+                            state = onlineState.value,
+                            results = onlineResults.value,
+                            onSearchOnline = viewModel::searchOnline,
+                            onOpenItem = { item -> viewModel.openOnlineItem(item, onOpenResult) },
+                        )
+                    }
                 }
-            } else {
-                // Fixed, meaningful order (personal data first, then the curated
-                // reference categories) rather than whatever order groupBy happens
-                // to yield - Map iteration order isn't a UI contract to rely on.
-                val orderedCategories = listOf(
-                    FoodSearchCategory.SCANNED, FoodSearchCategory.CUSTOM,
-                    FoodSearchCategory.FRUITS, FoodSearchCategory.VEGETABLES,
-                    FoodSearchCategory.GRAINS_STARCHES, FoodSearchCategory.PROTEINS,
-                    FoodSearchCategory.LEGUMES_NUTS_SEEDS, FoodSearchCategory.DAIRY,
-                    FoodSearchCategory.FATS_OILS, FoodSearchCategory.SWEETS_SNACKS,
-                    FoodSearchCategory.BEVERAGES, FoodSearchCategory.PREPARED_MEALS,
-                    FoodSearchCategory.OTHER,
-                )
-                orderedCategories.forEach { category ->
-                    val items = grouped.value[category].orEmpty()
-                    if (items.isNotEmpty()) {
-                        item(key = "header_$category") {
-                            CategoryHeader(
-                                category = category,
-                                count = items.size,
-                                expanded = category in expandedCategories,
-                                onToggle = { toggleCategory(category) },
-                            )
-                        }
-                        if (category in expandedCategories) {
-                            items(items, key = { (it.scanId?.toString() ?: "local") + "_" + it.name }) { item ->
-                                Box(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
-                                    FoodSearchRow(item, onOpenResult)
+            }
+            if (showLinks && query.value.isNotBlank()) {
+                item { SourceLinksSection(query = query.value, links = sourceLinks.value) }
+            }
+            if (showProducts) {
+                if (grouped.value.isEmpty()) {
+                    item {
+                        EmptyListState(
+                            Icons.Rounded.Search,
+                            if (query.value.isBlank()) stringResource(R.string.foodsearch_empty_filtered)
+                            // Was a flat "No results for this search." with no echo of what
+                            // was actually typed - unlike CustomFood/Recipes' identical empty
+                            // state, which both interpolate the query back to the user.
+                            else stringResource(R.string.foodsearch_empty_query, query.value),
+                        )
+                    }
+                } else {
+                    // Fixed, meaningful order (personal data first, then the curated
+                    // reference categories) rather than whatever order groupBy happens
+                    // to yield - Map iteration order isn't a UI contract to rely on.
+                    val orderedCategories = listOf(
+                        FoodSearchCategory.SCANNED, FoodSearchCategory.CUSTOM,
+                        FoodSearchCategory.FRUITS, FoodSearchCategory.VEGETABLES,
+                        FoodSearchCategory.GRAINS_STARCHES, FoodSearchCategory.PROTEINS,
+                        FoodSearchCategory.LEGUMES_NUTS_SEEDS, FoodSearchCategory.DAIRY,
+                        FoodSearchCategory.FATS_OILS, FoodSearchCategory.SWEETS_SNACKS,
+                        FoodSearchCategory.BEVERAGES, FoodSearchCategory.PREPARED_MEALS,
+                        FoodSearchCategory.OTHER,
+                    )
+                    orderedCategories.forEach { category ->
+                        val items = grouped.value[category].orEmpty()
+                        if (items.isNotEmpty()) {
+                            item(key = "header_$category") {
+                                CategoryHeader(
+                                    category = category,
+                                    count = items.size,
+                                    expanded = category in expandedCategories,
+                                    onToggle = { toggleCategory(category) },
+                                )
+                            }
+                            if (category in expandedCategories) {
+                                items(items, key = { (it.scanId?.toString() ?: "local") + "_" + it.name }) { item ->
+                                    Box(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
+                                        FoodSearchRow(item, onOpenResult)
+                                    }
                                 }
                             }
                         }
@@ -137,6 +157,63 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
+        }
+    }
+}
+
+private fun modeLabel(mode: SearchDisplayMode): Int = when (mode) {
+    SearchDisplayMode.PRODUCTS -> R.string.foodsearch_mode_products
+    SearchDisplayMode.LINKS    -> R.string.foodsearch_mode_links
+    SearchDisplayMode.BOTH     -> R.string.foodsearch_mode_both
+}
+
+/**
+ * Single button, three states - one tap cycles Produits -> Liens -> Produits
+ * et liens -> Produits, rather than three separate toggle chips (fewer taps
+ * to reach any of the three, and no extra row of controls competing with the
+ * filter chips already on this screen).
+ */
+@Composable
+private fun DisplayModeButton(mode: SearchDisplayMode, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(CardRadius.CONTROL),
+        modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
+    ) {
+        Icon(Icons.Rounded.SwapHoriz, null, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(Spacing.XS))
+        Text(stringResource(R.string.foodsearch_mode_button, stringResource(modeLabel(mode))), style = MaterialTheme.typography.labelMedium)
+    }
+}
+
+/**
+ * Fixed, query-parameterized reference links (Wikipédia, Open Food Facts,
+ * PubChem, ANSES/CIQUAL) - not a scraped result set, just the same manual
+ * "search on X" a user could type into their own browser, surfaced up front
+ * for whatever they typed (a food name, an additive code, a molecule). Opens
+ * in the device's default browser via ACTION_VIEW - never fetched in-app.
+ */
+@Composable
+private fun SourceLinksSection(query: String, links: List<SourceLink>) {
+    val context = LocalContext.current
+    Column(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
+        Text(
+            stringResource(R.string.foodsearch_links_section_header, query),
+            style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(Modifier.height(Spacing.XS))
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+            links.forEach { link ->
+                ScanEatCard(
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(link.url))) },
+                ) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(link.label, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
+                        Icon(Icons.Rounded.OpenInNew, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(18.dp))
+                    }
+                }
+            }
         }
     }
 }

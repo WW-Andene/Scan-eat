@@ -1185,6 +1185,11 @@
     <string name="foodsearch_online_empty">No online results for "%1$s".</string>
     <string name="foodsearch_online_error">Online search failed. Check your connection and try again.</string>
     <string name="foodsearch_online_section_header">Online results (%1$d)</string>
+    <string name="foodsearch_mode_products">Products</string>
+    <string name="foodsearch_mode_links">Links</string>
+    <string name="foodsearch_mode_both">Products and links</string>
+    <string name="foodsearch_mode_button">View: %1$s</string>
+    <string name="foodsearch_links_section_header">Source links for "%1$s"</string>
     <string name="planning_switcher_cd">Go to…</string>
     <string name="dashboard_tile_calendar">Calendar</string>
     <string name="dashboard_tile_history">History</string>

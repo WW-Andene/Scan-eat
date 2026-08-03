@@ -1237,6 +1237,11 @@
     <string name="foodsearch_online_empty">Aucun résultat en ligne pour « %1$s ».</string>
     <string name="foodsearch_online_error">La recherche en ligne a échoué. Vérifiez votre connexion et réessayez.</string>
     <string name="foodsearch_online_section_header">Résultats en ligne (%1$d)</string>
+    <string name="foodsearch_mode_products">Produits</string>
+    <string name="foodsearch_mode_links">Liens</string>
+    <string name="foodsearch_mode_both">Produits et liens</string>
+    <string name="foodsearch_mode_button">Affichage : %1$s</string>
+    <string name="foodsearch_links_section_header">Liens sources pour « %1$s »</string>
     <string name="planning_switcher_cd">Aller à…</string>
     <string name="dashboard_tile_calendar">Calendrier</string>
     <string name="dashboard_tile_history">Historique</string>
