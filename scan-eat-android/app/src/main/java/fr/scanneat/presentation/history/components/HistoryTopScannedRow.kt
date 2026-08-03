@@ -8,6 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -23,10 +25,12 @@ internal fun HistoryTopScannedRow(topScanned: List<Triple<String, Int, Long>>, o
             Surface(
                 onClick  = { if (dbId > 0) onOpenResult(dbId) },
                 modifier = Modifier.weight(1f)
-                    .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+                    .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape    = RoundedCornerShape(CardRadius.CONTROL),
                 color    = SurfaceVariant.copy(alpha = 0.42f),
-                shadowElevation = 3.dp,
+                shadowElevation = 0.dp,
             ) {
                 Column(
                     modifier = Modifier.padding(Spacing.S),

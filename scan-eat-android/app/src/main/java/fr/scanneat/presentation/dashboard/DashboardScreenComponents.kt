@@ -12,10 +12,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.CardRadius
@@ -24,12 +27,17 @@ import fr.scanneat.presentation.ui.theme.glassSheen
 // Shared helper used repeatedly by the orchestrator's feature-tile rows.
 @Composable
 internal fun FeatureTile(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    // User-reported "rectangle" bug: untinted shadowElevation + no forced .clip(),
+    // same fix as ScanEatCard/CalorieBalanceCard.
     Surface(
         onClick = onClick,
-        modifier = modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+        modifier = modifier
+            .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+            .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant.copy(alpha = 0.42f),
-        shadowElevation = 3.dp,
+        shadowElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier.padding(Spacing.M),

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,11 +34,15 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = SurfaceVariant.copy(alpha = 0.42f),
-        modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+        modifier = Modifier.fillMaxWidth()
+            .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // app-audit §E5: this standalone chart card had no shadowElevation at all,
         // unlike its sibling stat tiles (FastingHistoryStatsCard, below) in this
-        // same file which already carry 3dp.
-        shadowElevation = 6.dp,
+        // same file which already carry 3dp. User-reported "rectangle" bug fix:
+        // tinted Modifier.shadow + forced .clip(), shadowElevation now 0.
+        shadowElevation = 0.dp,
     ) {
         Column(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.fasting_7day_chart_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
@@ -111,10 +116,13 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
             stringResource(R.string.fasting_stat_record)  to "${longestH}h",
         ).forEach { (label, value) ->
             Surface(
-                modifier = Modifier.weight(1f).glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f),
+                modifier = Modifier.weight(1f)
+                    .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 color = SurfaceVariant.copy(alpha = 0.42f),
-                shadowElevation = 3.dp,
+                shadowElevation = 0.dp,
             ) {
                 Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(value, style = MaterialTheme.typography.titleSmall, color = AccentCoral, fontWeight = FontWeight.Bold)

@@ -27,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -41,6 +43,7 @@ import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassSheen
@@ -98,9 +101,12 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
             .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
     ) {
         Surface(
+            modifier = Modifier
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .clip(RoundedCornerShape(24.dp)),
             shape = RoundedCornerShape(24.dp),
             color = SurfaceVariant.copy(0.9f),
-            shadowElevation = 6.dp,
+            shadowElevation = 0.dp,
         ) {
             Column {
                 Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {

@@ -31,6 +31,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
@@ -43,6 +45,7 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.glassSheen
@@ -92,12 +95,15 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
             Surface(
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 color = SurfaceVariant.copy(0.9f),
-                modifier = Modifier.combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick,
-                    onLongClickLabel = multiHint,
-                ),
-                shadowElevation = 6.dp,
+                modifier = Modifier
+                    .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .clip(RoundedCornerShape(CardRadius.PROMINENT))
+                    .combinedClickable(
+                        onClick = onClick,
+                        onLongClick = onLongClick,
+                        onLongClickLabel = multiHint,
+                    ),
+                shadowElevation = 0.dp,
             ) {
                 Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Rounded.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
@@ -122,7 +128,10 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                     onClick = { onQuickScan(bc) },
                     shape = RoundedCornerShape(20.dp),
                     color = SurfaceVariant.copy(0.85f),
-                    shadowElevation = 3.dp,
+                    modifier = Modifier
+                        .shadow(elevation = 3.dp, shape = RoundedCornerShape(20.dp), ambientColor = ShadowTint, spotColor = ShadowTint)
+                        .clip(RoundedCornerShape(20.dp)),
+                    shadowElevation = 0.dp,
                 ) {
                     Row(Modifier.padding(horizontal = Spacing.SM, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(TablerIcons.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))

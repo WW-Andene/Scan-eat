@@ -16,6 +16,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -97,7 +99,13 @@ internal fun HydrationRingAndControls(
 
     if (pct >= 1f) {
         Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL))) {
-            Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticGreen().copy(0.15f), shadowElevation = 3.dp) {
+            Surface(
+                shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticGreen().copy(0.15f),
+                modifier = Modifier
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .clip(RoundedCornerShape(CardRadius.CONTROL)),
+                shadowElevation = 0.dp,
+            ) {
                 Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     Icon(TablerIcons.CircleCheck, null, tint = semanticGreen(), modifier = Modifier.size(18.dp))
                     Text(stringResource(R.string.hydration_goal_reached), style = MaterialTheme.typography.bodyMedium, color = semanticGreen())

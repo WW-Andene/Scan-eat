@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -68,18 +69,23 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
         // intensity (~10% alpha), rendered on top of the flat surface fill
         // rather than left flat. Reserved for this card alone, not every card.
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            // User-reported "rectangle" bug: this Surface had no explicit .clip() and
+            // an untinted shadowElevation — the same MIUI/Xiaomi flat-square-corner
+            // bug ScanEatCard.kt's own comment documents and fixes. Matched here:
+            // tinted Modifier.shadow + forced .clip() + shadowElevation = 0.dp.
+            modifier = Modifier.fillMaxWidth()
+                .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .clip(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             color = Color.Transparent,
             border = BorderStroke(1.dp, balColor.copy(alpha = HeroGlassSpec.borderAlpha)),
             // design-aesthetic-audit §DH: this card already declares itself
             // HERO tier via HeroGlassSpec's edge/glow/border above (it's the
-            // Dashboard's one focal metric per the doc comment below), but had
-            // no shadowElevation at all - only the streak badge overlaid on top
-            // of it did. 10dp matches HeroGlassSpec's own elevation tier from
-            // ScanEatCard, so this card actually reads as more prominent than
-            // an ordinary card, not equal to or flatter than one.
-            shadowElevation = 10.dp,
+            // Dashboard's one focal metric per the doc comment below). 10dp matches
+            // HeroGlassSpec's own elevation tier from ScanEatCard, so this card
+            // actually reads as more prominent than an ordinary card, not equal to
+            // or flatter than one — now drawn via the tinted Modifier.shadow above.
+            shadowElevation = 0.dp,
         ) {
             Column(
                 modifier = Modifier
@@ -167,10 +173,11 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .offset(x = 8.dp, y = (-10).dp)
-                .size(46.dp),
+                .size(46.dp)
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(50), ambientColor = ShadowTint, spotColor = ShadowTint),
             shape = RoundedCornerShape(50),
             color = AccentCoral,
-            shadowElevation = 6.dp,
+            shadowElevation = 0.dp,
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
