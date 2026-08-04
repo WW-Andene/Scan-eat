@@ -24,6 +24,7 @@ object AppRoutes {
     const val CALENDAR      = "calendar"
     const val REMINDERS     = "reminders"
     const val FOOD_SEARCH   = "food_search"
+    const val SEASONAL_PRODUCE = "seasonal_produce"
 
     fun result(scanId: Long, fresh: Boolean = false) = "result/$scanId?fresh=$fresh"
 }

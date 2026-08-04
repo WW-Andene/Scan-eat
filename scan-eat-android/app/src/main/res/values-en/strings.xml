@@ -887,6 +887,13 @@
     <string name="expenses_add_entry_category_label">Category</string>
     <string name="expenses_edit_entry_title">Edit expense</string>
     <string name="expenses_export_csv">Export (CSV)</string>
+    <string name="dashboard_tile_seasonal">Seasonal produce</string>
+    <string name="seasonal_title">Seasonal produce</string>
+    <string name="seasonal_intro">Seasonal fruit and vegetable calendar, outdoor French-grown produce (ADEME/Interfel) — indicative, can vary by region and year.</string>
+    <string name="seasonal_this_month_title">In season in %1$s</string>
+    <string name="seasonal_fruits_title">Fruits</string>
+    <string name="seasonal_vegetables_title">Vegetables</string>
+    <string name="seasonal_empty">No seasonal produce listed for this month.</string>
     <string name="diary_note_label">Note of the day</string>
     <string name="diary_cd_save_note">Save</string>
     <string name="diary_empty_body">Nothing logged yet. Scan a product and tap \'Log it\'.</string>

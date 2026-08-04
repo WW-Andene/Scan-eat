@@ -891,6 +891,13 @@
     <string name="expenses_add_entry_category_label">Catégorie</string>
     <string name="expenses_edit_entry_title">Modifier la dépense</string>
     <string name="expenses_export_csv">Exporter (CSV)</string>
+    <string name="dashboard_tile_seasonal">Produits de saison</string>
+    <string name="seasonal_title">Produits de saison</string>
+    <string name="seasonal_intro">Calendrier des fruits et légumes de saison, culture française de plein champ (ADEME/Interfel) — indicatif, peut varier selon la région et l\'année.</string>
+    <string name="seasonal_this_month_title">En saison en %1$s</string>
+    <string name="seasonal_fruits_title">Fruits</string>
+    <string name="seasonal_vegetables_title">Légumes</string>
+    <string name="seasonal_empty">Aucun produit de saison référencé pour ce mois.</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Logger\'.</string>

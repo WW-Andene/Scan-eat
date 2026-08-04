@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Eco
 import androidx.compose.material.icons.rounded.EventNote
 import androidx.compose.material.icons.rounded.Fastfood
 import androidx.compose.material.icons.rounded.History
@@ -81,6 +82,7 @@ fun DashboardScreen(
     onOpenMealPlan: () -> Unit = {},
     onOpenGrocery: () -> Unit = {},
     onOpenCustomFoods: () -> Unit = {},
+    onOpenSeasonalProduce: () -> Unit = {},
     onOpenFavorites: () -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
     onOpenCalendar: () -> Unit = {},
@@ -253,6 +255,15 @@ fun DashboardScreen(
                     // through a 6-10-result Quick Add autocomplete dropdown, never as
                     // a real browsable/filterable search tool in its own right.
                     FeatureTile(TablerIcons.Search, stringResource(R.string.dashboard_tile_search), Modifier.weight(1f), onClick = onOpenFoodSearch)
+                }
+            }
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    FeatureTile(Icons.Rounded.Eco, stringResource(R.string.dashboard_tile_seasonal), Modifier.weight(1f), onClick = onOpenSeasonalProduce)
+                    // Two empty weighted slots keep this tile the same size as every
+                    // other 3-per-row tile above instead of stretching to full width.
+                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.weight(1f))
                 }
             }
 

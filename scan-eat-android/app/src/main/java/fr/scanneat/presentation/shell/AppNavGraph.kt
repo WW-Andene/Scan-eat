@@ -33,6 +33,7 @@ import fr.scanneat.presentation.recipes.RecipesScreen
 import fr.scanneat.presentation.reminders.RemindersScreen
 import fr.scanneat.presentation.result.ResultScreen
 import fr.scanneat.presentation.scan.ScanScreen
+import fr.scanneat.presentation.seasonal.SeasonalProduceScreen
 import fr.scanneat.presentation.settings.SettingsScreen
 import fr.scanneat.presentation.templates.TemplatesScreen
 import fr.scanneat.presentation.ui.theme.ScoreRevealEasing
@@ -141,6 +142,7 @@ fun AppNavGraph(
                 onOpenMealPlan  = { navController.navigate(AppRoutes.MEAL_PLAN) },
                 onOpenGrocery        = { navController.navigate(AppRoutes.GROCERY) },
                 onOpenCustomFoods     = { navController.navigate(AppRoutes.CUSTOM_FOODS) },
+                onOpenSeasonalProduce = { navController.navigate(AppRoutes.SEASONAL_PRODUCE) },
                 onOpenFavorites      = { navController.navigate(AppRoutes.FAVORITES) },
                 onOpenResult         = { id -> navController.navigate(AppRoutes.result(id)) },
                 onOpenCalendar       = { navController.navigate(AppRoutes.CALENDAR) },
@@ -255,6 +257,9 @@ fun AppNavGraph(
         }
         composable(AppRoutes.CUSTOM_FOODS) {
             CustomFoodScreen(onBack = { navController.popBackStack() }, onNavigateToPlanning = { navController.navigateToPlanning(it) })
+        }
+        composable(AppRoutes.SEASONAL_PRODUCE) {
+            SeasonalProduceScreen(onBack = { navController.popBackStack() })
         }
         composable(AppRoutes.CALENDAR)     {
             CalendarScreen(
