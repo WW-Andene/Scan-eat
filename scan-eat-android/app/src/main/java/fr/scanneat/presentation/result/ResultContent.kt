@@ -57,7 +57,7 @@ internal fun ResultContent(
             .fillMaxSize()
             .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = Spacing.M),
+            .padding(horizontal = Spacing.L, vertical = Spacing.M),
         verticalArrangement = Arrangement.spacedBy(Spacing.L),
     ) {
         // Product name + source

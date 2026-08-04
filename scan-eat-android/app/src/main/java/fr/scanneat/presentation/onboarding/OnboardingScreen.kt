@@ -82,7 +82,7 @@ fun OnboardingScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(padding)
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
-                .padding(horizontal = 28.dp),
+                .padding(horizontal = Spacing.L),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Spacing.XL),
         ) {
