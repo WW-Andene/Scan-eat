@@ -23,6 +23,7 @@ internal fun BudgetEditDialog(
     weeklyInitial: Double?,
     monthlyInitial: Double?,
     perMealInitial: Double?,
+    currencySymbol: String,
     onConfirm: (daily: Double?, weekly: Double?, monthly: Double?, perMeal: Double?) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -45,8 +46,8 @@ internal fun BudgetEditDialog(
                 // an example value - a first-time user had to guess.
                 OutlinedTextField(
                     value = dailyText, onValueChange = { dailyText = it },
-                    label = { Text(stringResource(R.string.expenses_budget_daily_label)) },
-                    supportingText = { Text(stringResource(R.string.expenses_budget_daily_hint)) },
+                    label = { Text(stringResource(R.string.expenses_budget_daily_label, currencySymbol)) },
+                    supportingText = { Text(stringResource(R.string.expenses_budget_daily_hint, currencySymbol)) },
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
@@ -54,8 +55,8 @@ internal fun BudgetEditDialog(
                 )
                 OutlinedTextField(
                     value = weeklyText, onValueChange = { weeklyText = it },
-                    label = { Text(stringResource(R.string.expenses_budget_weekly_label)) },
-                    supportingText = { Text(stringResource(R.string.expenses_budget_weekly_hint)) },
+                    label = { Text(stringResource(R.string.expenses_budget_weekly_label, currencySymbol)) },
+                    supportingText = { Text(stringResource(R.string.expenses_budget_weekly_hint, currencySymbol)) },
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
@@ -63,8 +64,8 @@ internal fun BudgetEditDialog(
                 )
                 OutlinedTextField(
                     value = monthlyText, onValueChange = { monthlyText = it },
-                    label = { Text(stringResource(R.string.expenses_budget_monthly_label)) },
-                    supportingText = { Text(stringResource(R.string.expenses_budget_monthly_hint)) },
+                    label = { Text(stringResource(R.string.expenses_budget_monthly_label, currencySymbol)) },
+                    supportingText = { Text(stringResource(R.string.expenses_budget_monthly_hint, currencySymbol)) },
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
@@ -72,8 +73,8 @@ internal fun BudgetEditDialog(
                 )
                 OutlinedTextField(
                     value = perMealText, onValueChange = { perMealText = it },
-                    label = { Text(stringResource(R.string.expenses_budget_per_meal_label)) },
-                    supportingText = { Text(stringResource(R.string.expenses_budget_per_meal_hint)) },
+                    label = { Text(stringResource(R.string.expenses_budget_per_meal_label, currencySymbol)) },
+                    supportingText = { Text(stringResource(R.string.expenses_budget_per_meal_hint, currencySymbol)) },
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),

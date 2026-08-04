@@ -26,6 +26,7 @@ import fr.scanneat.presentation.settings.components.ApiModeSection
 import fr.scanneat.presentation.settings.components.BackupSection
 import fr.scanneat.presentation.settings.components.BiolismDisplaySection
 import fr.scanneat.presentation.settings.components.CerebrasKeySection
+import fr.scanneat.presentation.settings.components.CurrencySection
 import fr.scanneat.presentation.settings.components.DataResetSection
 import fr.scanneat.presentation.settings.components.GroqKeySection
 import fr.scanneat.presentation.settings.components.HealthConnectSection
@@ -64,6 +65,7 @@ fun SettingsScreen(
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
+    val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val biolismAdvancedView = viewModel.biolismAdvancedView.collectAsStateWithLifecycle()
     val animatedBackground = viewModel.animatedBackground.collectAsStateWithLifecycle()
     val isPremium = viewModel.isPremium.collectAsStateWithLifecycle()
@@ -302,6 +304,7 @@ fun SettingsScreen(
             // preference also consumed by Weight/Biolism; users looking for it under
             // Réglages (where every other display preference lives) found nothing. ----
             item { UnitsSection(useImperialWeight.value, onChange = viewModel::setUseImperialWeight) }
+            item { CurrencySection(currencySymbol.value, onChange = viewModel::setCurrencySymbol) }
 
             // ---- Biolism display depth (R&D §X.0) ----
             item { BiolismDisplaySection(biolismAdvancedView.value, onChange = viewModel::setBiolismAdvancedView) }

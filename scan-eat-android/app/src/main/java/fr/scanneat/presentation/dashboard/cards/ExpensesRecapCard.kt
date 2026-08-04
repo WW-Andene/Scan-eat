@@ -40,6 +40,7 @@ import fr.scanneat.util.formatDecimal
 fun ExpensesRecapCard(onClick: () -> Unit, viewModel: ExpensesViewModel = hiltViewModel()) {
     val weekTotal = viewModel.weekTotal.collectAsStateWithLifecycle()
     val budgetWeekly = viewModel.budgetWeeklyEuros.collectAsStateWithLifecycle()
+    val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
 
     // Nothing to show yet if the user has never logged a price and never set a
     // budget - showing a permanent "0,00 €" card to every user who hasn't
@@ -56,7 +57,7 @@ fun ExpensesRecapCard(onClick: () -> Unit, viewModel: ExpensesViewModel = hiltVi
             Text(stringResource(R.string.expenses_week_title), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.7f), fontWeight = FontWeight.SemiBold)
         }
         Text(
-            "${weekTotal.value.formatDecimal(2)} €",
+            dispCurrency(weekTotal.value, currencySymbol.value),
             style = MaterialTheme.typography.titleLarge,
             color = OnBackground,
             fontWeight = FontWeight.Bold,
@@ -70,7 +71,7 @@ fun ExpensesRecapCard(onClick: () -> Unit, viewModel: ExpensesViewModel = hiltVi
                 trackColor = OnSurface.copy(0.1f),
             )
             Text(
-                stringResource(R.string.expenses_of_budget, budget),
+                stringResource(R.string.expenses_of_budget, budget, currencySymbol.value),
                 style = MaterialTheme.typography.labelSmall,
                 color = OnSurface.copy(0.5f),
             )

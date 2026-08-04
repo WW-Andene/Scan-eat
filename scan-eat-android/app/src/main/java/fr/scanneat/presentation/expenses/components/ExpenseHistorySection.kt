@@ -16,7 +16,7 @@ import fr.scanneat.util.formatDecimal
 import java.time.format.DateTimeFormatter
 
 @Composable
-internal fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, onEdit: () -> Unit, onDelete: () -> Unit) {
+internal fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, currencySymbol: String, onEdit: () -> Unit, onDelete: () -> Unit) {
     // Tapping the row now opens the edit dialog - previously the only action
     // available on a logged entry was delete, so a mistyped price or name
     // could only be fixed by deleting and re-adding it from scratch.
@@ -26,9 +26,9 @@ internal fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, onEd
                 Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnBackground, maxLines = 1)
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
                     Text(entry.date.format(dateFmt), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                    Text("${entry.priceEuros.formatDecimal(2)} €", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+                    Text(dispCurrency(entry.priceEuros, currencySymbol), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
                     entry.pricePerKg?.let {
-                        Text("${it.formatDecimal(2)} €/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
+                        Text("${dispCurrency(it, currencySymbol)}/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f))
                     }
                     entry.valueScore?.let { score ->
                         val (label, color) = when (score) {

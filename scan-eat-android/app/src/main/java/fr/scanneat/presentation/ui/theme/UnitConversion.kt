@@ -27,3 +27,8 @@ const val ML_TO_FLOZ = 0.033814
  *  all respecting it. */
 fun dispVolume(ml: Int, useImperial: Boolean): String =
     if (useImperial) "%.0f fl oz".format(Locale.US, ml * ML_TO_FLOZ) else "$ml mL"
+
+/** "4.50 €" / "4.50 $" — the user's configured currency symbol (Settings > Devise),
+ *  previously hardcoded "€" at every Expenses display site regardless of preference. */
+fun dispCurrency(amount: Double, symbol: String, decimals: Int = 2): String =
+    "%.${decimals}f %s".format(Locale.US, amount, symbol)

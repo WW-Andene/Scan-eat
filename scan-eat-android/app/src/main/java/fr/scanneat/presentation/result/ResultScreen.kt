@@ -63,6 +63,7 @@ fun ResultScreen(
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
     val priceEntries = viewModel.priceEntries.collectAsStateWithLifecycle()
+    val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     // rememberSaveable, not remember - a process death while either dialog was open
     // (backgrounding the app is enough on a low-memory device) previously reset both
@@ -159,6 +160,7 @@ fun ResultScreen(
                 scoreDelta        = s.scoreDelta,
                 scoreHistory      = s.scoreHistory,
                 priceEntries      = priceEntries.value,
+                currencySymbol    = currencySymbol.value,
                 onSavePrice       = { price, weight -> viewModel.savePrice(price, weight) },
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,

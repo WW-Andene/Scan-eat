@@ -45,6 +45,7 @@ internal fun ResultContent(
     scoreDelta: Int? = null,
     scoreHistory: List<Int> = emptyList(),
     priceEntries: List<fr.scanneat.data.repository.expense.PriceEntry> = emptyList(),
+    currencySymbol: String = "€",
     onSavePrice: (Double, Double?) -> Unit = { _, _ -> },
     onDeletePrice: (String) -> Unit = {},
     onOpenResult: (Long) -> Unit = {},
@@ -148,7 +149,7 @@ internal fun ResultContent(
 
         // Price / value-score tracking — manual entry only (no OCR price-tag
         // detection), see PriceEntryCard's own doc comment.
-        PriceEntryCard(entries = priceEntries, onSave = onSavePrice, onDelete = onDeletePrice)
+        PriceEntryCard(entries = priceEntries, currencySymbol = currencySymbol, onSave = onSavePrice, onDelete = onDeletePrice)
 
         // Nutrition table
         NutritionTable(nutrition = scan.product.nutrition)

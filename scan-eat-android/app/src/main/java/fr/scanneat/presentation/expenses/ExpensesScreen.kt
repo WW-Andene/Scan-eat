@@ -65,6 +65,7 @@ fun ExpensesScreen(
     var editTarget by remember { mutableStateOf<PriceEntry?>(null) }
     var summaryMode by remember { mutableStateOf(ExpensesSummaryMode.WEEK) }
     val language = viewModel.language.collectAsStateWithLifecycle()
+    val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
     // In-app language, not Locale.getDefault() - see WeightScreen's own doc
     // comment on the identical fix; this was the one date-heavy screen still
     // defaulting to the device locale instead of the in-app one.
@@ -131,6 +132,7 @@ fun ExpensesScreen(
                     spendByCategoryDay = spendByCategoryDay.value,
                     spendByCategory = spendByCategory.value,
                     spendByCategoryMonth = spendByCategoryMonth.value,
+                    currencySymbol = currencySymbol.value,
                     onEditBudget = { showBudgetEdit = true },
                     onOpenCalendar = onOpenCalendar,
                 )
@@ -177,7 +179,7 @@ fun ExpensesScreen(
                 }
             } else {
                 items(entries.value, key = { it.id }) { entry ->
-                    ExpenseEntryRow(entry = entry, dateFmt = dateFmt, onEdit = { editTarget = entry }, onDelete = { deleteTarget = entry.id })
+                    ExpenseEntryRow(entry = entry, dateFmt = dateFmt, currencySymbol = currencySymbol.value, onEdit = { editTarget = entry }, onDelete = { deleteTarget = entry.id })
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
@@ -200,6 +202,7 @@ fun ExpensesScreen(
             weeklyInitial = budgetWeekly.value,
             monthlyInitial = budgetMonthly.value,
             perMealInitial = budgetPerMeal.value,
+            currencySymbol = currencySymbol.value,
             onConfirm = { daily, weekly, monthly, perMeal ->
                 viewModel.setBudgetDaily(daily)
                 viewModel.setBudgetWeekly(weekly)

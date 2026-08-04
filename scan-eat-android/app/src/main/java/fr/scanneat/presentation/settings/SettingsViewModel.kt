@@ -72,6 +72,7 @@ class SettingsViewModel @Inject constructor(
     // expecting a units setting under Réglages (where every other display
     // preference lives) wouldn't find it there.
     val useImperialWeight = prefs.useImperialWeight.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val currencySymbol = prefs.currencySymbol.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "€")
     val biolismAdvancedView = prefs.biolismAdvancedView.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
     val animatedBackground = prefs.animatedBackground.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     /** Freemium gate - see UserPreferences.isPremium's own doc comment. */
@@ -115,6 +116,7 @@ class SettingsViewModel @Inject constructor(
     fun setDyslexicFont(v: Boolean)     = guardedLaunch { prefs.setDyslexicFont(v) }
     fun setColorblindMode(mode: String) = guardedLaunch { prefs.setColorblindMode(mode) }
     fun setUseImperialWeight(v: Boolean) = guardedLaunch { prefs.setUseImperialWeight(v) }
+    fun setCurrencySymbol(v: String) = guardedLaunch { prefs.setCurrencySymbol(v) }
     fun setBiolismAdvancedView(v: Boolean) = guardedLaunch { prefs.setBiolismAdvancedView(v) }
     fun setAnimatedBackground(v: Boolean) = guardedLaunch { prefs.setAnimatedBackground(v) }
     // No payment processor wired up yet (Google Play Billing needs Play Console

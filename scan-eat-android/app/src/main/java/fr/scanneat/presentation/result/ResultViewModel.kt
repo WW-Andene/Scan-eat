@@ -91,6 +91,10 @@ class ResultViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    // Settings > Devise - PriceEntryCard previously hardcoded "€".
+    val currencySymbol: StateFlow<String> = prefs.currencySymbol
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "€")
+
     // Needed so the hint panel can cross-reference health conditions (pregnancy,
     // etc.) the same way PersonalScoreEngine already does for the score itself —
     // the hint panel is a separate UI surface and previously ignored the profile.

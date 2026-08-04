@@ -58,6 +58,7 @@ class PdfReportRepository @Inject constructor(
         val today = LocalDate.now()
         val dateFmt = DateTimeFormatter.ofPattern("d MMM yyyy", Locale(language))
         val isFr = language == "fr"
+        val currencySymbol = prefs.currencySymbol.first()
 
         val weights = weightDao.getAllForBackup().sortedBy { it.date }
         val diaryLast30 = consumptionRepo.observeRange(today.minusDays(29), today).first()
@@ -72,7 +73,7 @@ class PdfReportRepository @Inject constructor(
         val priceEntries = priceRepo.observeAll().first().filter { !it.date.isBefore(today.minusDays(29)) }
 
         val doc = PdfDocument()
-        val body = ReportPageBuilder(doc, isFr, dateFmt)
+        val body = ReportPageBuilder(doc, isFr, dateFmt, currencySymbol)
 
         body.titlePage(profile, today)
         body.weightPage(weights, profile)
@@ -88,6 +89,7 @@ private class ReportPageBuilder(
     private val doc: PdfDocument,
     private val isFr: Boolean,
     private val dateFmt: DateTimeFormatter,
+    private val currencySymbol: String,
 ) {
     private val pageW = 595
     private val pageH = 842
@@ -263,7 +265,7 @@ private class ReportPageBuilder(
         } else {
             val total = priceEntries.sumOf { it.priceEuros }
             canvas.drawText(
-                (if (isFr) "Total sur 30 jours : " else "30-day total: ") + "%.2f €".format(Locale.US, total),
+                (if (isFr) "Total sur 30 jours : " else "30-day total: ") + "%.2f %s".format(Locale.US, total, currencySymbol),
                 margin + 12f, y, bodyPaint,
             )
             y += 20f

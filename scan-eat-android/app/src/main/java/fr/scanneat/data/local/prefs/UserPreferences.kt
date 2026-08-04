@@ -45,6 +45,7 @@ class UserPreferences @Inject constructor(
         val KEY_DYSLEXIC_FONT        = booleanPreferencesKey("dyslexic_font")
         val KEY_COLORBLIND_MODE      = stringPreferencesKey("colorblind_mode")
         val KEY_USE_IMPERIAL_WEIGHT  = booleanPreferencesKey("use_imperial_weight")
+        val KEY_CURRENCY_SYMBOL      = stringPreferencesKey("currency_symbol")
         val KEY_BIOLISM_ADVANCED     = booleanPreferencesKey("biolism_advanced_view")
         val KEY_ANIMATED_BACKGROUND  = booleanPreferencesKey("animated_background")
         val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
@@ -123,6 +124,10 @@ class UserPreferences @Inject constructor(
      */
     val useImperialWeight: Flow<Boolean> = storeData.map { it[KEY_USE_IMPERIAL_WEIGHT] ?: false }.distinctUntilChanged()
 
+    // Expenses previously hardcoded "€" at every display site - unusable outside
+    // the eurozone. Defaults to "€" so existing users see no change.
+    val currencySymbol: Flow<String> = storeData.map { it[KEY_CURRENCY_SYMBOL] ?: "€" }.distinctUntilChanged()
+
     // R&D §X.0: Biolism's Data tab has 14 cards, several research-grade
     // (substrate flux/RQ, Fanger thermoregulation, ventilation physiology,
     // raw formula sheets) that can overwhelm a user who just wants BMR/body
@@ -163,6 +168,7 @@ class UserPreferences @Inject constructor(
     suspend fun setDyslexicFont(v: Boolean)       = store.edit { it[KEY_DYSLEXIC_FONT] = v }
     suspend fun setColorblindMode(mode: String)   = store.edit { it[KEY_COLORBLIND_MODE] = mode }
     suspend fun setUseImperialWeight(v: Boolean)  = store.edit { it[KEY_USE_IMPERIAL_WEIGHT] = v }
+    suspend fun setCurrencySymbol(v: String)      = store.edit { it[KEY_CURRENCY_SYMBOL] = v.ifBlank { "€" } }
     suspend fun setBiolismAdvancedView(v: Boolean) = store.edit { it[KEY_BIOLISM_ADVANCED] = v }
     suspend fun setAnimatedBackground(v: Boolean)  = store.edit { it[KEY_ANIMATED_BACKGROUND] = v }
 

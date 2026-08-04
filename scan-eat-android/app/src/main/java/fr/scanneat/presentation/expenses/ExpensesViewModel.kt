@@ -44,6 +44,10 @@ class ExpensesViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    // Settings > Devise - previously every amount in this screen hardcoded "€".
+    val currencySymbol: StateFlow<String> = prefs.currencySymbol
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "€")
+
     // LocalDate.now() called directly inside a .map on `entries` (the previous
     // shape of both properties below) only re-evaluates when the price list
     // itself changes - a user who goes a day or more without logging a new

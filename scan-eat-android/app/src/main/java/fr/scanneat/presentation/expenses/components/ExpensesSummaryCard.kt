@@ -68,6 +68,7 @@ internal fun ExpensesWeekCard(
     spendByCategoryDay: List<Pair<ProductCategory, Double>>,
     spendByCategory: List<Pair<ProductCategory, Double>>,
     spendByCategoryMonth: List<Pair<ProductCategory, Double>>,
+    currencySymbol: String,
     onEditBudget: () -> Unit,
     onOpenCalendar: () -> Unit,
 ) {
@@ -154,7 +155,7 @@ internal fun ExpensesWeekCard(
             }
         }
         Text(
-            "${total.formatDecimal(2)} €",
+            dispCurrency(total, currencySymbol),
             style = MaterialTheme.typography.headlineMedium,
             color = OnBackground,
             fontWeight = FontWeight.Bold,
@@ -177,7 +178,7 @@ internal fun ExpensesWeekCard(
             // and not a real "helpful warning vs. scolding" signal since nothing here
             // said "over budget" in words, only in a subtle color shift.
             Text(
-                stringResource(ofBudgetTemplate, budget) +
+                stringResource(ofBudgetTemplate, budget, currencySymbol) +
                     if (isOver) " · " + stringResource(R.string.expenses_over_budget_suffix) else "",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isOver) AccentCoral else OnSurface.copy(0.5f),
@@ -190,7 +191,7 @@ internal fun ExpensesWeekCard(
             // also a Double average of summed prices, subject to the same drift.
             val over = centsOf(avg) > centsOf(budgetPerMeal)
             Text(
-                stringResource(R.string.expenses_avg_per_meal, avg, budgetPerMeal) +
+                stringResource(R.string.expenses_avg_per_meal, avg, budgetPerMeal, currencySymbol) +
                     if (over) " · " + stringResource(R.string.expenses_over_budget_suffix) else "",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (over) AccentCoral else OnSurface.copy(0.5f),
@@ -203,7 +204,7 @@ internal fun ExpensesWeekCard(
                 byCategory.take(3).forEach { (category, amount) ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(category.displayLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                        Text("${amount.formatDecimal(2)} €", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                        Text(dispCurrency(amount, currencySymbol), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                     }
                 }
             }

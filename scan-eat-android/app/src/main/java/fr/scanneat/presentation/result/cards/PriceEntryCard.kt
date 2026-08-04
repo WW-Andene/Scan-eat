@@ -40,6 +40,7 @@ import fr.scanneat.util.formatDecimal
 @Composable
 internal fun PriceEntryCard(
     entries: List<PriceEntry>,
+    currencySymbol: String,
     onSave: (priceEuros: Double, weightG: Double?) -> Unit,
     onDelete: (String) -> Unit,
 ) {
@@ -60,10 +61,10 @@ internal fun PriceEntryCard(
             entries.take(3).forEach { entry ->
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column {
-                        Text("${entry.priceEuros.formatDecimal(2)} €", style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                        Text(dispCurrency(entry.priceEuros, currencySymbol), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
                         entry.pricePerKg?.let { perKg ->
                             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.CenterVertically) {
-                                Text("${perKg.formatDecimal(2)} €/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+                                Text("${dispCurrency(perKg, currencySymbol)}/kg", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                                 entry.valueScore?.let { ValueScoreBadge(it) }
                             }
                         }
