@@ -68,7 +68,7 @@ internal fun PriceEntryCard(
                         }
                     }
                     IconButton(onClick = { onDelete(entry.id) }) {
-                        Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
+                        Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f))
                     }
                 }
             }

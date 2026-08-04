@@ -98,9 +98,9 @@ internal fun ScanHistoryRow(scan: ScanResult, warning: String?, onOpen: () -> Un
                 )
             }
             IconButton(onClick = onDelete) {
-                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.3f), modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(18.dp))
             }
-            Icon(TablerIcons.ChevronRight, null, tint = OnSurface.copy(0.3f), modifier = Modifier.size(IconSize.Inline))
+            Icon(TablerIcons.ChevronRight, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Inline))
         }
     }
 }

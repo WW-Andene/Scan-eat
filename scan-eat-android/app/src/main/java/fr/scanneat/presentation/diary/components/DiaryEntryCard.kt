@@ -78,10 +78,10 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommen
             // Left at IconButton's default 48dp touch target (Material/WCAG minimum) -
             // a UI/UX audit found this row forcing both controls to 32dp.
             IconButton(onClick = onEdit) {
-                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
             }
             IconButton(onClick = onDelete) {
-                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
             }
         }
     }

@@ -115,7 +115,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
             IconButton(onClick = onDelete) {
                 Icon(
                     TablerIcons.X, stringResource(R.string.common_delete),
-                    tint = OnSurface.copy(0.4f),
+                    tint = OnSurface.copy(0.5f),
                     modifier = Modifier.size(16.dp),
                 )
             }

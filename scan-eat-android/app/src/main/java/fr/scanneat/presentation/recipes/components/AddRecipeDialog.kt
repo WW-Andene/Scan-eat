@@ -109,7 +109,7 @@ internal fun AddRecipeDialog(
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(stringResource(R.string.recipes_ingredient_summary_compact, c.productName, c.grams.toInt(), c.kcal.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface, modifier = Modifier.weight(1f))
                         IconButton(onClick = { components = components.filterIndexed { i, _ -> i != index } }) {
-                            Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f), modifier = Modifier.size(14.dp))
+                            Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(14.dp))
                         }
                     }
                 }

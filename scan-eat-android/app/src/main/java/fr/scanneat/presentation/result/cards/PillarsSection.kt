@@ -89,7 +89,7 @@ private fun PillarRow(pillar: PillarScore) {
                 if (reasons.isNotEmpty()) {
                     Icon(
                         if (expanded) TablerIcons.ChevronUp else TablerIcons.ChevronDown, null,
-                        tint = OnBackground.copy(0.4f), modifier = Modifier.size(IconSize.Inline),
+                        tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Inline),
                     )
                 }
             }

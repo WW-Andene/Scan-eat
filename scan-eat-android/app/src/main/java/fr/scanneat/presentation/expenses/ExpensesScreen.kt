@@ -312,7 +312,7 @@ private fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, onDel
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.4f))
+                Icon(Icons.Rounded.Delete, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f))
             }
         }
     }

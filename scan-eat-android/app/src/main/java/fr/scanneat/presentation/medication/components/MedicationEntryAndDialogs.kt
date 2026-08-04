@@ -97,7 +97,7 @@ internal fun MedicationEntryRow(
             // icons than Weight/Activity - taken-today + reminder - so there isn't
             // row width for a 5th icon button).
             IconButton(onClick = onEdit) {
-                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.4f))
+                Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f))
             }
             var menuExpanded by remember { mutableStateOf(false) }
             IconButton(onClick = { menuExpanded = true }) {

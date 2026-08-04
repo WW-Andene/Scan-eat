@@ -216,7 +216,7 @@ private fun SourceLinksSection(query: String, links: List<SourceLink>) {
                 ) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(link.label, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium)
-                        Icon(Icons.Rounded.OpenInNew, null, tint = OnSurface.copy(0.4f), modifier = Modifier.size(IconSize.Compact))
+                        Icon(Icons.Rounded.OpenInNew, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Compact))
                     }
                 }
             }
@@ -398,7 +398,7 @@ private fun FoodSearchRow(
             if (item.grade == null) {
                 Icon(
                     if (expanded) TablerIcons.ChevronUp else TablerIcons.ChevronDown,
-                    null, tint = OnSurface.copy(0.4f),
+                    null, tint = OnSurface.copy(0.5f),
                 )
             }
         }
