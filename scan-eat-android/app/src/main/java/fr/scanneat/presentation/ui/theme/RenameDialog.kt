@@ -1,5 +1,7 @@
 package fr.scanneat.presentation.ui.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -8,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
 
@@ -21,8 +24,11 @@ import fr.scanneat.R
 @Composable
 fun RenameDialog(currentName: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
     var name by remember { mutableStateOf(currentName) }
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.common_rename), color = OnBackground) },
         text = {
             OutlinedTextField(
@@ -52,8 +58,11 @@ fun RenameDialog(currentName: String, onConfirm: (String) -> Unit, onDismiss: ()
 @Composable
 fun EditNotesDialog(title: String, currentNotes: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
     var notes by remember { mutableStateOf(currentNotes) }
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(title, color = OnBackground) },
         text = {
             OutlinedTextField(
