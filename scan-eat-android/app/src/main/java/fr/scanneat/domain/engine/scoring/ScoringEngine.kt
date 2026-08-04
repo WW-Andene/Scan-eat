@@ -25,7 +25,12 @@ const val ENGINE_VERSION = "2.3.0"
 // SECTION 10: GLOBAL MODIFIERS, VETOES & ORCHESTRATOR
 // ============================================================================
 
-private fun scoreToGrade(score: Int): Grade = when {
+// internal (not private) so callers that need an aggregate/derived grade from a raw
+// score - e.g. DashboardViewModel's weekly average - reuse the real breakpoints
+// instead of hand-maintaining a second set that can drift out of sync with them,
+// same class of bug ScanHistoryViewModel.gradeFilter's own doc comment documents
+// (a previous hand-maintained 80/60/40 range disagreeing with these real values).
+internal fun scoreToGrade(score: Int): Grade = when {
     score >= 85 -> Grade.A_PLUS
     score >= 70 -> Grade.A
     score >= 55 -> Grade.B

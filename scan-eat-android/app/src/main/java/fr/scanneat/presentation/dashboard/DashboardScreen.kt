@@ -95,6 +95,7 @@ fun DashboardScreen(
     val language = viewModel.language.collectAsStateWithLifecycle()
     val otherTrackers = viewModel.otherTrackers.collectAsStateWithLifecycle()
     val recentScanWarnings = viewModel.recentScanWarnings.collectAsStateWithLifecycle()
+    val weeklyScoreSummary = viewModel.weeklyScoreSummary.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
     val gapLoggedName = viewModel.gapLoggedName.collectAsStateWithLifecycle()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
@@ -147,6 +148,13 @@ fun DashboardScreen(
 
             // ---- Caloric balance — the hero card, streak badge overlapping its corner ----
             s.calorieBalance?.let { item { CalorieBalanceCard(it, streak = s.streak, longestStreak = s.longestStreak) } }
+
+            // ---- Weekly nutrition-quality score rollup — R&D roadmap: the app's
+            // score/grade system (its differentiator vs. calorie-only trackers)
+            // previously only appeared per-item at the very bottom of "Recent scans",
+            // buried below ~15 other cards. Placed right under the hero so it's
+            // visible without scrolling. Null (no scans this week) renders nothing. ----
+            weeklyScoreSummary.value?.let { item { WeeklyScoreCard(it) } }
 
             // ---- Today's macros as rings ----
             item { TodayMacroCard(totals = s.todayTotals, targets = s.targets) }

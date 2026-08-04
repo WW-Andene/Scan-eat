@@ -189,6 +189,23 @@ class DashboardViewModel @Inject constructor(
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    /**
+     * Average nutrition-quality score across the last 7 days of scans - see
+     * [WeeklyScoreSummary]'s own doc comment for why this didn't exist before.
+     * Filters the same limit=20 history query recentScans already loads (no new
+     * DB call), scoped to scannedAt within the trailing 7-day window; grade comes
+     * from the real [scoreToGrade] breakpoints rather than a hand-maintained range.
+     */
+    val weeklyScoreSummary: StateFlow<WeeklyScoreSummary?> = today.flatMapLatest { date ->
+        scanRepo.observeHistory(limit = 20).map { scans ->
+            val cutoff = date.minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val inWindow = scans.filter { it.scannedAt >= cutoff }
+            if (inWindow.isEmpty()) return@map null
+            val avg = inWindow.sumOf { it.audit.score } / inWindow.size
+            WeeklyScoreSummary(avgScore = avg, scanCount = inWindow.size, grade = scoreToGrade(avg))
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     // Dashboard previously showed nutrition + weight only - a user relying on it as
     // their single daily view had no idea they were behind on water, mid-fast, or had
     // an unlogged dose due, despite all three already being tracked elsewhere (behind

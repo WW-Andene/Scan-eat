@@ -1307,6 +1307,11 @@
     <string name="dashboard_recent_scans_empty">Aucun scan pour l\'instant. Appuyez sur Scanner pour commencer.</string>
     <string name="dashboard_recent_scans_empty_cta">Scanner un produit</string>
     <string name="dashboard_view_all">Voir tout</string>
+    <string name="dashboard_weekly_score_title">Score qualité — 7 derniers jours</string>
+    <plurals name="dashboard_weekly_score_scan_count">
+        <item quantity="one">%1$d scan</item>
+        <item quantity="other">%1$d scans</item>
+    </plurals>
     <string name="dashboard_today_label">Aujourd\'hui</string>
     <string name="dashboard_week_title">Cette semaine</string>
     <string name="dashboard_week_avg_kcal">%1$d kcal/j moy.</string>

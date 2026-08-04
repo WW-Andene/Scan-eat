@@ -28,6 +28,19 @@ data class CalorieBalance(
     val exerciseKcal: Int = 0,
 )
 
+/**
+ * Average nutrition-quality score across scans from the last 7 days - the
+ * Dashboard previously surfaced the app's score/grade system (its main
+ * differentiator vs. calorie-only trackers) only per-item, buried at the
+ * bottom of the "Recent scans" list, with no rollup anywhere. Null when the
+ * window has zero scans (nothing to average).
+ */
+data class WeeklyScoreSummary(
+    val avgScore: Int,
+    val scanCount: Int,
+    val grade: Grade,
+)
+
 data class DashboardUiState(
     val todayTotals: ConsumedNutrition = ConsumedNutrition.ZERO,
     val targets: DailyTargets? = null,

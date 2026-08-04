@@ -1255,6 +1255,11 @@
     <string name="dashboard_recent_scans_empty">No scans yet. Tap Scan to get started.</string>
     <string name="dashboard_recent_scans_empty_cta">Scan a product</string>
     <string name="dashboard_view_all">View all</string>
+    <string name="dashboard_weekly_score_title">Quality score — last 7 days</string>
+    <plurals name="dashboard_weekly_score_scan_count">
+        <item quantity="one">%1$d scan</item>
+        <item quantity="other">%1$d scans</item>
+    </plurals>
     <string name="dashboard_today_label">Today</string>
     <string name="dashboard_week_title">This Week</string>
     <string name="dashboard_week_avg_kcal">%1$d kcal/day avg.</string>
