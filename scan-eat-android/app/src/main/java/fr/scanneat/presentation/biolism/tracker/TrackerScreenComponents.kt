@@ -32,9 +32,15 @@ import fr.scanneat.util.formatDecimal
 internal fun StepperChip(label: String, color: Color, onMinus: () -> Unit, onPlus: () -> Unit) {
     val decreaseDescription = stringResource(R.string.common_stepper_decrease, label)
     val increaseDescription = stringResource(R.string.common_stepper_increase, label)
+    // User-reported: this time-increment stepper (used for the fasting/ketosis
+    // duration chips) used CardRadius.BADGE (4dp), a token meant for small
+    // ~24dp-tall text badges - but the +/- targets' minTouchTarget() (48dp)
+    // makes the whole clipped pill 48dp tall, the same height tier as the
+    // app's other controls (CardRadius.CONTROL, 12dp), so the near-square
+    // corners read as visually inconsistent next to them. Matched to CONTROL.
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(CardRadius.BADGE))
+            .clip(RoundedCornerShape(CardRadius.CONTROL))
             .background(color.copy(0.08f)),
         verticalAlignment = Alignment.CenterVertically,
     ) {

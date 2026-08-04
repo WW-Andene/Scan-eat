@@ -102,37 +102,6 @@ fun OnboardingScreen(
                 }
             }
 
-            // Improvement: step-progress dots — previously no visual indicator of how many
-            // pages exist or which one you're on; users had no way to gauge remaining effort.
-            if (page > 0) {
-                Box(Modifier.fillMaxWidth()) {
-                    Row(
-                        Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        (1..3).forEach { step ->
-                            val active = step == page
-                            Box(
-                                Modifier
-                                    .size(if (active) 20.dp else 8.dp, 8.dp)
-                                    .clip(RoundedCornerShape(50))
-                                    .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
-                            )
-                        }
-                    }
-                    // A user who picked Server mode then wanted to change it after
-                    // already reaching Profile capture (page 3), or who just wanted
-                    // to re-read the value-proposition page, had no way back short of
-                    // abandoning onboarding entirely (there's no "restart" affordance
-                    // either) - every other multi-step wizard in the app
-                    // (BiolismOnboardingScreen) already has a Back button at every
-                    // step past the first; this one didn't.
-                    TextButton(onClick = { page -= 1 }, modifier = Modifier.align(Alignment.CenterStart)) {
-                        Text(stringResource(R.string.common_back), color = OnBackground.copy(0.6f))
-                    }
-                }
-            }
-
             when (page) {
                 // ---- Page 0: Welcome ----
                 0 -> WelcomePage(onNext = { page = 1 })
@@ -179,6 +148,40 @@ fun OnboardingScreen(
                     onGoToProfileWithoutSaving = { viewModel.finish(goToProfile = true) },
                     onSkip = { viewModel.finish() },
                 )
+            }
+
+            // User-reported: the step-progress dots (+ Back button) previously
+            // rendered above the page content, right under the Skip button -
+            // moved below the page content so the progress indicator reads as a
+            // page-bottom element, matching where the page's own primary button
+            // (WelcomePage etc.) already sits.
+            if (page > 0) {
+                Box(Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.align(Alignment.Center),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        (1..3).forEach { step ->
+                            val active = step == page
+                            Box(
+                                Modifier
+                                    .size(if (active) 20.dp else 8.dp, 8.dp)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(if (active) AccentCoral else OnBackground.copy(0.2f)),
+                            )
+                        }
+                    }
+                    // A user who picked Server mode then wanted to change it after
+                    // already reaching Profile capture (page 3), or who just wanted
+                    // to re-read the value-proposition page, had no way back short of
+                    // abandoning onboarding entirely (there's no "restart" affordance
+                    // either) - every other multi-step wizard in the app
+                    // (BiolismOnboardingScreen) already has a Back button at every
+                    // step past the first; this one didn't.
+                    TextButton(onClick = { page -= 1 }, modifier = Modifier.align(Alignment.CenterStart)) {
+                        Text(stringResource(R.string.common_back), color = OnBackground.copy(0.6f))
+                    }
+                }
             }
         }
     }
