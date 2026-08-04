@@ -71,7 +71,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
                 // Diary already show for the exact same items - this weekly grid previously
                 // showed zero allergen/diet warning no matter what was planned here.
                 if (warning != null) {
-                    Icon(TablerIcons.AlertTriangle, contentDescription = warning, tint = semanticAmber(), modifier = Modifier.size(12.dp))
+                    Icon(TablerIcons.AlertTriangle, contentDescription = warning, tint = semanticAmber(), modifier = Modifier.size(IconSize.Micro))
                 }
             }
             // Editing as free text only makes sense for a note (or an empty slot) — a

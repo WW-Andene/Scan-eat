@@ -71,7 +71,7 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
             if (nextLabel != null) {
                 Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.12f)) {
                     Row(modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                        Icon(Icons.Rounded.Schedule, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
+                        Icon(Icons.Rounded.Schedule, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Micro))
                         Text(nextLabel, style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                     }
                 }

@@ -67,7 +67,7 @@ internal fun HydrationRingAndControls(
             Text("$intakeMl", style = MaterialTheme.typography.headlineLarge, color = semanticBlue(), fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(stringResource(R.string.hydration_goal_ml, goalMl), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                Icon(TablerIcons.Edit, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(12.dp))
+                Icon(TablerIcons.Edit, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Micro))
             }
             Text(stringResource(R.string.hydration_glasses_count, glasses, goalGlasses), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
         }

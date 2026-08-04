@@ -40,6 +40,15 @@ object IconSize {
      */
     val Tiny: Dp = 14.dp
 
+    /**
+     * §E1/genre audit (icon sizes, round 4): 12.dp is the smallest recurring
+     * icon tier - 7 exact-match sites for tiny inline badge/warning glyphs
+     * (history clock, alert-triangle warnings, remove-photo X) sitting inside
+     * already-small chips or thumbnails. Named at the exact existing value,
+     * same rationale as [Compact]/[Small]/[Tiny].
+     */
+    val Micro: Dp = 12.dp
+
     /** Inline / label-adjacent icons (chip icons, list-row leading icons). */
     val Inline: Dp = 20.dp
 
