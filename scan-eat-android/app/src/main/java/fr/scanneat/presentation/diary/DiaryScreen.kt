@@ -242,7 +242,7 @@ fun DiaryScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
-                                Icon(activeTab.icon, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(20.dp))
+                                Icon(activeTab.icon, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                                 Text(
                                     stringResource(activeTab.labelRes),
                                     style = MaterialTheme.typography.labelMedium,

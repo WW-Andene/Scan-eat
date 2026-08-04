@@ -76,7 +76,7 @@ fun ScanEatSnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modif
                 actionContentColor = Gold,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(TablerIcons.Trophy, contentDescription = null, tint = Gold, modifier = Modifier.size(20.dp))
+                    Icon(TablerIcons.Trophy, contentDescription = null, tint = Gold, modifier = Modifier.size(IconSize.Inline))
                     Spacer(Modifier.width(Spacing.S))
                     Text(data.visuals.message, style = MaterialTheme.typography.bodyMedium)
                 }
