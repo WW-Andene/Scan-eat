@@ -40,6 +40,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.RecipeComponent
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
@@ -94,7 +95,8 @@ internal fun AddRecipeDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (isEdit) R.string.recipes_edit_dialog_title else R.string.recipes_add_dialog_title), color = OnBackground) },
         text = {

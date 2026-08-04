@@ -46,7 +46,8 @@ internal fun EditTemplateItemsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.templates_manage_items_title, template.name), color = OnBackground) },
         text = {

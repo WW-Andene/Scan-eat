@@ -24,6 +24,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -81,7 +82,8 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
     if (showLowCarbInfo) {
         AlertDialog(
             onDismissRequest = { showLowCarbInfo = false },
-            containerColor = SurfaceVariant,
+            containerColor = SurfaceVariant.copy(alpha = 0.94f),
+            modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.diary_totals_title), color = OnBackground) },
             text = { Text(stringResource(R.string.diary_low_carb_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f)) },

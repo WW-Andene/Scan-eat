@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -104,7 +105,8 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
         hints.keyInfo.isEmpty() && hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty()
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.hint_panel_title), color = OnBackground) },
         text = {

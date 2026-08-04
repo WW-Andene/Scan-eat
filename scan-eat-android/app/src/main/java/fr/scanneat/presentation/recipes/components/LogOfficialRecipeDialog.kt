@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes.components
 
+import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -44,7 +46,8 @@ internal fun LogOfficialRecipeDialog(recipe: OfficialRecipe, isFrench: Boolean, 
     var gramsText by remember { mutableStateOf(totalGrams.roundToInt().toString()) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_log_dialog_title, if (isFrench) recipe.nameFr else recipe.nameEn), color = OnBackground) },
         text = {

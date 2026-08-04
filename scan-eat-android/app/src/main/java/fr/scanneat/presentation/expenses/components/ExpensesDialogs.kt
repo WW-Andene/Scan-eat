@@ -33,6 +33,9 @@ internal fun BudgetEditDialog(
     var perMealText by remember { mutableStateOf(perMealInitial?.formatDecimal(0) ?: "") }
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_edit_budget), color = OnBackground) },
         text = {
             // Scrollable - four fields (was two) previously risked clipping on a
@@ -99,8 +102,6 @@ internal fun BudgetEditDialog(
             }) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant,
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
 }
 
@@ -122,6 +123,9 @@ internal fun AddExpenseDialog(onConfirm: (name: String, category: ProductCategor
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_add_entry), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
@@ -165,8 +169,6 @@ internal fun AddExpenseDialog(onConfirm: (name: String, category: ProductCategor
             ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant,
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
 }
 
@@ -188,6 +190,9 @@ internal fun EditExpenseDialog(
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_edit_entry_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
@@ -227,8 +232,6 @@ internal fun EditExpenseDialog(
             ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant,
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
 }
 

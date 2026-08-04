@@ -129,7 +129,8 @@ internal fun AddMedicationDialog(
     var scheduleNote by rememberSaveable { mutableStateOf(initialScheduleNote) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (isEdit) R.string.medication_edit_dialog_title else R.string.medication_add_dialog_title), color = OnBackground) },
         text = {
@@ -162,7 +163,8 @@ internal fun MedicationReminderDialog(medication: Medication, onDismiss: () -> U
     val (permGranted, permDenied, onRequest) = permissionState()
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.medication_reminder_dialog_title, m.name), color = OnBackground) },
         text = {

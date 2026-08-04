@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.hydration.components
 
+import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,7 +31,8 @@ internal fun HydrationGoalEditorDialog(
     val goalValid = goalText.toIntOrNull()?.let { it in 1..10000 } == true
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.hydration_edit_goal_title), color = OnBackground) },
         text = {

@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.templates.components
 
+import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,8 @@ internal fun AddTemplateDialog(onDismiss: () -> Unit, onCreate: (name: String, m
     var meal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.templates_add_dialog_title), color = OnBackground) },
         text = {

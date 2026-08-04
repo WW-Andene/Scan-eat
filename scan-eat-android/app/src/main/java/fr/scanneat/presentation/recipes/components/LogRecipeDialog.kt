@@ -1,5 +1,6 @@
 package fr.scanneat.presentation.recipes.components
 
+import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
@@ -47,7 +49,8 @@ internal fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (Meal
     val gramsPerServing = recipe.totalGrams / recipe.servings
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_log_dialog_title, recipe.name), color = OnBackground) },
         text = {

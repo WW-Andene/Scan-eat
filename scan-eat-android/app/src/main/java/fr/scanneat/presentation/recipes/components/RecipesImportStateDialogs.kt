@@ -16,6 +16,7 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
 import fr.scanneat.presentation.ui.theme.IconSize
@@ -64,7 +65,8 @@ internal fun RecipesImportStateDialogs(
         when (importState) {
             is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
                 onDismissRequest = {},
-                containerColor = SurfaceVariant,
+                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 text = {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
@@ -76,7 +78,8 @@ internal fun RecipesImportStateDialogs(
             )
             is RecipesViewModel.ImportUiState.Error -> AlertDialog(
                 onDismissRequest = onClearImportState,
-                containerColor = SurfaceVariant,
+                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 // F21 (docs/design-audit-step8-components-shape.md): was a bare
                 // semanticRed() Text — the dialog itself stays modal (this error

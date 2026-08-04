@@ -152,7 +152,8 @@ internal fun BackupSection(
                     dismissButton = {
                         TextButton(onClick = onClearBackupState) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                     },
-                    containerColor = SurfaceVariant,
+                    containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                    modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                     shape = RoundedCornerShape(CardRadius.PROMINENT),
                 )
             }
@@ -183,7 +184,8 @@ internal fun BackupSection(
                             Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
                         }
                     },
-                    containerColor = SurfaceVariant,
+                    containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                    modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                     shape = RoundedCornerShape(CardRadius.PROMINENT),
                 )
             }
@@ -216,7 +218,8 @@ internal fun BackupSection(
                 dismissButton = {
                     TextButton(onClick = { showExportDialog = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                 },
-                containerColor = SurfaceVariant,
+                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
             )
         }
