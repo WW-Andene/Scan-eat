@@ -137,28 +137,28 @@ fun FloatingTopBar(
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
             Row(
-                modifier          = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = Spacing.XS),
+                // User-reported: on tab-root screens (no back arrow), the leading
+                // side previously got Spacing.XS (icon-slot case) or an
+                // approximated Spacing.M spacer (~15dp, not an exact match to the
+                // content below's Spacing.L inset). The leading side is now
+                // Spacing.XS when there's a real back-arrow icon (unchanged from
+                // before, for the 16 push/detail screens that always show one),
+                // or 0 when there isn't, so the no-icon branch below can set the
+                // leading inset to an exact value instead of stacking a second,
+                // redundant padding source on top of it. The trailing side always
+                // keeps Spacing.XS (unchanged breathing room before actions).
+                modifier          = Modifier.fillMaxWidth().height(56.dp).padding(start = if (hasNavigationIcon) Spacing.XS else 0.dp, end = Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // User-reported: on tab-root screens (Dashboard/Settings with no
-                // back arrow), this leading slot was reserved unconditionally at
-                // a fixed 48dp even when navigationIcon() rendered nothing - the
-                // title sat 48dp further right than every section title in the
-                // content below it (which only carries the outer Spacing.L),
-                // a visible header/content margin mismatch. Only reserved when
-                // [hasNavigationIcon] is true (a real back arrow that needs the
-                // room); tab-root callers pass false so the title aligns with
-                // the content beneath it, same as DiaryScreen's own header.
                 if (hasNavigationIcon) {
+                    // Fixed-width leading slot for a real back arrow - matches
+                    // TouchTarget/IconButton's own footprint.
                     Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { navigationIcon() }
                 } else {
-                    // User-reported: removing the 48dp icon Box entirely left only
-                    // the Row's own Spacing.XS (4dp) before the title - text sat
-                    // jammed right against the card's rounded edge instead of at a
-                    // reasonable inset. This closes the gap to roughly Spacing.L
-                    // (matching the content below's own inset) without
-                    // reintroducing a slot sized for an icon that isn't there.
-                    Spacer(Modifier.width(Spacing.M))
+                    // No icon to show: the leading inset is exactly Spacing.L,
+                    // matching the content below's own outer Spacing.L margin
+                    // pixel-for-pixel instead of approximating it.
+                    Spacer(Modifier.width(Spacing.L))
                 }
                 Box(Modifier.weight(1f)) {
                     ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
