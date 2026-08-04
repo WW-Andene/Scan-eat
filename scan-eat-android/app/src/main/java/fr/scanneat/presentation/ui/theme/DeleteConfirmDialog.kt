@@ -1,11 +1,8 @@
 package fr.scanneat.presentation.ui.theme
 
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
@@ -22,11 +19,8 @@ import fr.scanneat.R
  */
 @Composable
 fun ConfirmDialog(title: String, body: String, confirmLabel: String, confirmColor: Color = semanticRed(), onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor   = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape   = RoundedCornerShape(CardRadius.PROMINENT),
         title   = { Text(title, color = OnBackground) },
         text    = { Text(body, color = OnBackground.copy(0.7f)) },
         confirmButton = { TextButton(onClick = onConfirm) { Text(confirmLabel, color = confirmColor) } },
