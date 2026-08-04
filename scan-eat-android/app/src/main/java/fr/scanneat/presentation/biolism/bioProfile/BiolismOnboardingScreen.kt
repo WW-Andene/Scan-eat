@@ -94,13 +94,21 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
     // Reserving the nav's own footprint here keeps the whole card, buttons
     // included, above it.
     val bottomNavClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
-    Box(
+    // BoxWithConstraints, not Box - step 2 (Mesures corporelles, 3 fields) was
+    // clipped mid-field with no scroll affordance: the scrollable Column below
+    // used a hardcoded heightIn(max = 480.dp) guess instead of the real
+    // available space, so on step 2 that guess undershot the actual content
+    // height. maxHeight here is the genuine available space for this screen,
+    // used below to bound the card so weight(1f, fill = false) on the
+    // scrollable Column can correctly compute "whatever's left after the
+    // fixed footer" instead of a static, content-length-blind number.
+    BoxWithConstraints(
         Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(), bottom = bottomNavClearance),
         contentAlignment = Alignment.Center,
     ) {
         ScanEatCard(
-            modifier = Modifier.padding(Spacing.XL),
+            modifier = Modifier.padding(Spacing.XL).heightIn(max = maxHeight - Spacing.XL * 2),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             contentPadding = PaddingValues(Spacing.XL),
             accent = Gold,
@@ -115,7 +123,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
             // regardless of how tall a given step's field content is.
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.L)) {
             Column(
-                Modifier.verticalScroll(rememberScrollState()).weight(1f, fill = false).heightIn(max = 480.dp),
+                Modifier.verticalScroll(rememberScrollState()).weight(1f, fill = false),
                 verticalArrangement = Arrangement.spacedBy(Spacing.L),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
