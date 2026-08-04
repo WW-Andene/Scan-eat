@@ -40,6 +40,7 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.Spacing
+import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
 @Composable
 internal fun ReminderRow(
@@ -81,7 +82,7 @@ internal fun ReminderRow(
                 isError = !isValid,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 textStyle = MaterialTheme.typography.bodySmall,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                colors = scanEatTextFieldColors(),
             )
             IconButton(onClick = onTest, enabled = permGranted) {
                 Icon(TablerIcons.Bell, stringResource(R.string.reminders_cd_test, displayLabel), tint = if (permGranted) AccentCoral else OnBackground.copy(0.3f))
@@ -120,7 +121,7 @@ internal fun CustomReminderRow(
             isError = !isValid,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             textStyle = MaterialTheme.typography.bodySmall,
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.2f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+            colors = scanEatTextFieldColors(),
         )
         // Both icon-only buttons previously had a null contentDescription - a
         // TalkBack user got no signal at all for what "test" or "delete" would do.
