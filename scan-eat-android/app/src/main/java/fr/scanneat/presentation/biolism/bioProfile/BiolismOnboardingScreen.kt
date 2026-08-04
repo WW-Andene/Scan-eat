@@ -212,12 +212,30 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                     // first — a user mid-way through (e.g. stuck on step 1's
                     // required sex/age/height/weight fields) previously had no
                     // way out except repeatedly tapping Back to step 0 first.
+                    // User-reported: TextButton's default 12dp horizontal content
+                    // padding indented "Retour"/"Passer" further right than the
+                    // title/body text/fields above, which all sit flush against this
+                    // card's own Spacing.XL content padding. Zeroing the button's
+                    // start padding lines its visible text up with that same edge
+                    // (the enlarged tap target extending left of the text is fine -
+                    // it only makes the target easier to hit, never harder).
+                    // Only the leftmost button of this row needs its start padding
+                    // zeroed - Retour when present, otherwise Passer. The second
+                    // button keeps the default padding, which now reads as normal
+                    // inter-button spacing rather than a left-edge misalignment.
+                    val leadingContentPadding = PaddingValues(start = 0.dp, end = Spacing.M, top = Spacing.S, bottom = Spacing.S)
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         if (step > 0) {
-                            TextButton(onClick = { step -= 1 }) { Text(stringResource(R.string.biolism_onboard_back), color = OnBackground.copy(0.5f)) }
-                        }
-                        TextButton(onClick = { viewModel.skipOnboarding() }) {
-                            Text(stringResource(R.string.biolism_onboard_skip), color = OnBackground.copy(0.5f))
+                            TextButton(onClick = { step -= 1 }, contentPadding = leadingContentPadding) {
+                                Text(stringResource(R.string.biolism_onboard_back), color = OnBackground.copy(0.5f))
+                            }
+                            TextButton(onClick = { viewModel.skipOnboarding() }) {
+                                Text(stringResource(R.string.biolism_onboard_skip), color = OnBackground.copy(0.5f))
+                            }
+                        } else {
+                            TextButton(onClick = { viewModel.skipOnboarding() }, contentPadding = leadingContentPadding) {
+                                Text(stringResource(R.string.biolism_onboard_skip), color = OnBackground.copy(0.5f))
+                            }
                         }
                     }
                     // Was a raw Button with an explicit Text(color = Color.Black) -
