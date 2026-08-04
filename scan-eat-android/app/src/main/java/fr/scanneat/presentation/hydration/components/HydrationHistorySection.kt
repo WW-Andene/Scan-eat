@@ -87,7 +87,7 @@ private fun HydrationHistoryRow(date: LocalDate, ml: Int, dateFmt: DateTimeForma
 private fun HydrationHistoryEditDialog(date: LocalDate, dateFmt: DateTimeFormatter, initialMl: Int, onConfirm: (Int) -> Unit, onDismiss: () -> Unit) {
     var mlText by remember { mutableStateOf(initialMl.toString()) }
     val ml = mlText.toIntOrNull()?.takeIf { it in 0..20000 }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.hydration_history_edit_title, date.format(dateFmt)), color = OnBackground) },
         text = {
@@ -107,8 +107,5 @@ private fun HydrationHistoryEditDialog(date: LocalDate, dateFmt: DateTimeFormatt
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
 }

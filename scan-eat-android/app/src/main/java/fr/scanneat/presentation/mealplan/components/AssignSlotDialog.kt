@@ -37,11 +37,8 @@ internal fun AssignSlotDialog(
     onPickTemplate: (MealTemplate) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.mealplan_assign_title, mealLabel), color = OnBackground) },
         text = {
             if (recipes.isEmpty() && templates.isEmpty()) {

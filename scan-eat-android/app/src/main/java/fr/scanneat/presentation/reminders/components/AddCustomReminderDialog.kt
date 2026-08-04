@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -34,11 +35,8 @@ internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDism
     var label by remember { mutableStateOf("") }
     var time  by remember { mutableStateOf("09:00") }
     val timeValid = remember(time) { runCatching { java.time.LocalTime.parse(time) }.isSuccess }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.reminders_add_custom), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {

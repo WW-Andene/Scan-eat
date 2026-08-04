@@ -36,11 +36,8 @@ internal fun LogTemplateDialog(template: MealTemplate, onDismiss: () -> Unit, on
     val t = template
     var slot by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(t.meal) }
     var portion by rememberSaveable { mutableFloatStateOf(1f) }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.templates_log_dialog_title, t.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

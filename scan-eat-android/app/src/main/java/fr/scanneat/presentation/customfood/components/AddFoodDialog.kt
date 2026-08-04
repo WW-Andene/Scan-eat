@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -89,11 +90,8 @@ internal fun AddFoodDialog(
     val barcodeValid = barcode.isBlank() || hasValidGs1CheckDigit(barcode)
     val valid = name.isNotBlank() && kcalValid && protValid && carbValid && fatValid && fibValid && saltValid && barcodeValid
 
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (initial != null) R.string.customfood_edit_title else R.string.customfood_add_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {

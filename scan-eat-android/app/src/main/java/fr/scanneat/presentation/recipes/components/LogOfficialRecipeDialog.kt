@@ -25,6 +25,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.OfficialRecipe
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -44,11 +45,8 @@ internal fun LogOfficialRecipeDialog(recipe: OfficialRecipe, isFrench: Boolean, 
     var slot by remember { mutableStateOf(MealSlot.LUNCH) }
     val totalGrams = recipe.totalGrams.takeIf { it > 0 } ?: 100.0
     var gramsText by remember { mutableStateOf(totalGrams.roundToInt().toString()) }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_log_dialog_title, if (isFrench) recipe.nameFr else recipe.nameEn), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

@@ -24,6 +24,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.scoring.DailyTargets
 import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Gold
@@ -80,11 +81,8 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
     // app being wrong instead of the diet being strict. Now behind the info icon
     // above instead of always-visible body text.
     if (showLowCarbInfo) {
-        AlertDialog(
+        GlassAlertDialog(
             onDismissRequest = { showLowCarbInfo = false },
-            containerColor = SurfaceVariant.copy(alpha = 0.94f),
-            modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-            shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.diary_totals_title), color = OnBackground) },
             text = { Text(stringResource(R.string.diary_low_carb_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f)) },
             confirmButton = { TextButton(onClick = { showLowCarbInfo = false }) { Text(stringResource(R.string.common_close), color = AccentCoral) } },

@@ -41,7 +41,7 @@ internal fun AddWeightDialog(
     // whichever unit is displayed, matching ActivityScreen's validated-numeric pattern.
     val kgValue = kgText.replace(',', '.').toDoubleOrNull()
     val isValidWeight = kgValue != null && (if (useImperial) kgValue in 44.0..880.0 else kgValue in 20.0..400.0)
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.weight_dialog_title), color = OnBackground) },
         text = {
@@ -90,9 +90,6 @@ internal fun AddWeightDialog(
             ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
 }
 

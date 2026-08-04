@@ -144,7 +144,7 @@ internal fun GroceryItemRow(
 private fun EditGroceryQuantityDialog(itemName: String, initialGrams: Double, onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
     var text by remember { mutableStateOf(if (initialGrams > 0) initialGrams.toInt().toString() else "") }
     val grams = text.toDoubleOrNull()?.takeIf { it in 0.0..50000.0 }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(itemName, color = OnBackground) },
         text = {
@@ -164,8 +164,5 @@ private fun EditGroceryQuantityDialog(itemName: String, initialGrams: Double, on
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
 }

@@ -22,6 +22,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -40,7 +41,7 @@ internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double, MealSlot) 
     // re-add instead of a one-tap fix.
     var mealSlot by remember(entry.id) { mutableStateOf(entry.mealSlot) }
     val portion = text.replace(',', '.').toDoubleOrNull()?.let { if (it in 1.0..2000.0) it else null }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(entry.productName, color = OnBackground) },
         text = {
@@ -76,8 +77,5 @@ internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double, MealSlot) 
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
 }

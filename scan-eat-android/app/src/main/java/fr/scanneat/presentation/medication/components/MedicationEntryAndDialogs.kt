@@ -127,11 +127,8 @@ internal fun AddMedicationDialog(
     var name by rememberSaveable { mutableStateOf(initialName) }
     var dosage by rememberSaveable { mutableStateOf(initialDosage) }
     var scheduleNote by rememberSaveable { mutableStateOf(initialScheduleNote) }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (isEdit) R.string.medication_edit_dialog_title else R.string.medication_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -161,11 +158,8 @@ internal fun MedicationReminderDialog(medication: Medication, onDismiss: () -> U
     // silently never fire (NotificationHelper.show() no-ops without the
     // permission), with the switch looking "on" and nothing telling them why.
     val (permGranted, permDenied, onRequest) = permissionState()
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.medication_reminder_dialog_title, m.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

@@ -66,11 +66,8 @@ internal fun AddActivityDialog(
     val onDistanceTextChange = actions.onDistanceTextChange
     val onWeightUsedTextChange = actions.onWeightUsedTextChange
     val onMinutesTextChange = actions.onMinutesTextChange
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.activity_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

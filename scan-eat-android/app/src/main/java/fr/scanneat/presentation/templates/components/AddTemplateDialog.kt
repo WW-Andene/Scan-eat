@@ -28,11 +28,8 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun AddTemplateDialog(onDismiss: () -> Unit, onCreate: (name: String, meal: MealSlot) -> Unit) {
     var name by rememberSaveable { mutableStateOf("") }
     var meal by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
-    AlertDialog(
+    GlassAlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
-        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.templates_add_dialog_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
