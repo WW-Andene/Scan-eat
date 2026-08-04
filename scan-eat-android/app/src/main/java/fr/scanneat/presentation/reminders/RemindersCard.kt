@@ -116,7 +116,7 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
         }
 
         // New: daily digest toggle — a 21:00 notification summarising the day's progress
-        HorizontalDivider(color = OnBackground.copy(0.08f))
+        ScanEatDivider()
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.reminders_daily_digest_title), style = MaterialTheme.typography.bodyMedium, color = OnBackground)

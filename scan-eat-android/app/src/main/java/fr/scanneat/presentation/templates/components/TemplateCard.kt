@@ -104,7 +104,7 @@ internal fun TemplateCard(
                         trailingIcon = { if (hintsHaveRisks) Badge(containerColor = semanticRed()) { Text("$hintsRiskCount") } },
                         onClick = { menuExpanded = false; showHints = true },
                     )
-                    HorizontalDivider(color = OnBackground.copy(0.08f))
+                    ScanEatDivider()
                     // Templates/Recipes had no way to convert between the two -
                     // this saves a copy into the user's Recipes library.
                     DropdownMenuItem(

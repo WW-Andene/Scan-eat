@@ -53,7 +53,7 @@ internal fun LogTemplateDialog(template: MealTemplate, onDismiss: () -> Unit, on
                 }
                 // Portion scale slider — previously the template was always logged at
                 // 100% with no way to adjust for a half portion or a double serving.
-                HorizontalDivider(color = OnBackground.copy(0.08f))
+                ScanEatDivider()
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.templates_log_portion_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
                     Text(stringResource(R.string.templates_log_portion_value, portion.toDouble().formatDecimal(1), (t.totalKcal * portion).toInt()), style = MaterialTheme.typography.labelSmall, color = AccentCoral)

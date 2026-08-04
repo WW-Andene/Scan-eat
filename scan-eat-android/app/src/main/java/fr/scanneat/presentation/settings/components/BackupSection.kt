@@ -215,7 +215,7 @@ internal fun BackupSection(
             )
         }
         // CSV diary export — spreadsheet-friendly complement to the JSON backup
-        HorizontalDivider(color = OnBackground.copy(0.08f))
+        ScanEatDivider()
         ScanEatOutlinedButton(
             onClick = onPrepareCsvExport,
             enabled = backupState !is BackupUiState.Working,
@@ -279,7 +279,7 @@ internal fun BackupSection(
         // logged data (weight/nutrition/activity/hydration/fasting/expenses),
         // distinct from the raw CSV/JSON exports above. See PdfReportRepository's
         // own doc comment on why this is explicitly NOT framed as medical advice.
-        HorizontalDivider(color = OnBackground.copy(0.08f))
+        ScanEatDivider()
         ScanEatOutlinedButton(
             onClick = onPrepareReport,
             enabled = backupState !is BackupUiState.Working,
@@ -291,7 +291,7 @@ internal fun BackupSection(
         // Data stats — show what's stored so the user knows what they'd export or reset
         val (scanCount, diaryCount) = dataStats
         if (scanCount > 0 || diaryCount > 0) {
-            HorizontalDivider(color = OnBackground.copy(0.08f))
+            ScanEatDivider()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.M),
