@@ -46,7 +46,10 @@ fun CustomFoodScreen(
     val language = viewModel.language.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to name
-    var renameTarget by remember { mutableStateOf<Pair<String, String>?>(null) } // id to current name
+    // Replaced the name-only renameTarget (RenameDialog) with a full-field edit -
+    // see AddFoodDialog's own doc comment on why this reuses that dialog instead
+    // of a second, separate one.
+    var editTarget by remember { mutableStateOf<Pair<String, fr.scanneat.domain.engine.nutrition.FoodEntry>?>(null) }
 
     val displayList = if (query.value.isBlank()) foods.value else results.value
 
@@ -179,12 +182,12 @@ fun CustomFoodScreen(
                             foodsWithId.value.firstOrNull { it.second == entry }
                                 ?.let { (id, _) -> deleteTarget = id to entry.name }
                         },
-                        onRename = {
+                        onEdit = {
                             // Previously delete was the only entry point — a typo in a
-                            // custom food's name could never be fixed without deleting
-                            // and re-creating it from scratch.
+                            // custom food's name or macro value could never be fixed
+                            // without deleting and re-creating it from scratch.
                             foodsWithId.value.firstOrNull { it.second == entry }
-                                ?.let { (id, _) -> renameTarget = id to entry.name }
+                                ?.let { (id, food) -> editTarget = id to food }
                         },
                     )
                 }
@@ -214,11 +217,14 @@ fun CustomFoodScreen(
         )
     }
 
-    renameTarget?.let { (id, currentName) ->
-        RenameDialog(
-            currentName = currentName,
-            onDismiss   = { renameTarget = null },
-            onConfirm   = { newName -> viewModel.rename(id, newName); renameTarget = null },
+    editTarget?.let { (id, food) ->
+        AddFoodDialog(
+            initial = food,
+            onDismiss = { editTarget = null },
+            onConfirm = { name, kcal, prot, carb, fat, fib, salt, aliases, _ ->
+                viewModel.update(id, name, kcal, prot, carb, fat, fib, salt, aliases)
+                editTarget = null
+            },
         )
     }
 }

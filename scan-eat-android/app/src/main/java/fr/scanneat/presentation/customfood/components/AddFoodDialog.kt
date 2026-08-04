@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
+import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -28,29 +29,42 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
+/**
+ * Doubles as the edit dialog when [initial] is non-null - previously the only
+ * way to fix a custom food's macro values (kcal/protein/etc) was delete and
+ * re-create it from scratch, losing its id (and, per CustomFoodRepository.save's
+ * own doc comment on the `id` param, "Add" on an existing id already updates in
+ * place - this dialog just never passed one through). RenameDialog still covers
+ * the name-only case elsewhere (Recipes/Templates); this is a full-field edit.
+ */
 @Composable
 internal fun AddFoodDialog(
     onDismiss: () -> Unit,
     onConfirm: (String, Double, Double, Double, Double, Double, Double, List<String>, String?) -> Unit,
+    initial: FoodEntry? = null,
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var kcal by rememberSaveable { mutableStateOf("") }
-    var prot by rememberSaveable { mutableStateOf("") }
-    var carb by rememberSaveable { mutableStateOf("") }
-    var fat  by rememberSaveable { mutableStateOf("") }
-    var fib  by rememberSaveable { mutableStateOf("") }
-    var salt by rememberSaveable { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf(initial?.name ?: "") }
+    var kcal by rememberSaveable { mutableStateOf(initial?.kcal?.let { formatFieldValue(it) } ?: "") }
+    var prot by rememberSaveable { mutableStateOf(initial?.proteinG?.let { formatFieldValue(it) } ?: "") }
+    var carb by rememberSaveable { mutableStateOf(initial?.carbsG?.let { formatFieldValue(it) } ?: "") }
+    var fat  by rememberSaveable { mutableStateOf(initial?.fatG?.let { formatFieldValue(it) } ?: "") }
+    var fib  by rememberSaveable { mutableStateOf(initial?.fiberG?.let { formatFieldValue(it) } ?: "") }
+    var salt by rememberSaveable { mutableStateOf(initial?.saltG?.let { formatFieldValue(it) } ?: "") }
     // CustomFoodRepository.save() already accepted/persisted aliases (built-in
     // FOOD_DB entries carry them so a bilingual search finds them either way),
     // but this dialog never collected any - every custom food a user created
     // was permanently unreachable by an alternate spelling/translation.
-    var aliases by rememberSaveable { mutableStateOf("") }
+    var aliases by rememberSaveable { mutableStateOf(initial?.aliases?.joinToString(", ") ?: "") }
     // CustomFoodRepository.save() also already accepted a barcode (used when saving
     // a scanned product as a custom food, see ResultViewModel.saveToDestinations),
     // but a manually-typed custom food had no way to attach one - so a food someone
     // typed in by hand could never be recognized again on a future rescan of the
     // same product. Optional: most manual entries (a homemade dish, a market item)
     // genuinely have no barcode.
+    // Add-mode only - FoodEntry (the edit dialog's [initial]) carries no barcode
+    // field to pre-fill from, and CustomFoodViewModel.update() preserves the
+    // existing barcode itself (see its own doc comment) rather than risk this
+    // dialog silently wiping it by passing back an empty value.
     var barcode by rememberSaveable { mutableStateOf("") }
 
     // Blank macro fields default to 0.0 at save time - only reject a field that's
@@ -68,7 +82,7 @@ internal fun AddFoodDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant,
         shape = RoundedCornerShape(CardRadius.PROMINENT),
-        title = { Text(stringResource(R.string.customfood_add_title), color = OnBackground) },
+        title = { Text(stringResource(if (initial != null) R.string.customfood_edit_title else R.string.customfood_add_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
                 FoodField(stringResource(R.string.customfood_field_name), name, KeyboardType.Text) { name = it }
@@ -85,7 +99,9 @@ internal fun AddFoodDialog(
                     FoodField(stringResource(R.string.customfood_field_salt), salt, KeyboardType.Decimal, Modifier.weight(1f)) { salt = it }
                 }
                 FoodField(stringResource(R.string.customfood_field_aliases), aliases, KeyboardType.Text) { aliases = it }
-                FoodField(stringResource(R.string.customfood_field_barcode), barcode, KeyboardType.Number) { barcode = it.filter(Char::isDigit) }
+                if (initial == null) {
+                    FoodField(stringResource(R.string.customfood_field_barcode), barcode, KeyboardType.Number) { barcode = it.filter(Char::isDigit) }
+                }
             }
         },
         confirmButton = {
@@ -105,7 +121,7 @@ internal fun AddFoodDialog(
                 },
                 enabled = valid,
             ) {
-                Text(stringResource(R.string.common_create), color = if (valid) AccentCoral else OnBackground.copy(0.3f))
+                Text(stringResource(if (initial != null) R.string.common_save else R.string.common_create), color = if (valid) AccentCoral else OnBackground.copy(0.3f))
             }
         },
         dismissButton = {
@@ -115,6 +131,12 @@ internal fun AddFoodDialog(
         },
     )
 }
+
+/** Trims a trailing ".0" (e.g. "45.0" -> "45") so a pre-filled numeric field
+ *  doesn't force the user to delete two extra characters just to type over an
+ *  edited value - int-valued macros are overwhelmingly the common case. */
+private fun formatFieldValue(v: Double): String =
+    if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
 
 @Composable
 private fun FoodField(

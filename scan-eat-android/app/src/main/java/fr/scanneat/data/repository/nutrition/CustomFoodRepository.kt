@@ -48,6 +48,19 @@ class CustomFoodRepository @Inject constructor(
     suspend fun findByBarcode(barcode: String, profileId: String = "default"): FoodEntry? =
         dao.findByBarcode(barcode, profileId)?.toFoodEntry()
 
+    /** The barcode currently stored for [id], if any - used by the edit flow so
+     *  correcting a custom food's macros via save(id = ...) doesn't silently wipe
+     *  a barcode the edit dialog itself never collects (see AddFoodDialog's own
+     *  doc comment on why it's edit-mode fields only, no barcode field). */
+    suspend fun findBarcode(id: String): String? = dao.findById(id)?.barcode
+
+    /** Looks up a single custom food by its stable row id - used by the edit
+     *  flow (CustomFoodViewModel.update) to preserve ironMg/calciumMg/vitDUg/
+     *  b12Ug, which the edit dialog has no fields for and would otherwise
+     *  silently zero out on every macro correction (save(id=...) replaces the
+     *  whole row; see [findBarcode]'s own doc comment for the same class of risk). */
+    suspend fun findById(id: String): FoodEntry? = dao.findById(id)?.toFoodEntry()
+
     suspend fun save(
         name: String,
         kcal: Double,

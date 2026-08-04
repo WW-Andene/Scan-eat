@@ -42,7 +42,7 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.STATUS_BORDER_ALPHA
 
 @Composable
-internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHints, onDelete: () -> Unit, onRename: () -> Unit) {
+internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHints, onDelete: () -> Unit, onEdit: () -> Unit) {
     // Was a hand-rolled Row+background+clip - the one list row in this app
     // not built on ScanEatCard, reading flatter/duller next to every sibling
     // row (DiaryEntryCard, RecipeCard, GroceryItemRow, ...) that gets the
@@ -109,9 +109,9 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
         if (isCustom) {
             // Left at IconButton's default 48dp touch target (Material/WCAG minimum) -
             // a UI/UX audit found this row forcing both controls to 32dp.
-            IconButton(onClick = onRename) {
+            IconButton(onClick = onEdit) {
                 Icon(
-                    TablerIcons.Edit, stringResource(R.string.common_rename),
+                    TablerIcons.Edit, stringResource(R.string.common_edit),
                     tint = OnSurface.copy(0.5f),
                     modifier = Modifier.size(IconSize.Small),
                 )

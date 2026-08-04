@@ -768,6 +768,7 @@
     <string name="customfood_macro_summary">%1$d kcal · P %2$dg · G %3$dg · L %4$dg / 100g</string>
     <string name="customfood_custom_badge">perso</string>
     <string name="customfood_add_title">Nouvel aliment (pour 100 g)</string>
+    <string name="customfood_edit_title">Modifier l\'aliment (pour 100 g)</string>
     <string name="customfood_field_name">Nom *</string>
     <string name="customfood_field_kcal">kcal *</string>
     <string name="customfood_field_protein">Prot. g</string>

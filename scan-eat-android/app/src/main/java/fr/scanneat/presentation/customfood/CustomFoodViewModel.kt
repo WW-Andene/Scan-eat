@@ -104,6 +104,46 @@ class CustomFoodViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Corrects an already-saved custom food's macros/name/aliases in place -
+     * previously the only way to fix a typo'd kcal/protein/etc value was
+     * delete-and-recreate (losing the row's id; any DiaryEntry/Recipe/
+     * MealTemplate that already logged it keeps its own nutrition values
+     * snapshotted independently at creation time, per CustomFoodRepository.
+     * rename()'s own doc comment, so those are unaffected either way).
+     * Preserves the existing barcode (if any) rather than trusting the edit
+     * dialog to round-trip one it never collects - see AddFoodDialog's own
+     * doc comment on why the barcode field is add-mode only.
+     */
+    fun update(
+        id: String,
+        name: String,
+        kcal: Double,
+        proteinG: Double,
+        carbsG: Double,
+        fatG: Double,
+        fiberG: Double = 0.0,
+        saltG: Double = 0.0,
+        aliases: List<String> = emptyList(),
+    ) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            runCatching {
+                val existing = repo.findById(id)
+                repo.save(
+                    id = id, name = name, kcal = kcal, proteinG = proteinG,
+                    carbsG = carbsG, fatG = fatG, fiberG = fiberG, saltG = saltG,
+                    // Preserved from the existing row, not collected by the edit
+                    // dialog - see CustomFoodRepository.findById's own doc comment
+                    // on why these would otherwise silently zero out.
+                    ironMg = existing?.ironMg ?: 0.0, calciumMg = existing?.calciumMg ?: 0.0,
+                    vitDUg = existing?.vitDUg ?: 0.0, b12Ug = existing?.b12Ug ?: 0.0,
+                    aliases = aliases, barcode = repo.findBarcode(id),
+                )
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     fun rename(id: String, newName: String) {
         if (newName.isBlank()) return
         viewModelScope.launch {
