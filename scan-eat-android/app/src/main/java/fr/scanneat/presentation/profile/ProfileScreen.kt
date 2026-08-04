@@ -155,7 +155,12 @@ fun ProfileScreen(
         // a visible flash of empty fields on every cold open of this screen.
         if (!profileLoaded.value) {
             Box(
-                Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
+                // ambientGloom() before padding(), not after - painted while this
+                // Box's own bounds are still the full fillMaxSize screen, so the
+                // gradient reaches naturally behind the floating header instead of
+                // being clipped to a hard edge starting below it (see GroceryScreen/
+                // CustomFoodScreen/ScanHistoryScreen's identical fix).
+                Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(padding),
                 contentAlignment = Alignment.Center,
             ) { CircularProgressIndicator(color = AccentCoral) }
             return@FloatingScreenScaffold

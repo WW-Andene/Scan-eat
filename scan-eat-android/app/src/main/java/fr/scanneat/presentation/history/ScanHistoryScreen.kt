@@ -93,7 +93,11 @@ fun ScanHistoryScreen(
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
+        // User-reported (on Favorites, which reuses this screen): ambientGloom()
+        // after padding(padding) clipped the gradient to a hard-edged panel
+        // starting below the header instead of fading behind it - see
+        // GroceryScreen's identical fix for the full explanation.
+        Column(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(padding)) {
             ScanEatSearchField(
                 query = query.value, onQueryChange = { viewModel.setQuery(it) },
                 placeholder = stringResource(R.string.history_search_placeholder),

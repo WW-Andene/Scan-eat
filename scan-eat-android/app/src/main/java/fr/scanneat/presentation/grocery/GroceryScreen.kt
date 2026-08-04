@@ -112,7 +112,13 @@ fun GroceryScreen(
             )
         },
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
+        // User-reported: ambientGloom() applied after padding(padding) painted the
+        // gradient only across this Column's already-shrunken bounds (starting
+        // below the floating header), producing a hard rectangular seam right at
+        // the header's bottom edge instead of RecipesScreen's smooth radial fade
+        // reaching behind the header itself. Reordered so the gloom paints across
+        // the full fillMaxSize screen first, matching every other screen's pattern.
+        Column(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(padding)) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,
