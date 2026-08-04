@@ -84,7 +84,7 @@ fun OnboardingScreen(
                 .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
                 .padding(horizontal = Spacing.L),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.XL),
+            verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             Spacer(Modifier.height(40.dp))
 

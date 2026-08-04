@@ -58,7 +58,7 @@ internal fun ResultContent(
             .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L, vertical = Spacing.M),
-        verticalArrangement = Arrangement.spacedBy(Spacing.L),
+        verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         // Product name + source
         Text(audit.productName, style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
