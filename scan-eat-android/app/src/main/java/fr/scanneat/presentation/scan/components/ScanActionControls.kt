@@ -158,13 +158,22 @@ internal fun BoxScope.ScanInstantModeFab(instantMode: Boolean, bottomNavClearanc
 
 /**
  * Toggles shelf-scan mode (hybrid live-boxes/tap-to-identify) — top-end,
- * stacked below the flash toggle (same corner, same 40dp size) rather than
- * the bottom-start corner, which already holds the instant-mode FAB and,
- * conditionally, the recent-barcodes chip column right above it. Always
- * reserves the flash button's own height even when this device has no flash
- * unit (CameraPreview's hasFlash isn't exposed to this screen to condition
- * on) — a small unused gap above it there is a minor cosmetic cost, not a
- * collision with anything else in that corner.
+ * stacked below the flash toggle rather than the bottom-start corner, which
+ * already holds the instant-mode FAB and, conditionally, the recent-barcodes
+ * chip column right above it. Always reserves the flash button's own height
+ * even when this device has no flash unit (CameraPreview's hasFlash isn't
+ * exposed to this screen to condition on) — a small unused gap above it
+ * there is a minor cosmetic cost, not a collision with anything else in
+ * that corner.
+ *
+ * User-reported: the 48.dp stacking offset this used to use predated the
+ * flash button's own move to the 48dp WCAG touch-target minimum (see
+ * CameraPreview.kt) - a *standard* FloatingActionButton is a fixed 56dp
+ * regardless of that minimum, so 48dp under-reserved the flash button's
+ * actual height and left this one overlapping it by 8dp instead of
+ * following it. Now reserves the real 56dp FAB height plus the app's own
+ * tight-inline-gap token (Spacing.S), the same tier already used for the
+ * score-delta/legend-dot spacing this close together elsewhere.
  */
 @Composable
 internal fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick: () -> Unit) {
@@ -177,7 +186,7 @@ internal fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick
         // traversal - which follows composition order here, not screen position -
         // announced it dead last: a swipe-through went bottom-end, bottom-end,
         // bottom-start, bottom-start, then jumped back up to this top-right button.
-        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 48.dp, end = Spacing.L)
+        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 56.dp + Spacing.S, end = Spacing.L)
             .minTouchTarget() // was a fixed 40dp, below the 48dp WCAG/Material touch-target minimum
             .semantics { traversalIndex = -1f },
         containerColor = if (shelfMode) Teal else SurfaceVariant,

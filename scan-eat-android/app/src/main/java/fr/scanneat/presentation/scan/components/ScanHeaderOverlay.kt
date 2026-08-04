@@ -65,7 +65,24 @@ internal fun BoxScope.ScanHeaderBar(
             .padding(horizontal = 20.dp).padding(top = topInset + Spacing.L, bottom = 28.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = Color.White, fontWeight = FontWeight.Bold)
+            // User-reported: this title's own line-height leading (headlineMedium
+            // reserves space above the glyphs' cap-height for line spacing) pushed
+            // its visible top a few dp below this Column's top edge, while the
+            // flash toggle FAB anchored to the same top padding (CameraPreview.kt)
+            // has no such leading - their top edges no longer lined up. Trimming
+            // the line-height here removes that reserved space so the visible "S"
+            // starts right at the Column's top edge, matching the FAB.
+            Text(
+                stringResource(R.string.app_name),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(
+                        alignment = androidx.compose.ui.text.style.LineHeightStyle.Alignment.Top,
+                        trim = androidx.compose.ui.text.style.LineHeightStyle.Trim.Both,
+                    ),
+                    platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+                ),
+                color = Color.White, fontWeight = FontWeight.Bold,
+            )
             // New: today's scan count badge — previously there was no way to know how
             // many products you'd already scanned today without leaving the scan tab.
             if (todayScanCount > 0) {
