@@ -69,7 +69,7 @@ internal fun ReminderRow(
                     modifier = Modifier.weight(1f).padding(end = Spacing.S),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground, cursorColor = AccentCoral, focusedLabelColor = AccentCoral),
                 )
             } else {
                 Text(displayLabel, style = MaterialTheme.typography.bodyMedium, color = OnBackground, modifier = Modifier.weight(1f))
@@ -111,7 +111,7 @@ internal fun CustomReminderRow(
             modifier = Modifier.weight(1f).padding(end = Spacing.S),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium,
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground, cursorColor = AccentCoral, focusedLabelColor = AccentCoral),
         )
         OutlinedTextField(
             value = timeText,
