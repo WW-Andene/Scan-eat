@@ -230,6 +230,7 @@ fun GroceryScreen(
                                     if (result == SnackbarResult.ActionPerformed) viewModel.undoDeleteManual()
                                 }
                             },
+                                onEditQuantity = { grams -> viewModel.editManualQuantity(checkableItem.item.key, grams) },
                             )
                         }
                     }
@@ -246,6 +247,7 @@ fun GroceryScreen(
                                     if (result == SnackbarResult.ActionPerformed) viewModel.undoDeleteManual()
                                 }
                             },
+                            onEditQuantity = { grams -> viewModel.editManualQuantity(checkableItem.item.key, grams) },
                         )
                     }
                 }

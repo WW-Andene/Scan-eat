@@ -287,6 +287,25 @@ class GroceryViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Corrects the quantity of the manual entries contributing to the
+     * aggregated row keyed [groceryKey] - previously a manual item's quantity
+     * could only be changed by deleting it and re-adding it via quickAdd/the
+     * scan "Save to Courses" popup. Same key-matching as
+     * [deleteManualContribution]; in the near-universal case of exactly one
+     * manual contributor per name, this simply corrects its grams in place.
+     */
+    fun editManualQuantity(groceryKey: String, grams: Double) {
+        viewModelScope.launch {
+            runCatching {
+                val existingKeys = rawItems.value.map { it.key }.toSet()
+                manualGroceryRepo.items.first()
+                    .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
+                    .forEach { manualGroceryRepo.updateGrams(it.id, grams) }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
     fun undoDeleteManual() {
         val removed = lastDeleted ?: return
         lastDeleted = null

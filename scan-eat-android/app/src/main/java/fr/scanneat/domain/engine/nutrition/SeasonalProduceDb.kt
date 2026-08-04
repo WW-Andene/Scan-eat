@@ -92,3 +92,24 @@ val SEASONAL_PRODUCE_DB: List<SeasonalProduce> = listOf(
     SeasonalProduce("Pomme de terre", "Potato", SeasonalProduceKind.VEGETABLE, (1..12).toSet()),
     SeasonalProduce("Oignon", "Onion", SeasonalProduceKind.VEGETABLE, (1..12).toSet()),
 )
+
+/**
+ * Matches a free-text grocery item name (e.g. "Tomates cerises bio") against
+ * SEASONAL_PRODUCE_DB by normalized substring containment - picks the
+ * *longest* matching entry name so a more specific item ("Pomme de terre")
+ * isn't misidentified as a shorter unrelated entry it happens to contain
+ * ("Pomme"). Connects SeasonalProduceScreen (previously an isolated
+ * reference screen - R&D audit finding) to Grocery/Recipes without needing
+ * either to carry its own copy of this data.
+ */
+fun matchSeasonalProduce(itemName: String): SeasonalProduce? {
+    val normItem = fr.scanneat.domain.engine.scoring.normalizeForMatching(itemName)
+    return SEASONAL_PRODUCE_DB
+        .filter { p -> normItem.contains(fr.scanneat.domain.engine.scoring.normalizeForMatching(p.nameFr)) }
+        .maxByOrNull { it.nameFr.length }
+}
+
+/** True if [itemName] matches a SEASONAL_PRODUCE_DB entry currently (or, for
+ *  an explicit [month], at that month) in its outdoor French season. */
+fun isInSeasonNow(itemName: String, month: Int = java.time.LocalDate.now().monthValue): Boolean =
+    matchSeasonalProduce(itemName)?.let { month in it.months } ?: false

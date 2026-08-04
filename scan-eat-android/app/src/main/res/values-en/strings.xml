@@ -607,6 +607,8 @@
         <item quantity="other">%1$d items · aggregated from your recipes</item>
     </plurals>
     <string name="grocery_grams">%1$d g</string>
+    <string name="grocery_edit_quantity_label">Quantity (g)</string>
+    <string name="grocery_in_season_badge">In season</string>
     <string name="grocery_copied">Grocery list copied to clipboard</string>
     <string name="grocery_sort_alpha">Sort alphabetically</string>
     <string name="grocery_checked_progress">%1$d/%2$d items checked</string>
