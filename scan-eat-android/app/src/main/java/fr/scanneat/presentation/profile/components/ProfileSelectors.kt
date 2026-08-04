@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -191,22 +192,45 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     "epilepsy" to stringResource(R.string.condition_epilepsy),
 )
 
+/**
+ * Groups conditionLabels() into labeled categories - 11 conditions in one flat
+ * FlowRow (user-reported) had become hard to scan for the specific one you
+ * were looking for, unlike allergenLabels() below which stayed flat because
+ * its 14 items are all one recognizable category (EU allergens). Order is
+ * body-system-ish (metabolic/cardio → digestive → neurological → other),
+ * not alphabetical, so related conditions land next to each other.
+ */
+@Composable
+private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
+    stringResource(R.string.profile_condition_group_metabolic) to listOf("diabetes", "hypertension", "kidney_disease", "thyroid_disorder"),
+    stringResource(R.string.profile_condition_group_digestive) to listOf("ibs", "crohn_ibd", "chronic_diarrhea"),
+    stringResource(R.string.profile_condition_group_neurological) to listOf("chronic_migraine", "epilepsy"),
+    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression"),
+)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ConditionsSelector(current: Set<String>, onSelect: (Set<String>) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+    val labels = conditionLabels()
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(stringResource(R.string.profile_condition_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            conditionLabels().forEach { (key, label) ->
-                FilterChip(
-                    selected = key in current,
-                    onClick  = { onSelect(if (key in current) current - key else current + key) },
-                    label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
-                        labelColor = OnBackground.copy(0.7f),
-                    ),
-                )
+        conditionGroups().forEach { (groupLabel, keys) ->
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                Text(groupLabel, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f), fontWeight = FontWeight.SemiBold)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+                    keys.forEach { key ->
+                        val label = labels[key] ?: return@forEach
+                        FilterChip(
+                            selected = key in current,
+                            onClick  = { onSelect(if (key in current) current - key else current + key) },
+                            label = { Text(label, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                                labelColor = OnBackground.copy(0.7f),
+                            ),
+                        )
+                    }
+                }
             }
         }
     }

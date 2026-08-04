@@ -671,6 +671,10 @@
     <string name="profile_allergen_hint">Select the allergens to watch for</string>
     <string name="profile_section_conditions">Health conditions</string>
     <string name="profile_condition_hint">Select the conditions to factor into calculations</string>
+    <string name="profile_condition_group_metabolic">Metabolic / cardiovascular</string>
+    <string name="profile_condition_group_digestive">Digestive</string>
+    <string name="profile_condition_group_neurological">Neurological</string>
+    <string name="profile_condition_group_other">Other</string>
     <string name="condition_diabetes">Diabetes</string>
     <string name="condition_hypertension">Hypertension</string>
     <string name="condition_pregnancy">Pregnancy</string>

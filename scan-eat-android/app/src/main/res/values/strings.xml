@@ -675,6 +675,10 @@
     <string name="profile_allergen_hint">Sélectionnez les allergènes à surveiller</string>
     <string name="profile_section_conditions">Conditions de santé</string>
     <string name="profile_condition_hint">Sélectionnez les conditions à prendre en compte dans les calculs</string>
+    <string name="profile_condition_group_metabolic">Métabolique / cardiovasculaire</string>
+    <string name="profile_condition_group_digestive">Digestif</string>
+    <string name="profile_condition_group_neurological">Neurologique</string>
+    <string name="profile_condition_group_other">Autres</string>
     <string name="condition_diabetes">Diabète</string>
     <string name="condition_hypertension">Hypertension</string>
     <string name="condition_pregnancy">Grossesse</string>
