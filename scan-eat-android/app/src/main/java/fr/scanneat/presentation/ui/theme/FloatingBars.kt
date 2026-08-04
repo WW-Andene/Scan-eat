@@ -112,6 +112,7 @@ fun FloatingTopBar(
     hazeState: HazeState,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
+    hasNavigationIcon: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     accent: Color = Color.White,
 ) {
@@ -139,12 +140,18 @@ fun FloatingTopBar(
                 modifier          = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Fixed-width leading slot whether or not navigationIcon is
-                // empty - matches TopAppBar's own behaviour (a tab-root
-                // screen with no back arrow still reserves the same leading
-                // space, e.g. DiaryScreen's isTabRoot case), so swapping in
-                // doesn't shift any title that previously relied on it.
-                Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { navigationIcon() }
+                // User-reported: on tab-root screens (Dashboard/Settings with no
+                // back arrow), this leading slot was reserved unconditionally at
+                // a fixed 48dp even when navigationIcon() rendered nothing - the
+                // title sat 48dp further right than every section title in the
+                // content below it (which only carries the outer Spacing.L),
+                // a visible header/content margin mismatch. Only reserved when
+                // [hasNavigationIcon] is true (a real back arrow that needs the
+                // room); tab-root callers pass false so the title aligns with
+                // the content beneath it, same as DiaryScreen's own header.
+                if (hasNavigationIcon) {
+                    Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { navigationIcon() }
+                }
                 Box(Modifier.weight(1f)) {
                     ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
                 }
@@ -184,6 +191,7 @@ fun FloatingScreenScaffold(
     title: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
+    hasNavigationIcon: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     accent: Color = Color.White,
     showBottomNavClearance: Boolean = false,
@@ -221,12 +229,13 @@ fun FloatingScreenScaffold(
             }
         }
         FloatingTopBar(
-            title          = title,
-            hazeState      = headerHazeState,
-            navigationIcon = navigationIcon,
-            actions        = actions,
-            accent         = accent,
-            modifier       = Modifier.align(Alignment.TopCenter),
+            title             = title,
+            hazeState         = headerHazeState,
+            navigationIcon    = navigationIcon,
+            hasNavigationIcon = hasNavigationIcon,
+            actions           = actions,
+            accent            = accent,
+            modifier          = Modifier.align(Alignment.TopCenter),
         )
         // Previously omitted "+ bottomInset" here even though content's own
         // calculation above includes it - a Snackbar on a bottom-nav-tab screen

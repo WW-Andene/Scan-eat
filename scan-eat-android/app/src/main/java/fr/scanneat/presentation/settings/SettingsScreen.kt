@@ -206,6 +206,7 @@ fun SettingsScreen(
                 IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) }
             }
         },
+        hasNavigationIcon = !isTabRoot,
         showBottomNavClearance = isTabRoot,
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->

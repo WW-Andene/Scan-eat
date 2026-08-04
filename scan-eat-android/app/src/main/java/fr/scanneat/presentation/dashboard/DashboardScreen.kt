@@ -129,6 +129,7 @@ fun DashboardScreen(
                 }
             }
         },
+        hasNavigationIcon = !isTabRoot,
         showBottomNavClearance = isTabRoot,
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
