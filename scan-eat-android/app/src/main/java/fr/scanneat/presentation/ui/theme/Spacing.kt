@@ -36,7 +36,8 @@ object Spacing {
     // used too consistently to be drift. Named here instead of snapped to S/M
     // so those call sites can move onto the token scale with zero visual change.
     val SM: Dp = 8.dp
-    val M: Dp = 11.dp
+    // User-requested: standardized from 11dp to 10dp.
+    val M: Dp = 10.dp
     val L: Dp = 16.dp
     val XL: Dp = 23.dp
     // Covers the bottom-of-list spacer value shared identically across
@@ -55,7 +56,7 @@ object Spacing {
  * stays in sync instead of drifting per call site again.
  *
  * User-reported (round 2): Spacing.XS (4dp) still read as visually flush
- * against the trigger (e.g. Recipes' filter pill) - bumped to Spacing.S (6dp)
- * so the gap is actually perceptible at typical density.
+ * against the trigger (e.g. Recipes' filter pill) - bumped to Spacing.S (6dp),
+ * then user-requested (round 3): standardized to 10dp for every popup.
  */
-val DROPDOWN_MENU_GAP: Dp = Spacing.S
+val DROPDOWN_MENU_GAP: Dp = Spacing.M
