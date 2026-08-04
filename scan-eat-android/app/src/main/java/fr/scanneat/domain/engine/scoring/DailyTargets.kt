@@ -25,6 +25,8 @@ data class DailyTargets(
     val potassiumMgTarget: Double = 3500.0, // EFSA DRV 2016 AI
     val zincMgTarget: Double = 9.4,         // EFSA DRV 2014 (adult men)
     val vitCMgTarget: Double = 95.0,        // EFSA DRV 2013
+    val vitAUgTarget: Double = 750.0,       // EFSA PRI 2015 (adult men); 650 women
+    val b9UgTarget: Double = 330.0,         // EFSA DRV 2014 (folate, both sexes)
     // Diet-driven target overrides - null unless the selected diet actually
     // implies a daily total (most diets are ingredient-exclusion only, not
     // macro-budget diets, so this stays null for them).
@@ -85,6 +87,10 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
     // same sex-adjustment pattern as ironTarget/zincTarget/magnesiumMgTarget
     // above/below; vitCMgTarget previously stayed a flat 95mg for everyone.
     val vitCTarget = if (p.sex == Sex.FEMALE) 95.0 else 110.0
+    // Sex-specific vitamin A: 750 µg RE/day men, 650 µg RE/day women (EFSA PRI
+    // 2015) - same sex-adjustment pattern as ironTarget/zincTarget above. Folate
+    // has no sex split in the EFSA DRV (330 µg/day for all adults).
+    val vitATarget = if (p.sex == Sex.FEMALE) 650.0 else 750.0
 
     // WHO guidance caps free sugars/salt harder for these conditions than the
     // general-population default - halved rather than a made-up clinical value,
@@ -121,6 +127,8 @@ fun dailyTargets(p: Profile, weightKgOverride: Double? = null): DailyTargets? {
         potassiumMgTarget = 3500.0,
         zincMgTarget      = zincTarget,
         vitCMgTarget      = vitCTarget,
+        vitAUgTarget      = vitATarget,
+        b9UgTarget        = 330.0,
     )
 }
 

@@ -52,6 +52,8 @@ data class DiaryEntry(
             potassiumMg   = (nutrition.potassiumMg  ?: 0.0) * factor,
             zincMg        = (nutrition.zincMg       ?: 0.0) * factor,
             vitCMg        = (nutrition.vitCMg       ?: 0.0) * factor,
+            vitAUg        = (nutrition.vitAUg       ?: 0.0) * factor,
+            b9Ug          = (nutrition.b9Ug         ?: 0.0) * factor,
         )
     }
     /**
@@ -88,6 +90,13 @@ data class ConsumedNutrition(
     val potassiumMg: Double = 0.0,
     val zincMg: Double = 0.0,
     val vitCMg: Double = 0.0,
+    // R&D roadmap: NutritionPer100g/OffMapper/OffMerge already map+merge vitA/
+    // folate from OFF and surface them per-product in ProductHints, but this
+    // daily accumulator never tracked either - same "computed but nothing to
+    // compare against" gap magnesiumMg/potassiumMg/zincMg/vitCMg's own comment
+    // above already fixed for their four nutrients.
+    val vitAUg: Double = 0.0,
+    val b9Ug: Double = 0.0,
 ) {
     operator fun plus(other: ConsumedNutrition) = ConsumedNutrition(
         energyKcal    = energyKcal    + other.energyKcal,
@@ -106,6 +115,8 @@ data class ConsumedNutrition(
         potassiumMg   = potassiumMg   + other.potassiumMg,
         zincMg        = zincMg        + other.zincMg,
         vitCMg        = vitCMg        + other.vitCMg,
+        vitAUg        = vitAUg        + other.vitAUg,
+        b9Ug          = b9Ug          + other.b9Ug,
     )
 
     companion object {

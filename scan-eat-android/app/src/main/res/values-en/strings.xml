@@ -1318,6 +1318,8 @@
     <string name="dashboard_micro_potassium">Potassium</string>
     <string name="dashboard_micro_zinc">Zinc</string>
     <string name="dashboard_micro_vitc">Vit. C</string>
+    <string name="dashboard_micro_vita">Vit. A</string>
+    <string name="dashboard_micro_folate">Folate</string>
     <string name="dashboard_budget_title">Today\'s Budgets</string>
     <string name="dashboard_budget_satfat">Sat. fat</string>
     <string name="dashboard_budget_sugars">Sugars</string>

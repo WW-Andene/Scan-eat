@@ -32,6 +32,8 @@ private object NRV {
     const val POTASSIUM_MG = 2000.0
     const val ZINC_MG      = 10.0
     const val VIT_C_MG     = 80.0
+    const val VIT_A_UG     = 800.0
+    const val FOLATE_UG    = 200.0
 }
 
 @Composable
@@ -60,6 +62,12 @@ internal fun MicronutrientCard(totals: ConsumedNutrition, targets: DailyTargets?
     val potassiumTarget = targets?.potassiumMgTarget ?: NRV.POTASSIUM_MG
     val zincTarget       = targets?.zincMgTarget      ?: NRV.ZINC_MG
     val vitCTarget       = targets?.vitCMgTarget      ?: NRV.VIT_C_MG
+    // R&D roadmap: same "computed but nothing to compare against" gap the
+    // comment above documents for magnesium/potassium/zinc/vitC - DailyTargets
+    // now computes these two (see its own doc comment) but ConsumedNutrition
+    // had nowhere to accumulate the consumed side until DiaryEntry.kt's fix.
+    val vitATarget       = targets?.vitAUgTarget      ?: NRV.VIT_A_UG
+    val folateTarget     = targets?.b9UgTarget        ?: NRV.FOLATE_UG
 
     ScanEatCard(
         contentPadding = PaddingValues(Spacing.L),
@@ -81,6 +89,8 @@ internal fun MicronutrientCard(totals: ConsumedNutrition, targets: DailyTargets?
         MicroRow(stringResource(R.string.dashboard_micro_potassium), totals.potassiumMg, potassiumTarget, "mg", HydrationBlue)
         MicroRow(stringResource(R.string.dashboard_micro_zinc),     totals.zincMg,      zincTarget,      "mg", CalorieOrange)
         MicroRow(stringResource(R.string.dashboard_micro_vitc),     totals.vitCMg,       vitCTarget,      "mg", Teal)
+        MicroRow(stringResource(R.string.dashboard_micro_vita),     totals.vitAUg,       vitATarget,      "µg", Gold)
+        MicroRow(stringResource(R.string.dashboard_micro_folate),   totals.b9Ug,         folateTarget,    "µg", Warm)
     }
 }
 

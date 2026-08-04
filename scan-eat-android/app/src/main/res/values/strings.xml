@@ -1370,6 +1370,8 @@
     <string name="dashboard_micro_potassium">Potassium</string>
     <string name="dashboard_micro_zinc">Zinc</string>
     <string name="dashboard_micro_vitc">Vit. C</string>
+    <string name="dashboard_micro_vita">Vit. A</string>
+    <string name="dashboard_micro_folate">Folate</string>
     <string name="dashboard_budget_title">Budgets du jour</string>
     <string name="dashboard_budget_satfat">AG saturés</string>
     <string name="dashboard_budget_sugars">Sucres</string>
