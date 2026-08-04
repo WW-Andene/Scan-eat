@@ -36,8 +36,9 @@ import java.util.Locale
 @Composable
 fun SeasonalProduceScreen(viewModel: SeasonalProduceViewModel = hiltViewModel(), onBack: () -> Unit) {
     val language = viewModel.language.collectAsStateWithLifecycle()
+    val isFrench = language.value == "fr"
     val selectedMonth by viewModel.selectedMonth.collectAsStateWithLifecycle()
-    val locale = Locale(language.value)
+    val locale = Locale.forLanguageTag(language.value)
     val items = viewModel.inSeason(selectedMonth)
     val fruits = items.filter { it.kind == SeasonalProduceKind.FRUIT }
     val vegetables = items.filter { it.kind == SeasonalProduceKind.VEGETABLE }
@@ -83,10 +84,10 @@ fun SeasonalProduceScreen(viewModel: SeasonalProduceViewModel = hiltViewModel(),
             }
 
             if (fruits.isNotEmpty()) {
-                item { SeasonalGroupCard(titleRes = R.string.seasonal_fruits_title, items = fruits) }
+                item { SeasonalGroupCard(titleRes = R.string.seasonal_fruits_title, items = fruits, isFrench = isFrench) }
             }
             if (vegetables.isNotEmpty()) {
-                item { SeasonalGroupCard(titleRes = R.string.seasonal_vegetables_title, items = vegetables) }
+                item { SeasonalGroupCard(titleRes = R.string.seasonal_vegetables_title, items = vegetables, isFrench = isFrench) }
             }
             if (items.isEmpty()) {
                 item {
@@ -126,13 +127,13 @@ private fun MonthPickerRow(selectedMonth: Int, locale: Locale, onSelect: (Int) -
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SeasonalGroupCard(titleRes: Int, items: List<SeasonalProduce>) {
+private fun SeasonalGroupCard(titleRes: Int, items: List<SeasonalProduce>, isFrench: Boolean) {
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Text(stringResource(titleRes), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f), fontWeight = FontWeight.SemiBold)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             items.forEach { produce ->
                 Text(
-                    produce.nameFr,
+                    if (isFrench) produce.nameFr else produce.nameEn,
                     style = MaterialTheme.typography.labelMedium,
                     color = OnBackground,
                     modifier = Modifier

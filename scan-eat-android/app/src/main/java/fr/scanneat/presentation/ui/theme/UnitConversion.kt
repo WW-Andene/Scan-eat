@@ -18,3 +18,12 @@ const val CM_TO_IN = 2.54
 /** "154.3 lb" / "70.0 kg" — always Locale.US so the decimal separator doesn't vary by device locale. */
 fun dispWeight(kg: Double, useImperial: Boolean): String =
     if (useImperial) "%.1f lb".format(Locale.US, kg * KG_TO_LB) else "%.1f kg".format(Locale.US, kg)
+
+/** 1 US fluid ounce in milliliters. */
+const val ML_TO_FLOZ = 0.033814
+
+/** "24 fl oz" / "710 mL" — hydration volumes previously rendered "$ml mL" unconditionally,
+ *  the only display in the app that ignored useImperial despite Weight/Profile/Biolism
+ *  all respecting it. */
+fun dispVolume(ml: Int, useImperial: Boolean): String =
+    if (useImperial) "%.0f fl oz".format(Locale.US, ml * ML_TO_FLOZ) else "$ml mL"

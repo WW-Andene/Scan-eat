@@ -65,6 +65,7 @@ fun HydrationScreen(
     val language        = viewModel.language.collectAsStateWithLifecycle()
     val customGoal      = viewModel.customGoalMl.collectAsStateWithLifecycle()
     val history         = viewModel.history.collectAsStateWithLifecycle()
+    val useImperial     = viewModel.useImperial.collectAsStateWithLifecycle()
     var showGoalEditor by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<LocalDate?>(null) }
     val glasses     = intake.value / HYD_GLASS_ML
@@ -167,6 +168,7 @@ fun HydrationScreen(
                 HydrationHistorySection(
                     history = history.value,
                     dateFmt = dateFmt,
+                    useImperial = useImperial.value,
                     onEdit = { date, ml -> viewModel.editDay(date, ml) },
                     onDelete = { date -> deleteTarget = date },
                 )

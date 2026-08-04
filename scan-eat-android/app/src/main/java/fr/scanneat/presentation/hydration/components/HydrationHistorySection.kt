@@ -31,6 +31,7 @@ import java.time.format.DateTimeFormatter
 internal fun HydrationHistorySection(
     history: List<Pair<LocalDate, Int>>,
     dateFmt: DateTimeFormatter,
+    useImperial: Boolean,
     onEdit: (LocalDate, Int) -> Unit,
     onDelete: (LocalDate) -> Unit,
 ) {
@@ -40,13 +41,13 @@ internal fun HydrationHistorySection(
     // this composable only owns the list itself.
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         history.forEach { (date, ml) ->
-            HydrationHistoryRow(date = date, ml = ml, dateFmt = dateFmt, onEdit = onEdit, onDelete = onDelete)
+            HydrationHistoryRow(date = date, ml = ml, dateFmt = dateFmt, useImperial = useImperial, onEdit = onEdit, onDelete = onDelete)
         }
     }
 }
 
 @Composable
-private fun HydrationHistoryRow(date: LocalDate, ml: Int, dateFmt: DateTimeFormatter, onEdit: (LocalDate, Int) -> Unit, onDelete: (LocalDate) -> Unit) {
+private fun HydrationHistoryRow(date: LocalDate, ml: Int, dateFmt: DateTimeFormatter, useImperial: Boolean, onEdit: (LocalDate, Int) -> Unit, onDelete: (LocalDate) -> Unit) {
     var showEdit by remember { mutableStateOf(false) }
     // Whole-row tap opens the edit dialog, same pattern as WeightEntryRow/
     // ExpenseEntryRow - the delete icon stays a separate, smaller tap target
@@ -55,7 +56,7 @@ private fun HydrationHistoryRow(date: LocalDate, ml: Int, dateFmt: DateTimeForma
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(date.format(dateFmt), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("$ml mL", style = MaterialTheme.typography.bodyMedium, color = OnSurface.copy(0.7f))
+                Text(dispVolume(ml, useImperial), style = MaterialTheme.typography.bodyMedium, color = OnSurface.copy(0.7f))
                 IconButton(onClick = { showEdit = true }) {
                     Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
                 }

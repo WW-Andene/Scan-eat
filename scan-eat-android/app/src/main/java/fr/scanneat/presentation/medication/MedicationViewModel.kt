@@ -66,6 +66,11 @@ sealed class InteractionWarning {
 // population most likely to type English drug names. English generic-name
 // variants added alongside the French ones (case-insensitive match already
 // applied by detectInteractions() via .lowercase()).
+// Accent-normalized (see fr.scanneat.domain.engine.scoring.normalizeForMatching) so
+// "indometacine" typed without its accent still matches "indométacine" - a plain
+// .lowercase() comparison was silently missing this on mobile keyboards, unlike
+// every other name-matching lookup in the app (GroceryList, PairingsDb, AdditivesDb,
+// MedicationLookupDb, NonConsumableLookupDb, FoodDb all normalize accents already).
 private val INTERACTION_GROUPS = mapOf(
     DrugGroup.ANTICOAGULANTS to listOf(
         "warfarine", "warfarin", "coumadine", "coumadin", "acenocoumarol", "rivaroxaban", "apixaban", "dabigatran", "héparine", "heparin",
@@ -78,10 +83,10 @@ private val INTERACTION_GROUPS = mapOf(
         "sertraline", "fluoxétine", "fluoxetine", "paroxétine", "paroxetine", "venlafaxine", "duloxétine", "duloxetine", "escitalopram",
     ),
     DrugGroup.MAOI           to listOf("phénelzine", "phenelzine", "tranylcypromine", "moclobémide", "moclobemide", "sélégiline", "selegiline"),
-)
+).mapValues { (_, keywords) -> keywords.map { fr.scanneat.domain.engine.scoring.normalizeForMatching(it) } }
 
 private fun detectInteractions(meds: List<Medication>): List<InteractionWarning> {
-    val activeNames = meds.filter { it.active }.map { it.name.lowercase() }
+    val activeNames = meds.filter { it.active }.map { fr.scanneat.domain.engine.scoring.normalizeForMatching(it.name) }
     val warnings = mutableListOf<InteractionWarning>()
     // Same-group duplicates (e.g., two anticoagulants)
     for ((group, keywords) in INTERACTION_GROUPS) {

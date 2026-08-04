@@ -41,6 +41,11 @@ class HydrationViewModel @Inject constructor(
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
 
+    // Same imperial/metric preference Weight/Profile/Biolism already respect -
+    // hydration volumes previously always rendered in mL regardless of this setting.
+    val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     private val formulaGoal: Flow<Int> = prefs.profile
         .map { repo.goalMl(it.sex, it.activityLevel, it.healthConditions) }
 

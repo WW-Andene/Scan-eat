@@ -32,6 +32,9 @@ class SeasonalProduceViewModel @Inject constructor(
 
     fun selectMonth(month: Int) { _selectedMonth.value = month.coerceIn(1, 12) }
 
-    fun inSeason(month: Int): List<SeasonalProduce> =
-        SEASONAL_PRODUCE_DB.filter { month in it.months }.sortedBy { it.nameFr }
+    fun inSeason(month: Int): List<SeasonalProduce> {
+        val isFrench = language.value == "fr"
+        return SEASONAL_PRODUCE_DB.filter { month in it.months }
+            .sortedBy { if (isFrench) it.nameFr else it.nameEn }
+    }
 }
