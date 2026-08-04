@@ -55,7 +55,7 @@ internal fun FeatureDomainChips() {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                         ) {
-                            Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                            Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Tiny))
                             Text(stringResource(label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))
                         }
                     }

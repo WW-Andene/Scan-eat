@@ -93,7 +93,7 @@ internal fun ScoreDeltaChip(delta: Int) {
                 },
                 contentDescription = null,
                 tint     = textColor,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier.size(IconSize.Tiny),
             )
             Text(
                 text  = if (neutral) "=" else "${if (positive) "+" else ""}$delta",

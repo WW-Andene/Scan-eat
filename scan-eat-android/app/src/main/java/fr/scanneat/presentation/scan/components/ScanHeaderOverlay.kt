@@ -147,7 +147,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                     ) {
-                        Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
+                        Icon(TablerIcons.AlertTriangle, null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Tiny))
                         Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber())
                     }
                 }

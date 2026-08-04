@@ -134,7 +134,7 @@ internal fun WeightSummaryCard(
                         // same card already using AccentCoral for its own goal-delta
                         // indicator above. AccentCoral matches this screen's own
                         // established accent instead of an arbitrary borrowed one.
-                        Icon(Icons.Rounded.LocalFireDepartment, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                        Icon(Icons.Rounded.LocalFireDepartment, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Tiny))
                         Text(
                             stringResource(R.string.weight_logging_streak_value, loggingStreakDays),
                             style = MaterialTheme.typography.labelSmall,

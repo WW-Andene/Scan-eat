@@ -46,6 +46,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.IconSize
 
 // RecipeComponent isn't a type rememberSaveable's default Bundle-backed Saver knows
 // how to store - round-tripping through the same Moshi JSON adapter shape
@@ -109,7 +110,7 @@ internal fun AddRecipeDialog(
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(stringResource(R.string.recipes_ingredient_summary_compact, c.productName, c.grams.toInt(), c.kcal.toInt()), style = MaterialTheme.typography.bodySmall, color = OnSurface, modifier = Modifier.weight(1f))
                         IconButton(onClick = { components = components.filterIndexed { i, _ -> i != index } }) {
-                            Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(14.dp))
+                            Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Tiny))
                         }
                     }
                 }

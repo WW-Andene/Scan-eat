@@ -100,7 +100,7 @@ internal fun MealPlanDayCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
-                Icon(TablerIcons.Bulb, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                Icon(TablerIcons.Bulb, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Tiny))
                 // Per-serving, not the recipe's whole-batch total - a single
                 // planned meal slot only ever represents 1/servings of
                 // suggestion.totalKcal/totalProteinG (same division logSlot()

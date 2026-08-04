@@ -171,7 +171,7 @@ fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenRes
                         Text(status.name, style = MaterialTheme.typography.labelSmall, color = OnSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     is ShelfPeekStatus.Failed -> {
-                        Icon(TablerIcons.AlertCircle, null, tint = semanticRed(), modifier = Modifier.size(14.dp))
+                        Icon(TablerIcons.AlertCircle, null, tint = semanticRed(), modifier = Modifier.size(IconSize.Tiny))
                         Text(status.message, style = MaterialTheme.typography.labelSmall, color = OnSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }

@@ -47,7 +47,7 @@ internal fun DataStatChip(icon: androidx.compose.ui.graphics.vector.ImageVector,
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
         ) {
-            Icon(icon, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(14.dp))
+            Icon(icon, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Tiny))
             Text(label, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
         }
     }

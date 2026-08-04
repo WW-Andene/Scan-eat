@@ -62,8 +62,8 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             }
             Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 when (slot) {
-                    is MealPlanSlot.RecipeSlot   -> Icon(TablerIcons.ClipboardList, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(14.dp))
-                    is MealPlanSlot.TemplateSlot -> Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(14.dp))
+                    is MealPlanSlot.RecipeSlot   -> Icon(TablerIcons.ClipboardList, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Tiny))
+                    is MealPlanSlot.TemplateSlot -> Icon(Icons.AutoMirrored.Filled.ListAlt, null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Tiny))
                     else -> {}
                 }
                 Text(label, style = MaterialTheme.typography.bodySmall, color = if (slot != null) OnSurface else OnSurface.copy(0.3f))
@@ -100,7 +100,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             }
             if (slot != null) {
                 IconButton(onClick = onClear) {
-                    Icon(TablerIcons.X, stringResource(R.string.common_clear), tint = OnSurface.copy(0.5f), modifier = Modifier.size(14.dp))
+                    Icon(TablerIcons.X, stringResource(R.string.common_clear), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Tiny))
                 }
             }
         }

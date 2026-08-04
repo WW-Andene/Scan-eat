@@ -63,7 +63,7 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Icon(
                     if (d.kcal >= 0) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
-                    null, tint = color, modifier = Modifier.size(14.dp),
+                    null, tint = color, modifier = Modifier.size(IconSize.Tiny),
                 )
                 Text(
                     stringResource(R.string.dashboard_month_delta, "$sign${d.kcal.roundToInt()}"),

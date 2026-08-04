@@ -31,6 +31,15 @@ object IconSize {
      */
     val Small: Dp = 16.dp
 
+    /**
+     * §E1/genre audit (icon sizes, round 3): 14.dp - the smallest recurring
+     * tier below [Small] - covers trend-arrow/badge-icon glyphs sitting next
+     * to a text label (~18 call sites: score-delta arrows, weekly trend
+     * indicators, inline delete/list icons in dialogs). Named at the exact
+     * existing value, same zero-visual-change rationale as [Compact]/[Small].
+     */
+    val Tiny: Dp = 14.dp
+
     /** Inline / label-adjacent icons (chip icons, list-row leading icons). */
     val Inline: Dp = 20.dp
 

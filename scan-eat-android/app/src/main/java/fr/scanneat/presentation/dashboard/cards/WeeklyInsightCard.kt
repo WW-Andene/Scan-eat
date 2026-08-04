@@ -32,6 +32,7 @@ import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.dispWeight
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
+import fr.scanneat.presentation.ui.theme.IconSize
 import kotlin.math.abs
 
 /**
@@ -73,7 +74,7 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Icon(
                     if (insight.weeklyActiveMinutes >= 150) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
-                    null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(14.dp),
+                    null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Tiny),
                 )
                 Text(
                     stringResource(R.string.dashboard_insight_active_minutes, insight.weeklyActiveMinutes),

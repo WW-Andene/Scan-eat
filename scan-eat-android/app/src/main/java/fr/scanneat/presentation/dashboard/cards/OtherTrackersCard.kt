@@ -101,7 +101,7 @@ internal fun OtherTrackersCard(snapshot: OtherTrackersSnapshot) {
                 horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(Icons.Rounded.FitnessCenter, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
+                Icon(Icons.Rounded.FitnessCenter, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Tiny))
                 Text(
                     pluralStringResource(R.plurals.dashboard_workout_streak, snapshot.workoutStreak, snapshot.workoutStreak),
                     style = MaterialTheme.typography.labelSmall,

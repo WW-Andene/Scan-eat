@@ -38,6 +38,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.Warm
+import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
 internal fun MonthSummaryBar(ms: MonthSummary) {
@@ -72,7 +73,7 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    Icon(icon, null, tint = color, modifier = Modifier.size(14.dp))
+                    Icon(icon, null, tint = color, modifier = Modifier.size(IconSize.Tiny))
                     Text(label, style = MaterialTheme.typography.labelSmall, color = color, textAlign = TextAlign.Center)
                 }
             }
