@@ -26,7 +26,7 @@ internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemCl
     val gradeColor = gradeColor(scan.audit.grade)
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        contentPadding = PaddingValues(Spacing.M),
+        contentPadding = PaddingValues(Spacing.L),
         onClick = if (onItemClick != null && scan.dbId > 0) { { onItemClick(scan.dbId) } } else null,
     ) {
         Row(

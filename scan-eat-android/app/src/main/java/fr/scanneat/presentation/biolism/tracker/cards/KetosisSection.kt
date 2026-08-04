@@ -36,7 +36,7 @@ internal fun KetosisToggleRow(
         // at all, unlike the rest of the card system.
         shadowElevation = 0.dp,
     ) {
-        Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        Column(Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 // weight(1f) - without it, this Row (whose description text can run
                 // long: "< 50g glucides · graisse = carburant principal · RQ ≈ 0.70")

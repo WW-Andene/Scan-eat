@@ -15,7 +15,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun ActivityWeeklyMinutesCard(weeklyMinutes: Int, weekTrendPct: Int?) {
     val whoGoal = 150
     val pct = (weeklyMinutes.toFloat() / whoGoal).coerceIn(0f, 1f)
-    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M)) {
+    ScanEatCard(shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.L)) {
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.activity_weekly_minutes_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))

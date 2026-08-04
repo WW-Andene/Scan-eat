@@ -47,8 +47,8 @@ fun ExpensesRecapCard(onClick: () -> Unit, viewModel: ExpensesViewModel = hiltVi
     if (weekTotal.value <= 0.0 && budgetWeekly.value == null) return
 
     ScanEatCard(
-        contentPadding = PaddingValues(Spacing.M),
-        verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+        contentPadding = PaddingValues(Spacing.L),
+        verticalArrangement = Arrangement.spacedBy(Spacing.S),
         onClick = onClick,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {

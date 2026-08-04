@@ -91,7 +91,7 @@ fun ScanEatCard(
     // shadowElevation shadow (which DOES have real contrast against a light
     // background) showed up, as a disconnected rectangle instead of a filled card.
     color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.75f else 0.24f),
-    contentPadding: PaddingValues = PaddingValues(Spacing.M),
+    contentPadding: PaddingValues = PaddingValues(Spacing.L),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,
     accent: Color = Color.White,

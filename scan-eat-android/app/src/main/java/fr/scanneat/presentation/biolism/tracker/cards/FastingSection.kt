@@ -35,7 +35,7 @@ internal fun FastingRow(
         // shadowElevation at all, unlike the rest of the card system.
         shadowElevation = 0.dp,
     ) {
-        Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        Column(Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.SM)) {
                     Checkbox(checked = active, onCheckedChange = { onToggle() },

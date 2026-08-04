@@ -70,7 +70,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
             // this whole body is deliberately kept as a single one.
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
             Spacer(Modifier.height(Spacing.XS))
-            ScanEatCard(contentPadding = PaddingValues(Spacing.M)) {
+            ScanEatCard(contentPadding = PaddingValues(Spacing.L)) {
                 MultiMarkerMonthGrid(
                     month = month.value, selected = selected.value, markers = markers.value, locale = locale,
                     weekSummaries = weekSummaries.value,

@@ -83,7 +83,7 @@ internal fun BioCard(
                 .clip(RoundedCornerShape(CardRadius.CARD)),
             shadowElevation = 0.dp,
         ) {
-            Column(Modifier.padding(Spacing.M)) {
+            Column(Modifier.padding(Spacing.L)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { open = !open }
                         .semantics(mergeDescendants = true) {
@@ -108,7 +108,7 @@ internal fun BioCard(
                     enter = if (reduceMotion) EnterTransition.None else fadeIn() + expandVertically(),
                     exit = if (reduceMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
                 ) {
-                    Column(Modifier.padding(top = Spacing.M), content = content)
+                    Column(Modifier.padding(top = Spacing.S), content = content)
                 }
             }
         }

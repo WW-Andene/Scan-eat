@@ -179,7 +179,7 @@ private fun ExpensesWeekCard(
     onEditBudget: () -> Unit,
     onOpenCalendar: () -> Unit,
 ) {
-    ScanEatCard(contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+    ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Every other embedded Journal tab (Weight/Activity/Hydration/Fasting/

@@ -42,7 +42,7 @@ import kotlin.math.roundToInt
 internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommended: Boolean = false, onDelete: () -> Unit, onEdit: () -> Unit) {
     ScanEatCard(
         onClick = onEdit,
-        shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.M),
+        shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.L),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

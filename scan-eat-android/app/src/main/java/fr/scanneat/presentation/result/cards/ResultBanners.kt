@@ -30,7 +30,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun ComparisonCard(cmp: ComparisonResult) {
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
-        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S),
+        contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
@@ -62,7 +62,7 @@ internal fun ComparisonCard(cmp: ComparisonResult) {
 internal fun PairingsCard(pairings: List<String>) {
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.08f),
-        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S),
+        contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
@@ -85,7 +85,7 @@ internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = nu
     ScanEatCard(
         onClick = if (onOpen != null && alternative.dbId > 0) onOpen else null,
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
-        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S),
+        contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
@@ -105,7 +105,7 @@ internal fun PersonalizationPromptCard(onOpenProfile: () -> Unit) {
     ScanEatCard(
         onClick = onOpenProfile,
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
-        contentPadding = PaddingValues(Spacing.M),
+        contentPadding = PaddingValues(Spacing.L),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -120,7 +120,7 @@ internal fun PersonalizationPromptCard(onOpenProfile: () -> Unit) {
 internal fun DietVetoBanner(reason: String?) {
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(alpha = 0.15f),
-        contentPadding = PaddingValues(Spacing.M),
+        contentPadding = PaddingValues(Spacing.L),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -141,7 +141,7 @@ internal fun DietVetoBanner(reason: String?) {
 internal fun AllergenUnverifiedBanner() {
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticAmber().copy(alpha = 0.15f),
-        contentPadding = PaddingValues(Spacing.M),
+        contentPadding = PaddingValues(Spacing.L),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -156,7 +156,7 @@ internal fun AllergenUnverifiedBanner() {
 internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String = "fr") {
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticAmber().copy(alpha = 0.15f),
-        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
+        contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {

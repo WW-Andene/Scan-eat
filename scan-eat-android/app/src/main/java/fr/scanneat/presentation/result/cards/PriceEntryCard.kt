@@ -44,7 +44,7 @@ internal fun PriceEntryCard(
     onDelete: (String) -> Unit,
 ) {
     var showDialog by remember { mutableStateOf(false) }
-    ScanEatCard(contentPadding = androidx.compose.foundation.layout.PaddingValues(Spacing.M)) {
+    ScanEatCard(contentPadding = androidx.compose.foundation.layout.PaddingValues(Spacing.L)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Icon(Icons.Rounded.LocalOffer, null, tint = OnSurface.copy(0.6f))

@@ -21,7 +21,7 @@ import kotlin.math.roundToInt
 internal fun TodayMacroCard(totals: ConsumedNutrition, targets: DailyTargets?) {
     ScanEatCard(
         contentPadding = PaddingValues(Spacing.L),
-        verticalArrangement = Arrangement.spacedBy(Spacing.M),
+        verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Text(stringResource(R.string.dashboard_today_label), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)
         val kcalPct = targets?.let { (totals.energyKcal / it.kcal).toFloat() }

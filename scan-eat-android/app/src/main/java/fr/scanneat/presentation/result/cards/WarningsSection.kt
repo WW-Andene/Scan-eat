@@ -18,7 +18,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 internal fun WarningsSection(warnings: List<String>) {
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticAmber().copy(0.1f),
-        contentPadding = PaddingValues(Spacing.M),
+        contentPadding = PaddingValues(Spacing.L),
     ) {
         Text(stringResource(R.string.result_notes_title), style = MaterialTheme.typography.labelMedium,
             color = semanticAmber(), fontWeight = FontWeight.SemiBold)

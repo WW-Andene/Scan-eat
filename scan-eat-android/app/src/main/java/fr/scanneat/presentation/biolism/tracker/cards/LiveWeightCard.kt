@@ -52,7 +52,7 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
         // hero display, but had no shadowElevation at all.
         shadowElevation = 0.dp,
     ) {
-        Column(Modifier.padding(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+        Column(Modifier.padding(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.biolism_liveweight_title), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f), fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Text(if (ketosisOn) stringResource(R.string.biolism_liveweight_method_ketosis) else stringResource(R.string.biolism_liveweight_method_normal),
