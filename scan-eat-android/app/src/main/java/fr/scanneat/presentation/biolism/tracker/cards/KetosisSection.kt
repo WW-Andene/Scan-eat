@@ -125,7 +125,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                         Text(stringResource(R.string.biolism_ketosis_adapted_label), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
                         if (threeWeeks) {
                             Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
-                                Text(stringResource(R.string.biolism_ketosis_auto_badge), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                Text(stringResource(R.string.biolism_ketosis_auto_badge), modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold)
                             }
                         } else {

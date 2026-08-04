@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import fr.scanneat.presentation.ui.theme.Spacing
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -140,7 +141,7 @@ internal fun MultiMarkerMonthGrid(
                             val adherenceAlpha = when (sources.size) { 0 -> 0f; 1, 2 -> 0.07f; 3, 4 -> 0.13f; else -> 0.22f }
                             val adherenceColor = semanticGreen().copy(adherenceAlpha)
                             Box(
-                                modifier = Modifier.fillMaxSize().padding(2.dp).clip(CircleShape)
+                                modifier = Modifier.fillMaxSize().padding(Spacing.T2).clip(CircleShape)
                                     .background(if (isSelected) AccentCoral.copy(0.2f) else adherenceColor)
                                     .clickable { onDayClick(date) },
                                 contentAlignment = Alignment.Center,

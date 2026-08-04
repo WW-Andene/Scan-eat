@@ -104,7 +104,7 @@ private fun PillarRow(pillar: PillarScore) {
             trackColor = SurfaceVariant,
         )
         if (expanded) {
-            Column(modifier = Modifier.padding(top = Spacing.XS), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(modifier = Modifier.padding(top = Spacing.XS), verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                 reasons.forEach { d -> ReasonRow(d) }
             }
         }

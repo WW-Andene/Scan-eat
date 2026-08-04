@@ -86,7 +86,7 @@ internal fun EditTemplateItemsDialog(
                 // even when the food was already known, leaving TemplatesScreen's macro
                 // summary chips permanently 0g/0g/0g.
                 if (selectedFood == null && searchResults.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                         searchResults.take(5).forEach { food ->
                             Text(
                                 food.name, style = MaterialTheme.typography.bodySmall, color = AccentCoral,

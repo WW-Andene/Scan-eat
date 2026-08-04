@@ -71,7 +71,7 @@ internal fun MonthSummaryBar(ms: MonthSummary) {
                 Column(
                     modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.S),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.T2),
                 ) {
                     Icon(icon, null, tint = color, modifier = Modifier.size(IconSize.Tiny))
                     Text(label, style = MaterialTheme.typography.labelSmall, color = color, textAlign = TextAlign.Center)

@@ -65,7 +65,7 @@ internal fun HydrationRingAndControls(
                 .semantics(mergeDescendants = true) { contentDescription = editGoalCd },
         ) {
             Text("$intakeMl", style = MaterialTheme.typography.headlineLarge, color = semanticBlue(), fontWeight = FontWeight.Bold)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                 Text(stringResource(R.string.hydration_goal_ml, goalMl), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
                 Icon(TablerIcons.Edit, null, tint = OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Micro))
             }

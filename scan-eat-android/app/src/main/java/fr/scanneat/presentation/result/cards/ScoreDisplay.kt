@@ -81,9 +81,9 @@ internal fun ScoreDeltaChip(delta: Int) {
     }
     Surface(shape = RoundedCornerShape(50), color = chipColor) {
         Row(
-            modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+            modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.T2),
         ) {
             Icon(
                 imageVector = when {

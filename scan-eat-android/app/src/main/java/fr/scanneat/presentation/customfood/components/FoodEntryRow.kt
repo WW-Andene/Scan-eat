@@ -70,7 +70,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                     ) {
                         Text(
                             stringResource(R.string.customfood_custom_badge),
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                             style = MaterialTheme.typography.labelSmall,
                             color = AccentCoral,
                             fontWeight = FontWeight.SemiBold,

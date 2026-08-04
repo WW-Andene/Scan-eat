@@ -108,7 +108,7 @@ fun MetabolicHealthScoreCard(met: MetabolicResult, profile: BiolismProfile) {
         Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = scoreColor.copy(0.15f)) {
             Text(
                 "$overallScore / 100",
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                modifier = Modifier.padding(horizontal = Spacing.SM, vertical = Spacing.T2),
                 style = MaterialTheme.typography.labelSmall,
                 color = scoreColor,
                 fontWeight = FontWeight.Bold,
@@ -146,7 +146,7 @@ private fun SubScoreChip(label: String, score: Float, modifier: Modifier = Modif
         else        -> semanticRed()
     }
     Surface(shape = RoundedCornerShape(8.dp), color = color.copy(0.1f), modifier = modifier) {
-        Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
             Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = OnSurface.copy(0.6f))
             // "${score}" alone previously read as the raw measurement (e.g. "IMC: 0"),
             // not the normalized 0-100 sub-score it actually is - a BMI of 37 legitimately

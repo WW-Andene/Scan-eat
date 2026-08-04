@@ -59,7 +59,7 @@ internal fun ProfileMetricsPreviewCard(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
             bmi?.let { bmiVal ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                     MetricChip(stringResource(R.string.profile_bmi_label), "$bmiVal")
                     bmiCat?.let { cat ->
                         val (catLabel, catColor) = when (cat) {
@@ -80,7 +80,7 @@ internal fun ProfileMetricsPreviewCard(
                                 semanticRed().let { it.copy(red = it.red * 0.7f, green = it.green * 0.7f, blue = it.blue * 0.7f) }
                         }
                         Surface(shape = RoundedCornerShape(50), color = catColor.copy(alpha = 0.15f)) {
-                            Text(catLabel, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = catColor)
+                            Text(catLabel, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2), style = MaterialTheme.typography.labelSmall, color = catColor)
                         }
                     }
                 }

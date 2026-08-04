@@ -156,7 +156,7 @@ internal fun BarSparkline(values: List<Double>, color: Color, barHeight: Dp = 32
         return
     }
     val maxV = (values.maxOrNull() ?: 0.0).coerceAtLeast(0.0001)
-    Row(Modifier.fillMaxWidth().height(barHeight), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.Bottom) {
+    Row(Modifier.fillMaxWidth().height(barHeight), horizontalArrangement = Arrangement.spacedBy(Spacing.T2), verticalAlignment = Alignment.Bottom) {
         values.forEachIndexed { i, v ->
             val isLast = i == values.size - 1
             val frac = (v / maxV).coerceIn(0.0, 1.0)

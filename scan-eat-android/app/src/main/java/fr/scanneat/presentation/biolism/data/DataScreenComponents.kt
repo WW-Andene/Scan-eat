@@ -207,7 +207,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 Text("%.0f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
                 Surface(shape = RoundedCornerShape(3.dp), color = color.copy(0.15f),
                     border = BorderStroke(1.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
-                    Text(h.label, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                    Text(h.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
                 }
             }

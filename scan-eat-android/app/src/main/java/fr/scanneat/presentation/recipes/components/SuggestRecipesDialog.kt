@@ -189,7 +189,7 @@ internal fun SuggestRecipesDialog(
                                 // list-row elevation - had none.
                                 shadowElevation = 0.dp,
                             ) {
-                                Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                                     Text(idea.name, style = MaterialTheme.typography.bodyMedium, color = AccentCoral)
                                     idea.steps.firstOrNull()?.let {
                                         Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), maxLines = 3)

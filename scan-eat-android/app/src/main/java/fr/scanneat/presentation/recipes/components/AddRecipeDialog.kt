@@ -148,7 +148,7 @@ internal fun AddRecipeDialog(
                 // lookup at all, so ingredients could never carry real protein/carbs/
                 // fat/fiber, and a user's own custom food could never be reused here.
                 if (selectedFood == null && searchResults.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                         searchResults.take(5).forEach { food ->
                             Text(
                                 food.name, style = MaterialTheme.typography.bodySmall, color = AccentCoral,

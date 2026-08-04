@@ -60,7 +60,7 @@ internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit)
                             // elevation established elsewhere - had none.
                             shadowElevation = 0.dp,
                         ) {
-                            Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Column(modifier = Modifier.padding(Spacing.SM), verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
                                 Text(dish.name, style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.SemiBold)
                                 dish.description?.let {
                                     Text(it, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), maxLines = 3)

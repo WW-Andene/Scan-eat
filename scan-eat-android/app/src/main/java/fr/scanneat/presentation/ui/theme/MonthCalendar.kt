@@ -91,7 +91,7 @@ fun MonthCalendar(
                             val isMarked = date in markedDates
                             Box(
                                 modifier = Modifier
-                                    .fillMaxSize().padding(2.dp)
+                                    .fillMaxSize().padding(Spacing.T2)
                                     .clip(CircleShape)
                                     .background(if (isSelected) accent.copy(0.2f) else androidx.compose.ui.graphics.Color.Transparent)
                                     .clickable { onDayClick(date) },

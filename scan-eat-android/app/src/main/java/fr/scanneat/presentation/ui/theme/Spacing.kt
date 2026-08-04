@@ -22,6 +22,12 @@ import androidx.compose.ui.unit.dp
  * on this note alone.
  */
 object Spacing {
+    // Category E padding/gap audit: 1/2/3dp were all in live use for the same
+    // "tight inline row" context (score deltas, legend dots, stat columns) —
+    // three near-identical but distinct values for one visual purpose. Named
+    // here as the floor of the scale rather than snapped up to XS (4dp), which
+    // would visibly loosen those already-cramped layouts.
+    val T2: Dp = 2.dp
     val XS: Dp = 4.dp
     val S: Dp = 6.dp
     // Category E audit: 10dp was already the de facto standard for the

@@ -98,7 +98,7 @@ internal fun WeightSummaryCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Text(bmi.formatDecimal(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = bmiColor)
                     Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = bmiColor.copy(0.15f), border = BorderStroke(1.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA))) {
-                        Text(bmiLabel, style = MaterialTheme.typography.labelSmall, color = bmiColor, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                        Text(bmiLabel, style = MaterialTheme.typography.labelSmall, color = bmiColor, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2))
                     }
                 }
             }
@@ -121,7 +121,7 @@ internal fun WeightSummaryCard(
                 Text(stringResource(R.string.weight_logging_streak_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 Surface(shape = RoundedCornerShape(50), color = ChipBackgroundAccent) {
                     Row(
-                        modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+                        modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                     ) {

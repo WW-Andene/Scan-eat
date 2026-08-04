@@ -175,7 +175,7 @@ private fun BestWorstItem(
     locale: Locale,
 ) {
     Surface(modifier = modifier, shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(0.1f)) {
-        Column(Modifier.padding(Spacing.S), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(Modifier.padding(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
             Text(label, style = MaterialTheme.typography.labelSmall, color = color)
             Text(
                 day.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale).replaceFirstChar { it.uppercaseChar() },

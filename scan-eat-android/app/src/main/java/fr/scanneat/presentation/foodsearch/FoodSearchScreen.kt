@@ -387,7 +387,7 @@ private fun FoodSearchRow(
                 val gColor = gradeColor(grade)
                 Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = gColor.copy(0.15f), border = BorderStroke(1.dp, gColor.copy(alpha = STATUS_BORDER_ALPHA))) {
                     Text(
-                        grade.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+                        grade.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         style = MaterialTheme.typography.labelSmall, color = gColor, fontWeight = FontWeight.Bold,
                     )
                 }

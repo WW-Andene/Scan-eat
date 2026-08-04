@@ -75,7 +75,7 @@ internal fun BoxScope.ScanHeaderBar(
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.Black,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                        modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                     )
                 }
             }
@@ -130,7 +130,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
                                 style = MaterialTheme.typography.labelMedium,
                                 color = gradeColor(cached.audit.grade),
                                 fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
+                                modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                             )
                         }
                     }
