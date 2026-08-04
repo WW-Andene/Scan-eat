@@ -84,3 +84,19 @@ private fun upcCheckDigit(payload11: String): Int {
     val sum = payload11.mapIndexed { i, c -> (c - '0') * if (i % 2 == 0) 3 else 1 }.sum()
     return (10 - (sum % 10)) % 10
 }
+
+/**
+ * True if [digits] is 8/12/13/14 digits (EAN-8/UPC-A/EAN-13/GTIN-14) with a
+ * valid GS1 mod-10 check digit. Was previously private to NoCameraFallback.kt
+ * (ScanScreen's manual-entry fallback) - extracted here so CustomFood's own
+ * manual barcode field can reuse it instead of accepting any digit string,
+ * which previously let a typo'd code save silently and never match a future scan.
+ */
+fun hasValidGs1CheckDigit(digits: String): Boolean {
+    if (digits.length !in listOf(8, 12, 13, 14) || !digits.all { it.isDigit() }) return false
+    val checkDigit = digits.last() - '0'
+    val sum = digits.dropLast(1).reversed().foldIndexed(0) { i, acc, c ->
+        acc + (c - '0') * if (i % 2 == 0) 3 else 1
+    }
+    return (10 - (sum % 10)) % 10 == checkDigit
+}

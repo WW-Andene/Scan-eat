@@ -16,7 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -38,6 +43,7 @@ fun SeasonalProduceScreen(viewModel: SeasonalProduceViewModel = hiltViewModel(),
     val language = viewModel.language.collectAsStateWithLifecycle()
     val isFrench = language.value == "fr"
     val selectedMonth by viewModel.selectedMonth.collectAsStateWithLifecycle()
+    val currentMonth by viewModel.currentMonth.collectAsStateWithLifecycle()
     val locale = Locale.forLanguageTag(language.value)
     val items = viewModel.inSeason(selectedMonth)
     val fruits = items.filter { it.kind == SeasonalProduceKind.FRUIT }
@@ -72,7 +78,7 @@ fun SeasonalProduceScreen(viewModel: SeasonalProduceViewModel = hiltViewModel(),
 
             item {
                 Text(
-                    if (selectedMonth == viewModel.currentMonth) {
+                    if (selectedMonth == currentMonth) {
                         stringResource(R.string.seasonal_this_month_title, monthLabel(selectedMonth, locale))
                     } else {
                         monthLabel(selectedMonth, locale).replaceFirstChar { it.uppercase() }
@@ -110,15 +116,20 @@ private fun MonthPickerRow(selectedMonth: Int, locale: Locale, onSelect: (Int) -
         items(12) { i ->
             val month = i + 1
             val selected = month == selectedMonth
+            val monthName = Month.of(month).getDisplayName(TextStyle.SHORT, locale).replaceFirstChar { it.uppercase() }
             Text(
-                Month.of(month).getDisplayName(TextStyle.SHORT, locale).replaceFirstChar { it.uppercase() },
+                monthName,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                 color = if (selected) AccentCoral else OnSurface.copy(0.6f),
+                textAlign = TextAlign.Center,
                 modifier = Modifier
                     .clip(RoundedCornerShape(CardRadius.CONTROL))
                     .let { if (selected) it.background(AccentCoral.copy(alpha = 0.12f)) else it }
-                    .clickable { onSelect(month) }
+                    .minTouchTarget()
+                    .clickable(onClickLabel = monthName) { onSelect(month) }
+                    .semantics { role = Role.Tab; selected = selected }
+                    .wrapContentSize()
                     .padding(horizontal = Spacing.M, vertical = Spacing.S),
             )
         }

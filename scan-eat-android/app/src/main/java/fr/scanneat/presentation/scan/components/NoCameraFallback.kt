@@ -33,6 +33,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.ScanEatPrimaryButton
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.util.hasValidGs1CheckDigit
 
 /**
  * Full-screen fallback shown in place of the camera preview: either the device has
@@ -66,22 +67,6 @@ internal fun NoCameraFallback(
         }
         ManualBarcodeEntry(onSubmit = onSubmit)
     }
-}
-
-/**
- * Standard GS1 mod-10 check digit, length-agnostic: the rightmost non-check
- * digit always carries weight 3, alternating leftward - the same rule
- * ScanRepository's ean13CheckDigit (12-digit payload, left-indexed 1,3,1,3,...)
- * and upcCheckDigit (11-digit payload, left-indexed 3,1,3,1,...) already
- * implement per-length; this is the general form so a single check covers
- * EAN-8/UPC-A/EAN-13/GTIN-14 without duplicating one function per length here.
- */
-private fun hasValidGs1CheckDigit(digits: String): Boolean {
-    val checkDigit = digits.last() - '0'
-    val sum = digits.dropLast(1).reversed().foldIndexed(0) { i, acc, c ->
-        acc + (c - '0') * if (i % 2 == 0) 3 else 1
-    }
-    return (10 - (sum % 10)) % 10 == checkDigit
 }
 
 /**

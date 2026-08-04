@@ -28,6 +28,8 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
+import fr.scanneat.presentation.ui.theme.semanticRed
+import fr.scanneat.util.hasValidGs1CheckDigit
 
 /**
  * Doubles as the edit dialog when [initial] is non-null - previously the only
@@ -74,9 +76,17 @@ internal fun AddFoodDialog(
     // silently - CustomFoodRepository.save() now clamps to the same bounds as a
     // defensive backstop, but rejecting it here lets the user actually fix the typo).
     fun inRangeOrBlank(s: String, max: Double) = s.isBlank() || (s.replace(',', '.').toDoubleOrNull()?.let { it in 0.0..max } == true)
-    val valid = name.isNotBlank() &&
-        (kcal.replace(',', '.').toDoubleOrNull()?.let { it in 0.0..900.0 } == true) &&
-        inRangeOrBlank(prot, 100.0) && inRangeOrBlank(carb, 100.0) && inRangeOrBlank(fat, 100.0) && inRangeOrBlank(fib, 100.0) && inRangeOrBlank(salt, 100.0)
+    val kcalValid = kcal.replace(',', '.').toDoubleOrNull()?.let { it in 0.0..900.0 } == true
+    val protValid = inRangeOrBlank(prot, 100.0)
+    val carbValid = inRangeOrBlank(carb, 100.0)
+    val fatValid  = inRangeOrBlank(fat, 100.0)
+    val fibValid  = inRangeOrBlank(fib, 100.0)
+    val saltValid = inRangeOrBlank(salt, 100.0)
+    // A mistyped barcode previously saved silently (only digits were filtered),
+    // so this custom food could never be matched back on a future rescan of
+    // the same product - see hasValidGs1CheckDigit's own doc comment.
+    val barcodeValid = barcode.isBlank() || hasValidGs1CheckDigit(barcode)
+    val valid = name.isNotBlank() && kcalValid && protValid && carbValid && fatValid && fibValid && saltValid && barcodeValid
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -85,22 +95,28 @@ internal fun AddFoodDialog(
         title = { Text(stringResource(if (initial != null) R.string.customfood_edit_title else R.string.customfood_add_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
+                val kcalError = stringResource(R.string.customfood_field_kcal_invalid)
+                val macroError = stringResource(R.string.customfood_field_macro_invalid)
+                val barcodeError = stringResource(R.string.customfood_field_barcode_invalid)
                 FoodField(stringResource(R.string.customfood_field_name), name, KeyboardType.Text) { name = it }
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FoodField(stringResource(R.string.customfood_field_kcal), kcal, KeyboardType.Decimal, Modifier.weight(1f)) { kcal = it }
-                    FoodField(stringResource(R.string.customfood_field_protein), prot, KeyboardType.Decimal, Modifier.weight(1f)) { prot = it }
+                    FoodField(stringResource(R.string.customfood_field_kcal), kcal, KeyboardType.Decimal, Modifier.weight(1f), errorText = kcalError.takeIf { kcal.isNotBlank() && !kcalValid }) { kcal = it }
+                    FoodField(stringResource(R.string.customfood_field_protein), prot, KeyboardType.Decimal, Modifier.weight(1f), errorText = macroError.takeIf { prot.isNotBlank() && !protValid }) { prot = it }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FoodField(stringResource(R.string.customfood_field_carbs), carb, KeyboardType.Decimal, Modifier.weight(1f)) { carb = it }
-                    FoodField(stringResource(R.string.customfood_field_fat), fat, KeyboardType.Decimal, Modifier.weight(1f)) { fat = it }
+                    FoodField(stringResource(R.string.customfood_field_carbs), carb, KeyboardType.Decimal, Modifier.weight(1f), errorText = macroError.takeIf { carb.isNotBlank() && !carbValid }) { carb = it }
+                    FoodField(stringResource(R.string.customfood_field_fat), fat, KeyboardType.Decimal, Modifier.weight(1f), errorText = macroError.takeIf { fat.isNotBlank() && !fatValid }) { fat = it }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FoodField(stringResource(R.string.customfood_field_fiber), fib, KeyboardType.Decimal, Modifier.weight(1f)) { fib = it }
-                    FoodField(stringResource(R.string.customfood_field_salt), salt, KeyboardType.Decimal, Modifier.weight(1f)) { salt = it }
+                    FoodField(stringResource(R.string.customfood_field_fiber), fib, KeyboardType.Decimal, Modifier.weight(1f), errorText = macroError.takeIf { fib.isNotBlank() && !fibValid }) { fib = it }
+                    FoodField(stringResource(R.string.customfood_field_salt), salt, KeyboardType.Decimal, Modifier.weight(1f), errorText = macroError.takeIf { salt.isNotBlank() && !saltValid }) { salt = it }
                 }
                 FoodField(stringResource(R.string.customfood_field_aliases), aliases, KeyboardType.Text) { aliases = it }
                 if (initial == null) {
-                    FoodField(stringResource(R.string.customfood_field_barcode), barcode, KeyboardType.Number) { barcode = it.filter(Char::isDigit) }
+                    FoodField(
+                        stringResource(R.string.customfood_field_barcode), barcode, KeyboardType.Number,
+                        errorText = barcodeError.takeIf { barcode.isNotBlank() && !barcodeValid },
+                    ) { barcode = it.filter(Char::isDigit) }
                 }
             }
         },
@@ -144,14 +160,20 @@ private fun FoodField(
     value: String,
     keyboardType: KeyboardType,
     modifier: Modifier = Modifier.fillMaxWidth(),
+    errorText: String? = null,
     onValue: (String) -> Unit,
 ) {
+    // Previously the Save button just went silently disabled with no
+    // indication of which of the seven fields was the problem - a user typing
+    // "1200" in the kcal field (max 900) had to guess.
     OutlinedTextField(
         value = value,
         onValueChange = onValue,
         label = { Text(label, style = MaterialTheme.typography.labelSmall) },
         modifier = modifier,
         singleLine = true,
+        isError = errorText != null,
+        supportingText = errorText?.let { { Text(it, color = semanticRed()) } },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         colors = scanEatTextFieldColors(),

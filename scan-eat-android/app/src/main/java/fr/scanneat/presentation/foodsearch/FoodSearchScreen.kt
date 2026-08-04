@@ -32,6 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -349,8 +353,17 @@ private fun categoryLabel(category: FoodSearchCategory): String = stringResource
 
 @Composable
 private fun CategoryHeader(category: FoodSearchCategory, count: Int, expanded: Boolean, onToggle: () -> Unit) {
+    // Previously only the chevron icon (contentDescription = null) hinted at the
+    // expand/collapse state, and the ~32dp row fell short of the 48dp minimum
+    // touch target every other tappable row in the app respects - same fix as
+    // PillarsSection's own header row.
+    val expandedStateDescription = stringResource(if (expanded) R.string.common_expanded else R.string.common_collapsed)
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL)).clickable(onClick = onToggle)
+        Modifier.fillMaxWidth().minTouchTarget().clip(RoundedCornerShape(CardRadius.CONTROL)).clickable(onClick = onToggle)
+            .semantics(mergeDescendants = true) {
+                stateDescription = expandedStateDescription
+                role = Role.Button
+            }
             .padding(horizontal = Spacing.L, vertical = Spacing.S),
         horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
     ) {

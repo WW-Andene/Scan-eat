@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.hydration.components
 
 import compose.icons.TablerIcons
+import compose.icons.tablericons.Droplet
 import compose.icons.tablericons.Edit
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,7 +36,14 @@ internal fun HydrationHistorySection(
     onEdit: (LocalDate, Int) -> Unit,
     onDelete: (LocalDate) -> Unit,
 ) {
-    if (history.isEmpty()) return
+    // Previously returned nothing at all when empty - a new user had no way to
+    // discover this section (day-level edit/delete of past totals) exists,
+    // unlike every sibling history list (Weight/Recipes/Templates/Grocery)
+    // which shows an EmptyListState instead of vanishing.
+    if (history.isEmpty()) {
+        EmptyListState(TablerIcons.Droplet, stringResource(R.string.hydration_history_empty))
+        return
+    }
     // Title + CSV export shortcut are rendered by the caller (HydrationScreen),
     // matching ExpensesScreen's "Historique" header + export icon pattern -
     // this composable only owns the list itself.

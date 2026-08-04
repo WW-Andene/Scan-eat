@@ -81,6 +81,7 @@
     <string name="hydration_week_bar_goal_met">%1$s : %2$d mL, objectif atteint</string>
     <string name="hydration_week_bar_default">%1$s : %2$d mL</string>
     <string name="hydration_history_title">Historique</string>
+    <string name="hydration_history_empty">Aucun jour enregistré pour le moment. Ajoutez un verre pour commencer votre historique.</string>
     <string name="hydration_history_edit_title">Corriger le %1$s</string>
     <string name="hydration_history_edit_label">Total (mL)</string>
     <string name="hydration_export_csv">Exporter (CSV)</string>
@@ -780,6 +781,9 @@
     <string name="customfood_field_salt">Sel g</string>
     <string name="customfood_field_aliases">Autres noms (séparés par des virgules)</string>
     <string name="customfood_field_barcode">Code-barres (optionnel)</string>
+    <string name="customfood_field_kcal_invalid">Doit être entre 0 et 900</string>
+    <string name="customfood_field_macro_invalid">Doit être entre 0 et 100</string>
+    <string name="customfood_field_barcode_invalid">Code-barres invalide (8, 12, 13 ou 14 chiffres)</string>
     <string name="customfood_import_from_scan">Importer « %1$s » depuis le dernier scan</string>
     <string name="customfood_stats_count">%1$d aliment(s)</string>
     <string name="customfood_stats_avg_kcal">~%1$d kcal moy.</string>

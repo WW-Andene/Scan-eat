@@ -61,19 +61,33 @@ class ExpensesViewModel @Inject constructor(
         }
     }.distinctUntilChanged()
 
-    /** Today only (a single calendar day) - the finest-grained window of the
-     *  Jour/Semaine/Mois toggle, added alongside the daily budget target. */
-    val dayTotal: StateFlow<Double> = combine(entries, today) { list, todayDate ->
-        list.filter { it.date == todayDate }.sumOf { it.priceEuros }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    /** Total/average/category-breakdown for a single [start]..[end] window - the
+     *  Jour/Semaine/Mois cards previously each recomputed this same
+     *  filter+sum+groupBy triple independently (9 near-identical combine()
+     *  blocks below), so a change to one window's logic (e.g. the ISO-week fix
+     *  documented on [weekTotal]) had to be applied to all three by hand. */
+    private data class SpendWindow(val total: Double, val avg: Double?, val byCategory: List<Pair<ProductCategory, Double>>)
 
-    val spendByCategoryDay: StateFlow<List<Pair<ProductCategory, Double>>> = combine(entries, today) { list, todayDate ->
-        list.filter { it.date == todayDate }
-            .groupBy { it.category }
+    private fun windowedStats(list: List<PriceEntry>, start: LocalDate, end: LocalDate): SpendWindow {
+        val inWindow = list.filter { !it.date.isBefore(start) && !it.date.isAfter(end) }
+        val total = inWindow.sumOf { it.priceEuros }
+        val avg = if (inWindow.isEmpty()) null else total / inWindow.size
+        val byCategory = inWindow.groupBy { it.category }
             .mapValues { (_, rows) -> rows.sumOf { it.priceEuros } }
             .entries.sortedByDescending { it.value }
             .map { it.key to it.value }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        return SpendWindow(total, avg, byCategory)
+    }
+
+    /** Today only (a single calendar day) - the finest-grained window of the
+     *  Jour/Semaine/Mois toggle, added alongside the daily budget target. */
+    private val dayStats = combine(entries, today) { list, todayDate -> windowedStats(list, todayDate, todayDate) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SpendWindow(0.0, null, emptyList()))
+
+    val dayTotal: StateFlow<Double> = dayStats.map { it.total }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    val spendByCategoryDay: StateFlow<List<Pair<ProductCategory, Double>>> = dayStats.map { it.byCategory }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Trailing 7-day window ending today (today-6..today), NOT an ISO calendar
     // week - matches the "this week" convention every other feature in the app
@@ -83,57 +97,37 @@ class ExpensesViewModel @Inject constructor(
     // meant a different span here than everywhere else spend/intake/activity is
     // summarized - e.g. on a Wednesday, Dashboard's cross-tracker window and
     // this screen's own header covered different date ranges.
-    val weekTotal: StateFlow<Double> = combine(entries, today) { list, todayDate ->
-        val weekStart = todayDate.minusDays(6)
-        list.filter { !it.date.isBefore(weekStart) && !it.date.isAfter(todayDate) }.sumOf { it.priceEuros }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    private val weekStats = combine(entries, today) { list, todayDate -> windowedStats(list, todayDate.minusDays(6), todayDate) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SpendWindow(0.0, null, emptyList()))
 
+    val weekTotal: StateFlow<Double> = weekStats.map { it.total }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
     /** Average price paid per logged purchase this week - a rough stand-in for
      *  "per meal" since price_log isn't tied to a specific diary meal slot. */
-    val avgPerEntryThisWeek: StateFlow<Double?> = combine(entries, today) { list, todayDate ->
-        val weekStart = todayDate.minusDays(6)
-        val thisWeek = list.filter { !it.date.isBefore(weekStart) && !it.date.isAfter(todayDate) }
-        if (thisWeek.isEmpty()) null else thisWeek.sumOf { it.priceEuros } / thisWeek.size
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    // Category breakdown for the current trailing-7-day window (same window as
-    // weekTotal/avgPerEntryThisWeek above), sorted highest-spend first - price_log
-    // already stores each entry's category (populated from the scanned product, or
-    // OTHER for a manually-added entry, see addEntry() below), but nothing in this
-    // ViewModel ever aggregated it: the week card previously showed only a single
-    // total, with no way to see which category actually drove the spend.
-    val spendByCategory: StateFlow<List<Pair<ProductCategory, Double>>> = combine(entries, today) { list, todayDate ->
-        val weekStart = todayDate.minusDays(6)
-        list.filter { !it.date.isBefore(weekStart) && !it.date.isAfter(todayDate) }
-            .groupBy { it.category }
-            .mapValues { (_, rows) -> rows.sumOf { it.priceEuros } }
-            .entries.sortedByDescending { it.value }
-            .map { it.key to it.value }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val avgPerEntryThisWeek: StateFlow<Double?> = weekStats.map { it.avg }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    // Category breakdown for the current trailing-7-day window, sorted highest-
+    // spend first - price_log already stores each entry's category (populated
+    // from the scanned product, or OTHER for a manually-added entry, see
+    // addEntry() below), but nothing in this ViewModel ever aggregated it: the
+    // week card previously showed only a single total, with no way to see
+    // which category actually drove the spend.
+    val spendByCategory: StateFlow<List<Pair<ProductCategory, Double>>> = weekStats.map { it.byCategory }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Calendar month-to-date (1st of the current month through today), unlike
      *  weekTotal's trailing 7-day window - "this month" is naturally understood as
      *  the current calendar month, not a rolling 30-day span, and resets cleanly
      *  on the 1st the way a user budgeting month to month expects. */
-    val monthTotal: StateFlow<Double> = combine(entries, today) { list, todayDate ->
-        val monthStart = todayDate.withDayOfMonth(1)
-        list.filter { !it.date.isBefore(monthStart) && !it.date.isAfter(todayDate) }.sumOf { it.priceEuros }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    private val monthStats = combine(entries, today) { list, todayDate -> windowedStats(list, todayDate.withDayOfMonth(1), todayDate) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SpendWindow(0.0, null, emptyList()))
 
-    val avgPerEntryThisMonth: StateFlow<Double?> = combine(entries, today) { list, todayDate ->
-        val monthStart = todayDate.withDayOfMonth(1)
-        val thisMonth = list.filter { !it.date.isBefore(monthStart) && !it.date.isAfter(todayDate) }
-        if (thisMonth.isEmpty()) null else thisMonth.sumOf { it.priceEuros } / thisMonth.size
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
-    val spendByCategoryMonth: StateFlow<List<Pair<ProductCategory, Double>>> = combine(entries, today) { list, todayDate ->
-        val monthStart = todayDate.withDayOfMonth(1)
-        list.filter { !it.date.isBefore(monthStart) && !it.date.isAfter(todayDate) }
-            .groupBy { it.category }
-            .mapValues { (_, rows) -> rows.sumOf { it.priceEuros } }
-            .entries.sortedByDescending { it.value }
-            .map { it.key to it.value }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val monthTotal: StateFlow<Double> = monthStats.map { it.total }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+    val avgPerEntryThisMonth: StateFlow<Double?> = monthStats.map { it.avg }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    val spendByCategoryMonth: StateFlow<List<Pair<ProductCategory, Double>>> = monthStats.map { it.byCategory }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _actionFailed = MutableStateFlow(false)
     /** True briefly after a failed write, for a one-shot error snackbar. */

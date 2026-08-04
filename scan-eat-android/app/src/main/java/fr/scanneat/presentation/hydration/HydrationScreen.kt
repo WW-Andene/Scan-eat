@@ -147,32 +147,32 @@ fun HydrationScreen(
             item { HydrationWeeklyChart(weeklyIntake = weeklyIntake.value, goalMl = goal.value, weeklyGoalMetDays = weeklyGoalMetDays.value, language = language.value) }
         }
 
-        if (history.value.isNotEmpty()) {
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.hydration_history_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = OnBackground,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    // Reachable directly from this screen instead of only via
-                    // Settings > Sauvegarde, same rationale as ExpensesScreen's
-                    // own export shortcut.
-                    IconButton(onClick = { viewModel.prepareCsvExport() }) {
-                        Icon(Icons.Rounded.Download, stringResource(R.string.hydration_export_csv), tint = OnSurface.copy(0.5f))
-                    }
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.hydration_history_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = OnBackground,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                // Reachable directly from this screen instead of only via
+                // Settings > Sauvegarde, same rationale as ExpensesScreen's
+                // own export shortcut. Kept visible even when history is empty,
+                // same as the title above - HydrationHistorySection itself now
+                // renders an EmptyListState rather than the whole section vanishing.
+                IconButton(onClick = { viewModel.prepareCsvExport() }) {
+                    Icon(Icons.Rounded.Download, stringResource(R.string.hydration_export_csv), tint = OnSurface.copy(0.5f))
                 }
             }
-            item {
-                HydrationHistorySection(
-                    history = history.value,
-                    dateFmt = dateFmt,
-                    useImperial = useImperial.value,
-                    onEdit = { date, ml -> viewModel.editDay(date, ml) },
-                    onDelete = { date -> deleteTarget = date },
-                )
-            }
+        }
+        item {
+            HydrationHistorySection(
+                history = history.value,
+                dateFmt = dateFmt,
+                useImperial = useImperial.value,
+                onEdit = { date, ml -> viewModel.editDay(date, ml) },
+                onDelete = { date -> deleteTarget = date },
+            )
         }
 
         item { Spacer(Modifier.height(Spacing.XXL)) }
