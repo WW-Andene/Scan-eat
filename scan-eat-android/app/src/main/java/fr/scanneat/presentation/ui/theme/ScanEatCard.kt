@@ -17,7 +17,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -128,7 +130,23 @@ fun ScanEatCard(
             // the two don't stack.
             modifier = Modifier.fillMaxWidth()
                 .shadow(elevation = spec.elevation, shape = shape, ambientColor = ShadowTint, spotColor = ShadowTint)
-                .clip(shape).then(
+                .clip(shape)
+                // A raised surface catching light at the top (glassSheen's hairline,
+                // drawn just above this Surface) reads as flat without a matching
+                // cue of weight at the bottom - a whisper-faint inner shade here is
+                // that cue. Scoped to this card only, not glassSheen itself, which
+                // stays untouched (see its own doc comment on why a bottom relief
+                // shade was deliberately removed from headers/nav).
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.05f)),
+                            startY = size.height * 0.55f,
+                        ),
+                    )
+                }
+                .then(
                     if (onClick != null)
                         Modifier.pressScale(interactionSource)
                             .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
