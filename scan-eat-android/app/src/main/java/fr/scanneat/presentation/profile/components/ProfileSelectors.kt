@@ -181,6 +181,14 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     "chronic_diarrhea" to stringResource(R.string.condition_chronic_diarrhea),
     "cancer" to stringResource(R.string.condition_cancer),
     "depression" to stringResource(R.string.condition_depression),
+    // Brain/neurological conditions - each backed by real, sourced dietary
+    // guidance in DietAndConditionAdjustments.kt/HealthConditionGuidanceDb.kt
+    // (American Migraine Foundation/National Headache Foundation trigger-food
+    // guidance for migraine; Epilepsy Foundation alcohol-interaction guidance
+    // for epilepsy), same discipline as every other condition in this map -
+    // not added as a no-op label.
+    "chronic_migraine" to stringResource(R.string.condition_chronic_migraine),
+    "epilepsy" to stringResource(R.string.condition_epilepsy),
 )
 
 @OptIn(ExperimentalLayoutApi::class)

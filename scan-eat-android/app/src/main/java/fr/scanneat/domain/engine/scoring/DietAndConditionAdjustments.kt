@@ -50,6 +50,29 @@ private val HIGH_FODMAP_PATTERN = Regex(
     """\b(?:oignons?|onions?|ail|garlic|inulines?|inulin|chicoree|chicory|ble|wheat|seigle|rye|orge|barley|pois chiches?|chickpeas?|lentilles?|lentils?)\b""",
 )
 
+// Tyramine is the most consistently cited migraine trigger across aged/
+// fermented foods (National Headache Foundation's "low-tyramine diet";
+// American Migraine Foundation trigger-food guidance) - aged cheese and
+// cured/fermented meats/condiments are its most common dietary sources.
+private val TYRAMINE_SOURCE_PATTERN = Regex(
+    """\b(?:fromage affine|aged cheese|parmesan|roquefort|bleu|blue cheese|cheddar affine|gruyere|comte|salami|pepperoni|jambon cru|prosciutto|saucisson|choucroute|sauerkraut|kimchi|sauce soja|soy sauce|miso)\b""",
+)
+
+// EU additive codes for cured/processed-meat nitrite/nitrate preservatives,
+// plus the plain words - "hot dog headache" is a long-documented migraine
+// trigger (American Migraine Foundation, National Headache Foundation).
+private val NITRATE_PRESERVATIVE_PATTERN = Regex(
+    """\b(?:nitrite|nitrites?|nitrate|nitrates?|e249|e250|e251|e252)\b""",
+)
+
+// MSG (E621) and aspartame (E951) are both listed by the American Migraine
+// Foundation as commonly patient-reported migraine triggers - phrased in the
+// guidance text as "reported by some patients", not a settled causal claim,
+// since the underlying research is more mixed than for alcohol/tyramine/
+// nitrates above.
+private val MSG_PATTERN = Regex("""\b(?:glutamate monosodique|monosodium glutamate|glutamate|msg|e621)\b""")
+private val ASPARTAME_PATTERN = Regex("""\b(?:aspartame|e951)\b""")
+
 // ============================================================================
 // Personal score sub-computations — one rule category per function, each a
 // direct extraction of one `===== SECTION =====` block from the original
@@ -98,9 +121,11 @@ internal fun checkDietCompliance(product: Product, profile: Profile, lang: Strin
 // ===== HEALTH CONDITIONS =====
 // Only the conditions with an established, simple nutrition-level rule get a
 // scoring effect here (WHO sugar/salt guidance, kidney protein load, pregnancy
-// alcohol veto, WCRF/NHS alcohol caution for cancer/depression, and - below -
-// Monash low-FODMAP/EU polyol-labeling/Crohn's & Colitis Foundation guidance
-// for ibs/crohn_ibd/chronic_diarrhea). "thyroid_disorder" is still selectable
+// alcohol veto, WCRF/NHS alcohol caution for cancer/depression, American
+// Migraine Foundation/National Headache Foundation trigger-food guidance for
+// chronic_migraine, and - below - Monash low-FODMAP/EU polyol-labeling/
+// Crohn's & Colitis Foundation guidance for ibs/crohn_ibd/chronic_diarrhea).
+// "thyroid_disorder" is still selectable
 // in ProfileSelectors.kt (Profile.healthConditions is free-form) but has no
 // dedicated nutrition-threshold rule reliable enough to code here yet - a user
 // selecting it still gets no product-specific guidance, identically to not
@@ -309,6 +334,83 @@ internal fun checkHealthConditions(
                      else "Ultra-transformé (NOVA 4) — associé de façon prospective à l'apparition de symptômes dépressifs (Adjibade et al., cohorte NutriNet-Santé, BMC Medicine 2019)",
             category = AdjustmentCategory.CONDITION,
         )
+    }
+
+    // Epilepsy Foundation guidance: alcohol lowers the seizure threshold and
+    // interacts with most anti-epileptic drugs (reduced efficacy, increased
+    // sedation) - a caution, not a veto, same framing as cancer/depression's
+    // alcohol checks above.
+    if ("epilepsy" in conditions && alcoholHit) {
+        adjustments += PersonalAdjustment(
+            points = -2.0,
+            reason = if (lang == "en") "Contains alcohol — can lower seizure threshold and interacts with most anti-epileptic medications (Epilepsy Foundation)"
+                     else "Contient de l'alcool — peut abaisser le seuil épileptogène et interagit avec la plupart des traitements antiépileptiques (Epilepsy Foundation)",
+            category = AdjustmentCategory.CONDITION,
+        )
+    }
+
+    // Chronic migraine: alcohol (especially red wine), tyramine (aged cheese,
+    // cured/fermented foods), nitrite/nitrate preservatives (cured/processed
+    // meat) are the most consistently documented dietary migraine triggers
+    // (American Migraine Foundation; National Headache Foundation's
+    // low-tyramine diet). MSG and aspartame are commonly patient-reported
+    // triggers per the same sources, weighted lower here since the underlying
+    // evidence is more mixed than for the first three. Migraine triggers are
+    // individualized - not everyone reacts to every item - so this is framed
+    // as caution, never a veto.
+    if ("chronic_migraine" in conditions) {
+        val tyramineHit = product.ingredients.any { ing -> TYRAMINE_SOURCE_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) }
+        val nitrateHit = product.ingredients.any { ing -> NITRATE_PRESERVATIVE_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) }
+        val msgHit = product.ingredients.any { ing -> MSG_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) }
+        val aspartameHit = product.ingredients.any { ing -> ASPARTAME_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) }
+        if (alcoholHit) {
+            adjustments += PersonalAdjustment(
+                points = -3.0,
+                reason = if (lang == "en") "Contains alcohol — one of the most consistently reported migraine triggers, especially red wine (American Migraine Foundation)"
+                         else "Contient de l'alcool — l'un des déclencheurs de migraine les plus régulièrement rapportés, en particulier le vin rouge (American Migraine Foundation)",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+        if (tyramineHit) {
+            adjustments += PersonalAdjustment(
+                points = -2.0,
+                reason = if (lang == "en") "Contains an aged/fermented ingredient (cheese, cured meat...) — a tyramine source, a well-documented migraine trigger (National Headache Foundation low-tyramine diet)"
+                         else "Contient un ingrédient affiné/fermenté (fromage, charcuterie...) — une source de tyramine, déclencheur de migraine bien documenté (régime pauvre en tyramine, National Headache Foundation)",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+        if (nitrateHit) {
+            adjustments += PersonalAdjustment(
+                points = -2.0,
+                reason = if (lang == "en") "Contains a nitrite/nitrate preservative — a documented migraine trigger in cured/processed meat (American Migraine Foundation)"
+                         else "Contient un conservateur nitrite/nitrate — un déclencheur de migraine documenté dans la charcuterie/viande transformée (American Migraine Foundation)",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+        if (msgHit) {
+            adjustments += PersonalAdjustment(
+                points = -1.0,
+                reason = if (lang == "en") "Contains MSG — reported as a migraine trigger by some patients (American Migraine Foundation)"
+                         else "Contient du glutamate monosodique — rapporté comme déclencheur de migraine par certains patients (American Migraine Foundation)",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+        if (aspartameHit) {
+            adjustments += PersonalAdjustment(
+                points = -1.0,
+                reason = if (lang == "en") "Contains aspartame — reported as a migraine trigger by some patients (American Migraine Foundation)"
+                         else "Contient de l'aspartame — rapporté comme déclencheur de migraine par certains patients (American Migraine Foundation)",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
+        if (!alcoholHit && !tyramineHit && !nitrateHit && !msgHit && !aspartameHit) {
+            adjustments += PersonalAdjustment(
+                points = 2.0,
+                reason = if (lang == "en") "No common migraine trigger detected"
+                         else "Aucun déclencheur de migraine habituel détecté",
+                category = AdjustmentCategory.CONDITION,
+            )
+        }
     }
 
     // IBS, Crohn's/IBD and chronic diarrhea all share a real, sourced trigger:

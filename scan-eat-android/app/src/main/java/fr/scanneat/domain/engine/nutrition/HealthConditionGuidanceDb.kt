@@ -31,6 +31,10 @@ import fr.scanneat.domain.model.Ingredient
 //  - chronic_diarrhea: NHS / Mayo Clinic diarrhea-diet guidance, plus the
 //    EU's own mandatory polyol "may induce laxative effects" label warning
 //    (Regulation (EC) 1169/2011 Annex III) above 10g/100g.
+//  - chronic_migraine: American Migraine Foundation / National Headache
+//    Foundation trigger-food guidance (alcohol, tyramine, nitrite/nitrate
+//    preservatives, MSG, aspartame) - see DietAndConditionAdjustments.kt's
+//    own doc comment for the same sourcing, on the scoring side.
 // The old single "digestive_disorders" bucket this replaced was too
 // heterogeneous to map to specific ingredients without guessing - splitting
 // it into these three specific, separately-sourced conditions is what makes
@@ -141,12 +145,40 @@ private val CHRONIC_DIARRHEA_GUIDANCE: List<ConditionGuidance> = listOf(
         "Caffeine: a gut stimulant that can worsen diarrhea (NHS diarrhea-diet guidance)."),
 )
 
+// American Migraine Foundation ("Diet and Migraine") / National Headache
+// Foundation low-tyramine diet guidance - the ingredient-level counterpart to
+// DietAndConditionAdjustments.kt's chronic_migraine scoring block; same
+// sources, same "reported trigger, individualized, not universal" framing for
+// MSG/aspartame vs. the more consistently documented alcohol/tyramine/nitrate
+// entries.
+private val CHRONIC_MIGRAINE_GUIDANCE: List<ConditionGuidance> = listOf(
+    ConditionGuidance(listOf("vin", "vin rouge", "biere", "alcool", "wine", "red wine", "beer", "alcohol"),
+        "Alcool (notamment le vin rouge) : l'un des déclencheurs de migraine les plus régulièrement rapportés (American Migraine Foundation).",
+        "Alcohol (especially red wine): one of the most consistently reported migraine triggers (American Migraine Foundation)."),
+    ConditionGuidance(listOf("fromage affine", "parmesan", "roquefort", "bleu", "cheddar affine", "gruyere", "comte", "aged cheese", "blue cheese"),
+        "Fromage affiné : riche en tyramine, un déclencheur de migraine bien documenté (régime pauvre en tyramine, National Headache Foundation).",
+        "Aged cheese: rich in tyramine, a well-documented migraine trigger (National Headache Foundation low-tyramine diet)."),
+    ConditionGuidance(listOf("salami", "pepperoni", "jambon cru", "prosciutto", "saucisson", "charcuterie", "cured meat", "deli meat"),
+        "Charcuterie/viande affinée : source de tyramine, un déclencheur de migraine bien documenté (National Headache Foundation).",
+        "Cured/aged meat: a tyramine source, a well-documented migraine trigger (National Headache Foundation)."),
+    ConditionGuidance(listOf("nitrite", "nitrate", "conservateur nitrite", "nitrite preservative"),
+        "Conservateur nitrite/nitrate : déclencheur de migraine documenté dans la charcuterie/viande transformée (American Migraine Foundation).",
+        "Nitrite/nitrate preservative: a documented migraine trigger in cured/processed meat (American Migraine Foundation)."),
+    ConditionGuidance(listOf("glutamate monosodique", "monosodium glutamate", "glutamate", "msg"),
+        "Glutamate monosodique (GMS) : rapporté comme déclencheur de migraine par certains patients (American Migraine Foundation) — l'effet n'est pas universel.",
+        "Monosodium glutamate (MSG): reported as a migraine trigger by some patients (American Migraine Foundation) — not a universal effect."),
+    ConditionGuidance(listOf("aspartame"),
+        "Aspartame : rapporté comme déclencheur de migraine par certains patients (American Migraine Foundation) — l'effet n'est pas universel.",
+        "Aspartame: reported as a migraine trigger by some patients (American Migraine Foundation) — not a universal effect."),
+)
+
 private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
     "pregnancy" to PREGNANCY_GUIDANCE,
     "cancer" to CANCER_GUIDANCE,
     "ibs" to IBS_GUIDANCE,
     "crohn_ibd" to CROHN_IBD_GUIDANCE,
     "chronic_diarrhea" to CHRONIC_DIARRHEA_GUIDANCE,
+    "chronic_migraine" to CHRONIC_MIGRAINE_GUIDANCE,
 )
 
 /**

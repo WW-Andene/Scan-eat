@@ -685,6 +685,8 @@
     <string name="condition_chronic_diarrhea">Diarrhée chronique</string>
     <string name="condition_cancer">Cancer / traitement oncologique</string>
     <string name="condition_depression">Dépression</string>
+    <string name="condition_chronic_migraine">Migraine chronique</string>
+    <string name="condition_epilepsy">Épilepsie</string>
     <string name="sex_male">Homme</string>
     <string name="sex_female">Femme</string>
     <string name="sex_not_specified">Non précisé</string>
