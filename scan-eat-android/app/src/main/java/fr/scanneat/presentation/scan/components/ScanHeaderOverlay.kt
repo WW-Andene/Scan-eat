@@ -260,7 +260,7 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
                         style = MaterialTheme.typography.labelSmall,
                         color = gradeColor(cached.audit.grade),
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = Spacing.XS, vertical = 1.dp),
+                        modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.T2),
                     )
                 }
                 Text(

@@ -42,7 +42,7 @@ internal fun HeroCard(
                 if (running)   Box(Modifier.size(6.dp).clip(CircleShape).background(Gold))
                 Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = if (running) GoldHaze else VioletHaze,
                     border = BorderStroke(1.dp, if (running) GoldGlow else VioletGlow)) {
-                    Text(if (running) stringResource(R.string.biolism_hero_running) else stringResource(R.string.biolism_hero_paused), modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
+                    Text(if (running) stringResource(R.string.biolism_hero_running) else stringResource(R.string.biolism_hero_paused), modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.S),
                         style = MaterialTheme.typography.labelSmall, color = if (running) Gold else Violet, fontWeight = FontWeight.Bold)
                 }
             }

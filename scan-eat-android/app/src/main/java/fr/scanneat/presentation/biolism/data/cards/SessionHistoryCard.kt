@@ -57,7 +57,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
                             Text(date, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
                             if (sess.ketosis) {
                                 Surface(shape = RoundedCornerShape(3.dp), color = TealHaze, border = BorderStroke(1.dp, TealBorder)) {
-                                    Text(stringResource(R.string.biolism_sesshist_keto_badge), modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                                    Text(stringResource(R.string.biolism_sesshist_keto_badge), modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.T2),
                                         style = MaterialTheme.typography.labelSmall, color = Teal, fontWeight = FontWeight.Bold)
                                 }
                             }

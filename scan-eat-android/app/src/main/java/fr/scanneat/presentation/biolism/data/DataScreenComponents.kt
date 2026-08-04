@@ -283,7 +283,7 @@ internal fun VioletBadge(text: String) = Badge(text, Violet)
 @Composable
 internal fun Badge(text: String, color: Color) {
     Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = color.copy(0.12f), border = BorderStroke(1.dp, color.copy(0.25f))) {
-        Text(text, modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+        Text(text, modifier = Modifier.padding(horizontal = Spacing.SM, vertical = Spacing.XS),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
     }
 }

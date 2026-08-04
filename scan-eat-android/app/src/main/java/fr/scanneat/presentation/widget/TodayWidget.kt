@@ -254,7 +254,7 @@ private fun TodayWidgetContent(
                     modifier = GlanceModifier
                         .background(ColorProvider(semanticBlue()))
                         .cornerRadius(12.dp)
-                        .padding(horizontal = Spacing.SM, vertical = 5.dp)
+                        .padding(horizontal = Spacing.SM, vertical = Spacing.XS)
                         // Own clickable target inside the whole-widget-opens-app Column above -
                         // this specific chip logs a glass in place instead of launching the app.
                         .clickable(actionRunCallback<AddGlassAction>()),

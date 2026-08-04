@@ -94,7 +94,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                         else        -> semanticRed() to "D$score"
                     }
                     Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = scoreColor.copy(0.15f), border = BorderStroke(1.dp, scoreColor.copy(alpha = STATUS_BORDER_ALPHA))) {
-                        Text(scoreLabel, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                        Text(scoreLabel, modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.T2),
                             style = MaterialTheme.typography.labelSmall, color = scoreColor)
                     }
                 }

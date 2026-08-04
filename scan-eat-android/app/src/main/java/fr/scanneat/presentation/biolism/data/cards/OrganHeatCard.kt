@@ -24,7 +24,7 @@ fun OrganHeatCard(met: MetabolicResult, s: TimerState) {
             val kcalDay = met.bmrDay * met.ketoSupprFactor * organ.pct / 100.0
             val delta   = organ.pct - (eliaBase[organ.name] ?: organ.pct)
             val barColor = colorFromToken(organ.colorToken)
-            Column(Modifier.padding(vertical = 5.dp)) {
+            Column(Modifier.padding(vertical = Spacing.XS)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(organLabel(organ.name), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f), fontWeight = FontWeight.Medium)
                     Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
