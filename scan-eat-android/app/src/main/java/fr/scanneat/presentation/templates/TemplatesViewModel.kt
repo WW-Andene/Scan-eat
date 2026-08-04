@@ -122,8 +122,29 @@ class TemplatesViewModel @Inject constructor(
 
     fun setIngredientQuery(q: String) { _ingredientQuery.value = q }
 
-    fun delete(id: String) = viewModelScope.launch {
-        runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    // Same undo-delete pattern as Recipes/Diary/Weight/ScanHistory/Medication -
+    // snapshots the row right before deleting it so a snackbar "Undo" can bring
+    // it back. Was confirm-only with no way back afterward, unlike Recipes'
+    // identical delete action (RecipesOperationsExt.kt's own doc comment).
+    private var lastDeleted: MealTemplate? = null
+
+    fun delete(id: String) {
+        val entry = _allTemplates.value.firstOrNull { it.id == id }
+        viewModelScope.launch {
+            runCatching { repo.delete(id) }
+                .onSuccess { lastDeleted = entry }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Re-creates a deleted template (used by the "Undo" snackbar action) with the same id. */
+    fun undoDelete() {
+        val entry = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch {
+            runCatching { repo.save(entry.name, entry.meal, entry.items, id = entry.id) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     /** Templates and Recipes carry near-identical component shapes but had no

@@ -790,6 +790,7 @@
     <string name="templates_title">Meal Templates</string>
     <string name="templates_empty_body">Meal templates are created automatically when you log a meal from the diary.</string>
     <string name="templates_empty_filtered">No templates for this meal.</string>
+    <string name="templates_deleted_message">Template deleted</string>
     <string name="templates_summary">%1$d kcal · %2$d items · %3$s</string>
     <string name="templates_manage_items_cd">Manage template items</string>
     <string name="templates_cd_save_as_recipe">Save as recipe</string>

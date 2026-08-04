@@ -53,9 +53,22 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
     // online results (and its barcodes) visible under an unrelated new query.
     LaunchedEffect(query.value) { viewModel.clearOnlineResults() }
 
+    // Was missing entirely - openOnlineItem()'s persist() write had no failure
+    // feedback path at all, unlike every sibling screen (see its own doc comment).
+    val snackbarHostState = remember { SnackbarHostState() }
+    val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
+    val actionFailedMessage = stringResource(R.string.common_log_failed)
+    LaunchedEffect(actionFailed.value) {
+        if (actionFailed.value) {
+            snackbarHostState.showSnackbar(actionFailedMessage)
+            viewModel.clearActionFailed()
+        }
+    }
+
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.foodsearch_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
+        snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),

@@ -29,6 +29,7 @@ import fr.scanneat.presentation.templates.components.TemplatesMealFilterRow
 import fr.scanneat.presentation.templates.components.TemplatesStatsRow
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -52,9 +53,12 @@ fun TemplatesScreen(
     var itemsTarget by remember { mutableStateOf<MealTemplate?>(null) }
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     // logTemplate previously failed completely silently - see TemplatesViewModel
     // .actionFailed's own comment.
     val logFailedMessage = stringResource(R.string.common_log_failed)
+    val templateDeletedMessage = stringResource(R.string.templates_deleted_message)
+    val undoLabel = stringResource(R.string.diary_undo)
     LaunchedEffect(actionFailed.value) {
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
@@ -133,9 +137,23 @@ fun TemplatesScreen(
         )
     }
 
+    // Was confirm-only with no way back afterward, unlike Recipes' identical
+    // delete action (RecipesOperationsExt.kt's own doc comment) - see
+    // TemplatesViewModel.undoDelete's own comment.
     deleteTarget?.let { id ->
         val name = templates.value.find { it.id == id }?.name
-        DeleteConfirmDialog(itemName = name, onConfirm = { viewModel.delete(id); deleteTarget = null }, onDismiss = { deleteTarget = null })
+        DeleteConfirmDialog(
+            itemName = name,
+            onConfirm = {
+                viewModel.delete(id)
+                deleteTarget = null
+                coroutineScope.launch {
+                    val result = snackbarHostState.showSnackbar(templateDeletedMessage, actionLabel = undoLabel)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                }
+            },
+            onDismiss = { deleteTarget = null },
+        )
     }
 
     renameTarget?.let { template ->

@@ -794,6 +794,7 @@
     <string name="templates_title">Modèles de repas</string>
     <string name="templates_empty_body">Les modèles de repas sont créés automatiquement lorsque vous enregistrez un repas depuis le journal.</string>
     <string name="templates_empty_filtered">Aucun modèle pour ce repas.</string>
+    <string name="templates_deleted_message">Modèle supprimé</string>
     <string name="templates_summary">%1$d kcal · %2$d articles · %3$s</string>
     <string name="templates_manage_items_cd">Gérer les aliments du modèle</string>
     <string name="templates_cd_save_as_recipe">Sauvegarder comme recette</string>

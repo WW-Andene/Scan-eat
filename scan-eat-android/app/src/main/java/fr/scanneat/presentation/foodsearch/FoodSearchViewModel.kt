@@ -11,6 +11,7 @@ import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.ScanResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
@@ -188,6 +189,18 @@ class FoodSearchViewModel @Inject constructor(
     private val _onlineSearchState = MutableStateFlow(OnlineSearchState.IDLE)
     val onlineSearchState: StateFlow<OnlineSearchState> = _onlineSearchState.asStateFlow()
 
+    // openOnlineItem()'s scanRepo.persist() call was previously unguarded, unlike
+    // every sibling screen's writes (Weight/Activity/Recipes/etc. all wrap theirs in
+    // runCatching + this exact _actionFailed pattern) - a Room write failure here
+    // (disk full, corrupt row) threw uncaught inside the coroutine instead of
+    // surfacing as a one-shot snackbar, and this screen had no failure-feedback
+    // plumbing at all (no _actionFailed StateFlow, no SnackbarHostState in
+    // FoodSearchScreen) to catch it even if it had been guarded.
+    private val _actionFailed = MutableStateFlow(false)
+    /** True briefly after a failed write, for a one-shot error snackbar. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+    fun clearActionFailed() { _actionFailed.value = false }
+
     fun searchOnline() {
         val q = _query.value.trim()
         if (q.isBlank()) return
@@ -230,7 +243,11 @@ class FoodSearchViewModel @Inject constructor(
      */
     fun openOnlineItem(item: FoodSearchItem, onOpened: (Long) -> Unit) {
         val raw = onlineRaw.firstOrNull { it.barcode == item.barcode } ?: return
-        viewModelScope.launch { onOpened(scanRepo.persist(raw)) }
+        viewModelScope.launch {
+            runCatching { scanRepo.persist(raw) }
+                .onSuccess { onOpened(it) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 }
 
