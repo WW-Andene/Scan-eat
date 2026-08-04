@@ -872,6 +872,12 @@
     <string name="expenses_budget_weekly_hint">Ex : 60 € — laissez vide pour ne pas suivre</string>
     <string name="expenses_budget_per_meal_hint">Ex : 15 € — laissez vide pour ne pas suivre</string>
     <string name="expenses_cd_calendar">Calendrier</string>
+    <string name="expenses_month_title">Ce mois-ci</string>
+    <string name="expenses_view_week">Semaine</string>
+    <string name="expenses_view_month">Mois</string>
+    <string name="expenses_add_entry_category_label">Catégorie</string>
+    <string name="expenses_edit_entry_title">Modifier la dépense</string>
+    <string name="expenses_export_csv">Exporter (CSV)</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Logger\'.</string>

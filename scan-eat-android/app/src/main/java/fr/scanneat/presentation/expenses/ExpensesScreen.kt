@@ -3,6 +3,10 @@ package fr.scanneat.presentation.expenses
 import compose.icons.tablericons.FileInvoice
 import compose.icons.TablerIcons
 import compose.icons.tablericons.Calendar
+import compose.icons.tablericons.Check
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,12 +14,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Receipt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -32,6 +38,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+private enum class ExpensesSummaryMode { WEEK, MONTH }
+
 /**
  * Unlike WeightScreen/ActivityScreen/etc., this screen only ever runs embedded
  * (its sole call site is DiaryScreen's Dépenses tab, always passing embedded
@@ -47,13 +55,18 @@ fun ExpensesScreen(
 ) {
     val entries = viewModel.entries.collectAsStateWithLifecycle()
     val weekTotal = viewModel.weekTotal.collectAsStateWithLifecycle()
+    val monthTotal = viewModel.monthTotal.collectAsStateWithLifecycle()
     val budgetWeekly = viewModel.budgetWeeklyEuros.collectAsStateWithLifecycle()
     val budgetPerMeal = viewModel.budgetPerMealEuros.collectAsStateWithLifecycle()
     val avgPerEntry = viewModel.avgPerEntryThisWeek.collectAsStateWithLifecycle()
+    val avgPerEntryMonth = viewModel.avgPerEntryThisMonth.collectAsStateWithLifecycle()
     val spendByCategory = viewModel.spendByCategory.collectAsStateWithLifecycle()
+    val spendByCategoryMonth = viewModel.spendByCategoryMonth.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<String?>(null) }
     var showBudgetEdit by remember { mutableStateOf(false) }
     var showAddEntry by remember { mutableStateOf(false) }
+    var editTarget by remember { mutableStateOf<PriceEntry?>(null) }
+    var summaryMode by remember { mutableStateOf(ExpensesSummaryMode.WEEK) }
     val language = viewModel.language.collectAsStateWithLifecycle()
     // In-app language, not Locale.getDefault() - see WeightScreen's own doc
     // comment on the identical fix; this was the one date-heavy screen still
@@ -73,6 +86,30 @@ fun ExpensesScreen(
         }
     }
 
+    // Same CsvExportReady-then-SAF-picker split SettingsScreen's own CSV export
+    // launchers use - the CSV text is built in the ViewModel (testable, no
+    // Android dependency), this launches the system "save file" picker once
+    // it's ready, since only an Activity context (not the ViewModel) can do that.
+    val context = LocalContext.current
+    val csvExportReady = viewModel.csvExportReady.collectAsStateWithLifecycle()
+    val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        val csv = csvExportReady.value
+        when {
+            uri == null -> viewModel.clearCsvExport()
+            csv != null -> {
+                val stream = context.contentResolver.openOutputStream(uri)
+                val wrote = stream != null && runCatching { stream.use { it.write(csv.toByteArray()) } }.isSuccess
+                if (wrote) viewModel.clearCsvExport() else viewModel.reportCsvExportIoFailed()
+            }
+            else -> viewModel.reportCsvExportIoFailed()
+        }
+    }
+    LaunchedEffect(csvExportReady.value) {
+        if (csvExportReady.value != null) {
+            csvExportLauncher.launch("scaneat-depenses-${LocalDate.now()}.csv")
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(horizontal = Spacing.L),
@@ -83,11 +120,16 @@ fun ExpensesScreen(
 
             item {
                 ExpensesWeekCard(
+                    mode = summaryMode,
+                    onModeChange = { summaryMode = it },
                     weekTotal = weekTotal.value,
+                    monthTotal = monthTotal.value,
                     budgetWeekly = budgetWeekly.value,
                     avgPerEntry = avgPerEntry.value,
+                    avgPerEntryMonth = avgPerEntryMonth.value,
                     budgetPerMeal = budgetPerMeal.value,
                     spendByCategory = spendByCategory.value,
+                    spendByCategoryMonth = spendByCategoryMonth.value,
                     onEditBudget = { showBudgetEdit = true },
                     onOpenCalendar = onOpenCalendar,
                 )
@@ -101,12 +143,22 @@ fun ExpensesScreen(
                         color = OnBackground,
                         fontWeight = FontWeight.SemiBold,
                     )
-                    // Previously the ONLY way to log a price_log row at all was
-                    // ResultViewModel's barcode-scan flow - a cash purchase or
-                    // anything without a barcode could never be tracked. See
-                    // ExpensesViewModel.addEntry's own doc comment.
-                    TextButton(onClick = { showAddEntry = true }) {
-                        Text(stringResource(R.string.expenses_add_entry), color = AccentCoral, style = MaterialTheme.typography.labelMedium)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Reachable directly from this screen instead of only via
+                        // Settings > Sauvegarde (which already has the same export,
+                        // see SettingsViewModel.preparePricesCsvExport) - a user
+                        // reviewing their spending here is the one most likely to
+                        // want to export it on the spot.
+                        IconButton(onClick = { viewModel.prepareCsvExport() }, enabled = entries.value.isNotEmpty()) {
+                            Icon(Icons.Rounded.Download, stringResource(R.string.expenses_export_csv), tint = OnSurface.copy(0.5f))
+                        }
+                        // Previously the ONLY way to log a price_log row at all was
+                        // ResultViewModel's barcode-scan flow - a cash purchase or
+                        // anything without a barcode could never be tracked. See
+                        // ExpensesViewModel.addEntry's own doc comment.
+                        TextButton(onClick = { showAddEntry = true }) {
+                            Text(stringResource(R.string.expenses_add_entry), color = AccentCoral, style = MaterialTheme.typography.labelMedium)
+                        }
                     }
                 }
             }
@@ -124,7 +176,7 @@ fun ExpensesScreen(
                 }
             } else {
                 items(entries.value, key = { it.id }) { entry ->
-                    ExpenseEntryRow(entry = entry, dateFmt = dateFmt, onDelete = { deleteTarget = entry.id })
+                    ExpenseEntryRow(entry = entry, dateFmt = dateFmt, onEdit = { editTarget = entry }, onDelete = { deleteTarget = entry.id })
                 }
             }
             item { Spacer(Modifier.height(Spacing.XXL)) }
@@ -156,11 +208,22 @@ fun ExpensesScreen(
 
     if (showAddEntry) {
         AddExpenseDialog(
-            onConfirm = { name, price, weight ->
-                viewModel.addEntry(LocalDate.now(), name, price, weight)
+            onConfirm = { name, category, price, weight ->
+                viewModel.addEntry(LocalDate.now(), name, category, price, weight)
                 showAddEntry = false
             },
             onDismiss = { showAddEntry = false },
+        )
+    }
+
+    editTarget?.let { entry ->
+        EditExpenseDialog(
+            entry = entry,
+            onConfirm = { name, category, price, weight ->
+                viewModel.editEntry(entry.id, entry.date, name, category, price, weight)
+                editTarget = null
+            },
+            onDismiss = { editTarget = null },
         )
     }
 }
@@ -171,14 +234,29 @@ private fun centsOf(euros: Double): Long = Math.round(euros * 100)
 
 @Composable
 private fun ExpensesWeekCard(
+    mode: ExpensesSummaryMode,
+    onModeChange: (ExpensesSummaryMode) -> Unit,
     weekTotal: Double,
+    monthTotal: Double,
     budgetWeekly: Double?,
     avgPerEntry: Double?,
+    avgPerEntryMonth: Double?,
     budgetPerMeal: Double?,
     spendByCategory: List<Pair<ProductCategory, Double>>,
+    spendByCategoryMonth: List<Pair<ProductCategory, Double>>,
     onEditBudget: () -> Unit,
     onOpenCalendar: () -> Unit,
 ) {
+    // Budget targets (weekly/per-meal, set via onEditBudget) are only tracked
+    // against the trailing-7-day window - there's no monthly-budget preference
+    // to compare against, so Month mode shows the total/average/breakdown with
+    // no progress bar rather than inventing a budget field this screen doesn't
+    // otherwise expose.
+    val isWeek = mode == ExpensesSummaryMode.WEEK
+    val total = if (isWeek) weekTotal else monthTotal
+    val avg = if (isWeek) avgPerEntry else avgPerEntryMonth
+    val byCategory = if (isWeek) spendByCategory else spendByCategoryMonth
+
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -196,19 +274,38 @@ private fun ExpensesWeekCard(
                     Icon(TablerIcons.Calendar, stringResource(R.string.expenses_cd_calendar), tint = OnSurface.copy(0.5f))
                 }
                 Spacer(Modifier.width(Spacing.XS))
-                Text(stringResource(R.string.expenses_week_title), style = MaterialTheme.typography.labelMedium, color = OnSurface.copy(0.6f))
+                // Week/Month toggle - was a static "Cette semaine" label with no way
+                // to see a longer-horizon total than the trailing 7-day window.
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    listOf(
+                        ExpensesSummaryMode.WEEK to stringResource(R.string.expenses_view_week),
+                        ExpensesSummaryMode.MONTH to stringResource(R.string.expenses_view_month),
+                    ).forEach { (m, label) ->
+                        val selected = m == mode
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selected) AccentCoral else OnSurface.copy(0.5f),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(CardRadius.BADGE))
+                                .clickable { onModeChange(m) }
+                                .padding(horizontal = Spacing.S, vertical = Spacing.T2),
+                        )
+                    }
+                }
             }
             TextButton(onClick = onEditBudget) {
                 Text(stringResource(R.string.expenses_edit_budget), color = AccentCoral, style = MaterialTheme.typography.labelSmall)
             }
         }
         Text(
-            "${weekTotal.formatDecimal(2)} €",
+            "${total.formatDecimal(2)} €",
             style = MaterialTheme.typography.headlineMedium,
             color = OnBackground,
             fontWeight = FontWeight.Bold,
         )
-        if (budgetWeekly != null && budgetWeekly > 0) {
+        if (isWeek && budgetWeekly != null && budgetWeekly > 0) {
             val pct = (weekTotal / budgetWeekly).toFloat().coerceIn(0f, 1.5f)
             // weekTotal is a Double sum of per-entry prices, so a spend that's
             // mathematically exactly at budget can drift a fraction of a cent
@@ -231,15 +328,17 @@ private fun ExpensesWeekCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isOverWeekly) AccentCoral else OnSurface.copy(0.5f),
             )
-        } else {
+        } else if (isWeek) {
             Text(stringResource(R.string.expenses_no_budget_hint), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+        } else {
+            Text(stringResource(R.string.expenses_month_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         }
-        if (avgPerEntry != null && budgetPerMeal != null && budgetPerMeal > 0) {
-            // Same cent-rounded comparison as isOverWeekly above - avgPerEntry is
+        if (isWeek && avg != null && budgetPerMeal != null && budgetPerMeal > 0) {
+            // Same cent-rounded comparison as isOverWeekly above - avg is
             // also a Double average of summed prices, subject to the same drift.
-            val over = centsOf(avgPerEntry) > centsOf(budgetPerMeal)
+            val over = centsOf(avg) > centsOf(budgetPerMeal)
             Text(
-                stringResource(R.string.expenses_avg_per_meal, avgPerEntry, budgetPerMeal) +
+                stringResource(R.string.expenses_avg_per_meal, avg, budgetPerMeal) +
                     if (over) " · " + stringResource(R.string.expenses_over_budget_suffix) else "",
                 style = MaterialTheme.typography.labelSmall,
                 color = if (over) AccentCoral else OnSurface.copy(0.5f),
@@ -247,9 +346,9 @@ private fun ExpensesWeekCard(
         }
         // A single-category breakdown just repeats the total above with no new
         // information - only worth showing once spend actually spans categories.
-        if (spendByCategory.size > 1) {
+        if (byCategory.size > 1) {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                spendByCategory.take(3).forEach { (category, amount) ->
+                byCategory.take(3).forEach { (category, amount) ->
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(category.displayLabel(), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                         Text("${amount.formatDecimal(2)} €", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
@@ -289,8 +388,11 @@ private fun ProductCategory.displayLabel(): String = stringResource(
 )
 
 @Composable
-private fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, onDelete: () -> Unit) {
-    ScanEatCard(contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S)) {
+private fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, onEdit: () -> Unit, onDelete: () -> Unit) {
+    // Tapping the row now opens the edit dialog - previously the only action
+    // available on a logged entry was delete, so a mistyped price or name
+    // could only be fixed by deleting and re-adding it from scratch.
+    ScanEatCard(contentPadding = PaddingValues(horizontal = Spacing.M, vertical = Spacing.S), onClick = onEdit) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnBackground, maxLines = 1)
@@ -378,8 +480,13 @@ private fun BudgetEditDialog(
  *  PriceEntryCard's PriceInputDialog (result/cards/PriceEntryCard.kt), which this
  *  intentionally mirrors rather than diverging on validation rules. */
 @Composable
-private fun AddExpenseDialog(onConfirm: (name: String, price: Double, weight: Double?) -> Unit, onDismiss: () -> Unit) {
+private fun AddExpenseDialog(onConfirm: (name: String, category: ProductCategory, price: Double, weight: Double?) -> Unit, onDismiss: () -> Unit) {
     var nameText by remember { mutableStateOf("") }
+    // Manual entries previously always landed in ProductCategory.OTHER with no
+    // way to pick a real category - see ExpensesViewModel.addEntry's own doc
+    // comment. That silently skewed the spend-by-category breakdown above
+    // toward OTHER for every purchase not tied to a barcode scan.
+    var category by remember { mutableStateOf(ProductCategory.OTHER) }
     var priceText by remember { mutableStateOf("") }
     var weightText by remember { mutableStateOf("") }
     val price = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
@@ -396,6 +503,7 @@ private fun AddExpenseDialog(onConfirm: (name: String, price: Double, weight: Do
                     shape = RoundedCornerShape(CardRadius.CONTROL),
                     colors = scanEatTextFieldColors(),
                 )
+                ExpenseCategoryPicker(category = category, onCategoryChange = { category = it })
                 // Was giving no visual feedback for an out-of-range value - the Save
                 // button just silently stayed disabled, unlike AddWeightDialog/
                 // MedicationReminderDialog's identical isError pattern for the same
@@ -423,7 +531,7 @@ private fun AddExpenseDialog(onConfirm: (name: String, price: Double, weight: Do
         },
         confirmButton = {
             TextButton(
-                onClick = { price?.let { onConfirm(nameText.trim(), it, weight) } },
+                onClick = { price?.let { onConfirm(nameText.trim(), category, it, weight) } },
                 enabled = nameText.isNotBlank() && price != null,
             ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
         },
@@ -431,4 +539,104 @@ private fun AddExpenseDialog(onConfirm: (name: String, price: Double, weight: Do
         containerColor = SurfaceVariant,
         shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
+}
+
+/** Pre-filled AddExpenseDialog twin for correcting an already-logged entry -
+ *  see ExpensesViewModel.editEntry's own doc comment on why this is a separate
+ *  update path rather than delete-then-re-add. Keeps the entry's original date;
+ *  only name/category/price/weight are editable here. */
+@Composable
+private fun EditExpenseDialog(
+    entry: PriceEntry,
+    onConfirm: (name: String, category: ProductCategory, price: Double, weight: Double?) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var nameText by remember { mutableStateOf(entry.productName) }
+    var category by remember { mutableStateOf(entry.category) }
+    var priceText by remember { mutableStateOf(entry.priceEuros.formatDecimal(2)) }
+    var weightText by remember { mutableStateOf(entry.weightG?.formatDecimal(0) ?: "") }
+    val price = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
+    val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.expenses_edit_entry_title), color = OnBackground) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+                OutlinedTextField(
+                    value = nameText, onValueChange = { nameText = it },
+                    label = { Text(stringResource(R.string.expenses_add_entry_name_label)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                )
+                ExpenseCategoryPicker(category = category, onCategoryChange = { category = it })
+                OutlinedTextField(
+                    value = priceText, onValueChange = { priceText = it },
+                    label = { Text(stringResource(R.string.result_price_field_euros)) },
+                    singleLine = true,
+                    isError = priceText.isNotBlank() && price == null,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                )
+                OutlinedTextField(
+                    value = weightText, onValueChange = { weightText = it },
+                    label = { Text(stringResource(R.string.result_price_field_weight)) },
+                    singleLine = true,
+                    isError = weightText.isNotBlank() && weight == null,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                )
+                Text(stringResource(R.string.result_price_field_weight_hint), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { price?.let { onConfirm(nameText.trim(), category, it, weight) } },
+                enabled = nameText.isNotBlank() && price != null,
+            ) { Text(stringResource(R.string.common_save), color = AccentCoral) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        containerColor = SurfaceVariant,
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
+    )
+}
+
+/** Compact "Catégorie : <current>" trigger + popup menu - same shape as
+ *  CollapsibleFilterBar (ui/theme/CollapsibleFilterBar.kt), reused here instead
+ *  of a FlowRow of 18 chips, which would make this modal dialog unreasonably
+ *  tall for a field that's secondary to name/price/weight. */
+@Composable
+private fun ExpenseCategoryPicker(category: ProductCategory, onCategoryChange: (ProductCategory) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.T2)) {
+        Text(stringResource(R.string.expenses_add_entry_category_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f))
+        Box {
+            OutlinedButton(
+                onClick = { expanded = true },
+                shape = RoundedCornerShape(CardRadius.CONTROL),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) {
+                Text(category.displayLabel(), color = OnBackground)
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(CardRadius.CONTROL),
+                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                shadowElevation = 0.dp,
+                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
+                offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = Spacing.T2),
+            ) {
+                ProductCategory.entries.forEach { c ->
+                    DropdownMenuItem(
+                        text = { Text(c.displayLabel()) },
+                        trailingIcon = { if (c == category) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact)) },
+                        onClick = { onCategoryChange(c); expanded = false },
+                    )
+                }
+            }
+        }
+    }
 }

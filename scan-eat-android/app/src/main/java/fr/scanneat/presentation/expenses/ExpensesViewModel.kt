@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.domain.model.ProductCategory
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class ExpensesViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
     private val prefs: UserPreferences,
+    private val csvExportRepository: CsvExportRepository,
 ) : ViewModel() {
 
     val entries: StateFlow<List<PriceEntry>> = priceRepo.observeAll()
@@ -85,6 +87,30 @@ class ExpensesViewModel @Inject constructor(
             .map { it.key to it.value }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Calendar month-to-date (1st of the current month through today), unlike
+     *  weekTotal's trailing 7-day window - "this month" is naturally understood as
+     *  the current calendar month, not a rolling 30-day span, and resets cleanly
+     *  on the 1st the way a user budgeting month to month expects. */
+    val monthTotal: StateFlow<Double> = combine(entries, today) { list, todayDate ->
+        val monthStart = todayDate.withDayOfMonth(1)
+        list.filter { !it.date.isBefore(monthStart) && !it.date.isAfter(todayDate) }.sumOf { it.priceEuros }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val avgPerEntryThisMonth: StateFlow<Double?> = combine(entries, today) { list, todayDate ->
+        val monthStart = todayDate.withDayOfMonth(1)
+        val thisMonth = list.filter { !it.date.isBefore(monthStart) && !it.date.isAfter(todayDate) }
+        if (thisMonth.isEmpty()) null else thisMonth.sumOf { it.priceEuros } / thisMonth.size
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val spendByCategoryMonth: StateFlow<List<Pair<ProductCategory, Double>>> = combine(entries, today) { list, todayDate ->
+        val monthStart = todayDate.withDayOfMonth(1)
+        list.filter { !it.date.isBefore(monthStart) && !it.date.isAfter(todayDate) }
+            .groupBy { it.category }
+            .mapValues { (_, rows) -> rows.sumOf { it.priceEuros } }
+            .entries.sortedByDescending { it.value }
+            .map { it.key to it.value }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     private val _actionFailed = MutableStateFlow(false)
     /** True briefly after a failed write, for a one-shot error snackbar. */
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
@@ -110,11 +136,42 @@ class ExpensesViewModel @Inject constructor(
      * them, so they're logged as [ProductCategory.OTHER] - still counted in
      * weekTotal/spendByCategory, just not attributed to a specific food category.
      */
-    fun addEntry(date: LocalDate, productName: String, priceEuros: Double, weightG: Double?) {
+    fun addEntry(date: LocalDate, productName: String, category: ProductCategory, priceEuros: Double, weightG: Double?) {
         if (productName.isBlank()) return
         viewModelScope.launch {
-            runCatching { priceRepo.log(date, productName.trim(), barcode = null, category = ProductCategory.OTHER, priceEuros = priceEuros, weightG = weightG) }
+            runCatching { priceRepo.log(date, productName.trim(), barcode = null, category = category, priceEuros = priceEuros, weightG = weightG) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
+
+    /** Corrects an already-logged entry - see PriceRepository.update's own doc
+     *  comment on why this preserves the row's id/loggedAt/barcode instead of a
+     *  delete-then-re-add round trip. */
+    fun editEntry(id: String, date: LocalDate, productName: String, category: ProductCategory, priceEuros: Double, weightG: Double?) {
+        if (productName.isBlank()) return
+        viewModelScope.launch {
+            runCatching { priceRepo.update(id, date, productName.trim(), category, priceEuros, weightG) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    // Same CsvExportReady-then-SAF-picker split as SettingsViewModel's own CSV
+    // export functions (the CSV is built here, testable/no Android dependency;
+    // ExpensesScreen launches the system "save file" picker once it's ready) -
+    // exposed directly on this screen instead of only reachable via Settings >
+    // Sauvegarde, since a user reviewing their spending here is the one most
+    // likely to want to export it on the spot.
+    private val _csvExportReady = MutableStateFlow<String?>(null)
+    val csvExportReady: StateFlow<String?> = _csvExportReady.asStateFlow()
+    fun prepareCsvExport() {
+        viewModelScope.launch {
+            runCatching { csvExportRepository.exportPricesCsv() }
+                .onSuccess { _csvExportReady.value = it }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+    fun clearCsvExport() { _csvExportReady.value = null }
+    /** The SAF "save file" picker succeeded but the write itself failed (disk full,
+     *  provider error) - same shape as SettingsViewModel.reportBackupIoFailed(). */
+    fun reportCsvExportIoFailed() { _csvExportReady.value = null; _actionFailed.value = true }
 }

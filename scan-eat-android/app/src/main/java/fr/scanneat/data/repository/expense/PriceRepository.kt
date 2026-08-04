@@ -77,6 +77,36 @@ class PriceRepository @Inject constructor(
     suspend fun delete(id: String) = dao.delete(id)
 
     /**
+     * Corrects an existing entry in place (name/category/price/weight/date) - previously
+     * the only write path after [log] was [delete], so fixing a typo'd price or a
+     * mis-scanned category meant deleting the whole entry and re-adding it, losing its
+     * original loggedAt ordering. Re-inserts with the same id (Room REPLACE == UPSERT
+     * on the primary key) and preserves loggedAt/barcode/profileId from the row being
+     * edited so its position in the log (loggedAt DESC) and its scan lineage don't change.
+     */
+    suspend fun update(
+        id: String,
+        date: LocalDate,
+        productName: String,
+        category: ProductCategory,
+        priceEuros: Double,
+        weightG: Double?,
+    ) {
+        val existing = dao.getById(id) ?: return
+        val pricePerKg = if (weightG != null && weightG > 0.0) priceEuros / (weightG / 1000.0) else null
+        dao.insert(
+            existing.copy(
+                date = date.toIsoString(),
+                productName = productName,
+                category = category.key,
+                priceEuros = priceEuros,
+                weightG = weightG,
+                pricePerKg = pricePerKg,
+            )
+        )
+    }
+
+    /**
      * Maps a batch of rows to domain entries, computing each one's value score
      * against its category's own median price/kg within THIS SAME batch (≥3
      * same-category entries) rather than the generic EU-retail default -  a

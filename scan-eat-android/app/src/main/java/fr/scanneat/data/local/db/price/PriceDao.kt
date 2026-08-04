@@ -23,6 +23,9 @@ interface PriceDao {
     @Query("SELECT * FROM price_log WHERE profileId = :profileId")
     suspend fun getAllForBackup(profileId: String = "default"): List<PriceEntity>
 
+    @Query("SELECT * FROM price_log WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): PriceEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<PriceEntity>)
 

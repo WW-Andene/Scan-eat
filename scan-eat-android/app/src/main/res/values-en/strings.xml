@@ -868,6 +868,12 @@
     <string name="expenses_budget_weekly_hint">E.g. €60 — leave blank to skip tracking</string>
     <string name="expenses_budget_per_meal_hint">E.g. €15 — leave blank to skip tracking</string>
     <string name="expenses_cd_calendar">Calendar</string>
+    <string name="expenses_month_title">This month</string>
+    <string name="expenses_view_week">Week</string>
+    <string name="expenses_view_month">Month</string>
+    <string name="expenses_add_entry_category_label">Category</string>
+    <string name="expenses_edit_entry_title">Edit expense</string>
+    <string name="expenses_export_csv">Export (CSV)</string>
     <string name="diary_note_label">Note of the day</string>
     <string name="diary_cd_save_note">Save</string>
     <string name="diary_empty_body">Nothing logged yet. Scan a product and tap \'Log it\'.</string>
