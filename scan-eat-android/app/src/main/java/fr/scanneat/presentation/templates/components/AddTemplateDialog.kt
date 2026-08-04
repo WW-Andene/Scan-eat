@@ -36,7 +36,7 @@ internal fun AddTemplateDialog(onDismiss: () -> Unit, onCreate: (name: String, m
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.recipes_field_name)) }, singleLine = true, colors = scanEatTextFieldColors())
                 Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     MealSlot.values().forEach { s ->
                         FilterChip(selected = meal == s, onClick = { meal = s },
                             label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },

@@ -80,7 +80,7 @@ internal fun AddActivityDialog(
                 // precedent (AddMedicationDialog's confirm button uses Teal, matching
                 // Medication's own identity, not a universal accent) is that entry
                 // dialogs match their own tracker - this was AccentCoral instead.
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     sortedTypes.forEach { type ->
                         val label = typeLabels[type] ?: type.name
                         FilterChip(
@@ -97,7 +97,7 @@ internal fun AddActivityDialog(
                 val availableSubTypes = ACTIVITY_SUB_TYPES[selectedType].orEmpty()
                 if (availableSubTypes.isNotEmpty()) {
                     Text(stringResource(R.string.activity_subtype_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         availableSubTypes.forEach { key ->
                             FilterChip(
                                 selected = selectedSubType == key,
@@ -120,7 +120,7 @@ internal fun AddActivityDialog(
                     pastSubTypes[selectedType].orEmpty().filter { it !in availableSubTypes }
                 }
                 if (pastForType.isNotEmpty()) {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         pastForType.forEach { suggestion ->
                             FilterChip(
                                 selected = selectedSubType == suggestion,

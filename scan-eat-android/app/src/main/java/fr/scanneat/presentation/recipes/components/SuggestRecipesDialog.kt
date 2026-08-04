@@ -134,7 +134,7 @@ internal fun SuggestRecipesDialog(
                             Text(stringResource(R.string.recipes_suggest_history_hint), color = OnBackground.copy(0.6f))
                             LazyColumn(
                                 modifier = Modifier.heightIn(max = 160.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(Spacing.S),
                                 contentPadding = PaddingValues(vertical = Spacing.XS),
                             ) {
                                 items(historyItems, key = { it }) { name ->
@@ -176,7 +176,7 @@ internal fun SuggestRecipesDialog(
                 }
                 if (!results.isNullOrEmpty()) {
                     HorizontalDivider(color = OnBackground.copy(0.1f))
-                    LazyColumn(modifier = Modifier.heightIn(max = 280.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    LazyColumn(modifier = Modifier.heightIn(max = 280.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         itemsIndexed(results, key = { index, idea -> "$index-${idea.name}" }) { _, idea ->
                             Surface(
                                 shape = RoundedCornerShape(10.dp), color = OnBackground.copy(0.05f),

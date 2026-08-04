@@ -199,7 +199,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 // content (not decorative) rendered too faint against the dark surface.
                 Text(note, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.45f))
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                 // A formula-derived estimate (see HormoneEstimator), not a lab
                 // measurement - one-decimal precision here (unlike the whole-number
                 // reference range just below) implied a level of accuracy this

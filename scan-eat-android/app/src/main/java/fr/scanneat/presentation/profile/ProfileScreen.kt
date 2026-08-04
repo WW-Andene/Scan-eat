@@ -200,7 +200,7 @@ fun ProfileScreen(
             item {
                 ProfileSection(stringResource(R.string.profile_section_body)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         listOf(false to stringResource(R.string.bioprofile_unit_metric), true to stringResource(R.string.bioprofile_unit_imperial)).forEach { (imperial, label) ->
                             FilterChip(
                                 selected = useImperial.value == imperial,

@@ -160,7 +160,7 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>)
                 // all, contradicting this legend's own purpose.
                 fr.scanneat.presentation.calendar.components.LegendDot(OnSurface.copy(0.12f), stringResource(R.string.medication_legend_no_data))
             }
-            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.Bottom) {
+            Row(modifier = Modifier.fillMaxWidth().height(64.dp), horizontalArrangement = Arrangement.spacedBy(Spacing.XS), verticalAlignment = Alignment.Bottom) {
                 weeklyAdherence.forEach { day ->
                     val frac = (day.pct ?: 0) / 100f
                     val barColor = when {
@@ -174,7 +174,7 @@ internal fun MedicationWeeklyAdherenceChart(weeklyAdherence: List<DayAdherence>)
                     }
                 }
             }
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 weeklyAdherence.forEach { day ->
                     Text(
                         day.date.dayOfWeek.name.take(1),

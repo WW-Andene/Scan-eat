@@ -118,7 +118,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                 Modifier.verticalScroll(rememberScrollState()).weight(1f, fill = false).heightIn(max = 480.dp),
                 verticalArrangement = Arrangement.spacedBy(Spacing.L),
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     (1 until onboardSteps.size).forEach { i ->
                         Box(
                             Modifier.weight(1f).height(4.dp).background(
@@ -183,7 +183,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
                         OnboardField(stringResource(R.string.biolism_onboard_hip_label), hip, KeyboardType.Decimal) { hip = it }
                         OnboardField(stringResource(R.string.biolism_onboard_neck_label), neck, KeyboardType.Decimal) { neck = it }
                     }
-                    3 -> Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    3 -> Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         ACTIVITY_LEVELS.forEach { lvl ->
                             Row(
                                 Modifier.fillMaxWidth().clip(RoundedCornerShape(CardRadius.CONTROL))

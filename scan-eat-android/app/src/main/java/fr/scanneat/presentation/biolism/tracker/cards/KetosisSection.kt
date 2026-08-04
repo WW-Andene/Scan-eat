@@ -70,7 +70,7 @@ internal fun KetosisToggleRow(
             }
             if (active) {
                 // +/- stepper row
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.biolism_ketosis_time_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     // "1s"/"1m" (French abbreviations for "1 semaine"/"1 mois") previously
                     // stayed hardcoded regardless of language - same fix already applied to
@@ -121,7 +121,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                 Checkbox(checked = active, onCheckedChange = null,
                     colors = CheckboxDefaults.colors(checkedColor = Gold, uncheckedColor = Gold.copy(0.4f)))
                 Column {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Text(stringResource(R.string.biolism_ketosis_adapted_label), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
                         if (threeWeeks) {
                             Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {

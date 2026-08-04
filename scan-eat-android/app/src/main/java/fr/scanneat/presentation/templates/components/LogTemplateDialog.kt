@@ -44,7 +44,7 @@ internal fun LogTemplateDialog(template: MealTemplate, onDismiss: () -> Unit, on
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(stringResource(R.string.logsheet_meal_label), style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     MealSlot.values().forEach { s ->
                         FilterChip(selected = slot == s, onClick = { slot = s },
                             label = { Text(s.label(), style = MaterialTheme.typography.labelSmall) },

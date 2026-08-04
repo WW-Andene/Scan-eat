@@ -48,7 +48,7 @@ internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit)
             if (dishes.isEmpty()) {
                 Text(stringResource(R.string.recipes_menu_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
             } else {
-                LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     items(dishes, key = { it.name }) { dish ->
                         Surface(
                             shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.05f),

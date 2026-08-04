@@ -37,7 +37,7 @@ internal fun HeroCard(
     // the Spacing.L token this exact value already has a name for.
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), emphasis = CardEmphasis.HERO, accent = heroColor) {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                 if (ketosisOn) Box(Modifier.size(6.dp).clip(CircleShape).background(Teal))
                 if (running)   Box(Modifier.size(6.dp).clip(CircleShape).background(Gold))
                 Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = if (running) GoldHaze else VioletHaze,

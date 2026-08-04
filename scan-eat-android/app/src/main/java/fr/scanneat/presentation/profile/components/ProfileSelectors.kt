@@ -64,7 +64,7 @@ internal fun ActivitySelector(current: ActivityLevel, onSelect: (ActivityLevel) 
         ActivityLevel.MODERATELY_ACTIVE to stringResource(R.string.activity_moderately_active), ActivityLevel.VERY_ACTIVE to stringResource(R.string.activity_very_active),
         ActivityLevel.EXTRA_ACTIVE to stringResource(R.string.activity_extra_active),
     )
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         ActivityLevel.values().forEach { lvl ->
             Row(
                 modifier = Modifier.fillMaxWidth()

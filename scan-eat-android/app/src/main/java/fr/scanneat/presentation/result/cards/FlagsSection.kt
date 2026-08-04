@@ -25,7 +25,7 @@ import fr.scanneat.presentation.ui.theme.semanticRed
 
 @Composable
 internal fun FlagsSection(redFlags: List<String>, greenFlags: List<String>) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         redFlags.forEach { FlagRow(it, true) }
         greenFlags.forEach { FlagRow(it, false) }
     }

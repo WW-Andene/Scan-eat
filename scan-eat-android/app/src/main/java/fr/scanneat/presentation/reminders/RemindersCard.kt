@@ -70,7 +70,7 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
             Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
             if (nextLabel != null) {
                 Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.12f)) {
-                    Row(modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Icon(Icons.Rounded.Schedule, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
                         Text(nextLabel, style = MaterialTheme.typography.labelSmall, color = AccentCoral)
                     }
@@ -150,7 +150,7 @@ fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     colors = SwitchDefaults.colors(checkedTrackColor = semanticBlue()), modifier = Modifier.semantics { contentDescription = lbl })
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             listOf(3, 6, 9, 12).forEach { h ->
                 FilterChip(selected = s.hydrationIntervalHours == h, onClick = { viewModel.setHydration(s.hydrationOn, h) },
                     label = { Text(stringResource(R.string.reminders_every_n_hours, h)) },
@@ -184,7 +184,7 @@ fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     colors = SwitchDefaults.colors(checkedTrackColor = Gold), modifier = Modifier.semantics { contentDescription = lbl })
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             listOf(1 to R.string.reminders_weight_preset_day, 7 to R.string.reminders_weight_preset_week,
                 30 to R.string.reminders_weight_preset_month, 365 to R.string.reminders_weight_preset_year).forEach { (d, res) ->
                 FilterChip(selected = s.weightThresholdDays == d, onClick = { viewModel.setWeight(s.weightOn, d) },
@@ -217,7 +217,7 @@ fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
                     colors = SwitchDefaults.colors(checkedTrackColor = semanticGreen()), modifier = Modifier.semantics { contentDescription = lbl })
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             listOf(1, 3, 7).forEach { d ->
                 FilterChip(selected = s.activityThresholdDays == d, onClick = { viewModel.setActivity(s.activityOn, d) },
                     label = { Text(stringResource(R.string.reminders_activity_preset_n_days, d)) },

@@ -113,7 +113,7 @@ internal fun AddRecipeDialog(
                         }
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     OutlinedTextField(
                         value = newIngName,
                         onValueChange = { newIngName = it; selectedFood = null; onQueryChange(it) },

@@ -52,7 +52,7 @@ internal fun ScanHistoryCard(scan: ScanResult, warning: String? = null, onItemCl
                 // opening the app, and previously showed a bare grade badge with no trace
                 // of a conflict the Result screen had already flagged for that product.
                 if (warning != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(12.dp))
                         Text(warning, style = MaterialTheme.typography.labelSmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }

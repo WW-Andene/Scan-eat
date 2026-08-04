@@ -53,7 +53,7 @@ internal fun FeatureDomainChips() {
                         Row(
                             modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                         ) {
                             Icon(icon, null, tint = AccentCoral, modifier = Modifier.size(14.dp))
                             Text(stringResource(label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.8f))

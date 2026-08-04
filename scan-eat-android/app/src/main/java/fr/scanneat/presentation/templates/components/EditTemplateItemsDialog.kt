@@ -64,7 +64,7 @@ internal fun EditTemplateItemsDialog(
                     }
                 }
                 HorizontalDivider(color = OnBackground.copy(0.1f))
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it; selectedFood = null; onQueryChange(it) },

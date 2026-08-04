@@ -29,7 +29,7 @@ internal fun HealthConnectSection(availability: HealthConnectAvailability, conne
         when (availability) {
             HealthConnectAvailability.AVAILABLE -> {
                 if (connected) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                         Text(stringResource(R.string.settings_healthconnect_connected), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
                     }

@@ -60,7 +60,7 @@ internal fun MonthlyTrendCard(rollup: RollupResult, targets: DailyTargets?, lang
         delta?.let { d ->
             val sign = if (d.kcal >= 0) "+" else ""
             val color = if (d.kcal <= 0) semanticGreen() else semanticAmber()
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Icon(
                     if (d.kcal >= 0) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
                     null, tint = color, modifier = Modifier.size(14.dp),

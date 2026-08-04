@@ -56,7 +56,7 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Icon(
                 if (consistent) TablerIcons.CircleCheck else TablerIcons.AlertTriangle,
                 null, tint = color, modifier = Modifier.size(18.dp),
@@ -70,7 +70,7 @@ internal fun WeeklyInsightCard(insight: CrossTrackerInsight.WeightVsIntake, useI
             style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.85f),
         )
         if (insight.weeklyActiveMinutes > 0) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Icon(
                     if (insight.weeklyActiveMinutes >= 150) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
                     null, tint = OnSurface.copy(0.5f), modifier = Modifier.size(14.dp),

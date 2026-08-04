@@ -59,7 +59,7 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommen
                 // literally WarningAmber), exactly what the colorblind-safe
                 // accessor exists for; AccentCoral doesn't adapt under colorblind mode.
                 if (warning != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(14.dp))
                         Text(warning, style = MaterialTheme.typography.bodySmall, color = semanticAmber(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
@@ -69,7 +69,7 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommen
                 // as "checked against your profile and fine", not a meaningless
                 // default shown on every single entry.
                 } else if (recommended) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Icon(TablerIcons.CircleCheck, contentDescription = null, tint = semanticGreen(), modifier = Modifier.size(14.dp))
                         Text(stringResource(R.string.diary_entry_recommended), style = MaterialTheme.typography.bodySmall, color = semanticGreen(), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }

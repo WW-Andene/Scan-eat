@@ -57,7 +57,7 @@ internal fun AccessibilitySection(
         Spacer(Modifier.height(6.dp))
         // Live preview so the effect of the chosen mode is visible right here,
         // not just later on a scan result.
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
             Grade.entries.forEach { grade ->
                 val c = gradeColor(grade)
                 Surface(shape = RoundedCornerShape(6.dp), color = c.copy(alpha = 0.2f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(6.dp), ambientColor = ShadowTint, spotColor = ShadowTint).clip(RoundedCornerShape(6.dp))) {

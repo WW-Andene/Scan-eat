@@ -95,7 +95,7 @@ internal fun ProfileMetricsPreviewCard(
         }
         // Improvement: macro ratio bar showing recommended P/G/L distribution.
         HorizontalDivider(color = OnSurface.copy(0.08f))
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
             Text(stringResource(R.string.profile_macro_ratio_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
             Row(
                 modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(8.dp)),
@@ -121,7 +121,7 @@ internal fun ProfileMetricsPreviewCard(
             val startWeight = if (gw < cw) maxOf(cw, gw + 30.0) else minOf(cw, gw - 30.0)
             val totalRange = abs(gw - startWeight).coerceAtLeast(0.1)
             val progress = ((cw - startWeight) / (gw - startWeight)).toFloat().coerceIn(0f, 1f)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(R.string.profile_goal_progress_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                     etaWeeks?.let { Text(stringResource(R.string.profile_goal_eta_weeks, it), style = MaterialTheme.typography.labelSmall, color = AccentCoral) }

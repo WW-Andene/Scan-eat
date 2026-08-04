@@ -76,9 +76,9 @@ internal fun HydrationRingAndControls(
     // Glass grid — filled up to current intake, gold accent past goal
     val totalGlassCells = maxOf(goalGlasses, glasses)
     if (totalGlassCells > 0) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             (0 until totalGlassCells).chunked(8).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     row.forEach { i ->
                         val filled = i < glasses
                         val overGoal = i >= goalGlasses

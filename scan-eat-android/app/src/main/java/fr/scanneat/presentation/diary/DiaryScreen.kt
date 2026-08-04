@@ -240,7 +240,7 @@ fun DiaryScreen(
                             Row(
                                 Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
                                 Icon(activeTab.icon, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(20.dp))
                                 Text(

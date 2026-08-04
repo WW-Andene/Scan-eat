@@ -126,7 +126,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
             // Sub-tab row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
                 BiolismTab.values().forEach { tab ->
                     val isActive = tab == activeTab

@@ -84,7 +84,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
     Column(
         modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = bottomNavClearance + 28.dp),
         horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         Text(
             multiHint,
@@ -120,7 +120,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
     Column(
         modifier = Modifier.align(Alignment.BottomStart)
             .padding(start = 20.dp, bottom = bottomNavClearance + 84.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         recentBarcodes.takeLast(3).reversed().forEach { bc ->
             Box(Modifier.glassSheen(edgeAlpha = 0.12f, shape = RoundedCornerShape(20.dp), glowAlpha = 0f, reliefAlpha = 0f)) {
@@ -133,7 +133,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                         .clip(RoundedCornerShape(20.dp)),
                     shadowElevation = 0.dp,
                 ) {
-                    Row(Modifier.padding(horizontal = Spacing.SM, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(Modifier.padding(horizontal = Spacing.SM, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                         Icon(TablerIcons.History, null, tint = AccentCoral, modifier = Modifier.size(12.dp))
                         Text(bc, style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.85f))
                     }

@@ -33,7 +33,7 @@ internal fun WeightUnitToggleRow(useImperial: Boolean, onUnitChange: (Boolean) -
         IconButton(onClick = onOpenCalendar) {
             Icon(TablerIcons.Calendar, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             listOf(false to "kg", true to "lb").forEach { (imperial, label) ->
                 FilterChip(
                     selected = useImperial == imperial,
@@ -122,7 +122,7 @@ internal fun WeightSummaryCard(
                     Row(
                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                     ) {
                         // Icon, not the 🔥 emoji baked into the string before -
                         // same LocalFireDepartment streak-badge convention already

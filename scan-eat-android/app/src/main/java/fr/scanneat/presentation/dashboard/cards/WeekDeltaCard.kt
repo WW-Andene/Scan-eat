@@ -36,7 +36,7 @@ internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
             .background(color.copy(0.1f))
             .padding(horizontal = Spacing.M, vertical = Spacing.S),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Icon(
             if (delta.kcal >= 0) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,

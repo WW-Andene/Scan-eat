@@ -49,7 +49,7 @@ internal fun FastingRow(
                     }
                 }
                 if (active) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                         if (fastFmt != null) {
                             Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = VioletHaze, border = BorderStroke(1.dp, VioletGlow)) {
                                 Text(fastFmt, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
@@ -69,7 +69,7 @@ internal fun FastingRow(
                 }
             }
             if (active) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.biolism_fasting_time_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     // "1s"/"1m" (French abbreviations for "1 semaine"/"1 mois") previously
                     // stayed hardcoded regardless of language - unlike fastFmt above, which

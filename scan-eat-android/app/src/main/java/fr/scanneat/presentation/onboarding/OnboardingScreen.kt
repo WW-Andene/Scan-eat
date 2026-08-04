@@ -108,7 +108,7 @@ fun OnboardingScreen(
                 Box(Modifier.fillMaxWidth()) {
                     Row(
                         Modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically,
                     ) {
                         (1..3).forEach { step ->
                             val active = step == page

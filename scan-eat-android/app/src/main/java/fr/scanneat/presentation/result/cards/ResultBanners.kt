@@ -30,7 +30,7 @@ import fr.scanneat.presentation.ui.theme.*
 internal fun ComparisonCard(cmp: ComparisonResult) {
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
-        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(6.dp),
+        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Text(stringResource(R.string.result_comparison_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
@@ -62,7 +62,7 @@ internal fun ComparisonCard(cmp: ComparisonResult) {
 internal fun PairingsCard(pairings: List<String>) {
     ScanEatCard(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.08f),
-        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(6.dp),
+        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Text(stringResource(R.string.result_pairings_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)
@@ -85,7 +85,7 @@ internal fun AlternativeCard(alternative: ScanResult, onOpen: (() -> Unit)? = nu
     ScanEatCard(
         onClick = if (onOpen != null && alternative.dbId > 0) onOpen else null,
         shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(alpha = 0.1f),
-        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(6.dp),
+        contentPadding = PaddingValues(Spacing.M), verticalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Text(stringResource(R.string.result_alternative_title), style = MaterialTheme.typography.labelMedium,
             color = AccentCoral, fontWeight = FontWeight.SemiBold)

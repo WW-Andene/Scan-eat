@@ -168,7 +168,7 @@ fun FactsCautionsColumn(facts: List<String>, cautions: List<String>) {
 @Composable
 internal fun HintSection(title: String, lines: List<String>, accent: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
     Column(modifier = Modifier.padding(bottom = Spacing.S)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.padding(0.dp))
             Text(title, style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.Bold)
         }
