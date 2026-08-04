@@ -36,7 +36,13 @@ internal fun DiaryDayNavigationRow(
     onCopyPreviousDay: () -> Unit,
     onToday: () -> Unit,
 ) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+    // User-reported: SpaceBetween left the nav+date+icon group pinned to the
+    // left edge with a large dead void on the right whenever isToday was true
+    // (the only case with nothing to space against - the "Aujourd'hui" button
+    // only renders for a past/future day). Centered instead in that case, so
+    // the row reads as a deliberately-centered date module rather than
+    // left-stuck content with unused space beside it.
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = if (isToday) Arrangement.Center else Arrangement.SpaceBetween) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onPrevDay) { Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.diary_cd_prev_day), tint = OnBackground) }
             Text(dateLabel, style = MaterialTheme.typography.labelMedium, color = OnBackground.copy(0.7f))

@@ -98,30 +98,42 @@ internal fun PermissionBanner(permissionGranted: Boolean, permanentlyDenied: Boo
             color = AccentCoral.copy(alpha = 0.10f), shape = RoundedCornerShape(CardRadius.CONTROL),
             shadowElevation = 0.dp,
         ) {
-            Row(Modifier.padding(Spacing.M), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.NotificationsActive, null, tint = AccentCoral)
-                Spacer(Modifier.width(Spacing.S))
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.reminders_permission_needed_title),
-                        style = MaterialTheme.typography.bodySmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
-                    )
-                    // ScanPermissionGate's camera rationale explains WHY before the OS
-                    // prompt appears - this banner only ever showed a bare title + button,
-                    // the one first-run permission flow in the app with no "why" before
-                    // asking, inconsistent with the camera flow's own explain-before-ask pattern.
-                    Text(
-                        stringResource(R.string.reminders_permission_rationale),
-                        style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
-                    )
-                    Spacer(Modifier.height(Spacing.XS))
-                    if (permanentlyDenied) {
-                        ScanEatPrimaryButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))) }) {
-                            Text(stringResource(R.string.scan_open_settings_button))
-                        }
-                    } else {
-                        ScanEatPrimaryButton(onClick = onRequest) { Text(stringResource(R.string.reminders_enable_notifications)) }
+            Column(Modifier.padding(Spacing.M)) {
+                // User-reported: the bell previously sat in a CenterVertically Row
+                // spanning the title+subtitle+button stack, so it read as
+                // vertically centered on the whole card instead of anchored to the
+                // top of the text it introduces. Top-aligned against the
+                // title/subtitle Column only (the button below is now a sibling,
+                // not part of that Row, so it no longer pulls the icon's center down).
+                Row(verticalAlignment = Alignment.Top) {
+                    Icon(Icons.Rounded.NotificationsActive, null, tint = AccentCoral)
+                    Spacer(Modifier.width(Spacing.S))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            stringResource(R.string.reminders_permission_needed_title),
+                            style = MaterialTheme.typography.bodySmall, color = OnBackground, fontWeight = FontWeight.SemiBold,
+                        )
+                        // ScanPermissionGate's camera rationale explains WHY before the OS
+                        // prompt appears - this banner only ever showed a bare title + button,
+                        // the one first-run permission flow in the app with no "why" before
+                        // asking, inconsistent with the camera flow's own explain-before-ask pattern.
+                        Text(
+                            stringResource(R.string.reminders_permission_rationale),
+                            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.6f),
+                        )
                     }
+                }
+                Spacer(Modifier.height(Spacing.S))
+                // User-reported: previously nested inside the icon-indented text
+                // Column (Modifier.weight(1f), no fillMaxWidth), so the button sat
+                // narrow and offset by the icon+spacer width instead of spanning the
+                // card's full inner width - moved out to its own full-width row here.
+                if (permanentlyDenied) {
+                    ScanEatPrimaryButton(onClick = { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.scan_open_settings_button))
+                    }
+                } else {
+                    ScanEatPrimaryButton(onClick = onRequest, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.reminders_enable_notifications)) }
                 }
             }
         }
