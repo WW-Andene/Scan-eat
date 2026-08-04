@@ -2,7 +2,6 @@ package fr.scanneat.presentation.settings
 
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.health.connect.client.PermissionController
 import androidx.compose.foundation.layout.*
@@ -13,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,7 +30,6 @@ import fr.scanneat.presentation.settings.components.GroqKeySection
 import fr.scanneat.presentation.settings.components.HealthConnectSection
 import fr.scanneat.presentation.settings.components.LanguageSection
 import fr.scanneat.presentation.settings.components.LegalSection
-import fr.scanneat.presentation.settings.components.MAX_BACKUP_IMPORT_BYTES
 import fr.scanneat.presentation.settings.components.OssLicensesDialog
 import fr.scanneat.presentation.settings.components.PremiumSection
 import fr.scanneat.presentation.settings.components.ProfileSection
@@ -43,9 +40,9 @@ import fr.scanneat.presentation.settings.components.ServerUrlSection
 import fr.scanneat.presentation.settings.components.SettingsSection
 import fr.scanneat.presentation.settings.components.ThemeSection
 import fr.scanneat.presentation.settings.components.UnitsSection
+import fr.scanneat.presentation.settings.components.rememberBackupImportLauncher
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -110,85 +107,11 @@ fun SettingsScreen(
     // reliable TalkBack announcement, unlike everything else on this screen.
     val noCrashLogMessage = stringResource(R.string.settings_about_no_crash_log)
 
-    val context = LocalContext.current
-    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        val state = backupState.value
-        when {
-            uri == null -> viewModel.clearBackupState()   // user cancelled the picker - not a failure
-            state is BackupUiState.ExportReady -> {
-                // openOutputStream() can return null (stale/invalidated SAF document) - the
-                // previous `runCatching { stream?.use{...} }.isSuccess` treated a null stream
-                // as success (the safe-call just short-circuits to null, no exception thrown),
-                // so this silently reported a write that never happened.
-                val stream = context.contentResolver.openOutputStream(uri)
-                val wrote = stream != null && runCatching { stream.use { it.write(state.json.toByteArray()) } }.isSuccess
-                if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
-            }
-            // A destination was picked but the export JSON isn't there anymore - most
-            // commonly the process died while this system picker (a separate task/
-            // activity, routinely killed under memory pressure) was open, recreating
-            // the ViewModel back to Idle. The SAF picker already materializes an empty
-            // file at the chosen URI regardless of what happens next, so silently
-            // clearing state here would leave the user believing they have a real
-            // backup when nothing was ever written to it.
-            else -> viewModel.reportBackupIoFailed()
-        }
-    }
-    val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-        val state = backupState.value
-        when {
-            uri == null -> viewModel.clearBackupState()
-            state is BackupUiState.CsvExportReady -> {
-                val stream = context.contentResolver.openOutputStream(uri)
-                val wrote = stream != null && runCatching { stream.use { it.write(state.csv.toByteArray()) } }.isSuccess
-                if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
-            }
-            else -> viewModel.reportBackupIoFailed()
-        }
-    }
-    val pdfExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
-        val state = backupState.value
-        when {
-            state !is BackupUiState.PdfExportReady -> if (uri == null) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
-            uri == null -> { state.document.close(); viewModel.clearBackupState() }
-            else -> {
-                val stream = context.contentResolver.openOutputStream(uri)
-                val wrote = stream != null && runCatching { stream.use { state.document.writeTo(it) } }.isSuccess
-                state.document.close()
-                if (wrote) viewModel.clearBackupState() else viewModel.reportBackupIoFailed()
-            }
-        }
-    }
-    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            // OpenDocument() lets the user pick ANY file, not just one this app
-            // exported - readText() with no cap would load an arbitrarily large
-            // file fully into memory before Moshi even gets a chance to reject it
-            // as malformed, risking an OOM on a huge or mis-picked file.
-            val size = runCatching { context.contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize } }.getOrNull()
-            if (size != null && size > MAX_BACKUP_IMPORT_BYTES) {
-                viewModel.reportBackupIoFailed()
-            } else {
-                val json = runCatching {
-                    context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-                }.getOrNull()
-                if (json != null) viewModel.previewImport(json) else viewModel.reportBackupIoFailed()
-            }
-        }
-    }
-    // The JSON is generated in the ViewModel (testable, no Android dependency); once it's
-    // ready this launches the system "save file" picker, which needs an Activity context
-    // the ViewModel doesn't have.
-    LaunchedEffect(backupState.value) {
-        val state = backupState.value
-        if (state is BackupUiState.ExportReady) {
-            exportLauncher.launch("scaneat-backup-${LocalDate.now()}.json")
-        } else if (state is BackupUiState.CsvExportReady) {
-            csvExportLauncher.launch("scaneat-${state.filenamePrefix}-${LocalDate.now()}.csv")
-        } else if (state is BackupUiState.PdfExportReady) {
-            pdfExportLauncher.launch("scaneat-rapport-${LocalDate.now()}.pdf")
-        }
-    }
+    // Sets up the JSON/CSV/PDF export launchers + the LaunchedEffect that fires
+    // the right one when backupState is ready, returning only the JSON import
+    // picker (the one BackupSection's onImport actually calls) - see
+    // BackupLaunchers.kt's own doc comment.
+    val importLauncher = rememberBackupImportLauncher(viewModel, backupState)
     var showResetDialog by remember { mutableStateOf(false) }
     // Which destructive action (if any) is on its second-confirmation step - a
     // plain Boolean couldn't distinguish "confirming scans" from "confirming
