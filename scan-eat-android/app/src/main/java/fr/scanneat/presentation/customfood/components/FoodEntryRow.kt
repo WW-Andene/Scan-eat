@@ -3,6 +3,7 @@ package fr.scanneat.presentation.customfood.components
 import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.STATUS_BORDER_ALPHA
 
 @Composable
 internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHints, onDelete: () -> Unit, onRename: () -> Unit) {
@@ -91,7 +93,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                         score >= 20 -> Gold to "D$score"
                         else        -> semanticRed() to "D$score"
                     }
-                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = scoreColor.copy(0.15f)) {
+                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = scoreColor.copy(0.15f), border = BorderStroke(1.dp, scoreColor.copy(alpha = STATUS_BORDER_ALPHA))) {
                         Text(scoreLabel, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
                             style = MaterialTheme.typography.labelSmall, color = scoreColor)
                     }

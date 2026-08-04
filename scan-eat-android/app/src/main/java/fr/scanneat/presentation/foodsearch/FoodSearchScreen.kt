@@ -9,6 +9,7 @@ import compose.icons.tablericons.Check
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -384,7 +385,7 @@ private fun FoodSearchRow(
             // its full score" from "a generic curated reference, tap to expand macros."
             item.grade?.let { grade ->
                 val gColor = gradeColor(grade)
-                Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = gColor.copy(0.15f)) {
+                Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = gColor.copy(0.15f), border = BorderStroke(1.dp, gColor.copy(alpha = STATUS_BORDER_ALPHA))) {
                     Text(
                         grade.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall, color = gColor, fontWeight = FontWeight.Bold,

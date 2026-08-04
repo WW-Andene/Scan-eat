@@ -4,6 +4,7 @@ import compose.icons.tablericons.Calendar
 import compose.icons.tablericons.Edit
 import compose.icons.TablerIcons
 import compose.icons.tablericons.X
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -96,7 +97,7 @@ internal fun WeightSummaryCard(
                 Text(stringResource(R.string.weight_bmi_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {
                     Text(bmi.formatDecimal(), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = bmiColor)
-                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = bmiColor.copy(0.15f)) {
+                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = bmiColor.copy(0.15f), border = BorderStroke(1.dp, bmiColor.copy(alpha = STATUS_BORDER_ALPHA))) {
                         Text(bmiLabel, style = MaterialTheme.typography.labelSmall, color = bmiColor, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                     }
                 }
