@@ -126,6 +126,14 @@ internal fun appendPersonalizedHints(
         conditionRisks += if (en) "Contains alcohol — can worsen depressive symptoms and interacts with most antidepressants"
                  else "Contient de l'alcool — peut aggraver les symptômes dépressifs et interagit avec la plupart des antidépresseurs"
     }
+    // Mirrors PersonalScoreEngine's own epilepsy adjustment exactly (same
+    // Epilepsy Foundation sourcing) - was scored but had no hint-panel line,
+    // the one condition where the two surfaces disagreed after epilepsy was
+    // added to DietAndConditionAdjustments.kt without a matching entry here.
+    if ("epilepsy" in conditions && containsAlcohol) {
+        conditionRisks += if (en) "Contains alcohol — can lower seizure threshold and interacts with most anti-epileptic medications (Epilepsy Foundation)"
+                 else "Contient de l'alcool — peut abaisser le seuil épileptogène et interagit avec la plupart des traitements antiépileptiques (Epilepsy Foundation)"
+    }
     // Mirrors PersonalScoreEngine's own sugar/NOVA depression adjustments exactly
     // (same 15.0 g threshold, same two cited cohort studies) so the two surfaces
     // never disagree.

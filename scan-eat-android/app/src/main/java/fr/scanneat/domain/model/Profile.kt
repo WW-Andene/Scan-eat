@@ -35,8 +35,8 @@ data class Profile(
     val diet: fr.scanneat.domain.engine.scoring.DietKey = fr.scanneat.domain.engine.scoring.DietKey.NONE,
     val allergens: Set<String> = emptySet(),
     // Free-form keys ("diabetes", "hypertension", "pregnancy", "kidney_disease",
-    // "thyroid_disorder", "ibs", "crohn_ibd", "chronic_diarrhea", "cancer",
-    // "depression") - same pattern as allergens, consumed by
+    // "ibs", "crohn_ibd", "chronic_diarrhea", "cancer", "depression",
+    // "chronic_migraine", "epilepsy") - same pattern as allergens, consumed by
     // PersonalScoreEngine/HydrationRepository. The old catch-all
     // "digestive_disorders" key was split into "ibs"/"crohn_ibd"/
     // "chronic_diarrhea" (see DietAndConditionAdjustments.checkHealthConditions)

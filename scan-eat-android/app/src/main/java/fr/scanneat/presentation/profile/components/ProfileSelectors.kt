@@ -166,13 +166,24 @@ internal fun allergenLabels(): Map<String, String> = mapOf(
 // them here just gave a false impression of protection - a user selecting
 // "food allergies" as a condition, instead of (or in addition to) picking
 // their specific allergen(s) below, got silently nothing.
+//
+// "thyroid_disorder" was removed for the same reason (R&D audit finding):
+// DietAndConditionAdjustments.kt's own header explicitly documented it as
+// having "no dedicated nutrition-threshold rule reliable enough to code
+// here yet" - a real no-op, not an oversight. Unlike the other conditions
+// here, there's no single safe rule to add: hypothyroidism and
+// hyperthyroidism have opposite iodine-intake implications, and this one
+// flag doesn't distinguish which the user has - a generic rule would be
+// actively wrong for whichever half of thyroid-disorder users it didn't
+// match. Removed rather than left as a false impression of being
+// accounted for. A profile that already saved this key keeps it stored
+// (harmless, just no longer shown or read by anything).
 @Composable
 internal fun conditionLabels(): Map<String, String> = mapOf(
     "diabetes" to stringResource(R.string.condition_diabetes),
     "hypertension" to stringResource(R.string.condition_hypertension),
     "pregnancy" to stringResource(R.string.condition_pregnancy),
     "kidney_disease" to stringResource(R.string.condition_kidney_disease),
-    "thyroid_disorder" to stringResource(R.string.condition_thyroid_disorder),
     // Replaced the old single "digestive_disorders" catch-all (which had no
     // scoring effect at all - see DietAndConditionAdjustments.kt's header) with
     // three specific conditions, each backed by its own real dietary guidance
@@ -202,7 +213,7 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
  */
 @Composable
 private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
-    stringResource(R.string.profile_condition_group_metabolic) to listOf("diabetes", "hypertension", "kidney_disease", "thyroid_disorder"),
+    stringResource(R.string.profile_condition_group_metabolic) to listOf("diabetes", "hypertension", "kidney_disease"),
     stringResource(R.string.profile_condition_group_digestive) to listOf("ibs", "crohn_ibd", "chronic_diarrhea"),
     stringResource(R.string.profile_condition_group_neurological) to listOf("chronic_migraine", "epilepsy"),
     stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression"),

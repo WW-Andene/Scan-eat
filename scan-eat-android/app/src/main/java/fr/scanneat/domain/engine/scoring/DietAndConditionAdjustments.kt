@@ -125,15 +125,15 @@ internal fun checkDietCompliance(product: Product, profile: Profile, lang: Strin
 // Migraine Foundation/National Headache Foundation trigger-food guidance for
 // chronic_migraine, and - below - Monash low-FODMAP/EU polyol-labeling/
 // Crohn's & Colitis Foundation guidance for ibs/crohn_ibd/chronic_diarrhea).
-// "thyroid_disorder" is still selectable
-// in ProfileSelectors.kt (Profile.healthConditions is free-form) but has no
-// dedicated nutrition-threshold rule reliable enough to code here yet - a user
-// selecting it still gets no product-specific guidance, identically to not
-// having selected it. "food_allergies" and
-// "intolerances" used to have the same no-op problem but were removed
-// entirely from ProfileSelectors.kt instead of left as dead options - both
-// concepts are already fully covered by the dedicated allergens selector,
-// which checkUserAllergens() genuinely checks against every product.
+// "thyroid_disorder", "food_allergies" and "intolerances" used to have the
+// same no-op problem (selectable in ProfileSelectors.kt, zero downstream
+// effect here) but were removed entirely instead of left as dead options -
+// thyroid_disorder because hypo-/hyperthyroidism have opposite iodine-intake
+// implications and this one flag can't distinguish which the user has (see
+// ProfileSelectors.kt's own doc comment); food_allergies/intolerances
+// because both concepts are already fully covered by the dedicated
+// allergens selector, which checkUserAllergens() genuinely checks against
+// every product.
 internal fun checkHealthConditions(
     product: Product,
     profile: Profile,
