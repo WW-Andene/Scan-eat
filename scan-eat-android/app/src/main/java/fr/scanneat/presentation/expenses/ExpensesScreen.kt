@@ -29,6 +29,7 @@ import fr.scanneat.presentation.expenses.components.ExpenseEntryRow
 import fr.scanneat.presentation.expenses.components.ExpensesSummaryMode
 import fr.scanneat.presentation.expenses.components.ExpensesWeekCard
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -76,7 +77,10 @@ fun ExpensesScreen(
     // (same runCatching+actionFailed pattern every sibling tracker screen uses).
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val logFailedMessage = stringResource(R.string.common_log_failed)
+    val deletedMessage = stringResource(R.string.expenses_deleted_message)
+    val undoLabel = stringResource(R.string.diary_undo)
     LaunchedEffect(actionFailed.value) {
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
@@ -186,10 +190,20 @@ fun ExpensesScreen(
         ScanEatSnackbarHost(snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = embeddedBottomPadding))
     }
 
+    // Was confirm-only with no way back afterward, unlike Weight/Medication's
+    // confirm-then-undo-snackbar pair - a mis-tapped confirm here was previously
+    // unrecoverable, unlike every sibling tracker's delete flow.
     deleteTarget?.let { id ->
         DeleteConfirmDialog(
             itemName = entries.value.firstOrNull { it.id == id }?.productName,
-            onConfirm = { viewModel.deleteEntry(id); deleteTarget = null },
+            onConfirm = {
+                viewModel.deleteEntry(id)
+                deleteTarget = null
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDeleteEntry()
+                }
+            },
             onDismiss = { deleteTarget = null },
         )
     }

@@ -146,8 +146,29 @@ class ExpensesViewModel @Inject constructor(
     fun setBudgetMonthly(v: Double?) {
         viewModelScope.launch { runCatching { prefs.setBudgetMonthlyEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
+    // Same undo-delete pattern as WeightViewModel/MedicationViewModel/DiaryViewModel -
+    // snapshots the row right before deleting it so a snackbar "Undo" can restore it.
+    // Previously delete was confirm-only with no way back afterward, unlike Weight/
+    // Medication's confirm-then-undo pair.
+    private var lastDeleted: PriceEntry? = null
+
     fun deleteEntry(id: String) {
-        viewModelScope.launch { runCatching { priceRepo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        val entry = entries.value.firstOrNull { it.id == id }
+        viewModelScope.launch {
+            runCatching { priceRepo.delete(id) }
+                .onSuccess { lastDeleted = entry }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Re-logs a deleted purchase (used by the "Undo" snackbar action) with its original date/name/price/weight. */
+    fun undoDeleteEntry() {
+        val entry = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch {
+            runCatching { priceRepo.log(entry.date, entry.productName, barcode = entry.barcode, category = entry.category, priceEuros = entry.priceEuros, weightG = entry.weightG) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
     }
 
     /**

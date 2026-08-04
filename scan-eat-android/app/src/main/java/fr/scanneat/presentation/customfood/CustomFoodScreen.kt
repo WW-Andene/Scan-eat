@@ -29,6 +29,7 @@ import fr.scanneat.presentation.customfood.components.FoodEntryRow
 import fr.scanneat.presentation.shell.PlanningDestination
 import fr.scanneat.presentation.shell.PlanningSwitcherMenu
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun CustomFoodScreen(
@@ -57,8 +58,11 @@ fun CustomFoodScreen(
     // repo's Room writes completely unguarded, so a write failure now surfaces here as
     // a one-shot snackbar instead of crashing or silently discarding the action.
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val actionFailed = viewModel.actionFailed.collectAsStateWithLifecycle()
     val actionFailedMessage = stringResource(R.string.common_log_failed)
+    val deletedMessage = stringResource(R.string.customfood_deleted_message)
+    val undoLabel = stringResource(R.string.diary_undo)
     LaunchedEffect(actionFailed.value) {
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(actionFailedMessage)
@@ -158,10 +162,18 @@ fun CustomFoodScreen(
             ) {
                 if (displayList.isEmpty()) {
                     item {
+                        // Was missing the ctaLabel/onCta pair every other tracker's empty state
+                        // (Weight/Medication/Recipes) already passes - a first-time user saw the
+                        // icon + message with no tappable affordance and had to notice the
+                        // top-bar "+" instead. Only offered on the true "library is empty" case,
+                        // not the "no search results" case, where a search-scoped CTA to add a
+                        // food with the exact query text would need a dedicated dialog prefill.
                         EmptyListState(
                             TablerIcons.ClipboardList,
                             if (query.value.isBlank()) stringResource(R.string.customfood_empty_body)
                             else stringResource(R.string.customfood_empty_query, query.value),
+                            ctaLabel = if (query.value.isBlank()) stringResource(R.string.customfood_cd_add) else null,
+                            onCta = if (query.value.isBlank()) { { showAdd = true } } else null,
                         )
                     }
                 }
@@ -212,10 +224,20 @@ fun CustomFoodScreen(
     }
 
     // Delete confirmation — shared dialog, same as Weight/Templates/Recipes/Activity.
+    // Was confirm-only with no way back afterward, unlike Weight/Medication's
+    // confirm-then-undo-snackbar pair - a mis-tapped confirm on the wrong row (two
+    // custom foods can share a display name) was previously unrecoverable.
     deleteTarget?.let { (id, name) ->
         DeleteConfirmDialog(
             itemName  = name,
-            onConfirm = { viewModel.delete(id); deleteTarget = null },
+            onConfirm = {
+                viewModel.delete(id)
+                deleteTarget = null
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(deletedMessage, actionLabel = undoLabel)
+                    if (result == SnackbarResult.ActionPerformed) viewModel.undoDelete()
+                }
+            },
             onDismiss = { deleteTarget = null },
         )
     }

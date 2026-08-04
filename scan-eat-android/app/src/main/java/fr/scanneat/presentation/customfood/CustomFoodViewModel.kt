@@ -97,10 +97,40 @@ class CustomFoodViewModel @Inject constructor(
         }
     }
 
+    // Same undo-delete pattern as WeightViewModel/MedicationViewModel/DiaryViewModel -
+    // snapshots the row (plus its barcode, which FoodEntry itself doesn't carry) right
+    // before deleting it so a snackbar "Undo" can restore it. Previously delete was the
+    // only tracker-style screen with no way back from a mis-tapped delete - a single
+    // confirm dialog was the only safeguard, unlike Weight/Medication's confirm-then-undo.
+    private var lastDeleted: Triple<String, FoodEntry, String?>? = null
+
     /** Deletes by stable row id (not name) so two custom foods sharing a name can't cause one delete to remove both. */
     fun delete(id: String) {
+        val entry = foodsWithId.value.firstOrNull { it.first == id }?.second
         viewModelScope.launch {
-            runCatching { repo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching {
+                val barcode = repo.findBarcode(id)
+                repo.delete(id)
+                barcode to entry
+            }.onSuccess { (barcode, e) -> if (e != null) lastDeleted = Triple(id, e, barcode) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** Re-creates a deleted custom food (used by the "Undo" snackbar action) with the same id, so any
+     *  DiaryEntry/Recipe/MealTemplate already referencing it by id keeps its own nutrition snapshot intact. */
+    fun undoDelete() {
+        val (id, food, barcode) = lastDeleted ?: return
+        lastDeleted = null
+        viewModelScope.launch {
+            runCatching {
+                repo.save(
+                    id = id, name = food.name, kcal = food.kcal, proteinG = food.proteinG,
+                    carbsG = food.carbsG, fatG = food.fatG, fiberG = food.fiberG, saltG = food.saltG,
+                    ironMg = food.ironMg, calciumMg = food.calciumMg, vitDUg = food.vitDUg, b12Ug = food.b12Ug,
+                    aliases = food.aliases, barcode = barcode,
+                )
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 

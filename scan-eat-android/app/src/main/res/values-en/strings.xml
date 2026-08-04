@@ -764,6 +764,8 @@
     <string name="customfood_search_placeholder">Search foods (built-in + yours)…</string>
     <string name="customfood_empty_body">No custom foods yet.\nTap + to create one.</string>
     <string name="customfood_empty_query">No results for “%1$s”</string>
+    <string name="customfood_cd_add">Add a food</string>
+    <string name="customfood_deleted_message">Food deleted</string>
     <string name="customfood_macro_summary">%1$d kcal · P %2$dg · C %3$dg · F %4$dg / 100g</string>
     <string name="customfood_custom_badge">custom</string>
     <string name="customfood_add_title">New food (per 100 g)</string>
@@ -855,6 +857,7 @@
     <string name="expenses_history_title">Purchase history</string>
     <string name="expenses_empty_body">No expense logged yet. Add a price from a product page after scanning.</string>
     <string name="expenses_add_entry">Add</string>
+    <string name="expenses_deleted_message">Purchase deleted</string>
     <string name="expenses_add_entry_name_label">Item name</string>
     <string name="expenses_week_title">This week</string>
     <string name="expenses_edit_budget">Target</string>

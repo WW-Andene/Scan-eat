@@ -768,6 +768,8 @@
     <string name="customfood_search_placeholder">Rechercher un aliment (base + les vôtres)…</string>
     <string name="customfood_empty_body">Aucun aliment personnalisé.\nAppuyez sur + pour en créer un.</string>
     <string name="customfood_empty_query">Aucun résultat pour « %1$s »</string>
+    <string name="customfood_cd_add">Ajouter un aliment</string>
+    <string name="customfood_deleted_message">Aliment supprimé</string>
     <string name="customfood_macro_summary">%1$d kcal · P %2$dg · G %3$dg · L %4$dg / 100g</string>
     <string name="customfood_custom_badge">perso</string>
     <string name="customfood_add_title">Nouvel aliment (pour 100 g)</string>
@@ -859,6 +861,7 @@
     <string name="expenses_history_title">Historique des achats</string>
     <string name="expenses_empty_body">Aucune dépense enregistrée. Ajoutez un prix depuis une fiche produit après un scan.</string>
     <string name="expenses_add_entry">Ajouter</string>
+    <string name="expenses_deleted_message">Achat supprimé</string>
     <string name="expenses_add_entry_name_label">Nom de l\'article</string>
     <string name="expenses_week_title">Cette semaine</string>
     <string name="expenses_edit_budget">Objectif</string>
