@@ -32,6 +32,9 @@ internal fun TemplatesMealFilterRow(
     CollapsibleFilterBar(
         expanded = expanded, onToggle = onToggle,
         summaryLabel = stringResource(R.string.foodsearch_filters_label, selected?.label() ?: allLabel),
+        // TemplatesScreen's LazyColumn already applies Spacing.L horizontal
+        // padding to every item - see CollapsibleFilterBar's own doc comment.
+        applyHorizontalInset = false,
     ) {
         mealOptions.forEach { slot ->
             val isSelected = selected == slot

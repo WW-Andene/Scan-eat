@@ -46,6 +46,9 @@ internal fun RecipesFilterChipsRow(
         CollapsibleFilterBar(
             expanded = expanded, onToggle = onToggle,
             summaryLabel = stringResource(R.string.foodsearch_filters_label, filterOptions.first { it.first == goalFilter }.second),
+            // RecipesScreen's LazyColumn already applies Spacing.L horizontal
+            // padding to every item - see CollapsibleFilterBar's own doc comment.
+            applyHorizontalInset = false,
         ) {
             filterOptions.forEach { (filter, label) ->
                 val isSelected = goalFilter == filter

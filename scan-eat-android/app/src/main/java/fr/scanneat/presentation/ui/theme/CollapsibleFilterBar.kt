@@ -43,6 +43,15 @@ fun CollapsibleFilterBar(
     onToggle: () -> Unit,
     summaryLabel: String,
     modifier: Modifier = Modifier,
+    // User-reported: on Recipes/Templates, this pill sat further right than the
+    // search field and "Filtres : Tous" wasn't aligned with the screen's
+    // standard left content padding - those two screens wrap their whole list
+    // in a Column/LazyColumn that already applies Spacing.L horizontal padding,
+    // so this bar's own inset below stacked on top of it. History/Favorites and
+    // FoodSearch don't pad their outer container that way (see this composable's
+    // own history below), so they still need it. Callers whose parent already
+    // carries the inset pass false here instead of getting double-padded.
+    applyHorizontalInset: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // User-reported: the pill sat flush against the screen's left edge with no
@@ -50,8 +59,9 @@ fun CollapsibleFilterBar(
     // rewrite above, which used to inherit its horizontal inset from the
     // screen's own Column/padding when it spanned the full width. As a
     // self-contained pill it now needs to carry that inset itself, matching
-    // the search bar directly above it on every call site.
-    Box(modifier.padding(horizontal = Spacing.L)) {
+    // the search bar directly above it on every call site that doesn't
+    // already provide one (see applyHorizontalInset above for the ones that do).
+    Box(if (applyHorizontalInset) modifier.padding(horizontal = Spacing.L) else modifier) {
         Surface(
             onClick = onToggle,
             // User-reported: radius/height didn't match this same screen's other
