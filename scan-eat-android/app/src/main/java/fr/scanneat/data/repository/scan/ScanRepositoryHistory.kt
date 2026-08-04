@@ -7,13 +7,13 @@ import fr.scanneat.data.local.db.scan.TopScannedRow
 import fr.scanneat.data.remote.api.OpenProductsFactsApi
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableCategory
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
-import fr.scanneat.domain.engine.nonconsumable.classifyNonFood
+import fr.scanneat.domain.engine.nutrition.classifyNonFood
+import fr.scanneat.domain.engine.scoring.DietKey
 import fr.scanneat.domain.engine.scoring.ENGINE_VERSION
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.engine.scoring.healthConditionCautions
 import fr.scanneat.domain.engine.scoring.scoreProduct
-import fr.scanneat.domain.model.DietKey
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
