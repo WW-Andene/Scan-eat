@@ -71,5 +71,5 @@ private fun EqBlock(title: String, formula: String, substituted: String) {
         Text(formula, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
         Text(substituted, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f), fontWeight = FontWeight.Medium)
     }
-    HorizontalDivider(color = OnBackground.copy(0.06f))
+    ScanEatDivider(color = SeparatorExtraLight)
 }

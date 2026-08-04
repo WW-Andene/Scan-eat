@@ -270,7 +270,7 @@ internal fun MacroTargetRow(label: String, grams: Double, unit: String, note: St
             }
         }
     }
-    HorizontalDivider(color = OnBackground.copy(0.06f))
+    ScanEatDivider(color = SeparatorExtraLight)
 }
 
 @Composable

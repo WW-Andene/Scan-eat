@@ -55,7 +55,7 @@ fun CollapsibleFilterBar(
         Surface(
             onClick = onToggle,
             shape = RoundedCornerShape(8.dp),
-            color = AccentCoral.copy(0.15f),
+            color = ChipBackgroundAccent,
             border = BorderStroke(1.dp, AccentCoral.copy(0.4f)),
         ) {
             Row(

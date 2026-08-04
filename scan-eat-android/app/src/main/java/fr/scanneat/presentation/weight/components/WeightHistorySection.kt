@@ -118,7 +118,7 @@ internal fun WeightSummaryCard(
             HorizontalDivider(color = OnSurface.copy(0.08f))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.weight_logging_streak_label), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
-                Surface(shape = RoundedCornerShape(50), color = AccentCoral.copy(0.15f)) {
+                Surface(shape = RoundedCornerShape(50), color = ChipBackgroundAccent) {
                     Row(
                         modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,

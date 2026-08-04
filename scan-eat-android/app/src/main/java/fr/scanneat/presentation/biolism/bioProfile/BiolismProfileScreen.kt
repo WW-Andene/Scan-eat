@@ -143,7 +143,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                 if (p.sex == BiolismSex.FEMALE) {
                     OverviewRow(stringResource(R.string.bioprofile_field_cycle_day), "${p.cycleDay} / 28")
                 }
-                HorizontalDivider(color = OnBackground.copy(0.06f))
+                ScanEatDivider(color = SeparatorExtraLight)
                 val pct = (completeness.value * 100).toInt()
                 Text(stringResource(R.string.bioprofile_completeness_label, pct), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                 LinearProgressIndicator(
@@ -194,7 +194,7 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
                     RadioButton(selected = activityId == lvl.id, onClick = null,
                         colors = RadioButtonDefaults.colors(selectedColor = Gold))
                 }
-                if (lvl != ACTIVITY_LEVELS.last()) HorizontalDivider(color = OnBackground.copy(0.06f))
+                if (lvl != ACTIVITY_LEVELS.last()) ScanEatDivider(color = SeparatorExtraLight)
             }
         }
 

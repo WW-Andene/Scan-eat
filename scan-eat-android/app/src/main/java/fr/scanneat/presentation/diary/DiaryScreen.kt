@@ -234,7 +234,7 @@ fun DiaryScreen(
                         Surface(
                             onClick = { tabMenuExpanded = true },
                             shape = RoundedCornerShape(8.dp),
-                            color = AccentCoral.copy(0.15f),
+                            color = ChipBackgroundAccent,
                             border = androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)),
                         ) {
                             Row(

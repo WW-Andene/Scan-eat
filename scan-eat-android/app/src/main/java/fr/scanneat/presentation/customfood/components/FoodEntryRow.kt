@@ -29,6 +29,7 @@ import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.result.HintIconButton
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.ChipBackgroundAccent
 import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
@@ -62,7 +63,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                 if (isCustom) {
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = AccentCoral.copy(0.15f),
+                        color = ChipBackgroundAccent,
                     ) {
                         Text(
                             stringResource(R.string.customfood_custom_badge),

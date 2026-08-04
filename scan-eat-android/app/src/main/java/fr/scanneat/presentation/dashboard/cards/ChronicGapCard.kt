@@ -29,6 +29,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.engine.dashboard.ChronicGap
 import fr.scanneat.domain.engine.dashboard.GapSuggestion
 import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.ChipBackgroundAccent
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -69,7 +70,7 @@ internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSugge
                         Surface(
                             modifier = Modifier.clip(RoundedCornerShape(CardRadius.CARD)).clickable { onSuggestionClick(s) },
                             shape = RoundedCornerShape(CardRadius.CARD),
-                            color = AccentCoral.copy(0.15f),
+                            color = ChipBackgroundAccent,
                         ) {
                             Text(
                                 stringResource(R.string.dashboard_gap_suggestion, s.name, s.grams),

@@ -20,6 +20,7 @@ import fr.scanneat.R
 import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.ChipBackgroundAccent
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.ScanEatCard
@@ -55,7 +56,7 @@ internal fun NeverLoggedScansCard(scans: List<ScanResult>, onLogClick: (ScanResu
                     maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
                 )
                 Surface(
-                    shape = RoundedCornerShape(CardRadius.CONTROL), color = AccentCoral.copy(0.15f),
+                    shape = RoundedCornerShape(CardRadius.CONTROL), color = ChipBackgroundAccent,
                     modifier = Modifier.clickable { onLogClick(scan) },
                 ) {
                     Text(

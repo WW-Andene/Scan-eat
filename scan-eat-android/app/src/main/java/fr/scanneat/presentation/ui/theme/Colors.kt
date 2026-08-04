@@ -165,6 +165,19 @@ val SeparatorHeavy:  Color @Composable get() = OnBackground.copy(alpha = 0.20f)
 val SeparatorLight:  Color @Composable get() = OnBackground.copy(alpha = 0.08f)
 val SeparatorAccent: Color @Composable get() = AccentCoral.copy(alpha = 0.30f)
 
+// genre audit (divider alpha): 0.06f turned out to be the second most common
+// ad hoc divider alpha (5 call sites) this taxonomy's own doc comment below
+// already named as drift alongside 0.08f/0.1f, but never gave its own tier.
+val SeparatorExtraLight: Color @Composable get() = OnBackground.copy(alpha = 0.06f)
+
+// genre audit (chip background alpha): AccentCoral.copy(0.15f) is the single
+// most common tinted-chip fill in the app (7 sites: CollapsibleFilterBar's
+// pill, DiaryScreen's tab pill, WeightHistorySection/FoodEntryRow/dashboard
+// gap-card highlight chips) - unlike Separator*, there was no name for this
+// role at all. Not a @Composable getter since AccentCoral itself isn't
+// theme-reactive.
+val ChipBackgroundAccent: Color = AccentCoral.copy(alpha = 0.15f)
+
 // LAYER 3 (component-specific, not a general role) — see the fuller LAYER 3
 // banner further below before scanEatTextFieldColors(); this one composable
 // sits early only because it's a small divider tied to the separators above.

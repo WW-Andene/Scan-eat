@@ -112,7 +112,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
                     }
                 }
             }
-            HorizontalDivider(color = OnBackground.copy(0.06f))
+            ScanEatDivider(color = SeparatorExtraLight)
         }
     }
 }
