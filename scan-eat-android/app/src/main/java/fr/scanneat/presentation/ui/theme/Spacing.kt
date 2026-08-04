@@ -53,5 +53,9 @@ object Spacing {
  * token (Spacing.T2, 2dp - imperceptible at typical density). Named here
  * so every DropdownMenu's `offset = DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)`
  * stays in sync instead of drifting per call site again.
+ *
+ * User-reported (round 2): Spacing.XS (4dp) still read as visually flush
+ * against the trigger (e.g. Recipes' filter pill) - bumped to Spacing.S (6dp)
+ * so the gap is actually perceptible at typical density.
  */
-val DROPDOWN_MENU_GAP: Dp = Spacing.XS
+val DROPDOWN_MENU_GAP: Dp = Spacing.S
