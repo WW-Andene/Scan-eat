@@ -76,7 +76,7 @@ internal fun MealsTab(
     // Group by meal slot once per entries change; filter by selected slot chip.
     val bySlot = remember(s.entries) { s.entries.groupBy { it.mealSlot } }
     val filteredBySlot = remember(s.entries, slotFilter) {
-        if (slotFilter == null) s.entries.groupBy { it.mealSlot }
+        if (slotFilter == null) bySlot
         else mapOf(slotFilter!! to (bySlot[slotFilter] ?: emptyList()))
     }
     LazyColumn(

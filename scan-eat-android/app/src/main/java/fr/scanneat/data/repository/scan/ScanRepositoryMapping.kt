@@ -33,7 +33,10 @@ internal fun mapScanHistoryEntity(
     // §XI: same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository -
     // a parse failure here previously vanished the scan from history/favorites
     // with zero trace.
-    android.util.Log.w("ScanRepository", "Failed to parse scan history row id=${entity.id} barcode=${entity.barcode}", it)
+    // id only, not the barcode itself - every other trace in this app logs
+    // opaque identifiers, never the underlying value (see CrashLogger's own
+    // message-stripping), and a scanned barcode reveals a dietary habit.
+    android.util.Log.w("ScanRepository", "Failed to parse scan history row id=${entity.id}", it)
 }.getOrNull()
 
 /** Same "barcode when present, else lowercased name" match key persist()/priorScores() share. */
