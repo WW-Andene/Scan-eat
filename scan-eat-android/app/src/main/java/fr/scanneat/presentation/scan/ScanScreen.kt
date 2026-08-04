@@ -4,15 +4,11 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -50,10 +46,8 @@ import fr.scanneat.presentation.scan.components.ScanShelfPeekChip
 import fr.scanneat.presentation.scan.components.ScanStateOverlay
 import fr.scanneat.presentation.scan.components.ShelfPeek
 import fr.scanneat.presentation.scan.components.ShelfPeekStatus
+import fr.scanneat.presentation.scan.components.handleShelfBoxTapped
 import fr.scanneat.presentation.ui.theme.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun ScanScreen(
@@ -89,11 +83,15 @@ fun ScanScreen(
     var shelfMode by remember { mutableStateOf(false) }
     var shelfObjects by remember { mutableStateOf<Triple<List<DetectedBox>, Int, Int>?>(null) }
     var shelfImageCapture: ImageCapture? by remember { mutableStateOf(null) }
-    var shelfPeeks by remember { mutableStateOf<List<ShelfPeek>>(emptyList()) }
-    var nextPeekId by remember { mutableStateOf(0L) }
+    // MutableState (not the `by remember` delegate the rest of this screen uses) -
+    // handleShelfBoxTapped (ScanShelfCapture.kt) mutates these from a plain,
+    // non-@Composable function, which needs the State object itself rather than
+    // the delegate-only property syntax.
+    val shelfPeeksState = remember { mutableStateOf<List<ShelfPeek>>(emptyList()) }
+    val nextPeekIdState = remember { mutableStateOf(0L) }
     val shelfCoroutineScope = rememberCoroutineScope()
     LaunchedEffect(shelfMode) {
-        if (!shelfMode) { shelfObjects = null; shelfPeeks = emptyList() }
+        if (!shelfMode) { shelfObjects = null; shelfPeeksState.value = emptyList() }
     }
 
     // android:required="false" on both camera <uses-feature> entries in the manifest
@@ -346,91 +344,26 @@ fun ScanScreen(
                         imgW = w,
                         imgH = h,
                         onBoxTapped = { box, tapOffset ->
-                            // Cap concurrent peeks — evict the oldest rather than ignore the
-                            // tap, same "capped not unbounded" pattern as MAX_QUEUED_PHOTOS.
-                            if (shelfPeeks.size >= 3) shelfPeeks = shelfPeeks.drop(1)
-                            val peekId = nextPeekId
-                            nextPeekId += 1
-                            shelfPeeks = shelfPeeks + ShelfPeek(peekId, tapOffset, ShelfPeekStatus.Loading)
-                            val capture = shelfImageCapture
-                            if (capture == null) {
-                                shelfPeeks = shelfPeeks.map { if (it.id == peekId) it.copy(status = ShelfPeekStatus.Failed(captureErrorMessage)) else it }
-                            } else {
-                                capture.takePicture(
-                                    ContextCompat.getMainExecutor(context),
-                                    object : ImageCapture.OnImageCapturedCallback() {
-                                        override fun onCaptureSuccess(image: ImageProxy) {
-                                            // image.toBitmap() (CameraX's own extension) only supports
-                                            // YUV_420_888/RGBA_8888 - it throws UnsupportedOperationException
-                                            // on the JPEG-format ImageProxy this in-memory ImageCapture
-                                            // callback actually delivers, crashing on every shelf-mode box
-                                            // tap. Same bug, same fix as CameraPreview.kt's main capture
-                                            // path - this is a separate takePicture() call site that fix
-                                            // didn't cover. No rotation correction here (unlike
-                                            // CameraPreview.kt's fix): box.rect/w/h come from the same
-                                            // ImageAnalysis stream in its raw, unrotated sensor orientation,
-                                            // and cropAroundBox maps box coordinates onto `full` purely by
-                                            // fraction-of-width/height - rotating `full` but not the box
-                                            // would misalign the crop against streams that share that
-                                            // convention already.
-                                            val buffer = image.planes[0].buffer
-                                            val bytes = ByteArray(buffer.remaining())
-                                            buffer.get(bytes)
-                                            image.close()
-                                            // Decoding the full 1600x1200 JPEG just to crop a small region was
-                                            // previously done synchronously on this Main-executor callback,
-                                            // janking the UI thread on every shelf-mode tap. Moved onto
-                                            // Dispatchers.Default inside the same coroutine that already does
-                                            // the (network) identify call, rather than adding a second
-                                            // executor hop - shelfPeeks is only ever written from this single
-                                            // shelfCoroutineScope.launch block per tap, so no new race.
-                                            shelfCoroutineScope.launch {
-                                                // Builds the finished ImagePayload (decode + crop + toPayload's own
-                                                // scale/compress) entirely on Dispatchers.Default, so
-                                                // identifyShelfBox() itself can stay a plain suspend function with
-                                                // no CPU work of its own - same shape as CameraPreview's fix above.
-                                                val payload = withContext(Dispatchers.Default) {
-                                                    val full = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return@withContext null
-                                                    val c = cropAroundBox(full, box.rect, w, h)
-                                                    // Bitmap.createBitmap(source, x, y, w, h) returns `source` itself,
-                                                    // not a copy, when the requested region is the whole bitmap (x=0,
-                                                    // y=0, w/h matching) - which cropAroundBox's own clamping can produce
-                                                    // for a box spanning nearly the entire frame. Recycling unconditionally
-                                                    // would then recycle `c` out from under toPayload() below too.
-                                                    // Only recycle `full` when cropAroundBox actually produced a distinct
-                                                    // bitmap - otherwise this leaked ~7.7MB (1600x1200 ARGB_8888) per
-                                                    // shelf-mode tap.
-                                                    if (c !== full) full.recycle()
-                                                    c.toPayload()
-                                                }
-                                                if (payload == null) {
-                                                    shelfPeeks = shelfPeeks.map { if (it.id == peekId) it.copy(status = ShelfPeekStatus.Failed(captureErrorMessage)) else it }
-                                                    return@launch
-                                                }
-                                                val result = viewModel.identifyShelfBox(payload)
-                                                shelfPeeks = shelfPeeks.map { p ->
-                                                    if (p.id != peekId) p else p.copy(
-                                                        status = result.fold(
-                                                            onSuccess = { (scanResult, id) -> ShelfPeekStatus.Ready(scanResult.product.name, scanResult.audit.grade, id) },
-                                                            onFailure = { e -> ShelfPeekStatus.Failed(e.message ?: captureErrorMessage) },
-                                                        ),
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        override fun onError(exception: ImageCaptureException) {
-                                            shelfPeeks = shelfPeeks.map { if (it.id == peekId) it.copy(status = ShelfPeekStatus.Failed(captureErrorMessage)) else it }
-                                        }
-                                    },
-                                )
-                            }
+                            handleShelfBoxTapped(
+                                box = box,
+                                tapOffset = tapOffset,
+                                imgW = w,
+                                imgH = h,
+                                shelfImageCapture = shelfImageCapture,
+                                context = context,
+                                scope = shelfCoroutineScope,
+                                captureErrorMessage = captureErrorMessage,
+                                viewModel = viewModel,
+                                shelfPeeksState = shelfPeeksState,
+                                nextPeekIdState = nextPeekIdState,
+                            )
                         },
                     )
                 }
-                shelfPeeks.forEach { peek ->
+                shelfPeeksState.value.forEach { peek ->
                     ScanShelfPeekChip(
                         peek = peek,
-                        onDismiss = { shelfPeeks = shelfPeeks.filter { it.id != peek.id } },
+                        onDismiss = { shelfPeeksState.value = shelfPeeksState.value.filter { it.id != peek.id } },
                         onOpenResult = { id -> onResultReady(id) },
                     )
                 }
@@ -465,28 +398,4 @@ fun ScanScreen(
             onPickMultiFood = { id -> onResultReady(id); viewModel.resultConsumed() },
         )
     }
-}
-
-/**
- * Maps a box detected against the (lower-res, 16:9) analysis stream onto the
- * (higher-res, 4:3) capture stream by fraction-of-frame, not pixel-for-pixel —
- * CameraX's ImageAnalysis and ImageCapture use cases independently crop/scale
- * from the same sensor to their own target resolutions, so this is an
- * approximation rather than an exact geometric correspondence. A generous
- * 25%-per-side margin (clamped to the bitmap's own bounds) absorbs that
- * imprecision so the tapped product still ends up inside the crop even when
- * the mapping isn't perfectly centered.
- */
-private fun cropAroundBox(bitmap: Bitmap, box: android.graphics.Rect, analysisW: Int, analysisH: Int): Bitmap {
-    val fracLeft   = box.left.toFloat()   / analysisW
-    val fracTop    = box.top.toFloat()    / analysisH
-    val fracRight  = box.right.toFloat()  / analysisW
-    val fracBottom = box.bottom.toFloat() / analysisH
-    val marginX = (fracRight - fracLeft) * 0.25f
-    val marginY = (fracBottom - fracTop) * 0.25f
-    val left   = ((fracLeft   - marginX) * bitmap.width).toInt().coerceIn(0, bitmap.width - 1)
-    val top    = ((fracTop    - marginY) * bitmap.height).toInt().coerceIn(0, bitmap.height - 1)
-    val right  = ((fracRight  + marginX) * bitmap.width).toInt().coerceIn(left + 1, bitmap.width)
-    val bottom = ((fracBottom + marginY) * bitmap.height).toInt().coerceIn(top + 1, bitmap.height)
-    return Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
 }
