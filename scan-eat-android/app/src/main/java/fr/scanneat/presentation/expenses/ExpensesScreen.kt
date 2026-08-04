@@ -114,8 +114,6 @@ fun ExpensesScreen(
             contentPadding = PaddingValues(top = embeddedTopPadding, bottom = embeddedBottomPadding),
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
-            item { Spacer(Modifier.height(Spacing.XS)) }
-
             item {
                 ExpensesWeekCard(
                     mode = summaryMode,

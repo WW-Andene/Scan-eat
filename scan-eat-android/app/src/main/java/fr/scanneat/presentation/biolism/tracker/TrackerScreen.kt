@@ -123,15 +123,17 @@ fun TrackerScreen(
             .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
-            .padding(bottom = embeddedBottomPadding + Spacing.L),
+            .padding(bottom = embeddedBottomPadding),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         // Matches DataScreen/EvolutionScreen's LazyColumn contentPadding =
-        // PaddingValues(top = embeddedTopPadding + Spacing.L) clearance under
-        // the same shared BiolismScreen header — this screen isn't a
-        // LazyColumn (it's a scrolling Column with no top padding of its
-        // own), so this Spacer is the only thing standing in for that gap.
-        Spacer(Modifier.height(embeddedTopPadding + Spacing.L))
+        // PaddingValues(top = embeddedTopPadding) clearance under the same
+        // shared BiolismScreen header — embeddedTopPadding already IS the real
+        // header height (statusBar inset + BiolismHeaderHeight), exactly like
+        // FloatingScreenScaffold's own padding, so no extra literal is added on
+        // top of it. This screen isn't a LazyColumn (it's a scrolling Column
+        // with no top padding of its own), so this Spacer stands in for that.
+        Spacer(Modifier.height(embeddedTopPadding))
 
         if (!p.isValid) {
             EmptyProfilePrompt()

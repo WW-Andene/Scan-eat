@@ -51,6 +51,7 @@ internal fun ResultContent(
     onOpenResult: (Long) -> Unit = {},
     onOpenProfile: () -> Unit = {},
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val audit = scan.audit
     Column(
@@ -58,8 +59,14 @@ internal fun ResultContent(
             .fillMaxSize()
             .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = Spacing.L)
-            .padding(vertical = Spacing.M),
+            // contentPadding (FloatingScreenScaffold's own PaddingValues: status-bar
+            // inset + FloatingTopBarHeight) is applied INSIDE the scroll and after
+            // ambientGloom, like every other screen's LazyColumn contentPadding —
+            // previously the caller passed it as an outer Modifier.padding(), which
+            // shrank the bounds before the gloom was painted and then added its own
+            // extra Spacing.M on top of the header clearance.
+            .padding(contentPadding)
+            .padding(horizontal = Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         // Product name + source

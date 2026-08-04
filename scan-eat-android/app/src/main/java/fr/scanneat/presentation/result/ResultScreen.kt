@@ -165,7 +165,7 @@ fun ResultScreen(
                 onDeletePrice     = { id -> viewModel.deletePrice(id) },
                 onOpenResult      = onOpenResult,
                 onOpenProfile     = onOpenProfile,
-                modifier          = Modifier.padding(padding),
+                contentPadding    = padding,
             )
         }
     }

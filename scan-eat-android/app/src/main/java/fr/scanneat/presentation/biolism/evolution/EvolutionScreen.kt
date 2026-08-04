@@ -70,7 +70,7 @@ fun EvolutionScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(horizontal = Spacing.L),
-        contentPadding = PaddingValues(top = embeddedTopPadding + Spacing.L, bottom = embeddedBottomPadding + Spacing.L),
+        contentPadding = PaddingValues(top = embeddedTopPadding, bottom = embeddedBottomPadding),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { WeightEvolutionCard(weightEntries.value, useImperial.value, language.value) }
