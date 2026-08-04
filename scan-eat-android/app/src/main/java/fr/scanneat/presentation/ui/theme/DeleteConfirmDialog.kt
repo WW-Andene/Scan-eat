@@ -5,6 +5,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import fr.scanneat.R
@@ -23,7 +24,8 @@ import fr.scanneat.R
 fun ConfirmDialog(title: String, body: String, confirmLabel: String, confirmColor: Color = semanticRed(), onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor   = SurfaceVariant,
+        containerColor   = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape   = RoundedCornerShape(CardRadius.PROMINENT),
         title   = { Text(title, color = OnBackground) },
         text    = { Text(body, color = OnBackground.copy(0.7f)) },
