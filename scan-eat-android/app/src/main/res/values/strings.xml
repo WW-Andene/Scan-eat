@@ -1153,6 +1153,7 @@
     <string name="settings_section_currency">Devise</string>
     <string name="settings_currency_hint">Symbole utilisé pour les prix dans Dépenses</string>
     <string name="settings_currency_label">Symbole</string>
+    <string name="settings_currency_other">Autre</string>
     <string name="settings_section_profile">Profil nutritionnel</string>
     <string name="settings_section_accessibility">Accessibilité</string>
     <string name="settings_section_reminders">Rappels</string>

@@ -1100,6 +1100,7 @@
     <string name="settings_section_currency">Currency</string>
     <string name="settings_currency_hint">Symbol used for prices in Expenses</string>
     <string name="settings_currency_label">Symbol</string>
+    <string name="settings_currency_other">Other</string>
     <string name="settings_theme_low_contrast">Low contrast</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
