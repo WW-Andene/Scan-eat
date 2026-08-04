@@ -29,8 +29,11 @@ internal fun HydrationGoalEditorDialog(
     // user why nothing happened - same fix AddExpenseDialog's price/weight fields
     // got this round for the identical "typed something invalid" case.
     val goalValid = goalText.toIntOrNull()?.let { it in 1..10000 } == true
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.hydration_edit_goal_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

@@ -106,7 +106,7 @@ private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: ()
     // bounds are generous (a real grocery item, even luxury/bulk) rather than tight.
     val price = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.result_price_add), color = OnBackground) },
         text = {
@@ -136,5 +136,8 @@ private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: ()
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
     )
 }

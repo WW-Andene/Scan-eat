@@ -22,7 +22,6 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -39,8 +38,11 @@ import fr.scanneat.presentation.ui.theme.label
 @Composable
 internal fun SaveAsTemplateDialog(recipe: Recipe, onDismiss: () -> Unit, onConfirm: (MealSlot) -> Unit) {
     var slot by remember { mutableStateOf(MealSlot.LUNCH) }
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_save_as_template_title, recipe.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

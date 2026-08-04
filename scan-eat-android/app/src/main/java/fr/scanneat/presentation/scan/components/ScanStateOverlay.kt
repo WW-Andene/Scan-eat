@@ -39,7 +39,6 @@ import fr.scanneat.domain.engine.nonconsumable.generateNonConsumableHints
 import fr.scanneat.presentation.result.FactsCautionsColumn
 import fr.scanneat.presentation.scan.ScanUiState
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
@@ -118,8 +117,11 @@ internal fun BoxScope.ScanStateOverlay(
             val hints = remember(s.entry, language, healthConditions) {
                 generateMedicationHints(s.entry, healthConditions, language)
             }
-            GlassAlertDialog(
+            AlertDialog(
                 onDismissRequest = onDismissFound,
+                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
                 title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
@@ -137,8 +139,11 @@ internal fun BoxScope.ScanStateOverlay(
         }
         is ScanUiState.NonConsumableFound -> {
             val hints = remember(s.entry, language) { generateNonConsumableHints(s.entry.category, language) }
-            GlassAlertDialog(
+            AlertDialog(
                 onDismissRequest = onDismissFound,
+                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
                 title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

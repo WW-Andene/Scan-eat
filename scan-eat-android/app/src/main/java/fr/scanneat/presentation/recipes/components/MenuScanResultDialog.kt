@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.MenuDish
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
@@ -42,8 +41,11 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
  */
 @Composable
 internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit) {
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_menu_dialog_title), color = OnBackground) },
         text = {
             if (dishes.isEmpty()) {

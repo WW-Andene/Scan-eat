@@ -21,7 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.ErrorBanner
@@ -46,7 +45,7 @@ internal fun ImportRecipeUrlDialog(
 ) {
     var url by rememberSaveable { mutableStateOf("") }
 
-    GlassAlertDialog(
+    AlertDialog(
         // A back-press/scrim-tap dismissal while a fetch is in flight previously
         // called onDismiss (clearing the ViewModel's import state) without
         // cancelling the coroutine underneath - it kept running and later set
@@ -56,6 +55,9 @@ internal fun ImportRecipeUrlDialog(
         // they'd cancelled. Only the dismiss button was ever gated by isLoading;
         // this closes the same gap for the implicit dismiss paths.
         onDismissRequest = { if (!isLoading) onDismiss() },
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_import_url_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

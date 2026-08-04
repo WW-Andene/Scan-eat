@@ -87,8 +87,11 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
         return
     }
 
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = { viewModel.clearSearch(); onDismiss() },
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.diary_add_entry_title), color = OnBackground) },
         text = {
             Column(modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 360.dp)) {

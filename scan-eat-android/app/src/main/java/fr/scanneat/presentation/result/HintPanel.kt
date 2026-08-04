@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.ProductHints
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -104,8 +103,11 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
     val neutral = OnBackground.copy(0.7f)
     val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.conditionRisks.isEmpty() && hints.facts.isEmpty() &&
         hints.keyInfo.isEmpty() && hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty()
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.hint_panel_title), color = OnBackground) },
         text = {
             // A long ingredient list can produce enough benefit/risk/fact lines to

@@ -87,8 +87,11 @@ private val OSS_LIBRARIES = listOf(
 
 @Composable
 internal fun OssLicensesDialog(onDismiss: () -> Unit) {
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.settings_licenses_dialog_title), color = OnBackground) },
         text = {
             LazyColumn(

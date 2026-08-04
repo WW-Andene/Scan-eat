@@ -26,7 +26,6 @@ import fr.scanneat.data.repository.planning.Recipe
 import fr.scanneat.domain.model.MealSlot
 import fr.scanneat.presentation.onboarding.enumSaver
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
@@ -48,8 +47,11 @@ internal fun LogRecipeDialog(recipe: Recipe, onDismiss: () -> Unit, onLog: (Meal
     var slot by rememberSaveable(stateSaver = enumSaver()) { mutableStateOf(MealSlot.LUNCH) }
     var servingsText by rememberSaveable { mutableStateOf("1") }
     val gramsPerServing = recipe.totalGrams / recipe.servings
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_log_dialog_title, recipe.name), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

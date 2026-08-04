@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
-import fr.scanneat.presentation.ui.theme.GlassAlertDialog
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.CardRadius
@@ -84,12 +83,15 @@ internal fun SuggestRecipesDialog(
     var selectedHistory by remember { mutableStateOf(setOf<String>()) }
     val pantryItems = pantryText.split(',', '\n').map { it.trim() }.filter { it.isNotBlank() }
 
-    GlassAlertDialog(
+    AlertDialog(
         // See ImportRecipeUrlDialog's identical fix: an implicit dismiss (back-press/
         // scrim tap) while a suggest request is in flight must not clear import state
         // out from under the still-running coroutine, or its eventual Success/Error
         // pops a dialog the user already thought they'd cancelled out of.
         onDismissRequest = { if (!isLoading) onDismiss() },
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_suggest_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

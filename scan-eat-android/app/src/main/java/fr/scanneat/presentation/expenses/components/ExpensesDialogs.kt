@@ -31,8 +31,11 @@ internal fun BudgetEditDialog(
     var weeklyText by remember { mutableStateOf(weeklyInitial?.formatDecimal(0) ?: "") }
     var monthlyText by remember { mutableStateOf(monthlyInitial?.formatDecimal(0) ?: "") }
     var perMealText by remember { mutableStateOf(perMealInitial?.formatDecimal(0) ?: "") }
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_edit_budget), color = OnBackground) },
         text = {
             // Scrollable - four fields (was two) previously risked clipping on a
@@ -118,8 +121,11 @@ internal fun AddExpenseDialog(onConfirm: (name: String, category: ProductCategor
     var weightText by remember { mutableStateOf("") }
     val price = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_add_entry), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
@@ -182,8 +188,11 @@ internal fun EditExpenseDialog(
     var weightText by remember { mutableStateOf(entry.weightG?.formatDecimal(0) ?: "") }
     val price = priceText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.01..9999.99 }
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
-    GlassAlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+        shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_edit_entry_title), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {

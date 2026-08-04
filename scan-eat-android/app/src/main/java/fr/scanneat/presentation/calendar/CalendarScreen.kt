@@ -108,8 +108,11 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), onBack: () ->
     }
 
     weekPopup?.let { ws ->
-        GlassAlertDialog(
+        AlertDialog(
             onDismissRequest = { weekPopup = null },
+            containerColor = SurfaceVariant.copy(alpha = 0.94f),
+            modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+            shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.calendar_week_popup_title, ws.weekStart.format(java.time.format.DateTimeFormatter.ofPattern("d MMM", locale))), color = OnBackground) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {

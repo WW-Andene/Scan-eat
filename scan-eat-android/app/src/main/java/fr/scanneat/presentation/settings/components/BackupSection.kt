@@ -125,7 +125,7 @@ internal fun BackupSection(
             )
             is BackupUiState.NeedsPassphrase -> {
                 var passphraseInput by remember { mutableStateOf("") }
-                GlassAlertDialog(
+                AlertDialog(
                     onDismissRequest = onClearBackupState,
                     title = { Text(stringResource(R.string.settings_backup_passphrase_title), color = OnBackground) },
                     text = {
@@ -152,6 +152,9 @@ internal fun BackupSection(
                     dismissButton = {
                         TextButton(onClick = onClearBackupState) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                     },
+                    containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                    modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+                    shape = RoundedCornerShape(CardRadius.PROMINENT),
                 )
             }
             is BackupUiState.ImportPreview -> {
@@ -162,7 +165,7 @@ internal fun BackupSection(
                 // wrong language.
                 val dateFmt = remember(language) { DateTimeFormatter.ofPattern("dd MMM yyyy", Locale(language)) }
                 val exportedDate = Instant.ofEpochMilli(s.metadata.exportedAtMs).atZone(ZoneId.systemDefault()).toLocalDate().format(dateFmt)
-                GlassAlertDialog(
+                AlertDialog(
                     onDismissRequest = onClearBackupState,
                     title = { Text(stringResource(R.string.settings_backup_import_confirm_title), color = OnBackground) },
                     text = {
@@ -181,13 +184,16 @@ internal fun BackupSection(
                             Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
                         }
                     },
+                    containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                    modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+                    shape = RoundedCornerShape(CardRadius.PROMINENT),
                 )
             }
             else -> {}
         }
         if (showExportDialog) {
             var exportPassphrase by remember { mutableStateOf("") }
-            GlassAlertDialog(
+            AlertDialog(
                 onDismissRequest = { showExportDialog = false },
                 title = { Text(stringResource(R.string.settings_backup_export_dialog_title), color = OnBackground) },
                 text = {
@@ -212,6 +218,9 @@ internal fun BackupSection(
                 dismissButton = {
                     TextButton(onClick = { showExportDialog = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                 },
+                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
+                shape = RoundedCornerShape(CardRadius.PROMINENT),
             )
         }
         // CSV diary export — spreadsheet-friendly complement to the JSON backup
