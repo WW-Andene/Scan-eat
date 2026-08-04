@@ -101,13 +101,12 @@ fun BiolismProfileScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
-            .padding(bottom = embeddedBottomPadding),
+            // top applied here, not as a Spacer inside the spacedBy Column below -
+            // see TrackerScreen's identical fix/comment for why a Spacer would pick
+            // up an extra Spacing.M gap from spacedBy that a pure padding inset doesn't.
+            .padding(top = embeddedTopPadding, bottom = embeddedBottomPadding),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
-        // Matches DataScreen/EvolutionScreen's top clearance under the same
-        // shared BiolismScreen header (see TrackerScreen's identical fix).
-        Spacer(Modifier.height(embeddedTopPadding))
-
         if (saved.value) {
             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Teal.copy(0.1f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(alpha = STATUS_BORDER_ALPHA)), modifier = Modifier.fillMaxWidth().shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint).clip(RoundedCornerShape(CardRadius.CONTROL)), shadowElevation = 0.dp) {
                 Text(stringResource(R.string.bioprofile_saved), modifier = Modifier.padding(Spacing.M), color = Teal, fontWeight = FontWeight.Bold)

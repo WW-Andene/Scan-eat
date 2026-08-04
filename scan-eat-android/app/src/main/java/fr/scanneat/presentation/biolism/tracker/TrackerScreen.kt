@@ -123,18 +123,15 @@ fun TrackerScreen(
             .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
-            .padding(bottom = embeddedBottomPadding),
+            // top applied here (not as a Spacer inside the spacedBy Column below)
+            // so it behaves exactly like DataScreen/EvolutionScreen's LazyColumn
+            // contentPadding: a pure inset, not a list item - a Spacer would count
+            // as the first spacedBy item and pick up an extra Spacing.M gap after
+            // it before the real first item, which previously made this screen's
+            // header-to-card gap ~Spacing.M larger than the LazyColumn tabs'.
+            .padding(top = embeddedTopPadding, bottom = embeddedBottomPadding),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
-        // Matches DataScreen/EvolutionScreen's LazyColumn contentPadding =
-        // PaddingValues(top = embeddedTopPadding) clearance under the same
-        // shared BiolismScreen header — embeddedTopPadding already IS the real
-        // header height (statusBar inset + BiolismHeaderHeight), exactly like
-        // FloatingScreenScaffold's own padding, so no extra literal is added on
-        // top of it. This screen isn't a LazyColumn (it's a scrolling Column
-        // with no top padding of its own), so this Spacer stands in for that.
-        Spacer(Modifier.height(embeddedTopPadding))
-
         if (!p.isValid) {
             EmptyProfilePrompt()
         } else {
