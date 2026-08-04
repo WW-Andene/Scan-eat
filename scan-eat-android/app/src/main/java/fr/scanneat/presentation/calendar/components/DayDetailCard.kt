@@ -48,7 +48,7 @@ internal fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, useImperia
             // navigating to Diary and re-selecting the same date by hand.
             TextButton(onClick = { onOpenDate(detail.date) }) {
                 Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(Spacing.S))
                 Text(stringResource(R.string.calendar_open_in_diary), color = AccentCoral, style = MaterialTheme.typography.labelSmall)
             }
         }

@@ -36,7 +36,7 @@ internal fun HealthConnectSection(availability: HealthConnectAvailability, conne
                 } else {
                     ScanEatOutlinedButton(onClick = onConnect) {
                         Icon(Icons.Default.MonitorHeart, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
-                        Spacer(Modifier.width(6.dp))
+                        Spacer(Modifier.width(Spacing.S))
                         Text(stringResource(R.string.settings_healthconnect_connect_button), color = OnBackground)
                     }
                 }

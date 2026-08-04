@@ -34,7 +34,7 @@ internal fun HistoryGradeDistributionSection(gradeDistribution: List<Pair<String
             Box(Modifier.weight(count.toFloat() / total).fillMaxHeight().background(color))
         }
     }
-    Spacer(Modifier.height(4.dp))
+    Spacer(Modifier.height(Spacing.XS))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
         gradeDistribution.forEach { (grade, count) ->
             // Was a second, independent grade->color mapping (green/amber/coral/red)

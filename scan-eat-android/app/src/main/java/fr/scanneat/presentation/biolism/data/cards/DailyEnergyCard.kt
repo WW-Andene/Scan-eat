@@ -34,7 +34,7 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
             Triple("Mifflin-St Jeor", met.bmrMsj.formatDecimal(), kcalJ),
             Triple("Katch-McArdle", met.bmrKm.formatDecimal(), stringResource(R.string.biolism_energy_km_sub)),
         ) + if (s.ketosisOn) listOf(Triple(stringResource(R.string.biolism_energy_bmr_suppressed), (met.bmrDay * met.ketoSupprFactor).formatDecimal(), stringResource(R.string.biolism_energy_bmr_suppressed_sub))) else emptyList())
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(Spacing.S))
         InfoRow(stringResource(R.string.biolism_energy_deficit), stringResource(R.string.biolism_energy_kcal_per_day_value, met.tdeeDay - 500), stringResource(R.string.biolism_energy_deficit_sub), Teal)
         InfoRow(stringResource(R.string.biolism_energy_surplus), stringResource(R.string.biolism_energy_kcal_per_day_value, met.tdeeDay + 300), stringResource(R.string.biolism_energy_surplus_sub), Violet)
 

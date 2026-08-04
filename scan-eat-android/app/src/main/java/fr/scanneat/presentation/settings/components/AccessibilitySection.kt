@@ -54,7 +54,7 @@ internal fun AccessibilitySection(
                 )
             }
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(Spacing.S))
         // Live preview so the effect of the chosen mode is visible right here,
         // not just later on a scan result.
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {

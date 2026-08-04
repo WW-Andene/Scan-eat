@@ -28,7 +28,7 @@ internal fun DataResetSection(onShowResetDialog: () -> Unit) {
         Text(stringResource(R.string.settings_reset_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         ScanEatOutlinedButton(onClick = onShowResetDialog) {
             Icon(TablerIcons.Trash, null, tint = semanticRed(), modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_reset_button), color = semanticRed())
         }
     }

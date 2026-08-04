@@ -19,7 +19,7 @@ internal fun GroceryProgressRow(itemCount: Int, checkedProgress: Pair<Int, Int>)
     Text(pluralStringResource(R.plurals.grocery_item_count, itemCount, itemCount),
         style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
     if (total > 0 && checked > 0) {
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Spacing.XS))
         androidx.compose.material3.LinearProgressIndicator(
             progress = { (checked.toFloat() / total).coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth().height(4.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(2.dp)),

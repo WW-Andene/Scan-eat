@@ -23,7 +23,7 @@ fun BurnRateCard(met: MetabolicResult, s: TimerState, cum: SessionCumulative?) {
             Triple(stringResource(R.string.biolism_burn_per_hour), (met.kcalSec * 3600).formatDecimal(2), "kcal/h"),
             Triple(stringResource(R.string.biolism_burn_per_day), met.bmrDay.formatDecimal(), stringResource(R.string.biolism_burn_per_day_unit)),
         ))
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(Spacing.S))
         InfoRow(stringResource(R.string.biolism_burn_substrate_split), "G %d%% · Gluc %d%% · P %d%%".format(Locale.US, 
             (met.sub.fatFrac * 100).toInt(), (met.sub.carbFrac * 100).toInt(), (met.sub.protFrac * 100).toInt()),
             stringResource(R.string.biolism_burn_substrate_split_note), TextSecondary)

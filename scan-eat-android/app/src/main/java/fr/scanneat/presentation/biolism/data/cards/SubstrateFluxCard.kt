@@ -34,7 +34,7 @@ fun SubstrateFluxCard(met: MetabolicResult, s: TimerState) {
             ),
             accents = listOf(Warm, OnBackground, Violet, Warm)
         )
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(Spacing.S))
         InfoRow(stringResource(R.string.biolism_flux_acetyl_coa_total), "%.3f mmol/min".format(Locale.US, met.acCoaTotalMmolMin), "", Gold)
         InfoRow(stringResource(R.string.biolism_flux_beta_ox), "%.3f mmol/min".format(Locale.US, met.acCoaFatMmolMin), "", Warm)
         InfoRow(stringResource(R.string.biolism_flux_glycolysis), "%.3f mmol/min".format(Locale.US, met.acCoaCarbMmolMin), "", TextSecondary)

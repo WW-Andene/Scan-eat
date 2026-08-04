@@ -65,7 +65,7 @@ fun SessionAnalyticsCard(sessions: List<BiolismSession>, currentWeightKg: Double
                 Label(stringResource(R.string.biolism_sessan_body_comp_trend), Violet)
                 val last8 = compHistory.takeLast(8)
                 BarSparkline(last8, Violet, barHeight = 36.dp)
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(Spacing.S))
                 InfoRow(stringResource(R.string.biolism_sessan_fat_oxidised_cum), "%.1f g".format(Locale.US, totalFatLostKg * 1000), "", Violet)
                 InfoRow(stringResource(R.string.biolism_sessan_est_weight), dispWeight(latestWeight, useImperial), "", deltaColor)
             }

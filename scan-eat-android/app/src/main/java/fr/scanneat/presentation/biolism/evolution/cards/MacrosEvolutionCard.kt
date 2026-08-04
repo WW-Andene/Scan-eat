@@ -72,7 +72,7 @@ private fun MacroRow(label: String, days: List<DayBucket>, color: Color, value: 
                 fontWeight = FontWeight.SemiBold,
             )
         }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(Spacing.XS))
         BarSparkline(values = days.map(value), color = color)
         Spacer(Modifier.height(Spacing.S))
     }

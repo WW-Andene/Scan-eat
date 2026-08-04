@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -132,7 +133,7 @@ internal fun LineTrendChart(
             )
         }
     }
-    Spacer(Modifier.height(4.dp))
+    Spacer(Modifier.height(Spacing.XS))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(sorted.first().first.format(dateFmt), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
         Text(sorted.last().first.format(dateFmt), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))

@@ -92,7 +92,7 @@ internal fun BackupSection(
                 // previously hardcoded black regardless of enabled state,
                 // compounding the same bug fixed in ScanEatButton.kt).
                 Icon(Icons.Default.Upload, null, modifier = Modifier.size(IconSize.Compact))
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(Spacing.S))
                 Text(stringResource(R.string.settings_backup_export_button))
             }
             ScanEatOutlinedButton(
@@ -100,7 +100,7 @@ internal fun BackupSection(
                 enabled = !working,
             ) {
                 Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(Spacing.S))
                 Text(stringResource(R.string.settings_backup_import_button), color = OnBackground)
             }
         }
@@ -221,7 +221,7 @@ internal fun BackupSection(
             enabled = backupState !is BackupUiState.Working,
         ) {
             Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_csv_export_button), color = OnBackground)
         }
         // CSV Biolism export — same spreadsheet-friendly complement, for workout
@@ -231,7 +231,7 @@ internal fun BackupSection(
             enabled = backupState !is BackupUiState.Working,
         ) {
             Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_biolism_csv_export_button), color = OnBackground)
         }
         // Weight/Activity/Hydration/Medication/Fasting previously had no CSV export at
@@ -245,7 +245,7 @@ internal fun BackupSection(
                 enabled = backupState !is BackupUiState.Working,
             ) {
                 Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(Spacing.S))
                 Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
             }
             DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL))) {
@@ -285,7 +285,7 @@ internal fun BackupSection(
             enabled = backupState !is BackupUiState.Working,
         ) {
             Icon(Icons.Default.PictureAsPdf, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_pdf_report_button), color = OnBackground)
         }
         // Data stats — show what's stored so the user knows what they'd export or reset

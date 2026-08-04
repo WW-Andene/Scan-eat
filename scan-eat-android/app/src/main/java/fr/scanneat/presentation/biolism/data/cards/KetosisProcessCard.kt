@@ -23,7 +23,7 @@ fun KetosisProcessCard(s: TimerState, met: MetabolicResult, lang: String = "fr")
     BioCard(stringResource(R.string.biolism_ketoproc_title), badge = { Badge(phase.label.uppercase(), phaseColor) }) {
         Text(formatDuration(s.ketoElapsedMs), style = HeroNumberStyle.copy(fontSize = 24.sp), color = phaseColor)
         Text(stringResource(R.string.biolism_ketoproc_elapsed_label), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(Spacing.S))
         Text(phase.description, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
         Spacer(Modifier.height(Spacing.S))
         LinearProgressIndicator(
