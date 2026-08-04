@@ -64,6 +64,7 @@ import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
+import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
 internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onDelete: () -> Unit, onRename: () -> Unit, onEditNotes: () -> Unit, onToggleFavorite: () -> Unit, onScale: () -> Unit, onSaveAsTemplate: () -> Unit, onDuplicate: () -> Unit, onEditIngredients: () -> Unit) {
@@ -207,7 +208,7 @@ internal fun RecipeCard(recipe: Recipe, warning: String?, pairings: List<String>
         // (allergen or diet violation) had no warning anywhere in this screen.
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

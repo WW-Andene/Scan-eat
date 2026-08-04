@@ -51,7 +51,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
                 Icon(TablerIcons.Check, stringResource(R.string.common_ok), tint = AccentCoral, modifier = Modifier.size(18.dp))
             }
             IconButton(onClick = { editing = false }) {
-                Icon(TablerIcons.X, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.X, stringResource(R.string.common_cancel), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
             }
         } else {
             val label = when (slot) {
@@ -80,7 +80,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // assignment. Recipe/Template slots use the clear (X) button to remove instead.
             if (slot == null || slot is MealPlanSlot.NoteSlot) {
                 IconButton(onClick = { editing = true }) {
-                    Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.Edit, stringResource(R.string.common_edit), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
                 }
             }
             // A planned Recipe/Template slot previously only ever persisted the plan
@@ -96,7 +96,7 @@ internal fun MealPlanRow(meal: String, slot: MealPlanSlot?, onEdit: (String) -> 
             // now MealPlanSlot.RecipeSlot/TemplateSlot could only ever be produced by
             // deserializing a backup, never by anything reachable from the UI.
             IconButton(onClick = onAssign) {
-                Icon(TablerIcons.ClipboardList, stringResource(R.string.mealplan_assign_cd), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.ClipboardList, stringResource(R.string.mealplan_assign_cd), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
             }
             if (slot != null) {
                 IconButton(onClick = onClear) {

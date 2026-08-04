@@ -24,6 +24,7 @@ import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.glassSheen
+import fr.scanneat.presentation.ui.theme.IconSize
 import kotlin.math.roundToInt
 
 @Composable
@@ -40,7 +41,7 @@ internal fun WeekDeltaCard(delta: WeekOverWeekDelta) {
     ) {
         Icon(
             if (delta.kcal >= 0) TablerIcons.ArrowUpRight else TablerIcons.ArrowDownRight,
-            null, tint = color, modifier = Modifier.size(16.dp),
+            null, tint = color, modifier = Modifier.size(IconSize.Small),
         )
         Text(
             stringResource(R.string.dashboard_week_delta, "$sign${delta.kcal.roundToInt()}"),

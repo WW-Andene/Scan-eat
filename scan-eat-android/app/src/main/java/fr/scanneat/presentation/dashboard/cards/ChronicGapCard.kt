@@ -35,6 +35,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.IconSize
 
 /**
  * Surfaces chronicNutrientGaps() — recurring, multi-day nutrient shortfalls,
@@ -55,7 +56,7 @@ internal fun ChronicGapCard(gaps: List<ChronicGap>, onSuggestionClick: (GapSugge
                 // design-aesthetic-audit §DC: same gap as GapCloserCard - every other
                 // amber-warning text in the app pairs a WarningAmber icon with the text.
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
                     Text(
                         stringResource(
                             R.string.dashboard_chronic_gap_entry,

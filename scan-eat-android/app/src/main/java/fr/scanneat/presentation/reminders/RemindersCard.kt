@@ -107,7 +107,7 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
         }
         var showAddDialog by remember { mutableStateOf(false) }
         TextButton(onClick = { showAddDialog = true }, modifier = Modifier.align(Alignment.End)) {
-            Icon(TablerIcons.Plus, null, modifier = Modifier.size(16.dp))
+            Icon(TablerIcons.Plus, null, modifier = Modifier.size(IconSize.Small))
             Spacer(Modifier.width(Spacing.XS))
             Text(stringResource(R.string.reminders_add_custom), style = MaterialTheme.typography.labelMedium)
         }

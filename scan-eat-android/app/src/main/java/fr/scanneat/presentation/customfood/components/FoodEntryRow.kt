@@ -37,6 +37,7 @@ import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.semanticRed
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
 internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHints, onDelete: () -> Unit, onRename: () -> Unit) {
@@ -110,14 +111,14 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                 Icon(
                     TablerIcons.Edit, stringResource(R.string.common_rename),
                     tint = OnSurface.copy(0.5f),
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(IconSize.Small),
                 )
             }
             IconButton(onClick = onDelete) {
                 Icon(
                     TablerIcons.X, stringResource(R.string.common_delete),
                     tint = OnSurface.copy(0.5f),
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(IconSize.Small),
                 )
             }
         }

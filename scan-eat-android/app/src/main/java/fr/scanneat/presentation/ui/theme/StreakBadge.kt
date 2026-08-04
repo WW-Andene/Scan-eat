@@ -36,7 +36,7 @@ fun StreakBadge(streakDays: Int, accentColor: Color) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
         ) {
-            Icon(Icons.Default.LocalFireDepartment, null, tint = accentColor, modifier = androidx.compose.ui.Modifier.size(16.dp))
+            Icon(Icons.Default.LocalFireDepartment, null, tint = accentColor, modifier = androidx.compose.ui.Modifier.size(IconSize.Small))
             Text(
                 stringResource(R.string.common_streak_days_compact, streakDays),
                 style = MaterialTheme.typography.labelMedium,

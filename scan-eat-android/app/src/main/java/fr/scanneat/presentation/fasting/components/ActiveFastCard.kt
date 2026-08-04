@@ -68,7 +68,7 @@ internal fun ActiveFastCard(fastingState: FastingState, language: String, person
                 horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
                 // Icon, not the 🏆 emoji baked into the string before.
-                Icon(TablerIcons.Trophy, null, tint = Gold, modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.Trophy, null, tint = Gold, modifier = Modifier.size(IconSize.Small))
                 Text(stringResource(R.string.fasting_new_record), style = MaterialTheme.typography.labelMedium, color = Gold, fontWeight = FontWeight.Bold)
             }
         }

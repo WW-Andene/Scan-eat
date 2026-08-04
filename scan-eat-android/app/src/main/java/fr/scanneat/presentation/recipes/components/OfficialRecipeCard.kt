@@ -34,6 +34,7 @@ import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
 internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warning: String?, pairings: List<String>, hints: ProductHints, onLog: () -> Unit, onClone: () -> Unit) {
@@ -61,7 +62,7 @@ internal fun OfficialRecipeCard(recipe: OfficialRecipe, isFrench: Boolean, warni
         }
         warning?.let {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
                 Text(it, style = MaterialTheme.typography.bodySmall, color = semanticAmber())
             }
         }

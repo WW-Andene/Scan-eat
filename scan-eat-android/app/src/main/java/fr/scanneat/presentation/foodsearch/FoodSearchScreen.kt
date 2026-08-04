@@ -186,7 +186,7 @@ private fun DisplayModeButton(mode: SearchDisplayMode, onClick: () -> Unit) {
         shape = RoundedCornerShape(CardRadius.CONTROL),
         modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
     ) {
-        Icon(Icons.Rounded.SwapHoriz, null, modifier = Modifier.size(16.dp))
+        Icon(Icons.Rounded.SwapHoriz, null, modifier = Modifier.size(IconSize.Small))
         Spacer(Modifier.width(Spacing.XS))
         Text(stringResource(R.string.foodsearch_mode_button, stringResource(modeLabel(mode))), style = MaterialTheme.typography.labelMedium)
     }
@@ -270,7 +270,7 @@ private fun OnlineSearchSection(
         if (state == OnlineSearchState.IDLE || state == OnlineSearchState.ERROR || state == OnlineSearchState.EMPTY) {
             Spacer(Modifier.height(Spacing.XS))
             OutlinedButton(onClick = onSearchOnline, shape = RoundedCornerShape(CardRadius.CONTROL)) {
-                Icon(TablerIcons.Search, null, modifier = Modifier.size(16.dp))
+                Icon(TablerIcons.Search, null, modifier = Modifier.size(IconSize.Small))
                 Spacer(Modifier.width(Spacing.XS))
                 Text(stringResource(R.string.foodsearch_online_search_button), style = MaterialTheme.typography.labelMedium)
             }

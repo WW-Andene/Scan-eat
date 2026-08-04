@@ -50,6 +50,7 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.minTouchTarget
+import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
 internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: Dp, onClick: () -> Unit) {
@@ -106,7 +107,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
                 shadowElevation = 0.dp,
             ) {
                 Row(Modifier.padding(horizontal = Spacing.M, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.Fastfood, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Small))
                     Spacer(Modifier.width(Spacing.S))
                     Text(stringResource(R.string.scan_identify_food_button), style = MaterialTheme.typography.labelSmall, color = OnSurface)
                 }

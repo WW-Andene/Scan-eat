@@ -81,7 +81,7 @@ internal fun GroceryItemRow(
                 // Left at IconButton's default 48dp touch target (Material/WCAG
                 // minimum) - a UI/UX audit found this forced to 32dp.
                 IconButton(onClick = { showDeleteConfirm = true }) {
-                    Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.X, stringResource(R.string.common_delete), tint = OnSurface.copy(0.5f), modifier = Modifier.size(IconSize.Small))
                 }
             }
         }

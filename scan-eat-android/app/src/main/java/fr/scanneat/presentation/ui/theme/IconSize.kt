@@ -22,6 +22,15 @@ object IconSize {
      */
     val Compact: Dp = 18.dp
 
+    /**
+     * §E1/genre audit (icon sizes, round 2): 16.dp turned out to be even more
+     * common than [Compact] - ~42 call sites (delete/edit/warning/search glyphs
+     * inside dense rows and dialogs) - and still unnamed. Named at the exact
+     * existing value for the same reason as [Compact]: zero visual change,
+     * lets those call sites join the scale without a blanket resize.
+     */
+    val Small: Dp = 16.dp
+
     /** Inline / label-adjacent icons (chip icons, list-row leading icons). */
     val Inline: Dp = 20.dp
 

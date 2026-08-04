@@ -22,6 +22,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.semanticRed
+import fr.scanneat.presentation.ui.theme.IconSize
 
 @Composable
 internal fun FlagsSection(redFlags: List<String>, greenFlags: List<String>) {
@@ -43,7 +44,7 @@ private fun FlagRow(text: String, isRed: Boolean) {
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Icon(if (isRed) TablerIcons.AlertTriangle else TablerIcons.CircleCheck, null,
-            tint = color, modifier = Modifier.size(16.dp))
+            tint = color, modifier = Modifier.size(IconSize.Small))
         Text(text, style = MaterialTheme.typography.bodySmall, color = OnBackground, modifier = Modifier.weight(1f))
     }
 }

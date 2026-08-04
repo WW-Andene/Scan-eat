@@ -28,6 +28,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.dispWeight
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.util.formatDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -47,7 +48,7 @@ internal fun DayDetailCard(detail: CalendarDayDetail, locale: Locale, useImperia
             // happened on a day - spotting a gap here still meant manually
             // navigating to Diary and re-selecting the same date by hand.
             TextButton(onClick = { onOpenDate(detail.date) }) {
-                Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = AccentCoral, modifier = Modifier.size(16.dp))
+                Icon(Icons.AutoMirrored.Filled.MenuBook, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Small))
                 Spacer(Modifier.width(Spacing.S))
                 Text(stringResource(R.string.calendar_open_in_diary), color = AccentCoral, style = MaterialTheme.typography.labelSmall)
             }

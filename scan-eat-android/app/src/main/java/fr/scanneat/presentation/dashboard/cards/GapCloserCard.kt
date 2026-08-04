@@ -35,6 +35,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.util.formatDecimal
 
 /** [onSuggestionClick] logs the suggested food (see DashboardViewModel.logGapSuggestion) — previously these chips had no action at all. */
@@ -52,7 +53,7 @@ internal fun GapCloserCard(gaps: List<GapEntry>, onSuggestionClick: (GapSuggesti
                 // (TemplateCard, HormonesEvolutionCard, HealthConditionCaution) pairs a
                 // WarningAmber icon with the text - this was bare amber text alone.
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(16.dp))
+                    Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.size(IconSize.Small))
                     Text(
                         stringResource(R.string.dashboard_gap_entry, nutrientLabel(gap.nutrient), gap.deficit.formatDecimal()),
                         style = MaterialTheme.typography.labelMedium, color = semanticAmber(),
