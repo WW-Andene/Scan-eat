@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.Row
@@ -52,7 +54,11 @@ import kotlin.math.roundToInt
 // TrackerScreenComponents.kt. Was previously a single 516-line file with
 // all sections + formatters inline.
 @Composable
-fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
+fun TrackerScreen(
+    viewModel: TrackerViewModel = hiltViewModel(),
+    embeddedTopPadding: Dp = 0.dp,
+    embeddedBottomPadding: Dp = 0.dp,
+) {
     val profile   = viewModel.profile.collectAsStateWithLifecycle()
     val timer     = viewModel.timerState.collectAsStateWithLifecycle()
     val elapsedMs = viewModel.elapsedMs.collectAsStateWithLifecycle()
@@ -117,17 +123,15 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
             .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
-            .padding(bottom = Spacing.L),
+            .padding(bottom = embeddedBottomPadding + Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         // Matches DataScreen/EvolutionScreen's LazyColumn contentPadding =
-        // PaddingValues(Spacing.L) top clearance under the same shared
-        // BiolismScreen header — this screen isn't a LazyColumn (it's a
-        // scrolling Column with no top padding of its own), so this Spacer
-        // is the only thing standing in for that gap; it previously used
-        // half that value, making Tracker read as stuck to the header while
-        // its sibling tabs didn't.
-        Spacer(Modifier.height(Spacing.L))
+        // PaddingValues(top = embeddedTopPadding + Spacing.L) clearance under
+        // the same shared BiolismScreen header — this screen isn't a
+        // LazyColumn (it's a scrolling Column with no top padding of its
+        // own), so this Spacer is the only thing standing in for that gap.
+        Spacer(Modifier.height(embeddedTopPadding + Spacing.L))
 
         if (!p.isValid) {
             EmptyProfilePrompt()

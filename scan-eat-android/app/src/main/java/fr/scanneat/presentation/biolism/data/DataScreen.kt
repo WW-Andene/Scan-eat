@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -42,7 +44,11 @@ import fr.scanneat.presentation.ui.theme.ambientGloom
 // DataScreenComponents.kt. Was previously a single 892-line file with all
 // 14 card sections inline.
 @Composable
-fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
+fun DataScreen(
+    viewModel: DataViewModel = hiltViewModel(),
+    embeddedTopPadding: Dp = 0.dp,
+    embeddedBottomPadding: Dp = 0.dp,
+) {
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
     val timer       = viewModel.timer.collectAsStateWithLifecycle()
     val m           = viewModel.metabolics.collectAsStateWithLifecycle()
@@ -76,7 +82,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val s   = timer.value
 
     if (met == null) {
-        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(top = embeddedTopPadding, bottom = embeddedBottomPadding), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Icon(Icons.Outlined.MonitorHeart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
                 Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
@@ -90,7 +96,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     Box(Modifier.fillMaxSize()) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(horizontal = Spacing.L),
-        contentPadding = PaddingValues(vertical = Spacing.L),
+        contentPadding = PaddingValues(top = embeddedTopPadding + Spacing.L, bottom = embeddedBottomPadding + Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { MetabolicHealthScoreCard(met, profile.value) }

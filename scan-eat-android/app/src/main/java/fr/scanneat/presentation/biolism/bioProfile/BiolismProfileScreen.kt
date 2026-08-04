@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,7 +30,11 @@ import fr.scanneat.util.formatDecimal
 import java.util.Locale
 
 @Composable
-fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
+fun BiolismProfileScreen(
+    viewModel: BiolismProfileViewModel = hiltViewModel(),
+    embeddedTopPadding: Dp = 0.dp,
+    embeddedBottomPadding: Dp = 0.dp,
+) {
     val profile = viewModel.profile.collectAsStateWithLifecycle()
     val saved   = viewModel.saved.collectAsStateWithLifecycle()
     val completeness = viewModel.profileCompleteness.collectAsStateWithLifecycle()
@@ -96,12 +101,12 @@ fun BiolismProfileScreen(viewModel: BiolismProfileViewModel = hiltViewModel()) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
-            .padding(bottom = 40.dp),
+            .padding(bottom = embeddedBottomPadding + 40.dp),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         // Matches DataScreen/EvolutionScreen's top clearance under the same
         // shared BiolismScreen header (see TrackerScreen's identical fix).
-        Spacer(Modifier.height(Spacing.L))
+        Spacer(Modifier.height(embeddedTopPadding + Spacing.L))
 
         if (saved.value) {
             Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = Teal.copy(0.1f), border = androidx.compose.foundation.BorderStroke(1.dp, Teal.copy(alpha = STATUS_BORDER_ALPHA)), modifier = Modifier.fillMaxWidth().shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint).clip(RoundedCornerShape(CardRadius.CONTROL)), shadowElevation = 0.dp) {

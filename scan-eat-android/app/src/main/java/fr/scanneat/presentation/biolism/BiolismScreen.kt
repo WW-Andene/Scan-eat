@@ -60,27 +60,32 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     val hazeState = remember { HazeState() }
 
     val fgColor = MaterialTheme.colorScheme.onBackground
-    // True floating chrome, matching MainShell/FloatingScreenScaffold: the tab
-    // content Box fills the whole frame and the header floats on top of it
-    // (z-order, not push-down), registered as this header's own hazeSource so
-    // it shows a real backdrop blur of whatever's passing underneath instead
-    // of stopping short of it. Bottom clearance for MainShell's own floating
-    // nav (Biolism is one of its TOP_TABS) is reserved here as a fixed gap
-    // rather than true scroll-under, since none of the 4 tab screens below
-    // expose a contentPadding hook of their own to thread it through precisely.
+    // User-reported: unlike DiaryScreen's identical internal-tab-header pattern
+    // (see DiaryScreen.kt's own doc comment on this exact fix), this content Box
+    // used Modifier.padding(top/bottom) - which shrinks the Box's own layout
+    // bounds, so none of the 4 tab screens could ever draw into the reserved
+    // header/nav zone even while scrolling. That left hazeSource with nothing
+    // there to blur (no content ever visible "through" the glass header while
+    // scrolling) and made each tab's own fixed Spacing.L top gap the only real
+    // clearance under the header - correct relative to each other, but not
+    // actually accounting for the header's real height, so it read as stuck
+    // directly under it. Threaded as embeddedTopPadding/embeddedBottomPadding
+    // into each tab's own scrollable content instead, exactly like Diary's
+    // MealsTab/WeightScreen/etc - content now scrolls the full screen height
+    // and is genuinely visible (blurred) behind the floating header.
+    val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + BiolismHeaderHeight
+    val bottomClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
     Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .hazeSource(hazeState)
-                .padding(top = BiolismHeaderHeight)
-                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight),
+                .hazeSource(hazeState),
         ) {
             when (activeTab) {
-                BiolismTab.TRACKER   -> TrackerScreen()
-                BiolismTab.DATA      -> DataScreen()
-                BiolismTab.EVOLUTION -> EvolutionScreen()
-                BiolismTab.PROFILE   -> BiolismProfileScreen()
+                BiolismTab.TRACKER   -> TrackerScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
+                BiolismTab.DATA      -> DataScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
+                BiolismTab.EVOLUTION -> EvolutionScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
+                BiolismTab.PROFILE   -> BiolismProfileScreen(embeddedTopPadding = topPadding, embeddedBottomPadding = bottomClearance)
             }
         }
 
