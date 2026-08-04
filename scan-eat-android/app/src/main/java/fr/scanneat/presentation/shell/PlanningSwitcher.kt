@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.shell
 
 import fr.scanneat.presentation.ui.theme.CardRadius
+import fr.scanneat.presentation.ui.theme.DROPDOWN_MENU_GAP
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
@@ -52,7 +53,8 @@ fun PlanningSwitcherMenu(current: PlanningDestination, onNavigate: (PlanningDest
     IconButton(onClick = { expanded = true }) {
         Icon(Icons.Default.SwapHoriz, stringResource(R.string.planning_switcher_cd), tint = OnBackground)
     }
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL))) {
+    // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
         PlanningDestination.entries.filter { it != current }.forEach { dest ->
             DropdownMenuItem(
                 text = { Text(stringResource(dest.labelRes)) },

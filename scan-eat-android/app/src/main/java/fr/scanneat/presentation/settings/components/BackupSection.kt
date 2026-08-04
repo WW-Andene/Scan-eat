@@ -254,7 +254,8 @@ internal fun BackupSection(
                 Spacer(Modifier.width(Spacing.S))
                 Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
             }
-            DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL))) {
+            // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
+            DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
                     onClick = { moreCsvExpanded = false; onPrepareWeightCsvExport() })
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },

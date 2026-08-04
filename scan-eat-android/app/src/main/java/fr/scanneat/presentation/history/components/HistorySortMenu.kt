@@ -26,7 +26,8 @@ internal fun HistorySortMenu(expanded: Boolean, onExpandedChange: (Boolean) -> U
         IconButton(onClick = { onExpandedChange(true) }) {
             Icon(Icons.Rounded.Sort, stringResource(R.string.history_sort), tint = OnBackground.copy(0.7f))
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL))) {
+        // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
+        DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
             val options = listOf(
                 HistorySort.RECENT to stringResource(R.string.history_sort_recent),
                 HistorySort.OLDEST to stringResource(R.string.history_sort_oldest),

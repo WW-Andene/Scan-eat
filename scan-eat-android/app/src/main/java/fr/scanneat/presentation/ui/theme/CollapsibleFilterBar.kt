@@ -96,10 +96,9 @@ fun CollapsibleFilterBar(
             shadowElevation = 0.dp,
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
             // User-reported: the popup opened flush against the trigger pill with
-            // no gap. DropdownMenu defaults to zero offset from its anchor;
-            // Spacing.T2 gives it the same small standard gap every other
-            // floating surface in the app (tooltips, popups) keeps from its anchor.
-            offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = Spacing.T2),
+            // no gap. DROPDOWN_MENU_GAP is the app-wide standard gap every
+            // DropdownMenu now keeps from its trigger (see its own doc comment).
+            offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP),
             content = content,
         )
     }

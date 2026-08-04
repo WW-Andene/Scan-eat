@@ -44,3 +44,14 @@ object Spacing {
     // scale topped out below the one value every list screen already agrees on.
     val XXL: Dp = 32.dp
 }
+
+/**
+ * User-reported: every DropdownMenu's popup opened flush against its
+ * trigger (0dp gap, Compose's own default) - only 2 of the app's 10
+ * DropdownMenu call sites had ever added a gap (CollapsibleFilterBar,
+ * ExpensesDialogs' category picker), and even those used the tightest
+ * token (Spacing.T2, 2dp - imperceptible at typical density). Named here
+ * so every DropdownMenu's `offset = DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)`
+ * stays in sync instead of drifting per call site again.
+ */
+val DROPDOWN_MENU_GAP: Dp = Spacing.XS
