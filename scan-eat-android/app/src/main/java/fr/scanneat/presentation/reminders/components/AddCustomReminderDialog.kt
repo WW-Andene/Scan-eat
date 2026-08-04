@@ -36,7 +36,7 @@ internal fun AddCustomReminderDialog(onConfirm: (String, String) -> Unit, onDism
     val timeValid = remember(time) { runCatching { java.time.LocalTime.parse(time) }.isSuccess }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.reminders_add_custom), color = OnBackground) },

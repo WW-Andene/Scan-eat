@@ -43,7 +43,7 @@ import fr.scanneat.presentation.ui.theme.SurfaceVariant
 internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_menu_dialog_title), color = OnBackground) },

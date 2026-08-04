@@ -40,7 +40,7 @@ internal fun SaveAsTemplateDialog(recipe: Recipe, onDismiss: () -> Unit, onConfi
     var slot by remember { mutableStateOf(MealSlot.LUNCH) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_save_as_template_title, recipe.name), color = OnBackground) },

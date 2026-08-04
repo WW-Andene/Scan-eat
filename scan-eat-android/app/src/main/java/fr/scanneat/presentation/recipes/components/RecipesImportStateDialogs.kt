@@ -65,7 +65,7 @@ internal fun RecipesImportStateDialogs(
         when (importState) {
             is RecipesViewModel.ImportUiState.Loading -> AlertDialog(
                 onDismissRequest = {},
-                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                containerColor = SurfaceVariant.copy(alpha = 0.85f),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 text = {
@@ -78,7 +78,7 @@ internal fun RecipesImportStateDialogs(
             )
             is RecipesViewModel.ImportUiState.Error -> AlertDialog(
                 onDismissRequest = onClearImportState,
-                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                containerColor = SurfaceVariant.copy(alpha = 0.85f),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 // F21 (docs/design-audit-step8-components-shape.md): was a bare

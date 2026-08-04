@@ -31,7 +31,7 @@ internal fun HydrationGoalEditorDialog(
     val goalValid = goalText.toIntOrNull()?.let { it in 1..10000 } == true
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.hydration_edit_goal_title), color = OnBackground) },

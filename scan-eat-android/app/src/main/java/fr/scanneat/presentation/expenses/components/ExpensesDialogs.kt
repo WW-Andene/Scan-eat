@@ -33,7 +33,7 @@ internal fun BudgetEditDialog(
     var perMealText by remember { mutableStateOf(perMealInitial?.formatDecimal(0) ?: "") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_edit_budget), color = OnBackground) },
@@ -123,7 +123,7 @@ internal fun AddExpenseDialog(onConfirm: (name: String, category: ProductCategor
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_add_entry), color = OnBackground) },
@@ -190,7 +190,7 @@ internal fun EditExpenseDialog(
     val weight = weightText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.1..50000.0 }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.expenses_edit_entry_title), color = OnBackground) },
@@ -256,7 +256,7 @@ internal fun ExpenseCategoryPicker(category: ProductCategory, onCategoryChange: 
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 shape = RoundedCornerShape(CardRadius.CONTROL),
-                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                containerColor = SurfaceVariant.copy(alpha = 0.85f),
                 shadowElevation = 0.dp,
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
                 offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP),

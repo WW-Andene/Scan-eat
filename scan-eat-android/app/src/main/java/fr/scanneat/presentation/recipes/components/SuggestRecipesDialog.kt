@@ -89,7 +89,7 @@ internal fun SuggestRecipesDialog(
         // out from under the still-running coroutine, or its eventual Success/Error
         // pops a dialog the user already thought they'd cancelled out of.
         onDismissRequest = { if (!isLoading) onDismiss() },
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_suggest_title), color = OnBackground) },

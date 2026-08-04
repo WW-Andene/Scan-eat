@@ -119,7 +119,7 @@ internal fun BoxScope.ScanStateOverlay(
             }
             AlertDialog(
                 onDismissRequest = onDismissFound,
-                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                containerColor = SurfaceVariant.copy(alpha = 0.85f),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 title = { Text(stringResource(R.string.scan_medication_found_title), color = OnBackground) },
@@ -141,7 +141,7 @@ internal fun BoxScope.ScanStateOverlay(
             val hints = remember(s.entry, language) { generateNonConsumableHints(s.entry.category, language) }
             AlertDialog(
                 onDismissRequest = onDismissFound,
-                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                containerColor = SurfaceVariant.copy(alpha = 0.85f),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 title = { Text(stringResource(R.string.scan_nonconsumable_found_title), color = OnBackground) },

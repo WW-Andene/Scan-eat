@@ -68,7 +68,7 @@ fun LogSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState       = sheetState,
-        containerColor   = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor   = SurfaceVariant.copy(alpha = 0.85f),
         modifier         = Modifier.glassPopupSurface(sheetShape),
         shape            = sheetShape,
     ) {

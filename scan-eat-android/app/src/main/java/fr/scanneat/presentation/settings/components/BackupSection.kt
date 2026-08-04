@@ -152,7 +152,7 @@ internal fun BackupSection(
                     dismissButton = {
                         TextButton(onClick = onClearBackupState) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                     },
-                    containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                    containerColor = SurfaceVariant.copy(alpha = 0.85f),
                     modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                     shape = RoundedCornerShape(CardRadius.PROMINENT),
                 )
@@ -184,7 +184,7 @@ internal fun BackupSection(
                             Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
                         }
                     },
-                    containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                    containerColor = SurfaceVariant.copy(alpha = 0.85f),
                     modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                     shape = RoundedCornerShape(CardRadius.PROMINENT),
                 )
@@ -218,7 +218,7 @@ internal fun BackupSection(
                 dismissButton = {
                     TextButton(onClick = { showExportDialog = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
                 },
-                containerColor = SurfaceVariant.copy(alpha = 0.94f),
+                containerColor = SurfaceVariant.copy(alpha = 0.85f),
                 modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
             )
@@ -258,7 +258,7 @@ internal fun BackupSection(
                 Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
             }
             // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-            DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
+            DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.85f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
                     onClick = { moreCsvExpanded = false; onPrepareWeightCsvExport() })
                 DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },

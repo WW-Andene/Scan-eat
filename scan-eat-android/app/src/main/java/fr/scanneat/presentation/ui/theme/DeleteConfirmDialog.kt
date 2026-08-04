@@ -24,7 +24,7 @@ import fr.scanneat.R
 fun ConfirmDialog(title: String, body: String, confirmLabel: String, confirmColor: Color = semanticRed(), onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor   = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor   = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape   = RoundedCornerShape(CardRadius.PROMINENT),
         title   = { Text(title, color = OnBackground) },

@@ -82,7 +82,7 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
     if (showLowCarbInfo) {
         AlertDialog(
             onDismissRequest = { showLowCarbInfo = false },
-            containerColor = SurfaceVariant.copy(alpha = 0.94f),
+            containerColor = SurfaceVariant.copy(alpha = 0.85f),
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.diary_totals_title), color = OnBackground) },
