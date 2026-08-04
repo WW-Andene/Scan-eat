@@ -94,7 +94,7 @@ internal fun EditTemplateItemsDialog(
                                     selectedFood = food
                                     newName = food.name
                                     onQueryChange("")
-                                }.padding(vertical = 4.dp),
+                                }.padding(vertical = Spacing.XS),
                             )
                         }
                     }

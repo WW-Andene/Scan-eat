@@ -66,7 +66,7 @@ fun EquationsCard(met: MetabolicResult, profile: BiolismProfile) {
 
 @Composable
 private fun EqBlock(title: String, formula: String, substituted: String) {
-    Column(Modifier.padding(vertical = 6.dp)) {
+    Column(Modifier.padding(vertical = Spacing.S)) {
         Text(title, style = MaterialTheme.typography.labelMedium, color = Gold, fontWeight = FontWeight.SemiBold)
         Text(formula, style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
         Text(substituted, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f), fontWeight = FontWeight.Medium)

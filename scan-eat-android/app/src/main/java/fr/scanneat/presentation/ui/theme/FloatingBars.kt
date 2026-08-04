@@ -136,7 +136,7 @@ fun FloatingTopBar(
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
             Row(
-                modifier          = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 4.dp),
+                modifier          = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Fixed-width leading slot whether or not navigationIcon is

@@ -50,7 +50,7 @@ fun SessionHistoryCard(sessions: List<BiolismSession>, onDelete: (Long) -> Unit,
             val isPRDur  = sess.elapsedSec >= prDur && sessions.size > 1
             val isPRRate = sess.kcalPerMin >= prRate && sessions.size > 1
 
-            Column(Modifier.fillMaxWidth().clickable { expandedId = if (isExpanded) null else sess.id }.padding(vertical = 6.dp)) {
+            Column(Modifier.fillMaxWidth().clickable { expandedId = if (isExpanded) null else sess.id }.padding(vertical = Spacing.S)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalAlignment = Alignment.CenterVertically) {

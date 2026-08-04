@@ -146,7 +146,7 @@ private fun SubScoreChip(label: String, score: Float, modifier: Modifier = Modif
         else        -> semanticRed()
     }
     Surface(shape = RoundedCornerShape(8.dp), color = color.copy(0.1f), modifier = modifier) {
-        Column(modifier = Modifier.padding(6.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = OnSurface.copy(0.6f))
             // "${score}" alone previously read as the raw measurement (e.g. "IMC: 0"),
             // not the normalized 0-100 sub-score it actually is - a BMI of 37 legitimately

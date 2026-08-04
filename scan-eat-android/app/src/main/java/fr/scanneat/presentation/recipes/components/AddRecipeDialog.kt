@@ -156,7 +156,7 @@ internal fun AddRecipeDialog(
                                     selectedFood = food
                                     newIngName = food.name
                                     onQueryChange("")
-                                }.padding(vertical = 4.dp),
+                                }.padding(vertical = Spacing.XS),
                             )
                         }
                     }

@@ -39,6 +39,7 @@ import fr.scanneat.data.repository.reminders.CustomReminder
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.IconSize
+import fr.scanneat.presentation.ui.theme.Spacing
 
 @Composable
 internal fun ReminderRow(
@@ -64,7 +65,7 @@ internal fun ReminderRow(
                     value = labelText,
                     onValueChange = { labelText = it; onLabelChange(it) },
                     placeholder = { Text(defaultLabel, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f)) },
-                    modifier = Modifier.weight(1f).padding(end = 6.dp),
+                    modifier = Modifier.weight(1f).padding(end = Spacing.S),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium,
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
@@ -106,7 +107,7 @@ internal fun CustomReminderRow(
         OutlinedTextField(
             value = labelText,
             onValueChange = { labelText = it; onUpdate(reminder.copy(label = it)) },
-            modifier = Modifier.weight(1f).padding(end = 6.dp),
+            modifier = Modifier.weight(1f).padding(end = Spacing.S),
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium,
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentCoral, unfocusedBorderColor = OnBackground.copy(0.15f), focusedTextColor = OnBackground, unfocusedTextColor = OnBackground),
