@@ -31,6 +31,12 @@ class ExpensesViewModel @Inject constructor(
     val budgetPerMealEuros: StateFlow<Double?> = prefs.budgetPerMealEuros
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val budgetDailyEuros: StateFlow<Double?> = prefs.budgetDailyEuros
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val budgetMonthlyEuros: StateFlow<Double?> = prefs.budgetMonthlyEuros
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     // In-app language (Settings) can differ from the device locale - every sibling
     // date-heavy screen (Weight/Diary/MealPlan/etc.) already threads this through
     // instead of defaulting to Locale.getDefault(), which would show entry dates
@@ -50,6 +56,20 @@ class ExpensesViewModel @Inject constructor(
             delay(60_000)
         }
     }.distinctUntilChanged()
+
+    /** Today only (a single calendar day) - the finest-grained window of the
+     *  Jour/Semaine/Mois toggle, added alongside the daily budget target. */
+    val dayTotal: StateFlow<Double> = combine(entries, today) { list, todayDate ->
+        list.filter { it.date == todayDate }.sumOf { it.priceEuros }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    val spendByCategoryDay: StateFlow<List<Pair<ProductCategory, Double>>> = combine(entries, today) { list, todayDate ->
+        list.filter { it.date == todayDate }
+            .groupBy { it.category }
+            .mapValues { (_, rows) -> rows.sumOf { it.priceEuros } }
+            .entries.sortedByDescending { it.value }
+            .map { it.key to it.value }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Trailing 7-day window ending today (today-6..today), NOT an ISO calendar
     // week - matches the "this week" convention every other feature in the app
@@ -121,6 +141,12 @@ class ExpensesViewModel @Inject constructor(
     }
     fun setBudgetPerMeal(v: Double?) {
         viewModelScope.launch { runCatching { prefs.setBudgetPerMealEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    }
+    fun setBudgetDaily(v: Double?) {
+        viewModelScope.launch { runCatching { prefs.setBudgetDailyEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+    }
+    fun setBudgetMonthly(v: Double?) {
+        viewModelScope.launch { runCatching { prefs.setBudgetMonthlyEuros(v) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
     fun deleteEntry(id: String) {
         viewModelScope.launch { runCatching { priceRepo.delete(id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }

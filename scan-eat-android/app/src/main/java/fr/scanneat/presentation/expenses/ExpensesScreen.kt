@@ -8,6 +8,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +40,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private enum class ExpensesSummaryMode { WEEK, MONTH }
+private enum class ExpensesSummaryMode { DAY, WEEK, MONTH }
 
 /**
  * Unlike WeightScreen/ActivityScreen/etc., this screen only ever runs embedded
@@ -54,12 +56,16 @@ fun ExpensesScreen(
     onOpenCalendar: () -> Unit = {},
 ) {
     val entries = viewModel.entries.collectAsStateWithLifecycle()
+    val dayTotal = viewModel.dayTotal.collectAsStateWithLifecycle()
     val weekTotal = viewModel.weekTotal.collectAsStateWithLifecycle()
     val monthTotal = viewModel.monthTotal.collectAsStateWithLifecycle()
+    val budgetDaily = viewModel.budgetDailyEuros.collectAsStateWithLifecycle()
     val budgetWeekly = viewModel.budgetWeeklyEuros.collectAsStateWithLifecycle()
     val budgetPerMeal = viewModel.budgetPerMealEuros.collectAsStateWithLifecycle()
+    val budgetMonthly = viewModel.budgetMonthlyEuros.collectAsStateWithLifecycle()
     val avgPerEntry = viewModel.avgPerEntryThisWeek.collectAsStateWithLifecycle()
     val avgPerEntryMonth = viewModel.avgPerEntryThisMonth.collectAsStateWithLifecycle()
+    val spendByCategoryDay = viewModel.spendByCategoryDay.collectAsStateWithLifecycle()
     val spendByCategory = viewModel.spendByCategory.collectAsStateWithLifecycle()
     val spendByCategoryMonth = viewModel.spendByCategoryMonth.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<String?>(null) }
@@ -122,12 +128,16 @@ fun ExpensesScreen(
                 ExpensesWeekCard(
                     mode = summaryMode,
                     onModeChange = { summaryMode = it },
+                    dayTotal = dayTotal.value,
                     weekTotal = weekTotal.value,
                     monthTotal = monthTotal.value,
+                    budgetDaily = budgetDaily.value,
                     budgetWeekly = budgetWeekly.value,
+                    budgetMonthly = budgetMonthly.value,
                     avgPerEntry = avgPerEntry.value,
                     avgPerEntryMonth = avgPerEntryMonth.value,
                     budgetPerMeal = budgetPerMeal.value,
+                    spendByCategoryDay = spendByCategoryDay.value,
                     spendByCategory = spendByCategory.value,
                     spendByCategoryMonth = spendByCategoryMonth.value,
                     onEditBudget = { showBudgetEdit = true },
@@ -195,10 +205,14 @@ fun ExpensesScreen(
 
     if (showBudgetEdit) {
         BudgetEditDialog(
+            dailyInitial = budgetDaily.value,
             weeklyInitial = budgetWeekly.value,
+            monthlyInitial = budgetMonthly.value,
             perMealInitial = budgetPerMeal.value,
-            onConfirm = { weekly, perMeal ->
+            onConfirm = { daily, weekly, monthly, perMeal ->
+                viewModel.setBudgetDaily(daily)
                 viewModel.setBudgetWeekly(weekly)
+                viewModel.setBudgetMonthly(monthly)
                 viewModel.setBudgetPerMeal(perMeal)
                 showBudgetEdit = false
             },
@@ -236,26 +250,58 @@ private fun centsOf(euros: Double): Long = Math.round(euros * 100)
 private fun ExpensesWeekCard(
     mode: ExpensesSummaryMode,
     onModeChange: (ExpensesSummaryMode) -> Unit,
+    dayTotal: Double,
     weekTotal: Double,
     monthTotal: Double,
+    budgetDaily: Double?,
     budgetWeekly: Double?,
+    budgetMonthly: Double?,
     avgPerEntry: Double?,
     avgPerEntryMonth: Double?,
     budgetPerMeal: Double?,
+    spendByCategoryDay: List<Pair<ProductCategory, Double>>,
     spendByCategory: List<Pair<ProductCategory, Double>>,
     spendByCategoryMonth: List<Pair<ProductCategory, Double>>,
     onEditBudget: () -> Unit,
     onOpenCalendar: () -> Unit,
 ) {
-    // Budget targets (weekly/per-meal, set via onEditBudget) are only tracked
-    // against the trailing-7-day window - there's no monthly-budget preference
-    // to compare against, so Month mode shows the total/average/breakdown with
-    // no progress bar rather than inventing a budget field this screen doesn't
-    // otherwise expose.
-    val isWeek = mode == ExpensesSummaryMode.WEEK
-    val total = if (isWeek) weekTotal else monthTotal
-    val avg = if (isWeek) avgPerEntry else avgPerEntryMonth
-    val byCategory = if (isWeek) spendByCategory else spendByCategoryMonth
+    // Each of the three windows (Jour/Semaine/Mois) now has its own budget
+    // target (budgetDaily/budgetWeekly/budgetMonthly, all set via
+    // onEditBudget) - previously only the weekly window had one, so Month
+    // (and now Day) showed the total with no progress bar at all.
+    val total = when (mode) {
+        ExpensesSummaryMode.DAY   -> dayTotal
+        ExpensesSummaryMode.WEEK  -> weekTotal
+        ExpensesSummaryMode.MONTH -> monthTotal
+    }
+    val budget = when (mode) {
+        ExpensesSummaryMode.DAY   -> budgetDaily
+        ExpensesSummaryMode.WEEK  -> budgetWeekly
+        ExpensesSummaryMode.MONTH -> budgetMonthly
+    }
+    // Per-meal average is only meaningful over a multi-purchase window - Day
+    // mode has no separate "average per purchase today" figure, so this stays
+    // null there rather than reusing the weekly average out of context.
+    val avg = when (mode) {
+        ExpensesSummaryMode.DAY   -> null
+        ExpensesSummaryMode.WEEK  -> avgPerEntry
+        ExpensesSummaryMode.MONTH -> avgPerEntryMonth
+    }
+    val byCategory = when (mode) {
+        ExpensesSummaryMode.DAY   -> spendByCategoryDay
+        ExpensesSummaryMode.WEEK  -> spendByCategory
+        ExpensesSummaryMode.MONTH -> spendByCategoryMonth
+    }
+    val ofBudgetTemplate = when (mode) {
+        ExpensesSummaryMode.DAY   -> R.string.expenses_of_budget_day
+        ExpensesSummaryMode.WEEK  -> R.string.expenses_of_budget
+        ExpensesSummaryMode.MONTH -> R.string.expenses_of_budget_month
+    }
+    val noBudgetHint = when (mode) {
+        ExpensesSummaryMode.DAY   -> R.string.expenses_no_budget_hint_day
+        ExpensesSummaryMode.WEEK  -> R.string.expenses_no_budget_hint
+        ExpensesSummaryMode.MONTH -> R.string.expenses_no_budget_hint_month
+    }
 
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -274,10 +320,12 @@ private fun ExpensesWeekCard(
                     Icon(TablerIcons.Calendar, stringResource(R.string.expenses_cd_calendar), tint = OnSurface.copy(0.5f))
                 }
                 Spacer(Modifier.width(Spacing.XS))
-                // Week/Month toggle - was a static "Cette semaine" label with no way
-                // to see a longer-horizon total than the trailing 7-day window.
+                // Jour/Semaine/Mois toggle - was a static "Cette semaine" label with
+                // no way to see a shorter (today-only) or longer (calendar month)
+                // total than the trailing 7-day window.
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
                     listOf(
+                        ExpensesSummaryMode.DAY to stringResource(R.string.expenses_view_day),
                         ExpensesSummaryMode.WEEK to stringResource(R.string.expenses_view_week),
                         ExpensesSummaryMode.MONTH to stringResource(R.string.expenses_view_month),
                     ).forEach { (m, label) ->
@@ -305,36 +353,34 @@ private fun ExpensesWeekCard(
             color = OnBackground,
             fontWeight = FontWeight.Bold,
         )
-        if (isWeek && budgetWeekly != null && budgetWeekly > 0) {
-            val pct = (weekTotal / budgetWeekly).toFloat().coerceIn(0f, 1.5f)
-            // weekTotal is a Double sum of per-entry prices, so a spend that's
+        if (budget != null && budget > 0) {
+            val pct = (total / budget).toFloat().coerceIn(0f, 1.5f)
+            // total is a Double sum of per-entry prices, so a spend that's
             // mathematically exactly at budget can drift a fraction of a cent
             // either way from float summation - comparing to the nearest cent
             // (not a raw > 1f/Double >) avoids a budget met to the cent
             // flip-flopping between "over" and "under" depending on entry order.
-            val isOverWeekly = centsOf(weekTotal) > centsOf(budgetWeekly)
+            val isOver = centsOf(total) > centsOf(budget)
             LinearProgressIndicator(
                 progress = { pct.coerceAtMost(1f) },
                 modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
-                color = if (isOverWeekly) AccentCoral else semanticGreen(),
+                color = if (isOver) AccentCoral else semanticGreen(),
                 trackColor = OnSurface.copy(0.1f),
             )
             // Was color-only (a thin 8dp bar + small label hue switch) - easy to miss,
             // and not a real "helpful warning vs. scolding" signal since nothing here
             // said "over budget" in words, only in a subtle color shift.
             Text(
-                stringResource(R.string.expenses_of_budget, budgetWeekly) +
-                    if (isOverWeekly) " · " + stringResource(R.string.expenses_over_budget_suffix) else "",
+                stringResource(ofBudgetTemplate, budget) +
+                    if (isOver) " · " + stringResource(R.string.expenses_over_budget_suffix) else "",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isOverWeekly) AccentCoral else OnSurface.copy(0.5f),
+                color = if (isOver) AccentCoral else OnSurface.copy(0.5f),
             )
-        } else if (isWeek) {
-            Text(stringResource(R.string.expenses_no_budget_hint), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         } else {
-            Text(stringResource(R.string.expenses_month_title), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+            Text(stringResource(noBudgetHint), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
         }
-        if (isWeek && avg != null && budgetPerMeal != null && budgetPerMeal > 0) {
-            // Same cent-rounded comparison as isOverWeekly above - avg is
+        if (avg != null && budgetPerMeal != null && budgetPerMeal > 0) {
+            // Same cent-rounded comparison as isOver above - avg is
             // also a Double average of summed prices, subject to the same drift.
             val over = centsOf(avg) > centsOf(budgetPerMeal)
             Text(
@@ -422,25 +468,52 @@ private fun ExpenseEntryRow(entry: PriceEntry, dateFmt: DateTimeFormatter, onEdi
 
 @Composable
 private fun BudgetEditDialog(
+    dailyInitial: Double?,
     weeklyInitial: Double?,
+    monthlyInitial: Double?,
     perMealInitial: Double?,
-    onConfirm: (Double?, Double?) -> Unit,
+    onConfirm: (daily: Double?, weekly: Double?, monthly: Double?, perMeal: Double?) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    var dailyText by remember { mutableStateOf(dailyInitial?.formatDecimal(0) ?: "") }
     var weeklyText by remember { mutableStateOf(weeklyInitial?.formatDecimal(0) ?: "") }
+    var monthlyText by remember { mutableStateOf(monthlyInitial?.formatDecimal(0) ?: "") }
     var perMealText by remember { mutableStateOf(perMealInitial?.formatDecimal(0) ?: "") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.expenses_edit_budget), color = OnBackground) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
+            // Scrollable - four fields (was two) previously risked clipping on a
+            // small screen with no way to reach the Save button below the fold.
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(Spacing.M),
+            ) {
                 // Neither field previously explained what leaving it blank does (both
                 // are optional and silently skip that budget check entirely) or gave
                 // an example value - a first-time user had to guess.
                 OutlinedTextField(
+                    value = dailyText, onValueChange = { dailyText = it },
+                    label = { Text(stringResource(R.string.expenses_budget_daily_label)) },
+                    supportingText = { Text(stringResource(R.string.expenses_budget_daily_hint)) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                )
+                OutlinedTextField(
                     value = weeklyText, onValueChange = { weeklyText = it },
                     label = { Text(stringResource(R.string.expenses_budget_weekly_label)) },
                     supportingText = { Text(stringResource(R.string.expenses_budget_weekly_hint)) },
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                    shape = RoundedCornerShape(CardRadius.CONTROL),
+                    colors = scanEatTextFieldColors(),
+                )
+                OutlinedTextField(
+                    value = monthlyText, onValueChange = { monthlyText = it },
+                    label = { Text(stringResource(R.string.expenses_budget_monthly_label)) },
+                    supportingText = { Text(stringResource(R.string.expenses_budget_monthly_hint)) },
                     singleLine = true,
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
                     shape = RoundedCornerShape(CardRadius.CONTROL),
@@ -462,9 +535,13 @@ private fun BudgetEditDialog(
                 // Bounded, not just "> 0" - an unbounded budget target previously fed
                 // straight into the weekly-spend percentage/remaining-budget math shown
                 // on this screen and the Dashboard recap card, risking an absurd
-                // displayed percentage from a mistyped value.
+                // displayed percentage from a mistyped value. Daily/monthly bounds
+                // scale from the same per-meal/weekly ranges (daily ≈ a few meals,
+                // monthly ≈ 4x weekly's ceiling).
                 onConfirm(
+                    dailyText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.5..2000.0 },
                     weeklyText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 1.0..10000.0 },
+                    monthlyText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 1.0..40000.0 },
                     perMealText.replace(',', '.').toDoubleOrNull()?.takeIf { it in 0.5..2000.0 },
                 )
             }) { Text(stringResource(R.string.common_save), color = AccentCoral) }

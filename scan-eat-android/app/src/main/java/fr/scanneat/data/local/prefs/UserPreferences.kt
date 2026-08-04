@@ -51,6 +51,8 @@ class UserPreferences @Inject constructor(
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         val KEY_BUDGET_WEEKLY        = floatPreferencesKey("budget_weekly_euros")
         val KEY_BUDGET_PER_MEAL      = floatPreferencesKey("budget_per_meal_euros")
+        val KEY_BUDGET_DAILY         = floatPreferencesKey("budget_daily_euros")
+        val KEY_BUDGET_MONTHLY       = floatPreferencesKey("budget_monthly_euros")
         val KEY_IS_PREMIUM           = booleanPreferencesKey("is_premium")
         // Profile — flat keys
         val KEY_PROFILE_NAME         = stringPreferencesKey("profile_name")
@@ -237,8 +239,15 @@ class UserPreferences @Inject constructor(
     // goalWeightKg's null-means-unset convention on Profile.
     val budgetWeeklyEuros: Flow<Double?> = storeData.map { it[KEY_BUDGET_WEEKLY]?.toDouble() }.distinctUntilChanged()
     val budgetPerMealEuros: Flow<Double?> = storeData.map { it[KEY_BUDGET_PER_MEAL]?.toDouble() }.distinctUntilChanged()
+    // Day/Month targets, same null-means-unset convention as weekly/per-meal above -
+    // added alongside the Jour/Semaine/Mois view toggle on ExpensesScreen, which
+    // previously only had a budget to compare against in Week mode.
+    val budgetDailyEuros: Flow<Double?> = storeData.map { it[KEY_BUDGET_DAILY]?.toDouble() }.distinctUntilChanged()
+    val budgetMonthlyEuros: Flow<Double?> = storeData.map { it[KEY_BUDGET_MONTHLY]?.toDouble() }.distinctUntilChanged()
     suspend fun setBudgetWeeklyEuros(v: Double?) = store.edit { p -> v?.let { p[KEY_BUDGET_WEEKLY] = it.toFloat() } ?: p.remove(KEY_BUDGET_WEEKLY) }
     suspend fun setBudgetPerMealEuros(v: Double?) = store.edit { p -> v?.let { p[KEY_BUDGET_PER_MEAL] = it.toFloat() } ?: p.remove(KEY_BUDGET_PER_MEAL) }
+    suspend fun setBudgetDailyEuros(v: Double?) = store.edit { p -> v?.let { p[KEY_BUDGET_DAILY] = it.toFloat() } ?: p.remove(KEY_BUDGET_DAILY) }
+    suspend fun setBudgetMonthlyEuros(v: Double?) = store.edit { p -> v?.let { p[KEY_BUDGET_MONTHLY] = it.toFloat() } ?: p.remove(KEY_BUDGET_MONTHLY) }
 }
 
 enum class ApiMode(val key: String) {
