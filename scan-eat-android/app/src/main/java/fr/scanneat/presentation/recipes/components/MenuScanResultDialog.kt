@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,7 @@ internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit)
         title = { Text(stringResource(R.string.recipes_menu_dialog_title), color = OnBackground) },
         text = {
             if (dishes.isEmpty()) {
-                Text(stringResource(R.string.recipes_menu_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                Text(stringResource(R.string.recipes_menu_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
             } else {
                 LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
                     items(dishes, key = { it.name }) { dish ->

@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
@@ -129,7 +130,7 @@ internal fun SuggestRecipesDialog(
                     }
                     SuggestMode.HISTORY -> {
                         if (historyItems.isEmpty()) {
-                            Text(stringResource(R.string.recipes_suggest_history_empty), color = OnBackground.copy(0.5f))
+                            Text(stringResource(R.string.recipes_suggest_history_empty), color = OnBackground.copy(0.5f), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                         } else {
                             Text(stringResource(R.string.recipes_suggest_history_hint), color = OnBackground.copy(0.6f))
                             LazyColumn(
@@ -172,7 +173,7 @@ internal fun SuggestRecipesDialog(
                 // semanticRed() Text — migrated to the app's one shared error surface.
                 errorMessage?.let { ErrorBanner(message = it) }
                 if (results != null && results.isEmpty()) {
-                    Text(stringResource(R.string.recipes_suggest_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
+                    Text(stringResource(R.string.recipes_suggest_empty), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                 }
                 if (!results.isNullOrEmpty()) {
                     HorizontalDivider(color = OnBackground.copy(0.1f))

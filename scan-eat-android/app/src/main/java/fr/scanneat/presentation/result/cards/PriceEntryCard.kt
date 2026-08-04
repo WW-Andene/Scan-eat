@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
 import fr.scanneat.R
 import fr.scanneat.data.repository.expense.PriceEntry
@@ -54,7 +55,7 @@ internal fun PriceEntryCard(
             }
         }
         if (entries.isEmpty()) {
-            Text(stringResource(R.string.result_price_empty), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f))
+            Text(stringResource(R.string.result_price_empty), style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
         } else {
             entries.take(3).forEach { entry ->
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {

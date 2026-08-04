@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 /**
@@ -63,7 +64,7 @@ fun EmptyListState(icon: ImageVector, message: String, ctaLabel: String? = null,
             // Light (below 4.5:1 AA) - TextSecondary is theme-tuned to clear AA
             // in every theme, and this is the app's one shared empty-state
             // component, so the fix reaches every empty state at once.
-            Text(message, color = TextSecondary)
+            Text(message, color = TextSecondary, textAlign = TextAlign.Center)
             if (ctaLabel != null && onCta != null) {
                 ScanEatPrimaryButton(onClick = onCta) { Text(ctaLabel) }
             }

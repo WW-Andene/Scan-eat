@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
@@ -50,6 +51,8 @@ internal fun NotEnoughDataNote() {
         stringResource(R.string.biolism_evo_not_enough_data),
         style = MaterialTheme.typography.labelSmall,
         color = OnBackground.copy(0.4f),
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center,
     )
 }
 
