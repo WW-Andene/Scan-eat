@@ -384,7 +384,7 @@ private fun FoodSearchRow(
             // its full score" from "a generic curated reference, tap to expand macros."
             item.grade?.let { grade ->
                 val gColor = gradeColor(grade)
-                Surface(shape = RoundedCornerShape(4.dp), color = gColor.copy(0.15f)) {
+                Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = gColor.copy(0.15f)) {
                     Text(
                         grade.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall, color = gColor, fontWeight = FontWeight.Bold,

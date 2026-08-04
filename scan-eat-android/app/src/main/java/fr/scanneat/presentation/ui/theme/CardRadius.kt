@@ -25,6 +25,15 @@ object CardRadius {
     val CONTROL: Dp = 12.dp
     val CARD: Dp = 16.dp
     val PROMINENT: Dp = 20.dp
+
+    // genre audit (shape/corners): 4.dp turned out to be the single most
+    // common tinted-badge Surface radius in the app (13 exact-match sites:
+    // Biolism tracker/data cards' colored status pills, WeightHistorySection/
+    // FoodEntryRow/FoodSearchScreen/ExpensesScreen's small inline badges) -
+    // distinct role from the small-decorative-radius exclusion above (those
+    // are progress-bar ticks/dots with no text content), so this earns its
+    // own named tier rather than folding into CONTROL/CARD/PROMINENT.
+    val BADGE: Dp = 4.dp
 }
 
 /**

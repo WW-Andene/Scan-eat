@@ -62,7 +62,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                 )
                 if (isCustom) {
                     Surface(
-                        shape = RoundedCornerShape(4.dp),
+                        shape = RoundedCornerShape(CardRadius.BADGE),
                         color = ChipBackgroundAccent,
                     ) {
                         Text(
@@ -90,7 +90,7 @@ internal fun FoodEntryRow(entry: FoodEntry, isCustom: Boolean, hints: ProductHin
                         score >= 20 -> Gold to "D$score"
                         else        -> semanticRed() to "D$score"
                     }
-                    Surface(shape = RoundedCornerShape(4.dp), color = scoreColor.copy(0.15f)) {
+                    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = scoreColor.copy(0.15f)) {
                         Text(scoreLabel, modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
                             style = MaterialTheme.typography.labelSmall, color = scoreColor)
                     }

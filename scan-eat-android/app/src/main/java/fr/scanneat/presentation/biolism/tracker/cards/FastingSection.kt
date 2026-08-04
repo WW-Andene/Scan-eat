@@ -51,14 +51,14 @@ internal fun FastingRow(
                 if (active) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (fastFmt != null) {
-                            Surface(shape = RoundedCornerShape(4.dp), color = VioletHaze, border = BorderStroke(1.dp, VioletGlow)) {
+                            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = VioletHaze, border = BorderStroke(1.dp, VioletGlow)) {
                                 Text(fastFmt, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                     style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
                             }
                         }
                         Surface(
-                            modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable { onLogMeal() },
-                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier.clip(RoundedCornerShape(CardRadius.BADGE)).clickable { onLogMeal() },
+                            shape = RoundedCornerShape(CardRadius.BADGE),
                             color = VioletHaze,
                             border = BorderStroke(1.dp, Violet.copy(0.4f)),
                         ) {
@@ -89,8 +89,8 @@ internal fun FastingRow(
             // running (see biolism_fasting_status_disabled).
             if (realFastHours != null) {
                 Surface(
-                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable { onImportRealFast() },
-                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.clip(RoundedCornerShape(CardRadius.BADGE)).clickable { onImportRealFast() },
+                    shape = RoundedCornerShape(CardRadius.BADGE),
                     color = VioletHaze,
                     border = BorderStroke(1.dp, Violet.copy(0.4f)),
                 ) {

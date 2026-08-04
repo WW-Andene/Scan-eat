@@ -59,7 +59,7 @@ internal fun KetosisToggleRow(
                             style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                     }
                 }
-                Surface(shape = RoundedCornerShape(4.dp), color = TealHaze,
+                Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = TealHaze,
                     border = BorderStroke(1.dp, TealGlow)) {
                     Text(if (active) stringResource(R.string.biolism_ketosis_oxi_active, fatPct, npRq)
                          else stringResource(R.string.biolism_ketosis_nprq_inactive, npRq),
@@ -124,7 +124,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(stringResource(R.string.biolism_ketosis_adapted_label), style = MaterialTheme.typography.bodyMedium, color = OnBackground, fontWeight = FontWeight.Bold)
                         if (threeWeeks) {
-                            Surface(shape = RoundedCornerShape(4.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
+                            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
                                 Text(stringResource(R.string.biolism_ketosis_auto_badge), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold)
                             }
@@ -135,7 +135,7 @@ internal fun AdaptedToggleRow(active: Boolean, ketoHours: Double, onToggle: () -
                     Text(stringResource(R.string.biolism_ketosis_adapted_desc), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
                 }
             }
-            Surface(shape = RoundedCornerShape(4.dp), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
+            Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = GoldHaze, border = BorderStroke(1.dp, GoldGlow)) {
                 Text(if (active) "RQ→0.715" else "RQ→0.720", modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                     style = MaterialTheme.typography.labelSmall, color = Gold, fontWeight = FontWeight.Bold, softWrap = false)
             }

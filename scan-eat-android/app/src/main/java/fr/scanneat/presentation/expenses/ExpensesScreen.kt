@@ -218,7 +218,7 @@ private fun ExpensesWeekCard(
             val isOverWeekly = centsOf(weekTotal) > centsOf(budgetWeekly)
             LinearProgressIndicator(
                 progress = { pct.coerceAtMost(1f) },
-                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(CardRadius.BADGE)),
                 color = if (isOverWeekly) AccentCoral else semanticGreen(),
                 trackColor = OnSurface.copy(0.1f),
             )

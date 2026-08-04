@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.presentation.biolism.hmsFromSeconds
+import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.minTouchTarget
 import fr.scanneat.util.formatDecimal
@@ -33,7 +34,7 @@ internal fun StepperChip(label: String, color: Color, onMinus: () -> Unit, onPlu
     val increaseDescription = stringResource(R.string.common_stepper_increase, label)
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(CardRadius.BADGE))
             .background(color.copy(0.08f)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
