@@ -113,7 +113,7 @@ internal fun ScoreRing(score: Int, grade: Grade, scoreDelta: Int? = null) {
     // freezing static — this ring is the "second skin" pulse's home.
     val breathingPulse = rememberBreathingPulse()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(modifier = Modifier.fillMaxWidth().height(230.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxWidth().height(232.dp), contentAlignment = Alignment.Center) {
             // User-reported regression: the OrganicBlobShape aura layer here read as a
             // rendering bug ("un cercle un peu déformé derrière"), not a deliberate
             // signature — reverted to a plain circular glow. OrganicBlobShape itself
