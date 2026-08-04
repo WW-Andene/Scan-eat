@@ -133,7 +133,7 @@ internal fun GroceryItemRow(
     if (showEditQuantity) {
         EditGroceryQuantityDialog(
             itemName = item.name,
-            initialGrams = item.grams,
+            initialGrams = item.grams.toDouble(),
             onConfirm = { grams -> onEditQuantity(grams); showEditQuantity = false },
             onDismiss = { showEditQuantity = false },
         )
