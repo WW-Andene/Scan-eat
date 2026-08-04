@@ -151,6 +151,14 @@ fun FloatingTopBar(
                 // the content beneath it, same as DiaryScreen's own header.
                 if (hasNavigationIcon) {
                     Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { navigationIcon() }
+                } else {
+                    // User-reported: removing the 48dp icon Box entirely left only
+                    // the Row's own Spacing.XS (4dp) before the title - text sat
+                    // jammed right against the card's rounded edge instead of at a
+                    // reasonable inset. This closes the gap to roughly Spacing.L
+                    // (matching the content below's own inset) without
+                    // reintroducing a slot sized for an icon that isn't there.
+                    Spacer(Modifier.width(Spacing.M))
                 }
                 Box(Modifier.weight(1f)) {
                     ProvideTextStyle(MaterialTheme.typography.titleLarge) { title() }
