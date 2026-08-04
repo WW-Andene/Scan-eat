@@ -188,4 +188,450 @@ val OFFICIAL_RECIPE_DB: List<OfficialRecipe> = listOf(
         ),
         "snack",
     ),
+
+    // ------------------------------------------------------------------
+    // User-requested expansion (2026-08): 13 starter recipes was too thin
+    // a library to browse - every ingredient below is an existing FOOD_DB
+    // name (see file header - still CIQUAL-sourced, nothing fabricated),
+    // just new "assiette-type" combinations, plus a second wave pairing
+    // FOOD_DB's already-composed dishes (ratatouille, paella, curry de
+    // poulet, etc.) with a simple starch/veg side, the same way "Thon,
+    // salade verte et tomate" above already does.
+    // ------------------------------------------------------------------
+    OfficialRecipe(
+        "Dinde, riz complet et haricot vert", "Turkey, brown rice and green beans",
+        listOf(
+            OfficialRecipeIngredient("dinde", 120.0),
+            OfficialRecipeIngredient("riz complet cuit", 150.0),
+            OfficialRecipeIngredient("haricot vert", 200.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Cabillaud, patate douce et brocoli", "Cod, sweet potato and broccoli",
+        listOf(
+            OfficialRecipeIngredient("cabillaud", 120.0),
+            OfficialRecipeIngredient("patate douce", 150.0),
+            OfficialRecipeIngredient("brocoli", 200.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Crevettes, riz basmati et poivron", "Shrimp, basmati rice and pepper",
+        listOf(
+            OfficialRecipeIngredient("crevette", 120.0),
+            OfficialRecipeIngredient("riz basmati cuit", 150.0),
+            OfficialRecipeIngredient("poivron", 180.0),
+            OfficialRecipeIngredient("huile de sésame", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Porc, semoule et courgette", "Pork, semolina and zucchini",
+        listOf(
+            OfficialRecipeIngredient("porc", 120.0),
+            OfficialRecipeIngredient("semoule cuite", 150.0),
+            OfficialRecipeIngredient("courgette", 200.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Tofu, quinoa et épinards", "Tofu, quinoa and spinach",
+        listOf(
+            OfficialRecipeIngredient("tofu", 150.0),
+            OfficialRecipeIngredient("quinoa cuit", 150.0),
+            OfficialRecipeIngredient("épinard", 180.0),
+            OfficialRecipeIngredient("huile de sésame", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Steak de boeuf, pomme de terre et haricot vert", "Beef steak, potatoes and green beans",
+        listOf(
+            OfficialRecipeIngredient("steak de boeuf", 120.0),
+            OfficialRecipeIngredient("pomme de terre", 180.0),
+            OfficialRecipeIngredient("haricot vert", 180.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Truite, boulgour et asperges", "Trout, bulgur and asparagus",
+        listOf(
+            OfficialRecipeIngredient("truite", 120.0),
+            OfficialRecipeIngredient("boulgour cuit", 150.0),
+            OfficialRecipeIngredient("asperge", 180.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Escalope de veau, pâtes et tomate", "Veal escalope, pasta and tomato",
+        listOf(
+            OfficialRecipeIngredient("escalope de veau", 120.0),
+            OfficialRecipeIngredient("pâtes cuites", 150.0),
+            OfficialRecipeIngredient("tomate", 180.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Saucisse, lentilles et carotte", "Sausage, lentils and carrot",
+        listOf(
+            OfficialRecipeIngredient("saucisse", 100.0),
+            OfficialRecipeIngredient("lentille cuite", 180.0),
+            OfficialRecipeIngredient("carotte", 150.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Lapin, riz blanc et champignons", "Rabbit, white rice and mushrooms",
+        listOf(
+            OfficialRecipeIngredient("lapin", 120.0),
+            OfficialRecipeIngredient("riz blanc cuit", 150.0),
+            OfficialRecipeIngredient("champignon", 180.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Agneau, semoule et aubergine", "Lamb, semolina and eggplant",
+        listOf(
+            OfficialRecipeIngredient("agneau", 120.0),
+            OfficialRecipeIngredient("semoule cuite", 150.0),
+            OfficialRecipeIngredient("aubergine", 180.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Canard, pomme de terre et haricot vert", "Duck, potatoes and green beans",
+        listOf(
+            OfficialRecipeIngredient("canard", 110.0),
+            OfficialRecipeIngredient("pomme de terre", 170.0),
+            OfficialRecipeIngredient("haricot vert", 180.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Maquereau, riz complet et fenouil", "Mackerel, brown rice and fennel",
+        listOf(
+            OfficialRecipeIngredient("maquereau", 120.0),
+            OfficialRecipeIngredient("riz complet cuit", 150.0),
+            OfficialRecipeIngredient("fenouil", 180.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Falafels, boulgour et concombre", "Falafel, bulgur and cucumber",
+        listOf(
+            OfficialRecipeIngredient("falafel", 150.0),
+            OfficialRecipeIngredient("boulgour cuit", 150.0),
+            OfficialRecipeIngredient("concombre", 150.0),
+            OfficialRecipeIngredient("houmous", 30.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Seitan, riz basmati et brocoli", "Seitan, basmati rice and broccoli",
+        listOf(
+            OfficialRecipeIngredient("seitan", 130.0),
+            OfficialRecipeIngredient("riz basmati cuit", 150.0),
+            OfficialRecipeIngredient("brocoli", 180.0),
+            OfficialRecipeIngredient("huile de sésame", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Haricots rouges, riz complet et poivron", "Kidney beans, brown rice and pepper",
+        listOf(
+            OfficialRecipeIngredient("haricot rouge cuit", 180.0),
+            OfficialRecipeIngredient("riz complet cuit", 130.0),
+            OfficialRecipeIngredient("poivron", 150.0),
+            OfficialRecipeIngredient("oignon", 40.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Pois chiches, patate douce et épinards", "Chickpeas, sweet potato and spinach",
+        listOf(
+            OfficialRecipeIngredient("pois chiche cuit", 180.0),
+            OfficialRecipeIngredient("patate douce", 150.0),
+            OfficialRecipeIngredient("épinard", 150.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Edamame, riz blanc et carotte", "Edamame, white rice and carrot",
+        listOf(
+            OfficialRecipeIngredient("edamame", 150.0),
+            OfficialRecipeIngredient("riz blanc cuit", 150.0),
+            OfficialRecipeIngredient("carotte", 150.0),
+            OfficialRecipeIngredient("huile de sésame", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Poulpe, pomme de terre et poivron", "Octopus, potatoes and pepper",
+        listOf(
+            OfficialRecipeIngredient("poulpe", 120.0),
+            OfficialRecipeIngredient("pomme de terre", 170.0),
+            OfficialRecipeIngredient("poivron", 150.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Calamars, riz blanc et poivron", "Squid, white rice and pepper",
+        listOf(
+            OfficialRecipeIngredient("calamar", 120.0),
+            OfficialRecipeIngredient("riz blanc cuit", 150.0),
+            OfficialRecipeIngredient("poivron", 150.0),
+            OfficialRecipeIngredient("huile d'olive", 5.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Moules-frites et salade verte", "Mussels and fries with green salad",
+        listOf(
+            OfficialRecipeIngredient("moules", 250.0),
+            OfficialRecipeIngredient("frites", 150.0),
+            OfficialRecipeIngredient("salade verte", 80.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Ratatouille et riz complet", "Ratatouille with brown rice",
+        listOf(
+            OfficialRecipeIngredient("ratatouille", 250.0),
+            OfficialRecipeIngredient("riz complet cuit", 150.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Curry de poulet et riz basmati", "Chicken curry with basmati rice",
+        listOf(
+            OfficialRecipeIngredient("curry de poulet", 250.0),
+            OfficialRecipeIngredient("riz basmati cuit", 150.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Chili con carne et riz blanc", "Chili con carne with white rice",
+        listOf(
+            OfficialRecipeIngredient("chili con carne", 250.0),
+            OfficialRecipeIngredient("riz blanc cuit", 150.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Paella et salade verte", "Paella with green salad",
+        listOf(
+            OfficialRecipeIngredient("paella", 300.0),
+            OfficialRecipeIngredient("salade verte", 80.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Risotto et brocoli", "Risotto with broccoli",
+        listOf(
+            OfficialRecipeIngredient("risotto", 250.0),
+            OfficialRecipeIngredient("brocoli", 150.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Lasagnes et salade verte", "Lasagna with green salad",
+        listOf(
+            OfficialRecipeIngredient("lasagne", 280.0),
+            OfficialRecipeIngredient("salade verte", 80.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Gratin dauphinois et haricots verts", "Potato gratin with green beans",
+        listOf(
+            OfficialRecipeIngredient("gratin dauphinois", 250.0),
+            OfficialRecipeIngredient("haricot vert", 180.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Quiche lorraine et salade verte", "Quiche lorraine with green salad",
+        listOf(
+            OfficialRecipeIngredient("quiche lorraine", 180.0),
+            OfficialRecipeIngredient("salade verte", 100.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Pad thaï et edamame", "Pad thai with edamame",
+        listOf(
+            OfficialRecipeIngredient("pad thaï", 280.0),
+            OfficialRecipeIngredient("edamame", 80.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Sushi saumon et edamame", "Salmon sushi with edamame",
+        listOf(
+            OfficialRecipeIngredient("sushi saumon", 220.0),
+            OfficialRecipeIngredient("edamame", 80.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Taboulé et pois chiches", "Tabbouleh with chickpeas",
+        listOf(
+            OfficialRecipeIngredient("taboulé", 200.0),
+            OfficialRecipeIngredient("pois chiche cuit", 100.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Soupe de légumes et pain complet", "Vegetable soup with wholegrain bread",
+        listOf(
+            OfficialRecipeIngredient("soupe de légumes", 300.0),
+            OfficialRecipeIngredient("pain complet", 60.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Gaspacho et pain complet", "Gazpacho with wholegrain bread",
+        listOf(
+            OfficialRecipeIngredient("gaspacho", 300.0),
+            OfficialRecipeIngredient("pain complet", 60.0),
+        ),
+        "lunch_dinner",
+    ),
+    OfficialRecipe(
+        "Muesli, lait et banane", "Muesli, milk and banana",
+        listOf(
+            OfficialRecipeIngredient("muesli", 60.0),
+            OfficialRecipeIngredient("lait demi-écrémé", 200.0),
+            OfficialRecipeIngredient("banane", 100.0),
+        ),
+        "breakfast",
+    ),
+    OfficialRecipe(
+        "Céréales et lait", "Breakfast cereal and milk",
+        listOf(
+            OfficialRecipeIngredient("céréales petit-déjeuner", 50.0),
+            OfficialRecipeIngredient("lait entier", 200.0),
+        ),
+        "breakfast",
+    ),
+    OfficialRecipe(
+        "Pain au levain, beurre et confiture", "Sourdough bread, butter and jam",
+        listOf(
+            OfficialRecipeIngredient("pain au levain", 70.0),
+            OfficialRecipeIngredient("beurre", 10.0),
+            OfficialRecipeIngredient("confiture", 20.0),
+        ),
+        "breakfast",
+    ),
+    OfficialRecipe(
+        "Crêpe, miel et banane", "Pancake, honey and banana",
+        listOf(
+            OfficialRecipeIngredient("crêpe nature", 80.0),
+            OfficialRecipeIngredient("miel", 15.0),
+            OfficialRecipeIngredient("banane", 100.0),
+        ),
+        "breakfast",
+    ),
+    OfficialRecipe(
+        "Gaufre et fruits rouges", "Waffle and berries",
+        listOf(
+            OfficialRecipeIngredient("gaufre", 80.0),
+            OfficialRecipeIngredient("myrtille", 100.0),
+        ),
+        "breakfast",
+    ),
+    OfficialRecipe(
+        "Oeufs, bacon et pain de mie", "Eggs, bacon and toast",
+        listOf(
+            OfficialRecipeIngredient("oeuf", 100.0),
+            OfficialRecipeIngredient("bacon", 30.0),
+            OfficialRecipeIngredient("pain de mie", 60.0),
+        ),
+        "breakfast",
+    ),
+    OfficialRecipe(
+        "Yaourt grec, miel et noix", "Greek yogurt, honey and walnuts",
+        listOf(
+            OfficialRecipeIngredient("yaourt grec", 150.0),
+            OfficialRecipeIngredient("miel", 15.0),
+            OfficialRecipeIngredient("noix", 15.0),
+        ),
+        "breakfast",
+    ),
+    OfficialRecipe(
+        "Smoothie et graines de chia", "Smoothie and chia seeds",
+        listOf(
+            OfficialRecipeIngredient("smoothie fruits", 250.0),
+            OfficialRecipeIngredient("graine de chia", 15.0),
+        ),
+        "breakfast",
+    ),
+    OfficialRecipe(
+        "Houmous et pain pita", "Hummus and pita bread",
+        listOf(
+            OfficialRecipeIngredient("houmous", 60.0),
+            OfficialRecipeIngredient("pain pita", 40.0),
+        ),
+        "snack",
+    ),
+    OfficialRecipe(
+        "Pomme et beurre de cacahuète", "Apple and peanut butter",
+        listOf(
+            OfficialRecipeIngredient("pomme", 150.0),
+            OfficialRecipeIngredient("beurre de cacahuète", 20.0),
+        ),
+        "snack",
+    ),
+    OfficialRecipe(
+        "Fruits secs et pomme", "Mixed dried fruit and apple",
+        listOf(
+            OfficialRecipeIngredient("fruits secs mélangés", 30.0),
+            OfficialRecipeIngredient("pomme", 130.0),
+        ),
+        "snack",
+    ),
+    OfficialRecipe(
+        "Yaourt et miel", "Yogurt and honey",
+        listOf(
+            OfficialRecipeIngredient("yaourt nature", 125.0),
+            OfficialRecipeIngredient("miel", 10.0),
+        ),
+        "snack",
+    ),
+    OfficialRecipe(
+        "Fromage de chèvre et pain complet", "Goat cheese and wholegrain bread",
+        listOf(
+            OfficialRecipeIngredient("fromage de chèvre", 30.0),
+            OfficialRecipeIngredient("pain complet", 40.0),
+        ),
+        "snack",
+    ),
+    OfficialRecipe(
+        "Fromage cottage et myrtilles", "Cottage cheese and blueberries",
+        listOf(
+            OfficialRecipeIngredient("fromage cottage", 150.0),
+            OfficialRecipeIngredient("myrtille", 80.0),
+        ),
+        "snack",
+    ),
+    OfficialRecipe(
+        "Kéfir et framboises", "Kefir and raspberries",
+        listOf(
+            OfficialRecipeIngredient("kéfir", 200.0),
+            OfficialRecipeIngredient("framboise", 80.0),
+        ),
+        "snack",
+    ),
 )
