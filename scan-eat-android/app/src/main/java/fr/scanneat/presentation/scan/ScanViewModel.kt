@@ -15,11 +15,9 @@ import fr.scanneat.data.repository.scan.ProductNotFoundException
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.medication.MedicationDbEntry
 import fr.scanneat.domain.engine.medication.findMedicationByBarcode
-import fr.scanneat.domain.engine.medication.findMedicationByName
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableCategory
 import fr.scanneat.domain.engine.nonconsumable.NonConsumableDbEntry
 import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
-import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByName
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.ScanResult
@@ -40,20 +38,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import java.io.File
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ScanViewModel @Inject constructor(
-    private val scanRepo: ScanRepository,
-    private val prefs: UserPreferences,       // Fix 15/21: read language from preferences
+    internal val scanRepo: ScanRepository,
+    internal val prefs: UserPreferences,       // Fix 15/21: read language from preferences
     private val connectivityManager: ConnectivityManager,
-    private val medicationRepo: MedicationRepository,
-    @ApplicationContext private val appContext: Context,
+    internal val medicationRepo: MedicationRepository,
+    @ApplicationContext internal val appContext: Context,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
+    internal val _state = MutableStateFlow<ScanUiState>(ScanUiState.Idle)
     val state: StateFlow<ScanUiState> = _state.asStateFlow()
 
     // Needed so the MedicationFound/NonConsumableFound dialogs can render their
@@ -69,7 +66,7 @@ class ScanViewModel @Inject constructor(
         .map { it.healthConditions }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    private val _images = MutableStateFlow<List<ImagePayload>>(emptyList())
+    internal val _images = MutableStateFlow<List<ImagePayload>>(emptyList())
     val images: StateFlow<List<ImagePayload>> = _images.asStateFlow()
 
     // Disk-backed cache of the photo queue - a ViewModel is a fresh instance after
@@ -83,40 +80,19 @@ class ScanViewModel @Inject constructor(
     // this ViewModel itself deletes once consumed (see persistQueue()'s callers).
     // One newline-delimited base64 string per photo - base64 (NO_WRAP) never
     // contains a newline itself, so no escaping/JSON parsing is needed.
-    private val queueFile: File get() = File(appContext.filesDir, "scan_photo_queue")
-
-    private fun persistQueue() {
-        viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
-                val images = _images.value
-                if (images.isEmpty()) queueFile.delete()
-                else queueFile.writeText(images.joinToString("\n") { it.base64 })
-            }
-        }
-    }
-
     init {
-        // Best-effort restore, off Main - see queueFile's own doc comment. Wrapped
-        // in runCatching (not just relying on individual restoreImagePayload() null
+        // Best-effort restore, off Main - see queueFile's own doc comment (ScanPhotoQueue.kt).
+        // Wrapped in runCatching (not just relying on individual restoreImagePayload() null
         // returns) so a corrupt/unreadable cache file can never crash the app on
         // launch, only silently lose the recovery opportunity.
-        viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
-                if (queueFile.exists()) {
-                    val restored = queueFile.readText().split("\n")
-                        .filter { it.isNotBlank() }
-                        .mapNotNull { restoreImagePayload(it) }
-                    if (restored.isNotEmpty()) _images.value = restored else queueFile.delete()
-                }
-            }
-        }
+        restorePhotoQueue()
     }
 
-    private val _scannedBarcode = MutableStateFlow<String?>(null)
+    internal val _scannedBarcode = MutableStateFlow<String?>(null)
     // Debounce state for onBarcodeDetected() - see its own doc comment for why
     // this exists (two barcodes simultaneously in frame).
-    private var pendingBarcode: String? = null
-    private var pendingBarcodeStreak = 0
+    internal var pendingBarcode: String? = null
+    internal var pendingBarcodeStreak = 0
     val scannedBarcode: StateFlow<String?> = _scannedBarcode.asStateFlow()
 
     /**
@@ -179,7 +155,7 @@ class ScanViewModel @Inject constructor(
         _visibleBarcodes.value = barcodes.sorted()
     }
 
-    private val scoreMutex = Mutex()
+    internal val scoreMutex = Mutex()
 
     // New: how many products scanned today — drives the session counter badge in the
     // scan header. Backed by a live Room query so it updates immediately after each
@@ -298,150 +274,11 @@ class ScanViewModel @Inject constructor(
         persistQueue()
     }
 
-    /**
-     * Capped at MAX_QUEUED_PHOTOS — previously unbounded, unlike the server's own
-     * RouteHelpers.normalizeImages() (MAX_IMAGES=8, added round 30). A user tapping
-     * the capture FAB repeatedly grew this list forever: in SERVER mode the extra
-     * images were uploaded over the network only to be silently dropped server-side,
-     * and in DIRECT mode (straight to Groq/Cerebras, no server-side cap at all) every
-     * queued photo's full base64 payload was sent to the vision LLM with no limit.
-     * Silently ignored past the cap rather than surfaced as an error, matching this
-     * screen's other silent caps (e.g. recentBarcodes.takeLast(5)).
-     */
-    // Takes an already-built ImagePayload rather than a raw Bitmap - toPayload()'s
-    // CPU work (two createScaledBitmap calls + a JPEG compress) is now done by the
-    // caller (CameraPreview's background capture executor), not here. Keeping this
-    // synchronous - rather than wrapping it in viewModelScope.launch(Dispatchers.Default) -
-    // avoids making photo-queue mutation non-deterministic from the caller's point of
-    // view, which ScanViewModelTest's synchronous addPhoto()-then-assert calls rely on.
-    fun addPhoto(payload: ImagePayload) {
-        if (_images.value.size >= MAX_QUEUED_PHOTOS) return
-        _images.value = _images.value + payload
-        persistQueue()
-    }
+    // addPhoto()/removePhoto()/clearQueue() live in ScanViewModelPhotoQueue.kt as
+    // extension functions, alongside the disk-backed queue persistence they share.
 
-    fun removePhoto(index: Int) {
-        _images.value = _images.value.toMutableList().also { it.removeAt(index) }
-        persistQueue()
-    }
-
-    fun clearQueue() {
-        _images.value = emptyList()
-        _scannedBarcode.value = null
-        _state.value = ScanUiState.Idle
-        // See resultConsumed()'s own doc comment for why this stale-streak leak
-        // needs resetting here too - clearQueue() is the other path (dismissed
-        // found-dialog, manual queue clear) that can leave photos empty again
-        // after onBarcodeDetected()'s guard suppressed the debounce for a while.
-        pendingBarcode = null
-        pendingBarcodeStreak = 0
-        persistQueue()
-    }
-
-    /**
-     * Identifies whatever is in photo(s) with no barcode/DataMatrix/QR to
-     * scan — a medication or household product without any machine-readable
-     * code, or fresh produce / a plated dish. Previously this always assumed
-     * food (scoreFromImages' identifyMode), which would score a medication box
-     * as if it were something to eat. Checks the identified product's name
-     * against the medication/non-consumable name-lookup DBs before treating
-     * it as food, same priority order as the barcode path in score() below -
-     * but via a single vision-LLM call (identifyOrScoreFromImages), not a
-     * separate identifyProductName call followed by a second, near-identical
-     * identifyFood call for the same photos whenever neither DB matched (the
-     * common case: fresh produce, plated dishes never match either lookup).
-     */
-    fun identifyFromPhotos() {
-        val imgs = _images.value
-        if (imgs.isEmpty()) return
-        if (!scoreMutex.tryLock()) return
-        viewModelScope.launch {
-            try {
-                _state.value = ScanUiState.Scanning
-                val lang   = prefs.language.first()
-                val online = isOnline()
-                if (!online) {
-                    _state.value = ScanUiState.Error(offlineMessage(lang))
-                    return@launch
-                }
-                val identified = scanRepo.identifyOrScoreFromImages(imgs, lang, online, identifyMode = true)
-                identified.fold(
-                    onSuccess = { scanResult ->
-                        val name = scanResult.product.name
-                        val medication = withContext(Dispatchers.IO) { findMedicationByName(appContext, name) }
-                        val nonConsumable = if (medication == null) {
-                            withContext(Dispatchers.IO) { findNonConsumableByName(appContext, name) }
-                        } else null
-                        when {
-                            medication != null -> _state.value = ScanUiState.MedicationFound(medication)
-                            nonConsumable != null -> _state.value = ScanUiState.NonConsumableFound(nonConsumable)
-                            else -> {
-                                val id = scanRepo.persist(scanResult)
-                                _state.value = ScanUiState.Success(scanResult, id)
-                            }
-                        }
-                    },
-                    onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
-                )
-            } finally {
-                scoreMutex.unlock()
-            }
-        }
-    }
-
-    /**
-     * Server-only counterpart to identifyFromPhotos() for a plate holding several
-     * distinct foods - ScanRepository.identifyMultiFromImages() (wired to the
-     * server's POST /api/identify-multi, previously unreachable from the app)
-     * returns one ScanResult per detected item instead of collapsing the whole
-     * plate into a single one. Every returned result is persisted immediately,
-     * same as the single-item path's success branch, so MultiFoodFoundDialog can
-     * navigate straight to the existing Result screen for whichever item the
-     * user taps without a second network round-trip. Each item is still
-     * cross-checked against the medication/non-consumable name DBs first,
-     * same as identifyFromPhotos - "a plate is never going to contain a pill
-     * box" doesn't rule out the vision model misidentifying something else in
-     * frame as one of the plate's "foods," and unlike the single-item path,
-     * nothing here would otherwise stop that misidentification from being
-     * persisted straight into scan_history with a nutrition-based score.
-     */
-    fun identifyMultiFromPhotos() {
-        if (!isPremium.value) return
-        val imgs = _images.value
-        if (imgs.isEmpty()) return
-        if (!scoreMutex.tryLock()) return
-        viewModelScope.launch {
-            try {
-                _state.value = ScanUiState.Scanning
-                val lang   = prefs.language.first()
-                val online = isOnline()
-                if (!online) {
-                    _state.value = ScanUiState.Error(offlineMessage(lang))
-                    return@launch
-                }
-                val identified = scanRepo.identifyMultiFromImages(imgs, lang, online)
-                identified.fold(
-                    onSuccess = { results ->
-                        val nonEdibleNames = withContext(Dispatchers.IO) {
-                            results.filter { r ->
-                                findMedicationByName(appContext, r.product.name) != null ||
-                                    findNonConsumableByName(appContext, r.product.name) != null
-                            }.map { it.product.name }.toSet()
-                        }
-                        val edibleResults = results.filterNot { it.product.name in nonEdibleNames }
-                        _state.value = if (edibleResults.isEmpty()) {
-                            ScanUiState.Error(noFoodsDetectedMessage(lang))
-                        } else {
-                            ScanUiState.MultiFoodFound(items = edibleResults.map { it to scanRepo.persist(it) })
-                        }
-                    },
-                    onFailure = { e -> _state.value = ScanUiState.Error(httpFriendlyMessage(e, lang)) },
-                )
-            } finally {
-                scoreMutex.unlock()
-            }
-        }
-    }
+    // identifyFromPhotos()/identifyMultiFromPhotos() live in ScanViewModelIdentify.kt
+    // as extension functions.
 
     fun score() {
         val barcode = _scannedBarcode.value
@@ -628,7 +465,7 @@ class ScanViewModel @Inject constructor(
             .mapCatching { scanResult -> scanResult to scanRepo.persist(scanResult) }
     }
 
-    private fun isOnline(): Boolean {
+    internal fun isOnline(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         // NET_CAPABILITY_INTERNET alone only means the network is *designed* to
@@ -645,8 +482,8 @@ class ScanViewModel @Inject constructor(
             capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
-    private companion object {
-        /** Mirrors the server's RouteHelpers.MAX_IMAGES - see addPhoto()'s doc comment. */
+    internal companion object {
+        /** Mirrors the server's RouteHelpers.MAX_IMAGES - see addPhoto()'s doc comment (ScanViewModelPhotoQueue.kt). */
         const val MAX_QUEUED_PHOTOS = 8
         /** See onBarcodeDetected()'s own doc comment. */
         const val BARCODE_STABILITY_FRAMES = 3
