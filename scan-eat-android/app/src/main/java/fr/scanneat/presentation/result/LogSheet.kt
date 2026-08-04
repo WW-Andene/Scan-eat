@@ -59,11 +59,18 @@ fun LogSheet(
         (product.nutrition.energyKcal * it / 100.0).roundToInt()
     }
 
+    // Bottom sheets render in their own window (same structural reason
+    // DropdownMenu/AlertDialog popups can't get real backdrop blur, see
+    // glassPopupSurface's own doc comment) - matches the same shadow +
+    // hairline sheen + translucent container treatment as the rest of the
+    // app's popups instead of a flat, opaque fill.
+    val sheetShape = RoundedCornerShape(topStart = CardRadius.PROMINENT, topEnd = CardRadius.PROMINENT)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState       = sheetState,
-        containerColor   = SurfaceVariant,
-        shape            = RoundedCornerShape(topStart = CardRadius.PROMINENT, topEnd = CardRadius.PROMINENT),
+        containerColor   = SurfaceVariant.copy(alpha = 0.94f),
+        modifier         = Modifier.glassPopupSurface(sheetShape),
+        shape            = sheetShape,
     ) {
         Column(
             modifier              = Modifier.fillMaxWidth().padding(horizontal = Spacing.XL).padding(bottom = Spacing.XXL),
