@@ -153,7 +153,7 @@ private fun SubScoreChip(label: String, score: Float, modifier: Modifier = Modif
             // floors this sub-score at 0 (it's outside the 16-35 range the formula maps),
             // but showing a bare "0" next to a BMI label reads as "your BMI is zero",
             // directly contradicting the real BMI shown elsewhere on the same screen.
-            Text("${score.roundToInt()}/100", style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+            Text("${score.roundToInt()}/100", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = color, fontWeight = FontWeight.Bold)
         }
     }
 }

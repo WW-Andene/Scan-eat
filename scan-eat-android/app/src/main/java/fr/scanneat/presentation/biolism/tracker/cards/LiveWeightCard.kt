@@ -59,10 +59,10 @@ internal fun LiveWeightCard(liveWeight: Double, baseWeight: Double, fatLostKg: D
                     style = MaterialTheme.typography.labelSmall, color = TextMuted)
             }
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Text((mainValue(liveWeight).formatDecimal(4)), style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.W500), color = color)
+                Text((mainValue(liveWeight).formatDecimal(4)), style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.W500, fontFeatureSettings = "tnum"), color = color)
                 Text(mainUnit, style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.5f))
                 val deltaG = (liveWeight - baseWeight) * 1000.0
-                Text(stringResource(R.string.biolism_liveweight_delta, (smallValue(deltaG).formatDecimal(4)), smallUnit), style = MaterialTheme.typography.labelSmall, color = color.copy(0.8f))
+                Text(stringResource(R.string.biolism_liveweight_delta, (smallValue(deltaG).formatDecimal(4)), smallUnit), style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = color.copy(0.8f))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
                 Text(stringResource(R.string.biolism_liveweight_base, (mainValue(baseWeight).formatDecimal(3)), mainUnit), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f))

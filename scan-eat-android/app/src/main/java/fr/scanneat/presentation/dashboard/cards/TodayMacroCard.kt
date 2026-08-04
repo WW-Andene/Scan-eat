@@ -68,7 +68,7 @@ private fun MacroRing(label: String, value: Int, unit: String, pct: Float?, colo
                 strokeWidth = 4.dp,
                 trackColor = OnSurface.copy(alpha = 0.12f),
             )
-            Text(value.toString(), style = MaterialTheme.typography.labelMedium, color = OnBackground, fontWeight = FontWeight.Bold)
+            Text(value.toString(), style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"), color = OnBackground, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(5.dp))
         // Previously only the current total was shown ("120g") with no indication of

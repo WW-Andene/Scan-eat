@@ -181,7 +181,7 @@ private fun BestWorstItem(
                 day.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale).replaceFirstChar { it.uppercaseChar() },
                 style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = OnSurface,
             )
-            Text("${day.kcal.roundToInt()} kcal", style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.6f))
+            Text("${day.kcal.roundToInt()} kcal", style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"), color = OnSurface.copy(0.6f))
         }
     }
 }
