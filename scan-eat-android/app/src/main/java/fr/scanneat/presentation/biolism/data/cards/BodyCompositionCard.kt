@@ -88,7 +88,7 @@ private fun BmiChip(m: MetabolicResult) {
         BiolismBmiCategory.OVERWEIGHT  -> stringResource(R.string.weight_bmi_overweight) to semanticAmber()
         BiolismBmiCategory.OBESE       -> stringResource(R.string.weight_bmi_obese) to semanticRed()
     }
-    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = color.copy(0.15f), border = BorderStroke(1.dp, color.copy(0.3f))) {
+    Surface(shape = RoundedCornerShape(CardRadius.BADGE), color = color.copy(0.15f), border = BorderStroke(1.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
         Text(label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
             style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
     }

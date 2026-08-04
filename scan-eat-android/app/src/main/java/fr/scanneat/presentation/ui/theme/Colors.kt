@@ -111,6 +111,23 @@ const val GLOW_BORDER_ALPHA: Float = 0.162f
 const val GLOW_HAZE_ALPHA: Float = 0.10f
 const val PHI_TRACE_ALPHA: Float = 0.062f
 
+// Border genre audit: a distinct, unnamed role - the border on a *clickable*
+// haze-filled chip/pill (CollapsibleFilterBar's filter pill, DiaryScreen's
+// tab-menu pill, FastingSection's log-meal/import-fast badges) - had
+// converged on the same 0.4f alpha at all 4 sites, independently of hue
+// (AccentCoral, Violet). Deliberately distinct from GLOW_BORDER_ALPHA
+// (0.162f), which is for passive/decorative badges, not tappable ones - an
+// interactive element earning a more visible border is a real semantic
+// difference, not drift to fold into the existing golden-ratio tier.
+const val CHIP_BORDER_ALPHA: Float = 0.4f
+
+// Border genre audit (round 2): a second distinct role - the border on a
+// *static* status/metric Surface (BMI badge, Biolism metric-card accent
+// strip, data-screen tint badges) - converged on 0.3f at 4 sites across
+// 4 different hues (bmiColor, Teal, per-nutrient color x2), independently
+// of CHIP_BORDER_ALPHA's clickable-pill role above.
+const val STATUS_BORDER_ALPHA: Float = 0.3f
+
 // ── Biolism accent system (φ-derived) ─────────────────────────────────────────
 // Gold — primary action, live timer, BMR hero
 val Gold            = Color(0xFFC9A84C)

@@ -235,7 +235,7 @@ fun DiaryScreen(
                             onClick = { tabMenuExpanded = true },
                             shape = RoundedCornerShape(8.dp),
                             color = ChipBackgroundAccent,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(0.4f)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)),
                         ) {
                             Row(
                                 Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),

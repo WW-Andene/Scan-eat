@@ -206,7 +206,7 @@ internal fun HormoneRow(name: String, h: HormoneReading, note: String) {
                 // doesn't have. Whole numbers, matching the ref range's own format.
                 Text("%.0f ${h.unit}".format(Locale.US, h.value), style = MaterialTheme.typography.bodySmall, color = color, fontWeight = FontWeight.Bold)
                 Surface(shape = RoundedCornerShape(3.dp), color = color.copy(0.15f),
-                    border = BorderStroke(1.dp, color.copy(0.3f))) {
+                    border = BorderStroke(1.dp, color.copy(alpha = STATUS_BORDER_ALPHA))) {
                     Text(h.label, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
                 }

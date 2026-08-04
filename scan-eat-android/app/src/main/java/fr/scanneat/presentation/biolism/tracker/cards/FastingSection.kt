@@ -60,7 +60,7 @@ internal fun FastingRow(
                             modifier = Modifier.clip(RoundedCornerShape(CardRadius.BADGE)).clickable { onLogMeal() },
                             shape = RoundedCornerShape(CardRadius.BADGE),
                             color = VioletHaze,
-                            border = BorderStroke(1.dp, Violet.copy(0.4f)),
+                            border = BorderStroke(1.dp, Violet.copy(alpha = CHIP_BORDER_ALPHA)),
                         ) {
                             Text(stringResource(R.string.biolism_fasting_log_meal), modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                                 style = MaterialTheme.typography.labelSmall, color = Violet, fontWeight = FontWeight.Bold)
@@ -92,7 +92,7 @@ internal fun FastingRow(
                     modifier = Modifier.clip(RoundedCornerShape(CardRadius.BADGE)).clickable { onImportRealFast() },
                     shape = RoundedCornerShape(CardRadius.BADGE),
                     color = VioletHaze,
-                    border = BorderStroke(1.dp, Violet.copy(0.4f)),
+                    border = BorderStroke(1.dp, Violet.copy(alpha = CHIP_BORDER_ALPHA)),
                 ) {
                     Text(
                         stringResource(R.string.biolism_fasting_import_real, realFastHours),
