@@ -80,6 +80,10 @@
     <string name="hydration_week_bar_no_data">%1$s : aucune eau enregistrée</string>
     <string name="hydration_week_bar_goal_met">%1$s : %2$d mL, objectif atteint</string>
     <string name="hydration_week_bar_default">%1$s : %2$d mL</string>
+    <string name="hydration_history_title">Historique</string>
+    <string name="hydration_history_edit_title">Corriger le %1$s</string>
+    <string name="hydration_history_edit_label">Total (mL)</string>
+    <string name="hydration_export_csv">Exporter (CSV)</string>
     <string name="settings_server_url">URL du serveur</string>
     <string name="result_log_it">Logger</string>
     <string name="dashboard_title">Tableau de bord</string>

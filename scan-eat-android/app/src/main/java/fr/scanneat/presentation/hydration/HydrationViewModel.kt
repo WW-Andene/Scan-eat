@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.backup.CsvExportRepository
 import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.domain.model.ActivityLevel
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class HydrationViewModel @Inject constructor(
     private val repo: HydrationRepository,
     private val prefs: UserPreferences,
+    private val csvExportRepository: CsvExportRepository,
 ) : ViewModel() {
     // LocalDate.now() captured once at construction would keep observing
     // today's bucket forever if this ViewModel outlives midnight - polling
@@ -108,4 +110,44 @@ class HydrationViewModel @Inject constructor(
 
     fun addGlass()    = viewModelScope.launch { runCatching { repo.addGlass() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     fun removeGlass() = viewModelScope.launch { runCatching { repo.removeGlass() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+
+    /**
+     * Per-day log history - hydration is stored as one running total per day
+     * (HydrationRepository.observe/set, not individual timestamped entries like
+     * Weight/Medication/Activity), so "history" here means the last 90 days that
+     * have a non-zero total, newest first - the finest-grained correction unit
+     * this storage model supports is a whole day's total, not a single glass.
+     * Previously there was no way to see or fix a past day at all - the only
+     * remedy for a mistaken tap was removeGlass() on *today's* running count.
+     */
+    val history: StateFlow<List<Pair<LocalDate, Int>>> = intake.map {
+        repo.exportAll().filter { (_, ml) -> ml > 0 }.sortedByDescending { (date, _) -> date }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Corrects a whole day's total - see [history]'s own doc comment on why this
+     *  is day-level, not per-glass. */
+    fun editDay(date: LocalDate, ml: Int) = viewModelScope.launch {
+        runCatching { repo.set(date, ml) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
+
+    /** Clears a day's total back to zero (removes it from [history]). */
+    fun deleteDay(date: LocalDate) = viewModelScope.launch {
+        runCatching { repo.set(date, 0) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
+
+    // Same CsvExportReady-then-SAF-picker split as ExpensesViewModel's own CSV
+    // export - exposed directly on this screen instead of only reachable via
+    // Settings > Sauvegarde (SettingsViewModel.prepareHydrationCsvExport already
+    // calls the same csvExportRepository.exportHydrationCsv()).
+    private val _csvExportReady = MutableStateFlow<String?>(null)
+    val csvExportReady: StateFlow<String?> = _csvExportReady.asStateFlow()
+    fun prepareCsvExport() {
+        viewModelScope.launch {
+            runCatching { csvExportRepository.exportHydrationCsv() }
+                .onSuccess { _csvExportReady.value = it }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+    fun clearCsvExport() { _csvExportReady.value = null }
+    fun reportCsvExportIoFailed() { _csvExportReady.value = null; _actionFailed.value = true }
 }

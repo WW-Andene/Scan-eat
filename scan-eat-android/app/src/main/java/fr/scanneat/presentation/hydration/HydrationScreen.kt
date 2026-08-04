@@ -2,21 +2,27 @@ package fr.scanneat.presentation.hydration
 
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.data.repository.health.HYD_GLASS_ML
 import fr.scanneat.presentation.hydration.components.HydrationGoalEditorDialog
+import fr.scanneat.presentation.hydration.components.HydrationHistorySection
 import fr.scanneat.presentation.hydration.components.HydrationRingAndControls
 import fr.scanneat.presentation.hydration.components.HydrationStreakRow
 import fr.scanneat.presentation.hydration.components.HydrationSuggestedGoalBanner
@@ -24,6 +30,9 @@ import fr.scanneat.presentation.hydration.components.HydrationWeeklyChart
 import fr.scanneat.presentation.reminders.HydrationReminderCard
 import fr.scanneat.presentation.ui.theme.*
 import kotlinx.coroutines.flow.*
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 /**
  * [embedded] = true skips this screen's own Scaffold/TopAppBar — used when
@@ -55,10 +64,15 @@ fun HydrationScreen(
     val weeklyGoalMetDays = viewModel.weeklyGoalMetDays.collectAsStateWithLifecycle()
     val language        = viewModel.language.collectAsStateWithLifecycle()
     val customGoal      = viewModel.customGoalMl.collectAsStateWithLifecycle()
+    val history         = viewModel.history.collectAsStateWithLifecycle()
     var showGoalEditor by remember { mutableStateOf(false) }
+    var deleteTarget by remember { mutableStateOf<LocalDate?>(null) }
     val glasses     = intake.value / HYD_GLASS_ML
     val goalGlasses = goal.value / HYD_GLASS_ML
     val pct         = (intake.value.toFloat() / goal.value.toFloat()).coerceIn(0f, 1.2f)
+    // In-app language, not Locale.getDefault() - same fix every date-heavy
+    // sibling screen (Weight/Expenses/Diary/...) already applies.
+    val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("d MMM yyyy", Locale(language.value)) }
 
     // addGlass()/removeGlass() previously failed completely silently - see
     // HydrationViewModel.actionFailed's own comment.
@@ -69,6 +83,29 @@ fun HydrationScreen(
         if (actionFailed.value) {
             snackbarHostState.showSnackbar(logFailedMessage)
             viewModel.clearActionFailed()
+        }
+    }
+
+    // Same CsvExportReady-then-SAF-picker split ExpensesScreen's own CSV export
+    // uses - reachable directly from this screen instead of only via Settings >
+    // Sauvegarde (which already calls the same csvExportRepository.exportHydrationCsv()).
+    val context = LocalContext.current
+    val csvExportReady = viewModel.csvExportReady.collectAsStateWithLifecycle()
+    val csvExportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        val csv = csvExportReady.value
+        when {
+            uri == null -> viewModel.clearCsvExport()
+            csv != null -> {
+                val stream = context.contentResolver.openOutputStream(uri)
+                val wrote = stream != null && runCatching { stream.use { it.write(csv.toByteArray()) } }.isSuccess
+                if (wrote) viewModel.clearCsvExport() else viewModel.reportCsvExportIoFailed()
+            }
+            else -> viewModel.reportCsvExportIoFailed()
+        }
+    }
+    LaunchedEffect(csvExportReady.value) {
+        if (csvExportReady.value != null) {
+            csvExportLauncher.launch("scaneat-hydratation-${LocalDate.now()}.csv")
         }
     }
 
@@ -109,6 +146,33 @@ fun HydrationScreen(
             item { HydrationWeeklyChart(weeklyIntake = weeklyIntake.value, goalMl = goal.value, weeklyGoalMetDays = weeklyGoalMetDays.value, language = language.value) }
         }
 
+        if (history.value.isNotEmpty()) {
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.hydration_history_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = OnBackground,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    // Reachable directly from this screen instead of only via
+                    // Settings > Sauvegarde, same rationale as ExpensesScreen's
+                    // own export shortcut.
+                    IconButton(onClick = { viewModel.prepareCsvExport() }) {
+                        Icon(Icons.Rounded.Download, stringResource(R.string.hydration_export_csv), tint = OnSurface.copy(0.5f))
+                    }
+                }
+            }
+            item {
+                HydrationHistorySection(
+                    history = history.value,
+                    dateFmt = dateFmt,
+                    onEdit = { date, ml -> viewModel.editDay(date, ml) },
+                    onDelete = { date -> deleteTarget = date },
+                )
+            }
+        }
+
         item { Spacer(Modifier.height(Spacing.XXL)) }
         }
     }
@@ -140,6 +204,14 @@ fun HydrationScreen(
                 text.toIntOrNull()?.takeIf { it > 0 }?.coerceIn(1, 10000)?.let { viewModel.setCustomGoal(it) }
                 showGoalEditor = false
             },
+        )
+    }
+
+    deleteTarget?.let { date ->
+        DeleteConfirmDialog(
+            itemName = date.format(dateFmt),
+            onConfirm = { viewModel.deleteDay(date); deleteTarget = null },
+            onDismiss = { deleteTarget = null },
         )
     }
 }
