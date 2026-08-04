@@ -45,6 +45,7 @@ import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.minTouchTarget
 import java.util.concurrent.Executors
 
 @Composable
@@ -172,7 +173,12 @@ fun CameraPreview(
                     torchOn = !torchOn
                     camera?.cameraControl?.enableTorch(torchOn)
                 },
-                modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L, end = Spacing.L).size(40.dp),
+                // User-reported: smaller and misaligned vs. the shelf-mode FAB
+                // stacked below it (ScanActionControls.kt's ScanShelfModeFab),
+                // which moved to the 48dp WCAG/Material touch-target minimum -
+                // this one was left at the old fixed 40dp, so their edges no
+                // longer lined up.
+                modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L, end = Spacing.L).minTouchTarget(),
                 containerColor = if (torchOn) AccentCoral else SurfaceVariant,
             ) {
                 Icon(

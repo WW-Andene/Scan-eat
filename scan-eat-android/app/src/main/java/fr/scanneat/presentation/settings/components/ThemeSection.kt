@@ -37,7 +37,13 @@ internal fun ThemeSection(
                 FilterChip(
                     selected = theme == key,
                     onClick  = { onThemeChange(key) },
-                    label    = { Text(label) },
+                    // User-reported: uneven gap between chips here vs. the
+                    // colorblind-mode row below (AccessibilitySection.kt), which
+                    // already forces maxLines = 1 - this row's longer labels
+                    // ("Contraste élevé"/"faible") could wrap to a second line,
+                    // making that chip taller than its neighbors and the
+                    // identical Spacing.S gap read uneven. Matched.
+                    label    = { Text(label, maxLines = 1) },
                     colors   = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
                     ),

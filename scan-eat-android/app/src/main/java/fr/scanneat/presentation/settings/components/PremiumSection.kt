@@ -37,16 +37,16 @@ internal fun PremiumSection(isPremium: Boolean, onSetPremium: (Boolean) -> Unit)
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f),
             )
         }
-        Row(
-            Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                if (isPremium) stringResource(R.string.settings_premium_downgrade_hint) else stringResource(R.string.settings_premium_upgrade_hint),
-                style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
-            )
-            ScanEatPrimaryButton(onClick = { onSetPremium(!isPremium) }) {
-                Text(if (isPremium) stringResource(R.string.settings_premium_disable_button) else stringResource(R.string.settings_premium_enable_button))
-            }
+        // User-reported: this toggle button sat inline next to its hint label
+        // (SpaceBetween Row) instead of full width, unlike Journal's "Activer
+        // les notifications" (NotificationPermission.kt), which stacks its hint
+        // above a fillMaxWidth button. Matched here.
+        Text(
+            if (isPremium) stringResource(R.string.settings_premium_downgrade_hint) else stringResource(R.string.settings_premium_upgrade_hint),
+            style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f),
+        )
+        ScanEatPrimaryButton(onClick = { onSetPremium(!isPremium) }, modifier = Modifier.fillMaxWidth()) {
+            Text(if (isPremium) stringResource(R.string.settings_premium_disable_button) else stringResource(R.string.settings_premium_enable_button))
         }
     }
 }

@@ -54,7 +54,10 @@ fun CollapsibleFilterBar(
     Box(modifier.padding(horizontal = Spacing.L)) {
         Surface(
             onClick = onToggle,
-            shape = RoundedCornerShape(8.dp),
+            // User-reported: radius/height didn't match this same screen's other
+            // pill button (e.g. FoodSearchScreen's DisplayModeButton, both
+            // CardRadius.CONTROL) - was a hardcoded 8.dp, its own one-off value.
+            shape = RoundedCornerShape(CardRadius.CONTROL),
             color = ChipBackgroundAccent,
             border = BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)),
         ) {
@@ -82,6 +85,11 @@ fun CollapsibleFilterBar(
             containerColor = SurfaceVariant.copy(alpha = 0.94f),
             shadowElevation = 0.dp,
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
+            // User-reported: the popup opened flush against the trigger pill with
+            // no gap. DropdownMenu defaults to zero offset from its anchor;
+            // Spacing.T2 gives it the same small standard gap every other
+            // floating surface in the app (tooltips, popups) keeps from its anchor.
+            offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = Spacing.T2),
             content = content,
         )
     }

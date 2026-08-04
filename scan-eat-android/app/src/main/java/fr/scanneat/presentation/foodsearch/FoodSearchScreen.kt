@@ -185,7 +185,10 @@ private fun DisplayModeButton(mode: SearchDisplayMode, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
+        // User-reported: shorter than the filter popup's trigger pill on this
+        // same screen (CollapsibleFilterBar's Surface uses heightIn(min = 48.dp);
+        // this button was left at Material's default OutlinedButton min height).
+        modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS).heightIn(min = 48.dp),
     ) {
         Icon(Icons.Rounded.SwapHoriz, null, modifier = Modifier.size(IconSize.Small))
         Spacer(Modifier.width(Spacing.XS))
@@ -305,10 +308,14 @@ private fun FiltersSection(
         FoodSearchFilter.IRON_SOURCE     to stringResource(R.string.foodsearch_filter_iron),
         FoodSearchFilter.CALCIUM_SOURCE  to stringResource(R.string.foodsearch_filter_calcium),
     )
+    // User-reported: this filter pill sat visibly further right than Templates'/
+    // Recipes' — CollapsibleFilterBar already applies Spacing.L horizontally
+    // itself (see its own doc comment), so passing another Spacing.L here
+    // doubled the inset. Kept only the vertical spacing this call site needs.
     CollapsibleFilterBar(
         expanded = expanded, onToggle = onToggle,
         summaryLabel = stringResource(R.string.foodsearch_filters_label, filterOptions.first { it.first == filter }.second),
-        modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS),
+        modifier = Modifier.padding(vertical = Spacing.XS),
     ) {
         filterOptions.forEach { (f, label) ->
             val isSelected = filter == f

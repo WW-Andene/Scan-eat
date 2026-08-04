@@ -82,10 +82,15 @@ internal fun BackupSection(
     SettingsSection(stringResource(R.string.settings_section_backup), icon = Icons.Default.Backup) {
         Text(stringResource(R.string.settings_backup_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.5f))
         val working = backupState is BackupUiState.Working
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+        // User-reported: "Restaurer une sauvegarde" is noticeably longer than
+        // "Exporter mes données" - side by side in a Row with neither button
+        // given fillMaxWidth/weight, the pair didn't jointly fit and the longer
+        // label got compressed/wrapped. Stacked instead, each full width.
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             ScanEatPrimaryButton(
                 onClick = { showExportDialog = true },
                 enabled = !working,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 // No explicit tint - defaults to LocalContentColor, which
                 // ScanEatPrimaryButton now correctly dims when disabled (was
@@ -98,6 +103,7 @@ internal fun BackupSection(
             ScanEatOutlinedButton(
                 onClick = onImport,
                 enabled = !working,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
                 Spacer(Modifier.width(Spacing.S))

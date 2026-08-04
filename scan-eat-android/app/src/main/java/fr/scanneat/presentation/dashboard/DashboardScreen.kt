@@ -211,14 +211,12 @@ fun DashboardScreen(
             // (weight, fasting, water, activity) live in Journal now, and Profile's
             // canonical entry point is Journal's top bar, not a Dashboard tile. ----
             item {
-                // User-reported: every other section title on this screen (Aujourd'hui,
-                // Cette semaine, ...) sits inside a ScanEatCard with its own
-                // contentPadding = Spacing.L, so its text reads at LazyColumn's outer
-                // Spacing.L + the card's own Spacing.L = double the indent this bare
-                // Text (no card, no padding of its own) had - "Fonctionnalités" read
-                // flush against the screen edge while every section title above it
-                // read visibly further right. Padded to match.
-                Text(stringResource(R.string.dashboard_features_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = Spacing.L))
+                // User-reported: this Text added its own extra Modifier.padding(horizontal
+                // = Spacing.L) on top of the LazyColumn's own Spacing.L, so "Fonctionnalités"
+                // read further right than "Scan récent" below it - the only other bare
+                // (non-card) section title on this screen, which correctly inherits just
+                // the LazyColumn's single Spacing.L. Removed to match.
+                Text(stringResource(R.string.dashboard_features_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
