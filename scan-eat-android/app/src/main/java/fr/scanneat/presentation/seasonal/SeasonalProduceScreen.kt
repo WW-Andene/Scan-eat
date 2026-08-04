@@ -128,7 +128,7 @@ private fun MonthPickerRow(selectedMonth: Int, locale: Locale, onSelect: (Int) -
                     .let { if (selected) it.background(AccentCoral.copy(alpha = 0.12f)) else it }
                     .minTouchTarget()
                     .clickable(onClickLabel = monthName) { onSelect(month) }
-                    .semantics { role = Role.Tab; selected = selected }
+                    .semantics { role = Role.Tab; this.selected = selected }
                     .wrapContentSize()
                     .padding(horizontal = Spacing.M, vertical = Spacing.S),
             )
