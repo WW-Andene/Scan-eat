@@ -63,7 +63,7 @@ fun CollapsibleFilterBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Icon(TablerIcons.Filter, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.Filter, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                 Text(summaryLabel, style = MaterialTheme.typography.labelMedium, color = AccentCoral, fontWeight = FontWeight.Bold)
                 Icon(TablerIcons.ChevronDown, null, tint = AccentCoral)
             }

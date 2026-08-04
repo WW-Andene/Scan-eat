@@ -12,6 +12,16 @@ import androidx.compose.ui.unit.dp
  * icons — that can't be checked without a running device).
  */
 object IconSize {
+    /**
+     * §E1/genre audit (icon sizes): 18.dp turned out to be the de facto
+     * standard for a small row-action icon (delete/edit/favorite glyphs in
+     * dense list rows) at ~19 call sites, distinct from [Inline]'s role and
+     * more common than it - never named, so those call sites couldn't move
+     * onto the scale. Named at the exact existing value (zero visual change,
+     * unlike a full-scale renumbering) so they can reference it directly.
+     */
+    val Compact: Dp = 18.dp
+
     /** Inline / label-adjacent icons (chip icons, list-row leading icons). */
     val Inline: Dp = 20.dp
 

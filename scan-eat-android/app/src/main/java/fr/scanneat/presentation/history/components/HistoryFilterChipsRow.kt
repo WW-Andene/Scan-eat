@@ -47,8 +47,8 @@ internal fun HistoryFilterChipsRow(
         if (showFavoritesChip) {
             DropdownMenuItem(
                 text = { Text(favoritesLabel) },
-                leadingIcon = { Icon(TablerIcons.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(18.dp)) },
-                trailingIcon = { if (favoritesOnly) Icon(TablerIcons.Check, null, tint = Gold, modifier = Modifier.size(18.dp)) },
+                leadingIcon = { Icon(TablerIcons.Star, null, tint = if (favoritesOnly) Gold else OnBackground.copy(0.5f), modifier = Modifier.size(IconSize.Compact)) },
+                trailingIcon = { if (favoritesOnly) Icon(TablerIcons.Check, null, tint = Gold, modifier = Modifier.size(IconSize.Compact)) },
                 onClick = { onToggleFavoritesOnly(); onToggle() },
             )
             HorizontalDivider(color = OnSurface.copy(0.08f))
@@ -57,7 +57,7 @@ internal fun HistoryFilterChipsRow(
             val isSelected = gradeFilter == grade
             DropdownMenuItem(
                 text = { Text(label) },
-                trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact)) },
                 onClick = { onGradeFilterChange(if (isSelected) null else grade); onToggle() },
             )
         }

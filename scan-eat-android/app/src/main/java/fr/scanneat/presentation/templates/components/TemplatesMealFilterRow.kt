@@ -37,7 +37,7 @@ internal fun TemplatesMealFilterRow(
             val isSelected = selected == slot
             DropdownMenuItem(
                 text = { Text(slot?.label() ?: allLabel) },
-                trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact)) },
                 onClick = { onSelect(slot); onToggle() },
             )
         }

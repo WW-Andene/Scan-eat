@@ -129,7 +129,7 @@ fun CustomFoodScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                     ) {
-                        Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                        Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                         Text(
                             stringResource(R.string.customfood_import_from_scan, scan.product.name),
                             style = MaterialTheme.typography.bodySmall,
@@ -140,7 +140,7 @@ fun CustomFoodScreen(
                         // minimum, was 32dp) and given a real contentDescription (was
                         // null - a TalkBack user heard nothing for this import action).
                         IconButton(onClick = { viewModel.importFromScan(scan) }) {
-                            Icon(TablerIcons.Plus, contentDescription = stringResource(R.string.customfood_import_from_scan, scan.product.name), tint = AccentCoral, modifier = Modifier.size(18.dp))
+                            Icon(TablerIcons.Plus, contentDescription = stringResource(R.string.customfood_import_from_scan, scan.product.name), tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                         }
                     }
                 }

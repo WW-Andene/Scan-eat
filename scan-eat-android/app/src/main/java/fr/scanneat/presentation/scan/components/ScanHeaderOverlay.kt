@@ -43,6 +43,7 @@ import fr.scanneat.domain.model.ScanResult
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnSurface
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -110,7 +111,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
         ) {
             Column {
                 Row(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.S), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                    Icon(TablerIcons.Barcode, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                     Spacer(Modifier.width(Spacing.S))
                     Text(barcode, style = MaterialTheme.typography.labelLarge, color = OnSurface, fontWeight = FontWeight.Medium)
                     // "Already scanned this" cue — the local-cache lookup

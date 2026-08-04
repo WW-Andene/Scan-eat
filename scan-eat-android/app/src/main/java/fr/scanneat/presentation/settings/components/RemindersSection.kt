@@ -19,7 +19,7 @@ internal fun RemindersSection(onOpenReminders: () -> Unit) {
             onClick = onOpenReminders,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Icon(Icons.Default.Notifications, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Notifications, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_reminders_button), color = OnBackground)
         }

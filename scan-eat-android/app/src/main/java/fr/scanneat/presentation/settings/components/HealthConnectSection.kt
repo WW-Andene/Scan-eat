@@ -30,12 +30,12 @@ internal fun HealthConnectSection(availability: HealthConnectAvailability, conne
             HealthConnectAvailability.AVAILABLE -> {
                 if (connected) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact))
                         Text(stringResource(R.string.settings_healthconnect_connected), style = MaterialTheme.typography.bodySmall, color = AccentCoral)
                     }
                 } else {
                     ScanEatOutlinedButton(onClick = onConnect) {
-                        Icon(Icons.Default.MonitorHeart, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.MonitorHeart, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
                         Spacer(Modifier.width(6.dp))
                         Text(stringResource(R.string.settings_healthconnect_connect_button), color = OnBackground)
                     }

@@ -91,7 +91,7 @@ internal fun BackupSection(
                 // ScanEatPrimaryButton now correctly dims when disabled (was
                 // previously hardcoded black regardless of enabled state,
                 // compounding the same bug fixed in ScanEatButton.kt).
-                Icon(Icons.Default.Upload, null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Upload, null, modifier = Modifier.size(IconSize.Compact))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.settings_backup_export_button))
             }
@@ -99,7 +99,7 @@ internal fun BackupSection(
                 onClick = onImport,
                 enabled = !working,
             ) {
-                Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Download, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.settings_backup_import_button), color = OnBackground)
             }
@@ -220,7 +220,7 @@ internal fun BackupSection(
             onClick = onPrepareCsvExport,
             enabled = backupState !is BackupUiState.Working,
         ) {
-            Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.settings_csv_export_button), color = OnBackground)
         }
@@ -230,7 +230,7 @@ internal fun BackupSection(
             onClick = onPrepareBiolismCsvExport,
             enabled = backupState !is BackupUiState.Working,
         ) {
-            Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+            Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.settings_biolism_csv_export_button), color = OnBackground)
         }
@@ -244,7 +244,7 @@ internal fun BackupSection(
                 onClick = { moreCsvExpanded = true },
                 enabled = backupState !is BackupUiState.Working,
             ) {
-                Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+                Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
             }
@@ -284,7 +284,7 @@ internal fun BackupSection(
             onClick = onPrepareReport,
             enabled = backupState !is BackupUiState.Working,
         ) {
-            Icon(Icons.Default.PictureAsPdf, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.PictureAsPdf, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.settings_pdf_report_button), color = OnBackground)
         }

@@ -19,7 +19,7 @@ internal fun ProfileSection(onOpenProfile: () -> Unit) {
             onClick = onOpenProfile,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Icon(Icons.Default.Person, null, tint = OnBackground, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Person, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
             Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_profile_button), color = OnBackground)
         }

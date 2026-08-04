@@ -19,6 +19,7 @@ import fr.scanneat.R
 import fr.scanneat.presentation.recipes.RecipesViewModel
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.CollapsibleFilterBar
+import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 
@@ -50,7 +51,7 @@ internal fun RecipesFilterChipsRow(
                 val isSelected = goalFilter == filter
                 DropdownMenuItem(
                     text = { Text(label) },
-                    trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(18.dp)) },
+                    trailingIcon = { if (isSelected) Icon(TablerIcons.Check, null, tint = AccentCoral, modifier = Modifier.size(IconSize.Compact)) },
                     onClick = { onFilterChange(filter); onToggle() },
                 )
             }
