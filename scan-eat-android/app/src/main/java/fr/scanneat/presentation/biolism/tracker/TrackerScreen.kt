@@ -114,7 +114,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .ambientGloom(base = Background, primary = Gold, secondary = Teal)
+            .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
             .padding(bottom = Spacing.XXL),

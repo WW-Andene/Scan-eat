@@ -113,7 +113,7 @@ fun FastingScreen(
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize()
-                .ambientGloom(base = Background, primary = Teal, secondary = AccentCoral)
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
                 .padding(horizontal = Spacing.L),
             contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),

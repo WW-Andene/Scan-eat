@@ -112,7 +112,7 @@ fun GroceryScreen(
             )
         },
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = CalorieOrange, secondary = AccentCoral)) {
+        Column(Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = Spacing.L, vertical = Spacing.XS),
                 verticalAlignment = Alignment.CenterVertically,

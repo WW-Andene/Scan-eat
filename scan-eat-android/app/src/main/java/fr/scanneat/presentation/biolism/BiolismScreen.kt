@@ -68,7 +68,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
     // nav (Biolism is one of its TOP_TABS) is reserved here as a fixed gap
     // rather than true scroll-under, since none of the 4 tab screens below
     // expose a contentPadding hook of their own to thread it through precisely.
-    Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal)) {
+    Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()

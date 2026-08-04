@@ -78,7 +78,7 @@ fun CustomFoodScreen(
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = CalorieOrange)) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding).ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)) {
             // Search bar
             ScanEatSearchField(
                 query = query.value, onQueryChange = { viewModel.setQuery(it) },

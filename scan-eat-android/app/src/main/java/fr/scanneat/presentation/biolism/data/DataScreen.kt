@@ -74,7 +74,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
     val s   = timer.value
 
     if (met == null) {
-        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Icon(Icons.Outlined.MonitorHeart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
                 Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
@@ -87,7 +87,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
 
     Box(Modifier.fillMaxSize()) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal),
+        modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {

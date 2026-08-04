@@ -50,7 +50,7 @@ fun EvolutionScreen(viewModel: EvolutionViewModel = hiltViewModel()) {
     val hormoneTrends     = viewModel.hormoneTrends.collectAsStateWithLifecycle()
 
     if (!profile.value.isValid) {
-        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
                 Icon(Icons.Outlined.ShowChart, null, tint = Gold, modifier = Modifier.size(IconSize.EmptyState))
                 Text(stringResource(R.string.biolism_tracker_empty_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
@@ -61,7 +61,7 @@ fun EvolutionScreen(viewModel: EvolutionViewModel = hiltViewModel()) {
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal),
+        modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
         contentPadding = PaddingValues(Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {

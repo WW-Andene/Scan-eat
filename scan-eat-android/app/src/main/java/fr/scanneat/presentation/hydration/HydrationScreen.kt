@@ -75,7 +75,7 @@ fun HydrationScreen(
     val content = @Composable { padding: PaddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize()
-                .ambientGloom(base = Background, primary = HydrationBlue, secondary = AccentCoral)
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
                 .padding(horizontal = Spacing.XL),
             contentPadding = padding,
             horizontalAlignment = Alignment.CenterHorizontally,

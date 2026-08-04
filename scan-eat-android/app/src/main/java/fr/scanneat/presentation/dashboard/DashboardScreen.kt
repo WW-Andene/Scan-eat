@@ -60,7 +60,7 @@ import fr.scanneat.presentation.ui.theme.Background
 import fr.scanneat.presentation.ui.theme.ConfirmDialog
 import fr.scanneat.presentation.ui.theme.EmptyListState
 import fr.scanneat.presentation.ui.theme.FloatingScreenScaffold
-import fr.scanneat.presentation.ui.theme.HydrationBlue
+import fr.scanneat.presentation.ui.theme.Gold
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.ScanEatSnackbarHost
@@ -135,7 +135,7 @@ fun DashboardScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .ambientGloom(base = Background, primary = AccentCoral, secondary = HydrationBlue)
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
                 .padding(horizontal = Spacing.L),
             contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),

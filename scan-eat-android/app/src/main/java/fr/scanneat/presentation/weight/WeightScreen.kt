@@ -116,7 +116,7 @@ fun WeightScreen(
         val reversedEntries = remember(entries.value) { entries.value.reversed() }
         LazyColumn(
             modifier = Modifier.fillMaxSize()
-                .ambientGloom(base = Background, primary = Gold, secondary = AccentCoral)
+                .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
                 .padding(horizontal = Spacing.L),
             contentPadding = padding,
             verticalArrangement = Arrangement.spacedBy(Spacing.M),

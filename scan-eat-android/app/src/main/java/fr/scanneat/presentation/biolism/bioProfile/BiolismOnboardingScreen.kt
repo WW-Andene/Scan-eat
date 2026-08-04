@@ -95,7 +95,7 @@ fun BiolismOnboardingScreen(viewModel: BiolismProfileViewModel = hiltViewModel()
     // included, above it.
     val bottomNavClearance = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + FloatingBottomNavHeight
     Box(
-        Modifier.fillMaxSize().ambientGloom(base = Background, primary = Gold, secondary = Teal)
+        Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding(), bottom = bottomNavClearance),
         contentAlignment = Alignment.Center,
     ) {
