@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -62,8 +63,8 @@ fun EvolutionScreen(viewModel: EvolutionViewModel = hiltViewModel()) {
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold),
-        contentPadding = PaddingValues(Spacing.L),
+        modifier = Modifier.fillMaxSize().ambientGloom(base = Background, primary = AccentCoral, secondary = Gold).padding(horizontal = Spacing.L),
+        contentPadding = PaddingValues(vertical = Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         item { WeightEvolutionCard(weightEntries.value, useImperial.value, language.value) }

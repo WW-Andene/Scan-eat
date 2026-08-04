@@ -117,7 +117,7 @@ fun TrackerScreen(viewModel: TrackerViewModel = hiltViewModel()) {
             .ambientGloom(base = Background, primary = AccentCoral, secondary = Gold)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Spacing.L)
-            .padding(bottom = Spacing.XXL),
+            .padding(bottom = Spacing.L),
         verticalArrangement = Arrangement.spacedBy(Spacing.M),
     ) {
         // Matches DataScreen/EvolutionScreen's LazyColumn contentPadding =
