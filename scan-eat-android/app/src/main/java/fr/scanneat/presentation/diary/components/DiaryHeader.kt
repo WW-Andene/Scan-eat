@@ -60,7 +60,7 @@ internal fun BoxScope.DiaryHeader(
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
-            Column(modifier = Modifier.padding(horizontal = Spacing.L).padding(top = Spacing.M, bottom = Spacing.S)) {
+            Column(modifier = Modifier.padding(horizontal = Spacing.L).padding(top = Spacing.M, bottom = Spacing.M)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (!isTabRoot) {
                         IconButton(onClick = onBack, modifier = Modifier.padding(end = Spacing.XS)) {
@@ -72,7 +72,7 @@ internal fun BoxScope.DiaryHeader(
                     // at titleLarge; standardized here so font size actually matches.
                     Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(Spacing.M))
                 // Was a fixed Row with each tab forced to Modifier.weight(1f), then a
                 // horizontally-scrollable icon+label row - both still forced a
                 // horizontal scroll to reach Treatment/Expenses on most phone widths,
