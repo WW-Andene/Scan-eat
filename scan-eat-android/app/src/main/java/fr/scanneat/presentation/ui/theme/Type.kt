@@ -51,7 +51,7 @@ val ScanEatTypography = Typography(
     // typographic convention, and this app's own §TRACKING-equivalent logic already
     // in use elsewhere); added negative tracking scaled to size, leaving the four
     // already-tuned slots' distinctive open/positive tracking untouched.
-    displayLarge    = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Bold,      fontSize = 45.sp, lineHeight = 52.sp, letterSpacing = (-1.0).sp),
+    displayLarge    = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Bold,      fontSize = 44.sp, lineHeight = 52.sp, letterSpacing = (-1.0).sp),
     displayMedium   = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Bold,      fontSize = 40.sp, lineHeight = 46.sp, letterSpacing = (-0.9).sp),
     displaySmall    = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Medium,   fontSize = 36.sp, lineHeight = 42.sp, letterSpacing = (-0.7).sp),
     headlineLarge   = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Bold,     fontSize = 32.sp, lineHeight = 40.sp, letterSpacing = (-0.5).sp),
@@ -65,7 +65,7 @@ val ScanEatTypography = Typography(
     bodySmall       = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Normal,   fontSize = 12.sp, lineHeight = 18.sp),
     labelLarge      = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Medium,   fontSize = 14.sp, lineHeight = 20.sp),
     labelMedium     = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Medium,   fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.48.sp),
-    labelSmall      = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Normal,   fontSize = 11.sp, lineHeight = 14.sp, letterSpacing = 0.44.sp),
+    labelSmall      = TextStyle(fontFamily = ManropeFontFamily, fontWeight = FontWeight.Normal,   fontSize = 12.sp, lineHeight = 14.sp, letterSpacing = 0.44.sp),
 )
 
 /**
