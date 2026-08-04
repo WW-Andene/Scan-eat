@@ -92,14 +92,9 @@ private fun parseCsvLine(line: String): List<String> {
 fun findNonConsumableByBarcode(context: Context, barcode: String): NonConsumableDbEntry? =
     NonConsumableStore.get(context)[barcode.filter { it.isDigit() }]
 
-private fun normalizeForMatch(s: String): String =
-    java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
-        .replace(Regex("\\p{Mn}"), "")
-        .lowercase()
-        .filter { it.isLetterOrDigit() || it == ' ' }
-        .trim()
+private fun normalizeForMatch(s: String): String = fr.scanneat.util.normalizeForOcrMatch(s)
 
-private fun tokenize(s: String): List<String> = s.split(' ').filter { it.isNotBlank() }
+private fun tokenize(s: String): List<String> = fr.scanneat.util.tokenizeForOcrMatch(s)
 
 /**
  * Same OCR-name fallback as MedicationLookupDb.findMedicationByName, against

@@ -98,14 +98,9 @@ fun findMedicationByBarcode(context: Context, barcode: String): MedicationDbEntr
     return null
 }
 
-private fun normalizeForMatch(s: String): String =
-    java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
-        .replace(Regex("\\p{Mn}"), "")
-        .lowercase()
-        .filter { it.isLetterOrDigit() || it == ' ' }
-        .trim()
+private fun normalizeForMatch(s: String): String = fr.scanneat.util.normalizeForOcrMatch(s)
 
-private fun tokenize(s: String): List<String> = s.split(' ').filter { it.isNotBlank() }
+private fun tokenize(s: String): List<String> = fr.scanneat.util.tokenizeForOcrMatch(s)
 
 /** A token carrying a dosage strength or quantity ("1000mg", "500", "5g") - the single most
  *  safety-relevant word in a medication name, since two different drugs (or two strengths of
