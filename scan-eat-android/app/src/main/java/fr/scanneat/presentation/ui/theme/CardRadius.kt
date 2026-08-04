@@ -53,11 +53,11 @@ object CardRadius {
  * "softly alive," not as a shape a casual glance would even register as
  * asymmetric.
  *
- * User-requested (padding/radius standardization pass): all four corners
- * flattened to 48/48/48/48. This makes the shape a perfect circle —
- * the deliberate asymmetry described above no longer exists.
+ * User-requested (padding/radius standardization pass): retuned to
+ * 48/56/48/56 - keeps the asymmetric organic silhouette above while
+ * landing every corner on an even percentage.
  */
 val OrganicBlobShape = RoundedCornerShape(
-    topStartPercent = 48, topEndPercent = 48,
-    bottomEndPercent = 48, bottomStartPercent = 48,
+    topStartPercent = 48, topEndPercent = 56,
+    bottomEndPercent = 48, bottomStartPercent = 56,
 )
