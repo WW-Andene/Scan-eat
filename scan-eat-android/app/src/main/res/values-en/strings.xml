@@ -1463,6 +1463,8 @@
     <string name="result_price_field_euros">Price paid (€)</string>
     <string name="result_price_field_weight">Net weight (g)</string>
     <string name="result_price_field_weight_hint">Weight lets us compute price/kg and a value score</string>
+    <string name="result_price_scan_cd">Scan the price from a photo</string>
+    <string name="result_price_scan_not_found">No price detected in this photo — enter it manually.</string>
     <string name="result_price_value_great">Great value</string>
     <string name="result_price_value_good">Good value</string>
     <string name="result_price_value_average">Average price</string>

@@ -1515,6 +1515,8 @@
     <string name="result_price_field_euros">Prix payé (€)</string>
     <string name="result_price_field_weight">Poids net (g)</string>
     <string name="result_price_field_weight_hint">Le poids permet de calculer le prix au kg et un score de rentabilité</string>
+    <string name="result_price_scan_cd">Scanner le prix depuis une photo</string>
+    <string name="result_price_scan_not_found">Aucun prix détecté dans cette photo — saisissez-le manuellement.</string>
     <string name="result_price_value_great">Excellent prix</string>
     <string name="result_price_value_good">Bon prix</string>
     <string name="result_price_value_average">Prix moyen</string>

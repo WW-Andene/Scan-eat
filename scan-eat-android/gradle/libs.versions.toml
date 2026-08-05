@@ -20,6 +20,7 @@ mlkit-barcode        = "17.3.0"
 # a segment collides with Kotlin's `object` keyword, breaking the buildscript
 # parser ("Expecting a class body"). One unbroken word sidesteps that entirely.
 mlkit-objectdetection = "17.0.2"
+mlkit-textrecognition = "16.0.1"
 kotlinx-coroutines   = "1.9.0"
 core-ktx             = "1.15.0"
 appcompat            = "1.7.0"
@@ -126,6 +127,11 @@ mlkit-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version
 # on-demand-download variant), so it works fully offline like barcode
 # scanning already does, at the cost of a few extra MB in the APK.
 mlkit-objectdetection = { group = "com.google.mlkit", name = "object-detection", version.ref = "mlkit-objectdetection" }
+# Latin-script on-device text recognition — used to pre-fill PriceInputDialog's
+# price field from a photographed price tag; the field stays a plain editable
+# OutlinedTextField afterward so a wrong/partial OCR read is just as easy to
+# fix as a manually typed one, never a "trust the OCR or start over" choice.
+mlkit-textrecognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkit-textrecognition" }
 
 # Glance (Compose-based home-screen widgets)
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance-appwidget" }

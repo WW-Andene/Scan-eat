@@ -200,6 +200,7 @@ dependencies {
     implementation(libs.camerax.view)
     implementation(libs.mlkit.barcode)
     implementation(libs.mlkit.objectdetection)
+    implementation(libs.mlkit.textrecognition)
 
     // Health Connect
     implementation(libs.health.connect.client)

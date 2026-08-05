@@ -1,11 +1,16 @@
 package fr.scanneat.presentation.result.cards
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.LocalOffer
 import androidx.compose.material3.AlertDialog
@@ -22,14 +27,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import fr.scanneat.R
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.domain.engine.expense.ValueScore
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.util.formatDecimal
+
+// User-requested: pre-fill the price field from a photographed price tag
+// instead of typing it every time - matches the app's existing "digits with a
+// decimal separator" price format (e.g. "3,99" or "0.79"), taking the first
+// match in the recognized text. Deliberately simple (no currency-symbol
+// anchoring, no picking the "right" one among several prices on a promo tag)
+// since the field stays fully editable afterward - a wrong/partial match costs
+// the user a tap to correct, not a broken feature.
+private val PRICE_PATTERN = Regex("""\d{1,4}[.,]\d{2}""")
+
+private fun extractPrice(text: String): String? =
+    PRICE_PATTERN.find(text)?.value?.replace(',', '.')
 
 /**
  * Manual price entry for the scanned product — no OCR price-tag detection
@@ -98,8 +119,22 @@ private fun ValueScoreBadge(score: ValueScore) {
 
 @Composable
 private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: () -> Unit) {
+    val context = LocalContext.current
     var priceText by remember { mutableStateOf("") }
     var weightText by remember { mutableStateOf("") }
+    val noPriceFoundMessage = stringResource(R.string.result_price_scan_not_found)
+    val scanPriceLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching { InputImage.fromFilePath(context, uri) }.getOrNull()?.let { image ->
+            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS).process(image)
+                .addOnSuccessListener { result ->
+                    val found = extractPrice(result.text)
+                    if (found != null) priceText = found
+                    else Toast.makeText(context, noPriceFoundMessage, Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { Toast.makeText(context, noPriceFoundMessage, Toast.LENGTH_SHORT).show() }
+        } ?: Toast.makeText(context, noPriceFoundMessage, Toast.LENGTH_SHORT).show()
+    }
     // Bounded, not just "> 0" - an unbounded price field previously accepted any
     // value (including something like a pasted "999999999"), which then flows
     // straight into the price/kg computation and value-score comparison. Upper
@@ -111,14 +146,24 @@ private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: ()
         title = { Text(stringResource(R.string.result_price_add), color = OnBackground) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
-                OutlinedTextField(
-                    value = priceText, onValueChange = { priceText = it },
-                    label = { Text(stringResource(R.string.result_price_field_euros)) },
-                    singleLine = true,
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
-                    shape = RoundedCornerShape(CardRadius.CONTROL),
-                    colors = scanEatTextFieldColors(),
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                    OutlinedTextField(
+                        value = priceText, onValueChange = { priceText = it },
+                        label = { Text(stringResource(R.string.result_price_field_euros)) },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal),
+                        shape = RoundedCornerShape(CardRadius.CONTROL),
+                        colors = scanEatTextFieldColors(),
+                        modifier = Modifier.weight(1f),
+                    )
+                    // Pre-fills priceText above from a photographed price tag - the
+                    // field stays a plain editable OutlinedTextField either way, so a
+                    // wrong/partial OCR read is just as easy to fix as typing it
+                    // yourself, never a "trust the scan or start over" choice.
+                    IconButton(onClick = { scanPriceLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+                        Icon(Icons.Rounded.CameraAlt, stringResource(R.string.result_price_scan_cd), tint = OnBackground.copy(0.6f))
+                    }
+                }
                 OutlinedTextField(
                     value = weightText, onValueChange = { weightText = it },
                     label = { Text(stringResource(R.string.result_price_field_weight)) },
