@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.dashboard.cards
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
@@ -18,12 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -88,21 +87,20 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             modifier = Modifier.fillMaxWidth()
                 .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
-                // Matches ScanEatCard's own border treatment: radial, anchored
-                // top-right, fading away by the bottom-left instead of an evenly
-                // lit uniform outline (see its own doc comment).
-                .drawWithContent {
-                    drawContent()
-                    drawOutline(
-                        outline = RoundedCornerShape(CardRadius.PROMINENT).createOutline(size, layoutDirection, this),
-                        brush = Brush.radialGradient(
-                            colors = listOf(balColor.copy(alpha = HeroGlassSpec.borderAlpha), Color.Transparent),
-                            center = Offset(size.width, 0f),
-                            radius = size.width * 1.15f,
-                        ),
-                        style = Stroke(width = 1.dp.toPx()),
-                    )
-                },
+                // Matches ScanEatCard's own border treatment: a diagonal fade
+                // (strong at top-left, fading toward bottom-right) via
+                // Modifier.border's Offset.Zero/Offset.Infinite auto-resize,
+                // instead of hand-computing an Outline (see its own doc comment
+                // on why that approach was abandoned).
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(balColor.copy(alpha = HeroGlassSpec.borderAlpha), Color.Transparent),
+                        start = Offset.Zero,
+                        end = Offset.Infinite,
+                    ),
+                    shape = RoundedCornerShape(CardRadius.PROMINENT),
+                ),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             color = Color.Transparent,
             // design-aesthetic-audit §DH: this card already declares itself

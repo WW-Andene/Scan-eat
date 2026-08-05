@@ -1,6 +1,7 @@
 package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -25,7 +26,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -171,27 +171,32 @@ fun ScanEatCard(
                             startY = size.height * 0.55f,
                         ),
                     )
-                    // User-reported: the border should read as light catching one
-                    // edge, not a uniform outline - radial, anchored top-right (the
-                    // same corner glassSheen's hairline favors) and fading away by
-                    // the bottom-left, matching the directional shadow above instead
-                    // of contradicting it with an evenly-lit rim.
-                    if (spec.borderAlpha > 0f) {
-                        drawOutline(
-                            outline = shape.createOutline(size, layoutDirection, this),
-                            brush = Brush.radialGradient(
-                                colors = listOf(accent.copy(alpha = spec.borderAlpha), Color.Transparent),
-                                center = Offset(size.width, 0f),
-                                radius = size.width * 1.15f,
-                            ),
-                            style = Stroke(width = 1.dp.toPx()),
-                        )
-                    }
                 }
                 .then(
                     if (onClick != null)
                         Modifier.pressScale(interactionSource)
                             .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
+                    else Modifier
+                )
+                // User-reported: the border should read as light catching one edge,
+                // not a uniform outline - a diagonal fade (strong at top-left,
+                // fading toward bottom-right) instead of an evenly-lit rim,
+                // matching the directional shadow above. Modifier.border's own
+                // Offset.Zero/Offset.Infinite pair auto-resizes to this card's real
+                // bounds at draw time - simpler and safer than hand-computing an
+                // Outline via Shape.createOutline + drawOutline, which this file
+                // previously tried and got wrong twice in a row.
+                .then(
+                    if (spec.borderAlpha > 0f)
+                        Modifier.border(
+                            width = 1.dp,
+                            brush = Brush.linearGradient(
+                                colors = listOf(accent.copy(alpha = spec.borderAlpha), Color.Transparent),
+                                start = Offset.Zero,
+                                end = Offset.Infinite,
+                            ),
+                            shape = shape,
+                        )
                     else Modifier
                 ),
             shape = shape,
