@@ -24,6 +24,12 @@ internal fun ThemeSection(
     theme: String, onThemeChange: (String) -> Unit,
     animatedBackground: Boolean, onAnimatedBackgroundChange: (Boolean) -> Unit,
 ) {
+    // User-requested: brightness/contrast (this section) and color accent
+    // (ColorSection below) are two different things - the four color themes
+    // used to live in this same row, which both mixed the two concepts
+    // together in the UI and (see Theme.kt's ColorAccent doc comment) forced
+    // OLED's true-black background and a color accent to be mutually
+    // exclusive under the hood.
     SettingsSection(stringResource(R.string.settings_section_theme), icon = Icons.Default.Palette) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             listOf(
@@ -33,10 +39,6 @@ internal fun ThemeSection(
                 "light" to stringResource(R.string.settings_theme_light),
                 "high_contrast" to stringResource(R.string.settings_theme_high_contrast),
                 "low_contrast" to stringResource(R.string.settings_theme_low_contrast),
-                "matcha" to stringResource(R.string.settings_theme_matcha),
-                "lavande" to stringResource(R.string.settings_theme_lavande),
-                "sunflower" to stringResource(R.string.settings_theme_sunflower),
-                "lazulite" to stringResource(R.string.settings_theme_lazulite),
             ).forEach { (key, label) ->
                 FilterChip(
                     selected = theme == key,
@@ -65,6 +67,36 @@ internal fun ThemeSection(
                 onCheckedChange = onAnimatedBackgroundChange,
                 colors = SwitchDefaults.colors(checkedTrackColor = AccentCoral),
             )
+        }
+    }
+}
+
+/**
+ * Color accent — independent from [ThemeSection]'s brightness/contrast choice
+ * above (see Theme.kt's ColorAccent doc comment for why). Any accent can be
+ * combined with any theme, including OLED's true-black background.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ColorSection(colorAccent: String, onColorAccentChange: (String) -> Unit) {
+    SettingsSection(stringResource(R.string.settings_section_color), icon = Icons.Default.Palette) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            listOf(
+                "none" to stringResource(R.string.settings_color_none),
+                "matcha" to stringResource(R.string.settings_theme_matcha),
+                "lavande" to stringResource(R.string.settings_theme_lavande),
+                "sunflower" to stringResource(R.string.settings_theme_sunflower),
+                "lazulite" to stringResource(R.string.settings_theme_lazulite),
+            ).forEach { (key, label) ->
+                FilterChip(
+                    selected = colorAccent == key,
+                    onClick  = { onColorAccentChange(key) },
+                    label    = { Text(label, maxLines = 1) },
+                    colors   = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral,
+                    ),
+                )
+            }
         }
     }
 }

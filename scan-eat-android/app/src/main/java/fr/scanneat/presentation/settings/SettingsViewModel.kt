@@ -65,6 +65,7 @@ class SettingsViewModel @Inject constructor(
     val serverUrl = prefs.serverUrl.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val language  = prefs.language.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     val theme     = prefs.theme.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "oled")
+    val colorAccent = prefs.colorAccent.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
     val dyslexicFont   = prefs.dyslexicFont.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val colorblindMode = prefs.colorblindMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "none")
     // Was only reachable from Profile despite being an app-wide preference also
@@ -113,6 +114,7 @@ class SettingsViewModel @Inject constructor(
     // a failed write here (disk full, corrupt prefs file) silently no-opped
     // with no snackbar, the one inconsistency left in this file's write paths.
     fun setTheme(t: String)        = guardedLaunch { prefs.setTheme(t) }
+    fun setColorAccent(a: String)  = guardedLaunch { prefs.setColorAccent(a) }
     fun setDyslexicFont(v: Boolean)     = guardedLaunch { prefs.setDyslexicFont(v) }
     fun setColorblindMode(mode: String) = guardedLaunch { prefs.setColorblindMode(mode) }
     fun setUseImperialWeight(v: Boolean) = guardedLaunch { prefs.setUseImperialWeight(v) }

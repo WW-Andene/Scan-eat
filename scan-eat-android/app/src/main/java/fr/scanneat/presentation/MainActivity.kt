@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity() {
             val ready = splashViewModel.ready.collectAsStateWithLifecycle().value
             if (ready) {
                 val theme = splashViewModel.theme.collectAsStateWithLifecycle().value
+                val colorAccent = splashViewModel.colorAccent.collectAsStateWithLifecycle().value
                 val dyslexicFont = splashViewModel.dyslexicFont.collectAsStateWithLifecycle().value
                 val colorblindMode = splashViewModel.colorblindMode.collectAsStateWithLifecycle().value
                 val animatedBackground = splashViewModel.animatedBackground.collectAsStateWithLifecycle().value
@@ -75,7 +76,7 @@ class MainActivity : AppCompatActivity() {
                     insetsController.isAppearanceLightNavigationBars = theme == "light"
                 }
 
-                ScanEatTheme(theme = theme, dyslexicFont = dyslexicFont, colorblindMode = colorblindMode, animatedBackground = animatedBackground) {
+                ScanEatTheme(theme = theme, colorAccent = colorAccent, dyslexicFont = dyslexicFont, colorblindMode = colorblindMode, animatedBackground = animatedBackground) {
                     MainShell(
                         startOnboarding = splashViewModel.needsOnboarding,
                         startRoute      = if (isPrivacyRationaleIntent) TopTab.Settings.route else shortcutStartRoute,

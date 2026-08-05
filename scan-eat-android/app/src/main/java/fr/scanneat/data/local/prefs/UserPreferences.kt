@@ -41,6 +41,13 @@ class UserPreferences @Inject constructor(
         val KEY_SERVER_URL           = stringPreferencesKey("server_url")
         val KEY_LANGUAGE             = stringPreferencesKey("language")
         val KEY_THEME                = stringPreferencesKey("theme")
+        // User-requested: OLED/Dark/Light/Contrast (brightness/contrast) and a
+        // color accent (Matcha/Lavande/Sunflower/Lazulite) are two different
+        // axes - previously colorAccent was baked into `theme` itself as four
+        // extra values, meaning OLED's true-black background and a color
+        // accent were mutually exclusive. Independent so any accent can be
+        // layered on top of any brightness mode.
+        val KEY_COLOR_ACCENT         = stringPreferencesKey("color_accent")
         val KEY_ONBOARDING_COMPLETE  = booleanPreferencesKey("onboarding_complete")
         val KEY_DYSLEXIC_FONT        = booleanPreferencesKey("dyslexic_font")
         val KEY_COLORBLIND_MODE      = stringPreferencesKey("colorblind_mode")
@@ -112,6 +119,7 @@ class UserPreferences @Inject constructor(
     // same reasoning DateTimeConversions/formatDecimal already apply to Locale.
     val language: Flow<String>    = storeData.map { it[KEY_LANGUAGE] ?: defaultLanguage() }.distinctUntilChanged()
     val theme: Flow<String>       = storeData.map { it[KEY_THEME]      ?: "oled" }.distinctUntilChanged()
+    val colorAccent: Flow<String> = storeData.map { it[KEY_COLOR_ACCENT] ?: "none" }.distinctUntilChanged()
     val onboardingComplete: Flow<Boolean> = storeData.map { it[KEY_ONBOARDING_COMPLETE] ?: false }.distinctUntilChanged()
     val dyslexicFont: Flow<Boolean>       = storeData.map { it[KEY_DYSLEXIC_FONT] ?: false }.distinctUntilChanged()
     /** "none" | "deuteranopia" | "protanopia" | "tritanopia" */
@@ -164,6 +172,7 @@ class UserPreferences @Inject constructor(
     suspend fun setServerUrl(url: String)   = store.edit { it[KEY_SERVER_URL] = url }
     suspend fun setLanguage(lang: String)   = store.edit { it[KEY_LANGUAGE]   = lang }
     suspend fun setTheme(theme: String)     = store.edit { it[KEY_THEME]      = theme }
+    suspend fun setColorAccent(accent: String) = store.edit { it[KEY_COLOR_ACCENT] = accent }
     suspend fun setOnboardingComplete(v: Boolean) = store.edit { it[KEY_ONBOARDING_COMPLETE] = v }
     suspend fun setDyslexicFont(v: Boolean)       = store.edit { it[KEY_DYSLEXIC_FONT] = v }
     suspend fun setColorblindMode(mode: String)   = store.edit { it[KEY_COLORBLIND_MODE] = mode }

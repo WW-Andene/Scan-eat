@@ -59,6 +59,7 @@ fun SettingsScreen(
     val serverUrl = viewModel.serverUrl.collectAsStateWithLifecycle()
     val language  = viewModel.language.collectAsStateWithLifecycle()
     val theme     = viewModel.theme.collectAsStateWithLifecycle()
+    val colorAccent = viewModel.colorAccent.collectAsStateWithLifecycle()
     val dyslexicFont   = viewModel.dyslexicFont.collectAsStateWithLifecycle()
     val colorblindMode = viewModel.colorblindMode.collectAsStateWithLifecycle()
     val useImperialWeight = viewModel.useImperialWeight.collectAsStateWithLifecycle()
@@ -222,6 +223,11 @@ fun SettingsScreen(
                     animatedBackground.value, onAnimatedBackgroundChange = viewModel::setAnimatedBackground,
                 )
             }
+
+            // User-requested: color accent is independent from the theme's own
+            // brightness/contrast (see ThemeSection's own doc comment) - its own
+            // section rather than folded into the row above.
+            item { ColorSection(colorAccent.value, onColorAccentChange = viewModel::setColorAccent) }
 
             // ---- Units — was only reachable from Profile despite being an app-wide
             // preference also consumed by Weight/Biolism; users looking for it under

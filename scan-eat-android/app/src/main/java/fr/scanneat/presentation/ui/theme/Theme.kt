@@ -148,88 +148,21 @@ private val LowContrastColors = darkColorScheme(
     outline          = LowContrastOutlineRaw,
 )
 
-// User-requested: four accent color themes, each a full palette swap (not just
-// the primary/secondary accent) so the app actually reads as a different mood
-// per theme rather than the same dark scheme with a different button color.
-// All four keep DarkColors' own contrast-tested onSurface/error/outline
-// values (already measured against a near-black background) and only change
-// hue, background and surfaceVariant - re-deriving fresh contrast ratios per
-// theme is its own audit this request didn't ask for.
-private val MatchaColors = darkColorScheme(
-    primary          = Color(0xFF9BC53D),
-    onPrimary        = Color.Black,
-    secondary        = Color(0xFFD8CB7A),
-    onSecondary      = Color.Black,
-    tertiary         = Color(0xFF4E7A51),
-    background       = Color(0xFF10130E),
-    onBackground     = Color(0xFFEAEFE4),
-    surface          = Color(0xFF1C2117),
-    onSurface        = Color(0xFFCFC7CC),
-    surfaceVariant   = Color(0xFF313A2A),
-    onSurfaceVariant = Color(0xFFCFC7CC),
-    error            = FlagRed,
-    onError          = Color.White,
-    errorContainer   = Color(0x26EF5350),
-    onErrorContainer = FlagRed,
-    outline          = Color(0xFF4E4A56),
-)
-
-private val LavandeColors = darkColorScheme(
-    primary          = Color(0xFFB39DDB),
-    onPrimary        = Color.Black,
-    secondary        = Color(0xFFCE93D8),
-    onSecondary      = Color.Black,
-    tertiary         = Color(0xFF7986CB),
-    background       = Color(0xFF120F16),
-    onBackground     = Color(0xFFEAE6EF),
-    surface          = Color(0xFF201B26),
-    onSurface        = Color(0xFFCFC7CC),
-    surfaceVariant   = Color(0xFF362E40),
-    onSurfaceVariant = Color(0xFFCFC7CC),
-    error            = FlagRed,
-    onError          = Color.White,
-    errorContainer   = Color(0x26EF5350),
-    onErrorContainer = FlagRed,
-    outline          = Color(0xFF4E4A56),
-)
-
-private val SunflowerColors = darkColorScheme(
-    primary          = Color(0xFFFFC940),
-    onPrimary        = Color.Black,
-    secondary        = Color(0xFFFF9E40),
-    onSecondary      = Color.Black,
-    tertiary         = Color(0xFFE0A800),
-    background       = Color(0xFF141008),
-    onBackground     = Color(0xFFF0EAE0),
-    surface          = Color(0xFF231C10),
-    onSurface        = Color(0xFFCFC7CC),
-    surfaceVariant   = Color(0xFF423420),
-    onSurfaceVariant = Color(0xFFCFC7CC),
-    error            = FlagRed,
-    onError          = Color.White,
-    errorContainer   = Color(0x26EF5350),
-    onErrorContainer = FlagRed,
-    outline          = Color(0xFF4E4A56),
-)
-
-private val LazuliteColors = darkColorScheme(
-    primary          = Color(0xFF4C82E0),
-    onPrimary        = Color.Black,
-    secondary        = Color(0xFF6FA8DC),
-    onSecondary      = Color.Black,
-    tertiary         = Color(0xFFC9A84C),
-    background       = Color(0xFF0A0F16),
-    onBackground     = Color(0xFFE4EAF0),
-    surface          = Color(0xFF161F2B),
-    onSurface        = Color(0xFFCFC7CC),
-    surfaceVariant   = Color(0xFF283246),
-    onSurfaceVariant = Color(0xFFCFC7CC),
-    error            = FlagRed,
-    onError          = Color.White,
-    errorContainer   = Color(0x26EF5350),
-    onErrorContainer = FlagRed,
-    outline          = Color(0xFF4E4A56),
-)
+// User-requested: OLED/Dark/Light/Contrast (brightness/contrast, [theme]
+// below) and a color accent (Matcha/Lavande/Sunflower/Lazulite, [colorAccent]
+// below) are two independent axes, not one combined choice - a first pass at
+// this made each accent its own full darkColorScheme (its own background too),
+// which meant OLED's true-black background and an accent were mutually
+// exclusive, exactly the "should be able to be both" complaint. An accent now
+// only carries hue (primary/secondary/tertiary) and is layered on top of
+// whichever base [theme] scheme already resolved, via colorScheme.copy(...)
+// in [ScanEatTheme] below - every other role (background/surface/onSurface/
+// error/outline, already contrast-tested per base theme) is untouched.
+private data class ColorAccent(val primary: Color, val secondary: Color, val tertiary: Color)
+private val MatchaAccent    = ColorAccent(primary = Color(0xFF9BC53D), secondary = Color(0xFFD8CB7A), tertiary = Color(0xFF4E7A51))
+private val LavandeAccent   = ColorAccent(primary = Color(0xFFB39DDB), secondary = Color(0xFFCE93D8), tertiary = Color(0xFF7986CB))
+private val SunflowerAccent = ColorAccent(primary = Color(0xFFFFC940), secondary = Color(0xFFFF9E40), tertiary = Color(0xFFE0A800))
+private val LazuliteAccent  = ColorAccent(primary = Color(0xFF4C82E0), secondary = Color(0xFF6FA8DC), tertiary = Color(0xFFC9A84C))
 
 // ── Gold accent override ──────────────────────────────────────────────────────
 // Biolism screens need a darker gold in light theme for legible contrast on a
@@ -304,9 +237,12 @@ private fun Typography.withDyslexicSpacing(): Typography = copy(
 
 /**
  * Root theme. Pass [theme] from UserPreferences
- * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "matcha" |
- * "lavande" | "sunflower" | "lazulite" | "system").
- * All screens in the app use this — both Scan'eat and Biolism sections.
+ * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "system") -
+ * brightness/contrast only. [colorAccent] ("none" | "matcha" | "lavande" |
+ * "sunflower" | "lazulite") is the independent color-accent axis - see
+ * [ColorAccent]'s own doc comment on why these are separate params rather
+ * than colorAccent being folded into [theme]'s own value set. All screens in
+ * the app use this — both Scan'eat and Biolism sections.
  *
  * "system" follows the phone's own OS-level dark/light setting instead of a
  * theme fixed in Settings — resolved once here via [isSystemInDarkTheme] into
@@ -319,6 +255,7 @@ private fun Typography.withDyslexicSpacing(): Typography = copy(
 @Composable
 fun ScanEatTheme(
     theme: String = "oled",
+    colorAccent: String = "none",
     dyslexicFont: Boolean = false,
     colorblindMode: String = "none",
     animatedBackground: Boolean = false,
@@ -327,17 +264,28 @@ fun ScanEatTheme(
     val resolvedTheme = if (theme == "system") {
         if (isSystemInDarkTheme()) "dark" else "light"
     } else theme
-    val colorScheme = when (resolvedTheme) {
+    val baseColorScheme = when (resolvedTheme) {
         "dark"           -> DarkColors
         "light"          -> LightColors
         "high_contrast"  -> HighContrastColors
         "low_contrast"   -> LowContrastColors
-        "matcha"         -> MatchaColors
-        "lavande"        -> LavandeColors
-        "sunflower"      -> SunflowerColors
-        "lazulite"       -> LazuliteColors
         else             -> OledColors
     }
+    // High Contrast's own primary/secondary/tertiary are deliberately
+    // maximal-contrast hand-picked values (see HighContrastColors above) for
+    // that theme's own accessibility purpose - an accent's hue would fight
+    // that same purpose, so High Contrast never takes one regardless of what
+    // colorAccent Settings currently has stored.
+    val accent = if (resolvedTheme != "high_contrast") when (colorAccent) {
+        "matcha"    -> MatchaAccent
+        "lavande"   -> LavandeAccent
+        "sunflower" -> SunflowerAccent
+        "lazulite"  -> LazuliteAccent
+        else        -> null
+    } else null
+    val colorScheme = if (accent != null) {
+        baseColorScheme.copy(primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary)
+    } else baseColorScheme
     val goldAccent = if (resolvedTheme == "light") LightGoldAccent else Gold
     val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography
     CompositionLocalProvider(

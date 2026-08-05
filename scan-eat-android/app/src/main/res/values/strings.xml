@@ -1143,6 +1143,8 @@
     <string name="settings_lang_fr">Français</string>
     <string name="settings_lang_en">English</string>
     <string name="settings_section_theme">Thème</string>
+    <string name="settings_section_color">Couleur</string>
+    <string name="settings_color_none">Aucune</string>
     <string name="settings_theme_system">Système</string>
     <string name="settings_theme_oled">OLED</string>
     <string name="settings_theme_dark">Sombre</string>
