@@ -6,17 +6,23 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ImageCapture
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.common.InputImage
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -82,6 +88,29 @@ fun ScanScreen(
     // This toast fires alongside the navigation so the block is explained,
     // not just routed around.
     val premiumRequiredMessage = stringResource(R.string.scan_premium_required_generic)
+    // User-requested: scan a barcode from an already-imported photo, not just
+    // a live camera frame - useful for a barcode photographed earlier, or one
+    // too worn/curved for the live scanner to lock onto. PickVisualMedia is
+    // the modern photo-picker contract (no storage permission needed, unlike
+    // GetContent on older APIs). Decoded with the same ML Kit BarcodeScanning
+    // client the live camera uses, then routed through quickScan() - the
+    // existing "explicit, deliberate entry" path (see its own doc comment
+    // above for NoCameraFallback) - so a decoded barcode here scores exactly
+    // like a manually typed or recent-barcode-chip one would.
+    val noBarcodeInPhotoMessage = stringResource(R.string.scan_import_photo_not_found)
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching { InputImage.fromFilePath(context, uri) }.getOrNull()?.let { image ->
+            BarcodeScanning.getClient().process(image)
+                .addOnSuccessListener { barcodes ->
+                    val value = barcodes.firstNotNullOfOrNull { it.rawValue }
+                    if (value != null) viewModel.quickScan(value)
+                    else Toast.makeText(context, noBarcodeInPhotoMessage, Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { Toast.makeText(context, noBarcodeInPhotoMessage, Toast.LENGTH_SHORT).show() }
+        } ?: Toast.makeText(context, noBarcodeInPhotoMessage, Toast.LENGTH_SHORT).show()
+    }
+
     val onPremiumBlocked: () -> Unit = {
         android.widget.Toast.makeText(context, premiumRequiredMessage, android.widget.Toast.LENGTH_SHORT).show()
         onOpenSettings()
@@ -302,6 +331,21 @@ fun ScanScreen(
 
             // ── Score FAB — bottom-end ──
             ScanScoreFab(scanState = state.value, bottomNavClearance = bottomNavClearance, onClick = { viewModel.score() })
+
+            // ── Import-photo FAB — bottom-center, left of the shutter button
+            // (CameraPreview.kt's own BottomCenter FAB has no horizontal offset,
+            // so this sits just to its side rather than overlapping it). ──
+            FloatingActionButton(
+                onClick = {
+                    galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                },
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .offset(x = (-76).dp)
+                    .padding(bottom = bottomNavClearance + Spacing.L),
+                containerColor = SurfaceVariant,
+            ) {
+                Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.scan_import_photo_cd), tint = OnSurface)
+            }
 
             // ── Identify-without-label action — only relevant with photos queued and
             // no barcode held (fresh produce, a plated dish: nothing to OCR a label

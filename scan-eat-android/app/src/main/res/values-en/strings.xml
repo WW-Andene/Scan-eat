@@ -1072,6 +1072,8 @@
     <string name="settings_premium_required_biolism">Metabolism tracking (Biolism) is a Premium feature.</string>
     <string name="settings_premium_required_ai_scan">AI-assisted photo scanning is a Premium feature.</string>
     <string name="scan_premium_required_generic">Premium feature — tap to upgrade to Premium.</string>
+    <string name="scan_import_photo_cd">Scan a barcode from a photo</string>
+    <string name="scan_import_photo_not_found">No barcode detected in this photo.</string>
     <string name="settings_premium_go_to_settings">See Premium in Settings</string>
     <string name="settings_section_api_mode">API Mode</string>
     <string name="settings_api_mode_hint">Barcode scanning always works with nothing configured here. This only affects AI recognition — photographing a label for a product with no barcode, or one whose listing is incomplete.</string>
