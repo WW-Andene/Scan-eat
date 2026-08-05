@@ -148,6 +148,89 @@ private val LowContrastColors = darkColorScheme(
     outline          = LowContrastOutlineRaw,
 )
 
+// User-requested: four accent color themes, each a full palette swap (not just
+// the primary/secondary accent) so the app actually reads as a different mood
+// per theme rather than the same dark scheme with a different button color.
+// All four keep DarkColors' own contrast-tested onSurface/error/outline
+// values (already measured against a near-black background) and only change
+// hue, background and surfaceVariant - re-deriving fresh contrast ratios per
+// theme is its own audit this request didn't ask for.
+private val MatchaColors = darkColorScheme(
+    primary          = Color(0xFF9BC53D),
+    onPrimary        = Color.Black,
+    secondary        = Color(0xFFD8CB7A),
+    onSecondary      = Color.Black,
+    tertiary         = Color(0xFF4E7A51),
+    background       = Color(0xFF10130E),
+    onBackground     = Color(0xFFEAEFE4),
+    surface          = Color(0xFF1C2117),
+    onSurface        = Color(0xFFCFC7CC),
+    surfaceVariant   = Color(0xFF313A2A),
+    onSurfaceVariant = Color(0xFFCFC7CC),
+    error            = FlagRed,
+    onError          = Color.White,
+    errorContainer   = Color(0x26EF5350),
+    onErrorContainer = FlagRed,
+    outline          = Color(0xFF4E4A56),
+)
+
+private val LavandeColors = darkColorScheme(
+    primary          = Color(0xFFB39DDB),
+    onPrimary        = Color.Black,
+    secondary        = Color(0xFFCE93D8),
+    onSecondary      = Color.Black,
+    tertiary         = Color(0xFF7986CB),
+    background       = Color(0xFF120F16),
+    onBackground     = Color(0xFFEAE6EF),
+    surface          = Color(0xFF201B26),
+    onSurface        = Color(0xFFCFC7CC),
+    surfaceVariant   = Color(0xFF362E40),
+    onSurfaceVariant = Color(0xFFCFC7CC),
+    error            = FlagRed,
+    onError          = Color.White,
+    errorContainer   = Color(0x26EF5350),
+    onErrorContainer = FlagRed,
+    outline          = Color(0xFF4E4A56),
+)
+
+private val SunflowerColors = darkColorScheme(
+    primary          = Color(0xFFFFC940),
+    onPrimary        = Color.Black,
+    secondary        = Color(0xFFFF9E40),
+    onSecondary      = Color.Black,
+    tertiary         = Color(0xFFE0A800),
+    background       = Color(0xFF141008),
+    onBackground     = Color(0xFFF0EAE0),
+    surface          = Color(0xFF231C10),
+    onSurface        = Color(0xFFCFC7CC),
+    surfaceVariant   = Color(0xFF423420),
+    onSurfaceVariant = Color(0xFFCFC7CC),
+    error            = FlagRed,
+    onError          = Color.White,
+    errorContainer   = Color(0x26EF5350),
+    onErrorContainer = FlagRed,
+    outline          = Color(0xFF4E4A56),
+)
+
+private val LazuliteColors = darkColorScheme(
+    primary          = Color(0xFF4C82E0),
+    onPrimary        = Color.Black,
+    secondary        = Color(0xFF6FA8DC),
+    onSecondary      = Color.Black,
+    tertiary         = Color(0xFFC9A84C),
+    background       = Color(0xFF0A0F16),
+    onBackground     = Color(0xFFE4EAF0),
+    surface          = Color(0xFF161F2B),
+    onSurface        = Color(0xFFCFC7CC),
+    surfaceVariant   = Color(0xFF283246),
+    onSurfaceVariant = Color(0xFFCFC7CC),
+    error            = FlagRed,
+    onError          = Color.White,
+    errorContainer   = Color(0x26EF5350),
+    onErrorContainer = FlagRed,
+    outline          = Color(0xFF4E4A56),
+)
+
 // ── Gold accent override ──────────────────────────────────────────────────────
 // Biolism screens need a darker gold in light theme for legible contrast on a
 // light background; every other theme uses the raw Gold token as-is.
@@ -221,7 +304,8 @@ private fun Typography.withDyslexicSpacing(): Typography = copy(
 
 /**
  * Root theme. Pass [theme] from UserPreferences
- * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "system").
+ * ("oled" | "dark" | "light" | "high_contrast" | "low_contrast" | "matcha" |
+ * "lavande" | "sunflower" | "lazulite" | "system").
  * All screens in the app use this — both Scan'eat and Biolism sections.
  *
  * "system" follows the phone's own OS-level dark/light setting instead of a
@@ -248,6 +332,10 @@ fun ScanEatTheme(
         "light"          -> LightColors
         "high_contrast"  -> HighContrastColors
         "low_contrast"   -> LowContrastColors
+        "matcha"         -> MatchaColors
+        "lavande"        -> LavandeColors
+        "sunflower"      -> SunflowerColors
+        "lazulite"       -> LazuliteColors
         else             -> OledColors
     }
     val goldAccent = if (resolvedTheme == "light") LightGoldAccent else Gold
