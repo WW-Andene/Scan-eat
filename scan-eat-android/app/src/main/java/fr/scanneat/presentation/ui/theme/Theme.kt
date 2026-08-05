@@ -49,7 +49,12 @@ private val DarkColors = darkColorScheme(
     secondary        = AccentCoral,
     onSecondary      = Color.Black,
     tertiary         = Teal,
-    background       = Color(0xFF1B1611),
+    // User-reported: darkened alongside SurfaceVariant's own lightening below,
+    // widening the gap from both ends instead of only pushing the card side.
+    // Safe direction for contrast - onBackground is light text, so a darker
+    // background only raises that ratio further, never lowers it. Same ~35%
+    // scale-down (not just dimmed) to keep the identical warm hue.
+    background       = Color(0xFF120F0B),
     onBackground     = Color(0xFFEFEAE6),
     surface          = Color(0xFF261F17),
     onSurface        = Color(0xFFCFC7CC),
