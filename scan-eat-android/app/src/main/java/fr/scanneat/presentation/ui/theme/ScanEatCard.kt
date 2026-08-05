@@ -47,7 +47,13 @@ enum class CardEmphasis { HERO, PRIMARY, SECONDARY }
 // (and risking drifting from) these same numbers as separate literals.
 internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val borderAlpha: Float, val elevation: Dp)
 internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, borderAlpha = 0.22f, elevation = 10.dp)
-private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, borderAlpha = 0f, elevation = 6.dp)
+// User-reported (real-device screenshots, Dashboard): at the 0f borderAlpha
+// this tier shipped with, PRIMARY cards had no border at all - combined with
+// the low fill alpha below, they read as "almost inseparable" from the
+// background instead of a distinct surface. A quiet border (much subtler
+// than HERO's 0.22) gives every ordinary card a visible edge without
+// promoting it to HERO's stronger treatment.
+private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, borderAlpha = 0.10f, elevation = 6.dp)
 private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, borderAlpha = 0f, elevation = 3.dp)
 
 /**
@@ -59,17 +65,20 @@ private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f,
  * default, not a per-screen coin flip.
  *
  * Frosted-glass + hierarchy upgrade (app-wide polish pass):
- *  - [color] defaults to a meaningfully translucent fill (not near-opaque),
- *    so a screen's own ambient background wash (see [ambientGloom]) bleeds
- *    through visibly — this is what actually reads as "frosted glass over
- *    an atmosphere" rather than a flat tinted rectangle. Existing call
- *    sites that pass an explicit [color] are unaffected. The previous
- *    default (0.42 alpha) still read as an essentially solid card next to
- *    the header/nav's real backdrop blur — [ambientGloom]'s own glow blobs
- *    only reach ~7-10% alpha, so at 0.42 the card's own SurfaceVariant fill
- *    dominates the blend and almost nothing of the wash actually shows
- *    through. Dropped further so the card visibly participates in the same
- *    atmosphere instead of just sitting on top of it.
+ *  - [color] defaults to a translucent fill so a screen's own ambient
+ *    background wash (see [ambientGloom]) bleeds through — this is what
+ *    reads as "frosted glass over an atmosphere" rather than a flat tinted
+ *    rectangle. Existing call sites that pass an explicit [color] are
+ *    unaffected.
+ *    User-reported correction (real-device screenshots, Dashboard): an
+ *    earlier pass dropped this to 0.24 dark-theme alpha reasoning that 0.42
+ *    "dominated the blend" against ambientGloom's ~7-10% glow blobs - but at
+ *    0.24, next to the app's actual (mostly static, not glowing) background,
+ *    cards read as "almost inseparable" from it instead of a distinct
+ *    surface. Raised back to 0.4 - still meaningfully translucent (nowhere
+ *    near the old fully-opaque baseline), paired with PrimaryGlassSpec's new
+ *    subtle border above so the fill difference isn't the only thing
+ *    carrying the card's edge.
  *  - [emphasis]/[accent] pick which [CardEmphasis] tier this card renders at
  *    and which hue its glow/border echo — default (PRIMARY, white accent)
  *    reproduces this primitive's original look plus the new subtle layers,
@@ -92,7 +101,7 @@ fun ScanEatCard(
     // With no visible fill, the card never read as one whole shape - only its
     // shadowElevation shadow (which DOES have real contrast against a light
     // background) showed up, as a disconnected rectangle instead of a filled card.
-    color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.75f else 0.24f),
+    color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.75f else 0.4f),
     contentPadding: PaddingValues = PaddingValues(Spacing.L),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,

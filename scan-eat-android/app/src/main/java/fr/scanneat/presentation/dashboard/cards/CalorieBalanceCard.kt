@@ -97,8 +97,10 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     // badge via BoxScope.align, a slot ScanEatCard's content
                     // lambda doesn't expose) and had fully opaque SurfaceVariant
                     // here as a result - the one card on Dashboard that never let
-                    // any background show through it at all.
-                    .background(SurfaceVariant.copy(alpha = 0.24f))
+                    // any background show through it at all. Kept in sync with
+                    // ScanEatCard's own default alpha (see its doc comment on the
+                    // 0.24 -> 0.4 correction) rather than a separate literal here.
+                    .background(SurfaceVariant.copy(alpha = 0.4f))
                     // Explicit center/radius, matching every other gradient in the
                     // theme (glassSheen's own glow, ambientGloom) - left implicit
                     // here (plain Brush.radialGradient(colors) with no center/
