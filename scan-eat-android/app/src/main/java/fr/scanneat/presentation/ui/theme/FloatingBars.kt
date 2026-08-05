@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -53,6 +54,19 @@ import dev.chrisbanes.haze.hazeSource
  * instead of merely dimming it - [glassSheen]'s edge highlight remains the
  * only thing marking the chrome's outline on every device.
  */
+/**
+ * Shared outer margin for both floating chrome pieces (FloatingTopBar here,
+ * MainShell's bottom nav) — user-reported ratio of 1(sides):2(top for the
+ * header/bottom for the nav). Named once so both call sites reference the
+ * same values instead of the two independent Spacing.L/Spacing.S literals
+ * they used before, which is also what let the footer's bottom margin drift
+ * out of sync with the header's top margin.
+ */
+object FloatingChromeMargin {
+    val horizontal: Dp = Spacing.SM
+    val vertical: Dp = Spacing.L
+}
+
 val FrostedGlassStyle: HazeStyle
     @Composable get() = run {
         // design-aesthetic-audit: the OLED fix above only verified the no-blur
@@ -120,7 +134,10 @@ fun FloatingTopBar(
         modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(horizontal = Spacing.L, vertical = Spacing.S)
+            // User-reported: outer margin ratio should be 1(sides):2(top/bottom),
+            // and match MainShell's bottom nav margin exactly so the header's top
+            // gap and the nav's bottom gap read as the same size.
+            .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
             .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = accent),
     ) {
         Surface(
@@ -169,11 +186,11 @@ fun FloatingTopBar(
     }
 }
 
-/** FloatingTopBar's own pill height (56dp title row + Spacing.S margin top/bottom) — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
-val FloatingTopBarHeight = 72.dp
+/** FloatingTopBar's own pill height (56dp title row + FloatingChromeMargin.vertical top/bottom) — not including the device's own status-bar inset, which [FloatingScreenScaffold] adds separately. */
+val FloatingTopBarHeight = 56.dp + FloatingChromeMargin.vertical * 2
 
-/** MainShell's floating bottom nav's own pill height (64dp NavigationBar + Spacing.S margin top/bottom) — not including the device's own navigation-bar inset. */
-val FloatingBottomNavHeight = 80.dp
+/** MainShell's floating bottom nav's own pill height (64dp NavigationBar + FloatingChromeMargin.vertical top/bottom) — not including the device's own navigation-bar inset. */
+val FloatingBottomNavHeight = 64.dp + FloatingChromeMargin.vertical * 2
 
 /**
  * Wraps a screen's content in the app's floating-chrome layout: a full-bleed

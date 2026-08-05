@@ -82,7 +82,11 @@ fun MainShell(
                 modifier = Modifier
                     .fillMaxWidth()
                     .windowInsetsPadding(WindowInsets.navigationBars)
-                    .padding(horizontal = Spacing.L, vertical = Spacing.S)
+                    // Shared with FloatingTopBar (see FloatingChromeMargin's own doc
+                    // comment) - keeps this bottom margin identical to the header's
+                    // top margin instead of the two independent literals this used
+                    // to be.
+                    .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
                     .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT)),
             ) {
             Surface(

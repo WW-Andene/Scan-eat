@@ -98,7 +98,10 @@ fun ScanEatCard(
     // With no visible fill, the card never read as one whole shape - only its
     // shadowElevation shadow (which DOES have real contrast against a light
     // background) showed up, as a disconnected rectangle instead of a filled card.
-    color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.6f else 0.28f),
+    // User-reported: lightened further and alpha lowered again — the card should
+    // sit a little lighter than Background and read as more transparent, not a
+    // near-opaque tinted block.
+    color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.5f else 0.22f),
     contentPadding: PaddingValues = PaddingValues(Spacing.L),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,
@@ -134,6 +137,16 @@ fun ScanEatCard(
                 .blur(spec.elevation)
                 .background(ShadowTint.copy(alpha = 0.4f), shape),
         )
+        // User-reported: the card's fill should feel blurry/hazy like
+        // FloatingTopBar/MainShell's bottom nav (see FrostedGlassStyle in
+        // FloatingBars.kt) rather than a flat tint. A real backdrop blur there
+        // works because those bars sit on top of a HazeState registered on the
+        // screen's own scrolling content; a card IS that scrolling content, so
+        // there's nothing "behind" it in the same sense to optically blur. This
+        // is the scoped equivalent: the fill itself painted on its own blurred
+        // layer (clipped to shape, same as the Surface below), which softens
+        // just the fill's edges into a hazy feel without blurring [content].
+        Box(Modifier.matchParentSize().clip(shape).blur(3.dp).background(color))
         Surface(
             // Xiaomi/MIUI-observed bug (user screenshot, Light theme): Surface's shadow
             // is computed from [shape]'s outline and renders correctly rounded, but its
@@ -174,7 +187,7 @@ fun ScanEatCard(
                     else Modifier
                 ),
             shape = shape,
-            color = color,
+            color = Color.Transparent,
             shadowElevation = 0.dp,
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)

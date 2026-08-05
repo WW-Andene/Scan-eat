@@ -96,42 +96,44 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             // or flatter than one — now drawn via the tinted Modifier.shadow above.
             shadowElevation = 0.dp,
         ) {
-            Column(
-                modifier = Modifier
-                    // .copy(alpha = ...), not the bare opaque color - every other
-                    // card in the app goes through ScanEatCard's translucent
-                    // default fill so the screen's own ambientGloom wash bleeds
-                    // through it; this card hand-rolls its own Surface/Column
-                    // instead of using ScanEatCard (so it can overlay the streak
-                    // badge via BoxScope.align, a slot ScanEatCard's content
-                    // lambda doesn't expose) and had fully opaque SurfaceVariant
-                    // here as a result - the one card on Dashboard that never let
-                    // any background show through it at all. Kept in sync with
-                    // ScanEatCard's own default alpha (see its doc comment on the
-                    // 0.24 -> 0.4 correction) rather than a separate literal here.
-                    .background(SurfaceVariant.copy(alpha = 0.28f))
-                    // Explicit center/radius, matching every other gradient in the
-                    // theme (glassSheen's own glow, ambientGloom) - left implicit
-                    // here (plain Brush.radialGradient(colors) with no center/
-                    // radius), the two-stop gradient's falloff resolves from
-                    // whatever bounds Compose measures this Column at, and on a
-                    // near-black OLED surface an already-low-alpha (14%) two-stop
-                    // fade banded into a single off-position bright spot instead
-                    // of a smooth wash. drawWithCache below pins the center to the
-                    // card's true middle and adds a third color stop to soften
-                    // the falloff curve, both of which cut the banding.
-                    .drawWithCache {
-                        val brush = Brush.radialGradient(
-                            colors = listOf(balColor.copy(alpha = 0.14f), balColor.copy(alpha = 0.05f), Color.Transparent),
-                            center = Offset(size.width * 0.5f, size.height * 0.5f),
-                            radius = size.maxDimension * 0.6f,
-                        )
-                        onDrawBehind { drawRect(brush) }
-                    }
-                    .padding(Spacing.XL),
-                verticalArrangement = Arrangement.spacedBy(Spacing.SM),
-            ) {
-                Row(
+            // Wrapping Box (not fillMaxSize/matchParentSize on its own) so it
+            // sizes to its content like Surface previously did directly, while
+            // giving the nested blurred-fill Box below a BoxScope to resolve
+            // matchParentSize() against.
+            Box {
+                // Same blurred-fill treatment as ScanEatCard (see its own doc
+                // comment on why this is the scoped stand-in for
+                // FrostedGlassStyle's real backdrop blur) - a separate layer so
+                // the blur softens only the fill's edges, not the Column's
+                // text/content on top of it.
+                Box(
+                    Modifier.matchParentSize().clip(RoundedCornerShape(CardRadius.PROMINENT)).blur(3.dp)
+                        .background(SurfaceVariant.copy(alpha = 0.22f)),
+                )
+                Column(
+                    modifier = Modifier
+                        // Explicit center/radius, matching every other gradient in the
+                        // theme (glassSheen's own glow, ambientGloom) - left implicit
+                        // here (plain Brush.radialGradient(colors) with no center/
+                        // radius), the two-stop gradient's falloff resolves from
+                        // whatever bounds Compose measures this Column at, and on a
+                        // near-black OLED surface an already-low-alpha (14%) two-stop
+                        // fade banded into a single off-position bright spot instead
+                        // of a smooth wash. drawWithCache below pins the center to the
+                        // card's true middle and adds a third color stop to soften
+                        // the falloff curve, both of which cut the banding.
+                        .drawWithCache {
+                            val brush = Brush.radialGradient(
+                                colors = listOf(balColor.copy(alpha = 0.14f), balColor.copy(alpha = 0.05f), Color.Transparent),
+                                center = Offset(size.width * 0.5f, size.height * 0.5f),
+                                radius = size.maxDimension * 0.6f,
+                            )
+                            onDrawBehind { drawRect(brush) }
+                        }
+                        .padding(Spacing.XL),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.SM),
+                ) {
+                    Row(
                     modifier = Modifier.fillMaxWidth().padding(end = if (streak > 0) 40.dp else 0.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -174,6 +176,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                         stringResource(R.string.dashboard_calorie_exercise, balance.exerciseKcal),
                         style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.4f),
                     )
+                }
                 }
             }
         }

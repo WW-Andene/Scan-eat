@@ -72,7 +72,9 @@ private val DarkColors = darkColorScheme(
     // Background is now carried by the card's border/shadow treatment and
     // ambientGloom's own color variety instead of the fill token itself, so
     // this goes back to a quiet, neutral warm-gray rather than a strong hue.
-    surfaceVariant   = Color(0xFF39332C),
+    // User-reported (round 2): lightened again so the card reads a bit
+    // lighter than Background at a glance, not just barely distinguishable.
+    surfaceVariant   = Color(0xFF423B32),
     onSurfaceVariant = Color(0xFFCFC7CC),
     error            = FlagRed,
     onError          = Color.White,
