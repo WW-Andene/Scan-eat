@@ -36,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -327,7 +326,6 @@ fun DashboardScreen(
     loggingScan?.let { scan ->
         LogSheet(
             product    = scan.product,
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onConfirm  = { portionG, mealSlot ->
                 viewModel.logNeverLoggedScan(scan, portionG, mealSlot)
                 loggingScan = null

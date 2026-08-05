@@ -58,7 +58,6 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
         }
         LogSheet(
             product    = product,
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onConfirm  = { portionG, mealSlot ->
                 viewModel.addEntry(picked, portionG, mealSlot)
                 selected = null
@@ -76,7 +75,6 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
     if (pickedScan != null) {
         LogSheet(
             product    = pickedScan.product,
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             onConfirm  = { portionG, mealSlot ->
                 viewModel.addEntryFromScan(pickedScan, portionG, mealSlot)
                 selectedScan = null

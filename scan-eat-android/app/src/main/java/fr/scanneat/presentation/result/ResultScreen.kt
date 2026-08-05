@@ -19,7 +19,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,7 +63,6 @@ fun ResultScreen(
     val profile     = viewModel.profile.collectAsStateWithLifecycle()
     val priceEntries = viewModel.priceEntries.collectAsStateWithLifecycle()
     val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
-    val sheetState  = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     // rememberSaveable, not remember - a process death while either dialog was open
     // (backgrounding the app is enough on a low-memory device) previously reset both
     // flags to false on restoration, silently closing the LogSheet/SaveDestinationsPopup
@@ -188,7 +186,6 @@ fun ResultScreen(
         if (showSheet) {
             LogSheet(
                 product    = scan.product,
-                sheetState = sheetState,
                 isLoading  = state.value.logState is LogState.Loading,
                 onConfirm  = { g, slot -> viewModel.log(g, slot) },
                 onDismiss  = { showSheet = false },
