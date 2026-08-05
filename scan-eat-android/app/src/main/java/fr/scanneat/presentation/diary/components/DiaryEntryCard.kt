@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
 import fr.scanneat.domain.model.DiaryEntry
+import fr.scanneat.presentation.ui.theme.dispCurrency
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.Spacing
@@ -39,7 +40,20 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import kotlin.math.roundToInt
 
 @Composable
-internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommended: Boolean = false, onDelete: () -> Unit, onEdit: () -> Unit) {
+internal fun DiaryEntryCard(
+    entry: DiaryEntry,
+    warning: String? = null,
+    recommended: Boolean = false,
+    // User-requested: "12 eggs at 3€, I eat 3 (~180g), tell me what that
+    // portion cost" - derived from the price/kg already entered for this same
+    // barcode via PriceEntryCard (Result screen), scaled by this entry's own
+    // portionG. Null whenever no price/weight was ever logged for this
+    // barcode, in which case nothing extra is shown (see DiaryMealsTab.kt).
+    estimatedCostEuros: Double? = null,
+    currencySymbol: String = "€",
+    onDelete: () -> Unit,
+    onEdit: () -> Unit,
+) {
     ScanEatCard(
         onClick = onEdit,
         shape = RoundedCornerShape(CardRadius.CONTROL), contentPadding = PaddingValues(Spacing.L),
@@ -52,6 +66,12 @@ internal fun DiaryEntryCard(entry: DiaryEntry, warning: String? = null, recommen
                 Text(entry.productName, style = MaterialTheme.typography.bodyMedium, color = OnSurface, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(stringResource(R.string.diary_entry_summary, entry.portionG.roundToInt(), entry.consumed.energyKcal.roundToInt()),
                     style = MaterialTheme.typography.bodySmall, color = OnSurface.copy(0.6f))
+                if (estimatedCostEuros != null) {
+                    Text(
+                        stringResource(R.string.diary_entry_estimated_cost, dispCurrency(estimatedCostEuros, currencySymbol)),
+                        style = MaterialTheme.typography.labelSmall, color = OnSurface.copy(0.5f),
+                    )
+                }
                 // Same checkUserAllergens()/checkDiet() warning Recipes/Grocery/
                 // Templates already show live - previously nothing in the Diary
                 // ever surfaced this, so a logged allergen never resurfaced here.

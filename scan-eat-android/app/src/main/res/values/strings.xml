@@ -945,6 +945,7 @@
     <string name="diary_low_carb_hint">Glucides plafonnés volontairement par votre régime actuel (fourchette clinique de cétose de Volek &amp; Phinney, 20–50 g nets/jour) : en cétose, le cerveau fonctionne majoritairement aux corps cétoniques, et le glucose restant nécessaire est produit par néoglucogenèse — ce n\'est pas une erreur de calcul.</string>
     <string name="diary_low_carb_hint_cd">Pourquoi les glucides sont plafonnés</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
+    <string name="diary_entry_estimated_cost">≈ %1$s pour cette portion</string>
     <string name="diary_entry_recommended">Recommandé pour votre profil</string>
     <string name="diary_edit_portion_label">Portion (g)</string>
 

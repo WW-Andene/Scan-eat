@@ -8,6 +8,7 @@ import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.nutrition.DayNotesRepository
+import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.biolism.BiolismEngine
 import fr.scanneat.domain.engine.biolism.computeMetabolics
@@ -45,6 +46,7 @@ class DiaryViewModel @Inject constructor(
     private val scanRepo: ScanRepository,
     private val prefs: UserPreferences,
     private val biolismRepo: BiolismRepository,
+    private val priceRepo: PriceRepository,
 ) : ViewModel() {
 
     // Fix 13: selectedDate as a StateFlow — avoids stale data across midnight
@@ -55,6 +57,24 @@ class DiaryViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
     val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val currencySymbol: StateFlow<String> = prefs.currencySymbol
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "€")
+
+    // User-requested: "what did today's 3 eggs actually cost me" - derives an
+    // estimated cost per logged entry from whatever price/weight the user
+    // already entered for that same barcode in PriceEntryCard (Result screen),
+    // rather than a new field/dialog of its own. Keyed by barcode -> most
+    // recently logged price/kg for it (maxByOrNull loggedAt-equivalent: entries
+    // arrive newest-first from PriceRepository.observeAll, so first() per group
+    // is already the latest); entries with no weight (pricePerKg == null, e.g.
+    // a restaurant bill with no per-kg meaning) simply don't contribute here.
+    val pricePerKgByBarcode: StateFlow<Map<String, Double>> = priceRepo.observeAll()
+        .map { entries ->
+            entries.filter { it.barcode != null && it.pricePerKg != null }
+                .groupBy { it.barcode!! }
+                .mapValues { (_, group) -> group.first().pricePerKg!! }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     // Flat-map so the observation restarts whenever the date changes
     val summary: StateFlow<DailySummary> = _selectedDate

@@ -46,6 +46,8 @@ internal fun MealsTab(
     val diaryWarnings = viewModel.diaryWarnings.collectAsStateWithLifecycle()
     val diaryRecommended = viewModel.diaryRecommended.collectAsStateWithLifecycle()
     val useImperial  = viewModel.useImperial.collectAsStateWithLifecycle()
+    val currencySymbol = viewModel.currencySymbol.collectAsStateWithLifecycle()
+    val pricePerKgByBarcode = viewModel.pricePerKgByBarcode.collectAsStateWithLifecycle()
     // In-app language can differ from device locale - ofPattern() alone would
     // default to Locale.getDefault() and could show the day name in the wrong language.
     val dateFmt = remember(language.value) { DateTimeFormatter.ofPattern("EEE d MMM", Locale(language.value)) }
@@ -179,7 +181,21 @@ internal fun MealsTab(
                         )
                     }
                     items(slotEntries, key = { it.id }) { entry ->
-                        DiaryEntryCard(entry = entry, warning = diaryWarnings.value[entry.id], recommended = entry.id in diaryRecommended.value, onDelete = { deleteTarget = entry.id }, onEdit = { editTarget = entry })
+                        // User-requested "what did this portion cost" - price/kg is
+                        // looked up by this same entry's barcode (see DiaryViewModel's
+                        // pricePerKgByBarcode doc comment); no match (e.g. a home-made
+                        // recipe with no logged price) just omits the cost line.
+                        val pricePerKg = entry.barcode?.let { pricePerKgByBarcode.value[it] }
+                        val estimatedCost = pricePerKg?.let { it * entry.portionG / 1000.0 }
+                        DiaryEntryCard(
+                            entry = entry,
+                            warning = diaryWarnings.value[entry.id],
+                            recommended = entry.id in diaryRecommended.value,
+                            estimatedCostEuros = estimatedCost,
+                            currencySymbol = currencySymbol.value,
+                            onDelete = { deleteTarget = entry.id },
+                            onEdit = { editTarget = entry },
+                        )
                     }
                 }
             }
