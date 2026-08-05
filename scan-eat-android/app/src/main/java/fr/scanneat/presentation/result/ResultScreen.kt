@@ -128,9 +128,17 @@ fun ResultScreen(
                         tint = if (scan.favorite) Gold else OnBackground,
                     )
                 }
-            }
-            TextButton(onClick = { showSheet = true }) {
-                Text(stringResource(R.string.result_log_it), color = AccentCoral, fontWeight = FontWeight.SemiBold)
+                // User-reported: tapping "Logger" showed nothing when tapped while the
+                // scan was still loading (this actions row renders in the TopBar
+                // unconditionally, before the s.scanResult == null check below gates
+                // the loading spinner) - showSheet flipped true with nothing to react
+                // to it, since the LogSheet below is itself gated on
+                // state.value.scanResult being non-null. Moved inside this same
+                // scanResult?.let block so the button can't be tapped at all until
+                // there's a scan to log.
+                TextButton(onClick = { showSheet = true }) {
+                    Text(stringResource(R.string.result_log_it), color = AccentCoral, fontWeight = FontWeight.SemiBold)
+                }
             }
         },
         snackbarHost = { ScanEatSnackbarHost(snackbarHostState) },
