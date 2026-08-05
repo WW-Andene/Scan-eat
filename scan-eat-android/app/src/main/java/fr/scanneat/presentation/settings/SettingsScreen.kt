@@ -24,6 +24,7 @@ import fr.scanneat.presentation.settings.components.ApiModeSection
 import fr.scanneat.presentation.settings.components.BackupSection
 import fr.scanneat.presentation.settings.components.BiolismDisplaySection
 import fr.scanneat.presentation.settings.components.CerebrasKeySection
+import fr.scanneat.presentation.settings.components.ColorSection
 import fr.scanneat.presentation.settings.components.CurrencySection
 import fr.scanneat.presentation.settings.components.DataResetSection
 import fr.scanneat.presentation.settings.components.GroqKeySection
