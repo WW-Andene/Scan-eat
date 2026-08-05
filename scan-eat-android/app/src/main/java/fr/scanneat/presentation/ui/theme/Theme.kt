@@ -22,7 +22,7 @@ import fr.scanneat.R
 private val OledColors = darkColorScheme(
     primary          = Gold,
     onPrimary        = Color.Black,
-    secondary        = AccentCoral,
+    secondary        = AccentCoralRaw,
     onSecondary      = Color.Black,
     tertiary         = Teal,
     background       = OledBackgroundRaw,
@@ -46,7 +46,7 @@ private val OledColors = darkColorScheme(
 private val DarkColors = darkColorScheme(
     primary          = Gold,
     onPrimary        = Color.Black,
-    secondary        = AccentCoral,
+    secondary        = AccentCoralRaw,
     onSecondary      = Color.Black,
     tertiary         = Teal,
     // User-reported: darkened alongside SurfaceVariant's own lightening below,
@@ -132,7 +132,7 @@ private val HighContrastColors = darkColorScheme(
 private val LowContrastColors = darkColorScheme(
     primary          = Gold,
     onPrimary        = Color.Black,
-    secondary        = AccentCoral,
+    secondary        = AccentCoralRaw,
     onSecondary      = Color.Black,
     tertiary         = Teal,
     background       = LowContrastBackgroundRaw,

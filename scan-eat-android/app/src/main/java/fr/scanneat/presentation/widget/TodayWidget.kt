@@ -45,7 +45,7 @@ import fr.scanneat.domain.engine.scoring.dailyTargets
 import fr.scanneat.domain.engine.scoring.hasMinimalProfile
 import fr.scanneat.domain.engine.scoring.withKcalOverride
 import fr.scanneat.presentation.MainActivity
-import fr.scanneat.presentation.ui.theme.AccentCoral
+import fr.scanneat.presentation.ui.theme.AccentCoralRaw
 import fr.scanneat.presentation.ui.theme.LocalColorblindMode
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.semanticBlue
@@ -161,7 +161,7 @@ class TodayWidget : GlanceAppWidget() {
             CompositionLocalProvider(LocalColorblindMode provides colorblindMode) {
                 // No GlanceTheme wrapper (see the F35 comment above this class) — every
                 // color below is one of this file's own Widget* constants or an in-app
-                // token (AccentCoral, semanticBlue()), never a dynamic system color.
+                // token (AccentCoralRaw, semanticBlue()), never a dynamic system color.
                 // LocalSize.current resolves to whichever of sizeMode's declared buckets
                 // best fits the space the host actually gave this instance.
                 val compact = LocalSize.current.height < FULL_SIZE.height
@@ -225,7 +225,7 @@ private fun TodayWidgetContent(
             LinearProgressIndicator(
                 modifier = GlanceModifier.fillMaxWidth().height(6.dp),
                 progress = progress,
-                color = ColorProvider(AccentCoral),
+                color = ColorProvider(AccentCoralRaw),
                 backgroundColor = WidgetSurfaceVariant,
             )
         } else {
@@ -237,7 +237,7 @@ private fun TodayWidgetContent(
         // one-glance purpose - rather than letting them get silently clipped.
         if (!compact) {
             Spacer(modifier = GlanceModifier.height(6.dp))
-            Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoral), fontSize = 12.sp, fontWeight = FontWeight.Medium))
+            Text(streakLabel, style = TextStyle(color = ColorProvider(AccentCoralRaw), fontSize = 12.sp, fontWeight = FontWeight.Medium))
             Spacer(modifier = GlanceModifier.height(4.dp))
             Text(macroLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 11.sp))
             Spacer(modifier = GlanceModifier.height(10.dp))

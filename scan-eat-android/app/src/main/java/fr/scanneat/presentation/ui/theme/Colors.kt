@@ -92,7 +92,21 @@ val SurfaceVariant: Color @Composable get() = MaterialTheme.colorScheme.surfaceV
 val OnSurface:      Color @Composable get() = MaterialTheme.colorScheme.onSurface
 
 // ── Scan'eat accent ───────────────────────────────────────────────────────────
-val AccentCoral     = Color(0xFFD97C56)  // sober warm coral — the app's one brand accent
+// User-reported: selecting a color theme (Matcha/Lavande/Sunflower/Lazulite)
+// left some elements stuck on the base coral instead of picking up the new
+// theme's own accent - because this was a plain, non-theme-reactive Color
+// literal, unlike Background/OnBackground/SurfaceVariant/OnSurface above.
+// Now reads MaterialTheme.colorScheme.secondary, same reactive pattern as
+// those - every existing `AccentCoral` call site (dozens across the app)
+// picks this up automatically with no change of its own, since a property
+// with a custom getter is referenced identically to a plain val. The raw
+// literal survives as AccentCoralRaw (below), which OLED/Dark/Low-Contrast's
+// own colorScheme definitions (Theme.kt) still use as their literal
+// `secondary` value - Light/High-Contrast/Matcha/Lavande/Sunflower/Lazulite
+// each set a different `secondary` there instead, which is exactly what now
+// makes this reactive.
+internal val AccentCoralRaw = Color(0xFFD97C56)  // sober warm coral — OLED/Dark/Low-Contrast's own secondary
+val AccentCoral: Color @Composable get() = MaterialTheme.colorScheme.secondary
 val FlagRed         = Color(0xFFEF5350)
 val FlagGreen       = Color(0xFF66BB6A)
 val AmberWarning    = Color(0xFFFFA726)
