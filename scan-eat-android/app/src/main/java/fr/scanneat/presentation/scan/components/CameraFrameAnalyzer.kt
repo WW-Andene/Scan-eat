@@ -5,6 +5,7 @@ import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.objects.ObjectDetector
+import com.google.mlkit.vision.text.TextRecognizer
 
 // ============================================================================
 // Per-frame CameraX ImageAnalysis pipeline for CameraPreview's ImageAnalysis
@@ -56,6 +57,14 @@ internal fun analyzeFrame(
     onBarcodesInFrame: ((List<DetectedBarcode>, Int, Int) -> Unit)? = null,
     objectDetector: ObjectDetector? = null,
     onObjectsDetected: ((List<DetectedBox>, Int, Int) -> Unit)? = null,
+    // User-requested: detect a price displayed right next to the barcode at
+    // the same moment it's scanned, not only via PriceEntryCard's own manual
+    // "scan this price tag" button. Only run (see below) on a frame that
+    // actually decoded a barcode - unconditionally OCR'ing every single
+    // camera frame would burn CPU/battery for no benefit on the vast majority
+    // of frames, which show no barcode at all yet.
+    priceScanner: TextRecognizer? = null,
+    onPriceTextDetected: ((String) -> Unit)? = null,
 ) {
     val media = proxy.image
     if (media == null) { proxy.close(); return }
@@ -64,11 +73,15 @@ internal fun analyzeFrame(
         Pair(proxy.height, proxy.width) else Pair(proxy.width, proxy.height)
     val img = InputImage.fromMediaImage(media, rotation)
 
-    // Both detectors run against the same frame independently — closing the
-    // proxy only once every task in flight has completed (not just the first
-    // one to finish, as a single addOnCompleteListener would) so neither
-    // detector ever reads from a buffer CameraX has already recycled.
-    val pending = java.util.concurrent.atomic.AtomicInteger(if (objectDetector != null) 2 else 1)
+    // Every detector that actually runs on this frame is tracked here - closing
+    // the proxy only once every task in flight has completed (not just the
+    // first one to finish, as a single addOnCompleteListener would) so none of
+    // them ever reads from a buffer CameraX has already recycled. priceScanner
+    // only ever runs conditionally (see below), so its slot is released
+    // immediately here if it turns out not to fire for this frame.
+    val pending = java.util.concurrent.atomic.AtomicInteger(
+        1 + (if (objectDetector != null) 1 else 0) + (if (priceScanner != null) 1 else 0),
+    )
     fun releaseIfDone() { if (pending.decrementAndGet() == 0) proxy.close() }
 
     scanner.process(img)
@@ -111,6 +124,19 @@ internal fun analyzeFrame(
                 }
             }
             onBarcodesInFrame?.invoke(detected, imgW, imgH)
+
+            // Only OCR'd on a frame that actually decoded a barcode (see this
+            // param's own doc comment above) - every other frame releases this
+            // slot immediately without ever calling process().
+            if (priceScanner != null) {
+                if (detected.isNotEmpty()) {
+                    priceScanner.process(img)
+                        .addOnSuccessListener { result -> onPriceTextDetected?.invoke(result.text) }
+                        .addOnCompleteListener { releaseIfDone() }
+                } else {
+                    releaseIfDone()
+                }
+            }
         }
         .addOnCompleteListener { releaseIfDone() }
 

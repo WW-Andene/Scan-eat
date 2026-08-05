@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.remote.api.ImagePayload
+import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.MedicationRepository
 import fr.scanneat.data.repository.scan.NonFoodProductException
 import fr.scanneat.data.repository.scan.ProductNotFoundException
@@ -21,6 +22,7 @@ import fr.scanneat.domain.engine.nonconsumable.findNonConsumableByBarcode
 import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.util.extractPriceFromText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,6 +49,7 @@ class ScanViewModel @Inject constructor(
     internal val prefs: UserPreferences,       // Fix 15/21: read language from preferences
     private val connectivityManager: ConnectivityManager,
     internal val medicationRepo: MedicationRepository,
+    private val priceRepo: PriceRepository,
     @ApplicationContext internal val appContext: Context,
 ) : ViewModel() {
 
@@ -94,6 +97,24 @@ class ScanViewModel @Inject constructor(
     internal var pendingBarcode: String? = null
     internal var pendingBarcodeStreak = 0
     val scannedBarcode: StateFlow<String?> = _scannedBarcode.asStateFlow()
+
+    // User-requested: a price displayed right next to the barcode, read via
+    // on-device OCR at the same moment the barcode itself is scanned (see
+    // CameraPreview's onPriceTextDetected) - first hit wins per barcode
+    // session (reset alongside _scannedBarcode below) rather than the last
+    // one, since a shaky hand sweeping the price tag out of frame after a
+    // good read shouldn't clobber it with a garbled partial one. Auto-logged
+    // into PriceRepository once score() succeeds (see its own doc comment) -
+    // shows up in PriceEntryCard/Expenses exactly like a manual entry, so
+    // it's edited/deleted the same way if wrong, never a silent, unfixable value.
+    private val _detectedPriceEuros = MutableStateFlow<Double?>(null)
+    val detectedPriceEuros: StateFlow<Double?> = _detectedPriceEuros.asStateFlow()
+
+    fun onPriceTextDetected(text: String) {
+        if (_detectedPriceEuros.value != null) return
+        if (_scannedBarcode.value == null) return
+        extractPriceFromText(text)?.let { _detectedPriceEuros.value = it }
+    }
 
     /**
      * "Already scanned this" preview — ScanRepository.getCachedByBarcode already
@@ -222,6 +243,7 @@ class ScanViewModel @Inject constructor(
         pendingBarcode = null
         pendingBarcodeStreak = 0
         _scannedBarcode.value = barcode
+        _detectedPriceEuros.value = null
         if (_instantMode.value) score()
     }
 
@@ -235,7 +257,10 @@ class ScanViewModel @Inject constructor(
      * dialogs), so it can't interrupt an active lookup.
      */
     fun onBarcodeLost() {
-        if (_state.value is ScanUiState.Idle) _scannedBarcode.value = null
+        if (_state.value is ScanUiState.Idle) {
+            _scannedBarcode.value = null
+            _detectedPriceEuros.value = null
+        }
         pendingBarcode = null
         pendingBarcodeStreak = 0
     }
@@ -258,6 +283,7 @@ class ScanViewModel @Inject constructor(
      */
     fun resultConsumed() {
         _scannedBarcode.value = null
+        _detectedPriceEuros.value = null
         _images.value = emptyList()
         _state.value = ScanUiState.Idle
         // onBarcodeDetected() bails out before touching these two whenever
@@ -326,6 +352,25 @@ class ScanViewModel @Inject constructor(
                             _recentBarcodes.value = (_recentBarcodes.value - barcode + barcode)
                                 .distinct().takeLast(5)
                         }
+                        // Auto-logs the price detected alongside the barcode (see
+                        // onPriceTextDetected's own doc comment) - lands in
+                        // PriceRepository exactly like a manual PriceEntryCard entry,
+                        // so it shows up in Expenses immediately and is edited/deleted
+                        // the same way if wrong, never a silent, unfixable value.
+                        _detectedPriceEuros.value?.let { price ->
+                            viewModelScope.launch {
+                                runCatching {
+                                    priceRepo.log(
+                                        date = java.time.LocalDate.now(),
+                                        productName = scanResult.product.name,
+                                        barcode = barcode,
+                                        category = scanResult.product.category,
+                                        priceEuros = price,
+                                        weightG = scanResult.product.weightG,
+                                    )
+                                }
+                            }
+                        }
                     },
                     onFailure = { e ->
                         _state.value = when {
@@ -383,6 +428,7 @@ class ScanViewModel @Inject constructor(
     fun quickScan(barcode: String) {
         if (_state.value is ScanUiState.Scanning) return
         _scannedBarcode.value = barcode
+        _detectedPriceEuros.value = null
         score()
     }
 

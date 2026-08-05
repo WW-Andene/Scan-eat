@@ -251,6 +251,7 @@ fun ScanScreen(
                     if (boxes.isEmpty()) viewModel.onBarcodeLost()
                 },
                 onObjectsDetected = if (shelfMode) { objs, w, h -> shelfObjects = Triple(objs, w, h) } else null,
+                onPriceTextDetected = { viewModel.onPriceTextDetected(it) },
                 onImageCaptureReady = { shelfImageCapture = it },
                 bottomNavClearance = bottomNavClearance,
                 topInset          = topInset,

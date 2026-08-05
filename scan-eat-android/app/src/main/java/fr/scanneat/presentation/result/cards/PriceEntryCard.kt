@@ -38,25 +38,19 @@ import fr.scanneat.R
 import fr.scanneat.data.repository.expense.PriceEntry
 import fr.scanneat.domain.engine.expense.ValueScore
 import fr.scanneat.presentation.ui.theme.*
+import fr.scanneat.util.extractPriceFromText
 import fr.scanneat.util.formatDecimal
 
-// User-requested: pre-fill the price field from a photographed price tag
-// instead of typing it every time - matches the app's existing "digits with a
-// decimal separator" price format (e.g. "3,99" or "0.79"), taking the first
-// match in the recognized text. Deliberately simple (no currency-symbol
-// anchoring, no picking the "right" one among several prices on a promo tag)
-// since the field stays fully editable afterward - a wrong/partial match costs
-// the user a tap to correct, not a broken feature.
-private val PRICE_PATTERN = Regex("""\d{1,4}[.,]\d{2}""")
-
-private fun extractPrice(text: String): String? =
-    PRICE_PATTERN.find(text)?.value?.replace(',', '.')
-
 /**
- * Manual price entry for the scanned product — no OCR price-tag detection
- * (unreliable to build honestly), so this is a plain "what did you pay" input,
- * paired with a value-score badge once weight is known (priceEuros / weightG
- * vs. the category's typical price/kg, see ValueScoreEstimator).
+ * Price entry for the scanned product, paired with a value-score badge once
+ * weight is known (priceEuros / weightG vs. the category's typical price/kg,
+ * see ValueScoreEstimator). Manual by default, but the "scan" button below
+ * can pre-fill the field from a photographed price tag (see
+ * extractPriceFromText's own doc comment) - the field stays fully editable
+ * either way, so a wrong/partial OCR read costs a tap to correct, never a
+ * "trust the scan or start over" choice. ScanViewModel's live version of
+ * this same idea (a price detected automatically alongside the barcode
+ * itself, not just this manual entry) shares the same extraction function.
  */
 @Composable
 internal fun PriceEntryCard(
@@ -128,8 +122,8 @@ private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: ()
         runCatching { InputImage.fromFilePath(context, uri) }.getOrNull()?.let { image ->
             TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS).process(image)
                 .addOnSuccessListener { result ->
-                    val found = extractPrice(result.text)
-                    if (found != null) priceText = found
+                    val found = extractPriceFromText(result.text)
+                    if (found != null) priceText = found.formatDecimal(2)
                     else Toast.makeText(context, noPriceFoundMessage, Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { Toast.makeText(context, noPriceFoundMessage, Toast.LENGTH_SHORT).show() }

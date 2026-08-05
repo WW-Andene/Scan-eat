@@ -63,6 +63,11 @@ fun CameraPreview(
     // same ImageCapture use case the shutter FAB below already uses, without
     // duplicating the bind-to-lifecycle setup a second time.
     onImageCaptureReady: ((ImageCapture) -> Unit)? = null,
+    // User-requested: a price displayed right next to the barcode, detected at
+    // the same moment the barcode itself is scanned - null by default so
+    // every other CameraPreview call site pays zero extra inference cost,
+    // same gating pattern as onObjectsDetected above.
+    onPriceTextDetected: ((String) -> Unit)? = null,
     // The floating bottom nav is a separate, later z-layer drawn on top of the
     // whole screen - every other overlay on ScanScreen was given this same
     // clearance for exactly that reason. Without it, the capture FAB's ~16-72dp
@@ -89,8 +94,18 @@ fun CameraPreview(
         } else null
     }
 
+    // Same gating pattern as objectDetector above - only allocated when a
+    // caller actually wants it (ScanScreen's live scan flow).
+    val priceScanner = remember(onPriceTextDetected != null) {
+        if (onPriceTextDetected != null) {
+            com.google.mlkit.vision.text.TextRecognition.getClient(
+                com.google.mlkit.vision.text.latin.TextRecognizerOptions.DEFAULT_OPTIONS,
+            )
+        } else null
+    }
+
     val executor = remember { Executors.newSingleThreadExecutor() }
-    DisposableEffect(Unit) { onDispose { executor.shutdown(); scanner.close(); objectDetector?.close() } }
+    DisposableEffect(Unit) { onDispose { executor.shutdown(); scanner.close(); objectDetector?.close(); priceScanner?.close() } }
 
     var imageCapture: ImageCapture? by remember { mutableStateOf(null) }
     var camera: Camera? by remember { mutableStateOf(null) }
@@ -125,7 +140,7 @@ fun CameraPreview(
                         .build()
                         .also { ia ->
                             ia.setAnalyzer(executor) { proxy ->
-                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodesInFrame, objectDetector, onObjectsDetected)
+                                analyzeFrame(proxy, scanner, onBarcodeDetected, onBarcodesInFrame, objectDetector, onObjectsDetected, priceScanner, onPriceTextDetected)
                             }
                         }
                     // Previously a bare runCatching with no onFailure branch: a bind failure
