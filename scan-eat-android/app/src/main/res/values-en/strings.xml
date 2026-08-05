@@ -941,6 +941,7 @@
     <string name="diary_low_carb_hint">Carbs are deliberately capped by your current diet (Volek &amp; Phinney\'s clinical ketosis range, 20–50 g net carbs/day): in ketosis the brain runs mostly on ketone bodies, and the small amount of glucose still needed is supplied by gluconeogenesis — this isn\'t a calculation error.</string>
     <string name="diary_low_carb_hint_cd">Why carbs are capped</string>
     <string name="diary_entry_summary">%1$dg · %2$d kcal</string>
+    <string name="diary_entry_estimated_cost">≈ %1$s for this portion</string>
     <string name="diary_entry_recommended">Recommended for your profile</string>
     <string name="diary_edit_portion_label">Portion (g)</string>
 
@@ -1070,6 +1071,7 @@
     <string name="settings_premium_disable_button">Disable</string>
     <string name="settings_premium_required_biolism">Metabolism tracking (Biolism) is a Premium feature.</string>
     <string name="settings_premium_required_ai_scan">AI-assisted photo scanning is a Premium feature.</string>
+    <string name="scan_premium_required_generic">Premium feature — tap to upgrade to Premium.</string>
     <string name="settings_premium_go_to_settings">See Premium in Settings</string>
     <string name="settings_section_api_mode">API Mode</string>
     <string name="settings_api_mode_hint">Barcode scanning always works with nothing configured here. This only affects AI recognition — photographing a label for a product with no barcode, or one whose listing is incomplete.</string>
@@ -1102,6 +1104,10 @@
     <string name="settings_currency_label">Symbol</string>
     <string name="settings_currency_other">Other</string>
     <string name="settings_theme_low_contrast">Low contrast</string>
+    <string name="settings_theme_matcha">Matcha</string>
+    <string name="settings_theme_lavande">Lavender</string>
+    <string name="settings_theme_sunflower">Sunflower</string>
+    <string name="settings_theme_lazulite">Lazulite</string>
     <string name="settings_section_profile">Nutrition Profile</string>
     <string name="settings_section_accessibility">Accessibility</string>
     <string name="settings_section_reminders">Reminders</string>
