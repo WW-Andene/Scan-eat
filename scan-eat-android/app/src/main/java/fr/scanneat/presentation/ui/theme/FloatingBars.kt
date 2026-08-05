@@ -57,14 +57,16 @@ import dev.chrisbanes.haze.hazeSource
 /**
  * Shared outer margin for both floating chrome pieces (FloatingTopBar here,
  * MainShell's bottom nav) — user-reported ratio of 1(sides):2(top for the
- * header/bottom for the nav). Named once so both call sites reference the
- * same values instead of the two independent Spacing.L/Spacing.S literals
- * they used before, which is also what let the footer's bottom margin drift
- * out of sync with the header's top margin.
+ * header/bottom for the nav). horizontal is unchanged from the original
+ * Spacing.L both bars already used - only vertical (top for the header,
+ * bottom for the nav) changes, to 2x that same value, and is now shared so
+ * both call sites reference the same number instead of the two independent
+ * literals they used before, which is also what let the footer's bottom
+ * margin drift out of sync with the header's top margin.
  */
 object FloatingChromeMargin {
-    val horizontal: Dp = Spacing.SM
-    val vertical: Dp = Spacing.L
+    val horizontal: Dp = Spacing.L
+    val vertical: Dp = Spacing.L * 2
 }
 
 val FrostedGlassStyle: HazeStyle
