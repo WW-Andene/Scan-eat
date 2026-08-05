@@ -67,7 +67,12 @@ private val DarkColors = darkColorScheme(
     // Lightened ~35% (scaled, not just brightened, to keep the same warm hue)
     // so a translucent card actually has headroom to separate from the
     // background instead of the two tokens themselves being the bottleneck.
-    surfaceVariant   = Color(0xFF493B2A),
+    // User-reported: #493B2A (R73 G59 B42) sat too close to a flat olive-brown
+    // en masse across every card in a food app - unappetizing next to the
+    // reference dashboards' richer, more saturated warmth. Shifted toward a
+    // terracotta/cinnamon lean (R up, G/B down) rather than just brighter -
+    // same tonal role, warmer and more food-adjacent than muddy.
+    surfaceVariant   = Color(0xFF5E3726),
     onSurfaceVariant = Color(0xFFCFC7CC),
     error            = FlagRed,
     onError          = Color.White,

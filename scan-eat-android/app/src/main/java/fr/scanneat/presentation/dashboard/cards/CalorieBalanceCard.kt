@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.dashboard.cards
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,12 +15,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,6 +66,16 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             glowAlpha = HeroGlassSpec.glowAlpha,
         ),
     ) {
+        // Same directional shadow treatment as ScanEatCard (see its own doc
+        // comment) - offset toward the bottom-left, drawn behind the Surface
+        // rather than Modifier.shadow's symmetric elevation shadow below.
+        Box(
+            Modifier
+                .matchParentSize()
+                .offset(x = -7.dp, y = 9.dp)
+                .blur(10.dp)
+                .background(ShadowTint.copy(alpha = 0.4f), RoundedCornerShape(CardRadius.PROMINENT)),
+        )
         // This is the Dashboard's one focal metric — the Part B6 atmosphere
         // fix: a soft radial light-pool in the balance color, at Haze-level
         // intensity (~10% alpha), rendered on top of the flat surface fill
@@ -75,10 +87,24 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             // tinted Modifier.shadow + forced .clip() + shadowElevation = 0.dp.
             modifier = Modifier.fillMaxWidth()
                 .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
-                .clip(RoundedCornerShape(CardRadius.PROMINENT)),
+                .clip(RoundedCornerShape(CardRadius.PROMINENT))
+                // Matches ScanEatCard's own border treatment: radial, anchored
+                // top-right, fading away by the bottom-left instead of an evenly
+                // lit uniform outline (see its own doc comment).
+                .drawWithContent {
+                    drawContent()
+                    drawOutline(
+                        outline = RoundedCornerShape(CardRadius.PROMINENT).createOutline(size, layoutDirection, this),
+                        brush = Brush.radialGradient(
+                            colors = listOf(balColor.copy(alpha = HeroGlassSpec.borderAlpha), Color.Transparent),
+                            center = Offset(size.width, 0f),
+                            radius = size.width * 1.15f,
+                        ),
+                        style = Stroke(width = 1.dp.toPx()),
+                    )
+                },
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             color = Color.Transparent,
-            border = BorderStroke(1.dp, balColor.copy(alpha = HeroGlassSpec.borderAlpha)),
             // design-aesthetic-audit §DH: this card already declares itself
             // HERO tier via HeroGlassSpec's edge/glow/border above (it's the
             // Dashboard's one focal metric per the doc comment below). 10dp matches

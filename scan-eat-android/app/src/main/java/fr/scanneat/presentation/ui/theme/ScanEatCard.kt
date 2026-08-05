@@ -1,6 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,18 +10,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.matchParentSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -124,6 +129,19 @@ fun ScanEatCard(
             glowAlpha = spec.glowAlpha,
         ),
     ) {
+        // User-reported: matched to the neomorphic reference sheet's directional
+        // light model (one consistent light source, one consistent shadow, not a
+        // symmetric ambient blur) - a soft shadow offset toward the bottom-left,
+        // drawn behind the Surface below rather than via Modifier.shadow's
+        // symmetric elevation shadow (kept on the Surface itself for the base
+        // lift; this adds the directional weight on top of it).
+        Box(
+            Modifier
+                .matchParentSize()
+                .offset(x = -(spec.elevation * 0.7f), y = spec.elevation * 0.9f)
+                .blur(spec.elevation)
+                .background(ShadowTint.copy(alpha = 0.4f), shape),
+        )
         Surface(
             // Xiaomi/MIUI-observed bug (user screenshot, Light theme): Surface's shadow
             // is computed from [shape]'s outline and renders correctly rounded, but its
@@ -154,6 +172,22 @@ fun ScanEatCard(
                             startY = size.height * 0.55f,
                         ),
                     )
+                    // User-reported: the border should read as light catching one
+                    // edge, not a uniform outline - radial, anchored top-right (the
+                    // same corner glassSheen's hairline favors) and fading away by
+                    // the bottom-left, matching the directional shadow above instead
+                    // of contradicting it with an evenly-lit rim.
+                    if (spec.borderAlpha > 0f) {
+                        drawOutline(
+                            outline = shape.createOutline(size, layoutDirection, this),
+                            brush = Brush.radialGradient(
+                                colors = listOf(accent.copy(alpha = spec.borderAlpha), Color.Transparent),
+                                center = Offset(size.width, 0f),
+                                radius = size.width * 1.15f,
+                            ),
+                            style = Stroke(width = 1.dp.toPx()),
+                        )
+                    }
                 }
                 .then(
                     if (onClick != null)
@@ -164,7 +198,6 @@ fun ScanEatCard(
             shape = shape,
             color = color,
             shadowElevation = 0.dp,
-            border = if (spec.borderAlpha > 0f) BorderStroke(1.dp, accent.copy(alpha = spec.borderAlpha)) else null,
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)
         }
