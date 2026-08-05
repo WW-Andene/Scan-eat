@@ -184,6 +184,11 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
  */
 @Composable
 internal fun ScanBoundingBoxesOverlay(boxes: List<DetectedBarcode>, imgW: Int, imgH: Int) {
+    // AccentCoral is now theme-reactive (@Composable get() reading
+    // MaterialTheme.colorScheme.secondary) - Canvas's draw lambda below runs
+    // in the draw phase, not composition, so it can't read a @Composable
+    // property directly. Read once here instead.
+    val boxColor = AccentCoral
     Canvas(modifier = Modifier.fillMaxSize()) {
         val scaleX = size.width / imgW.toFloat()
         val scaleY = size.height / imgH.toFloat()
@@ -197,7 +202,7 @@ internal fun ScanBoundingBoxesOverlay(boxes: List<DetectedBarcode>, imgW: Int, i
             val right  = offX + rect.right  * scale
             val bottom = offY + rect.bottom * scale
             drawRoundRect(
-                color        = AccentCoral,
+                color        = boxColor,
                 topLeft      = Offset(left, top),
                 size         = androidx.compose.ui.geometry.Size(right - left, bottom - top),
                 cornerRadius = CornerRadius(8f, 8f),

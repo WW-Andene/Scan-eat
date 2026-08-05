@@ -205,9 +205,9 @@ val SeparatorExtraLight: Color @Composable get() = OnBackground.copy(alpha = 0.0
 // most common tinted-chip fill in the app (7 sites: CollapsibleFilterBar's
 // pill, DiaryScreen's tab pill, WeightHistorySection/FoodEntryRow/dashboard
 // gap-card highlight chips) - unlike Separator*, there was no name for this
-// role at all. Not a @Composable getter since AccentCoral itself isn't
-// theme-reactive.
-val ChipBackgroundAccent: Color = AccentCoral.copy(alpha = 0.15f)
+// role at all. Now a @Composable getter, same as SeparatorAccent above,
+// since AccentCoral itself became theme-reactive.
+val ChipBackgroundAccent: Color @Composable get() = AccentCoral.copy(alpha = 0.15f)
 
 // LAYER 3 (component-specific, not a general role) — see the fuller LAYER 3
 // banner further below before scanEatTextFieldColors(); this one composable
