@@ -186,7 +186,9 @@ internal fun BoxScope.ScanShelfModeFab(shelfMode: Boolean, topInset: Dp, onClick
         // traversal - which follows composition order here, not screen position -
         // announced it dead last: a swipe-through went bottom-end, bottom-end,
         // bottom-start, bottom-start, then jumped back up to this top-right button.
-        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 56.dp + Spacing.S, end = Spacing.L)
+        // User-reported: the gap below the flash button wasn't visible on-device -
+        // bumped by another 6dp on top of the existing Spacing.S gap.
+        modifier       = Modifier.align(Alignment.TopEnd).padding(top = topInset + Spacing.L + 56.dp + Spacing.S + 6.dp, end = Spacing.L)
             .minTouchTarget() // was a fixed 40dp, below the 48dp WCAG/Material touch-target minimum
             .semantics { traversalIndex = -1f },
         containerColor = if (shelfMode) Teal else SurfaceVariant,

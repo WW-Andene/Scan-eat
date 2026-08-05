@@ -75,6 +75,17 @@ fun ScanScreen(
     val cachedPreviewWarning = viewModel.cachedPreviewWarning.collectAsStateWithLifecycle()
     val visibleBarcodeCachedPreviews = viewModel.visibleBarcodeCachedPreviews.collectAsStateWithLifecycle()
     val captureErrorMessage = stringResource(R.string.scan_capture_error)
+    // User-reported: tapping a Premium-gated control did nothing visible - the
+    // no-op'd only because onOpenSettings wasn't wired at the call site
+    // (see AppNavGraph.kt's own fix), but even once it navigates, doing so
+    // silently still doesn't tell the user *why* the tap didn't just work.
+    // This toast fires alongside the navigation so the block is explained,
+    // not just routed around.
+    val premiumRequiredMessage = stringResource(R.string.scan_premium_required_generic)
+    val onPremiumBlocked: () -> Unit = {
+        android.widget.Toast.makeText(context, premiumRequiredMessage, android.widget.Toast.LENGTH_SHORT).show()
+        onOpenSettings()
+    }
 
     // ── Shelf-scan mode (hybrid live-boxes/tap-to-identify) ──────────────────
     // Off by default: CameraPreview only allocates the on-device object
@@ -306,7 +317,7 @@ fun ScanScreen(
                     // Premium-gated (see UserPreferences.isPremium) - identifyMultiFromPhotos()
                     // already no-ops for a non-Premium user, but routing to Settings here
                     // instead of silently doing nothing tells the user why.
-                    onLongClick = { if (isPremium.value) viewModel.identifyMultiFromPhotos() else onOpenSettings() },
+                    onLongClick = { if (isPremium.value) viewModel.identifyMultiFromPhotos() else onPremiumBlocked() },
                 )
             }
 
@@ -326,7 +337,7 @@ fun ScanScreen(
             ScanInstantModeFab(
                 instantMode = instantMode.value,
                 bottomNavClearance = bottomNavClearance,
-                onClick = { if (isPremium.value) viewModel.toggleInstantMode() else onOpenSettings() },
+                onClick = { if (isPremium.value) viewModel.toggleInstantMode() else onPremiumBlocked() },
             )
 
             // ── Shelf-scan mode toggle — top-end, below the flash toggle ──

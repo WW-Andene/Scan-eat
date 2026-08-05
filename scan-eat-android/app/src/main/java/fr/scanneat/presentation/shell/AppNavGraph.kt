@@ -113,7 +113,21 @@ fun AppNavGraph(
             // onResultReady somehow fires twice for the same scan (e.g. a
             // double-tap/duplicate callback) - without it, popping back would
             // need two presses to actually leave Result instead of one.
-            ScanScreen(onResultReady = { id -> navController.navigate(AppRoutes.result(id, fresh = true)) { launchSingleTop = true } })
+            // User-reported: tapping a Premium-gated scan control (instant mode,
+            // identify-multi long-press) did nothing at all - ScanScreen's
+            // onOpenSettings param defaults to a no-op {} and this call site
+            // never overrode it, so the "route to Settings" fallback those
+            // controls already had (see ScanScreen.kt) silently went nowhere.
+            ScanScreen(
+                onResultReady = { id -> navController.navigate(AppRoutes.result(id, fresh = true)) { launchSingleTop = true } },
+                onOpenSettings = {
+                    navController.navigate(TopTab.Settings.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+            )
         }
 
         composable(TopTab.Diary.route) { backStackEntry ->
