@@ -150,19 +150,39 @@ private val LowContrastColors = darkColorScheme(
 
 // User-requested: OLED/Dark/Light/Contrast (brightness/contrast, [theme]
 // below) and a color accent (Matcha/Lavande/Sunflower/Lazulite, [colorAccent]
-// below) are two independent axes, not one combined choice - a first pass at
-// this made each accent its own full darkColorScheme (its own background too),
-// which meant OLED's true-black background and an accent were mutually
-// exclusive, exactly the "should be able to be both" complaint. An accent now
-// only carries hue (primary/secondary/tertiary) and is layered on top of
-// whichever base [theme] scheme already resolved, via colorScheme.copy(...)
-// in [ScanEatTheme] below - every other role (background/surface/onSurface/
-// error/outline, already contrast-tested per base theme) is untouched.
-private data class ColorAccent(val primary: Color, val secondary: Color, val tertiary: Color)
-private val MatchaAccent    = ColorAccent(primary = Color(0xFF9BC53D), secondary = Color(0xFFD8CB7A), tertiary = Color(0xFF4E7A51))
-private val LavandeAccent   = ColorAccent(primary = Color(0xFFB39DDB), secondary = Color(0xFFCE93D8), tertiary = Color(0xFF7986CB))
-private val SunflowerAccent = ColorAccent(primary = Color(0xFFFFC940), secondary = Color(0xFFFF9E40), tertiary = Color(0xFFE0A800))
-private val LazuliteAccent  = ColorAccent(primary = Color(0xFF4C82E0), secondary = Color(0xFF6FA8DC), tertiary = Color(0xFFC9A84C))
+// below) are two independent axes, not one combined choice - a first pass
+// made each accent its own full darkColorScheme (own background too),
+// forcing OLED's true-black background and an accent to be mutually
+// exclusive. A second pass then made an accent hue-only
+// (primary/secondary/tertiary), fixing that exclusivity but reported as "not
+// enough color" - the richer background/surface/surfaceVariant from the
+// first pass read better and is restored here for every base theme except
+// OLED specifically: OLED's [OledBackgroundRaw] is literally 0x000000 (every
+// pixel off, the entire point of that theme), so tinting it at all isn't a
+// stylistic quibble, it defeats OLED's actual purpose. [ScanEatTheme] below
+// keeps OLED's background pure black even with an accent selected, but still
+// applies the accent's own richer surface/surfaceVariant (cards, chrome) -
+// every other base theme gets the accent's background too.
+private data class ColorAccent(
+    val primary: Color, val secondary: Color, val tertiary: Color,
+    val background: Color, val surface: Color, val surfaceVariant: Color,
+)
+private val MatchaAccent = ColorAccent(
+    primary = Color(0xFF9BC53D), secondary = Color(0xFFD8CB7A), tertiary = Color(0xFF4E7A51),
+    background = Color(0xFF10130E), surface = Color(0xFF1C2117), surfaceVariant = Color(0xFF313A2A),
+)
+private val LavandeAccent = ColorAccent(
+    primary = Color(0xFFB39DDB), secondary = Color(0xFFCE93D8), tertiary = Color(0xFF7986CB),
+    background = Color(0xFF120F16), surface = Color(0xFF201B26), surfaceVariant = Color(0xFF362E40),
+)
+private val SunflowerAccent = ColorAccent(
+    primary = Color(0xFFFFC940), secondary = Color(0xFFFF9E40), tertiary = Color(0xFFE0A800),
+    background = Color(0xFF141008), surface = Color(0xFF231C10), surfaceVariant = Color(0xFF423420),
+)
+private val LazuliteAccent = ColorAccent(
+    primary = Color(0xFF4C82E0), secondary = Color(0xFF6FA8DC), tertiary = Color(0xFFC9A84C),
+    background = Color(0xFF0A0F16), surface = Color(0xFF161F2B), surfaceVariant = Color(0xFF283246),
+)
 
 // ── Gold accent override ──────────────────────────────────────────────────────
 // Biolism screens need a darker gold in light theme for legible contrast on a
@@ -284,7 +304,21 @@ fun ScanEatTheme(
         else        -> null
     } else null
     val colorScheme = if (accent != null) {
-        baseColorScheme.copy(primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary)
+        // OLED's background stays pure black regardless of accent (see
+        // ColorAccent's own doc comment above on why) - every other base
+        // theme takes the accent's own background too, for the fuller color
+        // this was reported as missing.
+        if (resolvedTheme == "oled") {
+            baseColorScheme.copy(
+                primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
+                surface = accent.surface, surfaceVariant = accent.surfaceVariant,
+            )
+        } else {
+            baseColorScheme.copy(
+                primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
+                background = accent.background, surface = accent.surface, surfaceVariant = accent.surfaceVariant,
+            )
+        }
     } else baseColorScheme
     val goldAccent = if (resolvedTheme == "light") LightGoldAccent else Gold
     val typography = if (dyslexicFont) ScanEatTypography.withDyslexicSpacing() else ScanEatTypography
