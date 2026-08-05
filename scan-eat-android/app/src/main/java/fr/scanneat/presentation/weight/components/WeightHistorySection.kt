@@ -186,7 +186,8 @@ internal fun WeeklyAverageCard(thisWeek: Double, lastWeek: Double, useImperial: 
     val dColor = if (delta < -0.1) semanticGreen() else if (delta > 0.1) semanticRed() else OnSurface.copy(0.6f)
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant.copy(alpha = 0.42f),
+        // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
+        color = SurfaceVariant.copy(alpha = 0.28f),
         modifier = Modifier.fillMaxWidth()
             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)

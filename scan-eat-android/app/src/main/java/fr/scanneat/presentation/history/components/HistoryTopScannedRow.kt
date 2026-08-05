@@ -29,7 +29,8 @@ internal fun HistoryTopScannedRow(topScanned: List<Triple<String, Int, Long>>, o
                     .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape    = RoundedCornerShape(CardRadius.CONTROL),
-                color    = SurfaceVariant.copy(alpha = 0.42f),
+                // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
+                color    = SurfaceVariant.copy(alpha = 0.28f),
                 shadowElevation = 0.dp,
             ) {
                 Column(

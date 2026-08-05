@@ -35,7 +35,8 @@ internal fun Fasting7DayChart(history: List<FastCompletion>, language: String) {
     val byDate = history.associateBy { it.date }
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
-        color = SurfaceVariant.copy(alpha = 0.42f),
+        // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
+        color = SurfaceVariant.copy(alpha = 0.28f),
         modifier = Modifier.fillMaxWidth()
             .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
@@ -139,7 +140,8 @@ internal fun FastingHistoryStatsCard(history: List<FastCompletion>, language: St
                     .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape = RoundedCornerShape(CardRadius.CONTROL),
-                color = SurfaceVariant.copy(alpha = 0.42f),
+                // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
+        color = SurfaceVariant.copy(alpha = 0.28f),
                 shadowElevation = 0.dp,
             ) {
                 Column(modifier = Modifier.padding(Spacing.S), horizontalAlignment = Alignment.CenterHorizontally) {
