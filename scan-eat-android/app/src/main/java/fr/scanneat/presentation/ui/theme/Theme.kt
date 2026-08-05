@@ -53,7 +53,16 @@ private val DarkColors = darkColorScheme(
     onBackground     = Color(0xFFEFEAE6),
     surface          = Color(0xFF261F17),
     onSurface        = Color(0xFFCFC7CC),
-    surfaceVariant   = Color(0xFF362C1F),
+    // User-reported: cards read as "almost inseparable" from Background even
+    // after ScanEatCard's fill alpha was raised (0.24 -> 0.4, see its own doc
+    // comment) - the real cause is this token itself: at #362C1F it was only
+    // ~27 RGB units from Background's #1B1611, so no amount of alpha-blending
+    // between two colors that close can create real separation without going
+    // nearly opaque (which would kill the translucent-glass look entirely).
+    // Lightened ~35% (scaled, not just brightened, to keep the same warm hue)
+    // so a translucent card actually has headroom to separate from the
+    // background instead of the two tokens themselves being the bottleneck.
+    surfaceVariant   = Color(0xFF493B2A),
     onSurfaceVariant = Color(0xFFCFC7CC),
     error            = FlagRed,
     onError          = Color.White,
