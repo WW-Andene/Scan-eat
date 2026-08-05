@@ -87,8 +87,10 @@ fun Modifier.glassSheen(
  * plus two soft, low-alpha radial "glow" blobs in [primary]/[secondary],
  * positioned off-center for a volumetric, non-flat feel instead of a
  * perfectly flat fill (the "volumetric gloom" from the app-wide polish
- * pass). Purely decorative and deliberately subtle — glows top out around
- * 7-10% alpha — so it never competes with foreground content, and glass
+ * pass). Purely decorative — glows top out around 14-20% alpha (raised from
+ * an original 7-10%, which read as too faint/diffuse to register as a light
+ * source at all against reference dashboards with a visible warm glow) —
+ * still gentle enough not to compete with foreground content, and glass
  * cards drawn on top of it (via the now-translucent ScanEatCard, see its own
  * doc comment) let a hint of this wash bleed through, which is what actually
  * reads as "frosted glass over an atmosphere" rather than two independent
@@ -193,15 +195,22 @@ fun Modifier.ambientGloom(
             size.width * 0.08f + drift * cos(driftPhase + Math.PI.toFloat()),
             size.height * 0.7f + drift * sin(driftPhase + Math.PI.toFloat()),
         )
+        // User-reported: next to reference dashboards with a visible warm light
+        // pool behind the glass, this background read as flat - at 0.10/0.07
+        // alpha over a wide 0.9x/1.1x-screen-width radius, the wash was too
+        // faint and too diffuse to register as a light source at all, just a
+        // barely-there tint. Roughly doubled the alpha and pulled the radius
+        // in so each blob reads as a defined pool of light instead of a haze
+        // spread thin across the whole screen.
         val primaryBrush = Brush.radialGradient(
-            colors = listOf(primary.copy(alpha = 0.10f), Color.Transparent),
+            colors = listOf(primary.copy(alpha = 0.20f), Color.Transparent),
             center = primaryCenter,
-            radius = size.width * 0.9f,
+            radius = size.width * 0.72f,
         )
         val secondaryBrush = Brush.radialGradient(
-            colors = listOf(secondary.copy(alpha = 0.07f), Color.Transparent),
+            colors = listOf(secondary.copy(alpha = 0.14f), Color.Transparent),
             center = secondaryCenter,
-            radius = size.width * 1.1f,
+            radius = size.width * 0.9f,
         )
         val t = timeSec
         val maxRadius = size.minDimension * 0.32f
