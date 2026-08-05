@@ -1,7 +1,6 @@
 package fr.scanneat.presentation.dashboard.cards
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
@@ -86,21 +85,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             // tinted Modifier.shadow + forced .clip() + shadowElevation = 0.dp.
             modifier = Modifier.fillMaxWidth()
                 .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
-                .clip(RoundedCornerShape(CardRadius.PROMINENT))
-                // Matches ScanEatCard's own border treatment: a diagonal fade
-                // (strong at top-left, fading toward bottom-right) via
-                // Modifier.border's Offset.Zero/Offset.Infinite auto-resize,
-                // instead of hand-computing an Outline (see its own doc comment
-                // on why that approach was abandoned).
-                .border(
-                    width = 1.dp,
-                    brush = Brush.linearGradient(
-                        colors = listOf(balColor.copy(alpha = HeroGlassSpec.borderAlpha), Color.Transparent),
-                        start = Offset.Zero,
-                        end = Offset.Infinite,
-                    ),
-                    shape = RoundedCornerShape(CardRadius.PROMINENT),
-                ),
+                .clip(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             color = Color.Transparent,
             // design-aesthetic-audit §DH: this card already declares itself
@@ -124,7 +109,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     // any background show through it at all. Kept in sync with
                     // ScanEatCard's own default alpha (see its doc comment on the
                     // 0.24 -> 0.4 correction) rather than a separate literal here.
-                    .background(SurfaceVariant.copy(alpha = 0.4f))
+                    .background(SurfaceVariant.copy(alpha = 0.28f))
                     // Explicit center/radius, matching every other gradient in the
                     // theme (glassSheen's own glow, ambientGloom) - left implicit
                     // here (plain Brush.radialGradient(colors) with no center/

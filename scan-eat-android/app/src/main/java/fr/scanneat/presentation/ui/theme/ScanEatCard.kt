@@ -1,7 +1,6 @@
 package fr.scanneat.presentation.ui.theme
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -49,16 +48,10 @@ enum class CardEmphasis { HERO, PRIMARY, SECONDARY }
 // BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit
 // doesn't expose - can still render at the HERO tier without re-declaring
 // (and risking drifting from) these same numbers as separate literals.
-internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val borderAlpha: Float, val elevation: Dp)
-internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, borderAlpha = 0.22f, elevation = 10.dp)
-// User-reported (real-device screenshots, Dashboard): at the 0f borderAlpha
-// this tier shipped with, PRIMARY cards had no border at all - combined with
-// the low fill alpha below, they read as "almost inseparable" from the
-// background instead of a distinct surface. A quiet border (much subtler
-// than HERO's 0.22) gives every ordinary card a visible edge without
-// promoting it to HERO's stronger treatment.
-private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, borderAlpha = 0.10f, elevation = 6.dp)
-private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, borderAlpha = 0f, elevation = 3.dp)
+internal data class GlassSpec(val glowAlpha: Float, val edgeAlpha: Float, val elevation: Dp)
+internal val HeroGlassSpec      = GlassSpec(glowAlpha = 0.12f, edgeAlpha = 0.34f, elevation = 10.dp)
+private val PrimaryGlassSpec   = GlassSpec(glowAlpha = 0.06f, edgeAlpha = 0.16f, elevation = 6.dp)
+private val SecondaryGlassSpec = GlassSpec(glowAlpha = 0.03f, edgeAlpha = 0.10f, elevation = 3.dp)
 
 /**
  * The app's one card primitive — glassSheen() top-light + hairline edge over
@@ -105,7 +98,7 @@ fun ScanEatCard(
     // With no visible fill, the card never read as one whole shape - only its
     // shadowElevation shadow (which DOES have real contrast against a light
     // background) showed up, as a disconnected rectangle instead of a filled card.
-    color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.75f else 0.4f),
+    color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.6f else 0.28f),
     contentPadding: PaddingValues = PaddingValues(Spacing.L),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,
@@ -157,18 +150,20 @@ fun ScanEatCard(
             modifier = Modifier.fillMaxWidth()
                 .shadow(elevation = spec.elevation, shape = shape, ambientColor = ShadowTint, spotColor = ShadowTint)
                 .clip(shape)
-                // A raised surface catching light at the top (glassSheen's hairline,
-                // drawn just above this Surface) reads as flat without a matching
-                // cue of weight at the bottom - a whisper-faint inner shade here is
-                // that cue. Scoped to this card only, not glassSheen itself, which
+                // User-reported: no hard border, no color tint - a very slight inner
+                // bloom instead, a soft radial vignette centered on the card that
+                // fades away moving from the edge in toward the center (rather than
+                // glassSheen's hairline top light or the diagonal border this used
+                // to have). Scoped to this card only, not glassSheen itself, which
                 // stays untouched (see its own doc comment on why a bottom relief
                 // shade was deliberately removed from headers/nav).
                 .drawWithContent {
                     drawContent()
                     drawRect(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.05f)),
-                            startY = size.height * 0.55f,
+                        brush = Brush.radialGradient(
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.07f)),
+                            center = Offset(size.width * 0.5f, size.height * 0.5f),
+                            radius = size.maxDimension * 0.75f,
                         ),
                     )
                 }
@@ -176,27 +171,6 @@ fun ScanEatCard(
                     if (onClick != null)
                         Modifier.pressScale(interactionSource)
                             .clickable(interactionSource = interactionSource, indication = indication, onClick = onClick)
-                    else Modifier
-                )
-                // User-reported: the border should read as light catching one edge,
-                // not a uniform outline - a diagonal fade (strong at top-left,
-                // fading toward bottom-right) instead of an evenly-lit rim,
-                // matching the directional shadow above. Modifier.border's own
-                // Offset.Zero/Offset.Infinite pair auto-resizes to this card's real
-                // bounds at draw time - simpler and safer than hand-computing an
-                // Outline via Shape.createOutline + drawOutline, which this file
-                // previously tried and got wrong twice in a row.
-                .then(
-                    if (spec.borderAlpha > 0f)
-                        Modifier.border(
-                            width = 1.dp,
-                            brush = Brush.linearGradient(
-                                colors = listOf(accent.copy(alpha = spec.borderAlpha), Color.Transparent),
-                                start = Offset.Zero,
-                                end = Offset.Infinite,
-                            ),
-                            shape = shape,
-                        )
                     else Modifier
                 ),
             shape = shape,
