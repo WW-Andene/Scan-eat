@@ -54,6 +54,15 @@ fun LogSheet(
     }
     var selectedSlot by remember { mutableStateOf(defaultMealForHour(now.hour)) }
 
+    // User-reported: tapping "Logger" showed only the scrim (ambient dimming)
+    // with no visible sheet panel - ModalBottomSheet's sheetState starts at
+    // Hidden, and since this is the app's only ModalBottomSheet call site,
+    // there was no sibling instance to have already proven the "just compose
+    // it conditionally" pattern actually animates to visible on its own in
+    // this Compose BOM version. Explicitly driving show()/hide() (the
+    // documented Material3 pattern) removes that reliance on implicit
+    // auto-show behavior.
+    LaunchedEffect(Unit) { sheetState.show() }
     val portionG = portionText.replace(',', '.').toDoubleOrNull()?.coerceIn(1.0, 2000.0)
     val kcalPreview = portionG?.let {
         (product.nutrition.energyKcal * it / 100.0).roundToInt()
