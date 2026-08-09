@@ -69,6 +69,12 @@ fun SeasonalProduceScreen(viewModel: SeasonalProduceViewModel = hiltViewModel(),
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.seasonal_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
+        // User-reported: bottom-of-screen content (year grid, group cards) sat
+        // behind the still-visible bottom nav with no clearance reserved for
+        // it - fixed by reserving space, not by hiding the nav bar (unlike
+        // Favorites/Calendar/Reminders/Food Search, this screen keeps the nav
+        // visible; it's a quick reference view, not a deep push destination).
+        showBottomNavClearance = true,
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize()
