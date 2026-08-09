@@ -6,8 +6,8 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,10 @@ import androidx.navigation.compose.rememberNavController
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.withTimeoutOrNull
+
+/** Same threshold/reasoning as DiaryHeader.kt's HOLD_TO_ARM_MS. */
+private const val NAV_HOLD_TO_ARM_MS = 2000L
 
 @Composable
 fun MainShell(
@@ -146,25 +151,35 @@ fun MainShell(
                                 else if (isReplaceTarget) Modifier.background(AccentCoral.copy(alpha = 0.06f))
                                 else Modifier
                             )
-                            // User-requested: long-press a nav tab to arm it, then
-                            // tap another one to swap their positions - not a
-                            // continuous drag, so there's no cross-item pointer
-                            // tracking to get wrong. Two ordinary sibling gesture
-                            // detectors (tap, long-press-to-arm) rather than one
-                            // hand-timed custom loop - see DiaryHeader.kt's
-                            // HoldToArmMenuItem for why (a homemade hold-timer needed
-                            // an actual drag to register reliably; the built-in
-                            // detectDragGesturesAfterLongPress tolerates a still hold).
+                            // User-requested: hold a nav tab still for 2s (no drag
+                            // needed) to arm it, then tap another one to swap their
+                            // positions. One gesture loop with exclusive control of
+                            // every pointer event for the item's whole down-to-up
+                            // lifecycle - see DiaryHeader.kt's HoldToArmMenuItem doc
+                            // comment for why (two earlier attempts either let
+                            // something else steal a stationary hold, or ended up
+                            // requiring an actual drag to register reliably).
                             //
-                            // Keyed on navOrderCsv.value (not just tab.route): both
-                            // detectors close over navTabs, a plain recomputed val,
-                            // not a State-backed read - a tab whose slot doesn't move
-                            // in a swap would otherwise keep running the pointerInput
+                            // Keyed on navOrderCsv.value (not just tab.route): this
+                            // closes over navTabs, a plain recomputed val, not a
+                            // State-backed read - a tab whose slot doesn't move in a
+                            // swap would otherwise keep running the pointerInput
                             // launched before that swap and compute fromIdx/toIdx
                             // against the stale pre-swap list on its own next use.
                             .pointerInput(tab.route, navOrderCsv.value) {
-                                detectTapGestures(
-                                    onTap = {
+                                awaitEachGesture {
+                                    val down = awaitFirstDown(requireUnconsumed = false)
+                                    down.consume()
+                                    val releasedBeforeArm = withTimeoutOrNull(NAV_HOLD_TO_ARM_MS) {
+                                        while (true) {
+                                            val event = awaitPointerEvent()
+                                            val change = event.changes.firstOrNull { it.id == down.id } ?: return@withTimeoutOrNull true
+                                            change.consume()
+                                            if (change.changedToUp()) return@withTimeoutOrNull true
+                                        }
+                                        @Suppress("UNREACHABLE_CODE") true
+                                    }
+                                    if (releasedBeforeArm == true) {
                                         val armed = armedNavTab
                                         if (armed != null) {
                                             if (armed != tab) {
@@ -184,17 +199,20 @@ fun MainShell(
                                                 restoreState    = true
                                             }
                                         }
-                                    },
-                                )
-                            }
-                            .pointerInput(tab.route, navOrderCsv.value) {
-                                detectDragGesturesAfterLongPress(
-                                    onDragStart = {
+                                    } else {
                                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                         armedNavTab = if (armedNavTab == tab) null else tab
-                                    },
-                                    onDrag = { change, _ -> change.consume() },
-                                )
+                                        // Still held past the threshold - swallow the
+                                        // eventual release so it doesn't also fire a
+                                        // navigate/swap on its own.
+                                        while (true) {
+                                            val event = awaitPointerEvent()
+                                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                            change.consume()
+                                            if (change.changedToUp()) break
+                                        }
+                                    }
+                                }
                             },
                     ) {
                         Icon(

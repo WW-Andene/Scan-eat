@@ -5,8 +5,8 @@ import compose.icons.tablericons.Check
 import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,11 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.withTimeoutOrNull
+
+/** How long a "more" overflow tab must be held still (no drag needed) before
+ *  it's armed for replacing one of the header's always-visible tabs. */
+private const val HOLD_TO_ARM_MS = 2000L
 
 /**
  * Merged floating glass header - title row + tab row in one card, both
@@ -209,23 +215,22 @@ internal fun BoxScope.DiaryHeader(
 
 /**
  * A DropdownMenu row that behaves like a normal [DropdownMenuItem] on a quick
- * tap (calls [onTap]), but "arms" instead (calls [onArmed]) on a long-press.
- * Hand-rolled instead of the real `DropdownMenuItem` so a plain
- * `detectTapGestures` (tap) and `detectDragGesturesAfterLongPress`
- * (long-press) can sit on the same row as two ordinary sibling gesture
- * detectors - `detectDragGesturesAfterLongPress` only activates past the
- * system long-press threshold and never consumes a quick tap, so it doesn't
- * steal short taps from the other detector.
+ * tap (calls [onTap]), but "arms" instead (calls [onArmed]) if held still for
+ * [HOLD_TO_ARM_MS] - no drag/movement needed. Hand-rolled instead of the real
+ * `DropdownMenuItem` so this one gesture loop has exclusive control of every
+ * pointer event for the item's whole down-to-up lifecycle.
  *
- * User-reported: an earlier version hand-timed its own custom 3s hold via a
- * raw `awaitFirstDown`/`waitForUpOrCancellation` loop, which needed an actual
- * finger *drag* to register reliably instead of a plain still hold - normal
- * hand jitter during a hold was apparently enough to make that homemade
- * timer misfire. Switched to `detectDragGesturesAfterLongPress`, the same
- * well-tested primitive Compose itself uses for long-press-then-drag
- * anywhere else in the app - it's specifically built to tolerate the
- * hold-with-small-movement a real hand produces, at the cost of the custom
- * duration (now the platform's standard long-press timeout, not exactly 3s).
+ * User-reported (twice): a plain still hold needs to actually work here, not
+ * require a small drag. The first attempt (a bare `awaitFirstDown` +
+ * `withTimeoutOrNull { waitForUpOrCancellation() }`) never consumed the
+ * pointer events it was watching, so something else in the tree apparently
+ * could still intercept a stationary hold before the timer completed - the
+ * second attempt swapped to `detectDragGesturesAfterLongPress` to work around
+ * that, but that primitive is inherently drag-oriented, which is exactly the
+ * "forced to drag" behavior reported back. This version calls
+ * `change.consume()` on every single move/up event for this pointer from the
+ * moment it goes down, so nothing else downstream can steal the gesture out
+ * from under a stationary hold.
  */
 @Composable
 private fun HoldToArmMenuItem(
@@ -238,12 +243,34 @@ private fun HoldToArmMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .pointerInput(tab) { detectTapGestures(onTap = { onTap() }) }
             .pointerInput(tab) {
-                detectDragGesturesAfterLongPress(
-                    onDragStart = { onArmed() },
-                    onDrag = { change, _ -> change.consume() },
-                )
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    down.consume()
+                    val releasedBeforeArm = withTimeoutOrNull(HOLD_TO_ARM_MS) {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: return@withTimeoutOrNull true
+                            change.consume()
+                            if (change.changedToUp()) return@withTimeoutOrNull true
+                        }
+                        @Suppress("UNREACHABLE_CODE") true
+                    }
+                    if (releasedBeforeArm == true) {
+                        onTap()
+                    } else {
+                        onArmed()
+                        // Still held past the threshold - swallow the eventual
+                        // release so DropdownMenuItem-style click semantics
+                        // never separately fire for it.
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            change.consume()
+                            if (change.changedToUp()) break
+                        }
+                    }
+                }
             }
             .padding(horizontal = Spacing.M),
         verticalAlignment = Alignment.CenterVertically,
