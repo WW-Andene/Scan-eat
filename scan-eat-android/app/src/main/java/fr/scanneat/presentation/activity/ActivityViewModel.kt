@@ -186,13 +186,14 @@ class ActivityViewModel @Inject constructor(
     fun log(
         type: ActivityType, minutes: Int,
         subType: String? = null, sets: Int? = null, reps: Int? = null,
-        distanceKm: Double? = null, weightUsedKg: Double? = null,
+        distanceKm: Double? = null, weightUsedKg: Double? = null, wasOutdoors: Boolean = false,
     ) {
         viewModelScope.launch {
             runCatching {
                 repo.log(
                     type, minutes, weightKg.value ?: 70.0,
                     subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
+                    wasOutdoors = wasOutdoors,
                 )
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -203,13 +204,14 @@ class ActivityViewModel @Inject constructor(
     fun update(
         id: String, type: ActivityType, minutes: Int,
         subType: String? = null, sets: Int? = null, reps: Int? = null,
-        distanceKm: Double? = null, weightUsedKg: Double? = null,
+        distanceKm: Double? = null, weightUsedKg: Double? = null, wasOutdoors: Boolean = false,
     ) {
         viewModelScope.launch {
             runCatching {
                 repo.update(
                     id, type, minutes, weightKg.value ?: 70.0,
                     subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
+                    wasOutdoors = wasOutdoors,
                 )
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -226,7 +228,7 @@ class ActivityViewModel @Inject constructor(
                 repo.log(
                     entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date,
                     subType = entry.subType, sets = entry.sets, reps = entry.reps,
-                    distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg,
+                    distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg, wasOutdoors = entry.wasOutdoors,
                 )
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }

@@ -42,7 +42,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         ScanScoreHistoryEntity::class,
         PriceEntity::class,
     ],
-    version = 27,
+    version = 28,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -428,5 +428,16 @@ val MIGRATION_26_27 = object : Migration(26, 27) {
         // no weight (e.g. a restaurant bill) has no stock concept at all.
         db.execSQL("ALTER TABLE price_log ADD COLUMN remainingG REAL")
         db.execSQL("UPDATE price_log SET remainingG = weightG")
+    }
+}
+
+val MIGRATION_27_28 = object : Migration(27, 28) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v27 → v28: user-requested - "was it outdoors" for an activity, so the
+        // dashboard can credit a rough vitamin D estimate for sun exposure
+        // (see DashboardAggregator's VITD_OUTDOOR_UG). Defaults to 0 (false) so
+        // every already-logged activity is treated as indoor, not a retroactive
+        // vitD credit for sessions this flag didn't exist to ask about.
+        db.execSQL("ALTER TABLE activity_log ADD COLUMN wasOutdoors INTEGER NOT NULL DEFAULT 0")
     }
 }

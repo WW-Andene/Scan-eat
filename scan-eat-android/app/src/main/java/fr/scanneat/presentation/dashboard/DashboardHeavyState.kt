@@ -17,6 +17,14 @@ import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 
 /**
+ * Rough per-day vitamin D credit for a logged outdoor activity (see
+ * ActivityEntity.wasOutdoors) - deliberately conservative, roughly a third of
+ * the EFSA adult DRV (15µg/day), reflecting typical casual midday sun
+ * exposure rather than a targeted "vitamin D sunbathing" session.
+ */
+private const val VITD_OUTDOOR_UG = 5.0
+
+/**
  * The full per-tick computation behind [DashboardViewModel.heavyState] - split out of the
  * ViewModel so the flatMapLatest wiring in that file stays readable; this is a pure
  * (aside from the suspend repo reads it was already making in-place) continuation of that
@@ -61,8 +69,20 @@ internal suspend fun buildHeavyDashboardState(
     val forecast  = if (wSummary != null && profile.goalWeightKg != null)
         weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
     else WeightForecast.InsufficientData
+    // User-requested: an outdoor activity is a real (if rough) vitamin D source
+    // via sun exposure - previously had no way to reach the dashboard's vitD
+    // total at all, so even a genuine outdoor session credited nothing.
+    // Flat per-day estimate (not scaled by minutes - sun exposure's actual
+    // vitD yield depends on far more than session length, e.g. skin area,
+    // latitude, time of day, this is deliberately a rough "you were outside
+    // today" signal, not a measured dose) applied once regardless of how many
+    // outdoor activities were logged that day.
+    val hadOutdoorActivity = activityRepo.observeByDate(date).first().any { it.wasOutdoors }
+    val totalsWithOutdoorVitD = if (hadOutdoorActivity)
+        todayData.totals.copy(vitDUg = todayData.totals.vitDUg + VITD_OUTDOOR_UG)
+    else todayData.totals
     val gaps = if (targets != null && todayData.entries.isNotEmpty())
-        closeTheGap(todayData.totals, targets, foodDb)
+        closeTheGap(totalsWithOutdoorVitD, targets, foodDb)
     else emptyList()
     // chronicNutrientGaps() was fully built (7-day recurring-deficit
     // scan) but never called from any ViewModel - closeTheGap() above
@@ -119,7 +139,7 @@ internal suspend fun buildHeavyDashboardState(
     val loggedDates = consumptionRepo.getAllLoggedDates()
 
     return DashboardUiState(
-        todayTotals    = todayData.totals,
+        todayTotals    = totalsWithOutdoorVitD,
         targets        = targets,
         calorieBalance = calorieBalance,
         streak         = logStreakDays(loggedDates, date),

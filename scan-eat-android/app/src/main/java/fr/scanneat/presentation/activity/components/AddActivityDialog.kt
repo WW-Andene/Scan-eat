@@ -1,11 +1,13 @@
 package fr.scanneat.presentation.activity.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -29,6 +31,10 @@ internal data class AddActivityFormValues(
     val distanceText: String,
     val weightUsedText: String,
     val minutesText: String,
+    // User-requested: outdoor sun exposure is a real (if rough) vitamin D
+    // source - DashboardAggregator credits a flat per-day estimate when at
+    // least one of the day's activities has this set.
+    val wasOutdoors: Boolean = false,
 )
 
 /** Callback bundle mirroring [AddActivityFormValues], one setter per field. */
@@ -42,6 +48,7 @@ internal class AddActivityFormActions(
     val onDistanceTextChange: (String) -> Unit,
     val onWeightUsedTextChange: (String) -> Unit,
     val onMinutesTextChange: (String) -> Unit,
+    val onWasOutdoorsChange: (Boolean) -> Unit = {},
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -65,6 +72,7 @@ internal fun AddActivityDialog(
     val onRepsTextChange = actions.onRepsTextChange
     val onDistanceTextChange = actions.onDistanceTextChange
     val onWeightUsedTextChange = actions.onWeightUsedTextChange
+    val onWasOutdoorsChange = actions.onWasOutdoorsChange
     val onMinutesTextChange = actions.onMinutesTextChange
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -187,6 +195,17 @@ internal fun AddActivityDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = scanEatTextFieldColors(),
                 )
+                // User-requested: a small "was it outdoors" checkbox so the
+                // dashboard can credit a rough vitamin D estimate for sun
+                // exposure (see DashboardAggregator.VITD_OUTDOOR_UG).
+                Row(
+                    modifier = Modifier.fillMaxWidth().clickable { onWasOutdoorsChange(!values.wasOutdoors) },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = values.wasOutdoors, onCheckedChange = onWasOutdoorsChange,
+                        colors = CheckboxDefaults.colors(checkedColor = Warm))
+                    Text(stringResource(R.string.activity_was_outdoors), style = MaterialTheme.typography.bodyMedium, color = OnBackground)
+                }
             }
         },
         confirmButton = {

@@ -33,4 +33,11 @@ data class ActivityEntity(
     // sync, since Health Connect itself has no "already imported" concept).
     // Null for every activity logged directly in-app.
     val externalSourceId: String? = null,
+    // User-requested: an outdoor workout is a real (if rough) vitamin D source
+    // via sun exposure, but the app had no way to know an activity happened
+    // outdoors at all - DashboardAggregator.kt adds a flat per-day vitD
+    // estimate (see VITD_OUTDOOR_UG) when at least one of the day's activities
+    // has this set, the same "declared, not measured" treatment
+    // MicronutrientEstimator already gives food-derived estimates.
+    val wasOutdoors: Boolean = false,
 )

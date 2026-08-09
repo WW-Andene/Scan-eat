@@ -1074,6 +1074,7 @@
     <string name="activity_entry_weight">%1$.1f kg</string>
     <string name="activity_entry_distance">%1$.1f km</string>
     <string name="activity_duration_invalid">Entrez une durée valide</string>
+    <string name="activity_was_outdoors">C\'était en extérieur ?</string>
 
     <!-- ── Fasting screen ─────────────────────────────────────────────────── -->
     <string name="fasting_title">Jeûne intermittent</string>

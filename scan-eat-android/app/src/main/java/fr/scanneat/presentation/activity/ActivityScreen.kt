@@ -106,6 +106,9 @@ fun ActivityScreen(
     var repsText by rememberSaveable { mutableStateOf("") }
     var distanceText by rememberSaveable { mutableStateOf("") }
     var weightUsedText by rememberSaveable { mutableStateOf("") }
+    // User-requested: "was it outdoors" so an outdoor session can credit a
+    // rough vitamin D estimate on the dashboard (see DashboardAggregator).
+    var wasOutdoors by rememberSaveable { mutableStateOf(false) }
     var showAdd by remember { mutableStateOf(false) }
     // Non-null while editing an existing entry (vs. creating a new one) — the same
     // AddActivityDialog is reused for both, matching Diary's edit-via-reopened-dialog
@@ -123,6 +126,7 @@ fun ActivityScreen(
         selectedSubType = null; customSubTypeText = ""
         setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
         minutesText = "30"
+        wasOutdoors = false
         showAdd = true
     }
     val typeLabels = typeLabels()
@@ -197,6 +201,7 @@ fun ActivityScreen(
                         distanceText = e.distanceKm?.toString().orEmpty()
                         weightUsedText = e.weightUsedKg?.toString().orEmpty()
                         minutesText = e.minutes.toString()
+                        wasOutdoors = e.wasOutdoors
                         showAdd = true
                     },
                     onDelete = { deleteTarget = e.id },
@@ -251,6 +256,7 @@ fun ActivityScreen(
                 distanceText = distanceText,
                 weightUsedText = weightUsedText,
                 minutesText = minutesText,
+                wasOutdoors = wasOutdoors,
             ),
             actions = AddActivityFormActions(
                 onSelectedTypeChange = { selectedType = it; selectedSubType = null; customSubTypeText = "" },
@@ -262,6 +268,7 @@ fun ActivityScreen(
                 onDistanceTextChange = { distanceText = it },
                 onWeightUsedTextChange = { weightUsedText = it },
                 onMinutesTextChange = { minutesText = it },
+                onWasOutdoorsChange = { wasOutdoors = it },
             ),
             // openAddDialog() already resets every field whenever the Add dialog is
             // reopened (FAB/CTA) - calling it again here on dismiss was redundant and
@@ -280,13 +287,13 @@ fun ActivityScreen(
                     val weightUsedKg = weightUsedText.replace(',', '.').toDoubleOrNull()?.coerceIn(0.0, 500.0)
                     val editId = editTargetId
                     if (editId != null) {
-                        viewModel.update(editId, selectedType, min, subType = selectedSubType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg)
+                        viewModel.update(editId, selectedType, min, subType = selectedSubType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg, wasOutdoors = wasOutdoors)
                     } else {
-                        viewModel.log(selectedType, min, subType = selectedSubType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg)
+                        viewModel.log(selectedType, min, subType = selectedSubType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg, wasOutdoors = wasOutdoors)
                     }
                     showAdd = false
                     editTargetId = null
-                    selectedSubType = null; customSubTypeText = ""; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""
+                    selectedSubType = null; customSubTypeText = ""; setsText = ""; repsText = ""; distanceText = ""; weightUsedText = ""; wasOutdoors = false
                 }
             },
         )

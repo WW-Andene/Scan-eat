@@ -101,6 +101,7 @@ data class ActivityEntry(
     val reps: Int? = null,
     val distanceKm: Double? = null,
     val weightUsedKg: Double? = null,
+    val wasOutdoors: Boolean = false,
 )
 
 @Singleton
@@ -125,6 +126,7 @@ class ActivityRepository @Inject constructor(
         reps: Int? = null,
         distanceKm: Double? = null,
         weightUsedKg: Double? = null,
+        wasOutdoors: Boolean = false,
     ) {
         val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
                    else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm)
@@ -143,6 +145,7 @@ class ActivityRepository @Inject constructor(
             reps         = reps?.coerceAtLeast(0),
             distanceKm   = distanceKm?.coerceAtLeast(0.0),
             weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
+            wasOutdoors  = wasOutdoors,
         ))
         dao.trim(MAX_HISTORY_ROWS, profileId)
         // Health Connect had zero Activité wiring at all before this - a logged
@@ -176,6 +179,7 @@ class ActivityRepository @Inject constructor(
         reps: Int? = null,
         distanceKm: Double? = null,
         weightUsedKg: Double? = null,
+        wasOutdoors: Boolean = false,
     ) {
         val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
                    else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm)
@@ -198,6 +202,7 @@ class ActivityRepository @Inject constructor(
             reps         = reps?.coerceAtLeast(0),
             distanceKm   = distanceKm?.coerceAtLeast(0.0),
             weightUsedKg = weightUsedKg?.coerceAtLeast(0.0),
+            wasOutdoors  = wasOutdoors,
         ))
         // log() mirrors every write to Health Connect - omitting it here would leave
         // an editted entry's HC record silently stale (still showing the pre-edit
@@ -271,6 +276,7 @@ class ActivityRepository @Inject constructor(
             reps         = reps,
             distanceKm   = distanceKm,
             weightUsedKg = weightUsedKg,
+            wasOutdoors  = wasOutdoors,
         )
     }.onFailure {
         // Same silent-drop gap app-audit §B1/L4 fixed in ConsumptionRepository/
