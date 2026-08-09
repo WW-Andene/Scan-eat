@@ -40,7 +40,12 @@ private enum class BiolismTab(@androidx.annotation.StringRes val labelRes: Int) 
 // Taller than FloatingTopBarHeight (title + subtitle + tab row, not just a
 // single title row) — not including the device's own status-bar inset, which
 // is added separately via windowInsetsPadding below, same as FloatingTopBar.
-private val BiolismHeaderHeight = 140.dp
+//
+// User-reported: bumped +52dp after this header's own outer margin was fixed
+// to match FloatingTopBar's 1(sides):2(top/bottom) ratio (FloatingChromeMargin,
+// vertical=32dp each edge) instead of its previous ad-hoc Spacing.S(6dp) — see
+// DiaryHeaderHeight's identical fix.
+private val BiolismHeaderHeight = 140.dp + 52.dp
 
 @Composable
 fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
@@ -98,7 +103,12 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.statusBars)
-                .padding(horizontal = Spacing.L, vertical = Spacing.S)
+                // User-reported: matches DiaryHeader's identical fix - this bespoke
+                // floating-pill header (Biolism needs an extra tab row FloatingTopBar
+                // doesn't support) used its own ad-hoc horizontal=Spacing.L/vertical=
+                // Spacing.S margin, the inverse of the 1(sides):2(top/bottom) ratio
+                // FloatingTopBar's own doc comment establishes as this app's standard.
+                .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
                 .glassSheen(edgeAlpha = 0.26f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = Gold, glowAlpha = 0.06f),
         ) {
         Surface(

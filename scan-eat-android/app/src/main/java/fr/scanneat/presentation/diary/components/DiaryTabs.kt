@@ -32,4 +32,11 @@ internal val DiaryTabSaver = Saver<DiaryTab, String>(save = { it.name }, restore
 // title row) - not including the device's own status-bar inset, which is
 // added separately via windowInsetsPadding below, same as FloatingTopBar/
 // BiolismScreen's own equivalent constant.
-internal val DiaryHeaderHeight = 124.dp
+//
+// User-reported: bumped +52dp after DiaryHeader's own outer margin was fixed
+// to match FloatingTopBar's 1(sides):2(top/bottom) ratio (FloatingChromeMargin,
+// vertical=32dp each edge) instead of its previous ad-hoc Spacing.S(6dp) -
+// this hardcoded approximation of the header's real measured height needed
+// the same +26dp top / +26dp bottom the margin change actually added, or
+// content below would start sliding up under the now-taller header.
+internal val DiaryHeaderHeight = 124.dp + 52.dp

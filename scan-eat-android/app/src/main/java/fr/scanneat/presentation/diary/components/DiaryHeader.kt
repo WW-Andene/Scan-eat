@@ -46,7 +46,13 @@ internal fun BoxScope.DiaryHeader(
             .align(Alignment.TopCenter)
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(horizontal = Spacing.L, vertical = Spacing.S)
+            // User-reported: this header's own outer margin (horizontal=Spacing.L,
+            // vertical=Spacing.S) was the inverse of the 1(sides):2(top/bottom) ratio
+            // FloatingTopBar's own doc comment already establishes as this app's
+            // standard (see FloatingChromeMargin) - DiaryHeader is a separate, bespoke
+            // floating-pill implementation (Diary needs an extra tab row FloatingTopBar
+            // doesn't support) that never got that same fix applied to it.
+            .padding(horizontal = FloatingChromeMargin.horizontal, vertical = FloatingChromeMargin.vertical)
             .glassSheen(edgeAlpha = 0.28f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral),
     ) {
         Surface(
