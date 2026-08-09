@@ -33,6 +33,14 @@ enum class ProductCategory(val key: String) {
     BEVERAGE_SOFT("beverage_soft"),
     BEVERAGE_JUICE("beverage_juice"),
     BEVERAGE_WATER("beverage_water"),
+    // Previously beer/wine/spirits fell into BEVERAGE_SOFT or OTHER and were
+    // scored against soda-shaped sugar/kcal reference ranges - see
+    // NegativeNutrientsPillar.kt's alcohol penalty doc comment for the bug
+    // this was found alongside (a beer scoring "A" with no alcohol awareness
+    // at all). This category exists so CategoryThresholds.kt can give
+    // alcoholic drinks their own kcal/sugar reference bands instead of
+    // inheriting soft-drink norms.
+    ALCOHOLIC_BEVERAGE("alcoholic_beverage"),
     CONDIMENT("condiment"),
     OIL_FAT("oil_fat"),
     OTHER("other");

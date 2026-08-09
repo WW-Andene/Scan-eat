@@ -30,6 +30,7 @@ private val CATEGORY_REF_PRICE_PER_KG: Map<ProductCategory, Double> = mapOf(
     ProductCategory.BEVERAGE_SOFT    to 2.5,
     ProductCategory.BEVERAGE_JUICE   to 3.0,
     ProductCategory.BEVERAGE_WATER   to 0.6,
+    ProductCategory.ALCOHOLIC_BEVERAGE to 10.0,
     ProductCategory.CONDIMENT        to 7.0,
     ProductCategory.OIL_FAT          to 6.0,
     ProductCategory.OTHER            to 7.0,
