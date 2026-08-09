@@ -119,6 +119,24 @@ internal fun mapLlmToProduct(dto: LlmProductDto): Product {
     )
 }
 
+/**
+ * Macros-only mapping for [buildNutritionEstimatePrompt]'s narrower response —
+ * reuses [LlmNutritionDto] (its extra micronutrient fields simply come back
+ * null from that prompt's smaller JSON schema, same coerceDouble/
+ * coerceNullableDouble clamping as [mapLlmToProduct]'s full mapping so a
+ * hallucinated figure here is bounded the same way.
+ */
+internal fun mapLlmToMacros(n: LlmNutritionDto?): NutritionPer100g = NutritionPer100g(
+    energyKcal    = coerceDouble(n?.energy_kcal, max = NutritionLimits.MAX_ENERGY_KCAL_PER_100G),
+    fatG          = coerceDouble(n?.fat_g),
+    saturatedFatG = coerceDouble(n?.saturated_fat_g),
+    carbsG        = coerceDouble(n?.carbs_g),
+    sugarsG       = coerceDouble(n?.sugars_g),
+    fiberG        = coerceDouble(n?.fiber_g),
+    proteinG      = coerceDouble(n?.protein_g),
+    saltG         = coerceDouble(n?.salt_g),
+)
+
 // ============================================================================
 // JSON extraction helper (strips markdown fences if the model ignores rules)
 // ============================================================================

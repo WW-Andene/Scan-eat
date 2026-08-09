@@ -153,17 +153,27 @@ internal class ScanOffLookup(
             }
             // User-reported: a pure barcode scan (no photo taken) against a sparse
             // OFF record - isOffSparse(offProduct) is true but images is empty, so
-            // the LLM-augmentation branch above never fires - previously returned
-            // this product as-is with silent zero macros and no warning at all,
-            // unlike every other branch in this function. Same "nutrition unreadable"
-            // signal OcrMapper.buildWarnings already gives the photo-scan path.
-            offProduct != null -> {
-                val noNutritionWarning = if (offProduct.nutrition.energyKcal == 0.0 && offProduct.nutrition.proteinG == 0.0) {
-                    listOf(if (lang == "en") "No nutrition data found for this product — add a photo of the label to fill it in"
-                           else "Aucune donnée nutritionnelle trouvée pour ce produit — ajoutez une photo de l'étiquette pour la compléter")
-                } else emptyList()
-                Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, noNutritionWarning)
+            // the LLM-augmentation branch above never fires (it needs a photo to
+            // OCR). A bare "no data" warning wasn't good enough - the user wants
+            // real macros for the scanned product, not a note explaining their
+            // absence. The model already knows roughly what a named, branded
+            // product's nutrition looks like from training data (same idea as
+            // buildIdentifyFoodPrompt's photo-less-food estimate), so this asks it
+            // directly instead, keyed off the OFF-confirmed name/brand/category.
+            offProduct != null && offProduct.nutrition.energyKcal == 0.0 && offProduct.nutrition.proteinG == 0.0 && hasAnyKey -> {
+                val estimated = runCatching {
+                    ocrParser.estimateNutrition(offProduct.name, null, offProduct.category.key, apiKey, cerebrasApiKey, lang)
+                }.getOrNull()
+                if (estimated != null) {
+                    Triple(offProduct.copy(nutrition = estimated), ScanSource.MERGED,
+                        listOf(aiEstimatedMessage(lang)))
+                } else {
+                    Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, listOf(
+                        if (lang == "en") "No nutrition data found for this product"
+                        else "Aucune donnée nutritionnelle trouvée pour ce produit"))
+                }
             }
+            offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
             images.isNotEmpty() && hasAnyKey -> {
                 val parsed = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
                 Triple(parsed.product, ScanSource.LLM, parsed.warnings)
