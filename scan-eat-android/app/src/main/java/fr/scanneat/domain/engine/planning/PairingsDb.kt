@@ -272,11 +272,24 @@ fun resolveIngredient(name: String): String? {
  * Every name in [exclude] (normalized the same way [name] itself is
  * resolved) is dropped from the result, including [name] itself in case a
  * dataset entry ever lists an ingredient among its own pairings.
+ *
+ * User-reported (culinary-logic pass): raw co-occurrence data is real but
+ * category-blind - "riz" (rice) correctly co-occurs with "macaronis"
+ * (pasta) often enough in the source dataset, since plenty of composite
+ * dishes use both, but suggesting a second starch for a dish that already
+ * has one is bad plate-balance advice (same for suggesting a dairy fat like
+ * butter when yaourt is already in the dish). [exclude]'s ingredients are
+ * classified into rough food groups (classifyFoodGroup - USDA MyPlate/PNNS
+ * basis, see CulinaryFoodGroups.kt) and every group already represented is
+ * deprioritized, not hard-removed: a same-group suggestion can still win on
+ * a strong enough co-occurrence lead, it's just no longer preferred purely
+ * for being the single highest raw count.
  */
 fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet()): List<String> {
     val en = resolveIngredient(name) ?: return emptyList()
     val entry = PAIRINGS[en] ?: return emptyList()
     val excludedEn = (exclude + name).mapNotNullTo(mutableSetOf()) { resolveIngredient(it) }
+    val dishGroups = excludedEn.mapTo(mutableSetOf()) { classifyFoodGroup(it) } - FoodGroup.OTHER
     // Sort by co-occurrence count descending before truncating - PAIRINGS entries
     // are stored in whatever order the source dataset happened to list them (see
     // e.g. "beef": onion 3315, tomato 2107, beef_broth 410, garlic 2817, ...),
@@ -285,9 +298,15 @@ fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet()
     // silently defeating the "min co-occurrence 5 recipes" scoring this file's
     // header comment describes and showing weaker suggestions than a lower-ranked
     // pairing that got cut off just because it was listed first.
+    //
+    // Primary sort key: whether this candidate's own food group is already
+    // represented in the dish (false sorts first - Kotlin's Boolean natural
+    // order is false < true) - only then does raw co-occurrence break ties,
+    // so a same-group candidate never outranks a novel-group one purely on
+    // count, but still ranks by strength among its own tier.
     return entry.pairs
         .filter { it.b !in excludedEn }
-        .sortedByDescending { it.cooccur }
+        .sortedWith(compareBy<PairingEntry> { classifyFoodGroup(it.b) in dishGroups }.thenByDescending { it.cooccur })
         .take(limit)
         .map { it.fr ?: it.b.replace("_", " ") }
 }
