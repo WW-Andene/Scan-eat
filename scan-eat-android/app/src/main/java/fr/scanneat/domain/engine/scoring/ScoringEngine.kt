@@ -150,6 +150,16 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
         candidates += VetoCondition(true, if (en) "Mechanically separated meat in NOVA 4 product" else "Viande séparée mécaniquement dans un produit NOVA 4", 45)
 
+    // High-proof spirits (~40%+ vol) have low/no sugar and no additive risk, so
+    // the tiered per-mille deduction in NegativeNutrientsPillar.kt (max -12) is
+    // not enough on its own to keep a clean-profile spirit out of grade A/B —
+    // trans fat gets a hard cap at this same severity ("no safe level"), and
+    // WHO/IARC classify ethanol identically (Group 1 carcinogen, no safe
+    // consumption level), so a comparably strong veto applies here too.
+    val abv = n.alcoholPercentVol ?: 0.0
+    if (abv > 15.0)
+        candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv}% vol) — no safe consumption level" else "Alcool fort (${abv}% vol) — aucun seuil de consommation sûr", 40)
+
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }
 
