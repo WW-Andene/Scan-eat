@@ -47,6 +47,10 @@ private fun mapCategory(tags: List<String>?): ProductCategory {
         "fish" in tag || "seafood" in tag || "poisson" in tag -> ProductCategory.FISH
         "biscuit" in tag || "cookie" in tag || "chocolate" in tag || "snack" in tag && ("sweet" in tag || "sucre" in tag) -> ProductCategory.SNACK_SWEET
         "chips" in tag || "crisp" in tag || "snack" in tag -> ProductCategory.SNACK_SALTY
+        "alcoholic-beverage" in tag || "beer" in tag || "biere" in tag || "wine" in tag || "vin" in tag ||
+            "cider" in tag || "cidre" in tag || "spirit" in tag || "spiritueux" in tag || "liquor" in tag ||
+            "liqueur" in tag || "whisky" in tag || "whiskey" in tag || "vodka" in tag || "rum" in tag ||
+            "champagne" in tag -> ProductCategory.ALCOHOLIC_BEVERAGE
         "beverage" in tag && "juice" in tag -> ProductCategory.BEVERAGE_JUICE
         "beverage" in tag && ("water" in tag || "eau" in tag) -> ProductCategory.BEVERAGE_WATER
         "beverage" in tag || "soda" in tag || "boisson" in tag -> ProductCategory.BEVERAGE_SOFT
@@ -211,6 +215,9 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
         // mapped from OFF on either side before. OFF stores it in grams like the
         // other minerals above.
         caffeineMg    = numOrNull(nm["caffeine_100g"])?.times(1000),
+        // Mirrors OffMapper.kt on Android — OFF already stores this as %vol
+        // (unlike the other nutriments, no unit conversion).
+        alcoholPercentVol = numOrNull(nm["alcohol_100g"]),
     )
 
     return Product(
@@ -296,6 +303,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         omega6G       = o.omega6G       ?: l.omega6G,
         cholesterolMg = o.cholesterolMg ?: l.cholesterolMg,
         caffeineMg    = o.caffeineMg    ?: l.caffeineMg,
+        alcoholPercentVol = o.alcoholPercentVol ?: l.alcoholPercentVol,
         polyunsaturatedFatG = o.polyunsaturatedFatG ?: l.polyunsaturatedFatG,
         monounsaturatedFatG = o.monounsaturatedFatG ?: l.monounsaturatedFatG,
     )

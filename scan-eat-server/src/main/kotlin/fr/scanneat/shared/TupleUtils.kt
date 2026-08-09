@@ -8,3 +8,8 @@ package fr.scanneat.shared
  * scoring-specific.
  */
 data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+
+/** Mirrors util/DecimalFormat.kt on the Android project — pins Locale.US so
+ *  reason strings never render a device/server-locale-dependent decimal
+ *  separator glued onto an English/French unit suffix. */
+fun Double.formatDecimal(digits: Int = 1): String = "%.${digits}f".format(java.util.Locale.US, this)

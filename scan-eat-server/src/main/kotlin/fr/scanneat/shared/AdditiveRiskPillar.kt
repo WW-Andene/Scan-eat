@@ -7,6 +7,8 @@ package fr.scanneat.shared
 // for why. Purely structural move, no behavior change.
 // ============================================================================
 
+private val SULFITE_E_NUMBERS = setOf("E220", "E221", "E222", "E223", "E224", "E225", "E226", "E227", "E228")
+
 fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 15
@@ -19,8 +21,10 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     val tier2 = mutableListOf<Hit>()
     val tier3 = mutableListOf<Hit>()
 
+    val isAlcoholic = product.category == ProductCategory.ALCOHOLIC_BEVERAGE
     for (ing in product.ingredients) {
         val additive = findAdditive(ing.eNumber, ing.name, ing.category) ?: continue
+        if (isAlcoholic && additive.eNumber in SULFITE_E_NUMBERS) continue
         val hit = Hit(ing.name, additive.eNumber, additive.concern)
         when (additive.tier) {
             AdditiveTier.ONE   -> tier1 += hit
@@ -50,8 +54,11 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
             tier3.joinToString(" | ") { "${it.additive} (${it.ingredient})" })
     }
 
-    return PillarScore(if (en) "Additive Risk" else "Risque additifs", MAX, maxOf(0.0, score), deductions, bonuses)
+    return PillarScore(if (en) "Additive Risk" else "Risque additifs", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }
 
-fun countTier1Additives(product: Product): Int =
-    product.ingredients.mapNotNull { findAdditive(it.eNumber, it.name, it.category) }.count { it.tier == AdditiveTier.ONE }
+fun countTier1Additives(product: Product): Int {
+    val isAlcoholic = product.category == ProductCategory.ALCOHOLIC_BEVERAGE
+    return product.ingredients.mapNotNull { findAdditive(it.eNumber, it.name, it.category) }
+        .count { it.tier == AdditiveTier.ONE && !(isAlcoholic && it.eNumber in SULFITE_E_NUMBERS) }
+}

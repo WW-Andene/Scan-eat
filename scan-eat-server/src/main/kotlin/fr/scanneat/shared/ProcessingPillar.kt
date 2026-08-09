@@ -43,6 +43,9 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
     if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.size <= 2 && ings.size <= 10)
         return NovaInference(NovaClass.PROCESSED, NovaConfidence.MEDIUM)
 
+    if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.isEmpty())
+        return NovaInference(NovaClass.PROCESSED, NovaConfidence.LOW)
+
     val hasPositiveEvidence = cosmetics.isNotEmpty() || upfMarkers.isNotEmpty()
     return NovaInference(NovaClass.ULTRA_PROCESSED, if (hasPositiveEvidence) NovaConfidence.MEDIUM else NovaConfidence.LOW)
 }
@@ -118,5 +121,13 @@ fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
         }
     }
 
-    return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, score), deductions, bonuses)
+    val friedStarchy = product.category == ProductCategory.SNACK_SALTY &&
+        Regex("""\bfrit(?:e|es|s)?\b|\bfried\b|friture|deep[-\s]?fried""", RegexOption.IGNORE_CASE)
+            .let { re -> re.containsMatchIn(product.name) || product.ingredients.any { re.containsMatchIn(it.name) } }
+    if (friedStarchy) {
+        score -= 1
+        deductions += Deduction("processing", if (en) "Fried starchy food — possible acrylamide formation (IARC Group 2A)" else "Aliment amylacé frit — formation possible d'acrylamide (IARC groupe 2A)", -1.0, Severity.MINOR)
+    }
+
+    return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }

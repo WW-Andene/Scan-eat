@@ -7,6 +7,11 @@ package fr.scanneat.shared
 // for why. Purely structural move, no behavior change.
 // ============================================================================
 
+/** Mirrors NegativeNutrientsPillar.kt on the Android project — shared with
+ *  ScoringEngine.kt's high-proof veto so tuning one without the other can't
+ *  silently desync the deduction from the veto it accompanies. */
+internal const val HIGH_ABV_THRESHOLD = 15.0
+
 fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 25
@@ -44,7 +49,7 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     // inherent to cheese - a flat 1.5g bar flagged literally every soy sauce
     // and prosciutto regardless of whether it was unusually salty even for
     // its own category. See CategoryThresholds.kt's saltThresholds doc comment.
-    val salt = n.saltG
+    val salt = if (n.saltG > 0.0) n.saltG else (n.sodiumMg?.let { it / 1000.0 * 2.5 } ?: 0.0)
     val (saltMinor, saltMod, saltMaj) = thresholds.saltThresholds
     val saltLabel = if (en) "Salt" else "Sel"
     when {
@@ -60,6 +65,23 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         deductions += Deduction("negative_nutrients", if (en) "Trans fat present: ${trans}g/100g (no safe level)" else "Présence de graisses trans : ${trans}g/100g (aucun seuil sûr)", -10.0, Severity.CRITICAL)
     }
 
+    val abv = n.alcoholPercentVol ?: 0.0
+    val alcoholLabel = if (en) "Alcohol" else "Alcool"
+    when {
+        abv > HIGH_ABV_THRESHOLD -> { score -= 12; deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv.formatDecimal(1)}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -12.0, Severity.CRITICAL) }
+        abv > 5.0  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv.formatDecimal(1)}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -9.0, Severity.CRITICAL) }
+        abv > 1.2  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv.formatDecimal(1)}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -6.0, Severity.CRITICAL) }
+    }
+
+    val caffeine = n.caffeineMg ?: 0.0
+    val caffeineLabel = if (en) "Caffeine" else "Caféine"
+    when {
+        caffeine > 300.0 -> { score -= 8; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "well above EFSA single-dose caution level" else "bien au-delà du seuil de prudence EFSA par prise") + ")", -8.0, Severity.CRITICAL) }
+        caffeine > 150.0 -> { score -= 5; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "above EFSA single-dose caution level (~200mg)" else "au-delà du seuil de prudence EFSA par prise (~200mg)") + ")", -5.0, Severity.MAJOR) }
+        caffeine > 80.0  -> { score -= 3; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "high caffeine content" else "teneur élevée en caféine") + ")", -3.0, Severity.MODERATE) }
+        caffeine > 40.0  -> { score -= 1; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "elevated caffeine content" else "teneur en caféine élevée") + ")", -1.0, Severity.MINOR) }
+    }
+
     // Calorie density anomaly
     val (kcalLow, kcalHigh) = thresholds.expectedKcalRange
     if (n.energyKcal > kcalHigh * 1.25 || n.energyKcal < kcalLow * 0.5) {
@@ -67,5 +89,5 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         deductions += Deduction("negative_nutrients", if (en) "Energy ${n.energyKcal}kcal/100g outside category norm ($kcalLow–$kcalHigh)" else "Énergie ${n.energyKcal}kcal/100g hors norme de la catégorie ($kcalLow–$kcalHigh)", -2.0, Severity.MINOR)
     }
 
-    return PillarScore(if (en) "Negative Nutrients" else "Nutriments négatifs", MAX, maxOf(0.0, score), deductions, bonuses)
+    return PillarScore(if (en) "Negative Nutrients" else "Nutriments négatifs", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }

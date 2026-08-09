@@ -147,6 +147,10 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
         candidates += VetoCondition(true, if (en) "Mechanically separated meat in NOVA 4 product" else "Viande séparée mécaniquement dans un produit NOVA 4", 45)
 
+    val abv = n.alcoholPercentVol ?: 0.0
+    if (abv > HIGH_ABV_THRESHOLD)
+        candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool fort (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 40)
+
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }
 
@@ -189,6 +193,7 @@ private fun collectWarnings(product: Product, lang: String = "en"): List<String>
     val warnings = mutableListOf<String>()
     if (product.nutrition.transFatG == null) warnings += (if (en) "trans_fat_g not declared — assumed 0" else "trans_fat_g non déclaré — supposé 0")
     if (product.nutrition.addedSugarsG == null) warnings += (if (en) "added_sugars_g not declared — using total sugars as proxy" else "added_sugars_g non déclaré — sucres totaux utilisés en approximation")
+    if (product.nutrition.caffeineMg == null) warnings += (if (en) "caffeine_mg not declared — assumed 0" else "caffeine_mg non déclaré — supposé 0")
     return warnings
 }
 

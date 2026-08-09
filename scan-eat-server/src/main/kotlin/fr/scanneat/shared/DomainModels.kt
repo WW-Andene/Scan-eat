@@ -33,6 +33,7 @@ enum class ProductCategory(val key: String) {
     BEVERAGE_SOFT("beverage_soft"),
     BEVERAGE_JUICE("beverage_juice"),
     BEVERAGE_WATER("beverage_water"),
+    ALCOHOLIC_BEVERAGE("alcoholic_beverage"),
     CONDIMENT("condiment"),
     OIL_FAT("oil_fat"),
     OTHER("other");
@@ -84,6 +85,7 @@ data class NutritionPer100g(
     val omega6G: Double? = null,
     val cholesterolMg: Double? = null,
     val caffeineMg: Double? = null,
+    val alcoholPercentVol: Double? = null,
 ) {
     companion object {
         val EMPTY = NutritionPer100g(
