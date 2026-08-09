@@ -151,28 +151,20 @@ internal class ScanOffLookup(
                 Triple(merged, ScanSource.MERGED,
                     parsed.warnings + conflicts.map { conflictMessage(lang, it.field, it.offValue, it.llmValue) })
             }
-            // User-reported: a pure barcode scan (no photo taken) against a sparse
-            // OFF record - isOffSparse(offProduct) is true but images is empty, so
-            // the LLM-augmentation branch above never fires (it needs a photo to
-            // OCR). A bare "no data" warning wasn't good enough - the user wants
-            // real macros for the scanned product, not a note explaining their
-            // absence. The model already knows roughly what a named, branded
-            // product's nutrition looks like from training data (same idea as
-            // buildIdentifyFoodPrompt's photo-less-food estimate), so this asks it
-            // directly instead, keyed off the OFF-confirmed name/brand/category.
-            offProduct != null && offProduct.nutrition.energyKcal == 0.0 && offProduct.nutrition.proteinG == 0.0 && hasAnyKey -> {
-                val estimated = runCatching {
-                    ocrParser.estimateNutrition(offProduct.name, null, offProduct.category.key, apiKey, cerebrasApiKey, lang)
-                }.getOrNull()
-                if (estimated != null) {
-                    Triple(offProduct.copy(nutrition = estimated), ScanSource.MERGED,
-                        listOf(aiEstimatedMessage(lang)))
-                } else {
-                    Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, listOf(
-                        if (lang == "en") "No nutrition data found for this product"
-                        else "Aucune donnée nutritionnelle trouvée pour ce produit"))
-                }
-            }
+            // User-reported (2nd round): the previous fix here guessed macros from
+            // the LLM's training-data knowledge of the product name/brand - that's
+            // an approximation, not the real values actually printed on the
+            // package the user is holding. Reworked to instead ask for exactly
+            // that: reuses the same "product found, needs a photo" retry flow
+            // ScanViewModel already has (needsPhoto=true, see ProductNotFoundException
+            // handling there) so the user's next scan attempt includes a photo of
+            // the nutrition panel, which the existing OFF+LLM merge branch above
+            // then reads for real - never a guess.
+            offProduct != null && isOffSparse(offProduct) && images.isEmpty() ->
+                throw ProductNotFoundException(
+                    if (lang == "en") "\"${offProduct.name}\" found, but has no nutrition data on Open Food Facts — add a photo of the nutrition facts panel to read it"
+                    else "« ${offProduct.name} » trouvé, mais sans données nutritionnelles sur Open Food Facts — ajoutez une photo du tableau nutritionnel pour le lire"
+                )
             offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
             images.isNotEmpty() && hasAnyKey -> {
                 val parsed = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)

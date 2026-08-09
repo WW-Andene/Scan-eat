@@ -103,29 +103,6 @@ class OcrParser(
         return ParseLabelResult(product = mapLlmToProduct(dto), warnings = listOf(aiEstimatedMessage(lang)))
     }
 
-    /**
-     * No image — a barcode scan hit a real OFF record with no nutrition table
-     * and the user never took a label photo (see ScanOffLookup.scoreDirectBarcode's
-     * sparse-no-photo branch). Text-only chat call (buildContentParts with an
-     * empty image list still produces a valid single-text-part message) so the
-     * model estimates typical macros for this named/branded product instead of
-     * the caller falling back to a bare "no data" warning.
-     */
-    suspend fun estimateNutrition(
-        name: String,
-        brand: String?,
-        category: String?,
-        groqApiKey: String,
-        cerebrasApiKey: String = "",
-        lang: String = "fr",
-    ): fr.scanneat.domain.model.NutritionPer100g? {
-        val content = buildContentParts(emptyList(), buildNutritionEstimatePrompt(name, brand, category, lang))
-        val raw = callWithRetry(groqApiKey, cerebrasApiKey, content)
-        val json = extractJson(raw)
-        val dto = runCatching { dtoAdapter.fromJson(json) }.getOrNull() ?: return null
-        return mapLlmToMacros(dto.nutrition)
-    }
-
     // ----
 
     private fun buildContentParts(images: List<ImagePayload>, text: String): List<ContentPart> =
