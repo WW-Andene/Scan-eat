@@ -202,6 +202,11 @@ private fun collectWarnings(product: Product, lang: String = "en"): List<String>
     val warnings = mutableListOf<String>()
     if (product.nutrition.transFatG == null) warnings += (if (en) "trans_fat_g not declared — assumed 0" else "trans_fat_g non déclaré — supposé 0")
     if (product.nutrition.addedSugarsG == null) warnings += (if (en) "added_sugars_g not declared — using total sugars as proxy" else "added_sugars_g non déclaré — sucres totaux utilisés en approximation")
+    // caffeineMg follows the same "nullable, silently treated as 0" shape as
+    // transFatG above - many OFF energy-drink entries genuinely lack this
+    // field, and without this warning those scans silently assumed
+    // caffeine-free with no disclosed uncertainty.
+    if (product.nutrition.caffeineMg == null) warnings += (if (en) "caffeine_mg not declared — assumed 0" else "caffeine_mg non déclaré — supposé 0")
     return warnings
 }
 
