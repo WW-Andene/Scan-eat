@@ -326,6 +326,7 @@ fun ScanEatTheme(
         LocalGoldAccent provides goldAccent,
         LocalColorblindMode provides colorblindMode,
         LocalAnimatedGloom provides animatedBackground,
+        LocalAccentCoralOverride provides (if (resolvedTheme == "high_contrast") AccentCoralRaw else null),
     ) {
         // The 5 schemes above bake `error` in as a plain val at construction
         // time, so it can't itself read LocalColorblindMode - every isError

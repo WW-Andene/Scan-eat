@@ -106,7 +106,19 @@ val OnSurface:      Color @Composable get() = MaterialTheme.colorScheme.onSurfac
 // each set a different `secondary` there instead, which is exactly what now
 // makes this reactive.
 internal val AccentCoralRaw = Color(0xFFD97C56)  // sober warm coral — OLED/Dark/Low-Contrast's own secondary
-val AccentCoral: Color @Composable get() = MaterialTheme.colorScheme.secondary
+
+// User-reported (2nd round): High Contrast's own secondary (neon cyan,
+// Theme.kt's HighContrastColors — a deliberately hand-picked maximal-contrast
+// value for genuine Material components) was leaking into every one of the
+// dozens of AccentCoral call sites above via the reactive read this was just
+// changed to, repainting icons/buttons/badges across the whole app neon blue
+// with no relation to what they represent. High Contrast never takes a
+// colorAccent selection (Theme.kt excludes it on purpose), so unlike the
+// other themes it has no real "brand coral" to hand back here - pinned to
+// the same raw literal OLED/Dark/Low-Contrast use, provided via this
+// override only while High Contrast is active (see ScanEatTheme).
+internal val LocalAccentCoralOverride = androidx.compose.runtime.compositionLocalOf<Color?> { null }
+val AccentCoral: Color @Composable get() = LocalAccentCoralOverride.current ?: MaterialTheme.colorScheme.secondary
 val FlagRed         = Color(0xFFEF5350)
 val FlagGreen       = Color(0xFF66BB6A)
 val AmberWarning    = Color(0xFFFFA726)
