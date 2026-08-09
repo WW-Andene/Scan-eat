@@ -42,6 +42,7 @@ internal val FOOD_DB_FRUITS_AND_VEGETABLES: List<FoodEntry> = listOf(
     FoodEntry("abricot",       48.0,  1.4,  11.0,  0.4,  2.0, aliases = listOf("apricot")),
     FoodEntry("prune",         46.0,  0.7,  11.0,  0.3,  1.4, aliases = listOf("plum")),
     FoodEntry("pamplemousse",  42.0,  0.8,  11.0,  0.1,  1.6, aliases = listOf("grapefruit")),
+    FoodEntry("pomelo",        38.0,  0.8,   9.0,  0.1,  1.0, aliases = listOf("pomélo")),
     FoodEntry("citron",        29.0,  1.1,   9.0,  0.3,  2.8, aliases = listOf("lemon")),
     FoodEntry("clémentine",    47.0,  0.8,  12.0,  0.2,  1.7, aliases = listOf("mandarine", "clementine")),
     FoodEntry("figue",         74.0,  0.8,  19.0,  0.3,  2.9, aliases = listOf("figues", "fig")),
