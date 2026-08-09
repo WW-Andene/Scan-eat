@@ -59,4 +59,9 @@ val HIDDEN_NAV_ROUTES = setOf(
     // Same gap again for Food Search (reachable from Dashboard) — same
     // own-Scaffold-with-back-arrow pattern as every route above it.
     AppRoutes.FOOD_SEARCH,
+    // Same gap again for Seasonal Produce (reachable from Dashboard) — same
+    // own-Scaffold-with-back-arrow pattern as every route above it. Left the
+    // bottom nav floating over the screen's own content, hiding/blocking taps
+    // on whatever sat behind it (bottom of the year grid, group cards).
+    AppRoutes.SEASONAL_PRODUCE,
 )
