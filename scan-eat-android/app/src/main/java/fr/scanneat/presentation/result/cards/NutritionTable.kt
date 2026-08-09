@@ -74,7 +74,7 @@ private fun fmt1(value: Double): String = value.formatDecimal()
 
 @Composable
 private fun NRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.XS),
         horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
         Text(value, style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"), color = OnBackground, fontWeight = FontWeight.Medium)

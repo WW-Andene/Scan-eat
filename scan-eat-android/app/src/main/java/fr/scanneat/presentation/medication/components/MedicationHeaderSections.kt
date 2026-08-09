@@ -118,9 +118,9 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
                     val taken = todayTaken.any { it.medicationId == m.id }
                     Surface(shape = RoundedCornerShape(50), color = if (taken) Teal.copy(0.2f) else OnSurface.copy(0.08f)) {
                         Row(
-                            Modifier.padding(horizontal = Spacing.S, vertical = 3.dp),
+                            Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
                         ) {
                             Icon(
                                 if (taken) TablerIcons.Check else TablerIcons.X,
