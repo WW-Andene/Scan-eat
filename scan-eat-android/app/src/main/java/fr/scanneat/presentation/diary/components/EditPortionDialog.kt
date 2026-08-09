@@ -26,6 +26,7 @@ import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.label
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.CardRadius
@@ -76,7 +77,7 @@ internal fun EditPortionDialog(entry: DiaryEntry, onConfirm: (Double, MealSlot) 
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant.copy(alpha = 0.85f),
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
     )

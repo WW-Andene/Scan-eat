@@ -47,6 +47,7 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.gradeColor
 import fr.scanneat.presentation.ui.theme.semanticAmber
@@ -123,7 +124,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
                 .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp), ambientColor = ShadowTint, spotColor = ShadowTint)
                 .clip(RoundedCornerShape(24.dp)),
             shape = RoundedCornerShape(24.dp),
-            color = SurfaceVariant.copy(0.9f),
+            color = SurfaceVariant.copy(alpha = StandardCardAlpha),
             shadowElevation = 0.dp,
         ) {
             Column {
@@ -254,7 +255,7 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
 
     Box(modifier = Modifier.align(Alignment.TopStart).padding(start = clampedX, top = clampedY).width(panelWidth)) {
         // same raw-literal drift as above - matches CardRadius.CARD exactly.
-        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(0.94f)) {
+        Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(alpha = StandardCardAlpha)) {
             Row(
                 modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.SM),
                 verticalAlignment = Alignment.CenterVertically,

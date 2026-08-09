@@ -92,7 +92,7 @@ fun CollapsibleFilterBar(
             expanded = expanded,
             onDismissRequest = onToggle,
             shape = RoundedCornerShape(CardRadius.CONTROL),
-            containerColor = SurfaceVariant.copy(alpha = 0.94f),
+            containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
             shadowElevation = 0.dp,
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)),
             // User-reported: the popup opened flush against the trigger pill with

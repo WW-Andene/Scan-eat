@@ -28,6 +28,7 @@ import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 
 /**
@@ -55,7 +56,7 @@ internal fun ImportRecipeUrlDialog(
         // they'd cancelled. Only the dismiss button was ever gated by isLoading;
         // this closes the same gap for the implicit dismiss paths.
         onDismissRequest = { if (!isLoading) onDismiss() },
-        containerColor = SurfaceVariant.copy(alpha = 0.85f),
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_import_url_title), color = OnBackground) },

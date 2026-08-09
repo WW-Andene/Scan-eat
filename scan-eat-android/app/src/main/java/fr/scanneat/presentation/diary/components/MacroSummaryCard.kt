@@ -31,6 +31,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.ScanEatCard
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.dispWeight
 import kotlin.math.roundToInt
@@ -82,7 +83,7 @@ internal fun MacroSummaryCard(totals: ConsumedNutrition, targets: DailyTargets?,
     if (showLowCarbInfo) {
         AlertDialog(
             onDismissRequest = { showLowCarbInfo = false },
-            containerColor = SurfaceVariant.copy(alpha = 0.85f),
+            containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
             modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             title = { Text(stringResource(R.string.diary_totals_title), color = OnBackground) },

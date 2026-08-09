@@ -145,7 +145,7 @@ fun BoxScope.ScanShelfPeekChip(peek: ShelfPeek, onDismiss: () -> Unit, onOpenRes
     Box(modifier = Modifier.align(Alignment.TopStart).padding(start = clampedX, top = yDp).widthIn(max = chipWidth)) {
         Surface(
             shape = RoundedCornerShape(CardRadius.CONTROL),
-            color = SurfaceVariant.copy(0.94f),
+            color = SurfaceVariant.copy(alpha = StandardCardAlpha),
             onClick = { if (peek.status is ShelfPeekStatus.Ready) onOpenResult(peek.status.resultId) else onDismiss() },
             modifier = Modifier
                 .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)

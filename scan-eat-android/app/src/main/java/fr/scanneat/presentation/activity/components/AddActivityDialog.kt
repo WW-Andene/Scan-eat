@@ -68,7 +68,7 @@ internal fun AddActivityDialog(
     val onMinutesTextChange = actions.onMinutesTextChange
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.85f),
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.activity_add_dialog_title), color = OnBackground) },

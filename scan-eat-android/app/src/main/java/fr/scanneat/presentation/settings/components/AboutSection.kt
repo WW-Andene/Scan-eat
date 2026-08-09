@@ -89,7 +89,7 @@ private val OSS_LIBRARIES = listOf(
 internal fun OssLicensesDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.85f),
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.settings_licenses_dialog_title), color = OnBackground) },

@@ -47,6 +47,7 @@ import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.ShadowTint
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.Teal
 import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.minTouchTarget
@@ -95,7 +96,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
         Box(modifier = Modifier.glassSheen(edgeAlpha = 0.20f, shape = RoundedCornerShape(CardRadius.PROMINENT), glowTint = AccentCoral, glowAlpha = 0.06f)) {
             Surface(
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
-                color = SurfaceVariant.copy(0.9f),
+                color = SurfaceVariant.copy(alpha = StandardCardAlpha),
                 modifier = Modifier
                     .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
                     .clip(RoundedCornerShape(CardRadius.PROMINENT))
@@ -128,7 +129,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                 Surface(
                     onClick = { onQuickScan(bc) },
                     shape = RoundedCornerShape(20.dp),
-                    color = SurfaceVariant.copy(0.85f),
+                    color = SurfaceVariant.copy(alpha = StandardCardAlpha),
                     modifier = Modifier
                         .shadow(elevation = 3.dp, shape = RoundedCornerShape(20.dp), ambientColor = ShadowTint, spotColor = ShadowTint)
                         .clip(RoundedCornerShape(20.dp)),

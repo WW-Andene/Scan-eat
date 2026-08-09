@@ -30,6 +30,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.label
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import kotlin.math.roundToInt
@@ -46,7 +47,7 @@ internal fun LogOfficialRecipeDialog(recipe: OfficialRecipe, isFrench: Boolean, 
     var gramsText by remember { mutableStateOf(totalGrams.roundToInt().toString()) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.85f),
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(R.string.recipes_log_dialog_title, if (isFrench) recipe.nameFr else recipe.nameEn), color = OnBackground) },

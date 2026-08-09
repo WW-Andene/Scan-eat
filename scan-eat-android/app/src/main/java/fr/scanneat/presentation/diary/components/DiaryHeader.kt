@@ -105,7 +105,7 @@ internal fun BoxScope.DiaryHeader(
                         }
                     }
                     // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-                    DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = 0.94f), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
+                    DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
                         DiaryTab.entries.forEach { tab ->
                             val isActive = tab == activeTab
                             val label = stringResource(tab.labelRes)

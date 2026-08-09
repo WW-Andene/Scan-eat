@@ -46,6 +46,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.OnSurface
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
+import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.scanEatTextFieldColors
 import fr.scanneat.presentation.ui.theme.IconSize
 
@@ -95,7 +96,7 @@ internal fun AddRecipeDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.85f),
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
         title = { Text(stringResource(if (isEdit) R.string.recipes_edit_dialog_title else R.string.recipes_add_dialog_title), color = OnBackground) },

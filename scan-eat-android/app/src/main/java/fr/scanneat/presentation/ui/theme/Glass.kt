@@ -246,7 +246,7 @@ fun Modifier.ambientGloom(
  * is a structural Android/Compose limitation, not a per-device rendering gap.
  * [glassSheen]'s hairline and [ShadowTint]'s shadow tint are pure draw-scope
  * effects with no cross-window dependency, so they still apply cleanly; pair
- * with a translucent `containerColor` (e.g. `SurfaceVariant.copy(alpha = 0.94f)`)
+ * with a translucent `containerColor` (e.g. `SurfaceVariant.copy(alpha = StandardCardAlpha)`)
  * at the call site for the closest achievable match to the app's card glass.
  */
 fun Modifier.glassPopupSurface(shape: Shape = RoundedCornerShape(CardRadius.CONTROL)): Modifier = this
