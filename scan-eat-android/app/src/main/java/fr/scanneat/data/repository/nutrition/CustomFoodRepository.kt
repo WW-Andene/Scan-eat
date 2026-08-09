@@ -222,6 +222,7 @@ class CustomFoodRepository @Inject constructor(
             calciumMg     = entry.calciumMg,
             vitDUg        = entry.vitDUg,
             b12Ug         = entry.b12Ug,
+            vitCMg        = entry.vitCMg,
         ),
         weightG = 100.0,
     )

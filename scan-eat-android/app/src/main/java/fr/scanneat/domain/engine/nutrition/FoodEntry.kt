@@ -23,5 +23,11 @@ data class FoodEntry(
     val calciumMg: Double = 0.0,
     val vitDUg: Double = 0.0,
     val b12Ug: Double = 0.0,
+    // User-reported: logging a well-known vitamin C source (orange) from FOOD_DB
+    // contributed nothing to the dashboard's vitamin C total - this field simply
+    // didn't exist here, unlike iron/calcium/vitD/B12 above, so there was no way
+    // for even the most obvious source (citrus) to carry a value through
+    // CustomFoodRepository.toProduct() into NutritionPer100g.vitCMg.
+    val vitCMg: Double = 0.0,
     val aliases: List<String> = emptyList(),
 )
