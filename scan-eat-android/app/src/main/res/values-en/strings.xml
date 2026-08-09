@@ -1455,6 +1455,9 @@
     <string name="hint_section_avoid_pairing">Avoid pairing with</string>
     <string name="hint_section_facts">Did you know?</string>
     <string name="hint_section_improve">How to improve this score</string>
+    <string name="hint_score_value">%1$d/100</string>
+    <string name="hint_pillar_score">%1$d/%2$d</string>
+    <string name="hint_points_badge">%1$d pts</string>
     <string name="hint_panel_empty">No particular information for this product.</string>
     <string name="hint_cd_open_with_risks">%1$s — %2$s</string>
     <string name="hint_cd_open_with_count">%1$s — %2$s</string>

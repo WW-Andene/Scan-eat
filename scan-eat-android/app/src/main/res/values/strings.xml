@@ -1507,6 +1507,9 @@
     <string name="hint_section_avoid_pairing">À éviter en association</string>
     <string name="hint_section_facts">Le saviez-vous ?</string>
     <string name="hint_section_improve">Comment améliorer ce score</string>
+    <string name="hint_score_value">%1$d/100</string>
+    <string name="hint_pillar_score">%1$d/%2$d</string>
+    <string name="hint_points_badge">%1$d pts</string>
     <string name="hint_panel_empty">Aucune information particulière pour ce produit.</string>
     <string name="hint_cd_open_with_risks">%1$s — %2$s</string>
     <string name="hint_cd_open_with_count">%1$s — %2$s</string>

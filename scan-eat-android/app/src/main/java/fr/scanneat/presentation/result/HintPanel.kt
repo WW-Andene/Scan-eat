@@ -5,13 +5,17 @@ import compose.icons.tablericons.AlertCircle
 import compose.icons.tablericons.AlertTriangle
 import compose.icons.tablericons.Bulb
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,6 +33,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,9 +50,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import fr.scanneat.R
+import fr.scanneat.domain.engine.nutrition.ImprovementTip
+import fr.scanneat.domain.engine.nutrition.PillarSummary
 import fr.scanneat.domain.engine.nutrition.ProductHints
+import fr.scanneat.domain.engine.nutrition.ScoreSummary
+import fr.scanneat.domain.model.Severity
 import fr.scanneat.presentation.ui.theme.AccentCoral
 import fr.scanneat.presentation.ui.theme.glassPopupSurface
 import fr.scanneat.presentation.ui.theme.CardRadius
@@ -55,6 +65,7 @@ import fr.scanneat.presentation.ui.theme.OnBackground
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
+import fr.scanneat.presentation.ui.theme.gradeColor
 import fr.scanneat.presentation.ui.theme.semanticAmber
 import fr.scanneat.presentation.ui.theme.semanticGreen
 import fr.scanneat.presentation.ui.theme.semanticRed
@@ -117,13 +128,25 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
             // scroll within a capped height instead of letting the dialog grow
             // past the viewport with no way to reach the close button.
             Column(
-                modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
+                modifier = Modifier.widthIn(max = 320.dp).heightIn(max = 460.dp).verticalScroll(rememberScrollState()),
             ) {
+                // Score header + pillar breakdown up top so a hint read in
+                // isolation still carries the score context it explains -
+                // previously the panel had zero visible link to the grade.
+                hints.scoreSummary?.let { summary ->
+                    ScoreHeader(summary)
+                    if (hints.pillarSummary.isNotEmpty()) {
+                        Column(modifier = Modifier.padding(top = Spacing.S)) {
+                            hints.pillarSummary.forEach { PillarBar(it) }
+                        }
+                    }
+                    HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.S))
+                }
                 // Was a fixed pairwise chain of "is the section before me AND am I
                 // non-empty" checks - fine for 3 sections, unreadable once pairWell/
                 // avoidPairing made it 5. A running "was anything shown yet" flag
                 // scales to any section count without combinatorial conditions.
-                var shownAny = false
+                var shownAny = hints.scoreSummary != null
                 @Composable fun section(title: String, lines: List<String>, accent: Color, icon: androidx.compose.ui.graphics.vector.ImageVector) {
                     if (lines.isEmpty()) return
                     if (shownAny) HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
@@ -133,7 +156,11 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
                 section(stringResource(R.string.hint_section_information), hints.keyInfo, neutral, Icons.Rounded.Info)
                 section(stringResource(R.string.hint_section_risks), hints.risks, amber, TablerIcons.AlertTriangle)
                 section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, TablerIcons.AlertCircle)
-                section(stringResource(R.string.hint_section_improve), hints.improvementTips, amber, Icons.Rounded.TrendingUp)
+                if (hints.improvementTips.isNotEmpty()) {
+                    if (shownAny) HorizontalDivider(color = OnBackground.copy(0.08f), modifier = Modifier.padding(vertical = Spacing.XS))
+                    ImprovementTipsSection(stringResource(R.string.hint_section_improve), hints.improvementTips)
+                    shownAny = true
+                }
                 section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Rounded.ThumbUp)
                 section(stringResource(R.string.hint_section_pair_well), hints.pairWell, green, Icons.Rounded.Restaurant)
                 section(stringResource(R.string.hint_section_avoid_pairing), hints.avoidPairing, amber, Icons.Rounded.Block)
@@ -147,6 +174,107 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close), color = AccentCoral) }
         },
     )
+}
+
+/** Grade badge + numeric score + verdict, at the top of the hint panel. */
+@Composable
+private fun ScoreHeader(summary: ScoreSummary) {
+    val color = gradeColor(summary.grade)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.M)) {
+        Box(
+            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(CardRadius.PROMINENT)).background(color.copy(alpha = 0.18f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(summary.grade.label, style = MaterialTheme.typography.titleMedium, color = color, fontWeight = FontWeight.Bold)
+        }
+        Column {
+            Text(
+                stringResource(R.string.hint_score_value, summary.value),
+                style = MaterialTheme.typography.labelLarge,
+                color = OnBackground,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(summary.verdict, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.7f))
+        }
+    }
+}
+
+/** One pillar's score/max as a labeled mini progress bar - gives an at-a-glance
+ *  sense of *where* the score comes from without opening the full Result screen. */
+@Composable
+private fun PillarBar(pillar: PillarSummary) {
+    val ratio = if (pillar.max > 0) (pillar.score / pillar.max).toFloat().coerceIn(0f, 1f) else 0f
+    val color = when {
+        ratio >= 0.75f -> semanticGreen()
+        ratio >= 0.4f -> semanticAmber()
+        else -> semanticRed()
+    }
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = Spacing.T2)) {
+        Text(
+            pillar.name,
+            style = MaterialTheme.typography.bodySmall,
+            color = OnBackground.copy(0.8f),
+            modifier = Modifier.width(120.dp),
+        )
+        LinearProgressIndicator(
+            progress = { ratio },
+            color = color,
+            trackColor = OnBackground.copy(0.1f),
+            modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(50)),
+        )
+        Text(
+            stringResource(R.string.hint_pillar_score, pillar.score.toInt(), pillar.max),
+            style = MaterialTheme.typography.bodySmall,
+            color = OnBackground.copy(0.6f),
+            modifier = Modifier.padding(start = Spacing.S),
+        )
+    }
+}
+
+private fun severityColor(severity: Severity, red: Color, amber: Color, neutral: Color): Color = when (severity) {
+    Severity.CRITICAL, Severity.MAJOR -> red
+    Severity.MODERATE, Severity.MINOR -> amber
+    Severity.INFO -> neutral
+}
+
+/**
+ * Severity-colored rendering for [ImprovementTip]s - each line gets a colored
+ * points badge instead of the generic bulleted plain-text [HintSection], so a
+ * -12pt critical deduction visually stands out from a -1pt minor one instead
+ * of both reading as an identical bullet.
+ */
+@Composable
+private fun ImprovementTipsSection(title: String, tips: List<ImprovementTip>) {
+    val red = semanticRed()
+    val amber = semanticAmber()
+    val neutral = OnBackground.copy(0.7f)
+    Column(modifier = Modifier.padding(bottom = Spacing.S)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
+            Icon(Icons.Rounded.TrendingUp, contentDescription = null, tint = amber, modifier = Modifier.padding(0.dp))
+            Text(title, style = MaterialTheme.typography.labelMedium, color = amber, fontWeight = FontWeight.Bold)
+        }
+        tips.forEach { tip ->
+            val accent = severityColor(tip.severity, red, amber, neutral)
+            Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = Spacing.S)) {
+                Box(
+                    modifier = Modifier.padding(top = 2.dp).size(8.dp).clip(RoundedCornerShape(50)).background(accent),
+                )
+                Text(
+                    tip.reason,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = OnBackground.copy(0.8f),
+                    modifier = Modifier.weight(1f).padding(start = Spacing.S),
+                )
+                Text(
+                    stringResource(R.string.hint_points_badge, tip.points.toInt()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = accent,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = Spacing.S),
+                )
+            }
+        }
+    }
 }
 
 /**

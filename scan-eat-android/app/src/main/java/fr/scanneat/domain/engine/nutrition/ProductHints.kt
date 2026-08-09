@@ -47,10 +47,16 @@ data class ProductHints(
     val avoidPairing: List<String> = emptyList(),
     /** User-reported: the panel was helpful but underwhelming, all passive
      *  facts with nothing telling the reader why the grade landed where it
-     *  did. The scoring engine's own real per-deduction point values (same
-     *  data PillarsSection's expandable rows already draw on, deep in the
-     *  Result screen) ranked by actual impact - see ProductHintsImprovement.kt. */
-    val improvementTips: List<String> = emptyList(),
+     *  did, no severity distinction, and no visible connection to the score
+     *  itself. Structured (not pre-formatted text) so the UI can color-code
+     *  by severity - see ProductHintsImprovement.kt. */
+    val improvementTips: List<ImprovementTip> = emptyList(),
+    /** Grade/score/verdict header, and the 5-pillar breakdown bar row - the
+     *  same real ScoreAudit data PillarsSection already shows deep in the
+     *  Result screen, now visible from the hint panel itself so a hint read
+     *  in isolation still carries the score context it explains. */
+    val scoreSummary: ScoreSummary? = null,
+    val pillarSummary: List<PillarSummary> = emptyList(),
 ) {
     companion object {
         /** Fallback for a combine-into-map StateFlow lookup miss (e.g. the one-frame
@@ -75,10 +81,13 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     val facts = buildFacts(product, lang)
     val (pairWell, avoidPairing) = buildPairings(product, lang, containsCaffeineSource)
     // scoreProduct is a pure function of Product alone (see ScoringEngine.kt) -
-    // computed again here rather than threading a ScoreAudit through every one
+    // computed once here rather than threading a ScoreAudit through every one
     // of this function's 6 call sites, several of which (Recipes/Templates/
     // CustomFood) never compute one for their own preview-only Product anyway.
-    val improvementTips = buildImprovementTips(scoreProduct(product, lang))
+    val audit = scoreProduct(product, lang)
+    val improvementTips = buildImprovementTips(audit)
+    val scoreSummary = buildScoreSummary(audit)
+    val pillarSummary = buildPillarSummary(audit)
 
-    return ProductHints(benefits, risks, conditionRisks, facts, keyInfo, pairWell, avoidPairing, improvementTips)
+    return ProductHints(benefits, risks, conditionRisks, facts, keyInfo, pairWell, avoidPairing, improvementTips, scoreSummary, pillarSummary)
 }
