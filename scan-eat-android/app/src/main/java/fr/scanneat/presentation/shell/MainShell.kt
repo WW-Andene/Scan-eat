@@ -6,9 +6,8 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -33,10 +32,6 @@ import androidx.navigation.compose.rememberNavController
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.presentation.ui.theme.*
-import kotlinx.coroutines.withTimeoutOrNull
-
-/** Same threshold and reasoning as DiaryHeader.kt's HOLD_TO_ARM_MS. */
-private const val NAV_HOLD_TO_ARM_MS = 3000L
 
 @Composable
 fun MainShell(
@@ -50,7 +45,7 @@ fun MainShell(
     val showNav = HIDDEN_NAV_ROUTES.none { currentRoute == it }
     val bottomNavHazeState = remember { HazeState() }
 
-    // User-requested: hold a nav tab for 3s to arm it, then tap another one
+    // User-requested: long-press a nav tab to arm it, then tap another one
     // to swap their positions - persisted via MainShellViewModel/
     // UserPreferences so a custom layout survives an app restart.
     val shellViewModel: MainShellViewModel = hiltViewModel()
@@ -126,8 +121,8 @@ fun MainShell(
             ) {
             // Replaces Material3's NavigationBar/NavigationBarItem with a plain Row
             // of custom items - see DiaryHeader.kt's HoldToArmMenuItem doc comment
-            // for why this is one hand-rolled awaitEachGesture state machine per
-            // item rather than two gesture detectors layered on the same node.
+            // for why tap and long-press-to-arm are two ordinary sibling
+            // pointerInput detectors here instead of one hand-timed custom loop.
             val haptics = LocalHapticFeedback.current
 
             Row(
@@ -151,26 +146,25 @@ fun MainShell(
                                 else if (isReplaceTarget) Modifier.background(AccentCoral.copy(alpha = 0.06f))
                                 else Modifier
                             )
-                            // User-requested: hold a nav tab for 3s to arm it, then
-                            // tap another one to swap their positions - a single
-                            // gesture detector per item (tap vs. hold-to-arm decided
-                            // by how long the same down/up pair lasts), not a
+                            // User-requested: long-press a nav tab to arm it, then
+                            // tap another one to swap their positions - not a
                             // continuous drag, so there's no cross-item pointer
-                            // tracking to get wrong.
-                            // Keyed on navOrderCsv.value (not just tab.route): this
-                            // coroutine closes over navTabs, a plain recomputed val,
+                            // tracking to get wrong. Two ordinary sibling gesture
+                            // detectors (tap, long-press-to-arm) rather than one
+                            // hand-timed custom loop - see DiaryHeader.kt's
+                            // HoldToArmMenuItem for why (a homemade hold-timer needed
+                            // an actual drag to register reliably; the built-in
+                            // detectDragGesturesAfterLongPress tolerates a still hold).
+                            //
+                            // Keyed on navOrderCsv.value (not just tab.route): both
+                            // detectors close over navTabs, a plain recomputed val,
                             // not a State-backed read - a tab whose slot doesn't move
                             // in a swap would otherwise keep running the pointerInput
                             // launched before that swap and compute fromIdx/toIdx
                             // against the stale pre-swap list on its own next use.
-                            // Not keyed on armedNavTab itself - awaitEachGesture
-                            // already loops forever and re-reads the current
-                            // armedNavTab value at the start of each new tap.
                             .pointerInput(tab.route, navOrderCsv.value) {
-                                awaitEachGesture {
-                                    awaitFirstDown()
-                                    val releasedEarly = withTimeoutOrNull(NAV_HOLD_TO_ARM_MS) { waitForUpOrCancellation() }
-                                    if (releasedEarly != null) {
+                                detectTapGestures(
+                                    onTap = {
                                         val armed = armedNavTab
                                         if (armed != null) {
                                             if (armed != tab) {
@@ -190,12 +184,17 @@ fun MainShell(
                                                 restoreState    = true
                                             }
                                         }
-                                    } else {
+                                    },
+                                )
+                            }
+                            .pointerInput(tab.route, navOrderCsv.value) {
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = {
                                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                                         armedNavTab = if (armedNavTab == tab) null else tab
-                                        waitForUpOrCancellation()
-                                    }
-                                }
+                                    },
+                                    onDrag = { change, _ -> change.consume() },
+                                )
                             },
                     ) {
                         Icon(

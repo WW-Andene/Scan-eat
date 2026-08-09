@@ -5,9 +5,8 @@ import compose.icons.tablericons.Check
 import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -33,14 +32,6 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
-import kotlinx.coroutines.withTimeoutOrNull
-
-/** How long a "more" overflow tab must be held before it's armed for
- *  replacing one of the header's always-visible tabs. A real Compose
- *  long-press (~500ms) is too easy to trigger by accident on a menu item
- *  someone just meant to tap - a full 3s makes "I want to rearrange my
- *  tabs" an unambiguous, deliberate gesture. */
-private const val HOLD_TO_ARM_MS = 3000L
 
 /**
  * Merged floating glass header - title row + tab row in one card, both
@@ -120,7 +111,7 @@ internal fun BoxScope.DiaryHeader(
                 // popup window, a separate window from this Row, so tracking one
                 // finger's motion across that window boundary in real time (and
                 // surviving the popup dismissing mid-gesture) never worked
-                // consistently. Holding an item for 3s "arms" it (the popup closes,
+                // consistently. Long-pressing an item "arms" it (the popup closes,
                 // haptic feedback fires), then a normal tap on any of the three
                 // primary tab buttons below completes the swap - two independent,
                 // ordinary gestures instead of one gesture that has to survive a
@@ -218,13 +209,23 @@ internal fun BoxScope.DiaryHeader(
 
 /**
  * A DropdownMenu row that behaves like a normal [DropdownMenuItem] on a quick
- * tap (calls [onTap]), but "arms" instead (calls [onArmed]) if held past
- * [HOLD_TO_ARM_MS]. Hand-rolled instead of wrapping the real
- * `DropdownMenuItem` with a second, parallel gesture detector - two
- * independent detectors racing for the same down/up events on one node has
- * no guaranteed ordering in Compose, so tap-vs-hold could double-fire or
- * silently drop one outcome. A single `awaitEachGesture` state machine here
- * is the only gesture detector on this row, so there's nothing to race.
+ * tap (calls [onTap]), but "arms" instead (calls [onArmed]) on a long-press.
+ * Hand-rolled instead of the real `DropdownMenuItem` so a plain
+ * `detectTapGestures` (tap) and `detectDragGesturesAfterLongPress`
+ * (long-press) can sit on the same row as two ordinary sibling gesture
+ * detectors - `detectDragGesturesAfterLongPress` only activates past the
+ * system long-press threshold and never consumes a quick tap, so it doesn't
+ * steal short taps from the other detector.
+ *
+ * User-reported: an earlier version hand-timed its own custom 3s hold via a
+ * raw `awaitFirstDown`/`waitForUpOrCancellation` loop, which needed an actual
+ * finger *drag* to register reliably instead of a plain still hold - normal
+ * hand jitter during a hold was apparently enough to make that homemade
+ * timer misfire. Switched to `detectDragGesturesAfterLongPress`, the same
+ * well-tested primitive Compose itself uses for long-press-then-drag
+ * anywhere else in the app - it's specifically built to tolerate the
+ * hold-with-small-movement a real hand produces, at the cost of the custom
+ * duration (now the platform's standard long-press timeout, not exactly 3s).
  */
 @Composable
 private fun HoldToArmMenuItem(
@@ -237,26 +238,25 @@ private fun HoldToArmMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
+            .pointerInput(tab) { detectTapGestures(onTap = { onTap() }) }
             .pointerInput(tab) {
-                awaitEachGesture {
-                    awaitFirstDown()
-                    val releasedEarly = withTimeoutOrNull(HOLD_TO_ARM_MS) { waitForUpOrCancellation() }
-                    if (releasedEarly != null) {
-                        onTap()
-                    } else {
-                        onArmed()
-                        waitForUpOrCancellation()
-                    }
-                }
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { onArmed() },
+                    onDrag = { change, _ -> change.consume() },
+                )
             }
             .padding(horizontal = Spacing.M),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.S),
     ) {
         Icon(tab.icon, null, tint = if (isActive) AccentCoral else OnBackground.copy(0.6f), modifier = Modifier.size(IconSize.Inline))
+        // User-reported: was bodyLarge (16sp) - the real DropdownMenuItem this
+        // row replaces applies Material3's standard menu-item text style,
+        // labelLarge (14sp), internally. bodyLarge read as noticeably bigger
+        // than every other menu/dropdown in the app.
         Text(
             stringResource(tab.labelRes),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.labelLarge,
             color = OnBackground,
             modifier = Modifier.weight(1f).padding(vertical = Spacing.S),
         )
