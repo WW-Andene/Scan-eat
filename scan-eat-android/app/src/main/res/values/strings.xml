@@ -860,6 +860,7 @@
     <string name="diary_tab_treatment">Traitement</string>
     <string name="diary_tab_expenses">Dépenses</string>
     <string name="diary_tab_more">Plus</string>
+    <string name="diary_tab_pick_replacement">Touchez un onglet à remplacer</string>
     <string name="expenses_history_title">Historique des achats</string>
     <string name="expenses_empty_body">Aucune dépense enregistrée. Ajoutez un prix depuis une fiche produit après un scan.</string>
     <string name="expenses_add_entry">Ajouter</string>

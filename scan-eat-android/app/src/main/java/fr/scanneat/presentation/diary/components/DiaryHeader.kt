@@ -5,8 +5,9 @@ import compose.icons.tablericons.Check
 import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,23 +22,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.R
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.withTimeoutOrNull
+
+/** How long a "more" overflow tab must be held before it's armed for
+ *  replacing one of the header's always-visible tabs. A real Compose
+ *  long-press (~500ms) is too easy to trigger by accident on a menu item
+ *  someone just meant to tap - a full 3s makes "I want to rearrange my
+ *  tabs" an unambiguous, deliberate gesture. */
+private const val HOLD_TO_ARM_MS = 3000L
 
 /**
  * Merged floating glass header - title row + tab row in one card, both
@@ -54,9 +56,9 @@ internal fun BoxScope.DiaryHeader(
     activeTab: DiaryTab,
     onTabChange: (DiaryTab) -> Unit,
     // User-requested: the three always-visible tabs were a fixed literal
-    // (MEALS/WEIGHT/WATER) - now caller-owned so a tab long-pressed and
-    // dragged out of the "more" dropdown below can swap into one of these
-    // slots and have that choice persist (see DiaryScreen's wiring to
+    // (MEALS/WEIGHT/WATER) - now caller-owned so a tab held-and-picked out of
+    // the "more" dropdown below can swap into one of these slots and have
+    // that choice persist (see DiaryScreen's wiring to
     // DiaryViewModel.primaryDiaryTabsOrder).
     primaryTabs: List<DiaryTab>,
     onPrimaryTabsChange: (List<DiaryTab>) -> Unit,
@@ -112,20 +114,28 @@ internal fun BoxScope.DiaryHeader(
                 // width, which is why only 3 are direct buttons here, not all 7.
                 val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs }
 
-                val view = LocalView.current
+                // User-requested: hold-to-arm-then-tap-to-replace instead of a
+                // continuous drag. A continuous drag out of the "more" dropdown
+                // below is unreliable — DropdownMenu renders in its own Android
+                // popup window, a separate window from this Row, so tracking one
+                // finger's motion across that window boundary in real time (and
+                // surviving the popup dismissing mid-gesture) never worked
+                // consistently. Holding an item for 3s "arms" it (the popup closes,
+                // haptic feedback fires), then a normal tap on any of the three
+                // primary tab buttons below completes the swap - two independent,
+                // ordinary gestures instead of one gesture that has to survive a
+                // window handoff.
+                var armedOverflowTab by remember { mutableStateOf<DiaryTab?>(null) }
                 val haptics = LocalHapticFeedback.current
-                // Screen-space (not window-space) tracking throughout, since the
-                // DropdownMenu below renders in its own Android PopupWindow — a
-                // separate window from the Row/Surface here, so plain Compose
-                // window-relative coordinates from the two subtrees aren't directly
-                // comparable. view.getLocationOnScreen() + LayoutCoordinates.localToRoot()
-                // together give an absolute screen position for a node regardless of
-                // which window it's actually drawn in, which IS comparable across
-                // the popup/main-window boundary.
-                var draggedTab by remember { mutableStateOf<DiaryTab?>(null) }
-                var dragPointerScreenPos by remember { mutableStateOf(Offset.Zero) }
-                var dragOverTab by remember { mutableStateOf<DiaryTab?>(null) }
-                val primaryTabBounds = remember { mutableStateMapOf<DiaryTab, Rect>() }
+
+                if (armedOverflowTab != null) {
+                    Text(
+                        stringResource(R.string.diary_tab_pick_replacement),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AccentCoral,
+                    )
+                    Spacer(Modifier.height(Spacing.T2))
+                }
 
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -135,13 +145,17 @@ internal fun BoxScope.DiaryHeader(
                         DiaryTabButton(
                             tab = tab,
                             isActive = tab == activeTab,
-                            isDropTarget = draggedTab != null && dragOverTab == tab,
-                            onClick = { onTabChange(tab) },
-                            modifier = Modifier.onGloballyPositioned { coords ->
-                                val loc = IntArray(2)
-                                view.getLocationOnScreen(loc)
-                                val topLeft = coords.localToRoot(Offset.Zero) + Offset(loc[0].toFloat(), loc[1].toFloat())
-                                primaryTabBounds[tab] = Rect(topLeft, coords.size.toSize())
+                            isReplaceTarget = armedOverflowTab != null,
+                            onClick = {
+                                val armed = armedOverflowTab
+                                if (armed != null) {
+                                    onPrimaryTabsChange(primaryTabs.map { if (it == tab) armed else it })
+                                    onTabChange(armed)
+                                    armedOverflowTab = null
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                } else {
+                                    onTabChange(tab)
+                                }
                             },
                         )
                     }
@@ -149,7 +163,9 @@ internal fun BoxScope.DiaryHeader(
                     val overflowActive = activeTab in overflowTabs
                     Box {
                         Surface(
-                            onClick = { tabMenuExpanded = true },
+                            onClick = {
+                                if (armedOverflowTab != null) armedOverflowTab = null else tabMenuExpanded = true
+                            },
                             shape = RoundedCornerShape(8.dp),
                             color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
                             border = if (overflowActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
@@ -181,57 +197,15 @@ internal fun BoxScope.DiaryHeader(
                         DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
                             overflowTabs.forEach { tab ->
                                 val isActive = tab == activeTab
-                                val label = stringResource(tab.labelRes)
-                                var itemScreenOrigin by remember(tab) { mutableStateOf(Offset.Zero) }
-                                DropdownMenuItem(
-                                    modifier = Modifier
-                                        .onGloballyPositioned { coords ->
-                                            val loc = IntArray(2)
-                                            view.getLocationOnScreen(loc)
-                                            itemScreenOrigin = coords.localToRoot(Offset.Zero) + Offset(loc[0].toFloat(), loc[1].toFloat())
-                                        }
-                                        // User-requested: hold, drag, and drop an overflow tab
-                                        // (Activity/Fasting/Treatment/Expenses) onto one of the
-                                        // three always-visible header slots above to swap it in.
-                                        // detectDragGesturesAfterLongPress ignores a plain short
-                                        // tap entirely (no long-press = no consumption), so this
-                                        // coexists with DropdownMenuItem's own onClick below
-                                        // instead of stealing normal taps from it.
-                                        .pointerInput(tab) {
-                                            detectDragGesturesAfterLongPress(
-                                                onDragStart = { localOffset ->
-                                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    draggedTab = tab
-                                                    dragPointerScreenPos = itemScreenOrigin + localOffset
-                                                    dragOverTab = primaryTabBounds.entries.firstOrNull { it.value.contains(dragPointerScreenPos) }?.key
-                                                },
-                                                onDrag = { change, dragAmount ->
-                                                    change.consume()
-                                                    dragPointerScreenPos += dragAmount
-                                                    dragOverTab = primaryTabBounds.entries.firstOrNull { it.value.contains(dragPointerScreenPos) }?.key
-                                                },
-                                                onDragEnd = {
-                                                    val target = dragOverTab
-                                                    val dragged = draggedTab
-                                                    if (target != null && dragged != null) {
-                                                        onPrimaryTabsChange(primaryTabs.map { if (it == target) dragged else it })
-                                                        onTabChange(dragged)
-                                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    }
-                                                    draggedTab = null
-                                                    dragOverTab = null
-                                                    tabMenuExpanded = false
-                                                },
-                                                onDragCancel = {
-                                                    draggedTab = null
-                                                    dragOverTab = null
-                                                },
-                                            )
-                                        },
-                                    text = { Text(label) },
-                                    leadingIcon = { Icon(tab.icon, null, tint = if (isActive) AccentCoral else OnBackground.copy(0.6f)) },
-                                    trailingIcon = { if (isActive) Icon(TablerIcons.Check, null, tint = AccentCoral) },
-                                    onClick = { onTabChange(tab); tabMenuExpanded = false },
+                                HoldToArmMenuItem(
+                                    tab = tab,
+                                    isActive = isActive,
+                                    onTap = { onTabChange(tab); tabMenuExpanded = false },
+                                    onArmed = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        armedOverflowTab = tab
+                                        tabMenuExpanded = false
+                                    },
                                 )
                             }
                         }
@@ -242,33 +216,69 @@ internal fun BoxScope.DiaryHeader(
     }
 }
 
+/**
+ * A DropdownMenu row that behaves like a normal [DropdownMenuItem] on a quick
+ * tap (calls [onTap]), but "arms" instead (calls [onArmed]) if held past
+ * [HOLD_TO_ARM_MS]. Hand-rolled instead of wrapping the real
+ * `DropdownMenuItem` with a second, parallel gesture detector - two
+ * independent detectors racing for the same down/up events on one node has
+ * no guaranteed ordering in Compose, so tap-vs-hold could double-fire or
+ * silently drop one outcome. A single `awaitEachGesture` state machine here
+ * is the only gesture detector on this row, so there's nothing to race.
+ */
+@Composable
+private fun HoldToArmMenuItem(
+    tab: DiaryTab,
+    isActive: Boolean,
+    onTap: () -> Unit,
+    onArmed: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .pointerInput(tab) {
+                awaitEachGesture {
+                    awaitFirstDown()
+                    val releasedEarly = withTimeoutOrNull(HOLD_TO_ARM_MS) { waitForUpOrCancellation() }
+                    if (releasedEarly != null) {
+                        onTap()
+                    } else {
+                        onArmed()
+                        waitForUpOrCancellation()
+                    }
+                }
+            }
+            .padding(horizontal = Spacing.M),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+    ) {
+        Icon(tab.icon, null, tint = if (isActive) AccentCoral else OnBackground.copy(0.6f), modifier = Modifier.size(IconSize.Inline))
+        Text(
+            stringResource(tab.labelRes),
+            style = MaterialTheme.typography.bodyLarge,
+            color = OnBackground,
+            modifier = Modifier.weight(1f).padding(vertical = Spacing.S),
+        )
+        if (isActive) Icon(TablerIcons.Check, null, tint = AccentCoral)
+    }
+}
+
 @Composable
 private fun DiaryTabButton(
     tab: DiaryTab,
     isActive: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    isDropTarget: Boolean = false,
+    isReplaceTarget: Boolean = false,
 ) {
     Surface(
-        // Plain detectTapGestures instead of Surface's own onClick param so this
-        // stays a normal tap target while a drag is in flight elsewhere in the
-        // header (Surface's onClick/clickable would otherwise add its own
-        // press/ripple gesture detector on top of the onGloballyPositioned-only
-        // modifier this needs for drop-target bounds tracking).
-        modifier = modifier.pointerInput(tab) { detectTapGestures(onTap = { onClick() }) },
+        onClick = onClick,
         shape = RoundedCornerShape(8.dp),
-        color = if (isDropTarget) AccentCoral.copy(alpha = 0.28f) else if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
-        border = if (isDropTarget) BorderStroke(2.dp, AccentCoral) else if (isActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+        color = if (isReplaceTarget) AccentCoral.copy(alpha = 0.16f) else if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
+        border = if (isReplaceTarget) BorderStroke(2.dp, AccentCoral.copy(alpha = 0.6f)) else if (isActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
     ) {
         Row(
-            Modifier
-                .heightIn(min = 48.dp)
-                .padding(horizontal = Spacing.M)
-                .graphicsLayer {
-                    scaleX = if (isDropTarget) 1.1f else 1f
-                    scaleY = if (isDropTarget) 1.1f else 1f
-                },
+            Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S),
         ) {

@@ -6,8 +6,9 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -16,19 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toSize
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -38,6 +33,10 @@ import androidx.navigation.compose.rememberNavController
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.presentation.ui.theme.*
+import kotlinx.coroutines.withTimeoutOrNull
+
+/** Same threshold and reasoning as DiaryHeader.kt's HOLD_TO_ARM_MS. */
+private const val NAV_HOLD_TO_ARM_MS = 3000L
 
 @Composable
 fun MainShell(
@@ -51,12 +50,13 @@ fun MainShell(
     val showNav = HIDDEN_NAV_ROUTES.none { currentRoute == it }
     val bottomNavHazeState = remember { HazeState() }
 
-    // User-requested: long-press a nav tab and drag it onto another one to
-    // swap their positions - persisted via MainShellViewModel/UserPreferences
-    // so a custom layout survives an app restart.
+    // User-requested: hold a nav tab for 3s to arm it, then tap another one
+    // to swap their positions - persisted via MainShellViewModel/
+    // UserPreferences so a custom layout survives an app restart.
     val shellViewModel: MainShellViewModel = hiltViewModel()
     val navOrderCsv = shellViewModel.navTabOrder.collectAsStateWithLifecycle()
     val navTabs = remember(navOrderCsv.value) { parseTopTabOrder(navOrderCsv.value) }
+    var armedNavTab by remember { mutableStateOf<TopTab?>(null) }
 
     // True floating chrome: a Box, not a Scaffold, so AppNavGraph's own screens
     // fill the entire frame and the bottom nav is a z-ordered overlay on top of
@@ -124,18 +124,11 @@ fun MainShell(
                     .clip(RoundedCornerShape(CardRadius.PROMINENT))
                     .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle),
             ) {
-            // Replaces Material3's NavigationBar/NavigationBarItem (which owns its
-            // own click/ripple gesture detection with no hook for a second,
-            // independent long-press-drag gesture on the same item) with a plain
-            // Row of custom items so drag-to-swap can be layered on cleanly - see
-            // DiaryTabButton's identical detectTapGestures-instead-of-onClick
-            // reasoning in DiaryHeader.kt.
-            val view = LocalView.current
+            // Replaces Material3's NavigationBar/NavigationBarItem with a plain Row
+            // of custom items - see DiaryHeader.kt's HoldToArmMenuItem doc comment
+            // for why this is one hand-rolled awaitEachGesture state machine per
+            // item rather than two gesture detectors layered on the same node.
             val haptics = LocalHapticFeedback.current
-            var draggedNavTab by remember { mutableStateOf<TopTab?>(null) }
-            var dragNavPointerScreenPos by remember { mutableStateOf(Offset.Zero) }
-            var dragOverNavTab by remember { mutableStateOf<TopTab?>(null) }
-            val navTabBounds = remember { mutableStateMapOf<TopTab, Rect>() }
 
             Row(
                 modifier = Modifier.fillMaxWidth().height(64.dp),
@@ -145,75 +138,64 @@ fun MainShell(
                 val hierarchy = backStack.value?.destination?.hierarchy
                 navTabs.forEach { tab ->
                     val isSelected = hierarchy?.any { it.route == tab.route } == true
-                    val isDragSource = draggedNavTab == tab
-                    val isDropTarget = draggedNavTab != null && dragOverNavTab == tab && !isDragSource
+                    val isArmed = armedNavTab == tab
+                    val isReplaceTarget = armedNavTab != null && !isArmed
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            .onGloballyPositioned { coords ->
-                                val loc = IntArray(2)
-                                view.getLocationOnScreen(loc)
-                                val topLeft = coords.localToRoot(Offset.Zero) + Offset(loc[0].toFloat(), loc[1].toFloat())
-                                navTabBounds[tab] = Rect(topLeft, coords.size.toSize())
-                            }
-                            .graphicsLayer {
-                                alpha  = if (isDragSource) 0.4f else 1f
-                                scaleX = if (isDropTarget) 1.15f else 1f
-                                scaleY = if (isDropTarget) 1.15f else 1f
-                            }
-                            .pointerInput(tab.route) {
-                                detectTapGestures(
-                                    onTap = {
-                                        navController.navigate(tab.route) {
-                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                            launchSingleTop = true
-                                            restoreState    = true
+                            .then(
+                                if (isArmed) Modifier.background(AccentCoral.copy(alpha = 0.14f))
+                                else if (isReplaceTarget) Modifier.background(AccentCoral.copy(alpha = 0.06f))
+                                else Modifier
+                            )
+                            // User-requested: hold a nav tab for 3s to arm it, then
+                            // tap another one to swap their positions - a single
+                            // gesture detector per item (tap vs. hold-to-arm decided
+                            // by how long the same down/up pair lasts), not a
+                            // continuous drag, so there's no cross-item pointer
+                            // tracking to get wrong.
+                            // Keyed on navOrderCsv.value (not just tab.route): this
+                            // coroutine closes over navTabs, a plain recomputed val,
+                            // not a State-backed read - a tab whose slot doesn't move
+                            // in a swap would otherwise keep running the pointerInput
+                            // launched before that swap and compute fromIdx/toIdx
+                            // against the stale pre-swap list on its own next use.
+                            // Not keyed on armedNavTab itself - awaitEachGesture
+                            // already loops forever and re-reads the current
+                            // armedNavTab value at the start of each new tap.
+                            .pointerInput(tab.route, navOrderCsv.value) {
+                                awaitEachGesture {
+                                    awaitFirstDown()
+                                    val releasedEarly = withTimeoutOrNull(NAV_HOLD_TO_ARM_MS) { waitForUpOrCancellation() }
+                                    if (releasedEarly != null) {
+                                        val armed = armedNavTab
+                                        if (armed != null) {
+                                            if (armed != tab) {
+                                                val fromIdx = navTabs.indexOf(armed)
+                                                val toIdx = navTabs.indexOf(tab)
+                                                val newOrder = navTabs.toMutableList()
+                                                newOrder[fromIdx] = tab
+                                                newOrder[toIdx] = armed
+                                                shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
+                                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            }
+                                            armedNavTab = null
+                                        } else {
+                                            navController.navigate(tab.route) {
+                                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                                launchSingleTop = true
+                                                restoreState    = true
+                                            }
                                         }
-                                    },
-                                )
-                            }
-                            // User-requested: hold, drag, and drop a nav tab onto
-                            // another one to swap their positions. Coexists with the
-                            // detectTapGestures above the same way DiaryHeader's does
-                            // - a plain short tap is never claimed by a long-press
-                            // detector, so ordinary navigation still works untouched.
-                            .pointerInput(tab.route) {
-                                detectDragGesturesAfterLongPress(
-                                    onDragStart = { localOffset ->
+                                    } else {
                                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        draggedNavTab = tab
-                                        val origin = navTabBounds[tab]?.topLeft ?: Offset.Zero
-                                        dragNavPointerScreenPos = origin + localOffset
-                                        dragOverNavTab = navTabBounds.entries.firstOrNull { it.value.contains(dragNavPointerScreenPos) }?.key
-                                    },
-                                    onDrag = { change, dragAmount ->
-                                        change.consume()
-                                        dragNavPointerScreenPos += dragAmount
-                                        dragOverNavTab = navTabBounds.entries.firstOrNull { it.value.contains(dragNavPointerScreenPos) }?.key
-                                    },
-                                    onDragEnd = {
-                                        val from = draggedNavTab
-                                        val to = dragOverNavTab
-                                        if (from != null && to != null && from != to) {
-                                            val fromIdx = navTabs.indexOf(from)
-                                            val toIdx = navTabs.indexOf(to)
-                                            val newOrder = navTabs.toMutableList()
-                                            newOrder[fromIdx] = to
-                                            newOrder[toIdx] = from
-                                            shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
-                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        }
-                                        draggedNavTab = null
-                                        dragOverNavTab = null
-                                    },
-                                    onDragCancel = {
-                                        draggedNavTab = null
-                                        dragOverNavTab = null
-                                    },
-                                )
+                                        armedNavTab = if (armedNavTab == tab) null else tab
+                                        waitForUpOrCancellation()
+                                    }
+                                }
                             },
                     ) {
                         Icon(

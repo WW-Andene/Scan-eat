@@ -41,6 +41,17 @@ internal fun HydrationRingAndControls(
     onRemoveGlass: () -> Unit,
     onAddGlass: () -> Unit,
 ) {
+    // User-reported: every top-level composable below (ring, glass grid, goal-
+    // reached banner, -/+ row, footer text) was emitted directly into this
+    // function's caller - a single `item { HydrationRingAndControls(...) }` in
+    // HydrationScreen's LazyColumn - with no Column of its own. A LazyColumn
+    // item's content stacks multiple root children top-to-bottom with zero gap
+    // between them (the LazyColumn's own verticalArrangement=spacedBy(Spacing.M)
+    // only applies BETWEEN separate item{} blocks, not within one), so the -/+
+    // buttons ended up glued directly against the glass grid above and the
+    // footer text below. Explicit Column + spacedBy gives this its own internal
+    // rhythm, matching the outer LazyColumn's own Spacing.M gap.
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.M)) {
     // Big ring
     Box(contentAlignment = Alignment.Center, modifier = Modifier.size(200.dp)) {
         Box(
@@ -144,4 +155,5 @@ internal fun HydrationRingAndControls(
         style = MaterialTheme.typography.bodySmall,
         color = OnBackground.copy(0.4f),
     )
+    }
 }
