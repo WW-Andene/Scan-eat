@@ -120,7 +120,7 @@ fun BiolismScreen(gateViewModel: BiolismProfileViewModel = hiltViewModel()) {
             shadowElevation = 0.dp,
             modifier        = Modifier
                 .fillMaxWidth()
-                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {

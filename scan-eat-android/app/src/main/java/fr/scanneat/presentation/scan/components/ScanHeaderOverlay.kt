@@ -125,7 +125,7 @@ internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPrevi
     ) {
         Surface(
             modifier = Modifier
-                .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(24.dp))
                 .clip(RoundedCornerShape(24.dp)),
             shape = RoundedCornerShape(24.dp),
             color = SurfaceVariant.copy(alpha = StandardCardAlpha),

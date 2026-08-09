@@ -61,7 +61,7 @@ private fun LetterGradeChip(label: String, grade: String) {
 
 @Composable
 private fun ScoreChip(label: String, color: Color) {
-    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(alpha = 0.15f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint).clip(RoundedCornerShape(CardRadius.CONTROL))) {
+    Surface(shape = RoundedCornerShape(CardRadius.CONTROL), color = color.copy(alpha = 0.15f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL)).clip(RoundedCornerShape(CardRadius.CONTROL))) {
         Text(
             label,
             style = MaterialTheme.typography.labelMedium,

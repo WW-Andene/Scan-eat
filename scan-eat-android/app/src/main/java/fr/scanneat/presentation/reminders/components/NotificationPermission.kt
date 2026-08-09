@@ -93,7 +93,7 @@ internal fun PermissionBanner(permissionGranted: Boolean, permanentlyDenied: Boo
     if (!permissionGranted) {
         Surface(
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                 .clip(RoundedCornerShape(CardRadius.CONTROL)),
             color = AccentCoral.copy(alpha = 0.10f), shape = RoundedCornerShape(CardRadius.CONTROL),
             shadowElevation = 0.dp,

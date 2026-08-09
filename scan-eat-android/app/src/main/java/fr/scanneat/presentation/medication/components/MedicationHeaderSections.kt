@@ -65,7 +65,7 @@ internal fun MedicationInteractionWarningBanner(warning: InteractionWarning) {
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticRed().copy(0.1f),
         modifier = Modifier.fillMaxWidth()
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         // app-audit §E5: a drug-interaction warning (anticoagulant/NSAID, MAOI/SSRI,
         // etc.) is exactly the safety-relevant surface ErrorBanner/CautionBanner
@@ -100,7 +100,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
         color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shadowElevation = 0.dp,
     ) {

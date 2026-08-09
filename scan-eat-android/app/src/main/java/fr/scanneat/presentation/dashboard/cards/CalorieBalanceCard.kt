@@ -84,7 +84,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             // bug ScanEatCard.kt's own comment documents and fixes. Matched here:
             // tinted Modifier.shadow + forced .clip() + shadowElevation = 0.dp.
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                 .clip(RoundedCornerShape(CardRadius.PROMINENT)),
             shape = RoundedCornerShape(CardRadius.PROMINENT),
             color = Color.Transparent,
@@ -191,7 +191,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 .align(Alignment.TopEnd)
                 .offset(x = 8.dp, y = (-10).dp)
                 .size(46.dp)
-                .shadow(elevation = 6.dp, shape = RoundedCornerShape(50), ambientColor = ShadowTint, spotColor = ShadowTint),
+                .shadow(elevation = 6.dp, shape = RoundedCornerShape(50)),
             shape = RoundedCornerShape(50),
             color = AccentCoral,
             shadowElevation = 0.dp,

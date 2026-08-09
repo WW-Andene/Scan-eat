@@ -30,7 +30,7 @@ internal fun HydrationWeeklyChart(weeklyIntake: List<Pair<LocalDate, Int>>, goal
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
         color = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shadowElevation = 0.dp,
     ) {

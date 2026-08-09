@@ -103,7 +103,7 @@ internal fun HydrationRingAndControls(
             Surface(
                 shape = RoundedCornerShape(CardRadius.CONTROL), color = semanticGreen().copy(0.15f),
                 modifier = Modifier
-                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shadowElevation = 0.dp,
             ) {

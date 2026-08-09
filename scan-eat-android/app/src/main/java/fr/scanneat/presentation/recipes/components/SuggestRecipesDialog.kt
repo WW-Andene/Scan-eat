@@ -186,7 +186,7 @@ internal fun SuggestRecipesDialog(
                                 shape = RoundedCornerShape(10.dp), color = OnBackground.copy(0.05f),
                                 onClick = { onPick(idea) },
                                 modifier = Modifier.fillMaxWidth()
-                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(10.dp), ambientColor = ShadowTint, spotColor = ShadowTint)
+                                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(10.dp))
                                     .clip(RoundedCornerShape(10.dp)),
                                 // app-audit §E5: matching AddDiaryEntryDialog's
                                 // list-row elevation - had none.

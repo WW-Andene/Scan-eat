@@ -76,7 +76,7 @@ private val KETOSIS_CAUTIONS: Map<String, Pair<String, String>> = mapOf(
 private fun CautionBanner(text: String) {
     Surface(
         modifier = Modifier.fillMaxWidth()
-            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL)),
         shape = RoundedCornerShape(CardRadius.CONTROL),
         color = semanticAmber().copy(alpha = 0.12f),

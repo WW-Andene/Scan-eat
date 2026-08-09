@@ -60,7 +60,7 @@ internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, o
             .padding(horizontal = Spacing.L),
     ) {
         Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(10.dp))) {
-            Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(10.dp), ambientColor = ShadowTint, spotColor = ShadowTint).clip(RoundedCornerShape(10.dp))) {
+            Surface(shape = RoundedCornerShape(10.dp), color = Background.copy(0.7f), shadowElevation = 0.dp, modifier = Modifier.shadow(elevation = 3.dp, shape = RoundedCornerShape(10.dp)).clip(RoundedCornerShape(10.dp))) {
                 Column(Modifier.padding(horizontal = Spacing.SM, vertical = 6.dp)) {
                     Text(pluralStringResource(R.plurals.scan_photo_count, images.size, images.size), style = MaterialTheme.typography.labelSmall, color = Color.White.copy(0.8f))
                     Spacer(Modifier.height(Spacing.S))

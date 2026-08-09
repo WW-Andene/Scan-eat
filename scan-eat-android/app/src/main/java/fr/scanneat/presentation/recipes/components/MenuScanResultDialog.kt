@@ -57,7 +57,7 @@ internal fun MenuScanResultDialog(dishes: List<MenuDish>, onDismiss: () -> Unit)
                         Surface(
                             shape = RoundedCornerShape(CardRadius.CONTROL), color = OnBackground.copy(0.05f),
                             modifier = Modifier.fillMaxWidth()
-                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                                .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                                 .clip(RoundedCornerShape(CardRadius.CONTROL)),
                             // app-audit §E5: matching the dialog list-row
                             // elevation established elsewhere - had none.

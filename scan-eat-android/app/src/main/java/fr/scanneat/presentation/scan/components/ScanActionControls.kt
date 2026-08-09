@@ -111,7 +111,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
                 shape = RoundedCornerShape(CardRadius.PROMINENT),
                 color = SurfaceVariant.copy(alpha = StandardCardAlpha),
                 modifier = Modifier
-                    .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                     .clip(RoundedCornerShape(CardRadius.PROMINENT))
                     .combinedClickable(
                         onClick = onClick,
@@ -144,7 +144,7 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
                     shape = RoundedCornerShape(20.dp),
                     color = SurfaceVariant.copy(alpha = StandardCardAlpha),
                     modifier = Modifier
-                        .shadow(elevation = 3.dp, shape = RoundedCornerShape(20.dp), ambientColor = ShadowTint, spotColor = ShadowTint)
+                        .shadow(elevation = 3.dp, shape = RoundedCornerShape(20.dp))
                         .clip(RoundedCornerShape(20.dp)),
                     shadowElevation = 0.dp,
                 ) {

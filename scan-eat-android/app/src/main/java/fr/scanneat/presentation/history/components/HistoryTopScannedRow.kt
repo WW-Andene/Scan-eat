@@ -26,7 +26,7 @@ internal fun HistoryTopScannedRow(topScanned: List<Triple<String, Int, Long>>, o
                 onClick  = { if (dbId > 0) onOpenResult(dbId) },
                 modifier = Modifier.weight(1f)
                     .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
-                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
                     .clip(RoundedCornerShape(CardRadius.CONTROL)),
                 shape    = RoundedCornerShape(CardRadius.CONTROL),
                 // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).

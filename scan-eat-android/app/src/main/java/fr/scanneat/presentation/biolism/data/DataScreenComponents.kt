@@ -79,7 +79,7 @@ internal fun BioCard(
             // match the shadow's rounded outline on every rendering path. Shadow also
             // now tinted (Modifier.shadow) instead of Surface's untinted shadowElevation.
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = RoundedCornerShape(CardRadius.CARD), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .shadow(elevation = if (emphasized) 10.dp else 6.dp, shape = RoundedCornerShape(CardRadius.CARD))
                 .clip(RoundedCornerShape(CardRadius.CARD)),
             shadowElevation = 0.dp,
         ) {
