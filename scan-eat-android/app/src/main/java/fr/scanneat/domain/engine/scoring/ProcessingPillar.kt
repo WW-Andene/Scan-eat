@@ -42,6 +42,17 @@ fun inferNovaClassWithConfidence(product: Product): NovaInference {
     if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.size <= 2 && ings.size <= 10)
         return NovaInference(NovaClass.PROCESSED, NovaConfidence.MEDIUM)
 
+    // Previously fell straight to ULTRA_PROCESSED/LOW past 10 ingredients even
+    // with zero additive/cosmetic/UPF evidence - a trail mix, mixed-vegetable
+    // soup, or muesli with 11+ whole-food ingredients and nothing else
+    // suspicious got NOVA-4-penalized purely for ingredient count, with no
+    // actual evidence of ultra-processing. A long whole-food list is weak
+    // evidence either way, not proof of ultra-processing, so keep it at
+    // PROCESSED (not UNPROCESSED/CULINARY - it's still a composite product)
+    // with LOW confidence rather than jumping two full NOVA classes.
+    if (cosmetics.isEmpty() && upfMarkers.isEmpty() && additives.isEmpty())
+        return NovaInference(NovaClass.PROCESSED, NovaConfidence.LOW)
+
     val hasPositiveEvidence = cosmetics.isNotEmpty() || upfMarkers.isNotEmpty()
     return NovaInference(NovaClass.ULTRA_PROCESSED, if (hasPositiveEvidence) NovaConfidence.MEDIUM else NovaConfidence.LOW)
 }
