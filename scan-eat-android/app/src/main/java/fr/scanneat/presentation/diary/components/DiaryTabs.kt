@@ -22,6 +22,21 @@ internal enum class DiaryTab(val labelRes: Int, val icon: androidx.compose.ui.gr
     EXPENSES(R.string.diary_tab_expenses, TablerIcons.FileInvoice),
 }
 
+internal val DEFAULT_PRIMARY_DIARY_TABS = listOf(DiaryTab.MEALS, DiaryTab.WEIGHT, DiaryTab.WATER)
+
+/** Parses UserPreferences.diaryPrimaryTabsOrder's stored CSV of [DiaryTab] names
+ *  back into an ordered list — falls back to [DEFAULT_PRIMARY_DIARY_TABS] for a
+ *  blank/first-run value or anything that doesn't cleanly resolve to exactly
+ *  three distinct tabs (a stale value from a future app version with a
+ *  different primary-tab count, corruption, etc). */
+internal fun parsePrimaryDiaryTabs(csv: String): List<DiaryTab> {
+    if (csv.isBlank()) return DEFAULT_PRIMARY_DIARY_TABS
+    val parsed = csv.split(",").mapNotNull { name -> DiaryTab.entries.firstOrNull { it.name == name.trim() } }.distinct()
+    return if (parsed.size == DEFAULT_PRIMARY_DIARY_TABS.size) parsed else DEFAULT_PRIMARY_DIARY_TABS
+}
+
+internal fun serializePrimaryDiaryTabs(tabs: List<DiaryTab>): String = tabs.joinToString(",") { it.name }
+
 /** Bundle doesn't natively round-trip an enum - process death (a low-memory
  *  background kill, the most common reason Android recreates an Activity)
  *  otherwise silently reset whichever Journal sub-tab (Weight/Water/Activity/

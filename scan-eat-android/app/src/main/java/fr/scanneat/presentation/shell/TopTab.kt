@@ -32,6 +32,20 @@ sealed class TopTab(val route: String, @StringRes val labelRes: Int, val icon: I
 
 val TOP_TABS = listOf(TopTab.Dashboard, TopTab.Diary, TopTab.Scan, TopTab.Biolism, TopTab.Settings)
 
+/** Parses UserPreferences.navTabOrder's stored CSV of [TopTab.route]s back into
+ *  an ordered list of [TOP_TABS] — falls back to [TOP_TABS]'s own default order
+ *  for a blank/first-run value or anything that doesn't cleanly resolve to
+ *  every current tab exactly once (a stale value from a future app version
+ *  with a different tab set, corruption, etc). */
+fun parseTopTabOrder(csv: String): List<TopTab> {
+    if (csv.isBlank()) return TOP_TABS
+    val byRoute = TOP_TABS.associateBy { it.route }
+    val parsed = csv.split(",").mapNotNull { byRoute[it.trim()] }.distinct()
+    return if (parsed.size == TOP_TABS.size) parsed else TOP_TABS
+}
+
+fun serializeTopTabOrder(tabs: List<TopTab>): String = tabs.joinToString(",") { it.route }
+
 // Tab root routes — bottom nav visible, back arrow hidden
 val TAB_ROOT_ROUTES = TOP_TABS.map { it.route }.toSet()
 

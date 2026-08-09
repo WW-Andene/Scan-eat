@@ -60,6 +60,17 @@ class DiaryViewModel @Inject constructor(
     val currencySymbol: StateFlow<String> = prefs.currencySymbol
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "€")
 
+    // User-requested: long-press a Journal overflow tab (Activity/Fasting/
+    // Treatment/Expenses) in the "more" dropdown and drag it onto one of the
+    // three always-visible header tabs (Meals/Weight/Water) to swap it in.
+    // Persisted (not just session state) so the swap survives app restart,
+    // same as every other Settings-level preference.
+    val primaryDiaryTabsOrder: StateFlow<String> = prefs.diaryPrimaryTabsOrder
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    fun setPrimaryDiaryTabsOrder(csv: String) {
+        viewModelScope.launch { runCatching { prefs.setDiaryPrimaryTabsOrder(csv) } }
+    }
+
     // User-requested: "what did today's 3 eggs actually cost me" - derives an
     // estimated cost per logged entry from whatever price/weight the user
     // already entered for that same barcode in PriceEntryCard (Result screen),

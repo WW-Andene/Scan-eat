@@ -75,6 +75,13 @@ class UserPreferences @Inject constructor(
         val KEY_PROFILE_MENSTRUATING = booleanPreferencesKey("profile_menstruating")
         val KEY_PROFILE_ALLERGENS    = stringPreferencesKey("profile_allergens") // comma-separated
         val KEY_PROFILE_CONDITIONS   = stringPreferencesKey("profile_conditions") // comma-separated
+        // User-requested: long-press-drag-to-reorder for Journal's header tabs and
+        // the bottom nav — both stored as opaque comma-separated identifiers (enum
+        // name / route) here, parsed against the current tab set at the call site,
+        // so this data-layer file doesn't need to depend on presentation-layer
+        // enums. Empty string means "no custom order saved yet, use the default".
+        val KEY_DIARY_PRIMARY_TABS   = stringPreferencesKey("diary_primary_tabs")
+        val KEY_NAV_TAB_ORDER        = stringPreferencesKey("nav_tab_order")
     }
 
     // ---- API / app settings ----
@@ -153,6 +160,14 @@ class UserPreferences @Inject constructor(
      * for as long as it stays enabled - opt-in rather than on-by-default.
      */
     val animatedBackground: Flow<Boolean> = storeData.map { it[KEY_ANIMATED_BACKGROUND] ?: false }.distinctUntilChanged()
+
+    /** Custom drag-and-drop order for Journal's always-visible header tabs — see [KEY_DIARY_PRIMARY_TABS]. */
+    val diaryPrimaryTabsOrder: Flow<String> = storeData.map { it[KEY_DIARY_PRIMARY_TABS] ?: "" }.distinctUntilChanged()
+    suspend fun setDiaryPrimaryTabsOrder(csv: String) = store.edit { it[KEY_DIARY_PRIMARY_TABS] = csv }
+
+    /** Custom drag-and-drop order for the bottom nav's tabs — see [KEY_NAV_TAB_ORDER]. */
+    val navTabOrder: Flow<String> = storeData.map { it[KEY_NAV_TAB_ORDER] ?: "" }.distinctUntilChanged()
+    suspend fun setNavTabOrder(csv: String) = store.edit { it[KEY_NAV_TAB_ORDER] = csv }
 
     /**
      * Longest consecutive-day Activité streak ever reached - a persisted high-water

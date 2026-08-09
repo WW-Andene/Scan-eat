@@ -4,6 +4,9 @@ import compose.icons.tablericons.ArrowLeft
 import compose.icons.tablericons.Check
 import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -18,10 +22,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import fr.scanneat.R
@@ -40,6 +53,13 @@ internal fun BoxScope.DiaryHeader(
     onBack: () -> Unit,
     activeTab: DiaryTab,
     onTabChange: (DiaryTab) -> Unit,
+    // User-requested: the three always-visible tabs were a fixed literal
+    // (MEALS/WEIGHT/WATER) - now caller-owned so a tab long-pressed and
+    // dragged out of the "more" dropdown below can swap into one of these
+    // slots and have that choice persist (see DiaryScreen's wiring to
+    // DiaryViewModel.primaryDiaryTabsOrder).
+    primaryTabs: List<DiaryTab>,
+    onPrimaryTabsChange: (List<DiaryTab>) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -64,7 +84,7 @@ internal fun BoxScope.DiaryHeader(
             shadowElevation = 0.dp,
             modifier        = Modifier
                 .fillMaxWidth()
-                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
@@ -90,14 +110,40 @@ internal fun BoxScope.DiaryHeader(
                 // forced to Modifier.weight(1f) before that (see history) - a full
                 // horizontally-scrollable 7-tab row still didn't reliably fit any phone
                 // width, which is why only 3 are direct buttons here, not all 7.
-                val primaryTabs = listOf(DiaryTab.MEALS, DiaryTab.WEIGHT, DiaryTab.WATER)
                 val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs }
+
+                val view = LocalView.current
+                val haptics = LocalHapticFeedback.current
+                // Screen-space (not window-space) tracking throughout, since the
+                // DropdownMenu below renders in its own Android PopupWindow — a
+                // separate window from the Row/Surface here, so plain Compose
+                // window-relative coordinates from the two subtrees aren't directly
+                // comparable. view.getLocationOnScreen() + LayoutCoordinates.localToRoot()
+                // together give an absolute screen position for a node regardless of
+                // which window it's actually drawn in, which IS comparable across
+                // the popup/main-window boundary.
+                var draggedTab by remember { mutableStateOf<DiaryTab?>(null) }
+                var dragPointerScreenPos by remember { mutableStateOf(Offset.Zero) }
+                var dragOverTab by remember { mutableStateOf<DiaryTab?>(null) }
+                val primaryTabBounds = remember { mutableStateMapOf<DiaryTab, Rect>() }
+
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                 ) {
                     primaryTabs.forEach { tab ->
-                        DiaryTabButton(tab = tab, isActive = tab == activeTab, onClick = { onTabChange(tab) })
+                        DiaryTabButton(
+                            tab = tab,
+                            isActive = tab == activeTab,
+                            isDropTarget = draggedTab != null && dragOverTab == tab,
+                            onClick = { onTabChange(tab) },
+                            modifier = Modifier.onGloballyPositioned { coords ->
+                                val loc = IntArray(2)
+                                view.getLocationOnScreen(loc)
+                                val topLeft = coords.localToRoot(Offset.Zero) + Offset(loc[0].toFloat(), loc[1].toFloat())
+                                primaryTabBounds[tab] = Rect(topLeft, coords.size.toSize())
+                            },
+                        )
                     }
                     var tabMenuExpanded by remember { mutableStateOf(false) }
                     val overflowActive = activeTab in overflowTabs
@@ -106,20 +152,21 @@ internal fun BoxScope.DiaryHeader(
                             onClick = { tabMenuExpanded = true },
                             shape = RoundedCornerShape(8.dp),
                             color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
-                            border = if (overflowActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+                            border = if (overflowActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
                         ) {
                             Row(
                                 Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(Spacing.S),
                             ) {
+                                // User-requested: this used to also show the active overflow
+                                // tab's text label next to its icon, which was often wide
+                                // enough that the whole tab row needed the horizontalScroll
+                                // above just to reach it - icon-only reads unambiguously
+                                // enough on its own (same as every primary tab button when
+                                // scrolled off-screen) without forcing that scroll.
                                 if (overflowActive) {
-                                    Icon(activeTab.icon, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
-                                    Text(
-                                        stringResource(activeTab.labelRes),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = AccentCoral, fontWeight = FontWeight.Bold,
-                                    )
+                                    Icon(activeTab.icon, contentDescription = stringResource(activeTab.labelRes), tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
                                 } else {
                                     Text(
                                         stringResource(R.string.diary_tab_more),
@@ -135,7 +182,52 @@ internal fun BoxScope.DiaryHeader(
                             overflowTabs.forEach { tab ->
                                 val isActive = tab == activeTab
                                 val label = stringResource(tab.labelRes)
+                                var itemScreenOrigin by remember(tab) { mutableStateOf(Offset.Zero) }
                                 DropdownMenuItem(
+                                    modifier = Modifier
+                                        .onGloballyPositioned { coords ->
+                                            val loc = IntArray(2)
+                                            view.getLocationOnScreen(loc)
+                                            itemScreenOrigin = coords.localToRoot(Offset.Zero) + Offset(loc[0].toFloat(), loc[1].toFloat())
+                                        }
+                                        // User-requested: hold, drag, and drop an overflow tab
+                                        // (Activity/Fasting/Treatment/Expenses) onto one of the
+                                        // three always-visible header slots above to swap it in.
+                                        // detectDragGesturesAfterLongPress ignores a plain short
+                                        // tap entirely (no long-press = no consumption), so this
+                                        // coexists with DropdownMenuItem's own onClick below
+                                        // instead of stealing normal taps from it.
+                                        .pointerInput(tab) {
+                                            detectDragGesturesAfterLongPress(
+                                                onDragStart = { localOffset ->
+                                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    draggedTab = tab
+                                                    dragPointerScreenPos = itemScreenOrigin + localOffset
+                                                    dragOverTab = primaryTabBounds.entries.firstOrNull { it.value.contains(dragPointerScreenPos) }?.key
+                                                },
+                                                onDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    dragPointerScreenPos += dragAmount
+                                                    dragOverTab = primaryTabBounds.entries.firstOrNull { it.value.contains(dragPointerScreenPos) }?.key
+                                                },
+                                                onDragEnd = {
+                                                    val target = dragOverTab
+                                                    val dragged = draggedTab
+                                                    if (target != null && dragged != null) {
+                                                        onPrimaryTabsChange(primaryTabs.map { if (it == target) dragged else it })
+                                                        onTabChange(dragged)
+                                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    }
+                                                    draggedTab = null
+                                                    dragOverTab = null
+                                                    tabMenuExpanded = false
+                                                },
+                                                onDragCancel = {
+                                                    draggedTab = null
+                                                    dragOverTab = null
+                                                },
+                                            )
+                                        },
                                     text = { Text(label) },
                                     leadingIcon = { Icon(tab.icon, null, tint = if (isActive) AccentCoral else OnBackground.copy(0.6f)) },
                                     trailingIcon = { if (isActive) Icon(TablerIcons.Check, null, tint = AccentCoral) },
@@ -151,15 +243,32 @@ internal fun BoxScope.DiaryHeader(
 }
 
 @Composable
-private fun DiaryTabButton(tab: DiaryTab, isActive: Boolean, onClick: () -> Unit) {
+private fun DiaryTabButton(
+    tab: DiaryTab,
+    isActive: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isDropTarget: Boolean = false,
+) {
     Surface(
-        onClick = onClick,
+        // Plain detectTapGestures instead of Surface's own onClick param so this
+        // stays a normal tap target while a drag is in flight elsewhere in the
+        // header (Surface's onClick/clickable would otherwise add its own
+        // press/ripple gesture detector on top of the onGloballyPositioned-only
+        // modifier this needs for drop-target bounds tracking).
+        modifier = modifier.pointerInput(tab) { detectTapGestures(onTap = { onClick() }) },
         shape = RoundedCornerShape(8.dp),
-        color = if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
-        border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+        color = if (isDropTarget) AccentCoral.copy(alpha = 0.28f) else if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
+        border = if (isDropTarget) BorderStroke(2.dp, AccentCoral) else if (isActive) BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
     ) {
         Row(
-            Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
+            Modifier
+                .heightIn(min = 48.dp)
+                .padding(horizontal = Spacing.M)
+                .graphicsLayer {
+                    scaleX = if (isDropTarget) 1.1f else 1f
+                    scaleY = if (isDropTarget) 1.1f else 1f
+                },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Spacing.S),
         ) {

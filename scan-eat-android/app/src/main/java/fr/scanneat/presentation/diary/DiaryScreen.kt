@@ -22,6 +22,8 @@ import fr.scanneat.presentation.diary.components.DiaryHeaderHeight
 import fr.scanneat.presentation.diary.components.DiaryTab
 import fr.scanneat.presentation.diary.components.DiaryTabSaver
 import fr.scanneat.presentation.diary.components.MealsTab
+import fr.scanneat.presentation.diary.components.parsePrimaryDiaryTabs
+import fr.scanneat.presentation.diary.components.serializePrimaryDiaryTabs
 import fr.scanneat.presentation.expenses.ExpensesScreen
 import fr.scanneat.presentation.fasting.FastingScreen
 import fr.scanneat.presentation.hydration.HydrationScreen
@@ -62,6 +64,8 @@ fun DiaryScreen(
 ) {
     var activeTab by rememberSaveable(stateSaver = DiaryTabSaver) { mutableStateOf(DiaryTab.MEALS) }
     var showAddEntry by remember { mutableStateOf(false) }
+    val primaryTabsCsv = viewModel.primaryDiaryTabsOrder.collectAsStateWithLifecycle()
+    val primaryTabs = remember(primaryTabsCsv.value) { parsePrimaryDiaryTabs(primaryTabsCsv.value) }
 
     LaunchedEffect(pendingSelectedDate) {
         val date = pendingSelectedDate?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
@@ -132,6 +136,8 @@ fun DiaryScreen(
             onBack = onBack,
             activeTab = activeTab,
             onTabChange = { activeTab = it },
+            primaryTabs = primaryTabs,
+            onPrimaryTabsChange = { viewModel.setPrimaryDiaryTabsOrder(serializePrimaryDiaryTabs(it)) },
         )
 
         // Only Meals has a manual "search and log" entry point — the other tabs

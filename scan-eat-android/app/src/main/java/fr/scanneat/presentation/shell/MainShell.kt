@@ -6,6 +6,8 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -14,10 +16,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -37,6 +50,13 @@ fun MainShell(
 
     val showNav = HIDDEN_NAV_ROUTES.none { currentRoute == it }
     val bottomNavHazeState = remember { HazeState() }
+
+    // User-requested: long-press a nav tab and drag it onto another one to
+    // swap their positions - persisted via MainShellViewModel/UserPreferences
+    // so a custom layout survives an app restart.
+    val shellViewModel: MainShellViewModel = hiltViewModel()
+    val navOrderCsv = shellViewModel.navTabOrder.collectAsStateWithLifecycle()
+    val navTabs = remember(navOrderCsv.value) { parseTopTabOrder(navOrderCsv.value) }
 
     // True floating chrome: a Box, not a Scaffold, so AppNavGraph's own screens
     // fill the entire frame and the bottom nav is a z-ordered overlay on top of
@@ -92,48 +112,122 @@ fun MainShell(
             Surface(
                 shape           = RoundedCornerShape(CardRadius.PROMINENT),
                 color           = Color.Transparent,
-                // F16 (docs/design-audit-step6-color-atmosphere.md): tinted shadow via
-                // Modifier.shadow below, matching FloatingTopBar and ScanEatCard —
-                // Surface's own shadowElevation stays 0 so the two don't stack.
+                // MIUI-observed bug (see ScanEatCard.kt): ambientColor/spotColor-tinted
+                // Modifier.shadow renders as a solid, hard-edged grey rectangle instead
+                // of a soft shadow on some OEM skins. Reverted to the neutral default
+                // shadow color — Surface's own shadowElevation stays 0 so the two don't
+                // stack.
                 shadowElevation = 0.dp,
                 modifier        = Modifier
                     .fillMaxWidth()
-                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
+                    .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                     .clip(RoundedCornerShape(CardRadius.PROMINENT))
                     .hazeEffect(state = bottomNavHazeState, style = FrostedGlassStyle),
             ) {
-            NavigationBar(
-                containerColor = Color.Transparent,
-                tonalElevation = 0.dp,
-                windowInsets   = WindowInsets(0.dp),
-                modifier = Modifier.height(64.dp),
+            // Replaces Material3's NavigationBar/NavigationBarItem (which owns its
+            // own click/ripple gesture detection with no hook for a second,
+            // independent long-press-drag gesture on the same item) with a plain
+            // Row of custom items so drag-to-swap can be layered on cleanly - see
+            // DiaryTabButton's identical detectTapGestures-instead-of-onClick
+            // reasoning in DiaryHeader.kt.
+            val view = LocalView.current
+            val haptics = LocalHapticFeedback.current
+            var draggedNavTab by remember { mutableStateOf<TopTab?>(null) }
+            var dragNavPointerScreenPos by remember { mutableStateOf(Offset.Zero) }
+            var dragOverNavTab by remember { mutableStateOf<TopTab?>(null) }
+            val navTabBounds = remember { mutableStateMapOf<TopTab, Rect>() }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 val hierarchy = backStack.value?.destination?.hierarchy
-                TOP_TABS.forEach { tab ->
+                navTabs.forEach { tab ->
                     val isSelected = hierarchy?.any { it.route == tab.route } == true
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick  = {
-                            navController.navigate(tab.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                launchSingleTop = true
-                                restoreState    = true
+                    val isDragSource = draggedNavTab == tab
+                    val isDropTarget = draggedNavTab != null && dragOverNavTab == tab && !isDragSource
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .onGloballyPositioned { coords ->
+                                val loc = IntArray(2)
+                                view.getLocationOnScreen(loc)
+                                val topLeft = coords.localToRoot(Offset.Zero) + Offset(loc[0].toFloat(), loc[1].toFloat())
+                                navTabBounds[tab] = Rect(topLeft, coords.size.toSize())
                             }
-                        },
-                        icon  = { Icon(tab.icon, stringResource(tab.labelRes),
+                            .graphicsLayer {
+                                alpha  = if (isDragSource) 0.4f else 1f
+                                scaleX = if (isDropTarget) 1.15f else 1f
+                                scaleY = if (isDropTarget) 1.15f else 1f
+                            }
+                            .pointerInput(tab.route) {
+                                detectTapGestures(
+                                    onTap = {
+                                        navController.navigate(tab.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState    = true
+                                        }
+                                    },
+                                )
+                            }
+                            // User-requested: hold, drag, and drop a nav tab onto
+                            // another one to swap their positions. Coexists with the
+                            // detectTapGestures above the same way DiaryHeader's does
+                            // - a plain short tap is never claimed by a long-press
+                            // detector, so ordinary navigation still works untouched.
+                            .pointerInput(tab.route) {
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = { localOffset ->
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        draggedNavTab = tab
+                                        val origin = navTabBounds[tab]?.topLeft ?: Offset.Zero
+                                        dragNavPointerScreenPos = origin + localOffset
+                                        dragOverNavTab = navTabBounds.entries.firstOrNull { it.value.contains(dragNavPointerScreenPos) }?.key
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        dragNavPointerScreenPos += dragAmount
+                                        dragOverNavTab = navTabBounds.entries.firstOrNull { it.value.contains(dragNavPointerScreenPos) }?.key
+                                    },
+                                    onDragEnd = {
+                                        val from = draggedNavTab
+                                        val to = dragOverNavTab
+                                        if (from != null && to != null && from != to) {
+                                            val fromIdx = navTabs.indexOf(from)
+                                            val toIdx = navTabs.indexOf(to)
+                                            val newOrder = navTabs.toMutableList()
+                                            newOrder[fromIdx] = to
+                                            newOrder[toIdx] = from
+                                            shellViewModel.setNavTabOrder(serializeTopTabOrder(newOrder))
+                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        }
+                                        draggedNavTab = null
+                                        dragOverNavTab = null
+                                    },
+                                    onDragCancel = {
+                                        draggedNavTab = null
+                                        dragOverNavTab = null
+                                    },
+                                )
+                            },
+                    ) {
+                        Icon(
+                            tab.icon, stringResource(tab.labelRes),
                             tint = if (isSelected) AccentCoral else IconInactive,
-                            modifier = Modifier.size(IconSize.Nav)) },
-                        label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.size(IconSize.Nav),
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall,
                             color = if (isSelected) AccentCoral else IconInactive,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor   = AccentCoral,
-                            selectedTextColor   = AccentCoral,
-                            unselectedIconColor = IconInactive,
-                            unselectedTextColor = IconInactive,
-                            indicatorColor      = AccentCoral.copy(alpha = 0.12f),
-                        ),
-                    )
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
             }
             }
