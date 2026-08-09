@@ -153,16 +153,17 @@ fun ScanEatCard(
                 .blur(spec.elevation)
                 .background(ShadowTint.copy(alpha = 0.4f), shape),
         )
-        // User-reported: the card's fill should feel blurry/hazy like
-        // FloatingTopBar/MainShell's bottom nav (see FrostedGlassStyle in
-        // FloatingBars.kt) rather than a flat tint. A real backdrop blur there
-        // works because those bars sit on top of a HazeState registered on the
-        // screen's own scrolling content; a card IS that scrolling content, so
-        // there's nothing "behind" it in the same sense to optically blur. This
-        // is the scoped equivalent: the fill itself painted on its own blurred
-        // layer (clipped to shape, same as the Surface below), which softens
-        // just the fill's edges into a hazy feel without blurring [content].
-        Box(Modifier.matchParentSize().clip(shape).blur(3.dp).background(color))
+        // User-reported: a visibly separate, lighter rounded rectangle floating
+        // inside every card (Dashboard screenshot) - blur(3.dp) below had
+        // nothing behind it to actually blur (a card IS the screen's own
+        // scrolling content, unlike FloatingTopBar/bottom nav's real Haze
+        // backdrop blur), so RenderEffect sampled transparent pixels past this
+        // Box's own clipped edge and faded the opaque fill inward from it -
+        // shrinking the visible fill to a smaller box sitting inside the
+        // card's real boundary (drawn by the Surface's shadow/clip below),
+        // with the ambient background showing through the gap between them.
+        // Dropped: a flat fill inside the same clip has no such edge to fade.
+        Box(Modifier.matchParentSize().clip(shape).background(color))
         Surface(
             // Xiaomi/MIUI-observed bug (user screenshot, Light theme): Surface's shadow
             // is computed from [shape]'s outline and renders correctly rounded, but its
