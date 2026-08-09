@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.Product
+import fr.scanneat.util.formatDecimal
 
 // IBS, Crohn's/IBD and chronic diarrhea all share a real, sourced trigger:
 // high-fat meals slow gastric emptying and provoke the gastrocolic reflex
@@ -39,8 +40,8 @@ internal fun checkGastrointestinalConditions(
         if (highFat) {
             adjustments += PersonalAdjustment(
                 points = -2.0,
-                reason = if (lang == "en") "High fat (${product.nutrition.fatG} g/100 g) — fatty meals can trigger IBS symptoms via the gastrocolic reflex"
-                         else "Riche en matières grasses (${product.nutrition.fatG} g/100 g) — les repas gras peuvent déclencher des symptômes du SII via le réflexe gastro-colique",
+                reason = if (lang == "en") "High fat (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — fatty meals can trigger IBS symptoms via the gastrocolic reflex"
+                         else "Riche en matières grasses (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — les repas gras peuvent déclencher des symptômes du SII via le réflexe gastro-colique",
                 category = AdjustmentCategory.CONDITION,
             )
         }
@@ -62,16 +63,16 @@ internal fun checkGastrointestinalConditions(
         if (highFiber) {
             adjustments += PersonalAdjustment(
                 points = -2.0,
-                reason = if (lang == "en") "High fiber (${product.nutrition.fiberG} g/100 g) — a low-residue diet is commonly advised during a Crohn's/IBD flare (Crohn's & Colitis Foundation, NHS)"
-                         else "Riche en fibres (${product.nutrition.fiberG} g/100 g) — un régime pauvre en résidus est généralement conseillé lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation, NHS)",
+                reason = if (lang == "en") "High fiber (${product.nutrition.fiberG.formatDecimal(1)} g/100 g) — a low-residue diet is commonly advised during a Crohn's/IBD flare (Crohn's & Colitis Foundation, NHS)"
+                         else "Riche en fibres (${product.nutrition.fiberG.formatDecimal(1)} g/100 g) — un régime pauvre en résidus est généralement conseillé lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation, NHS)",
                 category = AdjustmentCategory.CONDITION,
             )
         }
         if (highFat) {
             adjustments += PersonalAdjustment(
                 points = -2.0,
-                reason = if (lang == "en") "High fat (${product.nutrition.fatG} g/100 g) — can worsen symptoms during a Crohn's/IBD flare (Crohn's & Colitis Foundation)"
-                         else "Riche en matières grasses (${product.nutrition.fatG} g/100 g) — peut aggraver les symptômes lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation)",
+                reason = if (lang == "en") "High fat (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — can worsen symptoms during a Crohn's/IBD flare (Crohn's & Colitis Foundation)"
+                         else "Riche en matières grasses (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — peut aggraver les symptômes lors d'une poussée de Crohn/MICI (Crohn's & Colitis Foundation)",
                 category = AdjustmentCategory.CONDITION,
             )
         }
@@ -126,8 +127,8 @@ internal fun checkGastrointestinalConditions(
         if (highFat) {
             adjustments += PersonalAdjustment(
                 points = -2.0,
-                reason = if (lang == "en") "High fat (${product.nutrition.fatG} g/100 g) — fatty/fried food can worsen diarrhea (NHS/Mayo Clinic diarrhea-diet guidance)"
-                         else "Riche en matières grasses (${product.nutrition.fatG} g/100 g) — les aliments gras/frits peuvent aggraver la diarrhée (recommandations NHS/Mayo Clinic)",
+                reason = if (lang == "en") "High fat (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — fatty/fried food can worsen diarrhea (NHS/Mayo Clinic diarrhea-diet guidance)"
+                         else "Riche en matières grasses (${product.nutrition.fatG.formatDecimal(1)} g/100 g) — les aliments gras/frits peuvent aggraver la diarrhée (recommandations NHS/Mayo Clinic)",
                 category = AdjustmentCategory.CONDITION,
             )
         }

@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.*
+import fr.scanneat.util.formatDecimal
 import kotlin.math.roundToInt
 
 // ============================================================================
@@ -158,7 +159,7 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // consumption level), so a comparably strong veto applies here too.
     val abv = n.alcoholPercentVol ?: 0.0
     if (abv > HIGH_ABV_THRESHOLD)
-        candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv}% vol) — no safe consumption level" else "Alcool fort (${abv}% vol) — aucun seuil de consommation sûr", 40)
+        candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool fort (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 40)
 
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }

@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.Product
+import fr.scanneat.util.formatDecimal
 
 // Diabetes, hypertension and kidney_disease - the three "metabolic/cardio"
 // health conditions checkHealthConditions handles via a flat nutrient
@@ -104,8 +105,8 @@ internal fun checkMetabolicConditions(
     if ("kidney_disease" in conditions && product.nutrition.proteinG >= kidneyProteinBar) {
         adjustments += PersonalAdjustment(
             points = -3.0,
-            reason = if (lang == "en") "High protein (${product.nutrition.proteinG} g/100 g) — caution advised for kidney disease"
-                     else "Protéines élevées (${product.nutrition.proteinG} g/100 g) — prudence recommandée en cas de maladie rénale",
+            reason = if (lang == "en") "High protein (${product.nutrition.proteinG.formatDecimal(1)} g/100 g) — caution advised for kidney disease"
+                     else "Protéines élevées (${product.nutrition.proteinG.formatDecimal(1)} g/100 g) — prudence recommandée en cas de maladie rénale",
             category = AdjustmentCategory.CONDITION,
         )
     }

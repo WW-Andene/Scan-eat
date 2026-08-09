@@ -1,6 +1,7 @@
 package fr.scanneat.domain.engine.scoring
 
 import fr.scanneat.domain.model.*
+import fr.scanneat.util.formatDecimal
 
 // ============================================================================
 // SECTION 7: PILLAR 3 — NEGATIVE NUTRIENTS (max 25)
@@ -83,9 +84,9 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val abv = n.alcoholPercentVol ?: 0.0
     val alcoholLabel = if (en) "Alcohol" else "Alcool"
     when {
-        abv > HIGH_ABV_THRESHOLD -> { score -= 12; deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -12.0, Severity.CRITICAL) }
-        abv > 5.0  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -9.0, Severity.CRITICAL) }
-        abv > 1.2  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -6.0, Severity.CRITICAL) }
+        abv > HIGH_ABV_THRESHOLD -> { score -= 12; deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv.formatDecimal(1)}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -12.0, Severity.CRITICAL) }
+        abv > 5.0  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv.formatDecimal(1)}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -9.0, Severity.CRITICAL) }
+        abv > 1.2  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv.formatDecimal(1)}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -6.0, Severity.CRITICAL) }
     }
 
     // Caffeine — EFSA sets 400mg/day as the safe upper limit for healthy
@@ -101,10 +102,10 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val caffeine = n.caffeineMg ?: 0.0
     val caffeineLabel = if (en) "Caffeine" else "Caféine"
     when {
-        caffeine > 300.0 -> { score -= 8; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine}mg/100g (" + (if (en) "well above EFSA single-dose caution level" else "bien au-delà du seuil de prudence EFSA par prise") + ")", -8.0, Severity.CRITICAL) }
-        caffeine > 150.0 -> { score -= 5; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine}mg/100g (" + (if (en) "above EFSA single-dose caution level (~200mg)" else "au-delà du seuil de prudence EFSA par prise (~200mg)") + ")", -5.0, Severity.MAJOR) }
-        caffeine > 80.0  -> { score -= 3; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine}mg/100g (" + (if (en) "high caffeine content" else "teneur élevée en caféine") + ")", -3.0, Severity.MODERATE) }
-        caffeine > 40.0  -> { score -= 1; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine}mg/100g (" + (if (en) "elevated caffeine content" else "teneur en caféine élevée") + ")", -1.0, Severity.MINOR) }
+        caffeine > 300.0 -> { score -= 8; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "well above EFSA single-dose caution level" else "bien au-delà du seuil de prudence EFSA par prise") + ")", -8.0, Severity.CRITICAL) }
+        caffeine > 150.0 -> { score -= 5; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "above EFSA single-dose caution level (~200mg)" else "au-delà du seuil de prudence EFSA par prise (~200mg)") + ")", -5.0, Severity.MAJOR) }
+        caffeine > 80.0  -> { score -= 3; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "high caffeine content" else "teneur élevée en caféine") + ")", -3.0, Severity.MODERATE) }
+        caffeine > 40.0  -> { score -= 1; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine.formatDecimal(1)}mg/100g (" + (if (en) "elevated caffeine content" else "teneur en caféine élevée") + ")", -1.0, Severity.MINOR) }
     }
 
     // Calorie density anomaly
