@@ -162,12 +162,19 @@ fun AppNavGraph(
                 onOpenCalendar       = { navController.navigate(AppRoutes.CALENDAR) },
                 onOpenFoodSearch     = { navController.navigate(AppRoutes.FOOD_SEARCH) },
                 onOpenExpenses       = {
-                    navController.getBackStackEntry(TopTab.Diary.route).savedStateHandle["diary_selected_tab"] = "EXPENSES"
+                    // User-reported crash: getBackStackEntry(TopTab.Diary.route) called
+                    // BEFORE navigate() throws IllegalArgumentException ("no destination
+                    // with this route is on the back stack") whenever Diary hasn't been
+                    // visited yet this session - tapping this widget straight from a
+                    // fresh Dashboard launch is exactly that case. navigate() itself
+                    // creates/restores the entry; currentBackStackEntry right after IS
+                    // that same entry, no separate route lookup needed.
                     navController.navigate(TopTab.Diary.route) {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
+                    navController.currentBackStackEntry?.savedStateHandle?.set("diary_selected_tab", "EXPENSES")
                 },
                 onOpenScan           = {
                     navController.navigate(TopTab.Scan.route) {
@@ -295,7 +302,11 @@ fun AppNavGraph(
                         launchSingleTop = true
                         restoreState = true
                     }
-                    navController.getBackStackEntry(TopTab.Diary.route).savedStateHandle["diary_selected_date"] = date.toString()
+                    // Same crash fix as onOpenExpenses above - currentBackStackEntry right
+                    // after navigate() IS the Diary entry just created/restored, no
+                    // separate getBackStackEntry(route) lookup (which can throw if Diary
+                    // was never visited this session) needed.
+                    navController.currentBackStackEntry?.savedStateHandle?.set("diary_selected_date", date.toString())
                 },
             )
         }
