@@ -916,6 +916,9 @@
     <string name="seasonal_fruits_title">Fruits</string>
     <string name="seasonal_vegetables_title">Légumes</string>
     <string name="seasonal_empty">Aucun produit de saison référencé pour ce mois.</string>
+    <string name="seasonal_pairings_title">S\'associe bien avec</string>
+    <string name="seasonal_pairings_empty">Pas de suggestion d\'association pour ce produit.</string>
+    <string name="seasonal_pairings_hint">Appuyez à nouveau pour voir les associations</string>
     <string name="diary_note_label">Note du jour</string>
     <string name="diary_cd_save_note">Sauver</string>
     <string name="diary_empty_body">Rien d\'enregistré. Scannez un produit et appuyez sur \'Logger\'.</string>
