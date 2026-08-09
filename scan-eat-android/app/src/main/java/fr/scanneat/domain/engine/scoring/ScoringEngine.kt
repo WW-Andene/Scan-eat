@@ -157,7 +157,7 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // WHO/IARC classify ethanol identically (Group 1 carcinogen, no safe
     // consumption level), so a comparably strong veto applies here too.
     val abv = n.alcoholPercentVol ?: 0.0
-    if (abv > 15.0)
+    if (abv > HIGH_ABV_THRESHOLD)
         candidates += VetoCondition(true, if (en) "High-proof alcohol (${abv}% vol) — no safe consumption level" else "Alcool fort (${abv}% vol) — aucun seuil de consommation sûr", 40)
 
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)

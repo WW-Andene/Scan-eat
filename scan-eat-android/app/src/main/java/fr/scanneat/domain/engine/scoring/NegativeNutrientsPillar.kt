@@ -6,6 +6,11 @@ import fr.scanneat.domain.model.*
 // SECTION 7: PILLAR 3 — NEGATIVE NUTRIENTS (max 25)
 // ============================================================================
 
+/** Shared with ScoringEngine.kt's high-proof veto — was duplicated as a
+ *  literal 15.0 in both places, so tuning one without the other would have
+ *  silently desynced the deduction from the veto it's meant to accompany. */
+internal const val HIGH_ABV_THRESHOLD = 15.0
+
 fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 25
@@ -78,7 +83,7 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
     val abv = n.alcoholPercentVol ?: 0.0
     val alcoholLabel = if (en) "Alcohol" else "Alcool"
     when {
-        abv > 15.0 -> { score -= 12; deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -12.0, Severity.CRITICAL) }
+        abv > HIGH_ABV_THRESHOLD -> { score -= 12; deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -12.0, Severity.CRITICAL) }
         abv > 5.0  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -9.0, Severity.CRITICAL) }
         abv > 1.2  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -6.0, Severity.CRITICAL) }
     }
