@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
@@ -140,19 +138,13 @@ fun ScanEatCard(
             glowAlpha = spec.glowAlpha,
         ),
     ) {
-        // User-reported: matched to the neomorphic reference sheet's directional
-        // light model (one consistent light source, one consistent shadow, not a
-        // symmetric ambient blur) - a soft shadow offset toward the bottom-left,
-        // drawn behind the Surface below rather than via Modifier.shadow's
-        // symmetric elevation shadow (kept on the Surface itself for the base
-        // lift; this adds the directional weight on top of it).
-        Box(
-            Modifier
-                .matchParentSize()
-                .offset(x = -(spec.elevation * 0.7f), y = spec.elevation * 0.9f)
-                .blur(spec.elevation)
-                .background(ShadowTint.copy(alpha = 0.4f), shape),
-        )
+        // Dropped the previous directional shadow layer (offset + Modifier.blur
+        // behind the Surface): Modifier.blur relies on RenderEffect, which
+        // silently no-ops on API < 31 / unsupported GPU drivers, leaving that
+        // offset ShadowTint box rendered hard-edged instead of blurred - a
+        // visible stray rectangle peeking out from the card corner. Surface's
+        // own .shadow() below (same approach FeatureTile already uses, which
+        // never showed this artifact) is the only shadow now.
         // User-reported: a visibly separate, lighter rounded rectangle floating
         // inside every card (Dashboard screenshot) - blur(3.dp) below had
         // nothing behind it to actually blur (a card IS the screen's own
