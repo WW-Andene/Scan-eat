@@ -21,6 +21,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.Restaurant
 import androidx.compose.material.icons.rounded.ThumbUp
+import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
@@ -73,7 +74,7 @@ fun HintIconButton(hints: ProductHints, modifier: Modifier = Modifier, iconSize:
     var showHints by remember { mutableStateOf(false) }
     val riskCount = hints.risks.size + hints.conditionRisks.size
     val hasRisks = riskCount > 0
-    val totalCount = hints.benefits.size + riskCount + hints.facts.size + hints.pairWell.size + hints.avoidPairing.size
+    val totalCount = hints.benefits.size + riskCount + hints.facts.size + hints.pairWell.size + hints.avoidPairing.size + hints.improvementTips.size
     val baseLabel = stringResource(R.string.hint_cd_open)
     val cd = when {
         hasRisks -> stringResource(R.string.hint_cd_open_with_risks, baseLabel, pluralStringResource(R.plurals.hint_cd_risks_count, riskCount, riskCount))
@@ -103,7 +104,7 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
     val red = semanticRed()
     val neutral = OnBackground.copy(0.7f)
     val isEmpty = hints.benefits.isEmpty() && hints.risks.isEmpty() && hints.conditionRisks.isEmpty() && hints.facts.isEmpty() &&
-        hints.keyInfo.isEmpty() && hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty()
+        hints.keyInfo.isEmpty() && hints.pairWell.isEmpty() && hints.avoidPairing.isEmpty() && hints.improvementTips.isEmpty()
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
@@ -132,6 +133,7 @@ fun HintPanel(hints: ProductHints, onDismiss: () -> Unit) {
                 section(stringResource(R.string.hint_section_information), hints.keyInfo, neutral, Icons.Rounded.Info)
                 section(stringResource(R.string.hint_section_risks), hints.risks, amber, TablerIcons.AlertTriangle)
                 section(stringResource(R.string.hint_section_condition_risks), hints.conditionRisks, red, TablerIcons.AlertCircle)
+                section(stringResource(R.string.hint_section_improve), hints.improvementTips, amber, Icons.Rounded.TrendingUp)
                 section(stringResource(R.string.hint_section_benefits), hints.benefits, green, Icons.Rounded.ThumbUp)
                 section(stringResource(R.string.hint_section_pair_well), hints.pairWell, green, Icons.Rounded.Restaurant)
                 section(stringResource(R.string.hint_section_avoid_pairing), hints.avoidPairing, amber, Icons.Rounded.Block)

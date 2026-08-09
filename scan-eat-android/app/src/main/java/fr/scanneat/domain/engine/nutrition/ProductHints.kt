@@ -1,5 +1,6 @@
 package fr.scanneat.domain.engine.nutrition
 
+import fr.scanneat.domain.engine.scoring.scoreProduct
 import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.Profile
 
@@ -44,6 +45,12 @@ data class ProductHints(
      *  interactions (e.g. tea/coffee tannins alongside an iron source), not a
      *  flavor judgment. */
     val avoidPairing: List<String> = emptyList(),
+    /** User-reported: the panel was helpful but underwhelming, all passive
+     *  facts with nothing telling the reader why the grade landed where it
+     *  did. The scoring engine's own real per-deduction point values (same
+     *  data PillarsSection's expandable rows already draw on, deep in the
+     *  Result screen) ranked by actual impact - see ProductHintsImprovement.kt. */
+    val improvementTips: List<String> = emptyList(),
 ) {
     companion object {
         /** Fallback for a combine-into-map StateFlow lookup miss (e.g. the one-frame
@@ -67,6 +74,11 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     val keyInfo = buildKeyInfo(product, lang)
     val facts = buildFacts(product, lang)
     val (pairWell, avoidPairing) = buildPairings(product, lang, containsCaffeineSource)
+    // scoreProduct is a pure function of Product alone (see ScoringEngine.kt) -
+    // computed again here rather than threading a ScoreAudit through every one
+    // of this function's 6 call sites, several of which (Recipes/Templates/
+    // CustomFood) never compute one for their own preview-only Product anyway.
+    val improvementTips = buildImprovementTips(scoreProduct(product, lang))
 
-    return ProductHints(benefits, risks, conditionRisks, facts, keyInfo, pairWell, avoidPairing)
+    return ProductHints(benefits, risks, conditionRisks, facts, keyInfo, pairWell, avoidPairing, improvementTips)
 }

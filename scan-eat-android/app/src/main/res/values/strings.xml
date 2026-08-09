@@ -1506,6 +1506,7 @@
     <string name="hint_section_pair_well">S\'associe bien avec</string>
     <string name="hint_section_avoid_pairing">À éviter en association</string>
     <string name="hint_section_facts">Le saviez-vous ?</string>
+    <string name="hint_section_improve">Comment améliorer ce score</string>
     <string name="hint_panel_empty">Aucune information particulière pour ce produit.</string>
     <string name="hint_cd_open_with_risks">%1$s — %2$s</string>
     <string name="hint_cd_open_with_count">%1$s — %2$s</string>
