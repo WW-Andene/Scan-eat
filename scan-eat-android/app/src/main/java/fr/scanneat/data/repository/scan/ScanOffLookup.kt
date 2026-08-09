@@ -94,6 +94,20 @@ internal class ScanOffLookup(
         null
     }
 
+    /**
+     * User-reported: instant/shelf-scan mode felt slow. Every scan (even the
+     * same barcode seen twice in one session, or every duplicate item on a
+     * shelf) re-ran the full OFF network round-trip from scratch - ScanOffLookup
+     * is a Singleton (held for the app's whole process lifetime, see
+     * ScanRepository), so a plain in-memory cache here means the second time a
+     * given barcode is scanned this session, the result is instant. Deliberately
+     * narrow: only the plain barcode-only path (no photo - a photo augmentation
+     * is inherently a one-off, not something to serve stale from an earlier
+     * unrelated scan of the same product) and keyed by (barcode, lang) since
+     * warnings/category labels are language-specific strings.
+     */
+    private val resultCache = java.util.concurrent.ConcurrentHashMap<String, ScanResult>()
+
     suspend fun scoreDirectBarcode(
         barcode: String,
         images: List<ImagePayload>,
@@ -102,6 +116,9 @@ internal class ScanOffLookup(
         lang: String,
         missingApiKeyMessage: (String) -> String,
     ): ScanResult {
+        if (images.isEmpty()) {
+            resultCache["$barcode|$lang"]?.let { return it }
+        }
         val offResponse = fetchOffProduct(barcode)
         // Checked before mapOffProduct (which only preserves the coarse
         // ProductCategory food-subcategory enum, not the raw tags) and before any
@@ -190,7 +207,12 @@ internal class ScanOffLookup(
             nutrition = finalProduct.nutrition.withEstimatedMicronutrients(finalProduct.category),
         )
         val audit = scoreProduct(estimatedProduct, lang)
-        return ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
+        val result = ScanResult(product = estimatedProduct, audit = audit, warnings = warnings, source = source, barcode = barcode)
+        // Cache only the plain OFF-only path - a photo-augmented result (MERGED/LLM
+        // source) reflects photos this specific user just took, not a stable
+        // barcode-keyed answer safe to hand back for someone else's rescan.
+        if (images.isEmpty() && source == ScanSource.OPEN_FOOD_FACTS) resultCache["$barcode|$lang"] = result
+        return result
     }
 
     /**
