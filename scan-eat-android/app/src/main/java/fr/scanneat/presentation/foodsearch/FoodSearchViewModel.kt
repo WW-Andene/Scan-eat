@@ -65,6 +65,20 @@ data class FoodSearchItem(
     val calciumMg: Double,
     val vitDUg: Double,
     val b12Ug: Double,
+    // User-reported: the newly-covered micronutrients (vitCMg first, then
+    // magnesium/potassium/zinc/vitA/folate/vitE/vitK/B6) reached the diary and
+    // dashboard totals but never this row's own "fiche technique" (the expandable
+    // detail panel in FoodSearchRow) - FoodSearchItem simply had no fields for
+    // them, same class of gap FoodEntry itself had before those fixes.
+    val vitCMg: Double,
+    val magnesiumMg: Double,
+    val potassiumMg: Double,
+    val zincMg: Double,
+    val vitAUg: Double,
+    val b9Ug: Double,
+    val vitEMg: Double,
+    val vitKUg: Double,
+    val b6Mg: Double,
     val category: FoodSearchCategory,
     val grade: Grade? = null,
     val scanId: Long? = null,

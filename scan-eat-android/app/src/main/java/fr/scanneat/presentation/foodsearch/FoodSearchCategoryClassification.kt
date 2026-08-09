@@ -91,6 +91,8 @@ internal val FOOD_DB_CATEGORY_BY_NAME: Map<String, FoodSearchCategory> = buildMa
 internal fun FoodEntry.toItem(isCustom: Boolean) = FoodSearchItem(
     name = name, kcal = kcal, proteinG = proteinG, carbsG = carbsG, fatG = fatG,
     fiberG = fiberG, saltG = saltG, ironMg = ironMg, calciumMg = calciumMg, vitDUg = vitDUg, b12Ug = b12Ug,
+    vitCMg = vitCMg, magnesiumMg = magnesiumMg, potassiumMg = potassiumMg, zincMg = zincMg,
+    vitAUg = vitAUg, b9Ug = b9Ug, vitEMg = vitEMg, vitKUg = vitKUg, b6Mg = b6Mg,
     category = if (isCustom) FoodSearchCategory.CUSTOM
                else FOOD_DB_CATEGORY_BY_NAME[name] ?: FoodSearchCategory.OTHER,
 )
@@ -101,6 +103,9 @@ internal fun ScanResult.toItem(): FoodSearchItem {
         name = product.name, kcal = n.energyKcal, proteinG = n.proteinG, carbsG = n.carbsG, fatG = n.fatG,
         fiberG = n.fiberG, saltG = n.saltG,
         ironMg = n.ironMg ?: 0.0, calciumMg = n.calciumMg ?: 0.0, vitDUg = n.vitDUg ?: 0.0, b12Ug = n.b12Ug ?: 0.0,
+        vitCMg = n.vitCMg ?: 0.0, magnesiumMg = n.magnesiumMg ?: 0.0, potassiumMg = n.potassiumMg ?: 0.0,
+        zincMg = n.zincMg ?: 0.0, vitAUg = n.vitAUg ?: 0.0, b9Ug = n.b9Ug ?: 0.0,
+        vitEMg = n.vitEMg ?: 0.0, vitKUg = n.vitKUg ?: 0.0, b6Mg = n.b6Mg ?: 0.0,
         category = FoodSearchCategory.SCANNED, grade = audit.grade, scanId = dbId,
     )
 }
