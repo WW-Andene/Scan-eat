@@ -73,7 +73,9 @@ fun LogSheet(
     val shape = RoundedCornerShape(CardRadius.PROMINENT)
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.85f),
+        // User-requested: one standard glass config app-wide - see
+        // StandardCardAlpha's own doc comment (ScanEatCard.kt).
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(shape),
         shape = shape,
         title = {

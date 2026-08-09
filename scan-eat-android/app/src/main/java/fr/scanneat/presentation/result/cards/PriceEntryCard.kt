@@ -175,7 +175,9 @@ private fun PriceInputDialog(onConfirm: (Double, Double?) -> Unit, onDismiss: ()
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) } },
-        containerColor = SurfaceVariant.copy(alpha = 0.85f),
+        // User-requested: one standard glass config app-wide - see
+        // StandardCardAlpha's own doc comment (ScanEatCard.kt).
+        containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
         shape = RoundedCornerShape(CardRadius.PROMINENT),
     )

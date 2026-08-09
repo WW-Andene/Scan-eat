@@ -98,7 +98,7 @@ internal fun MedicationTodaySummaryCard(medications: List<Medication>, todayTake
     Surface(
         shape = RoundedCornerShape(CardRadius.CONTROL),
         // Aligned with ScanEatCard's own lighter/more-transparent fill (see its doc comment).
-        color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = 0.28f),
+        color = if (allTaken) Teal.copy(0.1f) else SurfaceVariant.copy(alpha = StandardCardAlpha),
         modifier = Modifier.fillMaxWidth().glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
             .shadow(elevation = 6.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
             .clip(RoundedCornerShape(CardRadius.CONTROL)),

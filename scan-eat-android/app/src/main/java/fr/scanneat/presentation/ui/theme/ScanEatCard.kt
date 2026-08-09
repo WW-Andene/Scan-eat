@@ -43,6 +43,21 @@ import androidx.compose.ui.unit.dp
  */
 enum class CardEmphasis { HERO, PRIMARY, SECONDARY }
 
+/**
+ * User-requested: one standard glass config for every card/panel/popup in the
+ * app (header/nav are the one deliberate exception - they use a real
+ * backdrop blur via Haze, see FrostedGlassStyle in FloatingBars.kt, not a
+ * static fill). Previously ScanEatCard's own default (~0.22-0.28 dark, tuned
+ * for a translucent card floating over the screen's ambientGloom wash) and
+ * every popup/dialog's own alpha (0.85-0.94, tuned for a solid, readable
+ * modal) drifted independently - GlassAlertDialog wrapped ScanEatCard
+ * directly and inherited its low alpha, which is what read as "too
+ * transparent, not standard" for a popup. One shared constant now backs
+ * both: ScanEatCard's own [ScanEatCard.color] default below, and every
+ * dialog built on [GlassAlertDialog].
+ */
+val StandardCardAlpha: Float @Composable get() = if (isLightBackground()) 0.9f else 0.85f
+
 // internal (not private) so a card that can't use ScanEatCard directly - e.g.
 // CalorieBalanceCard, which overlays a streak badge on the outer Box via
 // BoxScope.align, a slot ScanEatCard's content: ColumnScope.() -> Unit
@@ -98,10 +113,11 @@ fun ScanEatCard(
     // With no visible fill, the card never read as one whole shape - only its
     // shadowElevation shadow (which DOES have real contrast against a light
     // background) showed up, as a disconnected rectangle instead of a filled card.
-    // User-reported: lightened further and alpha lowered again — the card should
-    // sit a little lighter than Background and read as more transparent, not a
-    // near-opaque tinted block.
-    color: Color = SurfaceVariant.copy(alpha = if (isLightBackground()) 0.5f else 0.22f),
+    // User-requested: one standard glass config app-wide (see StandardCardAlpha's
+    // own doc comment) - previously tuned independently as a more-translucent
+    // "floats over the ambient wash" look, now the same near-opaque fill every
+    // dialog/popup already uses.
+    color: Color = SurfaceVariant.copy(alpha = StandardCardAlpha),
     contentPadding: PaddingValues = PaddingValues(Spacing.L),
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     emphasis: CardEmphasis = CardEmphasis.PRIMARY,

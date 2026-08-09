@@ -107,8 +107,10 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                 // the blur softens only the fill's edges, not the Column's
                 // text/content on top of it.
                 Box(
+                    // User-requested: one standard glass config app-wide - see
+                    // StandardCardAlpha's own doc comment (ScanEatCard.kt).
                     Modifier.matchParentSize().clip(RoundedCornerShape(CardRadius.PROMINENT)).blur(3.dp)
-                        .background(SurfaceVariant.copy(alpha = 0.22f)),
+                        .background(SurfaceVariant.copy(alpha = StandardCardAlpha)),
                 )
                 Column(
                     modifier = Modifier
