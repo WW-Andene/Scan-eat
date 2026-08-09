@@ -3,16 +3,20 @@ package fr.scanneat.presentation.foodsearch.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.hapticfeedback.HapticFeedbackType
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ChevronDown
 import compose.icons.tablericons.ChevronUp
+import compose.icons.tablericons.Plus
+import compose.icons.tablericons.Star
 import fr.scanneat.R
 import fr.scanneat.presentation.foodsearch.FoodSearchItem
 import fr.scanneat.presentation.ui.theme.*
@@ -23,6 +27,11 @@ internal fun FoodSearchRow(
     item: FoodSearchItem,
     onOpenResult: (Long) -> Unit,
     onOpenOnline: ((FoodSearchItem) -> Unit)? = null,
+    // User-requested: favorite/log a result directly from search, without
+    // first navigating to the full Result screen - null (the default) keeps
+    // every other FoodSearchRow call site unchanged.
+    onToggleFavorite: ((FoodSearchItem) -> Unit)? = null,
+    onLog: ((FoodSearchItem) -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val onClick = when {
@@ -53,6 +62,25 @@ internal fun FoodSearchRow(
                         grade.label, modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.T2),
                         style = MaterialTheme.typography.labelSmall, color = gColor, fontWeight = FontWeight.Bold,
                     )
+                }
+            }
+            // User-requested: favorite/log a result right from search, instead of
+            // only from the full Result screen (only reachable for a scanned row).
+            // Same star tint-only pattern as ScanHistoryRow's identical button.
+            val haptics = LocalHapticFeedback.current
+            if (onToggleFavorite != null) {
+                IconButton(onClick = { haptics.performHapticFeedback(HapticFeedbackType.LongPress); onToggleFavorite(item) }, modifier = Modifier.size(IconSize.Inline + Spacing.M)) {
+                    Icon(
+                        TablerIcons.Star,
+                        stringResource(if (item.favorite) R.string.result_cd_unfavorite else R.string.result_cd_favorite),
+                        tint = if (item.favorite) Gold else OnSurface.copy(0.3f),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+            if (onLog != null) {
+                IconButton(onClick = { onLog(item) }, modifier = Modifier.size(IconSize.Inline + Spacing.M)) {
+                    Icon(TablerIcons.Plus, stringResource(R.string.logsheet_title), tint = AccentCoral, modifier = Modifier.size(18.dp))
                 }
             }
             // Rows with no grade (i.e. not a scanned product) expand in place instead

@@ -241,7 +241,10 @@ class CustomFoodRepository @Inject constructor(
             vitKUg        = entry.vitKUg,
             b6Mg          = entry.b6Mg,
         ),
-        weightG = 100.0,
+        // Same as FoodDb.kt's own toProduct() - lets LogSheet's "package"
+        // preset chip offer this food's typical portion when known, instead
+        // of only 100/200/50g.
+        weightG = entry.typicalPortionG ?: 100.0,
     )
 
     @JsonClass(generateAdapter = true)

@@ -19,6 +19,7 @@ import fr.scanneat.presentation.foodsearch.components.FiltersSection
 import fr.scanneat.presentation.foodsearch.components.FoodSearchRow
 import fr.scanneat.presentation.foodsearch.components.OnlineSearchSection
 import fr.scanneat.presentation.foodsearch.components.SourceLinksSection
+import fr.scanneat.presentation.result.LogSheet
 import fr.scanneat.presentation.ui.theme.*
 
 /**
@@ -65,6 +66,18 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
         }
     }
 
+    // User-requested: favorite/log a result directly from search, without first
+    // navigating to the full Result screen - see FoodSearchViewModel.openLogSheet/
+    // confirmLog/dismissLogSheet.
+    val logProduct = viewModel.logSheetProduct.collectAsStateWithLifecycle()
+    logProduct.value?.let { product ->
+        LogSheet(
+            product = product,
+            onConfirm = { portionG, mealSlot -> viewModel.confirmLog(portionG, mealSlot) },
+            onDismiss = viewModel::dismissLogSheet,
+        )
+    }
+
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.foodsearch_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
@@ -103,6 +116,8 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                             results = onlineResults.value,
                             onSearchOnline = viewModel::searchOnline,
                             onOpenItem = { item -> viewModel.openOnlineItem(item, onOpenResult) },
+                            onToggleFavorite = viewModel::toggleFavorite,
+                            onLog = viewModel::openLogSheet,
                         )
                     }
                 }
@@ -149,7 +164,11 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
                             if (category in expandedCategories) {
                                 items(items, key = { (it.scanId?.toString() ?: "local") + "_" + it.name }) { item ->
                                     Box(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
-                                        FoodSearchRow(item, onOpenResult)
+                                        FoodSearchRow(
+                                            item, onOpenResult,
+                                            onToggleFavorite = viewModel::toggleFavorite,
+                                            onLog = viewModel::openLogSheet,
+                                        )
                                     }
                                 }
                             }

@@ -13,7 +13,7 @@ internal val FOOD_DB_GRAINS_AND_PROTEINS: List<FoodEntry> = listOf(
     FoodEntry("pain blanc",      260.0, 8.0, 50.0, 2.5, 2.7, saturatedFatG = 0.6, sugarsG = 4.0, aliases = listOf("pain", "bread")),
     FoodEntry("pain complet",    240.0, 9.0, 45.0, 3.0, 6.5, saturatedFatG = 0.6, sugarsG = 3.0, ironMg = 2.5, magnesiumMg = 76.0, aliases = listOf("whole wheat bread")),
     FoodEntry("baguette",        265.0, 8.0, 55.0, 1.0, 2.3, saturatedFatG = 0.2, sugarsG = 3.0),
-    FoodEntry("croissant",       406.0, 8.0, 45.0, 21.0, 1.6, saturatedFatG = 12.0, sugarsG = 8.0),
+    FoodEntry("croissant",       406.0, 8.0, 45.0, 21.0, 1.6, saturatedFatG = 12.0, typicalPortionG = 60.0, sugarsG = 8.0),
     FoodEntry("avoine",          389.0, 17.0, 66.0, 7.0, 10.6, saturatedFatG = 1.2, sugarsG = 1.0, ironMg = 4.7, magnesiumMg = 138.0, zincMg = 4.0, aliases = listOf("flocons d'avoine", "oats")),
     FoodEntry("quinoa cuit",     120.0, 4.4, 22.0, 1.9, 2.8, saturatedFatG = 0.2, sugarsG = 0.9, ironMg = 1.5, magnesiumMg = 64.0, zincMg = 1.1),
 
@@ -23,7 +23,7 @@ internal val FOOD_DB_GRAINS_AND_PROTEINS: List<FoodEntry> = listOf(
     FoodEntry("boeuf haché 15%",215.0, 20.0,  0.0, 15.0, 0.0, saturatedFatG = 6.0, saltG = 0.1, ironMg = 2.7, b12Ug = 2.0, zincMg = 4.5),
     FoodEntry("saumon",         208.0, 20.0,  0.0, 13.0, 0.0, saturatedFatG = 2.5, vitDUg = 8.0, b12Ug = 3.2, b6Mg = 0.6, aliases = listOf("salmon")),
     FoodEntry("thon",           130.0, 29.0,  0.0,  1.0, 0.0, saturatedFatG = 0.3, vitDUg = 2.3, b12Ug = 2.9, b6Mg = 0.9, aliases = listOf("tuna")),
-    FoodEntry("oeuf",           155.0, 13.0,  1.1, 11.0, 0.0, saturatedFatG = 3.1, ironMg = 1.8, calciumMg = 50.0, vitDUg = 1.8, b12Ug = 1.1, aliases = listOf("œuf", "egg")),
+    FoodEntry("oeuf",           155.0, 13.0,  1.1, 11.0, 0.0, saturatedFatG = 3.1, typicalPortionG = 55.0, ironMg = 1.8, calciumMg = 50.0, vitDUg = 1.8, b12Ug = 1.1, aliases = listOf("œuf", "egg")),
     FoodEntry("jambon blanc",   115.0, 20.0,  1.0,  4.0, 0.0, saturatedFatG = 1.4, saltG = 1.6, b12Ug = 0.6, aliases = listOf("ham")),
 
     // Céréales / féculents (suite)
@@ -71,5 +71,5 @@ internal val FOOD_DB_GRAINS_AND_PROTEINS: List<FoodEntry> = listOf(
     FoodEntry("calamar",           92.0, 16.0,  3.0,  1.4, 0.0, saturatedFatG = 0.3, aliases = listOf("calmar", "squid")),
     FoodEntry("poulpe",            82.0, 15.0,  2.0,  1.0, 0.0, saturatedFatG = 0.2, ironMg = 5.3, b12Ug = 20.0, aliases = listOf("octopus")),
     FoodEntry("seitan",           370.0, 75.0, 14.0,  1.9, 6.0, saturatedFatG = 0.3, sugarsG = 0.5),
-    FoodEntry("oeuf de caille",   158.0, 13.0,  0.4, 11.0, 0.0, saturatedFatG = 3.1, ironMg = 3.7, aliases = listOf("œuf de caille", "quail egg")),
+    FoodEntry("oeuf de caille",   158.0, 13.0,  0.4, 11.0, 0.0, saturatedFatG = 3.1, typicalPortionG = 10.0, ironMg = 3.7, aliases = listOf("œuf de caille", "quail egg")),
 )

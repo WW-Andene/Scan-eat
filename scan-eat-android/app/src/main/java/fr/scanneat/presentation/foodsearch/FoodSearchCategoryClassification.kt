@@ -106,7 +106,7 @@ internal fun ScanResult.toItem(): FoodSearchItem {
         vitCMg = n.vitCMg ?: 0.0, magnesiumMg = n.magnesiumMg ?: 0.0, potassiumMg = n.potassiumMg ?: 0.0,
         zincMg = n.zincMg ?: 0.0, vitAUg = n.vitAUg ?: 0.0, b9Ug = n.b9Ug ?: 0.0,
         vitEMg = n.vitEMg ?: 0.0, vitKUg = n.vitKUg ?: 0.0, b6Mg = n.b6Mg ?: 0.0,
-        category = FoodSearchCategory.SCANNED, grade = audit.grade, scanId = dbId,
+        category = FoodSearchCategory.SCANNED, grade = audit.grade, scanId = dbId, favorite = favorite,
     )
 }
 

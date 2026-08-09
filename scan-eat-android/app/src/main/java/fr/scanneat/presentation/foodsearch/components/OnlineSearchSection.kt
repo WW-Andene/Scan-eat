@@ -32,6 +32,8 @@ internal fun OnlineSearchSection(
     results: List<FoodSearchItem>,
     onSearchOnline: () -> Unit,
     onOpenItem: (FoodSearchItem) -> Unit,
+    onToggleFavorite: ((FoodSearchItem) -> Unit)? = null,
+    onLog: ((FoodSearchItem) -> Unit)? = null,
 ) {
     Column(Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS)) {
         if (state == OnlineSearchState.IDLE) {
@@ -75,7 +77,12 @@ internal fun OnlineSearchSection(
             )
             Spacer(Modifier.height(Spacing.XS))
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                results.forEach { item -> FoodSearchRow(item, onOpenResult = {}, onOpenOnline = onOpenItem) }
+                results.forEach { item ->
+                    FoodSearchRow(
+                        item, onOpenResult = {}, onOpenOnline = onOpenItem,
+                        onToggleFavorite = onToggleFavorite, onLog = onLog,
+                    )
+                }
             }
         }
     }

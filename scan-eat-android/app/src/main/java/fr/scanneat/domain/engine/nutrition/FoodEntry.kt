@@ -57,5 +57,16 @@ data class FoodEntry(
     val vitEMg: Double = 0.0,
     val vitKUg: Double = 0.0,
     val b6Mg: Double = 0.0,
+    // User-requested: let the portion picker (LogSheet.kt) offer a "≈180g"
+    // one-tap preset for a whole/typical serving (one apple, one egg, a
+    // handful of almonds) the same way it already does for a scanned
+    // product's package weight (Product.weightG) - FOOD_DB/custom foods had
+    // no equivalent, so every quick-add food had to be weighed and typed in
+    // manually even for foods with an obvious typical portion. Null (not 0.0,
+    // unlike every other field here) for foods with no single natural
+    // portion (rice, oil, flour) - LogSheet only shows the chip when this is
+    // in the same 10-2000g sane range Product.weightG's own chip already
+    // requires.
+    val typicalPortionG: Double? = null,
     val aliases: List<String> = emptyList(),
 )

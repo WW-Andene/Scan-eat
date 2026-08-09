@@ -4,18 +4,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
+import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.data.repository.nutrition.CustomFoodRepository
 import fr.scanneat.data.repository.scan.ScanRepository
 import fr.scanneat.domain.engine.nutrition.FOOD_DB
 import fr.scanneat.domain.engine.nutrition.FoodEntry
 import fr.scanneat.domain.engine.nutrition.searchFoodDB
+import fr.scanneat.domain.engine.nutrition.toProduct
+import fr.scanneat.domain.engine.scoring.scoreProduct
+import fr.scanneat.domain.model.DiaryEntry
 import fr.scanneat.domain.model.Grade
+import fr.scanneat.domain.model.MealSlot
+import fr.scanneat.domain.model.Product
 import fr.scanneat.domain.model.ScanResult
+import fr.scanneat.domain.model.ScanSource
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 /** Simple threshold-based filters over the unified fields both sources below map into. */
@@ -87,6 +95,11 @@ data class FoodSearchItem(
     // (see FoodSearchViewModel.openOnlineItem) so it opens the real Result
     // screen exactly like tapping a product they'd scanned themselves.
     val barcode: String? = null,
+    // Only meaningful for a scanned row (scanId != null) - FOOD_DB/custom rows
+    // have no favorite state of their own until favorited for the first time
+    // (see FoodSearchViewModel.toggleFavorite, which persists them into scan
+    // history at that point, same as tapping an online result already does).
+    val favorite: Boolean = false,
 )
 
 /** Which of Products/Links/Both the "Recherche" screen currently shows -
@@ -110,6 +123,7 @@ enum class SearchDisplayMode { PRODUCTS, LINKS, BOTH }
 class FoodSearchViewModel @Inject constructor(
     private val customFoodRepo: CustomFoodRepository,
     private val scanRepo: ScanRepository,
+    private val consumptionRepo: ConsumptionRepository,
     private val prefs: UserPreferences,
 ) : ViewModel() {
 
@@ -260,6 +274,88 @@ class FoodSearchViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { scanRepo.persist(raw) }
                 .onSuccess { onOpened(it) }
+                .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /**
+     * User-requested: favorite a product directly from search instead of only
+     * from the full Result screen. A scanned row already has a real dbId to
+     * favorite directly. A FOOD_DB/custom row has neither a scan_history row
+     * nor a favorite concept of its own - favoriting one persists it first
+     * (same scanRepo.persist() openOnlineItem already uses for an online
+     * result), so it becomes a real, favoritable scan_history row exactly like
+     * any product the user actually scanned. groupedResults' own "scanned wins
+     * on name collision" rule then naturally promotes it to the SCANNED
+     * section going forward.
+     */
+    fun toggleFavorite(item: FoodSearchItem) {
+        viewModelScope.launch {
+            runCatching {
+                when {
+                    item.scanId != null -> scanRepo.setFavorite(item.scanId, !item.favorite)
+                    item.barcode != null -> {
+                        val raw = onlineRaw.firstOrNull { it.barcode == item.barcode } ?: return@runCatching
+                        scanRepo.setFavorite(scanRepo.persist(raw), true)
+                    }
+                    else -> {
+                        val entry = customFoods.value.firstOrNull { it.name == item.name }
+                            ?: FOOD_DB.firstOrNull { it.name == item.name } ?: return@runCatching
+                        val product = customFoodRepo.toProduct(entry)
+                        val audit = scoreProduct(product, prefs.language.first())
+                        val id = scanRepo.persist(ScanResult(product = product, audit = audit, warnings = emptyList(), source = ScanSource.MANUAL))
+                        scanRepo.setFavorite(id, true)
+                    }
+                }
+            }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        }
+    }
+
+    /** What [openLogSheet] resolved for the currently-open LogSheet - the real
+     *  product/source/barcode when known, not a lossy reconstruction, mirroring
+     *  DiaryViewModel.addEntryFromScan's own preference for real scan data over
+     *  a FoodEntry-shaped guess whenever one is available. */
+    private data class ResolvedFood(val product: Product, val source: ScanSource, val barcode: String?)
+
+    private val _logTarget = MutableStateFlow<ResolvedFood?>(null)
+    /** Non-null while LogSheet should be shown for a tapped row's resolved product. */
+    val logSheetProduct: StateFlow<Product?> = _logTarget.map { it?.product }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private suspend fun resolveFood(item: FoodSearchItem): ResolvedFood? = when {
+        item.scanId != null -> scanRepo.getById(item.scanId)?.let { ResolvedFood(it.product, it.source, it.barcode) }
+        item.barcode != null -> onlineRaw.firstOrNull { it.barcode == item.barcode }?.let { ResolvedFood(it.product, it.source, it.barcode) }
+        else -> (customFoods.value.firstOrNull { it.name == item.name } ?: FOOD_DB.firstOrNull { it.name == item.name })
+            ?.let { ResolvedFood(customFoodRepo.toProduct(it), ScanSource.MANUAL, null) }
+    }
+
+    /** User-requested: log a search result straight to the diary without first
+     *  navigating to the full Result screen. */
+    fun openLogSheet(item: FoodSearchItem) {
+        viewModelScope.launch {
+            _logTarget.value = resolveFood(item) ?: run { _actionFailed.value = true; null }
+        }
+    }
+
+    fun dismissLogSheet() { _logTarget.value = null }
+
+    fun confirmLog(portionG: Double, mealSlot: MealSlot) {
+        val resolved = _logTarget.value ?: return
+        viewModelScope.launch {
+            runCatching {
+                consumptionRepo.log(
+                    DiaryEntry(
+                        date        = LocalDate.now(),
+                        mealSlot    = mealSlot,
+                        productName = resolved.product.name,
+                        barcode     = resolved.barcode,
+                        portionG    = portionG,
+                        nutrition   = resolved.product.nutrition,
+                        source      = resolved.source,
+                        ingredients = resolved.product.ingredients,
+                    )
+                )
+            }.onSuccess { _logTarget.value = null }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

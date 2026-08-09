@@ -196,5 +196,10 @@ fun FoodEntry.toProduct(portionG: Double = 100.0): Product = Product(
         vitKUg        = vitKUg,
         b6Mg          = b6Mg,
     ),
-    weightG = portionG,
+    // LogSheet's own "package" preset chip reads Product.weightG - surfacing
+    // this food's typical portion here (when known) makes that same chip
+    // offer "≈180g" instead of only 100/200/50g for a food with an obvious
+    // real-world serving size. Falls back to the caller's own portionG
+    // (unaffected for every food where typicalPortionG is null).
+    weightG = typicalPortionG ?: portionG,
 )

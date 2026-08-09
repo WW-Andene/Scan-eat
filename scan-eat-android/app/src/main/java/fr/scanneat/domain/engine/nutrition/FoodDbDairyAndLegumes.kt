@@ -9,17 +9,17 @@ package fr.scanneat.domain.engine.nutrition
 internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     // Produits laitiers
     FoodEntry("lait demi-écrémé",  46.0,  3.2,  4.7,  1.6, 0.0, saturatedFatG = 1.0, sugarsG = 4.7, calciumMg = 120.0, b12Ug = 0.4, aliases = listOf("lait", "milk")),
-    FoodEntry("yaourt nature",      60.0,  3.5,  4.7,  3.0, 0.0, saturatedFatG = 1.9, sugarsG = 4.7, calciumMg = 140.0, b12Ug = 0.4, aliases = listOf("yaourt", "yogurt")),
-    FoodEntry("skyr",               60.0, 10.0,  4.0,  0.2, 0.0, saturatedFatG = 0.1, sugarsG = 4.0, calciumMg = 110.0, b12Ug = 0.5),
-    FoodEntry("fromage blanc 0%",   45.0,  7.5,  4.0,  0.1, 0.0, saturatedFatG = 0.1, sugarsG = 4.0, calciumMg = 95.0, b12Ug = 0.3, aliases = listOf("fromage blanc")),
+    FoodEntry("yaourt nature",      60.0,  3.5,  4.7,  3.0, 0.0, saturatedFatG = 1.9, sugarsG = 4.7, typicalPortionG = 125.0, calciumMg = 140.0, b12Ug = 0.4, aliases = listOf("yaourt", "yogurt")),
+    FoodEntry("skyr",               60.0, 10.0,  4.0,  0.2, 0.0, saturatedFatG = 0.1, sugarsG = 4.0, typicalPortionG = 150.0, calciumMg = 110.0, b12Ug = 0.5),
+    FoodEntry("fromage blanc 0%",   45.0,  7.5,  4.0,  0.1, 0.0, saturatedFatG = 0.1, sugarsG = 4.0, typicalPortionG = 100.0, calciumMg = 95.0, b12Ug = 0.3, aliases = listOf("fromage blanc")),
     FoodEntry("emmental",          380.0, 29.0,  0.0, 30.0, 0.0, saturatedFatG = 19.0, saltG = 0.8, calciumMg = 880.0, vitDUg = 0.4, b12Ug = 1.9, aliases = listOf("gruyère")),
     FoodEntry("camembert",         300.0, 20.0,  0.5, 24.0, 0.0, saturatedFatG = 15.0, saltG = 1.4, calciumMg = 400.0, vitDUg = 0.35, b12Ug = 1.3),
 
     // Légumineuses / oléagineux
     FoodEntry("lentille cuite",   115.0,  9.0, 20.0,  0.4, 3.8, saturatedFatG = 0.1, sugarsG = 1.8, ironMg = 3.3, zincMg = 1.3, magnesiumMg = 36.0, b9Ug = 181.0, aliases = listOf("lentilles", "lentils")),
     FoodEntry("pois chiche cuit", 165.0,  9.0, 27.0,  2.6, 4.5, saturatedFatG = 0.3, sugarsG = 4.8, ironMg = 2.9, zincMg = 1.5, magnesiumMg = 48.0, b9Ug = 172.0, aliases = listOf("pois chiches", "chickpea")),
-    FoodEntry("amandes",          620.0, 21.0, 20.0, 51.0, 12.5, saturatedFatG = 3.9, sugarsG = 4.4, ironMg = 3.7, calciumMg = 260.0, magnesiumMg = 270.0, zincMg = 3.1, vitEMg = 25.6, aliases = listOf("amande", "almonds")),
-    FoodEntry("noix",             655.0, 15.0, 14.0, 65.0,  6.7, saturatedFatG = 6.1, sugarsG = 2.6, ironMg = 2.9, magnesiumMg = 158.0, zincMg = 3.1),
+    FoodEntry("amandes",          620.0, 21.0, 20.0, 51.0, 12.5, saturatedFatG = 3.9, sugarsG = 4.4, typicalPortionG = 30.0, ironMg = 3.7, calciumMg = 260.0, magnesiumMg = 270.0, zincMg = 3.1, vitEMg = 25.6, aliases = listOf("amande", "almonds")),
+    FoodEntry("noix",             655.0, 15.0, 14.0, 65.0,  6.7, saturatedFatG = 6.1, sugarsG = 2.6, typicalPortionG = 30.0, ironMg = 2.9, magnesiumMg = 158.0, zincMg = 3.1),
 
     // Produits laitiers (suite)
     FoodEntry("fromage de chèvre", 364.0, 22.0, 2.0, 29.0, 0.0, saturatedFatG = 20.0, calciumMg = 140.0, aliases = listOf("goat cheese")),
@@ -35,13 +35,13 @@ internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     FoodEntry("haricot rouge cuit", 127.0, 8.7, 23.0, 0.5,  6.4, saturatedFatG = 0.1, sugarsG = 0.3, ironMg = 2.2, aliases = listOf("kidney bean")),
     FoodEntry("haricot blanc cuit", 139.0, 9.7, 25.0, 0.5,  6.3, saturatedFatG = 0.1, sugarsG = 0.3, ironMg = 2.5, aliases = listOf("white bean")),
     FoodEntry("edamame",             122.0, 11.0, 10.0, 5.2, 5.0, saturatedFatG = 0.6, sugarsG = 3.0, ironMg = 2.3),
-    FoodEntry("noisette",            628.0, 15.0, 17.0, 61.0, 9.7, saturatedFatG = 4.5, sugarsG = 4.3, calciumMg = 114.0, aliases = listOf("noisettes", "hazelnut")),
-    FoodEntry("noix de cajou",       553.0, 18.0, 30.0, 44.0, 3.3, saturatedFatG = 7.8, sugarsG = 5.9, ironMg = 6.7, aliases = listOf("cashew")),
-    FoodEntry("pistache",            562.0, 20.0, 28.0, 45.0, 10.0, saturatedFatG = 5.4, sugarsG = 7.7, ironMg = 3.9, aliases = listOf("pistaches", "pistachio")),
-    FoodEntry("graine de chia",      486.0, 17.0, 42.0, 31.0, 34.4, saturatedFatG = 3.3, sugarsG = 0.0, calciumMg = 631.0, ironMg = 7.7, aliases = listOf("chia seed")),
-    FoodEntry("graine de lin",       534.0, 18.0, 29.0, 42.0, 27.3, saturatedFatG = 3.7, sugarsG = 0.3, ironMg = 5.7, aliases = listOf("flaxseed")),
+    FoodEntry("noisette",            628.0, 15.0, 17.0, 61.0, 9.7, saturatedFatG = 4.5, sugarsG = 4.3, typicalPortionG = 30.0, calciumMg = 114.0, aliases = listOf("noisettes", "hazelnut")),
+    FoodEntry("noix de cajou",       553.0, 18.0, 30.0, 44.0, 3.3, saturatedFatG = 7.8, sugarsG = 5.9, typicalPortionG = 30.0, ironMg = 6.7, aliases = listOf("cashew")),
+    FoodEntry("pistache",            562.0, 20.0, 28.0, 45.0, 10.0, saturatedFatG = 5.4, sugarsG = 7.7, typicalPortionG = 30.0, ironMg = 3.9, aliases = listOf("pistaches", "pistachio")),
+    FoodEntry("graine de chia",      486.0, 17.0, 42.0, 31.0, 34.4, saturatedFatG = 3.3, sugarsG = 0.0, typicalPortionG = 15.0, calciumMg = 631.0, ironMg = 7.7, aliases = listOf("chia seed")),
+    FoodEntry("graine de lin",       534.0, 18.0, 29.0, 42.0, 27.3, saturatedFatG = 3.7, sugarsG = 0.3, typicalPortionG = 15.0, ironMg = 5.7, aliases = listOf("flaxseed")),
     FoodEntry("beurre de cacahuète", 588.0, 25.0, 20.0, 50.0, 6.0, saturatedFatG = 10.0, sugarsG = 6.0, aliases = listOf("peanut butter")),
-    FoodEntry("cacahuète",           567.0, 26.0, 16.0, 49.0, 8.5, saturatedFatG = 7.0, sugarsG = 4.0, aliases = listOf("cacahuètes", "peanut")),
+    FoodEntry("cacahuète",           567.0, 26.0, 16.0, 49.0, 8.5, saturatedFatG = 7.0, sugarsG = 4.0, typicalPortionG = 30.0, aliases = listOf("cacahuètes", "peanut")),
 
     // Produits laitiers (extension 2026-08-03)
     FoodEntry("fromage cottage",  98.0, 11.0,  3.4,  4.3, 0.0, saturatedFatG = 2.7, sugarsG = 3.4, calciumMg = 61.0, aliases = listOf("cottage cheese")),
@@ -49,14 +49,14 @@ internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     FoodEntry("fromage à raclette", 380.0, 25.0, 0.5, 31.0, 0.0, saturatedFatG = 20.0, saltG = 1.5, calciumMg = 750.0, aliases = listOf("raclette cheese")),
     FoodEntry("kéfir",            41.0,  3.3,  4.0,  1.0, 0.0, saturatedFatG = 0.6, sugarsG = 4.0, calciumMg = 120.0, b12Ug = 0.4, aliases = listOf("kefir")),
     FoodEntry("lait d'avoine",    47.0,  1.0,  6.7,  1.5, 0.8, saturatedFatG = 0.2, sugarsG = 4.0, calciumMg = 120.0, aliases = listOf("oat milk")),
-    FoodEntry("yaourt grec",      97.0,  9.0,  4.0,  5.0, 0.0, saturatedFatG = 3.2, sugarsG = 4.0, calciumMg = 110.0, b12Ug = 0.5, aliases = listOf("greek yogurt")),
+    FoodEntry("yaourt grec",      97.0,  9.0,  4.0,  5.0, 0.0, saturatedFatG = 3.2, sugarsG = 4.0, typicalPortionG = 150.0, calciumMg = 110.0, b12Ug = 0.5, aliases = listOf("greek yogurt")),
 
     // Légumineuses / oléagineux (extension)
     FoodEntry("fève cuite",       88.0,  7.6, 17.0,  0.5,  6.9, saturatedFatG = 0.1, sugarsG = 1.5, ironMg = 1.5, aliases = listOf("fèves cuites", "fava bean")),
     FoodEntry("soja cuit",       173.0, 16.6,  9.9,  9.0,  6.0, saturatedFatG = 1.3, sugarsG = 3.0, ironMg = 5.1, calciumMg = 102.0, aliases = listOf("soybean")),
-    FoodEntry("noix du brésil",  656.0, 14.0, 12.0, 66.0,  7.5, saturatedFatG = 15.1, sugarsG = 2.3, aliases = listOf("brazil nut")),
-    FoodEntry("noix de pécan",   691.0,  9.2, 14.0, 72.0,  9.6, saturatedFatG = 6.2, sugarsG = 4.0, aliases = listOf("pecan")),
-    FoodEntry("graine de tournesol", 584.0, 21.0, 20.0, 51.0, 8.6, saturatedFatG = 4.5, sugarsG = 2.6, ironMg = 5.0, magnesiumMg = 325.0, zincMg = 5.0, vitEMg = 35.2, aliases = listOf("sunflower seed")),
-    FoodEntry("graine de courge",  559.0, 30.0, 11.0, 49.0,  6.0, saturatedFatG = 8.7, sugarsG = 1.4, ironMg = 8.8, magnesiumMg = 592.0, zincMg = 7.8, aliases = listOf("pumpkin seed")),
+    FoodEntry("noix du brésil",  656.0, 14.0, 12.0, 66.0,  7.5, saturatedFatG = 15.1, sugarsG = 2.3, typicalPortionG = 30.0, aliases = listOf("brazil nut")),
+    FoodEntry("noix de pécan",   691.0,  9.2, 14.0, 72.0,  9.6, saturatedFatG = 6.2, sugarsG = 4.0, typicalPortionG = 30.0, aliases = listOf("pecan")),
+    FoodEntry("graine de tournesol", 584.0, 21.0, 20.0, 51.0, 8.6, saturatedFatG = 4.5, sugarsG = 2.6, typicalPortionG = 30.0, ironMg = 5.0, magnesiumMg = 325.0, zincMg = 5.0, vitEMg = 35.2, aliases = listOf("sunflower seed")),
+    FoodEntry("graine de courge",  559.0, 30.0, 11.0, 49.0,  6.0, saturatedFatG = 8.7, sugarsG = 1.4, typicalPortionG = 30.0, ironMg = 8.8, magnesiumMg = 592.0, zincMg = 7.8, aliases = listOf("pumpkin seed")),
     FoodEntry("beurre d'amande",  614.0, 21.0, 19.0, 56.0, 10.3, saturatedFatG = 4.3, sugarsG = 4.3, calciumMg = 270.0, aliases = listOf("almond butter")),
 )

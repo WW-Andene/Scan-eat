@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.nutrition.FoodEntry
+import fr.scanneat.domain.engine.nutrition.toProduct
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.diary.DiaryViewModel
 import fr.scanneat.presentation.result.LogSheet
@@ -45,17 +46,12 @@ internal fun AddDiaryEntryDialog(viewModel: DiaryViewModel, onDismiss: () -> Uni
 
     val picked = selected
     if (picked != null) {
-        val product = remember(picked) {
-            Product(
-                name = picked.name, category = ProductCategory.OTHER, novaClass = NovaClass.UNPROCESSED,
-                ingredients = listOf(Ingredient(name = picked.name, percentage = 100.0, category = IngredientCategory.FOOD, isWholeFood = true)),
-                nutrition = NutritionPer100g(
-                    energyKcal = picked.kcal, fatG = picked.fatG, saturatedFatG = 0.0, carbsG = picked.carbsG,
-                    sugarsG = 0.0, fiberG = picked.fiberG, proteinG = picked.proteinG, saltG = picked.saltG,
-                ),
-                weightG = 100.0,
-            )
-        }
+        // Was a separate hand-rolled Product hardcoding saturatedFatG/sugarsG to
+        // 0.0 (same gap FoodEntry.toProduct() itself had before it was fixed) and
+        // weightG to a flat 100.0 (no typical-portion chip) - reusing the real
+        // extension function here picks up both fixes for free instead of a
+        // second, silently-diverging reconstruction of the same conversion.
+        val product = remember(picked) { picked.toProduct() }
         LogSheet(
             product    = product,
             onConfirm  = { portionG, mealSlot ->
