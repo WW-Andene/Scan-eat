@@ -262,10 +262,21 @@ fun resolveIngredient(name: String): String? {
 /**
  * Return French display names of ingredients that pair well with [name].
  * Port of findPairings() from pairings.js.
+ *
+ * [exclude] — user-reported: "pairs well with" suggested "poulet" for a
+ * recipe whose main/largest ingredient already *is* poulet (riz's own
+ * pairing entry lists chicken as a strong co-occurrence partner, correctly
+ * on its own, but every caller here queries pairings for one ingredient of
+ * a dish that already has several - nothing filtered out the dish's own
+ * other ingredients from showing up as if they were a new suggestion).
+ * Every name in [exclude] (normalized the same way [name] itself is
+ * resolved) is dropped from the result, including [name] itself in case a
+ * dataset entry ever lists an ingredient among its own pairings.
  */
-fun findPairings(name: String, limit: Int = 6): List<String> {
+fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet()): List<String> {
     val en = resolveIngredient(name) ?: return emptyList()
     val entry = PAIRINGS[en] ?: return emptyList()
+    val excludedEn = (exclude + name).mapNotNullTo(mutableSetOf()) { resolveIngredient(it) }
     // Sort by co-occurrence count descending before truncating - PAIRINGS entries
     // are stored in whatever order the source dataset happened to list them (see
     // e.g. "beef": onion 3315, tomato 2107, beef_broth 410, garlic 2817, ...),
@@ -274,7 +285,11 @@ fun findPairings(name: String, limit: Int = 6): List<String> {
     // silently defeating the "min co-occurrence 5 recipes" scoring this file's
     // header comment describes and showing weaker suggestions than a lower-ranked
     // pairing that got cut off just because it was listed first.
-    return entry.pairs.sortedByDescending { it.cooccur }.take(limit).map { it.fr ?: it.b.replace("_", " ") }
+    return entry.pairs
+        .filter { it.b !in excludedEn }
+        .sortedByDescending { it.cooccur }
+        .take(limit)
+        .map { it.fr ?: it.b.replace("_", " ") }
 }
 
 /**

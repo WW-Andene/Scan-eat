@@ -189,7 +189,14 @@ class RecipesViewModel @Inject constructor(
     val recipePairings: StateFlow<Map<String, List<String>>> = recipes.map { list ->
         list.mapNotNull { recipe ->
             val main = recipe.components.maxByOrNull { it.grams } ?: return@mapNotNull null
-            val pairs = findPairings(main.productName, limit = 8)
+            // User-reported: "pairs well with" suggested an ingredient the recipe
+            // already contains (e.g. poulet suggested for a poulet/riz/brocolis
+            // recipe) - findPairings() only ever knew the single queried
+            // ingredient, not the rest of the dish, so it had no way to filter
+            // its own dish-mates out. Excludes every other ingredient already in
+            // this recipe.
+            val exclude = recipe.components.filter { it != main }.map { it.productName }.toSet()
+            val pairs = findPairings(main.productName, limit = 8, exclude = exclude)
             if (pairs.isEmpty()) null else recipe.id to pairs
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
@@ -197,7 +204,8 @@ class RecipesViewModel @Inject constructor(
     /** Same as [recipePairings], for the official/starter recipes. */
     val officialRecipePairings: Map<String, List<String>> = OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
         val main = recipe.ingredients.maxByOrNull { it.grams } ?: return@mapNotNull null
-        val pairs = findPairings(main.foodName, limit = 8)
+        val exclude = recipe.ingredients.filter { it != main }.map { it.foodName }.toSet()
+        val pairs = findPairings(main.foodName, limit = 8, exclude = exclude)
         if (pairs.isEmpty()) null else recipe.nameFr to pairs
     }.toMap()
 
