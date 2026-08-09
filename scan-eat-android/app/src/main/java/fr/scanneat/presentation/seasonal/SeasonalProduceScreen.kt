@@ -2,13 +2,14 @@ package fr.scanneat.presentation.seasonal
 
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
+import compose.icons.tablericons.ChevronRight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,12 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -70,10 +66,15 @@ fun SeasonalProduceScreen(viewModel: SeasonalProduceViewModel = hiltViewModel(),
                 )
             }
 
-            // Month picker - 12 chips, current month selected by default. Browsing
-            // other months is the whole point of a "calendar" over a flat list.
+            // User-reported: 12 small always-visible chips replaced with the same
+            // chevron-nav month header the app's real Calendar (CalendarScreen /
+            // MultiMarkerMonthGrid) already uses, instead of a bespoke picker
+            // unique to this one screen.
             item {
-                MonthPickerRow(selectedMonth = selectedMonth, locale = locale, onSelect = viewModel::selectMonth)
+                SeasonalMonthNavHeader(
+                    selectedMonth = selectedMonth, currentMonth = currentMonth,
+                    onSelect = viewModel::selectMonth,
+                )
             }
 
             item {
@@ -106,32 +107,30 @@ fun SeasonalProduceScreen(viewModel: SeasonalProduceViewModel = hiltViewModel(),
     }
 }
 
+/**
+ * Seasonal produce is month-granularity, year-agnostic data (it repeats every
+ * year) - so unlike MultiMarkerMonthGrid's real day grid, this only needs the
+ * same chevron-nav "‹ Month ›" header + jump-to-current-month affordance that
+ * component already establishes, cycling 1..12 instead of walking a real
+ * YearMonth. Kept in this file rather than generalizing MultiMarkerMonthGrid
+ * itself, which is built around a real day grid this screen has no use for.
+ */
 @Composable
-private fun MonthPickerRow(selectedMonth: Int, locale: Locale, onSelect: (Int) -> Unit) {
-    // A horizontally scrollable row of 12 short month chips - a FlowRow would
-    // wrap to 3-4 lines for 12 items and bury the current selection; a single
-    // scrollable row keeps this compact and lets the user swipe through months
-    // the same way a real wall calendar's tabs would.
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-        items(12) { i ->
-            val month = i + 1
-            val selected = month == selectedMonth
-            val monthName = Month.of(month).getDisplayName(TextStyle.SHORT, locale).replaceFirstChar { it.uppercase() }
-            Text(
-                monthName,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                color = if (selected) AccentCoral else OnSurface.copy(0.6f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(CardRadius.CONTROL))
-                    .let { if (selected) it.background(AccentCoral.copy(alpha = 0.12f)) else it }
-                    .minTouchTarget()
-                    .clickable(onClickLabel = monthName) { onSelect(month) }
-                    .semantics { role = Role.Tab; this.selected = selected }
-                    .wrapContentSize()
-                    .padding(horizontal = Spacing.M, vertical = Spacing.S),
-            )
+private fun SeasonalMonthNavHeader(selectedMonth: Int, currentMonth: Int, onSelect: (Int) -> Unit) {
+    // No month-name label in this row itself - the LazyColumn item right below
+    // already shows it (with the "this month" phrasing when applicable), and
+    // duplicating it here would just show the same month name twice.
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = { onSelect(if (selectedMonth == 1) 12 else selectedMonth - 1) }) {
+            Icon(Icons.Rounded.ChevronLeft, stringResource(R.string.calendar_cd_prev_month), tint = OnBackground)
+        }
+        if (selectedMonth != currentMonth) {
+            TextButton(onClick = { onSelect(currentMonth) }) {
+                Text(stringResource(R.string.calendar_today), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
+            }
+        }
+        IconButton(onClick = { onSelect(if (selectedMonth == 12) 1 else selectedMonth + 1) }) {
+            Icon(TablerIcons.ChevronRight, stringResource(R.string.calendar_cd_next_month), tint = OnBackground)
         }
     }
 }
