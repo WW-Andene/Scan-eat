@@ -43,6 +43,9 @@ data class OfficialRecipe(
     val totalCarbsG: Double get() = sum { it.carbsG }
     val totalFatG: Double get() = sum { it.fatG }
     val totalFiberG: Double get() = sum { it.fiberG }
+    val totalSaturatedFatG: Double get() = sum { it.saturatedFatG }
+    val totalSugarsG: Double get() = sum { it.sugarsG }
+    val totalSaltG: Double get() = sum { it.saltG }
 
     /** Synthetic Product so checkDiet()/checkUserAllergens() can run against an official recipe before it's even cloned/logged. */
     fun toCheckProduct(): fr.scanneat.domain.model.Product = fr.scanneat.domain.model.Product(
@@ -55,12 +58,12 @@ data class OfficialRecipe(
         nutrition   = fr.scanneat.domain.model.NutritionPer100g(
             energyKcal    = totalKcal * 100.0 / totalGrams.coerceAtLeast(1.0),
             fatG          = totalFatG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            saturatedFatG = 0.0,
+            saturatedFatG = totalSaturatedFatG * 100.0 / totalGrams.coerceAtLeast(1.0),
             carbsG        = totalCarbsG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            sugarsG       = 0.0,
+            sugarsG       = totalSugarsG * 100.0 / totalGrams.coerceAtLeast(1.0),
             fiberG        = totalFiberG * 100.0 / totalGrams.coerceAtLeast(1.0),
             proteinG      = totalProteinG * 100.0 / totalGrams.coerceAtLeast(1.0),
-            saltG         = 0.0,
+            saltG         = totalSaltG * 100.0 / totalGrams.coerceAtLeast(1.0),
         ),
     )
 }

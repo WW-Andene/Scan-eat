@@ -101,9 +101,7 @@ data class MealTemplate(
 /**
  * TemplateItem and RecipeComponent carry almost identical fields - the only
  * structural difference is per-item meal/quickAdd (templates) vs dish-level
- * servings/notes/favorite (recipes). satFatG/sugarsG have no equivalent on
- * RecipeComponent, so they're dropped, matching what a manually-added recipe
- * ingredient already has (0 - RecipeComponent never tracked them either).
+ * servings/notes/favorite (recipes).
  */
 fun MealTemplate.toRecipeComponents(): List<RecipeComponent> = items.map { i ->
     RecipeComponent(
@@ -115,6 +113,8 @@ fun MealTemplate.toRecipeComponents(): List<RecipeComponent> = items.map { i ->
         fatG        = i.fatG,
         saltG       = i.saltG,
         fiberG      = i.fiberG,
+        saturatedFatG = i.satFatG,
+        sugarsG     = i.sugarsG,
     )
 }
 

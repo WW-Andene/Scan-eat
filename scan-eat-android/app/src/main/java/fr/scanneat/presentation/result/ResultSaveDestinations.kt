@@ -40,6 +40,8 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                     fatG     = n.fatG,
                     fiberG   = n.fiberG,
                     saltG    = n.saltG,
+                    saturatedFatG = n.saturatedFatG,
+                    sugarsG  = n.sugarsG,
                     // Previously dropped here too - CustomFoodRepository.save() had
                     // no params for these at all, so every custom food saved from a
                     // scan permanently reported zero iron/calcium/vitD/B12 regardless
@@ -97,6 +99,7 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                             productName = scan.product.name, grams = weight,
                             kcal = n.energyKcal * factor, proteinG = n.proteinG * factor, carbsG = n.carbsG * factor,
                             fatG = n.fatG * factor, saltG = n.saltG * factor, fiberG = n.fiberG * factor,
+                            saturatedFatG = n.saturatedFatG * factor, sugarsG = n.sugarsG * factor,
                         ),
                     ),
                     id = existingId,

@@ -69,6 +69,12 @@ class CustomFoodRepository @Inject constructor(
         fatG: Double    = 0.0,
         fiberG: Double  = 0.0,
         saltG: Double   = 0.0,
+        // Same gap as ironMg/calciumMg/vitDUg/b12Ug below, for the two macro
+        // fields FoodEntry itself only just gained (see FoodEntry.kt's own doc
+        // comment) - a custom food saved from a scanned product with real
+        // saturated-fat/sugar values previously had nowhere to put them.
+        saturatedFatG: Double = 0.0,
+        sugarsG: Double = 0.0,
         // Previously dropped here even when a caller (ResultViewModel.saveToDestinations,
         // CustomFoodViewModel.importFromScan) had real values from a scanned product's
         // NutritionPer100g - every custom food saved from a scan permanently reported
@@ -119,6 +125,8 @@ class CustomFoodRepository @Inject constructor(
             fatG      = fatG.coerceIn(0.0, 100.0),
             fiberG    = fiberG.coerceIn(0.0, 100.0),
             saltG     = saltG.coerceIn(0.0, 100.0),
+            saturatedFatG = saturatedFatG.coerceIn(0.0, 100.0),
+            sugarsG   = sugarsG.coerceIn(0.0, 100.0),
             ironMg    = ironMg.coerceIn(0.0, 100.0),
             calciumMg = calciumMg.coerceIn(0.0, 2500.0),
             vitDUg    = vitDUg.coerceIn(0.0, 250.0),
@@ -143,6 +151,7 @@ class CustomFoodRepository @Inject constructor(
                 nutritionJson = jsonAdapter.toJson(CustomFoodJson(
                     kcal = entry.kcal, proteinG = entry.proteinG, carbsG = entry.carbsG,
                     fatG = entry.fatG, fiberG = entry.fiberG, saltG = entry.saltG,
+                    saturatedFatG = entry.saturatedFatG, sugarsG = entry.sugarsG,
                     ironMg = entry.ironMg, calciumMg = entry.calciumMg,
                     vitDUg = entry.vitDUg, b12Ug = entry.b12Ug,
                     aliases = entry.aliases,
@@ -203,9 +212,9 @@ class CustomFoodRepository @Inject constructor(
         nutrition   = NutritionPer100g(
             energyKcal    = entry.kcal,
             fatG          = entry.fatG,
-            saturatedFatG = 0.0,
+            saturatedFatG = entry.saturatedFatG,
             carbsG        = entry.carbsG,
-            sugarsG       = 0.0,
+            sugarsG       = entry.sugarsG,
             fiberG        = entry.fiberG,
             proteinG      = entry.proteinG,
             saltG         = entry.saltG,
@@ -243,6 +252,8 @@ class CustomFoodRepository @Inject constructor(
         val fatG: Double = 0.0,
         val fiberG: Double = 0.0,
         val saltG: Double = 0.0,
+        val saturatedFatG: Double = 0.0,
+        val sugarsG: Double = 0.0,
         val ironMg: Double = 0.0,
         val calciumMg: Double = 0.0,
         val vitDUg: Double = 0.0,
@@ -268,6 +279,8 @@ class CustomFoodRepository @Inject constructor(
             fatG      = j.fatG,
             fiberG    = j.fiberG,
             saltG     = j.saltG,
+            saturatedFatG = j.saturatedFatG,
+            sugarsG   = j.sugarsG,
             ironMg    = j.ironMg,
             calciumMg = j.calciumMg,
             vitDUg    = j.vitDUg,

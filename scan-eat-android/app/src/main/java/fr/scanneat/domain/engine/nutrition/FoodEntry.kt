@@ -14,6 +14,17 @@ data class FoodEntry(
     val fatG: Double,
     val fiberG: Double = 0.0,
     val saltG: Double = 0.0,
+    // User-reported: FoodEntry had no saturated-fat/sugars fields at all, so
+    // both toProduct() converters (this file's own extension fun and
+    // CustomFoodRepository.toProduct()) hardcoded 0.0 for these two macros
+    // regardless of the real food - a FOOD_DB/custom-food entry for butter or
+    // honey reported 0g saturated fat / 0g sugar even though those are exactly
+    // the foods where these two macros matter most. Same "field simply didn't
+    // exist" class of gap as vitCMg's own doc comment below, just for
+    // NutritionPer100g's two other non-optional macro fields instead of a
+    // micronutrient.
+    val saturatedFatG: Double = 0.0,
+    val sugarsG: Double = 0.0,
     // Per-100g, approximate CIQUAL-style values like the macros above — only
     // set for foods that are a genuine, well-known source of that nutrient
     // (the "Close the gap" suggestion engine needs real density values to

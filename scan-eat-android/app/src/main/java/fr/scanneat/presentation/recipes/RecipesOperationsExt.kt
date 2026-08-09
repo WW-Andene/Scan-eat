@@ -180,6 +180,9 @@ fun RecipesViewModel.cloneOfficial(recipe: OfficialRecipe) {
             carbsG      = (food?.carbsG ?: 0.0) * ing.grams / 100.0,
             fatG        = (food?.fatG ?: 0.0) * ing.grams / 100.0,
             fiberG      = (food?.fiberG ?: 0.0) * ing.grams / 100.0,
+            saltG       = (food?.saltG ?: 0.0) * ing.grams / 100.0,
+            saturatedFatG = (food?.saturatedFatG ?: 0.0) * ing.grams / 100.0,
+            sugarsG     = (food?.sugarsG ?: 0.0) * ing.grams / 100.0,
         )
     }
     save(recipe.nameFr, components)

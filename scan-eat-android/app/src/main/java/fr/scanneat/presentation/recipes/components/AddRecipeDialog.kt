@@ -188,6 +188,8 @@ internal fun AddRecipeDialog(
                             // copied from the picked food, silently zeroing sodium
                             // for every ingredient added via search.
                             saltG    = food.saltG * g / 100.0,
+                            saturatedFatG = food.saturatedFatG * g / 100.0,
+                            sugarsG  = food.sugarsG * g / 100.0,
                         )
                     } else {
                         val k = newIngKcal.replace(',', '.').toDoubleOrNull()?.takeIf { it >= 0 } ?: 0.0

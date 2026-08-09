@@ -21,6 +21,11 @@ data class RecipeComponent(
     val fatG: Double = 0.0,
     val saltG: Double = 0.0,
     val fiberG: Double = 0.0,
+    // Previously had no equivalent here at all - see Recipe.nutritionPer100g's
+    // old hardcoded 0.0 for both. TemplateItem (MealTemplateRepository.kt) had
+    // already closed this same gap; RecipeComponent hadn't.
+    val saturatedFatG: Double = 0.0,
+    val sugarsG: Double = 0.0,
 )
 
 data class Recipe(
@@ -60,9 +65,9 @@ data class Recipe(
         return NutritionPer100g(
             energyKcal    = scale(totalKcal),
             fatG          = scale(totalFatG),
-            saturatedFatG = 0.0,
+            saturatedFatG = scale(components.sumOf { it.saturatedFatG }),
             carbsG        = scale(totalCarbsG),
-            sugarsG       = 0.0,
+            sugarsG       = scale(components.sumOf { it.sugarsG }),
             fiberG        = scale(components.sumOf { it.fiberG }),
             proteinG      = scale(totalProteinG),
             saltG         = scale(components.sumOf { it.saltG }),
@@ -89,6 +94,8 @@ fun Recipe.scaledComponents(newServings: Int): List<RecipeComponent> {
             fatG     = c.fatG     * ratio,
             saltG    = c.saltG    * ratio,
             fiberG   = c.fiberG   * ratio,
+            saturatedFatG = c.saturatedFatG * ratio,
+            sugarsG  = c.sugarsG  * ratio,
         )
     }
 }
@@ -96,9 +103,7 @@ fun Recipe.scaledComponents(newServings: Int): List<RecipeComponent> {
 /**
  * Inverse of MealTemplate.toRecipeComponents() - a Recipe has no meal of its own
  * (it collapses into one diary entry, unlike a template's per-item meal), so the
- * caller supplies which slot the resulting Saved Meal should apply to. satFatG/
- * sugarsG have no equivalent on RecipeComponent, so they default to 0 same as
- * any other newly-created TemplateItem.
+ * caller supplies which slot the resulting Saved Meal should apply to.
  */
 fun Recipe.toTemplateItems(meal: MealSlot): List<TemplateItem> = components.map { c ->
     TemplateItem(
@@ -111,6 +116,8 @@ fun Recipe.toTemplateItems(meal: MealSlot): List<TemplateItem> = components.map 
         saltG       = c.saltG,
         proteinG    = c.proteinG,
         fiberG      = c.fiberG,
+        satFatG     = c.saturatedFatG,
+        sugarsG     = c.sugarsG,
     )
 }
 

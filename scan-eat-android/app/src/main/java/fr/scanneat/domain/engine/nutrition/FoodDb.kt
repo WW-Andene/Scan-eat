@@ -176,9 +176,9 @@ fun FoodEntry.toProduct(portionG: Double = 100.0): Product = Product(
     nutrition   = NutritionPer100g(
         energyKcal    = kcal,
         fatG          = fatG,
-        saturatedFatG = 0.0,
+        saturatedFatG = saturatedFatG,
         carbsG        = carbsG,
-        sugarsG       = 0.0,
+        sugarsG       = sugarsG,
         fiberG        = fiberG,
         proteinG      = proteinG,
         saltG         = saltG,
