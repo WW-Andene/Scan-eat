@@ -882,6 +882,7 @@
     <string name="category_beverage_soft">Soft drinks</string>
     <string name="category_beverage_juice">Fruit juice</string>
     <string name="category_beverage_water">Water</string>
+    <string name="category_alcoholic_beverage">Alcoholic beverage</string>
     <string name="category_condiment">Condiments</string>
     <string name="category_oil_fat">Oils &amp; fats</string>
     <string name="category_other">Other</string>

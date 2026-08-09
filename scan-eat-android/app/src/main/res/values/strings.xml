@@ -886,6 +886,7 @@
     <string name="category_beverage_soft">Sodas</string>
     <string name="category_beverage_juice">Jus de fruits</string>
     <string name="category_beverage_water">Eau</string>
+    <string name="category_alcoholic_beverage">Boisson alcoolisée</string>
     <string name="category_condiment">Condiments</string>
     <string name="category_oil_fat">Huiles &amp; matières grasses</string>
     <string name="category_other">Autres</string>
