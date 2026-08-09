@@ -189,7 +189,7 @@ class RecipesViewModel @Inject constructor(
     val recipePairings: StateFlow<Map<String, List<String>>> = recipes.map { list ->
         list.mapNotNull { recipe ->
             val main = recipe.components.maxByOrNull { it.grams } ?: return@mapNotNull null
-            val pairs = findPairings(main.productName, limit = 4)
+            val pairs = findPairings(main.productName, limit = 8)
             if (pairs.isEmpty()) null else recipe.id to pairs
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
@@ -197,7 +197,7 @@ class RecipesViewModel @Inject constructor(
     /** Same as [recipePairings], for the official/starter recipes. */
     val officialRecipePairings: Map<String, List<String>> = OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
         val main = recipe.ingredients.maxByOrNull { it.grams } ?: return@mapNotNull null
-        val pairs = findPairings(main.foodName, limit = 4)
+        val pairs = findPairings(main.foodName, limit = 8)
         if (pairs.isEmpty()) null else recipe.nameFr to pairs
     }.toMap()
 

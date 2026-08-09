@@ -94,8 +94,11 @@ internal class ResultScanLoader(
         // flavor descriptor ("Vanille", "Fraise") that happens to key an
         // ingredient in the pairings database, producing baking-ingredient
         // suggestions for a soda that has nothing to do with them.
+        // User-requested: increase the number of recipes/ingredients suggested
+        // and linked by a scanned or entered ingredient (same fix applied to
+        // every other findPairings() call site in the app).
         val pairs      = if (scan.product.category in NON_PAIRABLE_CATEGORIES) emptyList()
-                          else findPairings(scan.product.name, limit = 5)
+                          else findPairings(scan.product.name, limit = 8)
         val alternative = if (scan.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES)
             scanRepo.findBetterAlternative(scan, allergens = profile.allergens, dietKey = profile.diet, healthConditions = profile.healthConditions, lang = lang) else null
 

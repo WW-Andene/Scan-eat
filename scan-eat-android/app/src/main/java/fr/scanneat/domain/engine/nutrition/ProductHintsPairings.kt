@@ -23,7 +23,11 @@ internal fun buildPairings(product: Product, lang: String, containsCaffeineSourc
     val pairWell = mutableListOf<String>()
     val avoidPairing = mutableListOf<String>()
 
-    val flavorPairs = fr.scanneat.domain.engine.planning.findPairings(product.name, limit = 4)
+    // User-requested: increase the number of recipes/ingredients suggested and
+    // linked by a scanned or entered ingredient - this and the two identical
+    // call sites in RecipesViewModel.kt explicitly capped below findPairings()'s
+    // own default of 6.
+    val flavorPairs = fr.scanneat.domain.engine.planning.findPairings(product.name, limit = 8)
     if (flavorPairs.isNotEmpty()) {
         pairWell += if (en) "Goes well with: ${flavorPairs.joinToString(", ")} (flavor-pairing data)"
                     else "Se marie bien avec : ${flavorPairs.joinToString(", ")} (données d'accords culinaires)"
