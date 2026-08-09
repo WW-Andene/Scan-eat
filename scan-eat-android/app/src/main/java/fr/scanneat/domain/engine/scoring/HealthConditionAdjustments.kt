@@ -60,7 +60,17 @@ internal fun checkHealthConditions(
 
     checkMetabolicConditions(product, conditions, lang, catThresholds, isSugarSweetenedBeverage, adjustments)
 
-    val alcoholHit = product.ingredients.any { ing -> ALCOHOL_INGREDIENT_PATTERN.containsMatchIn(ing.name) }
+    // ALCOHOL_INGREDIENT_PATTERN alone missed fermented beverages whose
+    // declared ingredients never literally spell out "alcool"/"vin"/"bière"
+    // (e.g. a beer's ingredient list reading "eau, malt d'orge, houblon,
+    // levure") - the same gap NegativeNutrientsPillar.kt's base engine had
+    // before ALCOHOLIC_BEVERAGE/alcoholPercentVol were added as a reliable
+    // signal. Without this, the pregnancy veto and cancer/depression/
+    // epilepsy/migraine/GI cautions below could all silently pass a real
+    // alcoholic beverage for a pregnancy profile.
+    val alcoholHit = product.ingredients.any { ing -> ALCOHOL_INGREDIENT_PATTERN.containsMatchIn(ing.name) } ||
+        product.category == ProductCategory.ALCOHOLIC_BEVERAGE ||
+        (product.nutrition.alcoholPercentVol ?: 0.0) > 0.0
 
     checkPregnancyCondition(product, conditions, lang, alcoholHit, adjustments)?.let { (v, reason) ->
         veto = v
