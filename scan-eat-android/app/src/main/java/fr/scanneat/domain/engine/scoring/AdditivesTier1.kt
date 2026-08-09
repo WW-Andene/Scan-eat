@@ -35,6 +35,17 @@ internal val ADDITIVES_TIER1: List<AdditiveInfo> = listOf(
     AdditiveInfo("E127", listOf("érythrosine", "erythrosine", "red 3", "rouge 3"), AdditiveTier.ONE, AdditiveCategory.COLORANT,
         "Iodine-containing dye. Banned as a food additive in the US (FDA, Jan 2025) under the Delaney Clause for carcinogenicity (thyroid tumors in male rats); thyroid concerns at high intakes generally.",
         "FDA final rule, 90 FR 4695 (Jan 2025); EFSA Re-evaluation 2011;9(1):1854."),
+    // Previously absent from all three tiers entirely - products containing
+    // either scored as if additive-free.
+    AdditiveInfo("E924", listOf("bromate de potassium", "potassium bromate"), AdditiveTier.ONE, AdditiveCategory.STABILIZER,
+        "Flour treatment agent. IARC Group 2B (possibly carcinogenic); banned as a food additive in the EU, UK, Canada, and most other markets.",
+        "IARC Monograph Vol 73 (1999); EU Regulation 1333/2008 (not authorised)."),
+    AdditiveInfo("E216", listOf("propylparabène", "propylparaben", "e216"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+        "Paraben preservative. Endocrine-disruption concerns (estrogenic activity); banned as a food additive in the EU since 2006.",
+        "EFSA Opinion 2004;83; Commission Regulation (EC) No 1004/2006."),
+    AdditiveInfo("E217", listOf("propylparabène de sodium", "sodium propylparaben", "e217"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
+        "Sodium salt of E216, same endocrine-disruption concerns; banned as a food additive in the EU since 2006.",
+        "EFSA Opinion 2004;83; Commission Regulation (EC) No 1004/2006."),
     AdditiveInfo("E220", listOf("anhydride sulfureux", "dioxyde de soufre", "sulfur dioxide"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen. Triggers asthma and sulfite sensitivity.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016;14(4):4438."),
