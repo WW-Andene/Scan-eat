@@ -6,6 +6,7 @@ import fr.scanneat.data.remote.api.Choice
 import fr.scanneat.data.remote.api.ContentPart
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.withLock
 import retrofit2.HttpException
 import java.io.IOException
 import kotlin.math.pow
@@ -26,6 +27,44 @@ private const val CEREBRAS_MODEL = "llama-4-scout-17b-16e-instruct"
 
 internal enum class Provider { GROQ, CEREBRAS }
 internal data class ModelCandidate(val provider: Provider, val model: String)
+
+/**
+ * Provider model names get retired/renamed on their own schedule (this is the
+ * exact failure this file exists to route around — DEFAULT_MODEL/FALLBACK_MODEL/
+ * CEREBRAS_MODEL below are a *last-resort* snapshot, not a guarantee). Both
+ * providers expose an OpenAI-compatible `GET /v1/models` listing endpoint;
+ * this cache fetches it once per process (per provider, with a TTL so a
+ * transient outage recovers on its own) and keeps only the ids that still
+ * look vision-capable, ranked by the same preference order the hardcoded
+ * fallback used to hardcode. A failed/empty fetch (network down, endpoint
+ * changed) falls back to the old hardcoded constants rather than leaving
+ * scanning with zero candidates.
+ */
+private object OcrModelCache {
+    private const val TTL_MS = 6 * 60 * 60 * 1000L
+    private val cache = mutableMapOf<Provider, Pair<Long, List<String>>>()
+    private val mutex = kotlinx.coroutines.sync.Mutex()
+
+    private val preferenceKeywords = listOf("scout", "maverick", "vision", "versatile", "llama")
+
+    private fun rank(id: String): Int {
+        val lower = id.lowercase()
+        val idx = preferenceKeywords.indexOfFirst { lower.contains(it) }
+        return if (idx == -1) preferenceKeywords.size else idx
+    }
+
+    suspend fun get(provider: Provider, fetch: suspend () -> List<String>, fallback: List<String>): List<String> = mutex.withLock {
+        val cached = cache[provider]
+        val now = System.currentTimeMillis()
+        if (cached != null && now - cached.first < TTL_MS) return cached.second
+        val live = runCatching { fetch() }.getOrDefault(emptyList())
+            .filter { id -> preferenceKeywords.any { id.contains(it, ignoreCase = true) } }
+            .sortedBy { rank(it) }
+        val resolved = live.ifEmpty { fallback }
+        cache[provider] = now to resolved
+        return resolved
+    }
+}
 
 /** Retryable: rate limiting (429), server errors (5xx), and transient network I/O failures. */
 internal fun isRetryable(err: Throwable): Boolean = when (err) {
@@ -56,14 +95,23 @@ internal fun ocrBackoffDelayMs(attempt: Int, baseDelayMs: Long = 250L, jitterMs:
  * A blank key means "not configured" — that provider is skipped entirely
  * rather than attempted and failing on a 401.
  */
-internal fun buildCandidates(groqApiKey: String, cerebrasApiKey: String): List<Pair<ModelCandidate, String>> {
+internal suspend fun OcrParser.buildCandidates(groqApiKey: String, cerebrasApiKey: String): List<Pair<ModelCandidate, String>> {
     val candidates = mutableListOf<Pair<ModelCandidate, String>>()
     if (groqApiKey.isNotBlank()) {
-        candidates += ModelCandidate(Provider.GROQ, DEFAULT_MODEL) to groqApiKey
-        candidates += ModelCandidate(Provider.GROQ, FALLBACK_MODEL) to groqApiKey
+        val models = OcrModelCache.get(
+            provider = Provider.GROQ,
+            fetch = { groqApi.listModels("Bearer $groqApiKey").data.filter { it.active }.map { it.id } },
+            fallback = listOf(DEFAULT_MODEL, FALLBACK_MODEL),
+        )
+        models.forEach { candidates += ModelCandidate(Provider.GROQ, it) to groqApiKey }
     }
     if (cerebrasApiKey.isNotBlank()) {
-        candidates += ModelCandidate(Provider.CEREBRAS, CEREBRAS_MODEL) to cerebrasApiKey
+        val models = OcrModelCache.get(
+            provider = Provider.CEREBRAS,
+            fetch = { cerebrasApi.listModels("Bearer $cerebrasApiKey").data.filter { it.active }.map { it.id } },
+            fallback = listOf(CEREBRAS_MODEL),
+        )
+        models.forEach { candidates += ModelCandidate(Provider.CEREBRAS, it) to cerebrasApiKey }
     }
     return candidates
 }

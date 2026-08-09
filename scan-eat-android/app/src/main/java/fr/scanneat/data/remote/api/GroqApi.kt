@@ -15,6 +15,9 @@ interface GroqApi {
         @Header("Authorization") auth: String,
         @Body request: ChatRequest,
     ): ChatResponse
+
+    @GET("v1/models")
+    suspend fun listModels(@Header("Authorization") auth: String): ModelListResponse
 }
 
 /**
@@ -30,7 +33,22 @@ interface CerebrasApi {
         @Header("Authorization") auth: String,
         @Body request: ChatRequest,
     ): ChatResponse
+
+    @GET("v1/models")
+    suspend fun listModels(@Header("Authorization") auth: String): ModelListResponse
 }
+
+/** OpenAI-compatible `GET /v1/models` response, shared by both Groq and Cerebras. */
+@JsonClass(generateAdapter = true)
+data class ModelListResponse(
+    val data: List<ModelInfo> = emptyList(),
+)
+
+@JsonClass(generateAdapter = true)
+data class ModelInfo(
+    val id: String,
+    @Json(name = "active") val active: Boolean = true,
+)
 
 @JsonClass(generateAdapter = true)
 data class ChatRequest(
