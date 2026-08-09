@@ -205,7 +205,93 @@ private val EN_TO_FR: Map<String, String> = mapOf(
     "lemongrass" to "citronnelle",
     "celery_oil" to "huile de céleri",
     "roasted_beef" to "boeuf rôti",
-    "bacon" to "bacon"
+    "bacon" to "bacon",
+    // User-reported: French-language pairing chips still showed raw English
+    // words - these 79 partner-ingredient keys (PairingsData*.kt) were never
+    // given a per-entry French name (PairingEntry.fr = null everywhere they
+    // occur), so findPairings() fell straight to the English key with
+    // underscores replaced by spaces regardless of app language. Added here
+    // as a shared fallback instead of hand-editing every PairingEntry(...)
+    // occurrence across the four PairingsData*.kt files.
+    "bay" to "laurier",
+    "bean" to "haricot",
+    "berry" to "baie",
+    "bitter_orange" to "orange amère",
+    "black_bean" to "haricot noir",
+    "brandy" to "eau-de-vie",
+    "brown_rice" to "riz complet",
+    "cane_molasses" to "mélasse de canne",
+    "cereal" to "céréale",
+    "cherry_brandy" to "eau-de-vie de cerise",
+    "chervil" to "cerfeuil",
+    "chicory" to "chicorée",
+    "cider" to "cidre",
+    "clam" to "palourde",
+    "coriander" to "coriandre",
+    "cured_pork" to "porc salé",
+    "currant" to "groseille",
+    "egg_noodle" to "nouille aux œufs",
+    "enokidake" to "champignon enoki",
+    "fenugreek" to "fenugrec",
+    "galanga" to "galanga",
+    "gelatin" to "gélatine",
+    "gin" to "gin",
+    "grape_juice" to "jus de raisin",
+    "ham" to "jambon",
+    "horseradish" to "raifort",
+    "katsuobushi" to "bonite séchée",
+    "kiwi" to "kiwi",
+    "lavender" to "lavande",
+    "lemon_peel" to "zeste de citron",
+    "lima_bean" to "haricot de Lima",
+    "lime_peel_oil" to "huile de zeste de citron vert",
+    "lovage" to "livèche",
+    "malt" to "malt",
+    "mandarin_peel" to "zeste de mandarine",
+    "marjoram" to "marjolaine",
+    "meat" to "viande",
+    "milk_fat" to "matière grasse laitière",
+    "mussel" to "moule",
+    "nectarine" to "nectarine",
+    "nut" to "noix",
+    "orange_peel" to "zeste d'orange",
+    "ouzo" to "ouzo",
+    "papaya" to "papaye",
+    "parsnip" to "panais",
+    "pear_brandy" to "eau-de-vie de poire",
+    "pimento" to "piment doux",
+    "plum" to "prune",
+    "popcorn" to "pop-corn",
+    "pork_sausage" to "saucisse de porc",
+    "provolone_cheese" to "provolone",
+    "rhubarb" to "rhubarbe",
+    "roasted_peanut" to "cacahuète grillée",
+    "roasted_sesame_seed" to "graine de sésame grillée",
+    "rose" to "rose",
+    "rye_flour" to "farine de seigle",
+    "sake" to "saké",
+    "salmon_roe" to "œufs de saumon",
+    "savory" to "sarriette",
+    "seed" to "graine",
+    "sesame_oil" to "huile de sésame",
+    "sherry" to "xérès",
+    "shiitake" to "shiitake",
+    "smoke" to "fumé",
+    "squash" to "courge",
+    "squid" to "calamar",
+    "swiss_cheese" to "emmental suisse",
+    "tabasco_pepper" to "piment tabasco",
+    "tangerine" to "mandarine",
+    "tea" to "thé",
+    "tequila" to "tequila",
+    "thai_pepper" to "piment thaï",
+    "turnip" to "navet",
+    "vegetable" to "légume",
+    "wasabi" to "wasabi",
+    "whiskey" to "whisky",
+    "whole_grain_wheat_flour" to "farine de blé complet",
+    "wine" to "vin",
+    "yam" to "igname"
 )
 
 // FR → EN reverse map (built from EN_TO_FR + ingredient display names)
@@ -316,7 +402,7 @@ fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet()
         .filter { it.b !in excludedEn }
         .sortedWith(compareBy<PairingEntry> { classifyFoodGroup(it.b) in dishGroups }.thenByDescending { it.cooccur })
         .take(limit)
-        .map { if (preferFrench) (it.fr ?: it.b.replace("_", " ")) else it.b.replace("_", " ") }
+        .map { if (preferFrench) (it.fr ?: EN_TO_FR[it.b] ?: it.b.replace("_", " ")) else it.b.replace("_", " ") }
 }
 
 /**
