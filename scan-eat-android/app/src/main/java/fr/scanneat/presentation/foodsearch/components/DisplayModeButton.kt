@@ -34,6 +34,9 @@ internal fun DisplayModeButton(mode: SearchDisplayMode, onClick: () -> Unit) {
         // same screen (CollapsibleFilterBar's Surface uses heightIn(min = 48.dp);
         // this button was left at Material's default OutlinedButton min height).
         modifier = Modifier.padding(horizontal = Spacing.L, vertical = Spacing.XS).heightIn(min = 48.dp),
+        // Was missing - fell back to Material's default colorScheme.primary,
+        // which is blue under the Lazulite color-accent (Theme.kt).
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentCoral),
     ) {
         Icon(Icons.Rounded.SwapHoriz, null, modifier = Modifier.size(IconSize.Small))
         Spacer(Modifier.width(Spacing.XS))

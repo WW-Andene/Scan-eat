@@ -278,7 +278,7 @@ private fun SeasonalGroupCard(
 @Composable
 private fun SeasonalPairingsDialog(produce: SeasonalProduce, isFrench: Boolean, onDismiss: () -> Unit) {
     val name = if (isFrench) produce.nameFr else produce.nameEn
-    val pairs = remember(produce) { findPairings(produce.nameFr, limit = 8) }
+    val pairs = remember(produce, isFrench) { findPairings(produce.nameFr, limit = 8, preferFrench = isFrench) }
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),

@@ -249,6 +249,10 @@ internal fun ExpenseCategoryPicker(category: ProductCategory, onCategoryChange: 
                 onClick = { expanded = true },
                 shape = RoundedCornerShape(CardRadius.CONTROL),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                // Was missing - fell back to Material's default colorScheme.primary
+                // for the border/ripple, which is blue under the Lazulite color-accent
+                // (Theme.kt), even though the label text was already themed OnBackground.
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = OnBackground),
             ) {
                 Text(category.displayLabel(), color = OnBackground)
             }

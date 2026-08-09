@@ -54,6 +54,7 @@ fun RecipesScreen(
     val warnings = viewModel.recipeWarnings.collectAsStateWithLifecycle()
     val officialWarnings = viewModel.officialRecipeWarnings.collectAsStateWithLifecycle()
     val pairings = viewModel.recipePairings.collectAsStateWithLifecycle()
+    val officialPairings = viewModel.officialRecipePairings.collectAsStateWithLifecycle()
     val hints = viewModel.recipeHints.collectAsStateWithLifecycle()
     val officialHints = viewModel.officialRecipeHints.collectAsStateWithLifecycle()
     val goalFilter = viewModel.goalFilter.collectAsStateWithLifecycle()
@@ -224,7 +225,7 @@ fun RecipesScreen(
                     recipe   = recipe,
                     isFrench = language.value == "fr",
                     warning  = officialWarnings.value[recipe.nameFr],
-                    pairings = viewModel.officialRecipePairings[recipe.nameFr] ?: emptyList(),
+                    pairings = officialPairings.value[recipe.nameFr] ?: emptyList(),
                     hints    = officialHints.value[recipe.nameFr] ?: ProductHints.EMPTY,
                     onLog    = { logOfficialTarget = recipe },
                     onClone  = { viewModel.cloneOfficial(recipe) },

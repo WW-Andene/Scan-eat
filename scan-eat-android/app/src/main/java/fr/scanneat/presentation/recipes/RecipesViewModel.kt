@@ -186,7 +186,7 @@ class RecipesViewModel @Inject constructor(
      * Recipes at all - a natural place to also deepen recipe discovery, since
      * it's the exact same "what goes well with this" question.
      */
-    val recipePairings: StateFlow<Map<String, List<String>>> = recipes.map { list ->
+    val recipePairings: StateFlow<Map<String, List<String>>> = combine(recipes, language) { list, lang ->
         list.mapNotNull { recipe ->
             val main = recipe.components.maxByOrNull { it.grams } ?: return@mapNotNull null
             // User-reported: "pairs well with" suggested an ingredient the recipe
@@ -196,18 +196,22 @@ class RecipesViewModel @Inject constructor(
             // its own dish-mates out. Excludes every other ingredient already in
             // this recipe.
             val exclude = recipe.components.filter { it != main }.map { it.productName }.toSet()
-            val pairs = findPairings(main.productName, limit = 8, exclude = exclude)
+            // User-reported: pairing suggestions always showed up in French
+            // regardless of the app's own language setting.
+            val pairs = findPairings(main.productName, limit = 8, exclude = exclude, preferFrench = lang == "fr")
             if (pairs.isEmpty()) null else recipe.id to pairs
         }.toMap()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     /** Same as [recipePairings], for the official/starter recipes. */
-    val officialRecipePairings: Map<String, List<String>> = OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
-        val main = recipe.ingredients.maxByOrNull { it.grams } ?: return@mapNotNull null
-        val exclude = recipe.ingredients.filter { it != main }.map { it.foodName }.toSet()
-        val pairs = findPairings(main.foodName, limit = 8, exclude = exclude)
-        if (pairs.isEmpty()) null else recipe.nameFr to pairs
-    }.toMap()
+    val officialRecipePairings: StateFlow<Map<String, List<String>>> = language.map { lang ->
+        OFFICIAL_RECIPE_DB.mapNotNull { recipe ->
+            val main = recipe.ingredients.maxByOrNull { it.grams } ?: return@mapNotNull null
+            val exclude = recipe.ingredients.filter { it != main }.map { it.foodName }.toSet()
+            val pairs = findPairings(main.foodName, limit = 8, exclude = exclude, preferFrench = lang == "fr")
+            if (pairs.isEmpty()) null else recipe.nameFr to pairs
+        }.toMap()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     // ── Ingredient search for the "add ingredient" dialog ────────────────────
     // Previously pure manual entry: name/grams/kcal typed by hand, with no

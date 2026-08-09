@@ -285,7 +285,15 @@ fun resolveIngredient(name: String): String? {
  * a strong enough co-occurrence lead, it's just no longer preferred purely
  * for being the single highest raw count.
  */
-fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet()): List<String> {
+// User-reported: pairing suggestions showed up in French regardless of the
+// app's own language setting - every call site fed [name] through in
+// whichever language it already had at hand, but the RESULT was always
+// rendered via `it.fr ?: ...`, so an English-language user always saw French
+// suggestion chips next to their own English-language screen. [preferFrench]
+// lets a caller opt into the English fallback (`it.b`, underscore-replaced)
+// instead; defaults to the previous always-French behavior so call sites
+// that haven't been updated yet are unaffected.
+fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet(), preferFrench: Boolean = true): List<String> {
     val en = resolveIngredient(name) ?: return emptyList()
     val entry = PAIRINGS[en] ?: return emptyList()
     val excludedEn = (exclude + name).mapNotNullTo(mutableSetOf()) { resolveIngredient(it) }
@@ -308,7 +316,7 @@ fun findPairings(name: String, limit: Int = 6, exclude: Set<String> = emptySet()
         .filter { it.b !in excludedEn }
         .sortedWith(compareBy<PairingEntry> { classifyFoodGroup(it.b) in dishGroups }.thenByDescending { it.cooccur })
         .take(limit)
-        .map { it.fr ?: it.b.replace("_", " ") }
+        .map { if (preferFrench) (it.fr ?: it.b.replace("_", " ")) else it.b.replace("_", " ") }
 }
 
 /**

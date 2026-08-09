@@ -81,12 +81,21 @@ fun ScanEatPrimaryButton(
  * of this audit — this one didn't, so a primary and secondary action sitting
  * next to each other (the app's own most common button pairing) felt like
  * two different components on press instead of one coherent system.
+ *
+ * User-reported: many buttons app-wide rendered blue "for unknown reason" —
+ * this button had no `colors` override, so it silently fell back to
+ * Material's default `colorScheme.primary`, which IS blue under the
+ * Lazulite color-accent (Theme.kt) even though every other button
+ * (ScanEatPrimaryButton) stays on [contentColor] regardless of accent.
+ * [contentColor] mirrors ScanEatPrimaryButton's own [containerColor] param
+ * so a sub-brand can still override it, defaulting to the same AccentCoral.
  */
 @Composable
 fun ScanEatOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    contentColor: Color = AccentCoral,
     content: @Composable RowScope.() -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -96,6 +105,10 @@ fun ScanEatOutlinedButton(
         enabled = enabled,
         interactionSource = interactionSource,
         shape   = RoundedCornerShape(CardRadius.CONTROL),
+        colors  = ButtonDefaults.outlinedButtonColors(
+            contentColor         = contentColor,
+            disabledContentColor = contentColor.copy(alpha = 0.38f),
+        ),
         content = content,
     )
 }

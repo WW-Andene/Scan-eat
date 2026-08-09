@@ -63,7 +63,13 @@ internal fun OnlineSearchSection(
         }
         if (state == OnlineSearchState.IDLE || state == OnlineSearchState.ERROR || state == OnlineSearchState.EMPTY) {
             Spacer(Modifier.height(Spacing.XS))
-            OutlinedButton(onClick = onSearchOnline, shape = RoundedCornerShape(CardRadius.CONTROL)) {
+            OutlinedButton(
+                onClick = onSearchOnline,
+                shape = RoundedCornerShape(CardRadius.CONTROL),
+                // Was missing - fell back to Material's default colorScheme.primary,
+                // which is blue under the Lazulite color-accent (Theme.kt).
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentCoral),
+            ) {
                 Icon(TablerIcons.Search, null, modifier = Modifier.size(IconSize.Small))
                 Spacer(Modifier.width(Spacing.XS))
                 Text(stringResource(R.string.foodsearch_online_search_button), style = MaterialTheme.typography.labelMedium)

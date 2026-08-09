@@ -98,7 +98,7 @@ internal class ResultScanLoader(
         // and linked by a scanned or entered ingredient (same fix applied to
         // every other findPairings() call site in the app).
         val pairs      = if (scan.product.category in NON_PAIRABLE_CATEGORIES) emptyList()
-                          else findPairings(scan.product.name, limit = 8)
+                          else findPairings(scan.product.name, limit = 8, preferFrench = lang == "fr")
         val alternative = if (scan.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES)
             scanRepo.findBetterAlternative(scan, allergens = profile.allergens, dietKey = profile.diet, healthConditions = profile.healthConditions, lang = lang) else null
 

@@ -27,7 +27,7 @@ internal fun buildPairings(product: Product, lang: String, containsCaffeineSourc
     // linked by a scanned or entered ingredient - this and the two identical
     // call sites in RecipesViewModel.kt explicitly capped below findPairings()'s
     // own default of 6.
-    val flavorPairs = fr.scanneat.domain.engine.planning.findPairings(product.name, limit = 8)
+    val flavorPairs = fr.scanneat.domain.engine.planning.findPairings(product.name, limit = 8, preferFrench = !en)
     if (flavorPairs.isNotEmpty()) {
         pairWell += if (en) "Goes well with: ${flavorPairs.joinToString(", ")} (flavor-pairing data)"
                     else "Se marie bien avec : ${flavorPairs.joinToString(", ")} (données d'accords culinaires)"
