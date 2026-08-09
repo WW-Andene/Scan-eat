@@ -35,7 +35,7 @@ private val OledColors = darkColorScheme(
     onError          = Color.White,
     errorContainer   = Color(0x26EF5350),
     onErrorContainer = FlagRed,
-    outline          = Color(0xFF4E4A56),
+    outline          = OledOutlineRaw,
 )
 
 // Warmed off a cool violet cast (was background 0xFF17141B / surface

@@ -56,9 +56,16 @@ internal val OledOnBackgroundRaw   = Color(0xFFEFEAE6)
 // separate cool-toned panel. SurfaceVariant shifts hue again (not just
 // lightness) one step further, for the perceived-depth cue F17 flagged as
 // missing between elevation tiers.
-internal val OledSurfaceRaw        = Color(0xFF181310)
-internal val OledSurfaceVariantRaw = Color(0xFF2A2018)  // one step lighter than surface — the elevation tier Dark already has
+// User-reported: OLED read as "barely different from Dark mode" - most of the
+// screen is translucent cards, not raw Background, so the headline true-black
+// Background alone rarely shows through. These were only a small step darker
+// than DarkColors' own surface/surfaceVariant (#261F17/#423B32) - deepened
+// further (roughly halved) so OLED's cards themselves read distinctly darker,
+// not just its background.
+internal val OledSurfaceRaw        = Color(0xFF100D0A)
+internal val OledSurfaceVariantRaw = Color(0xFF1E1710)  // one step lighter than surface — the elevation tier Dark already has
 internal val OledOnSurfaceRaw      = Color(0xFFCFC7CC)
+internal val OledOutlineRaw        = Color(0xFF2E2A30)  // was identical to Dark's own outline (#4E4A56) — no visible border difference at all
 
 // High/Low Contrast — WCAG-maximal variants, not brand-color re-tunes.
 internal val HighContrastBackgroundRaw = Color(0xFF000000)
