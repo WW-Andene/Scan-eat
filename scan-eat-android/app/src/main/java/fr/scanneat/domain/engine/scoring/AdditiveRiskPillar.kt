@@ -6,6 +6,17 @@ import fr.scanneat.domain.model.*
 // SECTION 8: PILLAR 4 — ADDITIVE RISK (max 15)
 // ============================================================================
 
+// Sulfites (E220-E224) are the legally-mandated, near-universal preservative
+// in wine/cider - EU law requires a "contains sulfites" label above 10mg/L
+// specifically because virtually every wine has them, either added or as a
+// natural fermentation byproduct. Scoring them identically to nitrites in
+// cured meat (same Tier-1 bucket) penalized nearly every wine/cider scan for
+// something structurally expected in the category, the same category-
+// blindness already fixed for salt/sugar/kcal thresholds but never extended
+// to additive risk. Excluded only for ALCOHOLIC_BEVERAGE - sulfites in any
+// other category are still a real Tier-1 concern.
+private val SULFITE_E_NUMBERS = setOf("E220", "E221", "E222", "E223", "E224", "E225", "E226", "E227", "E228")
+
 fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     val en = lang == "en"
     val MAX = 15
@@ -18,8 +29,10 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     val tier2 = mutableListOf<Hit>()
     val tier3 = mutableListOf<Hit>()
 
+    val isAlcoholic = product.category == ProductCategory.ALCOHOLIC_BEVERAGE
     for (ing in product.ingredients) {
         val additive = findAdditive(ing.eNumber, ing.name, ing.category) ?: continue
+        if (isAlcoholic && additive.eNumber in SULFITE_E_NUMBERS) continue
         val hit = Hit(ing.name, additive.eNumber, additive.concern)
         when (additive.tier) {
             AdditiveTier.ONE   -> tier1 += hit
@@ -52,5 +65,8 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     return PillarScore(if (en) "Additive Risk" else "Risque additifs", MAX, maxOf(0.0, score), deductions, bonuses)
 }
 
-fun countTier1Additives(product: Product): Int =
-    product.ingredients.mapNotNull { findAdditive(it.eNumber, it.name, it.category) }.count { it.tier == AdditiveTier.ONE }
+fun countTier1Additives(product: Product): Int {
+    val isAlcoholic = product.category == ProductCategory.ALCOHOLIC_BEVERAGE
+    return product.ingredients.mapNotNull { findAdditive(it.eNumber, it.name, it.category) }
+        .count { it.tier == AdditiveTier.ONE && !(isAlcoholic && it.eNumber in SULFITE_E_NUMBERS) }
+}
