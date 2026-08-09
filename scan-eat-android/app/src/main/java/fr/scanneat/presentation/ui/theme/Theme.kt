@@ -308,10 +308,25 @@ fun ScanEatTheme(
         // ColorAccent's own doc comment above on why) - every other base
         // theme takes the accent's own background too, for the fuller color
         // this was reported as missing.
+        //
+        // User-reported: Light and Low Contrast broke the same way OLED would
+        // have without its own carve-out above - ColorAccent's background/
+        // surface/surfaceVariant are all hand-tuned near-black values (e.g.
+        // Matcha's #10130E), so picking any accent silently turned "Light
+        // mode" dark, and replaced Low Contrast's deliberately narrow,
+        // close-together gray palette with a full-saturation dark panel -
+        // defeating each theme's own reason to exist exactly like an
+        // untinted OLED background would. Both now take only the accent's
+        // hue (primary/secondary/tertiary), the same restriction OLED's own
+        // branch already applies to background alone.
         if (resolvedTheme == "oled") {
             baseColorScheme.copy(
                 primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
                 surface = accent.surface, surfaceVariant = accent.surfaceVariant,
+            )
+        } else if (resolvedTheme == "light" || resolvedTheme == "low_contrast") {
+            baseColorScheme.copy(
+                primary = accent.primary, secondary = accent.secondary, tertiary = accent.tertiary,
             )
         } else {
             baseColorScheme.copy(
