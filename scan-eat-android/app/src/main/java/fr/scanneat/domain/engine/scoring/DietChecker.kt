@@ -83,6 +83,18 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
         testAny(re)?.let { preferredHits += it }
     }
 
+    // HALAL's own forbidden-pattern regex above has the identical false-
+    // negative HealthConditionAdjustments.kt's pregnancy alcohol veto had -
+    // a fermented beverage whose declared ingredients never literally spell
+    // out "alcool"/"vin"/"bière" (e.g. "eau, malt d'orge, houblon, levure")
+    // silently passed as halal-compliant. ALCOHOLIC_BEVERAGE/alcoholPercentVol
+    // are the same reliable signal used to close that gap elsewhere.
+    if (dietKey == DietKey.HALAL && violations.none { ALCOHOL_INGREDIENT_PATTERN.containsMatchIn(it) } &&
+        (product.category == ProductCategory.ALCOHOLIC_BEVERAGE || (product.nutrition.alcoholPercentVol ?: 0.0) > 0.0)
+    ) {
+        violations += if (lang == "en") "alcoholic beverage (${product.nutrition.alcoholPercentVol ?: 0.0}% vol)" else "boisson alcoolisée (${product.nutrition.alcoholPercentVol ?: 0.0}% vol)"
+    }
+
     // Macro-based check - data-driven off DietDef.maxNetCarbsG/minFatFractionOfKcal
     // rather than hardcoded to one enum value, so any future diet needing the same
     // net-carbs/fat-fraction rule (not just KETO) only needs a DIET_DEFS entry.
