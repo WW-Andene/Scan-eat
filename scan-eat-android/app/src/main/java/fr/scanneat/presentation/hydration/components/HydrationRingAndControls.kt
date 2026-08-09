@@ -115,8 +115,10 @@ internal fun HydrationRingAndControls(
         }
     }
 
-    // Controls
-    Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
+    // User-reported: this row's gap was a bare 20.dp literal, not one of the
+    // app's Spacing tokens (XS/SM/M/L/XL/XXL) every other spacedBy() in the
+    // app draws from - standardized to the nearest token.
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XL), verticalAlignment = Alignment.CenterVertically) {
         FloatingActionButton(
             onClick = onRemoveGlass,
             containerColor = if (intakeMl > 0) SurfaceVariant else SurfaceVariant.copy(alpha = 0.4f),

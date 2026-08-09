@@ -30,10 +30,11 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 internal fun WeightUnitToggleRow(useImperial: Boolean, onUnitChange: (Boolean) -> Unit, onOpenCalendar: () -> Unit) {
+    // User-reported: the calendar icon sat on the left here while every sibling
+    // tracker (Activity/Hydration/Medication's own StreakRow) puts it on the
+    // right - standardized to match the majority pattern instead of each
+    // screen picking its own corner.
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onOpenCalendar) {
-            Icon(TablerIcons.Calendar, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
-        }
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             listOf(false to "kg", true to "lb").forEach { (imperial, label) ->
                 FilterChip(
@@ -43,6 +44,9 @@ internal fun WeightUnitToggleRow(useImperial: Boolean, onUnitChange: (Boolean) -
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentCoral.copy(0.2f), selectedLabelColor = AccentCoral),
                 )
             }
+        }
+        IconButton(onClick = onOpenCalendar) {
+            Icon(TablerIcons.Calendar, stringResource(R.string.weight_cd_calendar), tint = OnBackground.copy(0.5f))
         }
     }
 }
