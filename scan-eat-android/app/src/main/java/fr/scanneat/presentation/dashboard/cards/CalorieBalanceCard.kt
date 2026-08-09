@@ -101,15 +101,16 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
             // giving the nested blurred-fill Box below a BoxScope to resolve
             // matchParentSize() against.
             Box {
-                // Same blurred-fill treatment as ScanEatCard (see its own doc
-                // comment on why this is the scoped stand-in for
-                // FrostedGlassStyle's real backdrop blur) - a separate layer so
-                // the blur softens only the fill's edges, not the Column's
-                // text/content on top of it.
+                // User-reported: a visibly separate, lighter rounded rectangle
+                // floating inside this card - same root cause as ScanEatCard.kt's
+                // own fix (see its doc comment): blur(3.dp) below had nothing
+                // behind it to actually blur, so it faded the opaque fill inward
+                // from its own clipped edge, shrinking it to a smaller box sitting
+                // inside the card's real boundary. Dropped, same fix.
                 Box(
                     // User-requested: one standard glass config app-wide - see
                     // StandardCardAlpha's own doc comment (ScanEatCard.kt).
-                    Modifier.matchParentSize().clip(RoundedCornerShape(CardRadius.PROMINENT)).blur(3.dp)
+                    Modifier.matchParentSize().clip(RoundedCornerShape(CardRadius.PROMINENT))
                         .background(SurfaceVariant.copy(alpha = StandardCardAlpha)),
                 )
                 Column(
