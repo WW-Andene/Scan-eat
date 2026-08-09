@@ -56,12 +56,13 @@ fun ErrorBanner(
     // banner (allergen/diet veto, scan failure) is exactly the surface that
     // should read as MORE prominent than an ordinary card, not less - HERO-tier
     // elevation, matching the emphasis this content actually carries.
-    // F16 (docs/design-audit-step6-color-atmosphere.md): shadow tinted warm via
-    // Modifier.shadow instead of Surface's shadowElevation, matching ScanEatCard/
-    // FloatingBars — Surface's own shadowElevation stays 0 so the two don't stack.
+    // MIUI-observed bug (see ScanEatCard.kt): ambientColor/spotColor-tinted
+    // Modifier.shadow renders as a solid, hard-edged grey rectangle instead of
+    // a soft shadow on some OEM skins. Reverted to the neutral default shadow
+    // color — Surface's own shadowElevation stays 0 so the two don't stack.
     Surface(
         modifier = modifier.fillMaxWidth()
-            .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
+            .shadow(elevation = 10.dp, shape = RoundedCornerShape(CardRadius.CONTROL))
             .clip(RoundedCornerShape(CardRadius.CONTROL))
             .semantics { liveRegion = LiveRegionMode.Assertive },
         color = semanticRed().copy(alpha = 0.15f), shape = RoundedCornerShape(CardRadius.CONTROL),

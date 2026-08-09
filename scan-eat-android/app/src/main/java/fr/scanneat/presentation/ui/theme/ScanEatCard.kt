@@ -164,13 +164,16 @@ fun ScanEatCard(
             // rectangle while the shadow stayed rounded, showing the rounded shadow
             // peeking out past a square-cornered fill at all four corners. Explicit
             // .clip(shape) forces the fill to hard-clip regardless of that path.
-            // F16 (docs/design-audit-step6-color-atmosphere.md): shadow drawn explicitly
-            // here with a warm-tinted color instead of via Surface's own shadowElevation
-            // param, which always renders Compose's neutral default shadow color
-            // regardless of the palette — Surface's shadowElevation stays at 0 below so
-            // the two don't stack.
+            // User-reported (MIUI, Light theme): the F16 warm-tinted shadow below
+            // used to pass ambientColor/spotColor = ShadowTint to Modifier.shadow,
+            // which routes through View.outlineAmbientShadowColor/
+            // outlineSpotShadowColor (API 28+) - on MIUI this renders as a solid,
+            // hard-edged grey rectangle instead of a soft graduated shadow, visible
+            // around every card. Reverted to the neutral default shadow color
+            // (omit ambientColor/spotColor), which uses the older, universally
+            // reliable shadow path - trades the warm tint for correctness.
             modifier = Modifier.fillMaxWidth()
-                .shadow(elevation = spec.elevation, shape = shape, ambientColor = ShadowTint, spotColor = ShadowTint)
+                .shadow(elevation = spec.elevation, shape = shape)
                 .clip(shape)
                 // User-reported: no hard border, no color tint - a very slight inner
                 // bloom instead, a soft radial vignette centered on the card that

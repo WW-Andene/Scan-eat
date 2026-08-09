@@ -145,13 +145,15 @@ fun FloatingTopBar(
         Surface(
             shape           = RoundedCornerShape(CardRadius.PROMINENT),
             color           = Color.Transparent,
-            // F16 (docs/design-audit-step6-color-atmosphere.md): shadow tinted warm
-            // instead of Compose's neutral default, matching ScanEatCard's own fix —
-            // Surface's own shadowElevation stays 0 so the two don't stack.
+            // MIUI-observed bug (see ScanEatCard.kt): ambientColor/spotColor-tinted
+            // Modifier.shadow renders as a solid, hard-edged grey rectangle instead
+            // of a soft shadow on some OEM skins. Reverted to the neutral default
+            // shadow color — Surface's own shadowElevation stays 0 so the two don't
+            // stack.
             shadowElevation = 0.dp,
             modifier        = Modifier
                 .fillMaxWidth()
-                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT), ambientColor = ShadowTint, spotColor = ShadowTint)
+                .shadow(elevation = 8.dp, shape = RoundedCornerShape(CardRadius.PROMINENT))
                 .clip(RoundedCornerShape(CardRadius.PROMINENT))
                 .hazeEffect(state = hazeState, style = FrostedGlassStyle),
         ) {
