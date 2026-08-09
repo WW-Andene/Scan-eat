@@ -10,6 +10,7 @@ import fr.scanneat.data.local.db.toEpochMillisUtc
 import fr.scanneat.data.local.db.toIsoString
 import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.toLocalDateTimeUtc
+import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.HealthConnectRepository
 import fr.scanneat.data.repository.health.writeNutrition
 import fr.scanneat.domain.model.*
@@ -26,6 +27,7 @@ class ConsumptionRepository @Inject constructor(
     private val dao: ConsumptionDao,
     private val moshi: Moshi,
     private val healthConnect: HealthConnectRepository,
+    private val priceRepo: PriceRepository,
     @ApplicationContext private val context: Context,
 ) {
     private val nutritionAdapter = moshi.adapter(NutritionPer100g::class.java)
@@ -46,6 +48,7 @@ class ConsumptionRepository @Inject constructor(
     suspend fun log(entry: DiaryEntry) {
         dao.insert(entry.toEntity())
         dao.trim(MAX_HISTORY_ROWS, entry.profileId)
+        priceRepo.deductStock(entry.barcode, entry.portionG, entry.profileId)
         mirrorToHealthConnect(entry)
         refreshWidget()
     }
@@ -54,6 +57,7 @@ class ConsumptionRepository @Inject constructor(
     suspend fun logAll(entries: List<DiaryEntry>) {
         dao.insertAll(entries.map { it.toEntity() })
         entries.map { it.profileId }.distinct().forEach { dao.trim(MAX_HISTORY_ROWS, it) }
+        entries.forEach { priceRepo.deductStock(it.barcode, it.portionG, it.profileId) }
         entries.forEach { mirrorToHealthConnect(it) }
         refreshWidget()
     }

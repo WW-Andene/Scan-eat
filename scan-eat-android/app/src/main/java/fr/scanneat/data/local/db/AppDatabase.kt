@@ -42,7 +42,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         ScanScoreHistoryEntity::class,
         PriceEntity::class,
     ],
-    version = 26,
+    version = 27,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -411,5 +411,22 @@ val MIGRATION_25_26 = object : Migration(25, 26) {
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_price_log_date_profileId` ON `price_log` (`date`, `profileId`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_price_log_barcode_profileId` ON `price_log` (`barcode`, `profileId`)")
+    }
+}
+
+val MIGRATION_26_27 = object : Migration(26, 27) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v26 → v27: stock tracking for price_log - user-reported: logging a
+        // portion consumed from an already-purchased product (e.g. 100g of a
+        // 1kg pack bought once) had no way to avoid being either double-counted
+        // as a second purchase or invisible from "Jour" spend entirely. A price
+        // entry with a known weightG is now a "lot" with its own remaining
+        // stock, decremented as ConsumptionRepository.log() draws from it
+        // (see PriceRepository.deductStock) - only the initial purchase counts
+        // toward Dépenses, not each day's consumption of it. Nullable/defaults
+        // to weightG at insert time (see PriceRepository.log) - an entry with
+        // no weight (e.g. a restaurant bill) has no stock concept at all.
+        db.execSQL("ALTER TABLE price_log ADD COLUMN remainingG REAL")
+        db.execSQL("UPDATE price_log SET remainingG = weightG")
     }
 }

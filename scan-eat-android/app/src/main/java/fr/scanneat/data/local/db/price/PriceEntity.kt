@@ -31,4 +31,11 @@ data class PriceEntity(
     val pricePerKg: Double?,       // null when weightG is null/zero
     val loggedAt: Long,            // epoch millis
     val profileId: String = "default",
+    // User-requested stock tracking: starts equal to weightG (null if weightG
+    // is null - no weight means no stock concept), decremented by
+    // PriceRepository.deductStock as ConsumptionRepository.log() draws
+    // portions from this lot. Only this purchase itself counts toward
+    // Dépenses - a diary entry logged against a lot with remaining stock
+    // deducts silently instead of creating a second price_log row.
+    val remainingG: Double? = null,
 )

@@ -25,6 +25,9 @@ data class PriceEntry(
     val weightG: Double?,
     val pricePerKg: Double?,
     val valueScore: ValueScore?,
+    // User-requested stock tracking - null when weightG is null (no weight, no
+    // stock concept, e.g. a restaurant bill). See PriceRepository.deductStock.
+    val remainingG: Double?,
 )
 
 @Singleton
@@ -66,6 +69,11 @@ class PriceRepository @Inject constructor(
                 pricePerKg = pricePerKg,
                 loggedAt = System.currentTimeMillis(),
                 profileId = profileId,
+                // Starts as the full purchased weight - deductStock() below
+                // draws down from here as the diary logs portions consumed
+                // from this same lot, instead of each portion creating its
+                // own separate purchase entry.
+                remainingG = weightG,
             )
         )
         // price_log was the one log table in the app with no retention cap at
@@ -75,6 +83,32 @@ class PriceRepository @Inject constructor(
     }
 
     suspend fun delete(id: String) = dao.delete(id)
+
+    /**
+     * User-requested: "if I buy 1kg of meat for 10€ and log eating 100g, that
+     * 100g shouldn't count as an extra purchase, just as part of the 1kg
+     * already bought" - called by ConsumptionRepository.log() whenever a
+     * diary entry has a barcode. Draws [portionG] from this barcode's
+     * oldest-bought lot(s) still carrying stock (FIFO - the lot bought first
+     * is the one most likely to be the one actually being eaten from,
+     * cheese-and-crackers-drawer style), spilling into the next lot if one
+     * lot alone doesn't cover the whole portion (e.g. finishing an old
+     * half-used lot then starting a freshly bought one in the same meal).
+     * Silently no-ops (not an error) whenever there's no lot with any stock
+     * for this barcode - most consumption entries were never scanned+priced
+     * at all, and that's expected, not a failure.
+     */
+    suspend fun deductStock(barcode: String?, portionG: Double, profileId: String = "default") {
+        if (barcode == null || portionG <= 0.0) return
+        var remaining = portionG
+        for (lot in dao.getLotsWithStock(barcode, profileId)) {
+            if (remaining <= 0.0) break
+            val stock = lot.remainingG ?: continue
+            val drawn = minOf(stock, remaining)
+            dao.updateRemaining(lot.id, stock - drawn)
+            remaining -= drawn
+        }
+    }
 
     /**
      * Corrects an existing entry in place (name/category/price/weight/date) - previously
@@ -102,6 +136,12 @@ class PriceRepository @Inject constructor(
                 priceEuros = priceEuros,
                 weightG = weightG,
                 pricePerKg = pricePerKg,
+                // Correcting the weight resets remaining stock rather than
+                // preserving whatever fraction of the OLD weight was already
+                // consumed - that fraction has no sound meaning against a
+                // different total, and this is a user-initiated correction,
+                // not a restock (deductStock() is the only other write path).
+                remainingG = weightG,
             )
         )
     }
@@ -133,7 +173,7 @@ class PriceRepository @Inject constructor(
         return PriceEntry(
             id = id, date = date.toLocalDate(), productName = productName, barcode = barcode,
             category = cat, priceEuros = priceEuros, weightG = weightG, pricePerKg = pricePerKg,
-            valueScore = score,
+            valueScore = score, remainingG = remainingG,
         )
     }
 }

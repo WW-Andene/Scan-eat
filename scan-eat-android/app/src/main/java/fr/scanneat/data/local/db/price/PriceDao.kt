@@ -26,6 +26,15 @@ interface PriceDao {
     @Query("SELECT * FROM price_log WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): PriceEntity?
 
+    /** Oldest-first (FIFO) lots for this barcode still carrying stock - see
+     *  PriceRepository.deductStock's own doc comment on why consumption draws
+     *  from the earliest-bought lot first rather than the most recent. */
+    @Query("SELECT * FROM price_log WHERE barcode = :barcode AND profileId = :profileId AND remainingG > 0 ORDER BY loggedAt ASC")
+    suspend fun getLotsWithStock(barcode: String, profileId: String = "default"): List<PriceEntity>
+
+    @Query("UPDATE price_log SET remainingG = :remainingG WHERE id = :id")
+    suspend fun updateRemaining(id: String, remainingG: Double)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<PriceEntity>)
 
