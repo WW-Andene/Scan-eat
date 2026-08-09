@@ -33,12 +33,13 @@ import kotlin.math.roundToInt
 // ModalBottomSheet call site, so there was no sibling instance already
 // proving that primitive actually renders in this Compose BOM version. An
 // explicit sheetState.show() (a first attempt at fixing this) didn't resolve
-// it either. Rebuilt on GlassAlertDialog/BasicAlertDialog instead - the same
-// proven popup primitive every other dialog in the app already uses
-// successfully (see GlassAlertDialog's own doc comment on why a fully custom
-// Dialog was tried and reverted here previously) - eliminating the entire
-// class of ModalBottomSheet-specific bug (anchors/sheetState timing) unique
-// to this one screen.
+// it either. First rebuilt on GlassAlertDialog (ScanEatCard as the dialog
+// body), then user-reported again as "not standard, too transparent" -
+// ScanEatCard's fill is deliberately translucent for the app's main
+// scrolling surfaces (see its own doc comment), which reads as too see-
+// through for a modal popup at this size. Now a plain Material3
+// AlertDialog with a near-opaque containerColor, the same "standard dialog"
+// pattern PriceInputDialog (PriceEntryCard.kt) already uses.
 // ============================================================================
 
 /** Select the meal slot based on hour of day. Matches defaultMealForHour() in portion-panel.js. */
@@ -69,8 +70,12 @@ fun LogSheet(
         (product.nutrition.energyKcal * it / 100.0).roundToInt()
     }
 
-    GlassAlertDialog(
+    val shape = RoundedCornerShape(CardRadius.PROMINENT)
+    AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        modifier = Modifier.glassPopupSurface(shape),
+        shape = shape,
         title = {
             Column {
                 Text(
