@@ -112,12 +112,37 @@ internal fun ExpensesWeekCard(
 
     ScanEatCard(contentPadding = PaddingValues(Spacing.L), verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            // Jour/Semaine/Mois toggle - was a static "Cette semaine" label with
+            // no way to see a shorter (today-only) or longer (calendar month)
+            // total than the trailing 7-day window.
+            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
+                listOf(
+                    ExpensesSummaryMode.DAY to stringResource(R.string.expenses_view_day),
+                    ExpensesSummaryMode.WEEK to stringResource(R.string.expenses_view_week),
+                    ExpensesSummaryMode.MONTH to stringResource(R.string.expenses_view_month),
+                ).forEach { (m, label) ->
+                    val selected = m == mode
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (selected) AccentCoral else OnSurface.copy(0.5f),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(CardRadius.BADGE))
+                            .clickable { onModeChange(m) }
+                            .padding(horizontal = Spacing.S, vertical = Spacing.T2),
+                    )
+                }
+            }
+            // User-reported: the calendar icon sat on the left here (paired with
+            // the mode toggle above) while every other embedded Journal tab
+            // (Weight/Activity/Hydration/Fasting/Traitement) puts it on the right -
+            // moved to join "Modifier budget" there instead of a left/right split
+            // that was unique to this one tab.
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Every other embedded Journal tab (Weight/Activity/Hydration/Fasting/
-                // Traitement) exposes this same shortcut into the unified Calendar -
-                // Dépenses previously accepted onOpenCalendar as a parameter but never
-                // actually called it anywhere, the one embedded tab silently missing
-                // this affordance.
+                TextButton(onClick = onEditBudget) {
+                    Text(stringResource(R.string.expenses_edit_budget), color = AccentCoral, style = MaterialTheme.typography.labelSmall)
+                }
                 // No explicit size override - every sibling embedded tab's own
                 // calendar IconButton (Weight/Medication/etc.) relies on the
                 // default 48dp minimum touch target rather than shrinking it;
@@ -126,32 +151,6 @@ internal fun ExpensesWeekCard(
                 IconButton(onClick = onOpenCalendar) {
                     Icon(TablerIcons.Calendar, stringResource(R.string.expenses_cd_calendar), tint = OnSurface.copy(0.5f))
                 }
-                Spacer(Modifier.width(Spacing.XS))
-                // Jour/Semaine/Mois toggle - was a static "Cette semaine" label with
-                // no way to see a shorter (today-only) or longer (calendar month)
-                // total than the trailing 7-day window.
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.XS)) {
-                    listOf(
-                        ExpensesSummaryMode.DAY to stringResource(R.string.expenses_view_day),
-                        ExpensesSummaryMode.WEEK to stringResource(R.string.expenses_view_week),
-                        ExpensesSummaryMode.MONTH to stringResource(R.string.expenses_view_month),
-                    ).forEach { (m, label) ->
-                        val selected = m == mode
-                        Text(
-                            label,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (selected) AccentCoral else OnSurface.copy(0.5f),
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(CardRadius.BADGE))
-                                .clickable { onModeChange(m) }
-                                .padding(horizontal = Spacing.S, vertical = Spacing.T2),
-                        )
-                    }
-                }
-            }
-            TextButton(onClick = onEditBudget) {
-                Text(stringResource(R.string.expenses_edit_budget), color = AccentCoral, style = MaterialTheme.typography.labelSmall)
             }
         }
         Text(
