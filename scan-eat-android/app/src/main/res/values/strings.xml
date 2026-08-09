@@ -1166,6 +1166,10 @@
     <string name="settings_currency_hint">Symbole utilisé pour les prix dans Dépenses</string>
     <string name="settings_currency_label">Symbole</string>
     <string name="settings_currency_other">Autre</string>
+    <string name="settings_currency_convert_title">Convertir les prix enregistrés ?</string>
+    <string name="settings_currency_convert_body">Vos prix déjà enregistrés sont en %1$s. Voulez-vous les convertir en %2$s (taux ≈ %3$.2f) ou juste changer le symbole affiché ?</string>
+    <string name="settings_currency_convert_confirm">Convertir</string>
+    <string name="settings_currency_convert_relabel_only">Changer le symbole seulement</string>
     <string name="settings_section_profile">Profil nutritionnel</string>
     <string name="settings_section_accessibility">Accessibilité</string>
     <string name="settings_section_reminders">Rappels</string>

@@ -120,6 +120,10 @@ fun SettingsScreen(
     // fasting history" once a second reset target was added alongside scans.
     var pendingReset by remember { mutableStateOf<ResetTarget?>(null) }
     var showLicensesDialog by remember { mutableStateOf(false) }
+    // User-requested: changing currency should convert already-logged prices,
+    // not just relabel them - non-null while confirming that conversion
+    // before it's actually applied, since it rewrites financial history.
+    var pendingCurrencyChange by remember { mutableStateOf<Pair<String, Double>?>(null) }
 
     val healthConnectLauncher = rememberLauncherForActivityResult(PermissionController.createRequestPermissionResultContract()) {
         viewModel.refreshHealthConnectStatus()
@@ -234,7 +238,13 @@ fun SettingsScreen(
             // preference also consumed by Weight/Biolism; users looking for it under
             // Réglages (where every other display preference lives) found nothing. ----
             item { UnitsSection(useImperialWeight.value, onChange = viewModel::setUseImperialWeight) }
-            item { CurrencySection(currencySymbol.value, onChange = viewModel::setCurrencySymbol) }
+            item {
+                CurrencySection(currencySymbol.value, onChange = { newSymbol ->
+                    val factor = fr.scanneat.domain.engine.expense.currencyConversionFactor(currencySymbol.value, newSymbol)
+                    if (factor != null && factor != 1.0) pendingCurrencyChange = newSymbol to factor
+                    else viewModel.setCurrencySymbol(newSymbol)
+                })
+            }
 
             // ---- Biolism display depth (R&D §X.0) ----
             item { BiolismDisplaySection(biolismAdvancedView.value, onChange = viewModel::setBiolismAdvancedView) }
@@ -333,5 +343,33 @@ fun SettingsScreen(
 
     if (showLicensesDialog) {
         OssLicensesDialog(onDismiss = { showLicensesDialog = false })
+    }
+
+    pendingCurrencyChange?.let { (newSymbol, factor) ->
+        AlertDialog(
+            onDismissRequest = { pendingCurrencyChange = null },
+            containerColor = fr.scanneat.presentation.ui.theme.SurfaceVariant.copy(alpha = fr.scanneat.presentation.ui.theme.StandardCardAlpha),
+            title = { Text(stringResource(R.string.settings_currency_convert_title), color = OnBackground) },
+            text = {
+                Text(
+                    stringResource(R.string.settings_currency_convert_body, currencySymbol.value, newSymbol, factor),
+                    style = MaterialTheme.typography.bodyMedium, color = OnBackground.copy(0.8f),
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.setCurrencySymbolWithConversion(newSymbol, factor)
+                    pendingCurrencyChange = null
+                }) { Text(stringResource(R.string.settings_currency_convert_confirm), color = AccentCoral) }
+            },
+            dismissButton = {
+                // Relabel-only, the old behavior - keeps every logged number as-is,
+                // just changes which symbol is shown next to it.
+                TextButton(onClick = {
+                    viewModel.setCurrencySymbol(newSymbol)
+                    pendingCurrencyChange = null
+                }) { Text(stringResource(R.string.settings_currency_convert_relabel_only), color = OnBackground.copy(0.6f)) }
+            },
+        )
     }
 }

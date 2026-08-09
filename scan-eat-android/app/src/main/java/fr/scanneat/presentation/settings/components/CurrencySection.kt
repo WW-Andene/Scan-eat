@@ -18,17 +18,21 @@ import fr.scanneat.presentation.ui.theme.*
 /**
  * Expenses previously hardcoded "€" at every price display (history, budget
  * card, dashboard recap, PriceEntryCard) regardless of this setting not even
- * existing - unusable outside the eurozone. Still no currency-code dropdown
- * (ScanEat only ever displays a symbol, never performs FX conversion, so
- * there's nothing a "USD"/"EUR" code would let it do that a raw symbol
- * doesn't), but user-reported: a pure free-text field with zero presets
- * meant even the two most common symbols required typing them out by hand
- * every time this screen was reached, with no indication of what a
- * "reasonable" value looks like. € and $ are now one-tap chips (same
- * FilterChip pattern as LanguageSection's fr/en picker); "Autre" reveals the
- * free-text field for anything else, pre-filled with the current symbol so
- * a custom value already set isn't silently discarded when this section
- * re-renders.
+ * existing - unusable outside the eurozone. User-reported: a pure free-text
+ * field with zero presets meant even the two most common symbols required
+ * typing them out by hand every time this screen was reached, with no
+ * indication of what a "reasonable" value looks like. € and $ are now
+ * one-tap chips (same FilterChip pattern as LanguageSection's fr/en picker);
+ * "Autre" reveals the free-text field for anything else, pre-filled with the
+ * current symbol so a custom value already set isn't silently discarded when
+ * this section re-renders.
+ *
+ * [onChange] here just reports the new symbol - SettingsScreen decides
+ * whether a real conversion rate exists between the old/new symbol (see
+ * CurrencyConversion.kt) and shows a confirm dialog offering to rescale
+ * every already-logged price before calling through to
+ * SettingsViewModel.setCurrencySymbol[WithConversion]. A symbol with no
+ * known rate (e.g. "Autre") still relabels only, same as before.
  */
 @Composable
 internal fun CurrencySection(currencySymbol: String, onChange: (String) -> Unit) {

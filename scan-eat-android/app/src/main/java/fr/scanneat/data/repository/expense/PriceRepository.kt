@@ -85,6 +85,18 @@ class PriceRepository @Inject constructor(
     suspend fun delete(id: String) = dao.delete(id)
 
     /**
+     * User-requested: changing Settings' currency symbol should convert
+     * already-logged prices, not just relabel them. [factor] is the target
+     * currency's value per 1 unit of the old currency (e.g. going €→$ at
+     * 1.08 turns a logged "10€" into "10.80$", the same value, not the same
+     * number) - the caller (SettingsViewModel) is responsible for knowing
+     * whether a real rate exists between the old/new symbols at all (see
+     * CurrencyConversion.kt); this just applies whatever factor it's given.
+     */
+    suspend fun convertAllPrices(factor: Double, profileId: String = "default") =
+        dao.scaleAllPrices(factor, profileId)
+
+    /**
      * User-requested: "if I buy 1kg of meat for 10€ and log eating 100g, that
      * 100g shouldn't count as an extra purchase, just as part of the 1kg
      * already bought" - called by ConsumptionRepository.log() whenever a

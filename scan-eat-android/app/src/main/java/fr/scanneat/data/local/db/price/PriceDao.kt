@@ -35,6 +35,16 @@ interface PriceDao {
     @Query("UPDATE price_log SET remainingG = :remainingG WHERE id = :id")
     suspend fun updateRemaining(id: String, remainingG: Double)
 
+    /**
+     * User-reported: changing the currency symbol left every already-logged
+     * price at its old numeric value with just a new symbol slapped on it -
+     * "10€" silently becoming "10$" instead of a converted equivalent. SQLite
+     * propagates NULL through arithmetic automatically, so pricePerKg rows
+     * that are NULL (no weight recorded) are left NULL rather than becoming 0.
+     */
+    @Query("UPDATE price_log SET priceEuros = priceEuros * :factor, pricePerKg = pricePerKg * :factor WHERE profileId = :profileId")
+    suspend fun scaleAllPrices(factor: Double, profileId: String = "default")
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<PriceEntity>)
 

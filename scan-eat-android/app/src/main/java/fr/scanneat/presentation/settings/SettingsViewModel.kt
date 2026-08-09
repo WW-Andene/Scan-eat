@@ -57,6 +57,7 @@ class SettingsViewModel @Inject constructor(
     private val pdfReportRepository: PdfReportRepository,
     private val healthConnect: HealthConnectRepository,
     private val fastingRepo: FastingRepository,
+    private val priceRepo: fr.scanneat.data.repository.expense.PriceRepository,
     @ApplicationContext private val context: Context,
 ) : ActionFailureViewModel() {
     val apiKey    = prefs.groqApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -119,6 +120,19 @@ class SettingsViewModel @Inject constructor(
     fun setColorblindMode(mode: String) = guardedLaunch { prefs.setColorblindMode(mode) }
     fun setUseImperialWeight(v: Boolean) = guardedLaunch { prefs.setUseImperialWeight(v) }
     fun setCurrencySymbol(v: String) = guardedLaunch { prefs.setCurrencySymbol(v) }
+
+    /**
+     * User-requested: changing currency should convert already-logged prices,
+     * not just relabel them. [factor] comes from currencyConversionFactor()
+     * (SettingsScreen decides whether a rate exists at all and shows the
+     * confirmation dialog before calling this) - applied to every price_log
+     * row before the symbol itself is persisted, so a screen re-render never
+     * shows the new symbol next to a not-yet-converted number.
+     */
+    fun setCurrencySymbolWithConversion(v: String, factor: Double) = guardedLaunch {
+        priceRepo.convertAllPrices(factor)
+        prefs.setCurrencySymbol(v)
+    }
     fun setBiolismAdvancedView(v: Boolean) = guardedLaunch { prefs.setBiolismAdvancedView(v) }
     fun setAnimatedBackground(v: Boolean) = guardedLaunch { prefs.setAnimatedBackground(v) }
     // No payment processor wired up yet (Google Play Billing needs Play Console
