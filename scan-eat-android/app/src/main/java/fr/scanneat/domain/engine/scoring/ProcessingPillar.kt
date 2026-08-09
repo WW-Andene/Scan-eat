@@ -117,5 +117,21 @@ fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
         }
     }
 
+    // Acrylamide — IARC Group 2A (probable human carcinogen), formed by the
+    // Maillard reaction in fried/baked starchy foods (chips, crisps, frites,
+    // crackers). Deliberately narrow and low-weight: there is no reliable way
+    // to detect it from a declared ingredient list alone (it's a byproduct of
+    // cooking method + temperature, not an ingredient), so this only flags
+    // the one case where both the category (starchy, commonly fried) and an
+    // explicit frying/cooking-method keyword are present — a heuristic
+    // caution, not a certainty, unlike the additive/nutrient checks above.
+    val friedStarchy = product.category == ProductCategory.SNACK_SALTY &&
+        Regex("""\bfrit(?:e|es|s)?\b|\bfried\b|friture|deep[-\s]?fried""", RegexOption.IGNORE_CASE)
+            .let { re -> re.containsMatchIn(product.name) || product.ingredients.any { re.containsMatchIn(it.name) } }
+    if (friedStarchy) {
+        score -= 1
+        deductions += Deduction("processing", if (en) "Fried starchy food — possible acrylamide formation (IARC Group 2A)" else "Aliment amylacé frit — formation possible d'acrylamide (IARC groupe 2A)", -1.0, Severity.MINOR)
+    }
+
     return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, score), deductions, bonuses)
 }
