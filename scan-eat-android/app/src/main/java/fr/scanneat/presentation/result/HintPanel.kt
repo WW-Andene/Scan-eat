@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -209,24 +208,25 @@ private fun PillarBar(pillar: PillarSummary) {
         ratio >= 0.4f -> semanticAmber()
         else -> semanticRed()
     }
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = Spacing.T2)) {
-        Text(
-            pillar.name,
-            style = MaterialTheme.typography.bodySmall,
-            color = OnBackground.copy(0.8f),
-            modifier = Modifier.width(120.dp),
-        )
+    // Label stacked above its bar rather than in a fixed-width side column -
+    // the pillar names are full French phrases ("Niveau de transformation",
+    // "Intégrité des ingrédients") that wrap past ~120dp, and a wrapped label
+    // sharing a CenterVertically row with the bar threw the bar/score out of
+    // alignment with the (now two-line) text next to it.
+    Column(modifier = Modifier.padding(vertical = Spacing.XS)) {
+        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Text(pillar.name, style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.8f))
+            Text(
+                stringResource(R.string.hint_pillar_score, pillar.score.toInt(), pillar.max),
+                style = MaterialTheme.typography.bodySmall,
+                color = OnBackground.copy(0.6f),
+            )
+        }
         LinearProgressIndicator(
             progress = { ratio },
             color = color,
             trackColor = OnBackground.copy(0.1f),
-            modifier = Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(50)),
-        )
-        Text(
-            stringResource(R.string.hint_pillar_score, pillar.score.toInt(), pillar.max),
-            style = MaterialTheme.typography.bodySmall,
-            color = OnBackground.copy(0.6f),
-            modifier = Modifier.padding(start = Spacing.S),
+            modifier = Modifier.fillMaxWidth().padding(top = Spacing.T2).height(6.dp).clip(RoundedCornerShape(50)),
         )
     }
 }
