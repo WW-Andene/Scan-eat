@@ -35,8 +35,6 @@ internal val ADDITIVES_TIER2: List<AdditiveInfo> = listOf(
         "Azo dye. EU warning label.", "McCann et al. 2007; EU 1333/2008 Annex V."),
     AdditiveInfo("E104", listOf("jaune de quinoléine", "quinoline yellow"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
         "Quinophthalone dye; EU warning label.", "McCann et al. 2007; EU 1333/2008 Annex V."),
-    AdditiveInfo("E127", listOf("érythrosine", "erythrosine"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
-        "Iodine-containing dye; thyroid concerns at high intakes.", "EFSA Re-evaluation 2011;9(1):1854."),
     AdditiveInfo("E173", listOf("aluminium"), AdditiveTier.TWO, AdditiveCategory.COLORANT,
         "Aluminium metallic colorant; neurotoxicity TWI.", "EFSA 2008;754 (TWI 1 mg/kg bw/week)."),
     AdditiveInfo("E150", listOf("colorant caramel"), AdditiveTier.TWO, AdditiveCategory.COLORANT,

@@ -28,6 +28,13 @@ internal val ADDITIVES_TIER1: List<AdditiveInfo> = listOf(
     AdditiveInfo("E171", listOf("dioxyde de titane", "titanium dioxide"), AdditiveTier.ONE, AdditiveCategory.COLORANT,
         "Banned as food additive in EU since August 2022 (genotoxicity concerns, nanoparticulate fraction).",
         "EFSA Scientific Opinion 2021;19(5):6585; Commission Regulation (EU) 2022/63."),
+    // Moved from Tier 2 — previously grouped with generic "moderate concern"
+    // colorants despite the FDA banning it outright in January 2025 under the
+    // Delaney Clause specifically for carcinogenicity (thyroid tumors in rat
+    // studies), the same regulatory severity class as E171's EU ban above.
+    AdditiveInfo("E127", listOf("érythrosine", "erythrosine", "red 3", "rouge 3"), AdditiveTier.ONE, AdditiveCategory.COLORANT,
+        "Iodine-containing dye. Banned as a food additive in the US (FDA, Jan 2025) under the Delaney Clause for carcinogenicity (thyroid tumors in male rats); thyroid concerns at high intakes generally.",
+        "FDA final rule, 90 FR 4695 (Jan 2025); EFSA Re-evaluation 2011;9(1):1854."),
     AdditiveInfo("E220", listOf("anhydride sulfureux", "dioxyde de soufre", "sulfur dioxide"), AdditiveTier.ONE, AdditiveCategory.PRESERVATIVE,
         "Sulfite — mandatory EU allergen. Triggers asthma and sulfite sensitivity.",
         "EU Regulation 1169/2011 Annex II; EFSA Re-evaluation 2016;14(4):4438."),
