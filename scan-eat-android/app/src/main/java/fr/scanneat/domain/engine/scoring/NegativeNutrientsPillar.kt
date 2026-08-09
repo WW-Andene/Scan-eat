@@ -59,6 +59,25 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         deductions += Deduction("negative_nutrients", if (en) "Trans fat present: ${trans}g/100g (no safe level)" else "Présence de graisses trans : ${trans}g/100g (aucun seuil sûr)", -10.0, Severity.CRITICAL)
     }
 
+    // Alcohol — WHO/IARC classify ethanol as a Group 1 carcinogen with no
+    // established safe consumption level (same "no safe level" framing as
+    // trans fat above), yet nothing before this pillar ever looked at
+    // alcoholPercentVol: an anonymous scan of a beer/wine with unremarkable
+    // sugar/fat/salt scored as a healthy beverage purely because this was the
+    // only place a base (non-personalized) penalty could live - the
+    // pregnancy/migraine/GI alcohol checks in HealthConditionAdjustments.kt
+    // only fire when the user has declared that specific condition. Tiered by
+    // %vol (dealcoholised <1.2%, beer-strength, wine-strength, spirit-strength)
+    // rather than a flat penalty, since a 0.3% "sans alcool" beer and a 40%
+    // spirit are not the same risk.
+    val abv = n.alcoholPercentVol ?: 0.0
+    val alcoholLabel = if (en) "Alcohol" else "Alcool"
+    when {
+        abv > 15.0 -> { score -= 12; deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -12.0, Severity.CRITICAL) }
+        abv > 5.0  -> { score -= 9;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -9.0, Severity.CRITICAL) }
+        abv > 1.2  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -6.0, Severity.CRITICAL) }
+    }
+
     // Calorie density anomaly
     val (kcalLow, kcalHigh) = thresholds.expectedKcalRange
     if (n.energyKcal > kcalHigh * 1.25 || n.energyKcal < kcalLow * 0.5) {

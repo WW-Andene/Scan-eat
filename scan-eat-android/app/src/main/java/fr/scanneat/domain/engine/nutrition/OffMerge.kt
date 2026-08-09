@@ -58,6 +58,7 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         omega6G       = o.omega6G       ?: l.omega6G,
         cholesterolMg = o.cholesterolMg ?: l.cholesterolMg,
         caffeineMg    = o.caffeineMg    ?: l.caffeineMg,
+        alcoholPercentVol = o.alcoholPercentVol ?: l.alcoholPercentVol,
         polyunsaturatedFatG = o.polyunsaturatedFatG ?: l.polyunsaturatedFatG,
         monounsaturatedFatG = o.monounsaturatedFatG ?: l.monounsaturatedFatG,
     )

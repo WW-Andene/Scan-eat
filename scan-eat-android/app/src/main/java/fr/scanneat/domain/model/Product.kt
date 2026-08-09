@@ -84,6 +84,12 @@ data class NutritionPer100g(
     val omega6G: Double? = null,
     val cholesterolMg: Double? = null,
     val caffeineMg: Double? = null,
+    /** OFF's alcohol_100g, already expressed as %vol (not grams) - null means
+     *  not declared, not "alcohol-free". See NegativeNutrientsPillar.kt for
+     *  why this exists: the base score previously had zero awareness that a
+     *  product was alcoholic at all, so a beer with unremarkable sugar/fat/
+     *  salt scored as a healthy "A" beverage. */
+    val alcoholPercentVol: Double? = null,
     // True when one or more of the mineral/vitamin fields above were filled in by
     // MicronutrientEstimator.kt (category-based typical values) rather than
     // actually declared by the source (OFF/LLM) - most barcode products simply

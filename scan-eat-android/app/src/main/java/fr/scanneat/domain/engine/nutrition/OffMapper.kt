@@ -132,6 +132,10 @@ fun mapOffProduct(off: OffProductResponse): Product? {
         // product actually is low-caffeine. OFF stores it in grams like the other
         // minerals above.
         caffeineMg    = numOrNull(nm["caffeine_100g"])?.times(1000),
+        // OFF already stores this as %vol (unlike the other nutriments, no
+        // unit conversion) - see NutritionPer100g's own doc comment on why
+        // this was added (base score had no alcohol awareness at all).
+        alcoholPercentVol = numOrNull(nm["alcohol_100g"]),
     )
 
     return Product(
