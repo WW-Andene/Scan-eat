@@ -1,6 +1,5 @@
 package fr.scanneat.presentation.ui.theme
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,10 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -138,60 +134,21 @@ fun ScanEatCard(
             glowAlpha = spec.glowAlpha,
         ),
     ) {
-        // Dropped the previous directional shadow layer (offset + Modifier.blur
-        // behind the Surface): Modifier.blur relies on RenderEffect, which
-        // silently no-ops on API < 31 / unsupported GPU drivers, leaving that
-        // offset ShadowTint box rendered hard-edged instead of blurred - a
-        // visible stray rectangle peeking out from the card corner. Surface's
-        // own .shadow() below (same approach FeatureTile already uses, which
-        // never showed this artifact) is the only shadow now.
-        // User-reported: a visibly separate, lighter rounded rectangle floating
-        // inside every card (Dashboard screenshot) - blur(3.dp) below had
-        // nothing behind it to actually blur (a card IS the screen's own
-        // scrolling content, unlike FloatingTopBar/bottom nav's real Haze
-        // backdrop blur), so RenderEffect sampled transparent pixels past this
-        // Box's own clipped edge and faded the opaque fill inward from it -
-        // shrinking the visible fill to a smaller box sitting inside the
-        // card's real boundary (drawn by the Surface's shadow/clip below),
-        // with the ambient background showing through the gap between them.
-        // Dropped: a flat fill inside the same clip has no such edge to fade.
-        Box(Modifier.matchParentSize().clip(shape).background(color))
+        // Simplified to match FloatingTopBar/FloatingBars' structure exactly
+        // (single Surface, plain untinted .shadow(), .clip(), fill via the
+        // Surface's own color) after the previous multi-layer version (a
+        // separate offset+blur shadow Box, a separate flat-fill Box, a
+        // tinted Modifier.shadow, a radial-vignette drawWithContent) kept
+        // producing stray rectangle artifacts on real devices — MIUI in
+        // particular rendered the tinted shadow as a solid, hard-edged grey
+        // box instead of a soft shadow. Headers never had this problem
+        // because they never carried those extra layers; cards now don't
+        // either. Trade-off: cards lose the directional-shadow/vignette look
+        // and always show a neutral shadow, same as the header chrome.
         Surface(
-            // Xiaomi/MIUI-observed bug (user screenshot, Light theme): Surface's shadow
-            // is computed from [shape]'s outline and renders correctly rounded, but its
-            // own background fill isn't reliably force-clipped to that same outline on
-            // every rendering path - on the affected device the fill painted as a plain
-            // rectangle while the shadow stayed rounded, showing the rounded shadow
-            // peeking out past a square-cornered fill at all four corners. Explicit
-            // .clip(shape) forces the fill to hard-clip regardless of that path.
-            // User-reported (MIUI, Light theme): the F16 warm-tinted shadow below
-            // used to pass ambientColor/spotColor = ShadowTint to Modifier.shadow,
-            // which routes through View.outlineAmbientShadowColor/
-            // outlineSpotShadowColor (API 28+) - on MIUI this renders as a solid,
-            // hard-edged grey rectangle instead of a soft graduated shadow, visible
-            // around every card. Reverted to the neutral default shadow color
-            // (omit ambientColor/spotColor), which uses the older, universally
-            // reliable shadow path - trades the warm tint for correctness.
             modifier = Modifier.fillMaxWidth()
                 .shadow(elevation = spec.elevation, shape = shape)
                 .clip(shape)
-                // User-reported: no hard border, no color tint - a very slight inner
-                // bloom instead, a soft radial vignette centered on the card that
-                // fades away moving from the edge in toward the center (rather than
-                // glassSheen's hairline top light or the diagonal border this used
-                // to have). Scoped to this card only, not glassSheen itself, which
-                // stays untouched (see its own doc comment on why a bottom relief
-                // shade was deliberately removed from headers/nav).
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        brush = Brush.radialGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.07f)),
-                            center = Offset(size.width * 0.5f, size.height * 0.5f),
-                            radius = size.maxDimension * 0.75f,
-                        ),
-                    )
-                }
                 .then(
                     if (onClick != null)
                         Modifier.pressScale(interactionSource)
@@ -199,7 +156,7 @@ fun ScanEatCard(
                     else Modifier
                 ),
             shape = shape,
-            color = Color.Transparent,
+            color = color,
             shadowElevation = 0.dp,
         ) {
             Column(Modifier.padding(contentPadding), verticalArrangement = verticalArrangement, content = content)
