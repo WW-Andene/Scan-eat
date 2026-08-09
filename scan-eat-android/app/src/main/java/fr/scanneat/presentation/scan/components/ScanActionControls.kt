@@ -144,13 +144,23 @@ internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottom
     }
 }
 
+/**
+ * User-requested: standard "cube" (square, not circular) shape, stacked
+ * top-end below the shelf/multi-mode toggle ([ScanShelfModeFab]) instead of
+ * its previous bottom-start FAB spot - the gallery-import button now takes
+ * that spot instead (see ScanScreen.kt). Same stacking-offset formula
+ * ScanShelfModeFab's own doc comment already documents (flash's real 56dp
+ * height + Spacing.S + 6dp gap), one more tier down for this button below it.
+ */
 @Composable
-internal fun BoxScope.ScanInstantModeFab(instantMode: Boolean, bottomNavClearance: Dp, onClick: () -> Unit) {
+internal fun BoxScope.ScanInstantModeFab(instantMode: Boolean, topInset: Dp, onClick: () -> Unit) {
     FloatingActionButton(
         onClick = onClick,
-        modifier       = Modifier.align(Alignment.BottomStart).padding(start = 20.dp, bottom = bottomNavClearance + 20.dp),
+        modifier       = Modifier.align(Alignment.TopEnd)
+            .padding(top = topInset + Spacing.L + (56.dp + Spacing.S + 6.dp) * 2, end = Spacing.L)
+            .minTouchTarget(),
         containerColor = if (instantMode) AccentCoral else SurfaceVariant,
-        shape          = CircleShape,
+        shape          = RoundedCornerShape(CardRadius.CONTROL),
     ) {
         Icon(Icons.Rounded.Bolt, stringResource(R.string.scan_instant_toggle), tint = if (instantMode) Color.Black else OnSurface)
     }

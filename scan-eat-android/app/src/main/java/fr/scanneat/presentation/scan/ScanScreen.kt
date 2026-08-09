@@ -334,16 +334,15 @@ fun ScanScreen(
             // ── Score FAB — bottom-end ──
             ScanScoreFab(scanState = state.value, bottomNavClearance = bottomNavClearance, onClick = { viewModel.score() })
 
-            // ── Import-photo FAB — bottom-center, left of the shutter button
-            // (CameraPreview.kt's own BottomCenter FAB has no horizontal offset,
-            // so this sits just to its side rather than overlapping it). ──
+            // ── Import-photo FAB — bottom-start, the instant-mode FAB's old spot
+            // (instant mode itself moved to top-end, stacked below shelf mode -
+            // see ScanInstantModeFab's own doc comment). ──
             FloatingActionButton(
                 onClick = {
                     galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 },
-                modifier = Modifier.align(Alignment.BottomCenter)
-                    .offset(x = (-76).dp)
-                    .padding(bottom = bottomNavClearance + Spacing.L),
+                modifier = Modifier.align(Alignment.BottomStart)
+                    .padding(start = 20.dp, bottom = bottomNavClearance + 20.dp),
                 containerColor = SurfaceVariant,
             ) {
                 Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.scan_import_photo_cd), tint = OnSurface)
@@ -367,7 +366,8 @@ fun ScanScreen(
                 )
             }
 
-            // ── Recent barcodes quick-rescan chips — bottom-start, above instant FAB ──
+            // ── Recent barcodes quick-rescan chips — bottom-start, above the
+            // import-photo FAB (instant mode moved to top-end, see below) ──
             if (recentBarcodes.value.isNotEmpty() && state.value is ScanUiState.Idle) {
                 ScanRecentBarcodesRow(
                     recentBarcodes = recentBarcodes.value,
@@ -376,13 +376,14 @@ fun ScanScreen(
                 )
             }
 
-            // ── Instant mode FAB — bottom-start. Premium-gated (see
+            // ── Instant mode FAB — top-end, stacked below shelf/multi mode (see
+            // ScanInstantModeFab's own doc comment). Premium-gated (see
             // UserPreferences.isPremium) - toggleInstantMode() already no-ops for a
             // non-Premium user; routing to Settings here instead of silently doing
             // nothing tells the user why the FAB didn't respond. ──
             ScanInstantModeFab(
                 instantMode = instantMode.value,
-                bottomNavClearance = bottomNavClearance,
+                topInset = topInset,
                 onClick = { if (isPremium.value) viewModel.toggleInstantMode() else onPremiumBlocked() },
             )
 
