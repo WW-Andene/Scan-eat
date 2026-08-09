@@ -94,7 +94,7 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
     // substitute), wrongly awarding this bonus. \blin\b still matches
     // "graine de lin" (boundary only requires the char right before "lin"
     // to be a non-word char, which a preceding space already satisfies).
-    val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.any { ing ->
+    val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.take(5).any { ing ->
         Regex("""\blin\b|\bchia\b|\bnoix\b|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
     }
     if (hasOmega3) {

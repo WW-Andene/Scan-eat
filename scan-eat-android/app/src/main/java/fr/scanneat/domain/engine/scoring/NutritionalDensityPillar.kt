@@ -93,7 +93,14 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
     // substitute), wrongly awarding this bonus. \blin\b still matches
     // "graine de lin" (boundary only requires the char right before "lin"
     // to be a non-word char, which a preceding space already satisfies).
-    val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.any { ing ->
+    // Ingredients are declared in descending weight order (EU FIC 1169/2011) -
+    // a trace topping ("muesli aux fruits, graines de chia 2%") buried deep in
+    // the list previously earned the identical +3 as flaxseed or salmon as the
+    // dish's actual main ingredient. Restricting the name-match to the first 5
+    // ingredients approximates "meaningful quantity" without needing an actual
+    // declared percentage - the declared omega3G branch is untouched since
+    // that's already a real measured quantity, not a position proxy.
+    val hasOmega3 = (n.omega3G ?: 0.0) > 0.5 || product.ingredients.take(5).any { ing ->
         Regex("""\blin\b|\bchia\b|\bnoix\b|\bsaumon\b|sardine|maquereau|hareng|anchois""", RegexOption.IGNORE_CASE).containsMatchIn(ing.name)
     }
     if (hasOmega3) {

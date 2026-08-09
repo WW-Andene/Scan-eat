@@ -95,6 +95,31 @@ fun checkDiet(product: Product, dietKey: DietKey, lang: String = "fr"): DietResu
         violations += if (lang == "en") "alcoholic beverage (${product.nutrition.alcoholPercentVol ?: 0.0}% vol)" else "boisson alcoolisée (${product.nutrition.alcoholPercentVol ?: 0.0}% vol)"
     }
 
+    // Same category-as-backstop idea as the HALAL alcohol fix above, for the
+    // one gap that IS closeable this way: VEGAN/VEGETARIAN/DAIRY_FREE's own
+    // forbidden-pattern regexes only see declared ingredient text - a sparse
+    // OFF record (name-only, ingredients list missing/incomplete) for an
+    // actual meat, fish, cheese, or yogurt product silently passed as
+    // compliant. product.category is already populated from OFF's own tags
+    // or name-inference independently of the ingredient list, so it's a
+    // reliable backstop precisely when that list is the weak link. Unlike
+    // alcohol, there's no equivalent structural signal for every animal-
+    // derived ingredient (egg, honey, gelatin, carmine, etc. have no
+    // dedicated category) - this only closes the meat/fish/dairy slice of
+    // the gap, not the whole thing.
+    if (violations.isEmpty()) {
+        val meatOrFish = product.category in setOf(ProductCategory.FRESH_MEAT, ProductCategory.PROCESSED_MEAT, ProductCategory.FISH)
+        val dairy = product.category in setOf(ProductCategory.CHEESE, ProductCategory.YOGURT)
+        val categoryLabel = if (lang == "en") "product category is \"${product.category.key}\"" else "catégorie du produit : \"${product.category.key}\""
+        if ((dietKey == DietKey.VEGAN || dietKey == DietKey.VEGETARIAN) && meatOrFish) {
+            violations += categoryLabel
+        } else if (dietKey == DietKey.VEGAN && dairy) {
+            violations += categoryLabel
+        } else if (dietKey == DietKey.DAIRY_FREE && dairy) {
+            violations += categoryLabel
+        }
+    }
+
     // Macro-based check - data-driven off DietDef.maxNetCarbsG/minFatFractionOfKcal
     // rather than hardcoded to one enum value, so any future diet needing the same
     // net-carbs/fat-fraction rule (not just KETO) only needs a DIET_DEFS entry.
