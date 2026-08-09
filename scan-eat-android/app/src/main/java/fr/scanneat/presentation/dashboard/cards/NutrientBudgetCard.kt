@@ -19,6 +19,14 @@ import fr.scanneat.domain.model.ConsumedNutrition
 import fr.scanneat.presentation.ui.theme.*
 import kotlin.math.roundToInt
 
+/** Fixed label-column width (72dp = Spacing.XXL*2 + Spacing.SM), shared with
+ *  the idealCaption row below so its start padding can never drift out of
+ *  alignment with the label above it again. */
+private val BudgetLabelWidth = Spacing.XXL * 2 + Spacing.SM
+
+/** Fixed value-column width (64dp = Spacing.XXL*2). */
+private val BudgetValueWidth = Spacing.XXL * 2
+
 /**
  * Daily "don't exceed" budgets (saturated fat / free sugars / salt) - DailyTargets
  * already computes all three (WHO-anchored, condition-adjusted for diabetes/
@@ -74,7 +82,7 @@ private fun BudgetRow(label: String, value: Double, max: Double, unit: String, c
                 label,
                 style = MaterialTheme.typography.labelSmall,
                 color = OnSurface.copy(0.7f),
-                modifier = Modifier.width(72.dp),
+                modifier = Modifier.width(BudgetLabelWidth),
             )
             LinearProgressIndicator(
                 progress   = { pct.coerceIn(0f, 1f) },
@@ -87,7 +95,7 @@ private fun BudgetRow(label: String, value: Double, max: Double, unit: String, c
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isOver) semanticRed() else OnSurface.copy(0.5f),
                 fontWeight = if (isOver) FontWeight.SemiBold else FontWeight.Normal,
-                modifier = Modifier.width(64.dp),
+                modifier = Modifier.width(BudgetValueWidth),
             )
         }
         idealCaption?.let {
@@ -95,7 +103,7 @@ private fun BudgetRow(label: String, value: Double, max: Double, unit: String, c
                 it,
                 style = MaterialTheme.typography.labelSmall,
                 color = OnSurface.copy(0.4f),
-                modifier = Modifier.padding(start = 72.dp + Spacing.S),
+                modifier = Modifier.padding(start = BudgetLabelWidth + Spacing.S),
             )
         }
     }

@@ -120,7 +120,7 @@ internal fun BoxScope.ScanHeaderBar(
 @Composable
 internal fun BoxScope.ScanBarcodeChip(barcode: String, topInset: Dp, cachedPreview: ScanResult?, warning: String? = null) {
     Box(
-        modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + 96.dp)
+        modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset + Spacing.XXL * 3)
             .glassSheen(edgeAlpha = 0.22f, shape = RoundedCornerShape(24.dp), glowTint = AccentCoral, glowAlpha = 0.07f),
     ) {
         Surface(

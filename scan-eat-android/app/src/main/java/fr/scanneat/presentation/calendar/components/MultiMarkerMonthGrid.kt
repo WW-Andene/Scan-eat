@@ -43,6 +43,15 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
+/**
+ * Android's real 48dp minimum touch target (not a Spacing-scale value - a
+ * fixed accessibility requirement) - named here as a single source so the
+ * "Today" button's start padding, the weekday-label row's leading spacer,
+ * and the week-number tap target itself can never drift apart again (see
+ * the "Today" button's own bug-fix comment below).
+ */
+private val WeekNumberColumnWidth = 48.dp
+
 @Composable
 internal fun MultiMarkerMonthGrid(
     month: java.time.YearMonth,
@@ -79,15 +88,19 @@ internal fun MultiMarkerMonthGrid(
         if (month != java.time.YearMonth.from(today)) {
             androidx.compose.material3.TextButton(
                 onClick = { onMonthChange(java.time.YearMonth.from(today)); onDayClick(today) },
-                modifier = Modifier.padding(start = 40.dp),
+                // Bug fix: was 40.dp, an off-scale value that didn't actually match
+                // the week-number column's real 48.dp width below - this button sat
+                // 8dp left of where the day-grid columns underneath it actually
+                // start. WeekNumberColumnWidth is the single source both now share.
+                modifier = Modifier.padding(start = WeekNumberColumnWidth),
             ) {
                 Text(stringResource(R.string.calendar_today), style = MaterialTheme.typography.labelMedium, color = AccentCoral)
             }
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            // Matches the week-number column's 48dp width below so these labels
+            // Matches the week-number column's width below so these labels
             // land over the day columns they actually label, not shifted left of them.
-            Spacer(Modifier.size(48.dp))
+            Spacer(Modifier.size(WeekNumberColumnWidth))
             weekdayLabels.forEach { label ->
                 Text(label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.4f), textAlign = TextAlign.Center)
             }
@@ -109,7 +122,7 @@ internal fun MultiMarkerMonthGrid(
                 val weekNumber = firstDayInRow.get(java.time.temporal.WeekFields.ISO.weekOfYear())
                 val weekSummaryCd = stringResource(R.string.calendar_cd_week_summary, weekNumber)
                 Box(
-                    Modifier.size(48.dp)
+                    Modifier.size(WeekNumberColumnWidth)
                         .then(
                             if (ws != null) {
                                 Modifier.clickable { onWeekClick(ws) }.semantics { contentDescription = weekSummaryCd }

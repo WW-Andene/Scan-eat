@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun EmptyListState(icon: ImageVector, message: String, ctaLabel: String? = null, onCta: (() -> Unit)? = null) {
     val breathingPulse = rememberBreathingPulse()
-    Box(Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
+    Box(Modifier.fillMaxWidth().padding(Spacing.XXL + Spacing.SM), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
             Box(contentAlignment = Alignment.Center) {
                 Box(

@@ -136,7 +136,7 @@ internal fun CalorieBalanceCard(balance: CalorieBalance, streak: Int, longestStr
                     verticalArrangement = Arrangement.spacedBy(Spacing.SM),
                 ) {
                     Row(
-                    modifier = Modifier.fillMaxWidth().padding(end = if (streak > 0) 40.dp else 0.dp),
+                    modifier = Modifier.fillMaxWidth().padding(end = if (streak > 0) Spacing.XXL + Spacing.SM else 0.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(stringResource(R.string.dashboard_calorie_balance_title), style = MaterialTheme.typography.titleSmall, color = OnSurface, fontWeight = FontWeight.SemiBold)

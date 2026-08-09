@@ -91,7 +91,7 @@ private fun CautionBanner(text: String) {
             horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             verticalAlignment = Alignment.Top,
         ) {
-            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.padding(top = 2.dp))
+            Icon(TablerIcons.AlertTriangle, contentDescription = null, tint = semanticAmber(), modifier = Modifier.padding(top = Spacing.T2))
             Text(text, style = MaterialTheme.typography.labelSmall, color = semanticAmber())
         }
     }

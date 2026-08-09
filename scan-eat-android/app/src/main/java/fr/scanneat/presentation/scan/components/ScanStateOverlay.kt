@@ -72,7 +72,7 @@ internal fun BoxScope.ScanStateOverlay(
         is ScanUiState.Error -> {
             if (hasCamera && !cameraUnavailable) {
                 if (s.needsPhoto) {
-                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp)
+                    Surface(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + Spacing.XXL * 3)
                         .glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(CardRadius.CONTROL), glowAlpha = 0.06f)
                         .shadow(elevation = 3.dp, shape = RoundedCornerShape(CardRadius.CONTROL), ambientColor = ShadowTint, spotColor = ShadowTint)
                         .clip(RoundedCornerShape(CardRadius.CONTROL)),
@@ -93,7 +93,7 @@ internal fun BoxScope.ScanStateOverlay(
                 } else {
                     ErrorBanner(
                         message     = s.message,
-                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + 96.dp),
+                        modifier    = Modifier.align(Alignment.BottomCenter).padding(start = Spacing.L, end = Spacing.L, bottom = bottomNavClearance + Spacing.XXL * 3),
                         actionLabel = stringResource(R.string.common_retry),
                         onAction    = onRetryScore,
                         onDismiss   = onDismissError,

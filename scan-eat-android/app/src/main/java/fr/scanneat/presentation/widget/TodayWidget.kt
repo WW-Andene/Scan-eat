@@ -209,7 +209,7 @@ private fun TodayWidgetContent(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(WidgetBackground)
-            .padding(12.dp)
+            .padding(Spacing.SM + Spacing.XS)
             .clickable(actionStartActivity<MainActivity>()),
     ) {
         Text(kcalLabel, style = TextStyle(color = WidgetOnSurfaceVariant, fontSize = 11.sp))
