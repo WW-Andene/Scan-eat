@@ -73,7 +73,7 @@ fun LogSheet(
     val shape = RoundedCornerShape(CardRadius.PROMINENT)
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceVariant.copy(alpha = 0.94f),
+        containerColor = SurfaceVariant.copy(alpha = 0.85f),
         modifier = Modifier.glassPopupSurface(shape),
         shape = shape,
         title = {
