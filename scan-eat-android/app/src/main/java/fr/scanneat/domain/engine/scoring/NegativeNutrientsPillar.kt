@@ -78,6 +78,25 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         abv > 1.2  -> { score -= 6;  deductions += Deduction("negative_nutrients", "$alcoholLabel ${abv}% vol (" + (if (en) "no safe consumption level — WHO/IARC Group 1 carcinogen" else "aucun seuil de consommation sûr — cancérigène IARC groupe 1 (OMS)") + ")", -6.0, Severity.CRITICAL) }
     }
 
+    // Caffeine — EFSA sets 400mg/day as the safe upper limit for healthy
+    // adults and flags single doses above ~200mg for cardiovascular/anxiety
+    // effects, yet like alcohol this was only ever checked in
+    // HealthConditionMetabolicAdjustments.kt (hypertension) and
+    // HealthConditionGiAdjustments.kt (GI conditions) - a user with no
+    // declared condition scanning a high-caffeine energy drink got zero base
+    // penalty. Thresholds are per-100g/100ml: a standard energy drink
+    // (~32mg/100ml, e.g. Red Bull) stays under the minor bar; concentrated
+    // energy shots/certain "extra strength" drinks (150mg+/100ml) push past
+    // EFSA's single-dose caution level.
+    val caffeine = n.caffeineMg ?: 0.0
+    val caffeineLabel = if (en) "Caffeine" else "Caféine"
+    when {
+        caffeine > 300.0 -> { score -= 8; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine}mg/100g (" + (if (en) "well above EFSA single-dose caution level" else "bien au-delà du seuil de prudence EFSA par prise") + ")", -8.0, Severity.CRITICAL) }
+        caffeine > 150.0 -> { score -= 5; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine}mg/100g (" + (if (en) "above EFSA single-dose caution level (~200mg)" else "au-delà du seuil de prudence EFSA par prise (~200mg)") + ")", -5.0, Severity.MAJOR) }
+        caffeine > 80.0  -> { score -= 3; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine}mg/100g (" + (if (en) "high caffeine content" else "teneur élevée en caféine") + ")", -3.0, Severity.MODERATE) }
+        caffeine > 40.0  -> { score -= 1; deductions += Deduction("negative_nutrients", "$caffeineLabel ${caffeine}mg/100g (" + (if (en) "elevated caffeine content" else "teneur en caféine élevée") + ")", -1.0, Severity.MINOR) }
+    }
+
     // Calorie density anomaly
     val (kcalLow, kcalHigh) = thresholds.expectedKcalRange
     if (n.energyKcal > kcalHigh * 1.25 || n.energyKcal < kcalLow * 0.5) {
