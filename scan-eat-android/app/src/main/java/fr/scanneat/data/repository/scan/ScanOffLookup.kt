@@ -151,7 +151,19 @@ internal class ScanOffLookup(
                 Triple(merged, ScanSource.MERGED,
                     parsed.warnings + conflicts.map { conflictMessage(lang, it.field, it.offValue, it.llmValue) })
             }
-            offProduct != null -> Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, emptyList())
+            // User-reported: a pure barcode scan (no photo taken) against a sparse
+            // OFF record - isOffSparse(offProduct) is true but images is empty, so
+            // the LLM-augmentation branch above never fires - previously returned
+            // this product as-is with silent zero macros and no warning at all,
+            // unlike every other branch in this function. Same "nutrition unreadable"
+            // signal OcrMapper.buildWarnings already gives the photo-scan path.
+            offProduct != null -> {
+                val noNutritionWarning = if (offProduct.nutrition.energyKcal == 0.0 && offProduct.nutrition.proteinG == 0.0) {
+                    listOf(if (lang == "en") "No nutrition data found for this product — add a photo of the label to fill it in"
+                           else "Aucune donnée nutritionnelle trouvée pour ce produit — ajoutez une photo de l'étiquette pour la compléter")
+                } else emptyList()
+                Triple(offProduct, ScanSource.OPEN_FOOD_FACTS, noNutritionWarning)
+            }
             images.isNotEmpty() && hasAnyKey -> {
                 val parsed = ocrParser.parseLabel(images, apiKey, cerebrasApiKey, lang = lang)
                 Triple(parsed.product, ScanSource.LLM, parsed.warnings)
