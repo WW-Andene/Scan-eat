@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
+import fr.scanneat.presentation.reminders.components.permissionState
 import fr.scanneat.presentation.ui.theme.*
 
 /**
@@ -43,6 +44,12 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = hiltView
         }
     }
 
+    // User-reported: each of the 4 cards below independently called
+    // permissionState(), so granting via one card's banner never updated the
+    // other 3 (each had its own remember{}'d grant status) - a single shared
+    // check here, passed to all four, fixes that.
+    val sharedPermissionState = permissionState()
+
     FloatingScreenScaffold(
         title = { Text(stringResource(R.string.reminders_title), color = OnBackground) },
         navigationIcon = { IconButton(onClick = onBack) { Icon(TablerIcons.ArrowLeft, stringResource(R.string.common_back), tint = OnBackground) } },
@@ -56,16 +63,16 @@ fun RemindersScreen(onBack: () -> Unit, viewModel: RemindersViewModel = hiltView
             verticalArrangement = Arrangement.spacedBy(Spacing.M),
         ) {
             item { Spacer(Modifier.height(Spacing.XS)) }
-            item { MealRemindersCard() }
+            item { MealRemindersCard(sharedPermissionState = sharedPermissionState) }
             // Previously the only card rendered here, despite this screen's own doc
             // comment promising "one place that manages all of them" - the reminder
             // system (ReminderWorker) covers hydration/weigh-ins/activity too, but
             // those cards (already built below in this same file) were never added
             // to this screen, leaving no way to reach them except via a repeat
             // Save button embedded in Diary/Weight/Activity themselves.
-            item { HydrationReminderCard() }
-            item { WeightReminderCard() }
-            item { ActivityReminderCard() }
+            item { HydrationReminderCard(sharedPermissionState = sharedPermissionState) }
+            item { WeightReminderCard(sharedPermissionState = sharedPermissionState) }
+            item { ActivityReminderCard(sharedPermissionState = sharedPermissionState) }
             item { Spacer(Modifier.height(Spacing.XL)) }
         }
     }

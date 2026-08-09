@@ -59,10 +59,18 @@ private fun nextReminderLabel(s: ReminderSettings): String? {
 }
 
 @Composable
-fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
+fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPermissionState: Triple<Boolean, Boolean, () -> Unit>? = null) {
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
-    val (permGranted, permDenied, onRequest) = permissionState()
+    // User-reported: RemindersScreen stacks this card alongside Hydration/Weight/
+    // Activity's own - each independently called permissionState() before, so its
+    // own remember{}'d grant status never updated once a DIFFERENT card's button
+    // actually granted the permission, leaving 3 of the 4 banners stuck showing
+    // "Activer les notifications" forever. RemindersScreen now calls permissionState()
+    // once and passes the single shared result down to all four; every other embed
+    // site (Diary/Medication/etc., always just one card on screen) keeps calling it
+    // internally via this default, unaffected.
+    val (permGranted, permDenied, onRequest) = sharedPermissionState ?: permissionState()
     ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         // Improvement: show next upcoming reminder time
         val nextLabel = nextReminderLabel(s)
@@ -132,10 +140,10 @@ fun MealRemindersCard(viewModel: RemindersViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
+fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPermissionState: Triple<Boolean, Boolean, () -> Unit>? = null) {
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
-    val (permGranted, permDenied, onRequest) = permissionState()
+    val (permGranted, permDenied, onRequest) = sharedPermissionState ?: permissionState()
     ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
@@ -166,10 +174,10 @@ fun HydrationReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
+fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPermissionState: Triple<Boolean, Boolean, () -> Unit>? = null) {
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
-    val (permGranted, permDenied, onRequest) = permissionState()
+    val (permGranted, permDenied, onRequest) = sharedPermissionState ?: permissionState()
     ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
@@ -199,10 +207,10 @@ fun WeightReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel()) {
+fun ActivityReminderCard(viewModel: RemindersViewModel = hiltViewModel(), sharedPermissionState: Triple<Boolean, Boolean, () -> Unit>? = null) {
     val context = LocalContext.current
     val s = viewModel.settings.collectAsStateWithLifecycle().value
-    val (permGranted, permDenied, onRequest) = permissionState()
+    val (permGranted, permDenied, onRequest) = sharedPermissionState ?: permissionState()
     ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.SM)) {
         Text(stringResource(R.string.settings_section_reminders), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
         PermissionBanner(permGranted, permDenied, onRequest)
