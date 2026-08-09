@@ -29,5 +29,22 @@ data class FoodEntry(
     // for even the most obvious source (citrus) to carry a value through
     // CustomFoodRepository.toProduct() into NutritionPer100g.vitCMg.
     val vitCMg: Double = 0.0,
+    // Same gap as vitCMg above, for the rest of MicronutrientCard's rows
+    // (dashboard/cards/MicronutrientCard.kt) that FoodEntry still had no field
+    // for at all: magnesium/potassium/zinc/vitaminA/folate are all displayed
+    // there with real NRV targets, so a FOOD_DB food that's a genuine source of
+    // one of these previously had no way to contribute to it either.
+    val magnesiumMg: Double = 0.0,
+    val potassiumMg: Double = 0.0,
+    val zincMg: Double = 0.0,
+    val vitAUg: Double = 0.0,
+    val b9Ug: Double = 0.0,
+    // Not shown on MicronutrientCard itself, but still real NutritionPer100g
+    // fields consumed elsewhere (ProductHintsBenefitsRisks' benefit lines,
+    // NutritionalDensityPillar) - covered for the same reason: a FOOD_DB food
+    // that's a genuine source had no way to declare it.
+    val vitEMg: Double = 0.0,
+    val vitKUg: Double = 0.0,
+    val b6Mg: Double = 0.0,
     val aliases: List<String> = emptyList(),
 )

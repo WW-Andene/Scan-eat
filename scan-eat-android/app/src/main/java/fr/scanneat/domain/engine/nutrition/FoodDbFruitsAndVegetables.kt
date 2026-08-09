@@ -9,29 +9,31 @@ package fr.scanneat.domain.engine.nutrition
 internal val FOOD_DB_FRUITS_AND_VEGETABLES: List<FoodEntry> = listOf(
     // Fruits
     FoodEntry("pomme",        54.0,  0.3,  12.0,  0.2,  2.4,  aliases = listOf("apple")),
-    FoodEntry("banane",       90.0,  1.1,  20.0,  0.3,  2.6,  aliases = listOf("banana")),
+    // User-reported (2nd round): "cover them" - banane is the textbook potassium/
+    // B6 source and had neither, same class of gap vitCMg's own doc comment fixed.
+    FoodEntry("banane",       90.0,  1.1,  20.0,  0.3,  2.6,  potassiumMg = 358.0, b6Mg = 0.4, aliases = listOf("banana")),
     // User-reported: logging "orange" recorded calories but no vitamin C at all
     // in the dashboard/other tabs - vitCMg simply didn't exist on FoodEntry
     // before now (see its own doc comment), so even the single most obvious
     // vitamin C source in the whole database had no way to carry one.
-    FoodEntry("orange",       45.0,  0.9,   9.0,  0.2,  2.2,  vitCMg = 53.2),
+    FoodEntry("orange",       45.0,  0.9,   9.0,  0.2,  2.2,  vitCMg = 53.2, potassiumMg = 181.0, b9Ug = 30.0),
     FoodEntry("fraise",       33.0,  0.7,   5.0,  0.3,  2.0,  vitCMg = 58.8, aliases = listOf("fraises", "strawberry")),
     FoodEntry("myrtille",     57.0,  0.7,  10.0,  0.3,  2.4,  aliases = listOf("myrtilles", "blueberry")),
-    FoodEntry("avocat",      160.0,  2.0,   2.0, 15.0,  6.7,  aliases = listOf("avocado")),
-    FoodEntry("kiwi",         61.0,  1.1,  11.0,  0.5,  3.0,  vitCMg = 92.7),
+    FoodEntry("avocat",      160.0,  2.0,   2.0, 15.0,  6.7,  potassiumMg = 485.0, magnesiumMg = 29.0, vitEMg = 2.1, b6Mg = 0.3, b9Ug = 81.0, aliases = listOf("avocado")),
+    FoodEntry("kiwi",         61.0,  1.1,  11.0,  0.5,  3.0,  vitCMg = 92.7, potassiumMg = 312.0, vitEMg = 1.5, vitKUg = 40.0),
     FoodEntry("raisin",       69.0,  0.7,  16.0,  0.2,  0.9,  aliases = listOf("raisins", "grape")),
 
     // Légumes
     FoodEntry("tomate",       18.0,  0.9,   3.0,  0.2,  1.2,  aliases = listOf("tomate cerise", "tomato")),
-    FoodEntry("carotte",      36.0,  0.6,   7.0,  0.2,  2.8,  aliases = listOf("carrot")),
-    FoodEntry("brocoli",      30.0,  2.8,   2.0,  0.4,  2.6,  calciumMg = 47.0, vitCMg = 89.2, aliases = listOf("broccoli")),
-    FoodEntry("épinard",      23.0,  2.9,   1.0,  0.4,  2.2,  ironMg = 2.7, calciumMg = 99.0, aliases = listOf("épinards", "spinach")),
+    FoodEntry("carotte",      36.0,  0.6,   7.0,  0.2,  2.8,  vitAUg = 835.0, aliases = listOf("carrot")),
+    FoodEntry("brocoli",      30.0,  2.8,   2.0,  0.4,  2.6,  calciumMg = 47.0, vitCMg = 89.2, vitKUg = 102.0, b9Ug = 63.0, potassiumMg = 316.0, aliases = listOf("broccoli")),
+    FoodEntry("épinard",      23.0,  2.9,   1.0,  0.4,  2.2,  ironMg = 2.7, calciumMg = 99.0, vitAUg = 469.0, vitKUg = 483.0, b9Ug = 194.0, magnesiumMg = 79.0, potassiumMg = 558.0, aliases = listOf("épinards", "spinach")),
     FoodEntry("concombre",    12.0,  0.6,   2.0,  0.1,  0.5,  aliases = listOf("cucumber")),
     FoodEntry("courgette",    15.0,  1.3,   2.0,  0.1,  1.1,  aliases = listOf("zucchini")),
-    FoodEntry("poivron",      27.0,  0.9,   5.0,  0.2,  1.9,  vitCMg = 120.0, aliases = listOf("pepper")),
+    FoodEntry("poivron",      27.0,  0.9,   5.0,  0.2,  1.9,  vitCMg = 120.0, vitAUg = 157.0, potassiumMg = 211.0, aliases = listOf("pepper")),
     FoodEntry("oignon",       34.0,  1.2,   6.0,  0.1,  1.7,  aliases = listOf("onion")),
     FoodEntry("salade verte", 15.0,  1.3,   1.5,  0.2,  1.3,  aliases = listOf("salade", "laitue", "lettuce")),
-    FoodEntry("pomme de terre", 80.0, 2.0, 17.0,  0.1,  1.8,  aliases = listOf("patate", "potato")),
+    FoodEntry("pomme de terre", 80.0, 2.0, 17.0,  0.1,  1.8,  potassiumMg = 425.0, magnesiumMg = 23.0, b6Mg = 0.3, aliases = listOf("patate", "potato")),
 
     // Fruits (suite)
     FoodEntry("pêche",         39.0,  0.9,   9.0,  0.3,  1.5, aliases = listOf("peach")),
@@ -50,25 +52,25 @@ internal val FOOD_DB_FRUITS_AND_VEGETABLES: List<FoodEntry> = listOf(
     FoodEntry("citron",        29.0,  1.1,   9.0,  0.3,  2.8, vitCMg = 53.0, aliases = listOf("lemon")),
     FoodEntry("clémentine",    47.0,  0.8,  12.0,  0.2,  1.7, vitCMg = 48.8, aliases = listOf("mandarine", "clementine")),
     FoodEntry("figue",         74.0,  0.8,  19.0,  0.3,  2.9, aliases = listOf("figues", "fig")),
-    FoodEntry("datte",         282.0, 2.5,  75.0,  0.4,  8.0, ironMg = 1.0, aliases = listOf("dattes", "date")),
+    FoodEntry("datte",         282.0, 2.5,  75.0,  0.4,  8.0, ironMg = 1.0, potassiumMg = 656.0, magnesiumMg = 54.0, aliases = listOf("dattes", "date")),
     FoodEntry("noix de coco",  354.0, 3.3,   6.2, 33.5,  9.0, aliases = listOf("coconut")),
 
     // Légumes (suite)
-    FoodEntry("chou-fleur",    25.0,  1.9,   5.0,  0.3,  2.0, vitCMg = 48.2, aliases = listOf("cauliflower")),
-    FoodEntry("chou",          25.0,  1.3,   6.0,  0.1,  2.5, vitCMg = 36.6, aliases = listOf("cabbage")),
-    FoodEntry("chou de bruxelles", 43.0, 3.4, 9.0,  0.3,  3.8, vitCMg = 85.0, aliases = listOf("choux de bruxelles", "brussels sprouts")),
+    FoodEntry("chou-fleur",    25.0,  1.9,   5.0,  0.3,  2.0, vitCMg = 48.2, vitKUg = 16.0, b9Ug = 57.0, aliases = listOf("cauliflower")),
+    FoodEntry("chou",          25.0,  1.3,   6.0,  0.1,  2.5, vitCMg = 36.6, vitKUg = 76.0, b9Ug = 43.0, aliases = listOf("cabbage")),
+    FoodEntry("chou de bruxelles", 43.0, 3.4, 9.0,  0.3,  3.8, vitCMg = 85.0, vitKUg = 177.0, b9Ug = 61.0, aliases = listOf("choux de bruxelles", "brussels sprouts")),
     FoodEntry("aubergine",     25.0,  1.0,   6.0,  0.2,  3.0, aliases = listOf("eggplant")),
     FoodEntry("haricot vert",  31.0,  1.8,   7.0,  0.1,  3.4, aliases = listOf("haricots verts", "green bean")),
-    FoodEntry("petit pois",    81.0,  5.4,  14.0,  0.4,  5.1, ironMg = 1.5, aliases = listOf("petits pois", "green pea")),
-    FoodEntry("asperge",       20.0,  2.2,   3.9,  0.1,  2.1, aliases = listOf("asperges", "asparagus")),
-    FoodEntry("champignon",    22.0,  3.1,   3.3,  0.3,  1.0, aliases = listOf("champignon de paris", "mushroom")),
+    FoodEntry("petit pois",    81.0,  5.4,  14.0,  0.4,  5.1, ironMg = 1.5, zincMg = 1.2, magnesiumMg = 33.0, potassiumMg = 244.0, b9Ug = 65.0, aliases = listOf("petits pois", "green pea")),
+    FoodEntry("asperge",       20.0,  2.2,   3.9,  0.1,  2.1, potassiumMg = 202.0, b9Ug = 52.0, aliases = listOf("asperges", "asparagus")),
+    FoodEntry("champignon",    22.0,  3.1,   3.3,  0.3,  1.0, potassiumMg = 318.0, aliases = listOf("champignon de paris", "mushroom")),
     FoodEntry("betterave",     43.0,  1.6,  10.0,  0.2,  2.8, aliases = listOf("beetroot")),
     FoodEntry("radis",         16.0,  0.7,   3.4,  0.1,  1.6, aliases = listOf("radish")),
     FoodEntry("céleri",        16.0,  0.7,   3.0,  0.2,  1.6, aliases = listOf("celery")),
     FoodEntry("poireau",       61.0,  1.5,  14.0,  0.3,  1.8, aliases = listOf("poireaux", "leek")),
-    FoodEntry("artichaut",     47.0,  3.3,  10.0,  0.2,  5.4, aliases = listOf("artichoke")),
-    FoodEntry("patate douce",  86.0,  1.6,  20.0,  0.1,  3.0, aliases = listOf("sweet potato")),
-    FoodEntry("maïs",          86.0,  3.2,  19.0,  1.2,  2.7, aliases = listOf("mais", "corn", "sweetcorn")),
+    FoodEntry("artichaut",     47.0,  3.3,  10.0,  0.2,  5.4, magnesiumMg = 60.0, potassiumMg = 370.0, b9Ug = 68.0, aliases = listOf("artichoke")),
+    FoodEntry("patate douce",  86.0,  1.6,  20.0,  0.1,  3.0, vitAUg = 709.0, potassiumMg = 337.0, aliases = listOf("sweet potato")),
+    FoodEntry("maïs",          86.0,  3.2,  19.0,  1.2,  2.7, magnesiumMg = 37.0, potassiumMg = 270.0, aliases = listOf("mais", "corn", "sweetcorn")),
     FoodEntry("ail",          149.0,  6.4,  33.0,  0.5,  2.1, aliases = listOf("garlic")),
 
     // Fruits (extension 2026-08-03 - user-reported: category rework surfaced how thin

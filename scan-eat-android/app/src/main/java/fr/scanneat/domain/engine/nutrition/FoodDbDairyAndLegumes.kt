@@ -16,10 +16,10 @@ internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     FoodEntry("camembert",         300.0, 20.0,  0.5, 24.0, 0.0, saltG = 1.4, calciumMg = 400.0, vitDUg = 0.35, b12Ug = 1.3),
 
     // Légumineuses / oléagineux
-    FoodEntry("lentille cuite",   115.0,  9.0, 20.0,  0.4, 3.8, ironMg = 3.3, aliases = listOf("lentilles", "lentils")),
-    FoodEntry("pois chiche cuit", 165.0,  9.0, 27.0,  2.6, 4.5, ironMg = 2.9, aliases = listOf("pois chiches", "chickpea")),
-    FoodEntry("amandes",          620.0, 21.0, 20.0, 51.0, 12.5, ironMg = 3.7, calciumMg = 260.0, aliases = listOf("amande", "almonds")),
-    FoodEntry("noix",             655.0, 15.0, 14.0, 65.0,  6.7, ironMg = 2.9),
+    FoodEntry("lentille cuite",   115.0,  9.0, 20.0,  0.4, 3.8, ironMg = 3.3, zincMg = 1.3, magnesiumMg = 36.0, b9Ug = 181.0, aliases = listOf("lentilles", "lentils")),
+    FoodEntry("pois chiche cuit", 165.0,  9.0, 27.0,  2.6, 4.5, ironMg = 2.9, zincMg = 1.5, magnesiumMg = 48.0, b9Ug = 172.0, aliases = listOf("pois chiches", "chickpea")),
+    FoodEntry("amandes",          620.0, 21.0, 20.0, 51.0, 12.5, ironMg = 3.7, calciumMg = 260.0, magnesiumMg = 270.0, zincMg = 3.1, vitEMg = 25.6, aliases = listOf("amande", "almonds")),
+    FoodEntry("noix",             655.0, 15.0, 14.0, 65.0,  6.7, ironMg = 2.9, magnesiumMg = 158.0, zincMg = 3.1),
 
     // Produits laitiers (suite)
     FoodEntry("fromage de chèvre", 364.0, 22.0, 2.0, 29.0, 0.0, calciumMg = 140.0, aliases = listOf("goat cheese")),
@@ -56,7 +56,7 @@ internal val FOOD_DB_DAIRY_AND_LEGUMES: List<FoodEntry> = listOf(
     FoodEntry("soja cuit",       173.0, 16.6,  9.9,  9.0,  6.0, ironMg = 5.1, calciumMg = 102.0, aliases = listOf("soybean")),
     FoodEntry("noix du brésil",  656.0, 14.0, 12.0, 66.0,  7.5, aliases = listOf("brazil nut")),
     FoodEntry("noix de pécan",   691.0,  9.2, 14.0, 72.0,  9.6, aliases = listOf("pecan")),
-    FoodEntry("graine de tournesol", 584.0, 21.0, 20.0, 51.0, 8.6, ironMg = 5.0, aliases = listOf("sunflower seed")),
-    FoodEntry("graine de courge",  559.0, 30.0, 11.0, 49.0,  6.0, ironMg = 8.8, aliases = listOf("pumpkin seed")),
+    FoodEntry("graine de tournesol", 584.0, 21.0, 20.0, 51.0, 8.6, ironMg = 5.0, magnesiumMg = 325.0, zincMg = 5.0, vitEMg = 35.2, aliases = listOf("sunflower seed")),
+    FoodEntry("graine de courge",  559.0, 30.0, 11.0, 49.0,  6.0, ironMg = 8.8, magnesiumMg = 592.0, zincMg = 7.8, aliases = listOf("pumpkin seed")),
     FoodEntry("beurre d'amande",  614.0, 21.0, 19.0, 56.0, 10.3, calciumMg = 270.0, aliases = listOf("almond butter")),
 )
