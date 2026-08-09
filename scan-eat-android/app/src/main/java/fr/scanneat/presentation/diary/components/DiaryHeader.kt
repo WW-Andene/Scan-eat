@@ -4,7 +4,9 @@ import compose.icons.tablericons.ArrowLeft
 import compose.icons.tablericons.Check
 import compose.icons.tablericons.ChevronDown
 import compose.icons.TablerIcons
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -73,52 +75,95 @@ internal fun BoxScope.DiaryHeader(
                     Text(stringResource(R.string.diary_header), style = MaterialTheme.typography.titleLarge, color = OnBackground, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(Spacing.M))
-                // Was a fixed Row with each tab forced to Modifier.weight(1f), then a
-                // horizontally-scrollable icon+label row - both still forced a
-                // horizontal scroll to reach Treatment/Expenses on most phone widths,
-                // one more scroll gesture on top of the day-picker/list scrolling this
-                // screen already asks for, and it turned out inactive icon-only tabs
-                // still didn't reliably fit either. Replaced with a single button
-                // showing the active tab, opening a popup menu (DropdownMenu) listing
-                // all seven - same pattern CollapsibleFilterBar now uses for filters,
-                // so there is no list to scroll or expand at all, on any screen width.
-                var tabMenuExpanded by remember { mutableStateOf(false) }
-                Box {
-                    Surface(
-                        onClick = { tabMenuExpanded = true },
-                        shape = RoundedCornerShape(8.dp),
-                        color = ChipBackgroundAccent,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)),
-                    ) {
-                        Row(
-                            Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
-                        ) {
-                            Icon(activeTab.icon, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
-                            Text(
-                                stringResource(activeTab.labelRes),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = AccentCoral, fontWeight = FontWeight.Bold,
-                            )
-                            Icon(TablerIcons.ChevronDown, contentDescription = null, tint = AccentCoral)
-                        }
+                // User-reported (2nd round): the single button below (showing only the
+                // active tab, everything else behind a DropdownMenu) read as "one tab"
+                // instead of a real tab row - MEALS/WEIGHT/WATER (the three most-used
+                // trackers) are now always-visible, real tab buttons; ACTIVITY/FASTING/
+                // TREATMENT/EXPENSES stay behind the same popup pattern as before, now
+                // as the 4th slot instead of the only one. Was a fixed Row with each tab
+                // forced to Modifier.weight(1f) before that (see history) - a full
+                // horizontally-scrollable 7-tab row still didn't reliably fit any phone
+                // width, which is why only 3 are direct buttons here, not all 7.
+                val primaryTabs = listOf(DiaryTab.MEALS, DiaryTab.WEIGHT, DiaryTab.WATER)
+                val overflowTabs = DiaryTab.entries.filter { it !in primaryTabs }
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                ) {
+                    primaryTabs.forEach { tab ->
+                        DiaryTabButton(tab = tab, isActive = tab == activeTab, onClick = { onTabChange(tab) })
                     }
-                    // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-                    DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
-                        DiaryTab.entries.forEach { tab ->
-                            val isActive = tab == activeTab
-                            val label = stringResource(tab.labelRes)
-                            DropdownMenuItem(
-                                text = { Text(label) },
-                                leadingIcon = { Icon(tab.icon, null, tint = if (isActive) AccentCoral else OnBackground.copy(0.6f)) },
-                                trailingIcon = { if (isActive) Icon(TablerIcons.Check, null, tint = AccentCoral) },
-                                onClick = { onTabChange(tab); tabMenuExpanded = false },
-                            )
+                    var tabMenuExpanded by remember { mutableStateOf(false) }
+                    val overflowActive = activeTab in overflowTabs
+                    Box {
+                        Surface(
+                            onClick = { tabMenuExpanded = true },
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (overflowActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
+                            border = if (overflowActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+                        ) {
+                            Row(
+                                Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+                            ) {
+                                if (overflowActive) {
+                                    Icon(activeTab.icon, contentDescription = null, tint = AccentCoral, modifier = Modifier.size(IconSize.Inline))
+                                    Text(
+                                        stringResource(activeTab.labelRes),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = AccentCoral, fontWeight = FontWeight.Bold,
+                                    )
+                                } else {
+                                    Text(
+                                        stringResource(R.string.diary_tab_more),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = OnBackground.copy(0.7f),
+                                    )
+                                }
+                                Icon(TablerIcons.ChevronDown, contentDescription = null, tint = if (overflowActive) AccentCoral else OnBackground.copy(0.7f))
+                            }
+                        }
+                        // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
+                        DropdownMenu(expanded = tabMenuExpanded, onDismissRequest = { tabMenuExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
+                            overflowTabs.forEach { tab ->
+                                val isActive = tab == activeTab
+                                val label = stringResource(tab.labelRes)
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    leadingIcon = { Icon(tab.icon, null, tint = if (isActive) AccentCoral else OnBackground.copy(0.6f)) },
+                                    trailingIcon = { if (isActive) Icon(TablerIcons.Check, null, tint = AccentCoral) },
+                                    onClick = { onTabChange(tab); tabMenuExpanded = false },
+                                )
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DiaryTabButton(tab: DiaryTab, isActive: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = if (isActive) ChipBackgroundAccent else SurfaceVariant.copy(alpha = 0.4f),
+        border = if (isActive) androidx.compose.foundation.BorderStroke(1.dp, AccentCoral.copy(alpha = CHIP_BORDER_ALPHA)) else null,
+    ) {
+        Row(
+            Modifier.heightIn(min = 48.dp).padding(horizontal = Spacing.M),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.S),
+        ) {
+            Icon(tab.icon, contentDescription = null, tint = if (isActive) AccentCoral else OnBackground.copy(0.7f), modifier = Modifier.size(IconSize.Inline))
+            Text(
+                stringResource(tab.labelRes),
+                style = MaterialTheme.typography.labelMedium,
+                color = if (isActive) AccentCoral else OnBackground.copy(0.7f),
+                fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+            )
         }
     }
 }

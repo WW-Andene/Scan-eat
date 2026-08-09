@@ -855,6 +855,7 @@
     <string name="diary_tab_fasting">Fasting</string>
     <string name="diary_tab_treatment">Treatment</string>
     <string name="diary_tab_expenses">Expenses</string>
+    <string name="diary_tab_more">More</string>
     <string name="expenses_history_title">Purchase history</string>
     <string name="expenses_empty_body">No expense logged yet. Add a price from a product page after scanning.</string>
     <string name="expenses_add_entry">Add</string>
