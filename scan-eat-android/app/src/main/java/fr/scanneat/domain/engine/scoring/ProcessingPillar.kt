@@ -133,5 +133,5 @@ fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
         deductions += Deduction("processing", if (en) "Fried starchy food — possible acrylamide formation (IARC Group 2A)" else "Aliment amylacé frit — formation possible d'acrylamide (IARC groupe 2A)", -1.0, Severity.MINOR)
     }
 
-    return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, score), deductions, bonuses)
+    return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }

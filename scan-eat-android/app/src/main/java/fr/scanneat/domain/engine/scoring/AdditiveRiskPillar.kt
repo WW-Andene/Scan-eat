@@ -62,7 +62,7 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
             tier3.joinToString(" | ") { "${it.additive} (${it.ingredient})" })
     }
 
-    return PillarScore(if (en) "Additive Risk" else "Risque additifs", MAX, maxOf(0.0, score), deductions, bonuses)
+    return PillarScore(if (en) "Additive Risk" else "Risque additifs", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }
 
 fun countTier1Additives(product: Product): Int {

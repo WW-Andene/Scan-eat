@@ -114,5 +114,5 @@ fun scoreNegativeNutrients(product: Product, lang: String = "en"): PillarScore {
         deductions += Deduction("negative_nutrients", if (en) "Energy ${n.energyKcal}kcal/100g outside category norm ($kcalLow–$kcalHigh)" else "Énergie ${n.energyKcal}kcal/100g hors norme de la catégorie ($kcalLow–$kcalHigh)", -2.0, Severity.MINOR)
     }
 
-    return PillarScore(if (en) "Negative Nutrients" else "Nutriments négatifs", MAX, maxOf(0.0, score), deductions, bonuses)
+    return PillarScore(if (en) "Negative Nutrients" else "Nutriments négatifs", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }
