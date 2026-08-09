@@ -322,11 +322,17 @@ fun ScanScreen(
             // (visibleBarcodeCachedPreviews), anchored directly above its own
             // detected box, no tap required. A barcode with no prior scan still only
             // gets the plain bounding box above - there's nothing cached to show for
-            // it before it's actually been scanned once. ──
-            barcodesInFrame?.let { (boxes, imgW, imgH) ->
-                boxes.forEach { box ->
-                    visibleBarcodeCachedPreviews.value[box.value]?.let { cached ->
-                        ScanBarcodeArPanel(box = box, imgW = imgW, imgH = imgH, cached = cached, topInset = topInset)
+            // it before it's actually been scanned once.
+            // User-requested: Premium-gated - this is a passive, no-tap overlay (unlike
+            // instant mode/identify-multi, which route to Settings on a blocked tap), so
+            // for a non-Premium user it simply doesn't render rather than routing
+            // anywhere - there's no tap to intercept. ──
+            if (isPremium.value) {
+                barcodesInFrame?.let { (boxes, imgW, imgH) ->
+                    boxes.forEach { box ->
+                        visibleBarcodeCachedPreviews.value[box.value]?.let { cached ->
+                            ScanBarcodeArPanel(box = box, imgW = imgW, imgH = imgH, cached = cached, topInset = topInset)
+                        }
                     }
                 }
             }

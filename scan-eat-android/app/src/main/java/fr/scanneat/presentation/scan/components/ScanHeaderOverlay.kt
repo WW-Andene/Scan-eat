@@ -231,7 +231,8 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
     val density = androidx.compose.ui.platform.LocalDensity.current
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp.dp
-    val panelWidth = 152.dp
+    // User-requested: a bit bigger - was 152dp.
+    val panelWidth = 184.dp
     val (xDp, yDp) = with(density) {
         val screenW = screenWidthDp.toPx()
         val screenH = configuration.screenHeightDp.dp.toPx()
@@ -255,22 +256,22 @@ internal fun BoxScope.ScanBarcodeArPanel(box: DetectedBarcode, imgW: Int, imgH: 
         // same raw-literal drift as above - matches CardRadius.CARD exactly.
         Surface(shape = RoundedCornerShape(CardRadius.CARD), color = SurfaceVariant.copy(0.94f)) {
             Row(
-                modifier = Modifier.padding(horizontal = Spacing.S, vertical = 6.dp),
+                modifier = Modifier.padding(horizontal = Spacing.M, vertical = Spacing.SM),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Spacing.XS),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.S),
             ) {
                 Surface(shape = RoundedCornerShape(50), color = gradeColor(cached.audit.grade).copy(alpha = 0.25f)) {
                     Text(
                         cached.audit.grade.label,
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = gradeColor(cached.audit.grade),
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = Spacing.XS, vertical = Spacing.T2),
+                        modifier = Modifier.padding(horizontal = Spacing.S, vertical = Spacing.XS),
                     )
                 }
                 Text(
                     cached.product.name,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodySmall,
                     color = OnSurface,
                     maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
