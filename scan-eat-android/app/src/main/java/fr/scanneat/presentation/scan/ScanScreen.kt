@@ -347,8 +347,9 @@ fun ScanScreen(
                 onClick = {
                     galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 },
+                // Matches ScanScoreFab's own corner margin (Spacing.L) - same convention.
                 modifier = Modifier.align(Alignment.BottomStart)
-                    .padding(start = 20.dp, bottom = bottomNavClearance + 20.dp),
+                    .padding(start = Spacing.L, bottom = bottomNavClearance + Spacing.L),
                 containerColor = SurfaceVariant,
             ) {
                 Icon(Icons.Filled.PhotoLibrary, stringResource(R.string.scan_import_photo_cd), tint = OnSurface)

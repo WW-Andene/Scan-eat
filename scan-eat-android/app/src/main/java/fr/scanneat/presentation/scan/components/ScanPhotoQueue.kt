@@ -54,7 +54,9 @@ import fr.scanneat.presentation.ui.theme.minTouchTarget
 @Composable
 internal fun BoxScope.ScanPhotoQueue(images: List<ImagePayload>, topInset: Dp, onRemovePhoto: (Int) -> Unit) {
     Column(
-        modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = topInset + 88.dp)
+        // Was a bare 88.dp (16+8+64, a 3-term off-scale sum) - Spacing.XXL*3 is a
+        // single clean multiple of one token instead.
+        modifier = Modifier.fillMaxWidth().align(Alignment.TopStart).padding(top = topInset + Spacing.XXL * 3)
             .padding(horizontal = Spacing.L),
     ) {
         Box(Modifier.glassSheen(edgeAlpha = 0.16f, shape = RoundedCornerShape(10.dp))) {

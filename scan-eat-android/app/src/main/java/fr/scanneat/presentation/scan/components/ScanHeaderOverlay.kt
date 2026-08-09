@@ -63,7 +63,11 @@ internal fun BoxScope.ScanHeaderBar(
     Column(
         modifier = Modifier.fillMaxWidth().align(Alignment.TopStart)
             .background(Brush.verticalGradient(listOf(Color.Black.copy(0.55f), Color.Transparent)))
-            .padding(horizontal = 20.dp).padding(top = topInset + Spacing.L, bottom = 28.dp),
+            // Matches ScanActionControls' ScanFabMargin convention (Spacing.L)
+            // instead of a bare, off-scale literal; bottom uses Spacing.XL alone
+            // rather than a 2-term sum, since there's no component-size reason
+            // for a second term here.
+            .padding(horizontal = Spacing.L).padding(top = topInset + Spacing.L, bottom = Spacing.XL),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
             // User-reported: this title's own line-height leading (headlineMedium

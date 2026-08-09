@@ -53,11 +53,24 @@ import fr.scanneat.presentation.ui.theme.glassSheen
 import fr.scanneat.presentation.ui.theme.minTouchTarget
 import fr.scanneat.presentation.ui.theme.IconSize
 
+/**
+ * User-reported: this whole bottom-anchored FAB cluster (this FAB, the
+ * identify-food action, the recent-barcodes row) used bare 20/28/84dp
+ * literals that didn't decompose cleanly onto the app's Spacing scale,
+ * unlike every other screen's FAB corner margin (Spacing.L, e.g. Diary's
+ * own FAB). ScanFabMargin unifies them onto that same convention; the
+ * offsets below are built from margin + real FAB size (56.dp, Material's
+ * own standard FAB dimension, not a spacing concern) + a named gap, the
+ * same formula this file's own top-anchored stack (ScanShelfModeFab/
+ * ScanInstantModeFab below) already uses.
+ */
+private val ScanFabMargin = Spacing.L
+
 @Composable
 internal fun BoxScope.ScanScoreFab(scanState: ScanUiState, bottomNavClearance: Dp, onClick: () -> Unit) {
     FloatingActionButton(
         onClick = onClick,
-        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomNavClearance + 20.dp),
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = ScanFabMargin, bottom = bottomNavClearance + ScanFabMargin),
         containerColor = AccentCoral,
         shape = CircleShape,
     ) {
@@ -84,7 +97,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
     // discoverable at all, instead of a feature nobody ever stumbles onto.
     val multiHint = stringResource(R.string.scan_identify_multi_hint)
     Column(
-        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 84.dp, bottom = bottomNavClearance + 28.dp),
+        modifier = Modifier.align(Alignment.BottomEnd).padding(end = ScanFabMargin + 56.dp + Spacing.SM, bottom = bottomNavClearance + ScanFabMargin + Spacing.SM),
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
@@ -121,7 +134,7 @@ internal fun BoxScope.ScanIdentifyFoodAction(bottomNavClearance: Dp, onClick: ()
 internal fun BoxScope.ScanRecentBarcodesRow(recentBarcodes: List<String>, bottomNavClearance: Dp, onQuickScan: (String) -> Unit) {
     Column(
         modifier = Modifier.align(Alignment.BottomStart)
-            .padding(start = 20.dp, bottom = bottomNavClearance + 84.dp),
+            .padding(start = ScanFabMargin, bottom = bottomNavClearance + ScanFabMargin + 56.dp + Spacing.SM),
         verticalArrangement = Arrangement.spacedBy(Spacing.XS),
     ) {
         recentBarcodes.takeLast(3).reversed().forEach { bc ->
