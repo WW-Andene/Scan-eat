@@ -339,6 +339,32 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         if (inferred != ProductCategory.OTHER) input.copy(category = inferred) else input
     } else input
 
+    // The 20/25/25/15/15 split across these 5 pillars had no documented
+    // rationale anywhere in this file before now - each pillar's own MAX was
+    // just a bare `val MAX = N` chosen independently, the exact same
+    // "invented in isolation" pattern the VetoCap ladder above was built to
+    // close for vetoes, just one level up at the pillar-composition layer.
+    // The actual, consistent principle behind the split, made explicit here:
+    //   NutritionalDensity (25) and NegativeNutrients (25) — the two largest
+    //     shares — are driven by DECLARED NUMERIC VALUES (protein/fiber/
+    //     micros; sat fat/sugar/salt/trans fat/alcohol/caffeine) checked
+    //     against category-relative, regulatorily-grounded thresholds
+    //     (CategoryThresholds.kt, EFSA/WHO caution levels cited throughout
+    //     NegativeNutrientsPillar.kt) - the highest-certainty signals this
+    //     engine has access to, and NegativeNutrients is also the primary
+    //     vehicle for checkVeto's hard caps.
+    //   Processing (20) sits in between: NOVA class is sometimes a directly
+    //     declared OFF value and sometimes this engine's own heuristic
+    //     inference (inferNovaClassWithConfidence's HIGH/MEDIUM/LOW
+    //     confidence tiers) - a real, evidence-linked signal, but one step
+    //     more removed from a directly measured number than the two 25s.
+    //   AdditiveRisk (15) and IngredientIntegrity (15) are the smallest
+    //     shares because both are driven by INGREDIENT-LIST PATTERN
+    //     MATCHING (E-number/name lookups, regex heuristics for whole-food/
+    //     hidden-sugar/named-oil signals) rather than a directly declared
+    //     quantitative value - real signals, but lower-certainty ones, which
+    //     is why they're weighted below the numerically-grounded pillars
+    //     rather than tied with them.
     val processing          = scoreProcessing(product, lang)
     val nutritionalDensity  = scoreNutritionalDensity(product, lang)
     val negativeNutrients   = scoreNegativeNutrients(product, lang)

@@ -327,6 +327,18 @@ fun scoreProduct(input: Product, lang: String = "en"): ScoreAudit {
         if (inferred != ProductCategory.OTHER) input.copy(category = inferred) else input
     } else input
 
+    // The 20/25/25/15/15 split across these 5 pillars had no documented
+    // rationale anywhere in this file before now - the actual, consistent
+    // principle: NutritionalDensity (25) and NegativeNutrients (25) are
+    // driven by declared numeric values checked against regulatorily-
+    // grounded thresholds (the highest-certainty signals available, and
+    // NegativeNutrients is also checkVeto's primary vehicle); Processing
+    // (20) sits between a directly declared value and this engine's own
+    // heuristic NOVA inference; AdditiveRisk (15) and IngredientIntegrity
+    // (15) are the smallest shares because both are driven by ingredient-
+    // list pattern matching rather than a directly declared quantitative
+    // value. Mirrors the identical documentation on the Android side (see
+    // Scoring Drift Check).
     val processing          = scoreProcessing(product, lang)
     val nutritionalDensity  = scoreNutritionalDensity(product, lang)
     val negativeNutrients   = scoreNegativeNutrients(product, lang)
