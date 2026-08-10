@@ -1,12 +1,19 @@
 package fr.scanneat.presentation.settings.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
@@ -18,6 +25,7 @@ import fr.scanneat.presentation.ui.theme.CardRadius
 import fr.scanneat.presentation.ui.theme.DROPDOWN_MENU_GAP
 import fr.scanneat.presentation.ui.theme.IconSize
 import fr.scanneat.presentation.ui.theme.OnBackground
+import fr.scanneat.presentation.ui.theme.ScanEatOutlinedButton
 import fr.scanneat.presentation.ui.theme.Spacing
 import fr.scanneat.presentation.ui.theme.StandardCardAlpha
 import fr.scanneat.presentation.ui.theme.SurfaceVariant
@@ -46,14 +54,14 @@ internal fun BackupCsvOverflowMenu(
     onPrepareScanHistoryCsvExport: () -> Unit,
     onPrepareMedicationsCsvExport: () -> Unit,
 ) {
-    var moreCsvExpanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var moreCsvExpanded by remember { mutableStateOf(false) }
     Box {
         ScanEatOutlinedButton(
             onClick = { moreCsvExpanded = true },
             enabled = enabled,
         ) {
             Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
-            androidx.compose.foundation.layout.Spacer(Modifier.width(Spacing.S))
+            Spacer(Modifier.width(Spacing.S))
             Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
         }
         // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
