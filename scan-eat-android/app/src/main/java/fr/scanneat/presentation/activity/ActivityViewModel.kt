@@ -107,6 +107,17 @@ class ActivityViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // R&D improvement: configurable weekly goal - previously a flat WHO 150min
+    // figure hardcoded in ActivityWeeklyMinutesCard with no way to override it,
+    // unlike Hydration's own customGoalMl. Null means "use the WHO default".
+    val customWeeklyGoalMinutes: StateFlow<Int?> = prefs.activityWeeklyGoalMinutes
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun setWeeklyGoalMinutes(minutes: Int?) = viewModelScope.launch {
+        runCatching { prefs.setActivityWeeklyGoalMinutes(minutes) }
+            .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+    }
+
     // New: weekly active minutes (current week, Mon–today) vs WHO 150 min goal
     val weeklyMinutes: StateFlow<Int> = yearRange
         .map { all ->

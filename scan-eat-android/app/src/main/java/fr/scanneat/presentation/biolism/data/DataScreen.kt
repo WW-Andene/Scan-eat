@@ -57,6 +57,7 @@ fun DataScreen(
     val manualHR    = viewModel.manualHR.collectAsStateWithLifecycle()
     val cum         = viewModel.sessionCumulative.collectAsStateWithLifecycle()
     val todayIntake = viewModel.todayIntakeKcal.collectAsStateWithLifecycle()
+    val todayActivityKcal = viewModel.todayActivityKcal.collectAsStateWithLifecycle()
     val language    = viewModel.language.collectAsStateWithLifecycle()
     val useImperial = viewModel.useImperial.collectAsStateWithLifecycle()
     val advanced    = viewModel.advancedView.collectAsStateWithLifecycle()
@@ -101,7 +102,7 @@ fun DataScreen(
     ) {
         item { MetabolicHealthScoreCard(met, profile.value) }
         item { BodyCompositionCard(met, profile.value, useImperial.value) }
-        item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value, language.value, useImperial.value) }
+        item { DailyEnergyCard(met, profile.value, s, sessions.value, todayIntake.value, todayActivityKcal.value, language.value, useImperial.value) }
         // Diary logging previously never visibly affected this screen at all -
         // this is the one card that cross-references Diary's actual intake
         // against the real weight-trend direction, same insight already shown

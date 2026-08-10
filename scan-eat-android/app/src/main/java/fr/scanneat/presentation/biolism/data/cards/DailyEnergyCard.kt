@@ -17,7 +17,7 @@ import fr.scanneat.util.formatDecimal
 import java.util.Locale
 
 @Composable
-fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState, sessions: List<BiolismSession>, todayIntakeKcal: Double, lang: String = "fr", useImperial: Boolean = false) {
+fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState, sessions: List<BiolismSession>, todayIntakeKcal: Double, todayActivityKcal: Int = 0, lang: String = "fr", useImperial: Boolean = false) {
     BioCard(stringResource(R.string.biolism_energy_title),
         badge = { if (s.ketosisOn) TealBadge(stringResource(R.string.biolism_energy_keto_badge, ((1.0 - met.ketoSupprFactor) * 100).toInt())) }
     ) {
@@ -44,16 +44,23 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
         // every second (live tick) — remember so it's not re-scanned 60x/minute
         // against the whole session history.
         val todaySessKcal = remember(sessions) { sessions.filter { isToday(it.timestamp) }.sumOf { it.kcalBurned } }
-        // totalOut (TDEE + today's tracked session) is shown for context in the
-        // Expenditure row below, but netBal deliberately excludes todaySessKcal -
+        // Reconciles Biolism's own session log with the Activity tab's
+        // ActivityRepository (todayActivityKcal, passed in from DataViewModel) -
+        // previously two completely disconnected "how much did I burn today"
+        // totals. Safe to sum together (unlike met.tdeeDay below) since a
+        // Biolism session and an Activity-tab workout are two genuinely
+        // different, independently-logged things, not two views of the same one.
+        val todayLoggedKcal = todaySessKcal + todayActivityKcal
+        // totalOut (TDEE + today's tracked activity) is shown for context in the
+        // Expenditure row below, but netBal deliberately excludes todayLoggedKcal -
         // met.tdeeDay is itself PAL-derived from profile.activityMeta (shown just
-        // above), so folding a specific logged session on top risks double-
-        // counting the same activity twice, exactly the reasoning Dashboard's own
+        // above), so folding logged activity on top risks double-counting the
+        // same activity twice, exactly the reasoning Dashboard's own
         // CalorieBalanceCard already applies to ActivityRepository's exercise kcal
         // (see DashboardViewModel's CalorieBalance.exerciseKcal doc comment) -
         // this card previously used a different rule for what's meant to be the
         // same "today's net balance" concept as that one.
-        val totalOut = met.tdeeDay + todaySessKcal
+        val totalOut = met.tdeeDay + todayLoggedKcal
         val netBal = todayIntakeKcal - met.tdeeDay
         Spacer(Modifier.height(Spacing.S))
         // Aligned to Dashboard's CalorieBalanceCard color convention (its own
@@ -64,7 +71,7 @@ fun DailyEnergyCard(met: MetabolicResult, profile: BiolismProfile, s: TimerState
         TintedPanel(balanceColor) {
             Label(stringResource(R.string.biolism_energy_balance_title), balanceColor)
             InfoRow(stringResource(R.string.biolism_energy_intake), "%.0f kcal".format(Locale.US, todayIntakeKcal), stringResource(R.string.biolism_energy_intake_sub), Teal)
-            InfoRow(stringResource(R.string.biolism_energy_expenditure), "%.0f kcal".format(Locale.US, totalOut), stringResource(R.string.biolism_energy_expenditure_sub, met.tdeeDay, todaySessKcal), Gold)
+            InfoRow(stringResource(R.string.biolism_energy_expenditure), "%.0f kcal".format(Locale.US, totalOut), stringResource(R.string.biolism_energy_expenditure_sub, met.tdeeDay, todayLoggedKcal), Gold)
             InfoRow(stringResource(R.string.biolism_energy_net_balance), "%+.0f kcal".format(Locale.US, netBal),
                 if (netBal > 200) stringResource(R.string.biolism_energy_status_surplus) else if (netBal < -50) stringResource(R.string.biolism_energy_status_deficit) else stringResource(R.string.biolism_energy_status_balanced),
                 balanceColor)

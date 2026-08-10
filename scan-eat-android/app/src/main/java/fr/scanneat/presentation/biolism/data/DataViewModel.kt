@@ -5,6 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.data.repository.biolism.BiolismRepository.TimerState
+import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.WeightRepository
 import fr.scanneat.data.repository.nutrition.ConsumptionRepository
 import fr.scanneat.domain.engine.biolism.*
@@ -26,6 +27,7 @@ class DataViewModel @Inject constructor(
     private val repo: BiolismRepository,
     private val consumptionRepo: ConsumptionRepository,
     private val weightRepo: WeightRepository,
+    private val activityRepo: ActivityRepository,
     prefs: UserPreferences,
 ) : ActionFailureViewModel() {
 
@@ -60,6 +62,18 @@ class DataViewModel @Inject constructor(
     val todayIntakeKcal: StateFlow<Double> = today.flatMapLatest { consumptionRepo.observeDay(it) }
         .map { it.totals.energyKcal }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
+
+    // Reconciles the two previously-disconnected kcal-burn systems this app has:
+    // Biolism's own session log (sessions, above) and the Activity tab's
+    // ActivityRepository - a workout logged in one never showed up in the
+    // other's "today's expenditure" figure. Safe to sum alongside
+    // todaySessKcal (unlike met.tdeeDay, which is PAL-derived and would
+    // double-count a logged session) since these are two genuinely different,
+    // independently-logged activities, not two views of the same one - see
+    // DailyEnergyCard's own doc comment on why met.tdeeDay itself stays excluded.
+    val todayActivityKcal: StateFlow<Int> = today.flatMapLatest { activityRepo.observeByDate(it) }
+        .map { entries -> entries.sumOf { it.kcalBurned } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     // Fix 12: tick drives wall-clock recalculation of elapsed/keto/fasting times
     // so DataScreen shows live values even while the tracker is running. Gated on

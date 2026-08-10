@@ -59,21 +59,50 @@ fun estimateKcalBurned(type: ActivityType, minutes: Int, weightKg: Double): Int 
     return (type.met * weightKg * (minutes / 60.0)).roundToInt()
 }
 
+// Ainsworth Compendium of Physical Activities 2011 codes 02050/02054:
+// resistance training MET differs by *effort level*, not just "strength
+// training" as one flat number - light-to-moderate effort resistance
+// training (code 02050) is 3.5 METs, vigorous effort (code 02054) is 6.0
+// METs. STRENGTH.met (5.0) already sits at the moderate midpoint used as
+// the fallback below. There's still no established equation that converts
+// weightUsedKg (external load) into METs directly - that gap is real and
+// stays unfilled (see this function's own doc comment) - but total training
+// volume (sets × reps) IS a legitimate, session-observable effort-level
+// proxy the Compendium's own three-tier split is built around, so it's used
+// here instead of leaving sets/reps completely unused for calorie purposes.
+private const val STRENGTH_MET_LIGHT_MODERATE = 3.5
+private const val STRENGTH_MET_VIGOROUS = 6.0
+private const val STRENGTH_LOW_VOLUME_REPS = 30
+private const val STRENGTH_HIGH_VOLUME_REPS = 60
+
+private fun strengthMet(sets: Int?, reps: Int?): Double {
+    val totalReps = if (sets != null && reps != null) sets * reps else null
+    return when {
+        totalReps == null -> ActivityType.STRENGTH.met
+        totalReps < STRENGTH_LOW_VOLUME_REPS -> STRENGTH_MET_LIGHT_MODERATE
+        totalReps > STRENGTH_HIGH_VOLUME_REPS -> STRENGTH_MET_VIGOROUS
+        else -> ActivityType.STRENGTH.met
+    }
+}
+
 /**
- * Pace-adjusted running estimate — distanceKm/weightUsedKg were added to
- * ActivityEntry this session and shown in ActivityScreen, but only ever fed
- * a fixed per-type MET table that ignores them entirely: a 5km jog and a
- * 20km run of the same duration produced identical burn numbers. For
- * running specifically there's a well-established, verifiable metabolic
- * equation (ACSM: VO2 ml/kg/min = 3.5 + 0.2 × speed_m_per_min, MET =
- * VO2/3.5) that actually uses pace instead of a single flat MET value.
- * Left to the fixed-MET fallback for every other type/when distance is
- * missing, rather than guessing at a similarly precise formula for
- * strength training's weightUsedKg — no equivalent well-established
- * equation exists for external resistance the way it does for running
- * pace, and fabricating one would be worse than not adjusting at all.
+ * Pace-adjusted running / effort-tiered strength estimate — distanceKm/
+ * sets/reps/weightUsedKg were added to ActivityEntry this session and shown
+ * in ActivityScreen, but only ever fed a fixed per-type MET table that
+ * ignores them entirely: a 5km jog and a 20km run of the same duration
+ * produced identical burn numbers, and a 3×8 warmup set scored the same as
+ * a 5×20 high-volume session. For running specifically there's a well-
+ * established, verifiable metabolic equation (ACSM: VO2 ml/kg/min = 3.5 +
+ * 0.2 × speed_m_per_min, MET = VO2/3.5) that actually uses pace instead of
+ * a single flat MET value; for STRENGTH, [strengthMet] uses total training
+ * volume as an Ainsworth-Compendium-sourced effort tier (see its own doc
+ * comment). Left to the fixed-MET fallback for every other type, and for
+ * strength training's weightUsedKg specifically — no equivalent well-
+ * established equation exists for external resistance load the way it does
+ * for running pace or effort-tier, and fabricating one would be worse than
+ * not adjusting at all.
  */
-fun estimateKcalBurnedWithDistance(type: ActivityType, minutes: Int, weightKg: Double, distanceKm: Double?): Int {
+fun estimateKcalBurnedWithDistance(type: ActivityType, minutes: Int, weightKg: Double, distanceKm: Double?, sets: Int? = null, reps: Int? = null): Int {
     if (minutes <= 0 || weightKg <= 0) return 0
     if (type == ActivityType.RUNNING && distanceKm != null && distanceKm > 0) {
         val speedMPerMin = distanceKm * 1000.0 / minutes
@@ -85,6 +114,9 @@ fun estimateKcalBurnedWithDistance(type: ActivityType, minutes: Int, weightKg: D
             val met = vo2 / 3.5
             return (met * weightKg * (minutes / 60.0)).roundToInt()
         }
+    }
+    if (type == ActivityType.STRENGTH) {
+        return (strengthMet(sets, reps) * weightKg * (minutes / 60.0)).roundToInt()
     }
     return estimateKcalBurned(type, minutes, weightKg)
 }
@@ -129,7 +161,7 @@ class ActivityRepository @Inject constructor(
         wasOutdoors: Boolean = false,
     ) {
         val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
-                   else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm)
+                   else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm, sets, reps)
         val loggedAt = System.currentTimeMillis()
         dao.insert(ActivityEntity(
             id           = UUID.randomUUID().toString(),
@@ -182,7 +214,7 @@ class ActivityRepository @Inject constructor(
         wasOutdoors: Boolean = false,
     ) {
         val kcal = if (kcalOverride != null && kcalOverride > 0) kcalOverride
-                   else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm)
+                   else estimateKcalBurnedWithDistance(type, minutes, weightKg, distanceKm, sets, reps)
         // ActivityEntry (the domain model every screen/ViewModel already works
         // with) doesn't expose loggedAt, so this looks the existing row's value
         // up itself rather than requiring callers to thread it through - an edit

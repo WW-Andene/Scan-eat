@@ -64,6 +64,7 @@ fun ActivityScreen(
     val weeklyBurn       = viewModel.weeklyBurn.collectAsStateWithLifecycle()
     val weeklyMinutes    = viewModel.weeklyMinutes.collectAsStateWithLifecycle()
     val weekTrendPct     = viewModel.weekTrendPct.collectAsStateWithLifecycle()
+    val customWeeklyGoalMinutes = viewModel.customWeeklyGoalMinutes.collectAsStateWithLifecycle()
     val sortedTypes      = viewModel.sortedActivityTypes.collectAsStateWithLifecycle()
     val streak           = viewModel.streak.collectAsStateWithLifecycle()
     val language         = viewModel.language.collectAsStateWithLifecycle()
@@ -155,7 +156,14 @@ fun ActivityScreen(
             }
 
             // New: weekly active minutes vs WHO 150 min/week goal + week-over-week trend
-            item { ActivityWeeklyMinutesCard(weeklyMinutes = weeklyMinutes.value, weekTrendPct = weekTrendPct.value) }
+            item {
+                ActivityWeeklyMinutesCard(
+                    weeklyMinutes = weeklyMinutes.value, weekTrendPct = weekTrendPct.value,
+                    goalMinutes = customWeeklyGoalMinutes.value ?: 150,
+                    hasCustomGoal = customWeeklyGoalMinutes.value != null,
+                    onSetGoal = { viewModel.setWeeklyGoalMinutes(it) },
+                )
+            }
 
             items(entries.value, key = { it.id }) { e ->
                 ActivityEntryRow(

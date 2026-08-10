@@ -1670,6 +1670,9 @@
     <string name="activity_weekly_minutes_title">Active minutes this week</string>
     <string name="activity_who_goal_reached">WHO goal reached ✓</string>
     <string name="activity_who_goal_hint">WHO goal: 150 min/week of moderate activity</string>
+    <string name="activity_edit_goal_title">Edit weekly goal</string>
+    <string name="activity_goal_minutes_hint">Active minutes per week</string>
+    <string name="activity_reset_goal">Reset to WHO goal (150 min)</string>
 
     <!-- ── Unified Calendar screen ──────────────────────────────────────── -->
     <string name="calendar_title">Calendar</string>

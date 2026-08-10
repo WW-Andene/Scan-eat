@@ -56,6 +56,7 @@ class UserPreferences @Inject constructor(
         val KEY_BIOLISM_ADVANCED     = booleanPreferencesKey("biolism_advanced_view")
         val KEY_ANIMATED_BACKGROUND  = booleanPreferencesKey("animated_background")
         val KEY_ACTIVITY_BEST_STREAK = intPreferencesKey("activity_best_streak_days")
+        val KEY_ACTIVITY_WEEKLY_GOAL_MIN = intPreferencesKey("activity_weekly_goal_minutes")
         val KEY_ACTIVE_PROFILE       = stringPreferencesKey("active_profile")
         val KEY_BUDGET_WEEKLY        = floatPreferencesKey("budget_weekly_euros")
         val KEY_BUDGET_PER_MEAL      = floatPreferencesKey("budget_per_meal_euros")
@@ -179,6 +180,15 @@ class UserPreferences @Inject constructor(
      */
     val activityBestStreak: Flow<Int> = storeData.map { it[KEY_ACTIVITY_BEST_STREAK] ?: 0 }.distinctUntilChanged()
     suspend fun setActivityBestStreak(days: Int) = store.edit { it[KEY_ACTIVITY_BEST_STREAK] = days }
+
+    /** User-set override for the WHO 150min/week active-minutes goal, same
+     *  "null means use the default" pattern as HydrationRepository.customGoalMl -
+     *  Activity previously had no configurable goal at all, just the flat WHO
+     *  figure hardcoded into ActivityWeeklyMinutesCard. */
+    val activityWeeklyGoalMinutes: Flow<Int?> = storeData.map { it[KEY_ACTIVITY_WEEKLY_GOAL_MIN] }.distinctUntilChanged()
+    suspend fun setActivityWeeklyGoalMinutes(minutes: Int?) = store.edit { prefs ->
+        if (minutes == null) prefs.remove(KEY_ACTIVITY_WEEKLY_GOAL_MIN) else prefs[KEY_ACTIVITY_WEEKLY_GOAL_MIN] = minutes.coerceAtLeast(1)
+    }
 
     suspend fun setGroqApiKey(key: String)  = store.edit { it[KEY_API_KEY]    = SecureFieldCipher.encrypt(key) }
     suspend fun setCerebrasApiKey(key: String) = store.edit { it[KEY_CEREBRAS_API_KEY] = SecureFieldCipher.encrypt(key) }

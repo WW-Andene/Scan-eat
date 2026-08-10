@@ -1064,6 +1064,9 @@
     <string name="activity_weekly_minutes_title">Minutes actives cette semaine</string>
     <string name="activity_who_goal_reached">Objectif OMS atteint ✓</string>
     <string name="activity_who_goal_hint">Objectif OMS : 150 min/semaine d\'activité modérée</string>
+    <string name="activity_edit_goal_title">Modifier l\'objectif hebdomadaire</string>
+    <string name="activity_goal_minutes_hint">Minutes actives par semaine</string>
+    <string name="activity_reset_goal">Revenir à l\'objectif OMS (150 min)</string>
     <string name="activity_add_dialog_title">Ajouter une activité</string>
     <string name="activity_type_label">Type</string>
     <string name="activity_duration_label">Durée (minutes)</string>
