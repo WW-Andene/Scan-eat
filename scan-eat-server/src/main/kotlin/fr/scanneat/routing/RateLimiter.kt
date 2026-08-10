@@ -81,6 +81,42 @@ class RateLimiter(private val maxRequests: Int, private val windowMs: Long) {
 // source IPs instead of one unauthenticated HTTP client.
 val llmRateLimiter = RateLimiter(maxRequests = 30, windowMs = 60_000L)
 
+// ============================================================================
+// GLOBAL SERVER-MODE DAILY QUOTA
+//
+// llmRateLimiter above only bounds a single client IP - an attacker with
+// access to many source addresses (botnet, cloud IP rotation, an IPv6 /64)
+// can trivially call every LLM route from a different apparent client on
+// each request and bypass it entirely, since nothing previously capped
+// total spend across all clients combined. This only matters for calls
+// billed to the *operator's* own GROQ_API_KEY (unauthenticated "Server
+// mode" - see every route's own doc comment); a caller supplying their own
+// X-Groq-Key header spends their own quota, not the operator's, so those
+// calls are deliberately excluded from this counter (see resolveGroqKey/
+// requireGroqKey in RouteHelpers.kt, which only consume this quota on the
+// env-var fallback branch).
+//
+// A fixed daily ceiling, not a rolling window - simple, predictable, and
+// enough to turn "unbounded exposure" into "a fixed worst-case daily cost"
+// for a self-hosted operator, configurable via MAX_SERVER_MODE_DAILY_CALLS
+// for deployments with different traffic/budget expectations.
+object ServerModeDailyQuota {
+    private val maxDaily = System.getenv("MAX_SERVER_MODE_DAILY_CALLS")?.toIntOrNull() ?: 500
+    private const val WINDOW_MS = 24 * 60 * 60 * 1000L
+    private val count = AtomicLong(0)
+    @Volatile private var windowStartMs = System.currentTimeMillis()
+
+    /** True (and consumes one unit) if the daily budget isn't yet exhausted. */
+    @Synchronized
+    fun tryConsume(nowMs: Long = System.currentTimeMillis()): Boolean {
+        if (nowMs - windowStartMs >= WINDOW_MS) {
+            windowStartMs = nowMs
+            count.set(0)
+        }
+        return count.incrementAndGet() <= maxDaily
+    }
+}
+
 /**
  * Reject with 429 and return true if the caller has exceeded [limiter]'s
  * budget for their client IP. Callers should check this before doing any

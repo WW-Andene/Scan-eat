@@ -16,20 +16,43 @@ import org.slf4j.Logger
 
 const val MAX_BODY_BYTES = 12 * 1024 * 1024   // 12 MB
 
-/** Resolve the Groq API key: X-Groq-Key header first, then GROQ_API_KEY env. */
-fun ApplicationCall.resolveGroqKey(): String? {
-    val header = request.header("X-Groq-Key")?.takeIf { it.isNotBlank() }
-    if (header != null) return header
-    return System.getenv("GROQ_API_KEY")?.takeIf { it.isNotBlank() }
+private sealed class GroqKeyResult {
+    data class Available(val key: String) : GroqKeyResult()
+    object NoKeyConfigured : GroqKeyResult()
+    object QuotaExceeded : GroqKeyResult()
 }
 
-/** Respond 503 if no Groq key is available. Returns false if the caller should abort. */
-suspend fun ApplicationCall.requireGroqKey(): String? {
-    val key = resolveGroqKey()
-    if (key == null) {
+// Single resolution path shared by resolveGroqKey/requireGroqKey below, so the
+// ServerModeDailyQuota consumption (env-var branch only - see its own doc
+// comment) happens exactly once per call regardless of which of the two
+// callers triggered it.
+private fun ApplicationCall.resolveGroqKeyResult(): GroqKeyResult {
+    val header = request.header("X-Groq-Key")?.takeIf { it.isNotBlank() }
+    if (header != null) return GroqKeyResult.Available(header)
+    val envKey = System.getenv("GROQ_API_KEY")?.takeIf { it.isNotBlank() }
+        ?: return GroqKeyResult.NoKeyConfigured
+    return if (ServerModeDailyQuota.tryConsume()) GroqKeyResult.Available(envKey) else GroqKeyResult.QuotaExceeded
+}
+
+/** Resolve the Groq API key: X-Groq-Key header first, then GROQ_API_KEY env
+ *  (subject to ServerModeDailyQuota). Returns null on quota exhaustion the
+ *  same as "no key configured" - callers of this non-suspend variant (e.g.
+ *  ScoreRoute's lazy barcode-augment lookup) already treat a null key as
+ *  "skip LLM augmentation," a graceful degradation rather than a hard error. */
+fun ApplicationCall.resolveGroqKey(): String? = (resolveGroqKeyResult() as? GroqKeyResult.Available)?.key
+
+/** Respond 503/429 and return null if no Groq key is usable - either none is
+ *  configured, or (Server mode only) today's ServerModeDailyQuota is spent. */
+suspend fun ApplicationCall.requireGroqKey(): String? = when (val result = resolveGroqKeyResult()) {
+    is GroqKeyResult.Available -> result.key
+    GroqKeyResult.NoKeyConfigured -> {
         respond(HttpStatusCode.ServiceUnavailable, ErrorResponse("service_unavailable", "No Groq API key — set GROQ_API_KEY env var or pass X-Groq-Key header"))
+        null
     }
-    return key
+    GroqKeyResult.QuotaExceeded -> {
+        respond(HttpStatusCode.TooManyRequests, ErrorResponse("daily_quota_exceeded"))
+        null
+    }
 }
 
 /**
