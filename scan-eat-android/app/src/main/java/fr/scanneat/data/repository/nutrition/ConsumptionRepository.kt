@@ -12,6 +12,7 @@ import fr.scanneat.data.local.db.toLocalDate
 import fr.scanneat.data.local.db.toLocalDateTimeUtc
 import fr.scanneat.data.repository.expense.PriceRepository
 import fr.scanneat.data.repository.health.HealthConnectRepository
+import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.data.repository.health.writeNutrition
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.widget.TodayWidget
@@ -28,6 +29,7 @@ class ConsumptionRepository @Inject constructor(
     private val moshi: Moshi,
     private val healthConnect: HealthConnectRepository,
     private val priceRepo: PriceRepository,
+    private val hydrationRepo: HydrationRepository,
     @ApplicationContext private val context: Context,
 ) {
     private val nutritionAdapter = moshi.adapter(NutritionPer100g::class.java)
@@ -50,6 +52,7 @@ class ConsumptionRepository @Inject constructor(
         dao.trim(MAX_HISTORY_ROWS, entry.profileId)
         priceRepo.deductStock(entry.barcode, entry.portionG, entry.profileId)
         mirrorToHealthConnect(entry)
+        mirrorToHydration(entry)
         refreshWidget()
     }
 
@@ -59,7 +62,19 @@ class ConsumptionRepository @Inject constructor(
         entries.map { it.profileId }.distinct().forEach { dao.trim(MAX_HISTORY_ROWS, it) }
         entries.forEach { priceRepo.deductStock(it.barcode, it.portionG, it.profileId) }
         entries.forEach { mirrorToHealthConnect(it) }
+        entries.forEach { mirrorToHydration(it) }
         refreshWidget()
+    }
+
+    // User-reported: a bottled water product logged via barcode scan or the
+    // journal never showed up in the dedicated Hydration tab - the two
+    // systems (this Room table vs. HydrationRepository's own DataStore) had
+    // zero cross-wiring. portionG is used as mL directly (water's density is
+    // ~1 g/mL, close enough for a self-reported intake estimate the same way
+    // HYD_GLASS_ML's own 250 mL is an estimate, not a lab measurement).
+    private suspend fun mirrorToHydration(entry: DiaryEntry) {
+        if (entry.category != ProductCategory.BEVERAGE_WATER) return
+        hydrationRepo.add(entry.date, entry.portionG.toInt())
     }
 
     companion object {
@@ -143,6 +158,7 @@ class ConsumptionRepository @Inject constructor(
         source      = source.name,
         profileId   = profileId,
         ingredientsJson = ingredientsAdapter.toJson(ingredients),
+        category    = category.name,
     )
 
     private fun ConsumptionEntity.toDomain(): DiaryEntry? = runCatching {
@@ -158,6 +174,7 @@ class ConsumptionRepository @Inject constructor(
             source      = ScanSource.valueOf(source),
             profileId   = profileId,
             ingredients = ingredientsAdapter.fromJson(ingredientsJson) ?: emptyList(),
+            category    = category?.let { runCatching { ProductCategory.valueOf(it) }.getOrNull() } ?: ProductCategory.OTHER,
         )
     }.onFailure {
         // A parse failure here silently drops this row from every diary/dashboard

@@ -154,6 +154,7 @@ class ResultViewModel @Inject constructor(
                         nutrition   = scan.product.nutrition,
                         source      = scan.source,
                         ingredients = scan.product.ingredients,
+                        category    = scan.product.category,
                     )
                 )
             }.fold(

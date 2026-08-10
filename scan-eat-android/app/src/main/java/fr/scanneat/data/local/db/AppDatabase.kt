@@ -48,7 +48,7 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         OnlineSearchCacheEntity::class,
         RecallEntity::class,
     ],
-    version = 30,
+    version = 31,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -490,5 +490,19 @@ val MIGRATION_29_30 = object : Migration(29, 30) {
                 "`checkedAt` INTEGER NOT NULL, " +
                 "PRIMARY KEY(`barcode`))"
         )
+    }
+}
+
+val MIGRATION_30_31 = object : Migration(30, 31) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v30 → v31: consumption_log gains an optional category (ProductCategory
+        // enum name) - user-reported: a bottled water product logged via barcode
+        // scan or the journal never showed up in the dedicated Hydration tab,
+        // because ConsumptionRepository had no way to know a logged row was
+        // BEVERAGE_WATER and auto-credit HydrationRepository's separate
+        // DataStore-backed total. Existing rows default to NULL (unknown
+        // category, same as toCheckProduct()'s old OTHER placeholder) - no
+        // retroactive hydration credit is fabricated for already-logged water.
+        db.execSQL("ALTER TABLE `consumption_log` ADD COLUMN `category` TEXT")
     }
 }

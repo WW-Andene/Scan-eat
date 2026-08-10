@@ -78,7 +78,8 @@ fun generateProductHints(product: Product, profile: Profile, lang: String): Prod
     val containsCaffeineSource = appendPersonalizedHints(product, profile, lang, benefits, conditionRisks)
 
     val keyInfo = buildKeyInfo(product, lang)
-    val facts = buildFacts(product, lang)
+    val facts = buildFacts(product, lang).toMutableList()
+    appendWaterMineralHints(product, lang, benefits, facts)
     val (pairWell, avoidPairing) = buildPairings(product, lang, containsCaffeineSource, profile.healthConditions)
     // scoreProduct is a pure function of Product alone (see ScoringEngine.kt) -
     // computed once here rather than threading a ScoreAudit through every one

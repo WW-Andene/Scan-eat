@@ -27,6 +27,18 @@ data class DiaryEntry(
     // pattern) could never run against a logged Diary entry at all, so a
     // user's declared allergen/diet profile was silently never checked here.
     val ingredients: List<Ingredient> = emptyList(),
+    // User-reported: a bottled water product logged via barcode scan or the
+    // journal's search/add flow never showed up in the dedicated Hydration
+    // tab - the two systems (this table vs. HydrationRepository's own
+    // DataStore) had zero cross-wiring. Carrying the source product's real
+    // category through to the diary row (see ConsumptionRepository.log/
+    // logAll) is what lets a BEVERAGE_WATER entry auto-credit the Hydration
+    // tab's daily total, using portionG as mL (water's density is ~1g/mL).
+    // Defaults to OTHER (same placeholder toCheckProduct() already uses)
+    // for the logging paths that don't carry a real product category yet
+    // (recipe/template expansion, gap-suggestion logging) - those simply
+    // don't auto-credit hydration, same as before this fix.
+    val category: ProductCategory = ProductCategory.OTHER,
 ) {
     /** Actual consumed macros for this entry. */
     val consumed: ConsumedNutrition get() {
@@ -66,7 +78,7 @@ data class DiaryEntry(
      */
     fun toCheckProduct(): Product = Product(
         name        = productName,
-        category    = ProductCategory.OTHER,
+        category    = category,
         novaClass   = NovaClass.PROCESSED,
         ingredients = ingredients,
         nutrition   = nutrition,

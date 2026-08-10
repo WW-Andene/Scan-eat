@@ -440,6 +440,7 @@ class FoodSearchViewModel @Inject constructor(
                         nutrition   = resolved.product.nutrition,
                         source      = resolved.source,
                         ingredients = resolved.product.ingredients,
+                        category    = resolved.product.category,
                     )
                 )
             }.onSuccess { _logTarget.value = null }

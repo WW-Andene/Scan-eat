@@ -289,6 +289,7 @@ class DiaryViewModel @Inject constructor(
                         nutrition   = product.nutrition,
                         source      = ScanSource.MANUAL,
                         ingredients = product.ingredients,
+                        category    = product.category,
                     )
                 )
             }.onSuccess { _searchQuery.value = "" }
@@ -316,6 +317,7 @@ class DiaryViewModel @Inject constructor(
                         nutrition   = scan.product.nutrition,
                         source      = scan.source,
                         ingredients = scan.product.ingredients,
+                        category    = scan.product.category,
                     )
                 )
             }.onSuccess { _searchQuery.value = "" }

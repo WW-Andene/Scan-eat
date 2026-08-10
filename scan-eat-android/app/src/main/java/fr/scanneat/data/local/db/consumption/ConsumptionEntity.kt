@@ -20,4 +20,8 @@ data class ConsumptionEntity(
     val source: String,              // ScanSource key
     val profileId: String = "default",
     val ingredientsJson: String = "[]", // serialised List<Ingredient>
+    // ProductCategory enum name, nullable for rows logged before this column
+    // existed - see DiaryEntry.category's own doc comment for why this exists
+    // (hydration auto-logging for BEVERAGE_WATER entries).
+    val category: String? = null,
 )
