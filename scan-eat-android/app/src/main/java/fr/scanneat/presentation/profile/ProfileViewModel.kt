@@ -1,7 +1,9 @@
 package fr.scanneat.presentation.profile
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.biolism.BiolismRepository
 import fr.scanneat.domain.engine.biolism.BiolismProfile
@@ -11,6 +13,7 @@ import fr.scanneat.domain.engine.planning.*
 import fr.scanneat.domain.engine.scoring.*
 import fr.scanneat.domain.model.*
 import fr.scanneat.presentation.common.ActionFailureViewModel
+import fr.scanneat.presentation.widget.TodayWidget
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,6 +22,7 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val prefs: UserPreferences,
     private val biolismRepo: BiolismRepository,
+    @ApplicationContext private val context: Context,
 ) : ActionFailureViewModel() {
 
     val profile: StateFlow<Profile> = prefs.profile
@@ -128,7 +132,18 @@ class ProfileViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
 
     fun switchProfile(id: String) {
-        guardedLaunch { prefs.setActiveProfileId(id) }
+        // TodayWidget reads profile.id itself scoped correctly, but nothing
+        // previously told the widget to redraw when the active profile changed -
+        // it kept showing the just-switched-away-from profile's kcal/streak/
+        // hydration/meds for up to the 30-min system update interval (or until
+        // any diary log happened under the new profile, which incidentally
+        // triggers ConsumptionRepository.refreshWidget() and self-corrects).
+        // Same guarded, best-effort call that refreshWidget() uses.
+        guardedLaunch {
+            prefs.setActiveProfileId(id)
+            runCatching { TodayWidget().updateAll(context) }
+                .onFailure { e -> if (e is kotlinx.coroutines.CancellationException) throw e }
+        }
     }
 
     fun createProfile(name: String) {
