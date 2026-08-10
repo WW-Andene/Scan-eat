@@ -18,6 +18,7 @@ import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.engine.scoring.healthConditionCautions
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -38,6 +39,7 @@ private fun MealTemplate.toGroceryInput(): GroceryRecipeInput =
 
 private val PLAN_MEALS = listOf("breakfast", "lunch", "dinner", "snack")
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class GroceryViewModel @Inject constructor(
     private val recipeRepo: RecipeRepository,
@@ -47,6 +49,13 @@ class GroceryViewModel @Inject constructor(
     private val manualGroceryRepo: ManualGroceryRepository,
     private val prefs: UserPreferences,
 ) : ViewModel() {
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real. GroceryCheckedRepository/
+    // ManualGroceryRepository/MealPlanRepository have no profileId concept
+    // (DataStore-backed, shared across profiles) - only the recipe/template
+    // lookups below are scoped.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
 
     // Standalone field so GroceryScreen can read the in-app language directly
     // (Locale(language.value)) the same way ~20 other screens already do,
@@ -67,8 +76,8 @@ class GroceryViewModel @Inject constructor(
         _scopeToPlanned.value = enabled
     }
 
-    private val recipes: Flow<List<Recipe>> = recipeRepo.observeAll()
-    private val templates: Flow<List<MealTemplate>> = templateRepo.observeAll()
+    private val recipes: Flow<List<Recipe>> = activeProfileId.flatMapLatest { id -> recipeRepo.observeAll(id) }
+    private val templates: Flow<List<MealTemplate>> = activeProfileId.flatMapLatest { id -> templateRepo.observeAll(id) }
 
     // weekDates() defaults its startDate to LocalDate.now() evaluated only when this
     // flow's map block actually re-executes - which previously happened only when

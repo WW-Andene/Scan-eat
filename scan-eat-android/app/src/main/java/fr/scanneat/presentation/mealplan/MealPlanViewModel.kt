@@ -16,6 +16,7 @@ import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MealPlanViewModel @Inject constructor(
     private val repo: MealPlanRepository,
@@ -31,6 +33,12 @@ class MealPlanViewModel @Inject constructor(
     private val templateRepo: MealTemplateRepository,
     private val consumptionRepo: ConsumptionRepository,
 ) : ViewModel() {
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real. MealPlanRepository itself has no
+    // profileId concept (the weekly plan grid is shared across profiles) -
+    // only the recipe/template lookups and diary logging below are scoped.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
     // A fixed `val` captured LocalDate.now() once at construction - a ViewModel
     // that outlives midnight would keep the same 7 dates forever, so "today"
     // stops being highlighted and the week silently goes a day stale. Polling
@@ -59,9 +67,9 @@ class MealPlanViewModel @Inject constructor(
     // dinner was impossible even though the data model and the day-view
     // rendering (icons for RecipeSlot/TemplateSlot) both already assumed it
     // existed.
-    val recipes: StateFlow<List<Recipe>> = recipeRepo.observeAll()
+    val recipes: StateFlow<List<Recipe>> = activeProfileId.flatMapLatest { id -> recipeRepo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    val templates: StateFlow<List<MealTemplate>> = templateRepo.observeAll()
+    val templates: StateFlow<List<MealTemplate>> = activeProfileId.flatMapLatest { id -> templateRepo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Improvement: per-day calorie totals derived from assigned recipe/template slots.
@@ -174,8 +182,8 @@ class MealPlanViewModel @Inject constructor(
             // safe and is what actually catches entries orphaned before this ViewModel
             // was ever created, not just ones orphaned after.
             combine(
-                recipeRepo.observeAll(),
-                templateRepo.observeAll(),
+                recipes,
+                templates,
             ) { recipes, templates -> recipes.map { it.id }.toSet() to templates.map { it.id }.toSet() }
                 .collect { (recipeIds, templateIds) ->
                     _lastPrunedCount.value = repo.pruneOrphanedSlots(recipeIds, templateIds)
@@ -270,10 +278,10 @@ class MealPlanViewModel @Inject constructor(
                         // servings for its own log action; this was the one
                         // caller that didn't, silently overcounting kcal/macros
                         // by the servings factor for any recipe with servings > 1.
-                        consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot, portionFraction = 1.0 / it.servings.coerceAtLeast(1)))
+                        consumptionRepo.log(recipeRepo.collapse(it, date, mealSlot, portionFraction = 1.0 / it.servings.coerceAtLeast(1)).copy(profileId = activeProfileId.value))
                     }
                     is MealPlanSlot.TemplateSlot -> templates.value.find { it.id == slot.id }?.let {
-                        consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot))
+                        consumptionRepo.logAll(templateRepo.expand(it, date, mealSlot).map { e -> e.copy(profileId = activeProfileId.value) })
                     }
                     is MealPlanSlot.NoteSlot -> Unit
                 }

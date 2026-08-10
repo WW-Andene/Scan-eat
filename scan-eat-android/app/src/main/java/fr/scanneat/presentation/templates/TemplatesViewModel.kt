@@ -21,11 +21,13 @@ import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.engine.scoring.healthConditionCautions
 import fr.scanneat.domain.model.MealSlot
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TemplatesViewModel @Inject constructor(
     private val repo: MealTemplateRepository,
@@ -34,7 +36,12 @@ class TemplatesViewModel @Inject constructor(
     private val customFoodRepo: CustomFoodRepository,
     private val prefs: UserPreferences,
 ) : ViewModel() {
-    private val _allTemplates: StateFlow<List<MealTemplate>> = repo.observeAll()
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    private val _allTemplates: StateFlow<List<MealTemplate>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Templates had zero list-level filtering despite MealTemplate.meal being the
@@ -116,7 +123,7 @@ class TemplatesViewModel @Inject constructor(
     val ingredientQuery: StateFlow<String> = _ingredientQuery.asStateFlow()
 
     val ingredientSearchResults: StateFlow<List<FoodEntry>> =
-        combine(_ingredientQuery.debounce(200), customFoodRepo.observeAll()) { q, customs -> q to customs }
+        combine(_ingredientQuery.debounce(200), activeProfileId.flatMapLatest { id -> customFoodRepo.observeAll(id) }) { q, customs -> q to customs }
             .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 6, customs) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -142,7 +149,7 @@ class TemplatesViewModel @Inject constructor(
         val entry = lastDeleted ?: return
         lastDeleted = null
         viewModelScope.launch {
-            runCatching { repo.save(entry.name, entry.meal, entry.items, id = entry.id) }
+            runCatching { repo.save(entry.name, entry.meal, entry.items, id = entry.id, profileId = activeProfileId.value) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -152,7 +159,7 @@ class TemplatesViewModel @Inject constructor(
      *  template couldn't become a proper named Recipe without re-entering
      *  every ingredient by hand, and vice versa. */
     fun saveAsRecipe(template: MealTemplate) = viewModelScope.launch {
-        runCatching { recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+        runCatching { recipeRepo.save(template.name, template.toRecipeComponents(), servings = 1, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
     }
 
     // logTemplate's runCatching below prevented a crash on Room write failure but had
@@ -166,14 +173,14 @@ class TemplatesViewModel @Inject constructor(
     fun create(name: String, meal: MealSlot) {
         if (name.isBlank()) return
         viewModelScope.launch {
-            runCatching { repo.save(name, meal, items = emptyList<TemplateItem>()) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.save(name, meal, items = emptyList<TemplateItem>(), profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun rename(template: MealTemplate, newName: String) {
         if (newName.isBlank()) return
         viewModelScope.launch {
-            runCatching { repo.save(newName, template.meal, template.items, id = template.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.save(newName, template.meal, template.items, id = template.id, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -185,8 +192,8 @@ class TemplatesViewModel @Inject constructor(
             // write failure in this ViewModel already uses.
             runCatching {
                 val entries = repo.expand(template, date, mealOverride)
-                val scaled = if (portionScale == 1.0) entries
-                else entries.map { it.copy(portionG = it.portionG * portionScale) }
+                val scaled = (if (portionScale == 1.0) entries
+                else entries.map { it.copy(portionG = it.portionG * portionScale) }).map { it.copy(profileId = activeProfileId.value) }
                 consumptionRepo.logAll(scaled)
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -199,14 +206,14 @@ class TemplatesViewModel @Inject constructor(
     // Mirrors Recipes' own add-ingredient pattern (RecipeComponent).
     fun addItem(template: MealTemplate, item: TemplateItem) {
         viewModelScope.launch {
-            runCatching { repo.save(template.name, template.meal, template.items + item, id = template.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.save(template.name, template.meal, template.items + item, id = template.id, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
     fun removeItem(template: MealTemplate, index: Int) {
         val items = template.items.toMutableList().also { if (index in it.indices) it.removeAt(index) }
         viewModelScope.launch {
-            runCatching { repo.save(template.name, template.meal, items, id = template.id) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.save(template.name, template.meal, items, id = template.id, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 
@@ -220,7 +227,7 @@ class TemplatesViewModel @Inject constructor(
     fun duplicate(template: MealTemplate) {
         val suffix = if (language.value == "en") " (copy)" else " (copie)"
         viewModelScope.launch {
-            runCatching { repo.save("${template.name}$suffix", template.meal, template.items) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.save("${template.name}$suffix", template.meal, template.items, profileId = activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }
