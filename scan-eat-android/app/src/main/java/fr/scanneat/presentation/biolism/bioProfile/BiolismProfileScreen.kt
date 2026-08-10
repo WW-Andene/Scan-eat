@@ -7,7 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +22,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
 import fr.scanneat.domain.engine.biolism.*
-import fr.scanneat.presentation.biolism.data.TealBadge
 import fr.scanneat.presentation.ui.theme.*
 import fr.scanneat.presentation.ui.theme.dispWeight as sharedDispWeight
 import fr.scanneat.util.formatDecimal
@@ -129,34 +127,14 @@ fun BiolismProfileScreen(
         // ── Overview (read-only recap) ──────────────────────────────────────────
         val hasData = p.ageYears > 0 || p.heightCm > 0 || p.weightKg > 0 || p.sex != BiolismSex.NOT_SPECIFIED
         if (hasData) {
-            ScanEatCard(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.bioprofile_overview_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
-                    TealBadge(stringResource(R.string.bioprofile_overview_saved_badge))
-                }
-                val activityLabel = ACTIVITY_LEVELS.firstOrNull { it.id == p.activityId }?.label(language.value) ?: "—"
-                val ethnicityLabel = ETHNICITY_OPTIONS.firstOrNull { it.id == p.ethnicityId }?.label(language.value) ?: "—"
-                OverviewRow(stringResource(R.string.profile_field_age), if (p.ageYears > 0) "${p.ageYears}" else null)
-                OverviewRow(stringResource(R.string.bioprofile_field_weight), if (p.weightKg > 0) dispWeight(p.weightKg) else null)
-                OverviewRow(stringResource(R.string.profile_field_height), if (p.heightCm > 0) dispHeight(p.heightCm) else null)
-                OverviewRow(stringResource(R.string.bioprofile_section_activity), activityLabel)
-                OverviewRow(stringResource(R.string.bioprofile_field_waist), if (p.waistCm > 0) dispCirc(p.waistCm) else null)
-                OverviewRow(stringResource(R.string.bioprofile_field_hip), if (p.hipCm > 0) dispCirc(p.hipCm) else null)
-                OverviewRow(stringResource(R.string.bioprofile_field_neck), if (p.neckCm > 0) dispCirc(p.neckCm) else null)
-                OverviewRow(stringResource(R.string.bioprofile_section_ethnicity), ethnicityLabel)
-                if (p.sex == BiolismSex.FEMALE) {
-                    OverviewRow(stringResource(R.string.bioprofile_field_cycle_day), "${p.cycleDay} / 28")
-                }
-                ScanEatDivider(color = SeparatorExtraLight)
-                val pct = (completeness.value * 100).toInt()
-                Text(stringResource(R.string.bioprofile_completeness_label, pct), style = MaterialTheme.typography.labelSmall, color = OnBackground.copy(0.5f))
-                LinearProgressIndicator(
-                    progress = { completeness.value },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = if (completeness.value >= 1f) semanticGreen() else Gold,
-                    trackColor = OnBackground.copy(0.1f),
-                )
-            }
+            BiolismProfileOverviewCard(
+                profile = p,
+                language = language.value,
+                completeness = completeness.value,
+                dispWeight = ::dispWeight,
+                dispHeight = ::dispHeight,
+                dispCirc = ::dispCirc,
+            )
         }
 
         // ── Identity ──────────────────────────────────────────────────────────
@@ -244,22 +222,7 @@ fun BiolismProfileScreen(
 
         // ── Cycle (female) ────────────────────────────────────────────────────
         if (sex == BiolismSex.FEMALE) {
-            ProfileSection(stringResource(R.string.bioprofile_section_cycle)) {
-                Text(stringResource(R.string.bioprofile_cycle_hint),
-                    style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.4f))
-                BioInput(stringResource(R.string.bioprofile_field_cycle_day), cycleDay, KeyboardType.Number) { v -> if (v.toIntOrNull()?.let { it in 1..28 } != false) cycleDay = v }
-                Slider(value = (cycleDay.toIntOrNull() ?: 14).toFloat(), onValueChange = { cycleDay = it.toInt().toString() },
-                    valueRange = 1f..28f, steps = 26, colors = SliderDefaults.colors(thumbColor = Gold, activeTrackColor = Gold))
-                val cd = cycleDay.toIntOrNull() ?: 14
-                val phaseLabel = when {
-                    cd <= 5  -> stringResource(R.string.bioprofile_phase_menstrual)
-                    cd <= 13 -> stringResource(R.string.bioprofile_phase_follicular)
-                    cd == 14 -> stringResource(R.string.bioprofile_phase_ovulation)
-                    cd <= 21 -> stringResource(R.string.bioprofile_phase_luteal_early)
-                    else     -> stringResource(R.string.bioprofile_phase_luteal_late)
-                }
-                Text(stringResource(R.string.bioprofile_cycle_day_summary, cd, phaseLabel), style = MaterialTheme.typography.bodySmall, color = Violet)
-            }
+            BiolismCycleSection(cycleDay = cycleDay, onCycleDayChange = { cycleDay = it })
         }
 
         // ── Save ──────────────────────────────────────────────────────────────
