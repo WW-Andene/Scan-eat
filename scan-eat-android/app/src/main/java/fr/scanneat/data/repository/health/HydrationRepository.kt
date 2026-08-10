@@ -124,9 +124,21 @@ class HydrationRepository @Inject constructor(
     /**
      * Derive daily water goal from sex + activity level via BiolismEngine's
      * EFSA-based formula (2.5L male / 2.0L female + 0.5L activity bonus).
+     *
+     * [exerciseMinutesToday] (Activity tab R&D improvement): previously this
+     * formula only ever looked at the profile's *declared* ActivityLevel (a
+     * static PAL setting), never at what was actually logged today - a
+     * sedentary-profile user who happened to run 10km still got the flat
+     * sedentary goal. ACE (American Council on Exercise) fluid-replacement
+     * guidance recommends an extra ~500-700 mL per hour of exercise on top
+     * of baseline needs; 600 mL/hour (10 mL/min) is used here as the
+     * mid-range value, capped at 1500 mL (~2.5h) since very long sessions
+     * need active fueling/electrolyte strategy beyond a simple per-minute
+     * water bonus, not a linearly larger one.
      */
-    fun goalMl(sex: Sex, activityLevel: ActivityLevel, healthConditions: Set<String> = emptySet()): Int {
-        if (sex == Sex.NOT_SPECIFIED) return HYD_DEFAULT_GOAL_ML
+    fun goalMl(sex: Sex, activityLevel: ActivityLevel, healthConditions: Set<String> = emptySet(), exerciseMinutesToday: Int = 0): Int {
+        val exerciseBonusMl = (exerciseMinutesToday.coerceAtLeast(0) * 10).coerceAtMost(1500)
+        if (sex == Sex.NOT_SPECIFIED) return HYD_DEFAULT_GOAL_ML + exerciseBonusMl
         val biolismSex = when (sex) {
             Sex.MALE -> BiolismSex.MALE
             Sex.FEMALE -> BiolismSex.FEMALE
@@ -143,7 +155,7 @@ class HydrationRepository @Inject constructor(
         val waterNeedL = BiolismEngine.computeWaterNeedL(biolismSex, mult)
         // EFSA 2010 AI: +0.3L/day during pregnancy on top of the sex/activity baseline.
         val pregnancyBonusL = if ("pregnancy" in healthConditions) 0.3 else 0.0
-        return ((waterNeedL + pregnancyBonusL) * 1000).toInt()
+        return ((waterNeedL + pregnancyBonusL) * 1000).toInt() + exerciseBonusMl
     }
 
     // ---- Backup export/import ----

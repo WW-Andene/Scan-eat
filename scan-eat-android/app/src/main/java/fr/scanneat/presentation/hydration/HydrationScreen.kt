@@ -64,6 +64,7 @@ fun HydrationScreen(
     val weeklyGoalMetDays = viewModel.weeklyGoalMetDays.collectAsStateWithLifecycle()
     val language        = viewModel.language.collectAsStateWithLifecycle()
     val customGoal      = viewModel.customGoalMl.collectAsStateWithLifecycle()
+    val exerciseBonusMl = viewModel.exerciseBonusMl.collectAsStateWithLifecycle()
     val history         = viewModel.history.collectAsStateWithLifecycle()
     val useImperial     = viewModel.useImperial.collectAsStateWithLifecycle()
     var showGoalEditor by remember { mutableStateOf(false) }
@@ -138,6 +139,21 @@ fun HydrationScreen(
                 onRemoveGlass = { if (intake.value > 0) viewModel.removeGlass() },
                 onAddGlass = { viewModel.addGlass() },
             )
+        }
+
+        // Activity tab R&D improvement: today's goal now includes an exercise
+        // bonus (see HydrationRepository.goalMl's own doc comment) - shown so
+        // "why did my goal change today" is never a silent surprise, same
+        // transparency principle as HydrationSuggestedGoalBanner above.
+        if (exerciseBonusMl.value > 0) {
+            item {
+                Text(
+                    if (language.value == "en") "Includes +${exerciseBonusMl.value} mL for today's logged activity"
+                    else "Inclut +${exerciseBonusMl.value} mL pour l'activité physique enregistrée aujourd'hui",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = OnBackground.copy(0.6f),
+                )
+            }
         }
 
         item { HydrationReminderCard() }

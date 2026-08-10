@@ -212,6 +212,17 @@ class DashboardViewModel @Inject constructor(
     // Journal's Water/Fasting/Treatment tabs). Kept as its own StateFlow rather than
     // folded into the heavy combine above - these are all today-only cheap reads with
     // no dependency on the 30-day window that combine recomputes on every diary edit.
+    // Intermediate holder for otherTrackers' first 5-way combine — kotlinx.coroutines'
+    // typed combine() tops out at 5 flows, and a 6th (today's activity, for the
+    // hydration-goal exercise bonus below) needs a second, chained combine step.
+    private data class OtherTrackersInputs(
+        val hydrationMl: Int,
+        val fasting: fr.scanneat.data.repository.health.FastingState?,
+        val meds: List<fr.scanneat.data.repository.health.Medication>,
+        val todayLogs: List<fr.scanneat.data.repository.health.MedicationLogEntry>,
+        val profile: fr.scanneat.domain.model.Profile,
+    )
+
     val otherTrackers: StateFlow<OtherTrackersSnapshot> = today.flatMapLatest { date ->
         combine(
             hydrationRepo.observe(date),
@@ -220,21 +231,32 @@ class DashboardViewModel @Inject constructor(
             medicationRepo.observeLogByDate(date),
             prefs.profile,
         ) { hydrationMl, fasting, meds, todayLogs, profile ->
-            val activeMeds = meds.filter { it.active }
-            val takenIds = todayLogs.map { it.medicationId }.toSet()
-            OtherTrackersSnapshot(
-                hydrationMl     = hydrationMl,
-                hydrationGoalMl = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions),
-                fastingActive   = fasting?.takeIf { it.isActive },
-                medsTakenCount  = activeMeds.count { it.id in takenIds },
-                medsActiveCount = activeMeds.size,
-            )
+            OtherTrackersInputs(hydrationMl, fasting, meds, todayLogs, profile)
+        }.combine(activityRepo.observeByDate(date)) { inputs, todayActivity ->
+            inputs to todayActivity
         }.combine(
             // Same window-capping trap logStreakDays' own doc comment warns about -
             // getAllLoggedDates() (not a fixed observeRange window) is the only safe
             // input, same as the diary-logging streak above.
             flow { emit(activityRepo.getAllLoggedDates()) },
-        ) { snapshot, workoutDates -> snapshot.copy(workoutStreak = logStreakDays(workoutDates, date)) }
+        ) { (inputs, todayActivity), workoutDates ->
+            val activeMeds = inputs.meds.filter { it.active }
+            val takenIds = inputs.todayLogs.map { it.medicationId }.toSet()
+            OtherTrackersSnapshot(
+                hydrationMl     = inputs.hydrationMl,
+                // Activity tab R&D improvement: today's actually-logged exercise
+                // minutes now bump the hydration goal (ACE fluid-replacement
+                // guidance) - see HydrationRepository.goalMl's own doc comment.
+                hydrationGoalMl = hydrationRepo.goalMl(
+                    inputs.profile.sex, inputs.profile.activityLevel, inputs.profile.healthConditions,
+                    todayActivity.sumOf { it.minutes },
+                ),
+                fastingActive   = inputs.fasting?.takeIf { it.isActive },
+                medsTakenCount  = activeMeds.count { it.id in takenIds },
+                medsActiveCount = activeMeds.size,
+                workoutStreak   = logStreakDays(workoutDates, date),
+            )
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OtherTrackersSnapshot())
 
     // Gap-suggestion / never-logged-scan logging state+actions extracted to

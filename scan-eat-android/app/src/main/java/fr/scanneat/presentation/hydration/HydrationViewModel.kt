@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import fr.scanneat.data.local.prefs.UserPreferences
 import fr.scanneat.data.repository.backup.CsvExportRepository
+import fr.scanneat.data.repository.health.ActivityRepository
 import fr.scanneat.data.repository.health.HYD_DEFAULT_GOAL_ML
 import fr.scanneat.data.repository.health.HydrationRepository
 import fr.scanneat.domain.model.ActivityLevel
@@ -20,6 +21,7 @@ class HydrationViewModel @Inject constructor(
     private val repo: HydrationRepository,
     private val prefs: UserPreferences,
     private val csvExportRepository: CsvExportRepository,
+    private val activityRepo: ActivityRepository,
 ) : ViewModel() {
     // LocalDate.now() captured once at construction would keep observing
     // today's bucket forever if this ViewModel outlives midnight - polling
@@ -46,8 +48,22 @@ class HydrationViewModel @Inject constructor(
     val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    private val formulaGoal: Flow<Int> = prefs.profile
-        .map { repo.goalMl(it.sex, it.activityLevel, it.healthConditions) }
+    // Activity tab R&D improvement: the formula-derived goal previously only
+    // ever consulted the profile's static ActivityLevel, never what was
+    // actually logged today - see HydrationRepository.goalMl's own doc
+    // comment on the ACE-sourced per-minute bonus this feeds.
+    private val todayExerciseMinutes: Flow<Int> = today.flatMapLatest { date -> activityRepo.observeByDate(date) }
+        .map { entries -> entries.sumOf { it.minutes } }
+
+    /** mL currently added to the formula goal from today's logged activity - shown
+     *  as an explanatory line so "why did my goal change today" is never a mystery. */
+    val exerciseBonusMl: StateFlow<Int> = todayExerciseMinutes
+        .map { (it.coerceAtLeast(0) * 10).coerceAtMost(1500) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    private val formulaGoal: Flow<Int> = combine(prefs.profile, todayExerciseMinutes) { profile, minutes ->
+        repo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions, minutes)
+    }
 
     /** Null when no override is set - screen shows this to offer "reset to formula". */
     val customGoalMl: StateFlow<Int?> = repo.customGoalMl
