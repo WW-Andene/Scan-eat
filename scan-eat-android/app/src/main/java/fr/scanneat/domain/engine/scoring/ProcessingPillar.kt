@@ -144,5 +144,20 @@ fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
         deductions += Deduction("processing", if (en) "Fried starchy food — possible acrylamide formation (IARC Group 2A)" else "Aliment amylacé frit — formation possible d'acrylamide (IARC groupe 2A)", -1.0, Severity.MINOR)
     }
 
+    // bonuses was declared but never populated - every other pillar can earn
+    // a visible green flag for its best outcome (buildFlags surfaces any
+    // bonus worth >=2 points), but a genuinely NOVA-1 unprocessed, additive-
+    // free product with a clean first ingredient - the best possible outcome
+    // in this 20-point pillar - produced zero user-facing positive reasons,
+    // while a product merely clearing NutritionalDensity's 5-point fiber
+    // bonus got one. `points` here is deliberately NOT added to `score` (base
+    // already sits at MAX for this outcome, and PillarScore.score is passed
+    // explicitly rather than derived by summing deductions/bonuses) - it only
+    // exists so buildFlags' >=2-point bar surfaces this as a green flag the
+    // same way the other pillars' clean outcomes already are.
+    if (score >= base && (effectiveNova == NovaClass.UNPROCESSED || effectiveNova == NovaClass.CULINARY)) {
+        bonuses += Deduction("processing", if (en) "Minimally processed, no processing markers" else "Peu transformé, aucun marqueur de transformation", 2.0, Severity.INFO)
+    }
+
     return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }

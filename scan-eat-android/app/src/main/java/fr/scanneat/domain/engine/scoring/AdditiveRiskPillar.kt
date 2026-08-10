@@ -46,7 +46,17 @@ fun scoreAdditiveRisk(product: Product, lang: String = "en"): PillarScore {
     if (tier1.isNotEmpty()) {
         val penalty = minOf(10.0, tier1.size * 5.0)
         score -= penalty
-        deductions += Deduction("additive_risk", if (en) "${tier1.size} Tier-1 additive(s) (serious concern)" else "${tier1.size} additif(s) de niveau 1 (préoccupation sérieuse)", -penalty, Severity.CRITICAL,
+        // CRITICAL only from 2+ hits, not a single one - a lone Tier-1
+        // additive was previously labeled CRITICAL unconditionally, more
+        // severe than NegativeNutrientsPillar's own worst salt tier (which
+        // tops out at MAJOR, no CRITICAL band exists for salt at all). Since
+        // this severity also feeds severeFlagCount's uncapped global
+        // penalty, that mismatch wasn't just cosmetic - a trace additive
+        // outweighed genuinely dangerous salt levels in the cumulative-risk
+        // count. One hit now reads MAJOR, matching the graduated ladder
+        // every other nutrient axis in this engine uses.
+        val severity = if (tier1.size >= 2) Severity.CRITICAL else Severity.MAJOR
+        deductions += Deduction("additive_risk", if (en) "${tier1.size} Tier-1 additive(s) (serious concern)" else "${tier1.size} additif(s) de niveau 1 (préoccupation sérieuse)", -penalty, severity,
             tier1.joinToString(" | ") { "${it.additive} (${it.ingredient}): ${it.concern}" })
     }
     if (tier2.isNotEmpty()) {

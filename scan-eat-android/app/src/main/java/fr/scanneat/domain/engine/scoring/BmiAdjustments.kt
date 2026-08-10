@@ -15,6 +15,19 @@ internal fun computeBmiAdjustments(
     val bmiValue = bmi(profile)
     val bmiCat   = bmiCategory(bmiValue)
     if (bmiCat == BmiCategory.OVERWEIGHT || bmiCat?.name?.startsWith("OBESE") == true) {
+        // Belt-and-suspenders by design, not unexamined stacking: the four
+        // sub-checks below (SSB, sat-fat-or-sugar, refined-carb-density,
+        // category-relative energy-density) are independent `if` blocks
+        // rather than a single mutually-exclusive `when` because they target
+        // genuinely distinct obesity-risk pathways (added sugar in liquid
+        // form, macro composition, glycemic load from refined starch, and
+        // raw calorie density), each independently supported in the cited
+        // literature. A product CAN trip more than one - e.g. an ultra-
+        // processed, energy-dense, low-fiber snack that also happens to run
+        // high in sat fat - and that compounding is intentional: it mirrors
+        // the same "risk factors compound, don't cap" reasoning applied to
+        // the uncapped global penalty total in ScoringEngine.kt, just scoped
+        // to the BMI personalization layer specifically.
         if (isSugarSweetenedBeverage) {
             adjustments += PersonalAdjustment(
                 points   = -5.0,

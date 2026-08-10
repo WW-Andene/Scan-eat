@@ -130,5 +130,19 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
         bonuses += Deduction("nutritional_density", if (en) "Omega-3 source present" else "Présence d'oméga-3", 3.0, Severity.INFO)
     }
 
+    // Every per-nutrient deduction above is MINOR/INFO, so this pillar could
+    // never reach severeFlagCount's CRITICAL/MAJOR bar (ScoringEngine.kt) no
+    // matter how nutritionally empty a product was — a product simultaneously
+    // scoring zero on protein, fiber, AND micronutrients (the worst possible
+    // outcome in this 25-point pillar) contributed nothing to the same
+    // cumulative-risk count that a single Tier-1 additive or one MODERATE
+    // negative-nutrient tier does. Only fires when the category actually
+    // expects these axes (pHigh/fHigh > 0 — same category-relativity guard
+    // used above), so water/oil/alcohol categories where this pillar's
+    // sub-axes are structurally not applicable aren't wrongly flagged.
+    if ((pHigh > 0.0 || fHigh > 0.0) && protScore == 0.0 && fiberScore == 0.0 && microBonus == 0.0) {
+        deductions += Deduction("nutritional_density", if (en) "No protein, fiber, or micronutrient contribution" else "Aucun apport en protéines, fibres ou micronutriments", 0.0, Severity.MAJOR)
+    }
+
     return PillarScore(if (en) "Nutritional Density" else "Densité nutritionnelle", MAX, minOf(MAX.toDouble(), maxOf(0.0, score)), deductions, bonuses)
 }

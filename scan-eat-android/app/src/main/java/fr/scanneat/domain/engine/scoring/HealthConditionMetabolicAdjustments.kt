@@ -31,6 +31,21 @@ internal fun checkMetabolicConditions(
         // so this is behavior-identical to the old flat cutoff for any product
         // whose category has no override, and only loosens for categories (e.g.
         // condiments) whose own base-pillar thresholds are already higher.
+        // Mirrors NegativeNutrientsPillar's own 4-tier sugar gradient
+        // (minor/moderate/major/critical) instead of collapsing everything
+        // above "major" into one flat -4 - a product just over the major
+        // line and one deep into critical (3x+ the bar) previously read
+        // identically ("High sugar — caution advised") for the one condition
+        // where sugar-severity gradation matters most clinically, even
+        // though the base pillar directly below it already draws that
+        // distinction for every user.
+        } else if (sugars >= catThresholds.sugarThresholds.fourth) {
+            adjustments += PersonalAdjustment(
+                points = -6.0,
+                reason = if (lang == "en") "Very high sugar (${sugars} g/100 g) — strong caution advised for diabetes"
+                         else "Sucres très élevés (${sugars} g/100 g) — grande prudence recommandée en cas de diabète",
+                category = AdjustmentCategory.CONDITION,
+            )
         } else if (sugars >= catThresholds.sugarThresholds.third) {
             adjustments += PersonalAdjustment(
                 points = -4.0,

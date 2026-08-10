@@ -25,12 +25,22 @@ internal fun checkPregnancyCondition(
     // ANSES's 200mg/day pregnancy caffeine cap was already cited in the hint
     // panel (ProductHints.kt's containsCaffeineSource) but never actually
     // affected the *score* for a pregnant profile - a caffeinated soda or
-    // coffee-flavored product scored identically to a decaf one here. Same
-    // ingredient-name heuristic as the hint panel (kept duplicated rather
-    // than shared, same rationale as this file's other small helpers).
-    val containsCaffeineSource = product.ingredients.any { ing ->
-        CAFFEINE_SOURCE_PATTERN.containsMatchIn(normalizeForMatching(ing.name))
-    }
+    // coffee-flavored product scored identically to a decaf one here.
+    //
+    // Checks the declared numeric value first, same 20mg/100g bar
+    // HealthConditionMetabolicAdjustments' hypertension check and
+    // HealthConditionGiAdjustments' chronic-diarrhea check both use for the
+    // identical underlying question ("does this product contain caffeine?") -
+    // previously this was the only one of the three caffeine checks in this
+    // package that ignored caffeineMg entirely and matched on ingredient name
+    // alone, so a decaffeinated coffee-flavored product (name matches, but
+    // caffeineMg is 0 or null) tripped this caution while correctly passing
+    // the other two, and a genuinely caffeinated product without a
+    // recognized ingredient-name pattern (e.g. "natural flavoring" instead
+    // of "cola nut extract") passed this check while failing them. Only
+    // falls back to the name heuristic when caffeineMg isn't declared at all.
+    val containsCaffeineSource = product.nutrition.caffeineMg?.let { it >= 20.0 }
+        ?: product.ingredients.any { ing -> CAFFEINE_SOURCE_PATTERN.containsMatchIn(normalizeForMatching(ing.name)) }
     if (containsCaffeineSource) {
         adjustments += PersonalAdjustment(
             points = -3.0,

@@ -129,5 +129,15 @@ fun scoreProcessing(product: Product, lang: String = "en"): PillarScore {
         deductions += Deduction("processing", if (en) "Fried starchy food — possible acrylamide formation (IARC Group 2A)" else "Aliment amylacé frit — formation possible d'acrylamide (IARC groupe 2A)", -1.0, Severity.MINOR)
     }
 
+    // bonuses was declared but never populated - a genuinely NOVA-1
+    // unprocessed, additive-free product with a clean first ingredient
+    // produced zero user-facing positive reasons. `points` here is
+    // deliberately NOT added to `score` - it only exists so buildFlags'
+    // >=2-point bar surfaces this as a green flag. Mirrors the identical fix
+    // on the Android side (see Scoring Drift Check).
+    if (score >= base && (effectiveNova == NovaClass.UNPROCESSED || effectiveNova == NovaClass.CULINARY)) {
+        bonuses += Deduction("processing", if (en) "Minimally processed, no processing markers" else "Peu transformé, aucun marqueur de transformation", 2.0, Severity.INFO)
+    }
+
     return PillarScore(if (en) "Processing Level" else "Niveau de transformation", MAX, maxOf(0.0, minOf(MAX.toDouble(), score)), deductions, bonuses)
 }
