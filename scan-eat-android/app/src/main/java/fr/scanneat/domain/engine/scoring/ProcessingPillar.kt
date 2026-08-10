@@ -9,9 +9,18 @@ import fr.scanneat.domain.model.*
 enum class NovaConfidence { HIGH, MEDIUM, LOW }
 data class NovaInference(val nova: NovaClass, val confidence: NovaConfidence)
 
+// Match against a lowercased copy, not ingredient.name itself -
+// RegexOption.IGNORE_CASE maps to Pattern.CASE_INSENSITIVE alone (no
+// UNICODE_CASE), which only case-folds ASCII a-z/A-Z, not accented letters.
+// UPF_MARKER_PATTERNS' own accented character classes ([oô], [eé]) never
+// matched an all-caps ingredient like OFF/OCR commonly produces (e.g.
+// "ARÔMES NATURELS", "PROTÉINE ISOLÉE DE SOJA"), silently losing the UPF-
+// marker penalty and pulling inferNovaClassWithConfidence toward a falsely
+// favorable NOVA class. Same bug class already fixed in AllergenDetector.kt
+// and DietChecker.kt, just not swept here.
 private fun detectUPFMarkers(ingredients: List<Ingredient>): List<String> =
     UPF_MARKER_PATTERNS.mapNotNull { (regex, label) ->
-        if (ingredients.any { regex.containsMatchIn(it.name) }) label else null
+        if (ingredients.any { regex.containsMatchIn(it.name.lowercase()) }) label else null
     }
 
 fun inferNovaClassWithConfidence(product: Product): NovaInference {

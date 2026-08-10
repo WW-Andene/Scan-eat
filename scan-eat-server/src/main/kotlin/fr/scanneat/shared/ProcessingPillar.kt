@@ -10,9 +10,13 @@ package fr.scanneat.shared
 enum class NovaConfidence { HIGH, MEDIUM, LOW }
 data class NovaInference(val nova: NovaClass, val confidence: NovaConfidence)
 
+// Match against a lowercased copy - RegexOption.IGNORE_CASE alone doesn't
+// Unicode-fold accented letters, so an all-caps ingredient never matched
+// UPF_MARKER_PATTERNS' accented character classes. Mirrors the identical fix
+// on the Android side (see Scoring Drift Check).
 private fun detectUPFMarkers(ingredients: List<Ingredient>): List<String> =
     UPF_MARKER_PATTERNS.mapNotNull { (regex, label) ->
-        if (ingredients.any { regex.containsMatchIn(it.name) }) label else null
+        if (ingredients.any { regex.containsMatchIn(it.name.lowercase()) }) label else null
     }
 
 fun inferNovaClassWithConfidence(product: Product): NovaInference {
