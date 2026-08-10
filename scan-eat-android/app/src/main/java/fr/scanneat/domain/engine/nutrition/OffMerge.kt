@@ -96,6 +96,12 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         // a real, LLM-read allergen declaration on merge. Mirrors declaredMicronutrients'
         // union just above.
         declaredAllergenTags = (off.declaredAllergenTags + llm.declaredAllergenTags).distinct(),
+        // OFF-only field - the LLM/photo path has no equivalent "may contain
+        // traces" concept to read (it only extracts the packaging's printed
+        // allergen box, a confirmed declaration, not precautionary labeling),
+        // so llm.declaredTracesTags is always empty and this is effectively
+        // a pass-through of OFF's own value.
+        declaredTracesTags = off.declaredTracesTags,
     )
 }
 

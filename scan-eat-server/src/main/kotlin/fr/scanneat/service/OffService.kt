@@ -34,7 +34,7 @@ private val OFF_FIELDS = listOf(
     "categories_tags","ingredients_text_fr","ingredients_text",
     "nova_group","nutriments","labels_tags","origins","countries_tags",
     "quantity","ecoscore_grade","ecoscore_score","nutrition_grades",
-    "allergens_tags","additives_tags",
+    "allergens_tags","traces_tags","additives_tags",
 ).joinToString(",")
 
 private const val OFF_USER_AGENT = "ScanEat/0.1 (Ktor; +https://github.com/scanneat)"
@@ -64,6 +64,7 @@ data class OffProductRaw(
     @SerialName("ecoscore_score")   val ecoscoreScore: Int? = null,
     @SerialName("nutrition_grades") val nutritionGrades: String? = null,
     @SerialName("allergens_tags")   val allergensTags: List<String>? = null,
+    @SerialName("traces_tags")      val tracesTags: List<String>? = null,
     @SerialName("additives_tags")   val additivesTags: List<String>? = null,
 )
 

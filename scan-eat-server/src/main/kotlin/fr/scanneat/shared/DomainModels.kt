@@ -165,6 +165,11 @@ data class Product(
     // free-text ingredient list. Empty when OFF has none declared or the
     // product came from the LLM/photo fallback path instead.
     val declaredAllergenTags: List<String> = emptyList(),
+    // OFF's own curated traces_tags - manufacturer precautionary "may
+    // contain traces of X" cross-contamination labeling, distinct from
+    // allergens_tags above. Mirrors the identical field on the Android side
+    // (see Scoring Drift Check).
+    val declaredTracesTags: List<String> = emptyList(),
 )
 
 // Score output types

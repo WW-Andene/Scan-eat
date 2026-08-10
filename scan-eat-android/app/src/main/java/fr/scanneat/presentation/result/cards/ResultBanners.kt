@@ -166,7 +166,13 @@ internal fun AllergenWarningsCard(allergens: List<AllergenHit>, language: String
         }
         allergens.forEach { hit ->
             val label = if (language == "en") hit.labelEn else hit.labelFr
-            Text(stringResource(R.string.result_allergen_hit, label, hit.triggers.joinToString()),
+            // isTraceOnly hits (OFF's precautionary traces_tags, no confirmed
+            // presence elsewhere) get distinct "may contain" wording rather
+            // than being presented with the same certainty as a confirmed
+            // allergen match - a real but lower-certainty cross-contamination
+            // signal, not identical to an ingredient-list/allergens_tags hit.
+            val stringRes = if (hit.isTraceOnly) R.string.result_allergen_trace_hit else R.string.result_allergen_hit
+            Text(stringResource(stringRes, label, hit.triggers.joinToString()),
                 style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.85f))
         }
     }

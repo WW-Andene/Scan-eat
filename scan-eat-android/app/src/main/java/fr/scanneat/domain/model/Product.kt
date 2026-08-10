@@ -167,6 +167,15 @@ data class Product(
     // free-text ingredient list. Empty when OFF has none declared or the
     // product came from the LLM/photo fallback path instead.
     val declaredAllergenTags: List<String> = emptyList(),
+    // OFF's own curated traces_tags (e.g. "en:nuts") - manufacturer's
+    // precautionary "may contain traces of X" cross-contamination labeling,
+    // a distinct field from allergens_tags above. Previously never fetched
+    // or stored at all, so a product whose label reads "peut contenir des
+    // traces de fruits à coque" (present in OFF's traces_tags but naming no
+    // allergen in the ingredient text itself) produced zero warning for a
+    // user with a declared nut allergy - a real cross-contamination exposure
+    // route, not a cosmetic gap. See AllergenDetector.kt's use of this field.
+    val declaredTracesTags: List<String> = emptyList(),
     // Persisted verbatim (via ScanRepository's productAdapter) to scan_history's
     // productJson column. New fields must have a default value, or bump
     // schemaVersion and add a migration branch in the parser.

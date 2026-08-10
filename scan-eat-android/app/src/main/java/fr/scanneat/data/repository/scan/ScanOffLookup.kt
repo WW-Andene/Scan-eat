@@ -155,6 +155,7 @@ internal class ScanOffLookup(
                 ecoscoreScore     = dto.ecoscoreScore,
                 nutritionGrades   = dto.nutritionGrades,
                 allergensTags     = dto.allergensTags,
+                tracesTags        = dto.tracesTags,
                 additivesTags     = dto.additivesTags,
             ))
         }

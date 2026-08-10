@@ -239,6 +239,7 @@ fun mapOffProduct(raw: OffProductRaw): Product? {
         ecoscoreValue   = raw.ecoscoreScore?.toDouble(),
         nutriscoreGrade = raw.nutritionGrades?.lowercase()?.firstOrNull()?.toString()?.takeIf { it.matches(Regex("[a-e]")) },
         declaredAllergenTags = raw.allergensTags.orEmpty(),
+        declaredTracesTags = raw.tracesTags.orEmpty(),
         declaredMicronutrients = declaredMicronutrientsOf(nutrition),
     )
 }
@@ -349,6 +350,11 @@ fun mergeOffWithLlm(off: Product, llm: Product): Product {
         // has none even for a well-populated record, silently losing a real, LLM-read
         // allergen declaration on merge. Mirrors declaredMicronutrients' union above.
         declaredAllergenTags = (off.declaredAllergenTags + llm.declaredAllergenTags).distinct(),
+        // OFF-only field - the LLM/photo path has no equivalent "may contain
+        // traces" concept to read, so llm.declaredTracesTags is always empty
+        // and this is effectively a pass-through of OFF's own value. Mirrors
+        // the identical fix on the Android side (see Scoring Drift Check).
+        declaredTracesTags = off.declaredTracesTags,
     )
 }
 

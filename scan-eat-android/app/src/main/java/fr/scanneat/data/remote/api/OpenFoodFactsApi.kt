@@ -39,7 +39,7 @@ val OFF_FIELDS = listOf(
     "categories_tags", "ingredients_text_fr", "ingredients_text",
     "nova_group", "nutriments", "labels_tags", "origins", "countries_tags",
     "quantity", "ecoscore_grade", "ecoscore_score", "nutrition_grades",
-    "allergens_tags", "additives_tags",
+    "allergens_tags", "traces_tags", "additives_tags",
 ).joinToString(",")
 
 // Same field set as a single-product lookup, plus "code" (the barcode) - the
@@ -78,6 +78,9 @@ data class OffProductDto(
     @Json(name = "ecoscore_score") val ecoscoreScore: Int?,
     @Json(name = "nutrition_grades") val nutritionGrades: String?,
     @Json(name = "allergens_tags") val allergensTags: List<String>?,
+    // Distinct from allergens_tags - manufacturer precautionary "may contain
+    // traces of X" cross-contamination labeling. See Product.declaredTracesTags.
+    @Json(name = "traces_tags") val tracesTags: List<String>? = null,
     @Json(name = "additives_tags") val additivesTags: List<String>?,
     // Only populated by searchProducts() (see OFF_SEARCH_FIELDS) - null and
     // unused on the single-barcode getProduct() path.

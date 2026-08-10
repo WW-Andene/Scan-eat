@@ -20,7 +20,13 @@ data class AllergenHit(
     val key: String,
     val labelFr: String,
     val labelEn: String,
-    val triggers: List<String>,      // ingredient names that matched
+    val triggers: List<String>,      // ingredient names that matched (or the precautionary-labeling note for a trace-only hit)
+    // false = confirmed present (ingredient text and/or OFF's allergens_tags).
+    // true = ONLY found via OFF's traces_tags precautionary "may contain"
+    // labeling, with no confirmed presence elsewhere - a real but lower-
+    // certainty cross-contamination signal, distinct from a confirmed
+    // allergen. See detectAllergens' traces handling below.
+    val isTraceOnly: Boolean = false,
 )
 
 // Same b() helper as DietChecker — Unicode-aware word boundary for FR text.
@@ -68,8 +74,12 @@ private val RULES: List<AllergenRule> = listOf(
     AllergenRule("lactose", "Lactose / Lait", "Lactose / Milk",
         a("lait|lactose|lactos[eé]rum|petit[- ]lait|cr[eè]me|beurre|fromage|yaourt|yoghourt|skyr|k[eé]fir|cas[eé]ine|caseine|lactalbumine|whey|mati[eè]re grasse laiti[eè]re|poudre de lait")),
 
+    // "albumine" alone added - egg-white protein is commonly labeled just
+    // "albumine" on French ingredient lists (charcuterie binders, some baked
+    // goods), not always "ovalbumine"/"blanc d'oeuf". Missing it was a real
+    // false-negative risk on a mandatory Annex II allergen (item 3).
     AllergenRule("eggs", "Œufs", "Eggs",
-        a("oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|lysozyme")),
+        a("oeufs?|œufs?|jaune d'?oeuf|jaune d'?œuf|blanc d'?oeuf|blanc d'?œuf|ovalbumine|albumine|lysozyme")),
 
     AllergenRule("nuts", "Fruits à coque", "Tree nuts",
         a("noix(?! de coco| de muscade)|amandes?|noisettes?|pistaches?|cajou|p[eé]can|pecan|noix du br[eé]sil|macadamia")),
@@ -80,8 +90,12 @@ private val RULES: List<AllergenRule> = listOf(
     AllergenRule("soy", "Soja", "Soy",
         a("soja|tofu|tempeh|edamame|l[eé]cithine de soja")),
 
+    // Species list broadened - truite/colin/lieu/dorade/sole/flétan/eglefin/
+    // lotte/tilapia previously absent, so a product listing only e.g. "truite
+    // fumée" with no other fish word matched nothing at all, a false negative
+    // on a mandatory Annex II allergen (item 4) with real anaphylaxis risk.
     AllergenRule("fish", "Poisson", "Fish",
-        a("poisson|saumon|thon|cabillaud|merlu|sardine|maquereau|hareng|anchois|morue|filet de bar|darne de bar")),
+        a("poisson|saumon|thon|cabillaud|merlu|sardine|maquereau|hareng|anchois|morue|filet de bar|darne de bar|truite|colin|lieu|dorade|sole|fl[eé]tan|[eé]glefin|lotte|tilapia|trout|pollock|haddock|halibut")),
 
     AllergenRule("crustaceans", "Crustacés", "Crustaceans",
         a("crevettes?|crabes?|homards?|langoustes?|langoustines?|[eé]crevisses?|crustac[eé]s?|shrimps?|prawns?|lobsters?|crayfish")),
@@ -98,8 +112,13 @@ private val RULES: List<AllergenRule> = listOf(
     AllergenRule("mustard", "Moutarde", "Mustard",
         a("moutarde|graines? de moutarde|mustard")),
 
+    // E22[0-8] required no separator between the letter and digits, missing
+    // the common space-separated label form "E 220"/"E 223" (frequent on
+    // French labels and in OCR/OFF text). Sulfite sensitivity can trigger
+    // asthma/anaphylactoid reactions, so a missed spaced E-number is a real
+    // detection gap on a mandatory Annex II allergen (item 12).
     AllergenRule("sulfites", "Sulfites", "Sulfites",
-        a("sulfites?|dioxyde de soufre|anhydride sulfureux|E22[0-8]|m[eé]tabisulfite|bisulfite")),
+        a("sulfites?|dioxyde de soufre|anhydride sulfureux|E[- ]?22[0-8]|m[eé]tabisulfite|bisulfite")),
 
     AllergenRule("lupin", "Lupin", "Lupin",
         a("lupin|farine de lupin")),
@@ -140,6 +159,8 @@ val ANNEX_II_KEY_TO_OFF_TAG: Map<String, String> = OFF_ALLERGEN_TAG_MAP.entries.
  * Detect EU-mandatory allergens from product ingredient names, augmented with
  * OFF's own curated allergens_tags when the product came from that source.
  * Returns one entry per allergen found, with the triggering ingredient names.
+ * Also appends trace-only hits (isTraceOnly=true) from OFF's traces_tags for
+ * any allergen not already confirmed present some other way.
  *
  * Port of detectAllergens() from allergens.js.
  */
@@ -180,8 +201,24 @@ fun detectAllergens(product: Product, lang: String = "fr"): List<AllergenHit> {
         hits.getOrPut(key) { mutableSetOf() }.add(offLabel)
     }
 
+    // OFF's traces_tags - manufacturer precautionary "may contain traces of
+    // X" cross-contamination labeling, a distinct field from allergens_tags
+    // above. Previously never read at all: a product whose label says "peut
+    // contenir des traces de fruits à coque" but names no allergen in the
+    // ingredient text (and OFF's own allergens_tags is empty, which happens
+    // even for well-populated records) produced zero warning - a real
+    // cross-contamination exposure route silently missed for a user with a
+    // declared allergy. Kept in a SEPARATE set so a trace-only signal never
+    // gets silently merged into (and diluted by) a confirmed-presence hit.
+    val traceOnlyKeys = mutableSetOf<String>()
+    val traceLabel = if (lang == "en") "May contain traces (Open Food Facts)" else "Peut contenir des traces (Open Food Facts)"
+    for (tag in product.declaredTracesTags) {
+        val key = OFF_ALLERGEN_TAG_MAP[tag] ?: continue
+        if (key !in hits) traceOnlyKeys += key
+    }
+
     // Return in ANNEX_II order so the UI always shows allergens in EU-canonical order
-    return ANNEX_II_KEYS.mapNotNull { key ->
+    val confirmed = ANNEX_II_KEYS.mapNotNull { key ->
         val triggers = hits[key] ?: return@mapNotNull null
         val rule = ruleMap[key] ?: return@mapNotNull null
         AllergenHit(
@@ -191,6 +228,18 @@ fun detectAllergens(product: Product, lang: String = "fr"): List<AllergenHit> {
             triggers = triggers.toList(),
         )
     }
+    val traceOnly = ANNEX_II_KEYS.mapNotNull { key ->
+        if (key !in traceOnlyKeys) return@mapNotNull null
+        val rule = ruleMap[key] ?: return@mapNotNull null
+        AllergenHit(
+            key         = key,
+            labelFr     = rule.labelFr,
+            labelEn     = rule.labelEn,
+            triggers    = listOf(traceLabel),
+            isTraceOnly = true,
+        )
+    }
+    return confirmed + traceOnly
 }
 
 /**

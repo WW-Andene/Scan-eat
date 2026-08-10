@@ -27,6 +27,7 @@ data class OffProductResponse(
     val ecoscoreScore: Int?,
     val nutritionGrades: String?,
     val allergensTags: List<String>? = null,
+    val tracesTags: List<String>? = null,
     val additivesTags: List<String>? = null,
 )
 
@@ -151,6 +152,7 @@ fun mapOffProduct(off: OffProductResponse): Product? {
         ecoscoreValue      = off.ecoscoreScore?.toDouble(),
         nutriscoreGrade    = off.nutritionGrades?.lowercase()?.firstOrNull()?.toString()?.takeIf { it.matches(Regex("[a-e]")) },
         declaredAllergenTags = off.allergensTags.orEmpty(),
+        declaredTracesTags = off.tracesTags.orEmpty(),
         // Previously never populated by any real mapper (only mergeOffWithLlm()
         // forwarded it, from two already-empty lists) - the SEX/iron personal-
         // score bonus and ProductHints' "Declared micronutrients" line were both
