@@ -1,9 +1,6 @@
 package fr.scanneat.presentation.scan
 
-import android.Manifest
-import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
@@ -24,12 +21,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.scanneat.R
@@ -67,7 +59,6 @@ fun ScanScreen(
     onOpenProfile: () -> Unit = {},
 ) {
     val context        = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val haptic      = LocalHapticFeedback.current
     val state       = viewModel.state.collectAsStateWithLifecycle()
     val images      = viewModel.images.collectAsStateWithLifecycle()
@@ -135,71 +126,12 @@ fun ScanScreen(
         if (!shelfMode) { shelfObjects = null; shelfPeeksState.value = emptyList() }
     }
 
-    // android:required="false" on both camera <uses-feature> entries in the manifest
-    // (see AndroidManifest.xml) tells the Play Store this app installs fine on devices
-    // with no camera at all (some tablets/Chromebooks/emulators). Requesting the CAMERA
-    // *permission* on such a device still "succeeds" trivially - there's simply no
-    // hardware behind it - so hasCamera below would stay true forever while
-    // CameraPreview's bindToLifecycle silently fails every time. Checking the actual
-    // hardware feature up front lets these devices skip straight to a usable fallback
-    // instead of a dead permission prompt.
-    val hasCameraHardware = remember {
-        context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
-    }
-
-    var hasCamera by remember {
-        mutableStateOf(
-            hasCameraHardware &&
-                ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED,
-        )
-    }
-    // Set when CameraPreview's own bindToLifecycle call fails (e.g. camera held by
-    // another app, or a hardware/driver fault) - previously swallowed by a bare
-    // runCatching with no onFailure branch, leaving a permanently blank preview and a
-    // capture button that silently did nothing, with zero feedback for the user.
-    var cameraUnavailable by remember { mutableStateOf(false) }
+    val cameraPermission = rememberCameraPermissionState()
+    val hasCameraHardware = cameraPermission.hasCameraHardware
+    var hasCamera by cameraPermission.hasCamera
+    var cameraUnavailable by cameraPermission.cameraUnavailable
+    var permanentlyDenied by cameraPermission.permanentlyDenied
     var manualEntryOpen by remember { mutableStateOf(false) }
-    // Once the user permanently denies (checked "don't ask again", or a 2nd
-    // straight denial on API 30+), RequestPermission() silently returns false
-    // without even showing the system dialog again — "Autoriser" would look
-    // broken forever with no way to reach the scanner, the app's core
-    // feature. Track a request having already happened once, so a denial
-    // with no rationale available next time is recognized as permanent.
-    var requestedOnce by remember { mutableStateOf(false) }
-    var permanentlyDenied by remember { mutableStateOf(false) }
-    val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        hasCamera = granted
-        if (!granted) {
-            val activity = context as? Activity
-            val canShowRationale = activity?.let {
-                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.CAMERA)
-            } ?: true
-            if (requestedOnce && !canShowRationale) permanentlyDenied = true
-        }
-        requestedOnce = true
-    }
-
-    // hasCamera was only ever updated by the permission-request launcher's own
-    // callback - revoking Camera permission from system Settings while this
-    // screen is backgrounded left it stuck true, so CameraPreview's next bind
-    // attempt threw a SecurityException that got misclassified as a hardware/
-    // driver fault (cameraUnavailable=true), trapping the user in a "Retry"
-    // loop that could never succeed since the real problem (missing permission)
-    // was never rechecked and the permission-request UI was never re-shown.
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                val granted = hasCameraHardware &&
-                    ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-                if (granted != hasCamera) {
-                    hasCamera = granted
-                    cameraUnavailable = false
-                }
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
 
     LaunchedEffect(state.value) {
         val s = state.value
@@ -289,7 +221,7 @@ fun ScanScreen(
                         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
                     )
                 },
-                onRequestPermission = { permLauncher.launch(Manifest.permission.CAMERA) },
+                onRequestPermission = cameraPermission.requestPermission,
                 onOpenManualEntry = { manualEntryOpen = true },
                 onQuickScan = { viewModel.quickScan(it) },
             )
