@@ -24,10 +24,6 @@ import fr.scanneat.R
 import fr.scanneat.presentation.settings.BackupErrorKey
 import fr.scanneat.presentation.settings.BackupUiState
 import fr.scanneat.presentation.ui.theme.*
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @Composable
 internal fun DataStatChip(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, modifier: Modifier = Modifier) {
@@ -124,103 +120,17 @@ internal fun BackupSection(
                 onDismiss = onClearBackupState,
             )
             is BackupUiState.NeedsPassphrase -> {
-                var passphraseInput by remember { mutableStateOf("") }
-                AlertDialog(
-                    onDismissRequest = onClearBackupState,
-                    title = { Text(stringResource(R.string.settings_backup_passphrase_title), color = OnBackground) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                            Text(stringResource(R.string.settings_backup_passphrase_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                            OutlinedTextField(
-                                value = passphraseInput, onValueChange = { passphraseInput = it },
-                                singleLine = true,
-                                isError = s.wrongPassphrase,
-                                label = { Text(stringResource(R.string.settings_backup_passphrase_field)) },
-                                colors = scanEatTextFieldColors(),
-                            )
-                            if (s.wrongPassphrase) {
-                                Text(stringResource(R.string.settings_backup_passphrase_wrong), style = MaterialTheme.typography.labelSmall, color = semanticRed())
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = { onSubmitPassphrase(s.json, passphraseInput) },
-                            enabled = passphraseInput.isNotBlank(),
-                        ) { Text(stringResource(R.string.common_ok), color = AccentCoral) }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = onClearBackupState) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
-                    },
-                    containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
-                    modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-                    shape = RoundedCornerShape(CardRadius.PROMINENT),
-                )
+                BackupPassphraseDialog(state = s, onDismiss = onClearBackupState, onSubmit = onSubmitPassphrase)
             }
             is BackupUiState.ImportPreview -> {
-                // Every other date formatter in this screen respects the app's own
-                // in-app language toggle (independent of device locale) - this one
-                // didn't, so a user running the app in a language different from
-                // their device locale saw this one date's month abbreviation in the
-                // wrong language.
-                val dateFmt = remember(language) { DateTimeFormatter.ofPattern("dd MMM yyyy", Locale(language)) }
-                val exportedDate = Instant.ofEpochMilli(s.metadata.exportedAtMs).atZone(ZoneId.systemDefault()).toLocalDate().format(dateFmt)
-                AlertDialog(
-                    onDismissRequest = onClearBackupState,
-                    title = { Text(stringResource(R.string.settings_backup_import_confirm_title), color = OnBackground) },
-                    text = {
-                        Text(
-                            stringResource(R.string.settings_backup_import_confirm_body, exportedDate, s.metadata.appVersionName, s.metadata.summary.total),
-                            color = OnBackground.copy(0.8f),
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { onConfirmImport(s.json, s.passphrase) }) {
-                            Text(stringResource(R.string.settings_backup_import_confirm_button), color = AccentCoral)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = onClearBackupState) {
-                            Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f))
-                        }
-                    },
-                    containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
-                    modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-                    shape = RoundedCornerShape(CardRadius.PROMINENT),
-                )
+                BackupImportPreviewDialog(state = s, language = language, onDismiss = onClearBackupState, onConfirm = onConfirmImport)
             }
             else -> {}
         }
         if (showExportDialog) {
-            var exportPassphrase by remember { mutableStateOf("") }
-            AlertDialog(
-                onDismissRequest = { showExportDialog = false },
-                title = { Text(stringResource(R.string.settings_backup_export_dialog_title), color = OnBackground) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                        Text(stringResource(R.string.settings_backup_export_dialog_hint), style = MaterialTheme.typography.bodySmall, color = OnBackground.copy(0.6f))
-                        OutlinedTextField(
-                            value = exportPassphrase, onValueChange = { exportPassphrase = it },
-                            singleLine = true,
-                            label = { Text(stringResource(R.string.settings_backup_passphrase_field_optional)) },
-                            colors = scanEatTextFieldColors(),
-                        )
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { onExport(exportPassphrase.takeIf { it.isNotBlank() }); showExportDialog = false }) {
-                        Text(
-                            stringResource(if (exportPassphrase.isNotBlank()) R.string.settings_backup_export_encrypt_button else R.string.settings_backup_export_button),
-                            color = AccentCoral,
-                        )
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showExportDialog = false }) { Text(stringResource(R.string.common_cancel), color = OnBackground.copy(0.6f)) }
-                },
-                containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha),
-                modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.PROMINENT)),
-                shape = RoundedCornerShape(CardRadius.PROMINENT),
+            BackupExportDialog(
+                onDismiss = { showExportDialog = false },
+                onExport = { passphrase -> onExport(passphrase); showExportDialog = false },
             )
         }
         // CSV diary export — spreadsheet-friendly complement to the JSON backup
@@ -247,44 +157,20 @@ internal fun BackupSection(
         // all (only Diary and Biolism did) - grouped behind one overflow menu rather
         // than 5 more stacked full-width buttons, same MoreVert/DropdownMenu pattern
         // already used to consolidate a long action list elsewhere (RecipeCard etc.).
-        var moreCsvExpanded by remember { mutableStateOf(false) }
-        Box {
-            ScanEatOutlinedButton(
-                onClick = { moreCsvExpanded = true },
-                enabled = backupState !is BackupUiState.Working,
-            ) {
-                Icon(TablerIcons.Table, null, tint = OnBackground, modifier = Modifier.size(IconSize.Compact))
-                Spacer(Modifier.width(Spacing.S))
-                Text(stringResource(R.string.settings_more_csv_export_button), color = OnBackground)
-            }
-            // DROPDOWN_MENU_GAP - app-wide standard gap between a DropdownMenu and its trigger (see its own doc comment).
-            DropdownMenu(expanded = moreCsvExpanded, onDismissRequest = { moreCsvExpanded = false }, shape = RoundedCornerShape(CardRadius.CONTROL), containerColor = SurfaceVariant.copy(alpha = StandardCardAlpha), shadowElevation = 0.dp, modifier = Modifier.glassPopupSurface(RoundedCornerShape(CardRadius.CONTROL)), offset = androidx.compose.ui.unit.DpOffset(x = 0.dp, y = DROPDOWN_MENU_GAP)) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_weight_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareWeightCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_activity_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareActivityCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_hydration_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareHydrationCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_medication_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareMedicationCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_fasting_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareFastingCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_prices_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPreparePricesCsvExport() })
-                // Last batch of domains that had JSON backup but no CSV equivalent -
-                // same reasoning/pattern as the five entries above.
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_customfoods_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareCustomFoodsCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_mealtemplates_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareMealTemplatesCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_recipes_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareRecipesCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_scanhistory_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareScanHistoryCsvExport() })
-                DropdownMenuItem(text = { Text(stringResource(R.string.settings_medications_csv_export_button)) },
-                    onClick = { moreCsvExpanded = false; onPrepareMedicationsCsvExport() })
-            }
-        }
+        BackupCsvOverflowMenu(
+            enabled = backupState !is BackupUiState.Working,
+            onPrepareWeightCsvExport = onPrepareWeightCsvExport,
+            onPrepareActivityCsvExport = onPrepareActivityCsvExport,
+            onPrepareHydrationCsvExport = onPrepareHydrationCsvExport,
+            onPrepareMedicationCsvExport = onPrepareMedicationCsvExport,
+            onPrepareFastingCsvExport = onPrepareFastingCsvExport,
+            onPreparePricesCsvExport = onPreparePricesCsvExport,
+            onPrepareCustomFoodsCsvExport = onPrepareCustomFoodsCsvExport,
+            onPrepareMealTemplatesCsvExport = onPrepareMealTemplatesCsvExport,
+            onPrepareRecipesCsvExport = onPrepareRecipesCsvExport,
+            onPrepareScanHistoryCsvExport = onPrepareScanHistoryCsvExport,
+            onPrepareMedicationsCsvExport = onPrepareMedicationsCsvExport,
+        )
         // PDF evolution report — a formatted, printable summary of the user's own
         // logged data (weight/nutrition/activity/hydration/fasting/expenses),
         // distinct from the raw CSV/JSON exports above. See PdfReportRepository's
