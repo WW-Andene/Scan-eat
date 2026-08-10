@@ -29,6 +29,7 @@ internal class DashboardGapLoggingDelegate(
     private val scope: CoroutineScope,
     private val consumptionRepo: ConsumptionRepository,
     private val customFoodRepo: CustomFoodRepository,
+    private val activeProfileId: kotlinx.coroutines.flow.StateFlow<String>,
 ) {
     // ── Gap-closer suggestions: previously a dead end ────────────────────────
     // GapCloserCard rendered suggestion chips (e.g. "Lentilles, 80 g") with no
@@ -64,7 +65,7 @@ internal class DashboardGapLoggingDelegate(
                 // Previously only ever searched raw FOOD_DB - a suggestion built from a
                 // user's own custom food (now possible since closeTheGap/chronicNutrientGaps
                 // are given FOOD_DB + custom foods) would silently no-op here otherwise.
-                val food = (FOOD_DB + customFoodRepo.observeAll().first()).find { it.name == suggestion.name } ?: return@launch
+                val food = (FOOD_DB + customFoodRepo.observeAll(activeProfileId.value).first()).find { it.name == suggestion.name } ?: return@launch
                 // Unguarded suspend DB write previously crashed the app on any Room insert
                 // failure (disk-full, constraint violation) — ResultViewModel.log() guards
                 // its equivalent call the same way.
@@ -78,6 +79,7 @@ internal class DashboardGapLoggingDelegate(
                             portionG    = suggestion.grams.toDouble(),
                             nutrition   = food.toProduct(suggestion.grams.toDouble()).nutrition,
                             source      = ScanSource.MANUAL,
+                            profileId   = activeProfileId.value,
                         )
                     )
                 }.onSuccess { _gapLoggedName.value = food.name }
@@ -107,6 +109,7 @@ internal class DashboardGapLoggingDelegate(
                             nutrition   = scan.product.nutrition,
                             source      = scan.source,
                             ingredients = scan.product.ingredients,
+                            profileId   = activeProfileId.value,
                         )
                     )
                 }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }

@@ -283,7 +283,7 @@ class DashboardViewModel @Inject constructor(
     // DashboardGapLoggingDelegate in DashboardGapLogging.kt (same package) -
     // moved verbatim; the public surface below just forwards to it so no
     // external caller (GapCloserCard/NeverLoggedScansCard/DashboardScreen) needs to change.
-    private val gapLogging = DashboardGapLoggingDelegate(viewModelScope, consumptionRepo, customFoodRepo)
+    private val gapLogging = DashboardGapLoggingDelegate(viewModelScope, consumptionRepo, customFoodRepo, activeProfileId)
 
     /** Non-null briefly after a successful log, for a one-shot confirmation snackbar. */
     val gapLoggedName: StateFlow<String?> get() = gapLogging.gapLoggedName

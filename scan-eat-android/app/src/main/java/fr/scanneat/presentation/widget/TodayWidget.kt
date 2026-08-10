@@ -106,7 +106,7 @@ class TodayWidget : GlanceAppWidget() {
         val colorblindMode = prefs.colorblindMode.first()
         val profile = prefs.profile.first()
         val today = LocalDate.now()
-        val summary = consumptionRepo.observeDay(today).first()
+        val summary = consumptionRepo.observeDay(today, profile.id).first()
         // Same Biolism-override rule as Dashboard/Diary (see DiaryViewModel.targets) -
         // without this, the widget silently showed a different kcal target than the
         // in-app screens for the same day, for any user with a valid Biolism profile
@@ -123,13 +123,13 @@ class TodayWidget : GlanceAppWidget() {
         // nutrition JSON parsing) - unlike a bounded observeRange(), it can't silently
         // cap a real streak longer than whatever window was queried (see Dashboard's
         // identical fix for the same bug).
-        val loggedDates = consumptionRepo.getAllLoggedDates()
+        val loggedDates = consumptionRepo.getAllLoggedDates(profile.id)
         val streak = logStreakDays(loggedDates, today)
         val hydrationMl = hydrationRepo.observe(today).first()
         // Same taken/active join DashboardViewModel.otherTrackers already does for its
         // "meds: taken/active" glance card - the widget just never surfaced it.
-        val activeMeds = medicationRepo.observeAll().first().filter { it.active }
-        val takenMedIds = medicationRepo.observeLogByDate(today).first().map { it.medicationId }.toSet()
+        val activeMeds = medicationRepo.observeAll(profile.id).first().filter { it.active }
+        val takenMedIds = medicationRepo.observeLogByDate(today, profile.id).first().map { it.medicationId }.toSet()
         val medsTakenCount = activeMeds.count { it.id in takenMedIds }
         val medsActiveCount = activeMeds.size
 
