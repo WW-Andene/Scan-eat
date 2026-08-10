@@ -113,7 +113,12 @@ internal fun AddActivityDialog(
                                 onClick = { onSelectedSubTypeChange(if (selectedSubType == key) null else key); onClearCustomSubTypeText() },
                                 label = { Text(subTypeLabels[key] ?: key, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                                    // User-reported: same stray-Teal-instead-of-brand-color bug
+                                    // found in ProfileSelectors.kt's ConditionsSelector - this
+                                    // dialog's own comment above already says Activity's identity
+                                    // is Warm (matching the type picker), so these two chip groups
+                                    // using Teal instead was the inconsistency, not a deliberate choice.
+                                    selectedContainerColor = Warm.copy(0.2f), selectedLabelColor = Warm,
                                     labelColor = OnBackground.copy(0.7f),
                                 ),
                             )
@@ -136,7 +141,12 @@ internal fun AddActivityDialog(
                                 onClick = { onSelectedSubTypeChange(suggestion); onCustomSubTypeTextChange(suggestion) },
                                 label = { Text(suggestion, style = MaterialTheme.typography.labelSmall, maxLines = 1) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Teal.copy(0.2f), selectedLabelColor = Teal,
+                                    // User-reported: same stray-Teal-instead-of-brand-color bug
+                                    // found in ProfileSelectors.kt's ConditionsSelector - this
+                                    // dialog's own comment above already says Activity's identity
+                                    // is Warm (matching the type picker), so these two chip groups
+                                    // using Teal instead was the inconsistency, not a deliberate choice.
+                                    selectedContainerColor = Warm.copy(0.2f), selectedLabelColor = Warm,
                                     labelColor = OnBackground.copy(0.7f),
                                 ),
                             )
