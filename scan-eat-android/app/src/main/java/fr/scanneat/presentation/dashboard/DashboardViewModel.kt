@@ -48,6 +48,11 @@ class DashboardViewModel @Inject constructor(
     private val priceRepo: PriceRepository,
 ) : ViewModel() {
 
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
     // LocalDate.now() captured once at property-init time (the previous shape
     // of this ViewModel) would keep every combine() below observing the day
     // this ViewModel happened to be constructed on forever - a session left
@@ -71,8 +76,8 @@ class DashboardViewModel @Inject constructor(
     // to do with nutritional quality - conflating the two would be a real
     // scoring-integrity mistake, not a feature), just surfaced as its own
     // weekly rollup the same way spendByCategory already is in Expenses.
-    val weeklyValueScoreCounts: StateFlow<Map<fr.scanneat.domain.engine.expense.ValueScore, Int>> = today.flatMapLatest { date ->
-        priceRepo.observeRange(date.minusDays(6), date)
+    val weeklyValueScoreCounts: StateFlow<Map<fr.scanneat.domain.engine.expense.ValueScore, Int>> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
+        priceRepo.observeRange(date.minusDays(6), date, id)
     }.map { entries -> entries.mapNotNull { it.valueScore }.groupingBy { it }.eachCount() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
@@ -83,12 +88,12 @@ class DashboardViewModel @Inject constructor(
     // weekly rollup / gap-closer / Biolism TDEE recomputation on every scan
     // even though none of that depends on the scan-history list. It's merged
     // in separately below, as a cheap .copy().
-    private val heavyState: StateFlow<DashboardUiState> = today.flatMapLatest { date ->
+    private val heavyState: StateFlow<DashboardUiState> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
         combine(
-            consumptionRepo.observeDay(date),
-            consumptionRepo.observeRange(date.minusDays(30), date),
+            consumptionRepo.observeDay(date, id),
+            consumptionRepo.observeRange(date.minusDays(30), date, id),
             prefs.profile,
-            weightRepo.observeLatest(),
+            weightRepo.observeLatest(id),
             biolismRepo.profile,
         ) { todayData, allEntries, profile, _, bioProfile ->
             // weightRepo.observeLatest() (4th param, ignored) is a trigger-only input -
@@ -109,7 +114,7 @@ class DashboardViewModel @Inject constructor(
             // "FOOD_DB + custom foods" but this ViewModel only ever passed bare
             // FOOD_DB, so a user's own custom foods (e.g. "Lentilles maison",
             // high in iron) could never be suggested to close a real deficit.
-            .combine(customFoodRepo.observeAll()) { quad, customFoods -> quad to customFoods }
+            .combine(customFoodRepo.observeAll(id)) { quad, customFoods -> quad to customFoods }
             .flatMapLatest { (quad, customFoods) ->
                 val (todayData, allEntries, profile, bioProfile) = quad
                 val foodDb = FOOD_DB + customFoods
@@ -135,6 +140,7 @@ class DashboardViewModel @Inject constructor(
                             activityRepo = activityRepo,
                             fastingRepo = fastingRepo,
                             hydrationRepo = hydrationRepo,
+                            profileId = id,
                         )
                     )
                 }
@@ -142,9 +148,9 @@ class DashboardViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardUiState())
 
-    val state: StateFlow<DashboardUiState> = today.flatMapLatest { date ->
+    val state: StateFlow<DashboardUiState> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
         combine(
-            heavyState, scanRepo.observeHistory(limit = 20), activityRepo.observeByDate(date),
+            heavyState, scanRepo.observeHistory(limit = 20, profileId = id), activityRepo.observeByDate(date, id),
         ) { s, scans, activity ->
             // In-memory only, both lists already loaded for other purposes above - no
             // new DB query. Matched by the same "barcode when present, else lowercased
@@ -189,8 +195,8 @@ class DashboardViewModel @Inject constructor(
      * the app, silently disagreeing with the personalized warning they saw
      * moments earlier when they scanned it.
      */
-    val recentScanWarnings: StateFlow<Map<Long, String>> = combine(
-        scanRepo.observeHistory(limit = 20), prefs.profile, language,
+    val recentScanWarnings: StateFlow<Map<Long, String>> = activeProfileId.flatMapLatest { id -> combine(
+        scanRepo.observeHistory(limit = 20, profileId = id), prefs.profile, language,
     ) { scans, profile, lang ->
         scans.mapNotNull { scan ->
             if (scan.dbId <= 0) return@mapNotNull null
@@ -201,7 +207,7 @@ class DashboardViewModel @Inject constructor(
             dietResult.reason?.let { parts += it }
             if (parts.isEmpty()) null else scan.dbId to parts.joinToString(" · ")
         }.toMap()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+    } }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     /**
      * Average nutrition-quality score across the last 7 days of scans - see
@@ -211,7 +217,7 @@ class DashboardViewModel @Inject constructor(
      * from the real [scoreToGrade] breakpoints rather than a hand-maintained range.
      */
     val weeklyScoreSummary: StateFlow<WeeklyScoreSummary?> = today.flatMapLatest { date ->
-        scanRepo.observeHistory(limit = 20).map { scans ->
+        activeProfileId.flatMapLatest { id -> scanRepo.observeHistory(limit = 20, profileId = id) }.map { scans ->
             val cutoff = date.minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val inWindow = scans.filter { it.scannedAt >= cutoff }
             if (inWindow.isEmpty()) return@map null
@@ -237,22 +243,22 @@ class DashboardViewModel @Inject constructor(
         val profile: fr.scanneat.domain.model.Profile,
     )
 
-    val otherTrackers: StateFlow<OtherTrackersSnapshot> = today.flatMapLatest { date ->
+    val otherTrackers: StateFlow<OtherTrackersSnapshot> = combine(today, activeProfileId) { date, id -> date to id }.flatMapLatest { (date, id) ->
         combine(
             hydrationRepo.observe(date),
             fastingRepo.state,
-            medicationRepo.observeAll(),
-            medicationRepo.observeLogByDate(date),
+            medicationRepo.observeAll(id),
+            medicationRepo.observeLogByDate(date, id),
             prefs.profile,
         ) { hydrationMl, fasting, meds, todayLogs, profile ->
             OtherTrackersInputs(hydrationMl, fasting, meds, todayLogs, profile)
-        }.combine(activityRepo.observeByDate(date)) { inputs, todayActivity ->
+        }.combine(activityRepo.observeByDate(date, id)) { inputs, todayActivity ->
             inputs to todayActivity
         }.combine(
             // Same window-capping trap logStreakDays' own doc comment warns about -
             // getAllLoggedDates() (not a fixed observeRange window) is the only safe
             // input, same as the diary-logging streak above.
-            flow { emit(activityRepo.getAllLoggedDates()) },
+            flow { emit(activityRepo.getAllLoggedDates(id)) },
         ) { (inputs, todayActivity), workoutDates ->
             val activeMeds = inputs.meds.filter { it.active }
             val takenIds = inputs.todayLogs.map { it.medicationId }.toSet()

@@ -71,7 +71,7 @@ internal class ResultScanLoader(
         // asked to see that exact row's stored data, which is a different
         // guarantee than "silently pick something recent for me."
         val scan = if (scanId > 0L) scanRepo.getById(scanId, lang)
-                   else scanRepo.observeHistoryChecked(limit = 1).first().firstOrNull()
+                   else scanRepo.observeHistoryChecked(limit = 1, profileId = profile.id).first().firstOrNull()
 
         if (scan == null) { emit(ScanLoad.Empty); return@flow }
 
@@ -100,7 +100,7 @@ internal class ResultScanLoader(
         val pairs      = if (scan.product.category in NON_PAIRABLE_CATEGORIES) emptyList()
                           else findPairings(scan.product.name, limit = 8, preferFrench = lang == "fr")
         val alternative = if (scan.audit.grade in ALTERNATIVE_ELIGIBLE_GRADES)
-            scanRepo.findBetterAlternative(scan, allergens = profile.allergens, dietKey = profile.diet, healthConditions = profile.healthConditions, lang = lang) else null
+            scanRepo.findBetterAlternative(scan, allergens = profile.allergens, dietKey = profile.diet, healthConditions = profile.healthConditions, lang = lang, profileId = profile.id) else null
 
         // Prior scans of the same product (matched by barcode when present, else
         // case-insensitive name) — used for the score delta badge and history
@@ -113,7 +113,7 @@ internal class ResultScanLoader(
         // among - the barcode branch of that filter could never match anything.
         // scan_score_history is a separate append-only log written on every
         // persist() specifically so this feature has real data to query.
-        val priorScores  = scanRepo.priorScores(scan.barcode, scan.product.name, beforeMillis = scan.scannedAt)
+        val priorScores  = scanRepo.priorScores(scan.barcode, scan.product.name, beforeMillis = scan.scannedAt, profileId = profile.id)
         val scoreDelta   = priorScores.firstOrNull()?.let { scan.audit.score - it }
         val scoreHistory = priorScores.take(5).reversed()  // oldest → newest for the timeline
 

@@ -186,7 +186,7 @@ class ResultViewModel @Inject constructor(
     // Price history for this exact product — matched by barcode when the scan has
     // one, else falls back to matching by name (LLM-identified/no-barcode scans
     // still worth tracking a price against). Empty until a scan is loaded.
-    val priceEntries: StateFlow<List<PriceEntry>> = combine(state, priceRepo.observeAll()) { s, all ->
+    val priceEntries: StateFlow<List<PriceEntry>> = combine(state, profile.map { it.id }.flatMapLatest { id -> priceRepo.observeAll(id) }) { s, all ->
         val scan = s.scanResult ?: return@combine emptyList()
         if (scan.barcode != null) all.filter { it.barcode == scan.barcode }
         else all.filter { it.barcode == null && it.productName == scan.product.name }
@@ -208,6 +208,7 @@ class ResultViewModel @Inject constructor(
                 category = scan.product.category,
                 priceEuros = priceEuros,
                 weightG = weightG,
+                profileId = profile.value.id,
             )
         }
     }

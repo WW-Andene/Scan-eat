@@ -42,6 +42,7 @@ internal suspend fun buildHeavyDashboardState(
     activityRepo: ActivityRepository,
     fastingRepo: FastingRepository,
     hydrationRepo: HydrationRepository,
+    profileId: String = "default",
 ): DashboardUiState {
     // WeeklyBarsCard/gap engines below all read targets.kcal directly, but
     // only calorieBalance further down ever substituted the richer
@@ -63,9 +64,9 @@ internal suspend fun buildHeavyDashboardState(
     // 31-60 ago, not widening the primary reactive window every other
     // computation in this block reads from.
     val priorMonthEnd = date.minusDays(31)
-    val priorMonthEntries = consumptionRepo.observeRange(priorMonthEnd.minusDays(29), priorMonthEnd).first()
+    val priorMonthEntries = consumptionRepo.observeRange(priorMonthEnd.minusDays(29), priorMonthEnd, profileId).first()
     val monthDelta = monthOverMonthDelta(thisMonth, monthlyRollup(priorMonthEntries, priorMonthEnd))
-    val wSummary  = weightRepo.summarize(30)
+    val wSummary  = weightRepo.summarize(30, profileId)
     val forecast  = if (wSummary != null && profile.goalWeightKg != null)
         weightForecast(wSummary.latestKg, profile.goalWeightKg, wSummary.trendKgPerWeek)
     else WeightForecast.InsufficientData
@@ -77,7 +78,7 @@ internal suspend fun buildHeavyDashboardState(
     // latitude, time of day, this is deliberately a rough "you were outside
     // today" signal, not a measured dose) applied once regardless of how many
     // outdoor activities were logged that day.
-    val hadOutdoorActivity = activityRepo.observeByDate(date).first().any { it.wasOutdoors }
+    val hadOutdoorActivity = activityRepo.observeByDate(date, profileId).first().any { it.wasOutdoors }
     val totalsWithOutdoorVitD = if (hadOutdoorActivity)
         todayData.totals.copy(vitDUg = todayData.totals.vitDUg + VITD_OUTDOOR_UG)
     else todayData.totals
@@ -94,7 +95,7 @@ internal suspend fun buildHeavyDashboardState(
     // Weekly active minutes for the cross-tracker insight below - a
     // fresh range query (not the single-day observeByDate used elsewhere
     // on Dashboard) since no 7-day activity window was already loaded here.
-    val weeklyActiveMinutes = activityRepo.getRange(date.minusDays(6), date).sumOf { it.minutes }
+    val weeklyActiveMinutes = activityRepo.getRange(date.minusDays(6), date, profileId).sumOf { it.minutes }
     val weekStart = date.minusDays(6)
     // "five trackers... never cross-reference each other" (see
     // weeklyCrossTrackerInsight's own doc comment) - fasting/hydration
@@ -136,7 +137,7 @@ internal suspend fun buildHeavyDashboardState(
     // when the user's real streak/record ran longer. getAllLoggedDates() is
     // a cheap DISTINCT-date query (no row hydration), so this stays correct
     // no matter how long the actual streak or logging history is.
-    val loggedDates = consumptionRepo.getAllLoggedDates()
+    val loggedDates = consumptionRepo.getAllLoggedDates(profileId)
 
     return DashboardUiState(
         todayTotals    = totalsWithOutdoorVitD,

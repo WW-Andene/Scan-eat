@@ -173,8 +173,8 @@ class FoodSearchViewModel @Inject constructor(
     // searchByName(query="") still matches every row (SQL LIKE '%%') and is already
     // ordered most-recent-first, capped at 300 - a real, DB-level search, not a
     // client-side filter over some already-loaded "recent" window.
-    private val scannedItems: Flow<List<FoodSearchItem>> = effectiveSearchQuery
-        .flatMapLatest { q -> scanRepo.searchHistory(q) }
+    private val scannedItems: Flow<List<FoodSearchItem>> = combine(effectiveSearchQuery, activeProfileId) { q, id -> q to id }
+        .flatMapLatest { (q, id) -> scanRepo.searchHistory(q, id) }
         .map { results -> results.map { it.toItem() }.distinctBy { it.name.lowercase() } }
 
     private val localItems: Flow<List<FoodSearchItem>> = combine(effectiveSearchQuery, customFoods) { q, customs ->
@@ -370,7 +370,7 @@ class FoodSearchViewModel @Inject constructor(
     fun openOnlineItem(item: FoodSearchItem, onOpened: (Long) -> Unit) {
         val raw = item.barcode?.let { onlineRawCache[it] } ?: return
         viewModelScope.launch {
-            runCatching { scanRepo.persist(raw) }
+            runCatching { scanRepo.persist(raw, activeProfileId.value) }
                 .onSuccess { onOpened(it) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -394,14 +394,14 @@ class FoodSearchViewModel @Inject constructor(
                     item.scanId != null -> scanRepo.setFavorite(item.scanId, !item.favorite)
                     item.barcode != null -> {
                         val raw = onlineRawCache[item.barcode] ?: return@runCatching
-                        scanRepo.setFavorite(scanRepo.persist(raw), true)
+                        scanRepo.setFavorite(scanRepo.persist(raw, activeProfileId.value), true)
                     }
                     else -> {
                         val entry = customFoods.value.firstOrNull { it.name == item.name }
                             ?: FOOD_DB.firstOrNull { it.name == item.name } ?: return@runCatching
                         val product = customFoodRepo.toProduct(entry)
                         val audit = scoreProduct(product, prefs.language.first())
-                        val id = scanRepo.persist(ScanResult(product = product, audit = audit, warnings = emptyList(), source = ScanSource.MANUAL))
+                        val id = scanRepo.persist(ScanResult(product = product, audit = audit, warnings = emptyList(), source = ScanSource.MANUAL), activeProfileId.value)
                         scanRepo.setFavorite(id, true)
                     }
                 }
