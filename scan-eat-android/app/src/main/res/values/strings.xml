@@ -696,6 +696,10 @@
     <string name="condition_depression">Dépression</string>
     <string name="condition_chronic_migraine">Migraine chronique</string>
     <string name="condition_epilepsy">Épilepsie</string>
+    <string name="condition_dental_problems">Problèmes dentaires</string>
+    <string name="condition_anorexia">Anorexie</string>
+    <string name="condition_bulimia">Boulimie</string>
+    <string name="profile_condition_group_eating_disorder">Troubles du comportement alimentaire</string>
     <string name="sex_male">Homme</string>
     <string name="sex_female">Femme</string>
     <string name="sex_not_specified">Non précisé</string>

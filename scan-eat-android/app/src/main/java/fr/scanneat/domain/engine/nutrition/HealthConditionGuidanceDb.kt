@@ -172,6 +172,24 @@ private val CHRONIC_MIGRAINE_GUIDANCE: List<ConditionGuidance> = listOf(
         "Aspartame: reported as a migraine trigger by some patients (American Migraine Foundation) — not a universal effect."),
 )
 
+// ADA (American Dental Association) / UFSBD (Union Française pour la Santé
+// Bucco-Dentaire) cariogenic-food guidance: frequent-sugar-exposure and
+// acid-erosion are the two mechanisms both bodies name as the concrete,
+// actionable ones for someone already managing dental problems - sticky/slow-
+// dissolving sugar prolongs acid attack time, and acidic drinks/candies erode
+// enamel directly regardless of sugar content.
+private val DENTAL_PROBLEMS_GUIDANCE: List<ConditionGuidance> = listOf(
+    ConditionGuidance(listOf("bonbon", "caramel", "candy", "toffee", "chewing-gum sucré", "sweet candy"),
+        "Bonbons et caramels collants : le sucre reste longtemps au contact des dents, prolongeant l'attaque acide - l'UFSBD recommande de limiter ce type de confiserie en cas de problèmes dentaires.",
+        "Sticky candy/toffee: sugar stays in contact with teeth longer, prolonging the acid attack - UFSBD recommends limiting this type of confectionery with existing dental problems."),
+    ConditionGuidance(listOf("soda", "boisson gazeuse", "cola", "soft drink", "jus de fruit", "fruit juice"),
+        "Sodas et jus de fruits : l'acidité érode directement l'émail dentaire, indépendamment du sucre - l'ADA recommande de limiter ces boissons en cas de problèmes dentaires.",
+        "Soda and fruit juice: acidity directly erodes tooth enamel regardless of sugar content - the ADA recommends limiting these drinks with existing dental problems."),
+    ConditionGuidance(listOf("bonbon acidulé", "sour candy", "vinaigre", "vinegar", "citron", "lemon"),
+        "Aliments très acides (bonbons acidulés, vinaigre, agrumes) : érosion directe de l'émail - à consommer avec modération en cas de problèmes dentaires (recommandations ADA).",
+        "Highly acidic foods (sour candy, vinegar, citrus): direct enamel erosion - consume in moderation with existing dental problems (ADA guidance)."),
+)
+
 private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
     "pregnancy" to PREGNANCY_GUIDANCE,
     "cancer" to CANCER_GUIDANCE,
@@ -179,6 +197,7 @@ private val GUIDANCE_BY_CONDITION: Map<String, List<ConditionGuidance>> = mapOf(
     "crohn_ibd" to CROHN_IBD_GUIDANCE,
     "chronic_diarrhea" to CHRONIC_DIARRHEA_GUIDANCE,
     "chronic_migraine" to CHRONIC_MIGRAINE_GUIDANCE,
+    "dental_problems" to DENTAL_PROBLEMS_GUIDANCE,
 )
 
 /**

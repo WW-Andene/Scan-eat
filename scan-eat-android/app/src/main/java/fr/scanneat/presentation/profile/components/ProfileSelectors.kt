@@ -201,6 +201,21 @@ internal fun conditionLabels(): Map<String, String> = mapOf(
     // not added as a no-op label.
     "chronic_migraine" to stringResource(R.string.condition_chronic_migraine),
     "epilepsy" to stringResource(R.string.condition_epilepsy),
+    // Dental: real, sourced ingredient-level guidance (ADA/UFSBD cariogenic-
+    // food caution) in HealthConditionGuidanceDb.kt - same discipline as
+    // ibs/crohn_ibd/chronic_diarrhea above, not a no-op label.
+    "dental_problems" to stringResource(R.string.condition_dental_problems),
+    // Anorexia/bulimia: deliberately NOT wired into PersonalScoreEngine's
+    // numeric scoring or HealthConditionGuidanceDb's "avoid this ingredient"
+    // dictionaries - food-restriction messaging is contraindicated for
+    // eating-disorder history (NEDA clinical guidance), the same "a wrong
+    // rule is worse than no rule" principle that removed thyroid_disorder
+    // above. Their real, safe effect is in Biolism's
+    // HealthConditionCaution.kt: a caution on fasting/ketosis modes, which
+    // NEDA guidance does flag as a genuine relapse-risk pattern for this
+    // history - not a food-scoring rule.
+    "anorexia" to stringResource(R.string.condition_anorexia),
+    "bulimia" to stringResource(R.string.condition_bulimia),
 )
 
 /**
@@ -216,7 +231,8 @@ private fun conditionGroups(): List<Pair<String, List<String>>> = listOf(
     stringResource(R.string.profile_condition_group_metabolic) to listOf("diabetes", "hypertension", "kidney_disease"),
     stringResource(R.string.profile_condition_group_digestive) to listOf("ibs", "crohn_ibd", "chronic_diarrhea"),
     stringResource(R.string.profile_condition_group_neurological) to listOf("chronic_migraine", "epilepsy"),
-    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression"),
+    stringResource(R.string.profile_condition_group_other) to listOf("pregnancy", "cancer", "depression", "dental_problems"),
+    stringResource(R.string.profile_condition_group_eating_disorder) to listOf("anorexia", "bulimia"),
 )
 
 @OptIn(ExperimentalLayoutApi::class)
