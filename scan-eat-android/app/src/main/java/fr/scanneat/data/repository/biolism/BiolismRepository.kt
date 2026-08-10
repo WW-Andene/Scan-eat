@@ -52,16 +52,35 @@ class BiolismRepository @Inject constructor(
     // Keys
     // ─────────────────────────────────────────────────────────────────────────
     companion object {
-        val K_SEX          = stringPreferencesKey("bio_sex")
-        val K_AGE          = intPreferencesKey("bio_age")
-        val K_HEIGHT       = floatPreferencesKey("bio_height_cm")
-        val K_WEIGHT       = floatPreferencesKey("bio_weight_kg")
-        val K_ACTIVITY     = stringPreferencesKey("bio_activity")
-        val K_ETHNICITY    = stringPreferencesKey("bio_ethnicity")
-        val K_WAIST        = floatPreferencesKey("bio_waist_cm")
-        val K_HIP          = floatPreferencesKey("bio_hip_cm")
-        val K_NECK         = floatPreferencesKey("bio_neck_cm")
-        val K_CYCLE_DAY    = intPreferencesKey("bio_cycle_day")
+        // Profile-override fields (sex/age/height/weight/activity/ethnicity/
+        // waist/hip/neck/cycleDay) are namespaced per profile id, same
+        // "profile_${id}_field" convention UserPreferences.profileKey() already
+        // uses for the app-wide Profile. These were previously flat, unscoped
+        // keys ("bio_sex" etc.) in this single-DataStore-file repository, while
+        // ProfileScreen's "+" ProfileSwitcherCard is a real, reachable multi-
+        // profile UI (ProfileViewModel.switchProfile/createProfile) - creating a
+        // second profile and editing its waist/hip/neck/ethnicity or Biolism-side
+        // sex/age/height/weight/activity override silently landed in this same
+        // global store, cross-mixing body-composition data between profiles the
+        // moment more than one was used, with no cleanup on profile deletion
+        // either. id-parameterized key builders close that gap; timer/session/
+        // manualHR/onboarded state below stays global/device-scoped (a running
+        // workout timer or the onboarding flag isn't meaningfully "per profile"
+        // the way body measurements feeding BMR/TDEE math are).
+        private fun bioKey(field: String, id: String) = stringPreferencesKey("bio_${id}_$field")
+        private fun bioIntKey(field: String, id: String) = intPreferencesKey("bio_${id}_$field")
+        private fun bioFloatKey(field: String, id: String) = floatPreferencesKey("bio_${id}_$field")
+
+        internal fun kSex(id: String)       = bioKey("sex", id)
+        internal fun kAge(id: String)       = bioIntKey("age", id)
+        internal fun kHeight(id: String)    = bioFloatKey("height_cm", id)
+        internal fun kWeight(id: String)    = bioFloatKey("weight_kg", id)
+        internal fun kActivity(id: String)  = bioKey("activity", id)
+        internal fun kEthnicity(id: String) = bioKey("ethnicity", id)
+        internal fun kWaist(id: String)     = bioFloatKey("waist_cm", id)
+        internal fun kHip(id: String)       = bioFloatKey("hip_cm", id)
+        internal fun kNeck(id: String)      = bioFloatKey("neck_cm", id)
+        internal fun kCycleDay(id: String)  = bioIntKey("cycle_day", id)
 
         // Session timer state
         val K_SESS_RUNNING      = booleanPreferencesKey("bio_sess_running")
@@ -94,13 +113,13 @@ class BiolismRepository @Inject constructor(
     // Sex/age/height/weight/activity are shared with the app-wide profile so the user only
     // fills them in once — Biolism only keeps its own copy once the user explicitly edits and
     // saves them from within Biolism (K_SEX present means an explicit Biolism-side override).
-    val profile: Flow<BiolismProfile> = combine(storeData, userPreferences.profile) { p, mainProfile ->
-        val hasOwnOverride = p[K_SEX] != null
-        val ethnicityId = p[K_ETHNICITY] ?: "caucasian"
-        val waistCm      = p[K_WAIST]?.toDouble() ?: 0.0
-        val hipCm        = p[K_HIP]?.toDouble()   ?: 0.0
-        val neckCm       = p[K_NECK]?.toDouble()  ?: 0.0
-        val cycleDay     = p[K_CYCLE_DAY] ?: 14
+    val profile: Flow<BiolismProfile> = combine(storeData, userPreferences.activeProfileId, userPreferences.profile) { p, id, mainProfile ->
+        val hasOwnOverride = p[kSex(id)] != null
+        val ethnicityId = p[kEthnicity(id)] ?: "caucasian"
+        val waistCm      = p[kWaist(id)]?.toDouble() ?: 0.0
+        val hipCm        = p[kHip(id)]?.toDouble()   ?: 0.0
+        val neckCm       = p[kNeck(id)]?.toDouble()  ?: 0.0
+        val cycleDay     = p[kCycleDay(id)] ?: 14
 
         // Weight always prefers the main Profile's value (kept fresh by every real
         // weigh-in via WeightRepository.log()) over a frozen override snapshot, even
@@ -115,13 +134,13 @@ class BiolismRepository @Inject constructor(
         // cascaded into Dashboard/Diary/Widget's calorie/macro targets, which all
         // prefer Biolism's richer body-composition-aware TDEE whenever a valid
         // Biolism profile exists.
-        val liveWeightKg = mainProfile.weightKg?.takeIf { it > 0.0 } ?: (p[K_WEIGHT]?.toDouble() ?: 0.0)
+        val liveWeightKg = mainProfile.weightKg?.takeIf { it > 0.0 } ?: (p[kWeight(id)]?.toDouble() ?: 0.0)
 
         if (hasOwnOverride) {
             BiolismProfile(
-                sex         = BiolismSex.values().firstOrNull { it.name == p[K_SEX] } ?: BiolismSex.NOT_SPECIFIED,
-                ageYears    = p[K_AGE] ?: 0,
-                heightCm    = p[K_HEIGHT]?.toDouble() ?: 0.0,
+                sex         = BiolismSex.values().firstOrNull { it.name == p[kSex(id)] } ?: BiolismSex.NOT_SPECIFIED,
+                ageYears    = p[kAge(id)] ?: 0,
+                heightCm    = p[kHeight(id)]?.toDouble() ?: 0.0,
                 weightKg    = liveWeightKg,
                 activityId  = p[K_ACTIVITY] ?: "sedentary",
                 ethnicityId = ethnicityId,
@@ -141,17 +160,18 @@ class BiolismRepository @Inject constructor(
     }.distinctUntilChanged()
 
     suspend fun saveProfile(profile: BiolismProfile) {
+        val id = userPreferences.activeProfileId.first()
         store.edit { p ->
-            p[K_SEX]       = profile.sex.name
-            p[K_AGE]       = profile.ageYears
-            p[K_HEIGHT]    = profile.heightCm.toFloat()
-            p[K_WEIGHT]    = profile.weightKg.toFloat()
-            p[K_ACTIVITY]  = profile.activityId
-            p[K_ETHNICITY] = profile.ethnicityId
-            p[K_WAIST]     = profile.waistCm.toFloat()
-            p[K_HIP]       = profile.hipCm.toFloat()
-            p[K_NECK]      = profile.neckCm.toFloat()
-            p[K_CYCLE_DAY] = profile.cycleDay
+            p[kSex(id)]       = profile.sex.name
+            p[kAge(id)]       = profile.ageYears
+            p[kHeight(id)]    = profile.heightCm.toFloat()
+            p[kWeight(id)]    = profile.weightKg.toFloat()
+            p[kActivity(id)]  = profile.activityId
+            p[kEthnicity(id)] = profile.ethnicityId
+            p[kWaist(id)]     = profile.waistCm.toFloat()
+            p[kHip(id)]       = profile.hipCm.toFloat()
+            p[kNeck(id)]      = profile.neckCm.toFloat()
+            p[kCycleDay(id)]  = profile.cycleDay
         }
         // Mirror shared fields back to the universal profile so both stores stay in sync
         val current = userPreferences.profile.first()
@@ -183,8 +203,11 @@ class BiolismRepository @Inject constructor(
         )
     }
 
-    suspend fun clearProfileOverride() = store.edit { p ->
-        p.remove(K_SEX); p.remove(K_AGE); p.remove(K_HEIGHT); p.remove(K_WEIGHT); p.remove(K_ACTIVITY)
+    suspend fun clearProfileOverride() {
+        val id = userPreferences.activeProfileId.first()
+        store.edit { p ->
+            p.remove(kSex(id)); p.remove(kAge(id)); p.remove(kHeight(id)); p.remove(kWeight(id)); p.remove(kActivity(id))
+        }
     }
 
     /**
@@ -196,12 +219,25 @@ class BiolismRepository @Inject constructor(
      * away from the main Profile the next time it's edited.
      */
     suspend fun saveBodyMeasurements(waistCm: Double, hipCm: Double, neckCm: Double, ethnicityId: String) {
+        val id = userPreferences.activeProfileId.first()
         store.edit { p ->
-            p[K_WAIST]     = waistCm.toFloat()
-            p[K_HIP]       = hipCm.toFloat()
-            p[K_NECK]      = neckCm.toFloat()
-            p[K_ETHNICITY] = ethnicityId
+            p[kWaist(id)]     = waistCm.toFloat()
+            p[kHip(id)]       = hipCm.toFloat()
+            p[kNeck(id)]      = neckCm.toFloat()
+            p[kEthnicity(id)] = ethnicityId
         }
+    }
+
+    /** Cleans up this profile's namespaced body-composition override keys -
+     *  UserPreferences.deleteProfile() never touched biolism_prefs at all
+     *  (it's a separate DataStore file), so a deleted profile's waist/hip/neck/
+     *  sex/age/height/weight/activity/ethnicity/cycleDay override would
+     *  otherwise linger forever under a dead profile id. Called from
+     *  ProfileViewModel.deleteProfile alongside UserPreferences' own cleanup. */
+    suspend fun deleteProfileData(id: String) = store.edit { p ->
+        p.remove(kSex(id)); p.remove(kAge(id)); p.remove(kHeight(id)); p.remove(kWeight(id))
+        p.remove(kActivity(id)); p.remove(kEthnicity(id))
+        p.remove(kWaist(id)); p.remove(kHip(id)); p.remove(kNeck(id)); p.remove(kCycleDay(id))
     }
 
     // ─────────────────────────────────────────────────────────────────────────

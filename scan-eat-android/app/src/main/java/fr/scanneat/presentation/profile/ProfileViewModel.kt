@@ -145,6 +145,11 @@ class ProfileViewModel @Inject constructor(
      *  doc comment on why that one can't be removed. */
     fun deleteProfile(id: String) {
         if (id == "default") return
-        guardedLaunch { prefs.deleteProfile(id) }
+        // UserPreferences.deleteProfile() only ever cleared its own profile_${id}_*
+        // keys - biolism_prefs is a separate DataStore file, so a deleted profile's
+        // Biolism body-composition override (waist/hip/neck/sex/age/height/weight/
+        // activity/ethnicity/cycleDay) previously lingered forever under the dead
+        // id with no way to reach or clear it again.
+        guardedLaunch { prefs.deleteProfile(id); biolismRepo.deleteProfileData(id) }
     }
 }

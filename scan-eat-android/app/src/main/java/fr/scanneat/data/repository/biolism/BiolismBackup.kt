@@ -21,6 +21,8 @@ import kotlinx.serialization.json.Json
  * `exportForBackup`/`importForBackup` members to this class so external
  * callers see no change in shape.
  */
+private const val DEFAULT_PROFILE_ID = "default"
+
 internal class BackupStore(
     private val store: DataStore<Preferences>,
     private val storeData: Flow<Preferences>,
@@ -29,19 +31,26 @@ internal class BackupStore(
 ) {
     suspend fun exportForBackup(): BiolismRepository.BiolismBackupData {
         val p = storeData.first()
+        // Profile-override fields are now namespaced per profile id (see
+        // BiolismRepository.kSex/kAge/etc.'s own doc comment on why) - backup/
+        // restore, like every other repository's getAllForBackup()/importForBackup()
+        // this session's earlier backup audit found, only ever operates on the
+        // "default" profile (BackupRepository never threads a real active-profile
+        // id through), so this stays consistent with that existing, documented
+        // app-wide scoping rather than introducing a new inconsistency here.
         return BiolismRepository.BiolismBackupData(
             onboarded          = p[BiolismRepository.K_ONBOARDED] ?: false,
-            hasProfileOverride = p[BiolismRepository.K_SEX] != null,
-            sex         = p[BiolismRepository.K_SEX],
-            ageYears    = p[BiolismRepository.K_AGE],
-            heightCm    = p[BiolismRepository.K_HEIGHT],
-            weightKg    = p[BiolismRepository.K_WEIGHT],
-            activityId  = p[BiolismRepository.K_ACTIVITY],
-            ethnicityId = p[BiolismRepository.K_ETHNICITY],
-            waistCm     = p[BiolismRepository.K_WAIST],
-            hipCm       = p[BiolismRepository.K_HIP],
-            neckCm      = p[BiolismRepository.K_NECK],
-            cycleDay    = p[BiolismRepository.K_CYCLE_DAY],
+            hasProfileOverride = p[BiolismRepository.kSex(DEFAULT_PROFILE_ID)] != null,
+            sex         = p[BiolismRepository.kSex(DEFAULT_PROFILE_ID)],
+            ageYears    = p[BiolismRepository.kAge(DEFAULT_PROFILE_ID)],
+            heightCm    = p[BiolismRepository.kHeight(DEFAULT_PROFILE_ID)],
+            weightKg    = p[BiolismRepository.kWeight(DEFAULT_PROFILE_ID)],
+            activityId  = p[BiolismRepository.kActivity(DEFAULT_PROFILE_ID)],
+            ethnicityId = p[BiolismRepository.kEthnicity(DEFAULT_PROFILE_ID)],
+            waistCm     = p[BiolismRepository.kWaist(DEFAULT_PROFILE_ID)],
+            hipCm       = p[BiolismRepository.kHip(DEFAULT_PROFILE_ID)],
+            neckCm      = p[BiolismRepository.kNeck(DEFAULT_PROFILE_ID)],
+            cycleDay    = p[BiolismRepository.kCycleDay(DEFAULT_PROFILE_ID)],
             timerState  = timerStateStore.timerState.first(),
             manualHR    = p[BiolismRepository.K_MANUAL_HR],
             sessions    = sessionHistoryStore.sessions.first(),
@@ -58,7 +67,7 @@ internal class BackupStore(
             // device's prior override in place, now permanently diverged from the
             // main profile the restore just overwrote. Always clear first, same
             // key set as clearProfileOverride(), then conditionally reapply.
-            p.remove(BiolismRepository.K_SEX); p.remove(BiolismRepository.K_AGE); p.remove(BiolismRepository.K_HEIGHT); p.remove(BiolismRepository.K_WEIGHT); p.remove(BiolismRepository.K_ACTIVITY)
+            p.remove(BiolismRepository.kSex(DEFAULT_PROFILE_ID)); p.remove(BiolismRepository.kAge(DEFAULT_PROFILE_ID)); p.remove(BiolismRepository.kHeight(DEFAULT_PROFILE_ID)); p.remove(BiolismRepository.kWeight(DEFAULT_PROFILE_ID)); p.remove(BiolismRepository.kActivity(DEFAULT_PROFILE_ID))
             // Every field below previously landed straight in DataStore from the parsed
             // backup with no bound check - BiolismProfileScreen/BiolismOnboardingScreen
             // both clamp these same fields to the same ranges before ever constructing a
@@ -68,11 +77,11 @@ internal class BackupStore(
             // import path. A hand-edited or corrupted Biolism backup could otherwise feed
             // an implausible measurement straight into MetabolicsCalculator's BF%/TDEE math.
             if (data.hasProfileOverride) {
-                data.sex?.let         { p[BiolismRepository.K_SEX] = it }
-                data.ageYears?.let    { p[BiolismRepository.K_AGE] = it.coerceIn(1, 120) }
-                data.heightCm?.let    { p[BiolismRepository.K_HEIGHT] = it.coerceIn(50f, 250f) }
-                data.weightKg?.let    { p[BiolismRepository.K_WEIGHT] = it.coerceIn(20f, 400f) }
-                data.activityId?.let  { p[BiolismRepository.K_ACTIVITY] = it }
+                data.sex?.let         { p[BiolismRepository.kSex(DEFAULT_PROFILE_ID)] = it }
+                data.ageYears?.let    { p[BiolismRepository.kAge(DEFAULT_PROFILE_ID)] = it.coerceIn(1, 120) }
+                data.heightCm?.let    { p[BiolismRepository.kHeight(DEFAULT_PROFILE_ID)] = it.coerceIn(50f, 250f) }
+                data.weightKg?.let    { p[BiolismRepository.kWeight(DEFAULT_PROFILE_ID)] = it.coerceIn(20f, 400f) }
+                data.activityId?.let  { p[BiolismRepository.kActivity(DEFAULT_PROFILE_ID)] = it }
             }
             // Biolism-exclusive body-composition fields (waist/hip/neck/ethnicity/
             // cycleDay) are independent of hasProfileOverride, which only tracks the
@@ -83,12 +92,12 @@ internal class BackupStore(
             // vanish on restore: exportForBackup() captures them unconditionally, but
             // importForBackup only ever reapplied them inside the hasProfileOverride
             // branch. Always clear first, same as the profile-override fields above.
-            p.remove(BiolismRepository.K_ETHNICITY); p.remove(BiolismRepository.K_WAIST); p.remove(BiolismRepository.K_HIP); p.remove(BiolismRepository.K_NECK); p.remove(BiolismRepository.K_CYCLE_DAY)
-            data.ethnicityId?.let { p[BiolismRepository.K_ETHNICITY] = it }
-            data.waistCm?.let     { p[BiolismRepository.K_WAIST] = it.coerceIn(0f, 250f) }
-            data.hipCm?.let       { p[BiolismRepository.K_HIP] = it.coerceIn(0f, 250f) }
-            data.neckCm?.let      { p[BiolismRepository.K_NECK] = it.coerceIn(0f, 100f) }
-            data.cycleDay?.let    { p[BiolismRepository.K_CYCLE_DAY] = it }
+            p.remove(BiolismRepository.kEthnicity(DEFAULT_PROFILE_ID)); p.remove(BiolismRepository.kWaist(DEFAULT_PROFILE_ID)); p.remove(BiolismRepository.kHip(DEFAULT_PROFILE_ID)); p.remove(BiolismRepository.kNeck(DEFAULT_PROFILE_ID)); p.remove(BiolismRepository.kCycleDay(DEFAULT_PROFILE_ID))
+            data.ethnicityId?.let { p[BiolismRepository.kEthnicity(DEFAULT_PROFILE_ID)] = it }
+            data.waistCm?.let     { p[BiolismRepository.kWaist(DEFAULT_PROFILE_ID)] = it.coerceIn(0f, 250f) }
+            data.hipCm?.let       { p[BiolismRepository.kHip(DEFAULT_PROFILE_ID)] = it.coerceIn(0f, 250f) }
+            data.neckCm?.let      { p[BiolismRepository.kNeck(DEFAULT_PROFILE_ID)] = it.coerceIn(0f, 100f) }
+            data.cycleDay?.let    { p[BiolismRepository.kCycleDay(DEFAULT_PROFILE_ID)] = it }
             if (data.manualHR != null) p[BiolismRepository.K_MANUAL_HR] = data.manualHR else p.remove(BiolismRepository.K_MANUAL_HR)
             // Previously only written `if (data.sessions.isNotEmpty())`, same "forgot to
             // clear on the empty case" bug this function's own doc comment above already
