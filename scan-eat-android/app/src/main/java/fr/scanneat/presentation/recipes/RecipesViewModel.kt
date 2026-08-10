@@ -23,11 +23,12 @@ import fr.scanneat.domain.engine.scoring.checkDiet
 import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.engine.scoring.healthConditionCautions
 import fr.scanneat.data.repository.planning.FetchedRecipeResult
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
-@OptIn(FlowPreview::class)
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecipesViewModel @Inject constructor(
     // Widened from private to internal so RecipesImportExt.kt's extension
@@ -46,13 +47,18 @@ class RecipesViewModel @Inject constructor(
 ) : ViewModel() {
     enum class GoalFilter { ALL, HIGH_PROTEIN, LOW_CARB, LOW_FAT }
 
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    internal val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
     // Distinct product names from scan history, for SuggestRecipesDialog's
     // "from history" mode — lets the user build a suggestFromPantry() list by
     // picking things they've actually scanned instead of only ever typing
     // free text (this dialog's own doc comment: "the app has no persisted
     // pantry inventory feature" — scan history doubles as the closest thing
     // to one it already has, at no new storage cost).
-    val historyItems: StateFlow<List<String>> = scanRepository.observeHistory(limit = 50)
+    val historyItems: StateFlow<List<String>> = activeProfileId.flatMapLatest { id -> scanRepository.observeHistory(limit = 50, profileId = id) }
         .map { list -> list.map { it.product.name }.distinct() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -71,7 +77,7 @@ class RecipesViewModel @Inject constructor(
 
     // Widened from private to internal - RecipesOperationsExt.kt's delete()/
     // undoDelete() extension functions need the current snapshot directly.
-    internal val _allRecipes: StateFlow<List<Recipe>> = repo.observeAll()
+    internal val _allRecipes: StateFlow<List<Recipe>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recipes: StateFlow<List<Recipe>> = combine(_allRecipes, _goalFilter, _recipeQuery.debounce(150)) { list, filter, query ->
@@ -224,7 +230,7 @@ class RecipesViewModel @Inject constructor(
     val ingredientQuery: StateFlow<String> = _ingredientQuery.asStateFlow()
 
     val ingredientSearchResults: StateFlow<List<FoodEntry>> =
-        combine(_ingredientQuery.debounce(200), customFoodRepo.observeAll()) { q, customs -> q to customs }
+        combine(_ingredientQuery.debounce(200), activeProfileId.flatMapLatest { id -> customFoodRepo.observeAll(id) }) { q, customs -> q to customs }
             .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 6, customs) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
