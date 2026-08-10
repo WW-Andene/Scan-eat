@@ -319,6 +319,12 @@ class UserPreferences @Inject constructor(
         return id
     }
 
+    /** Renames an existing profile (including "default", whose display name
+     *  is otherwise blank/legacy-derived - see readProfile). */
+    suspend fun renameProfile(id: String, name: String) = store.edit { p ->
+        p[profileKey(id, "name")] = name
+    }
+
     /** Removes [id] from the switcher and its own stored data. Never touches
      *  tracker rows (Diary/Weight/Activity/... still tagged with this
      *  profileId) - same conservative-deletion stance the rest of this app
