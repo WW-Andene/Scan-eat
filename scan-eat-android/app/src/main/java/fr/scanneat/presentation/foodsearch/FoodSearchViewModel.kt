@@ -210,11 +210,24 @@ class FoodSearchViewModel @Inject constructor(
     // search, which only scanned OFF products (not FOOD_DB/custom foods) carry
     // data for - see ScanOffLookup.searchOffProducts.
     //
-    // onlineRaw is kept alongside the flattened FoodSearchItem list so a tap on
-    // an online result can find its full ScanResult back (needed to persist it
-    // - see openOnlineItem) without threading the barcode through a lookup
-    // elsewhere.
-    private var onlineRaw: List<ScanResult> = emptyList()
+    // User-requested: a "typing cache" - every online result ever fetched this
+    // session, kept keyed by barcode (never cleared/reset the way the old
+    // per-query onlineRaw list was) so a tap on any previously-seen online
+    // result can still find its full ScanResult back (needed to persist it -
+    // see openOnlineItem) even after the query has since moved on, and so
+    // instantCacheMatches below has a growing pool to filter instantly.
+    private val onlineRawCache: MutableMap<String, ScanResult> = mutableMapOf()
+    private val onlineItemCache: MutableMap<String, FoodSearchItem> = mutableMapOf()
+
+    /** Every cached online item whose name matches [q] - recomputed straight
+     *  from the in-memory cache, no debounce/network, so it can run on every
+     *  keystroke and show *something* related immediately, before the real
+     *  debounced OFF search below has even fired yet (let alone returned). */
+    private fun instantCacheMatches(q: String): List<FoodSearchItem> {
+        val needle = q.trim().lowercase()
+        if (needle.isEmpty()) return emptyList()
+        return onlineItemCache.values.filter { it.name.lowercase().contains(needle) }.sortedBy { it.name }
+    }
 
     private val _onlineResults = MutableStateFlow<List<FoodSearchItem>>(emptyList())
     val onlineResults: StateFlow<List<FoodSearchItem>> = _onlineResults.asStateFlow()
@@ -243,19 +256,16 @@ class FoodSearchViewModel @Inject constructor(
     private val manualOnlineTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
     init {
+        // Instant path: recomputed straight from the cache on every single
+        // keystroke, completely unthrottled - this is what actually answers
+        // "show me something related even before the real call fires".
+        _query.onEach { q -> _onlineResults.value = instantCacheMatches(q) }.launchIn(viewModelScope)
+
         merge(
             _query.debounce(700).map { it.trim() }.distinctUntilChanged().filter { it.length >= 2 },
             manualOnlineTrigger,
         )
             .flatMapLatest { q -> flow { emit(runOnlineSearch(q)) } }
-            .launchIn(viewModelScope)
-
-        // A query shortened back below the 2-char auto-search floor (or
-        // cleared entirely) should drop whatever online results are still
-        // showing for the old, longer query - otherwise they'd linger under
-        // an unrelated/blank search box until the next successful search.
-        _query.map { it.trim().length < 2 }.distinctUntilChanged()
-            .onEach { belowFloor -> if (belowFloor) clearOnlineResults() }
             .launchIn(viewModelScope)
     }
 
@@ -271,17 +281,33 @@ class FoodSearchViewModel @Inject constructor(
         }
         // distinctBy barcode - OFF's own search results can repeat the same barcode
         // (e.g. regional variants indexed separately but sharing a code); without this,
-        // openOnlineItem's onlineRaw.firstOrNull { it.barcode == item.barcode } lookup
-        // is ambiguous and every duplicate row would silently resolve to the same one.
-        onlineRaw = results.distinctBy { it.barcode }
-        // toItem() sets scanId = dbId, which defaults to 0 (not null) for a
-        // ScanResult that was never persisted - left as-is, FoodSearchRow's
-        // `item.scanId != null` check would treat 0 as "already in this
-        // user's history" and call onOpenResult(0) instead of the
-        // online-persist path below. Forced back to null here since these
-        // results are never actually in scan_history yet.
-        _onlineResults.value = onlineRaw.map { it.toItem().copy(scanId = null, barcode = it.barcode) }
-        _onlineSearchState.value = if (results.isEmpty()) OnlineSearchState.EMPTY else OnlineSearchState.SUCCESS
+        // the cache below would just overwrite itself harmlessly, but openOnlineItem's
+        // barcode lookup being ambiguous is the real reason this stays.
+        val deduped = results.distinctBy { it.barcode }
+        // Merged into the persistent cache (not replacing it) - a query typed
+        // earlier this session whose results scrolled out of view is still
+        // instantly re-findable if the user retypes toward it, and a barcode
+        // seen under one query stays resolvable (for openOnlineItem/
+        // toggleFavorite/resolveFood) even after a later query's results
+        // would otherwise have pushed it out.
+        deduped.forEach { raw ->
+            val barcode = raw.barcode ?: return@forEach
+            onlineRawCache[barcode] = raw
+            // toItem() sets scanId = dbId, which defaults to 0 (not null) for a
+            // ScanResult that was never persisted - left as-is, FoodSearchRow's
+            // `item.scanId != null` check would treat 0 as "already in this
+            // user's history" and call onOpenResult(0) instead of the
+            // online-persist path below. Forced back to null here since these
+            // results are never actually in scan_history yet.
+            onlineItemCache[barcode] = raw.toItem().copy(scanId = null, barcode = barcode)
+        }
+        // Re-filter from the now-updated cache against whatever the query box
+        // currently holds rather than [q] itself - harmless when they match
+        // (the common case), and correct on the rare case this callback still
+        // ran to completion after the query moved on despite flatMapLatest
+        // above cancelling the request.
+        _onlineResults.value = instantCacheMatches(_query.value)
+        _onlineSearchState.value = if (deduped.isEmpty()) OnlineSearchState.EMPTY else OnlineSearchState.SUCCESS
     }
 
     /** Manual "Rechercher en ligne" button - still useful under the 2-char
@@ -293,12 +319,6 @@ class FoodSearchViewModel @Inject constructor(
         manualOnlineTrigger.tryEmit(q)
     }
 
-    fun clearOnlineResults() {
-        onlineRaw = emptyList()
-        _onlineResults.value = emptyList()
-        _onlineSearchState.value = OnlineSearchState.IDLE
-    }
-
     /**
      * An online result isn't in this user's scan history yet - tapping it saves
      * it first (same [ScanRepository.persist] every real scan goes through) so
@@ -306,7 +326,7 @@ class FoodSearchViewModel @Inject constructor(
      * scanned themselves, rather than a bare read-only macro preview.
      */
     fun openOnlineItem(item: FoodSearchItem, onOpened: (Long) -> Unit) {
-        val raw = onlineRaw.firstOrNull { it.barcode == item.barcode } ?: return
+        val raw = item.barcode?.let { onlineRawCache[it] } ?: return
         viewModelScope.launch {
             runCatching { scanRepo.persist(raw) }
                 .onSuccess { onOpened(it) }
@@ -331,7 +351,7 @@ class FoodSearchViewModel @Inject constructor(
                 when {
                     item.scanId != null -> scanRepo.setFavorite(item.scanId, !item.favorite)
                     item.barcode != null -> {
-                        val raw = onlineRaw.firstOrNull { it.barcode == item.barcode } ?: return@runCatching
+                        val raw = onlineRawCache[item.barcode] ?: return@runCatching
                         scanRepo.setFavorite(scanRepo.persist(raw), true)
                     }
                     else -> {
@@ -360,7 +380,7 @@ class FoodSearchViewModel @Inject constructor(
 
     private suspend fun resolveFood(item: FoodSearchItem): ResolvedFood? = when {
         item.scanId != null -> scanRepo.getById(item.scanId)?.let { ResolvedFood(it.product, it.source, it.barcode) }
-        item.barcode != null -> onlineRaw.firstOrNull { it.barcode == item.barcode }?.let { ResolvedFood(it.product, it.source, it.barcode) }
+        item.barcode != null -> onlineRawCache[item.barcode]?.let { ResolvedFood(it.product, it.source, it.barcode) }
         else -> (customFoods.value.firstOrNull { it.name == item.name } ?: FOOD_DB.firstOrNull { it.name == item.name })
             ?.let { ResolvedFood(customFoodRepo.toProduct(it), ScanSource.MANUAL, null) }
     }

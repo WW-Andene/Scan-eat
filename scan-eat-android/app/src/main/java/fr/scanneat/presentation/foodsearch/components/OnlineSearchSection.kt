@@ -75,7 +75,12 @@ internal fun OnlineSearchSection(
                 Text(stringResource(R.string.foodsearch_online_search_button), style = MaterialTheme.typography.labelMedium)
             }
         }
-        if (state == OnlineSearchState.SUCCESS && results.isNotEmpty()) {
+        // User-requested "typing cache": results can now be non-empty (instant
+        // cache-filtered matches from earlier in the session) even while state
+        // is still IDLE/LOADING for the current query's real network call -
+        // gating on results.isNotEmpty() alone, not also state == SUCCESS,
+        // is what actually shows those instant suggestions.
+        if (results.isNotEmpty()) {
             Spacer(Modifier.height(Spacing.S))
             Text(
                 stringResource(R.string.foodsearch_online_section_header, results.size),

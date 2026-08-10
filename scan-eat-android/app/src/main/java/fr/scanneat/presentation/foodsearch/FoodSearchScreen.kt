@@ -49,10 +49,12 @@ fun FoodSearchScreen(viewModel: FoodSearchViewModel = hiltViewModel(), onBack: (
         expandedCategories = if (c in expandedCategories) expandedCategories - c else expandedCategories + c
     }
 
-    // A new typed query invalidates whatever the last "Rechercher en ligne" tap
-    // fetched - without this, changing the search box left a prior query's
-    // online results (and its barcodes) visible under an unrelated new query.
-    LaunchedEffect(query.value) { viewModel.clearOnlineResults() }
+    // User-requested "typing cache": FoodSearchViewModel now re-filters
+    // onlineResults from its own in-memory cache on every query change
+    // itself (instantCacheMatches, in its init block) instead of this screen
+    // blanking them out here - removed, since this LaunchedEffect firing on
+    // the same query change would otherwise immediately wipe out those
+    // instant cache-matched suggestions right after the ViewModel sets them.
 
     // Was missing entirely - openOnlineItem()'s persist() write had no failure
     // feedback path at all, unlike every sibling screen (see its own doc comment).
