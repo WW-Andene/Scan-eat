@@ -277,22 +277,21 @@ val CalorieOrange   = Color(0xFFFF6B35)
 // palette swaps to a blue→orange/brown gradient (Okabe & Ito 2008) where "worse"
 // grades also get darker/lower-luminance, keeping the scale readable even when
 // hue can't be trusted. Grade letters are always shown alongside the color too.
-// 7 evenly-spaced hue steps around the wheel (green->yellow-green->yellow->
-// orange->red-orange->red->dark red/maroon), not a narrow cluster - a prior
-// version inserted E as a color interpolated between D and F's already-close
-// oranges/reds, which round-6's public-bench audit flagged as functionally
-// indistinguishable at badge size despite technically satisfying "darker =
-// worse." B in particular moves off a pale yellow-green (too close to A) onto
-// a true yellow, matching this app's own reference color wheel's primary/
-// secondary/tertiary hue steps rather than a monochrome ramp.
+// The 7 grades map one-to-one onto the color wheel's own named steps from
+// green to red - Green, Yellow-Green (Chartreuse), Yellow, Yellow-Orange
+// (Amber), Orange, Red-Orange (Vermilion), Red - rather than an improvised
+// in-between ramp. A prior version inserted E as a color interpolated
+// between D and F's already-close oranges/reds, which round-6's public-bench
+// audit flagged as functionally indistinguishable at badge size despite
+// technically satisfying "darker = worse."
 private val NormalGradeColors = mapOf(
-    Grade.A_PLUS to Color(0xFF2E7D32),
-    Grade.A      to Color(0xFF8BC34A),
-    Grade.B      to Color(0xFFFFC107),
-    Grade.C      to Color(0xFFFF9800),
-    Grade.D      to Color(0xFFF4511E),
-    Grade.E      to Color(0xFFE53935),
-    Grade.F      to Color(0xFFB71C1C),
+    Grade.A_PLUS to Color(0xFF2E7D32), // Green
+    Grade.A      to Color(0xFF8BC34A), // Yellow-Green (Chartreuse)
+    Grade.B      to Color(0xFFFDD835), // Yellow
+    Grade.C      to Color(0xFFFFC107), // Yellow-Orange (Amber)
+    Grade.D      to Color(0xFFFF9800), // Orange
+    Grade.E      to Color(0xFFF4511E), // Red-Orange (Vermilion)
+    Grade.F      to Color(0xFFE53935), // Red
 )
 // Safe for protanopia/deuteranopia (red-green confusion): diverges on the
 // blue↔orange/brown axis instead, which that pair of deficiencies still sees fine.
