@@ -64,7 +64,7 @@ class ConsumptionRepository @Inject constructor(
         mirrorToHealthConnect(entry)
         mirrorToHydration(entry)
         refreshWidget()
-        return fastingRepo.state.first()?.isActive == true
+        return fastingRepo.state(entry.profileId).first()?.isActive == true
     }
 
     /** Atomic multi-entry write — use when logging a template or recipe that expands to several entries. */
@@ -75,7 +75,7 @@ class ConsumptionRepository @Inject constructor(
         entries.forEach { mirrorToHealthConnect(it) }
         entries.forEach { mirrorToHydration(it) }
         refreshWidget()
-        return fastingRepo.state.first()?.isActive == true
+        return fastingRepo.state(entries.firstOrNull()?.profileId ?: "default").first()?.isActive == true
     }
 
     // User-reported: a bottled water product logged via barcode scan or the

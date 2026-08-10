@@ -67,7 +67,7 @@ class PdfReportRepository @Inject constructor(
         val monthRollup = monthlyRollup(diaryLast30, today)
         val targets = if (hasMinimalProfile(profile)) dailyTargets(profile) else null
         val hydration = hydrationRepo.exportAll().filter { (d, _) -> !d.isBefore(today.minusDays(29)) }
-        val fasts = fastingRepo.history.first().filter { c ->
+        val fasts = fastingRepo.history().first().filter { c ->
             runCatching { LocalDate.parse(c.date) }.getOrNull()?.let { !it.isBefore(today.minusDays(29)) } == true
         }
         val priceEntries = priceRepo.observeAll().first().filter { !it.date.isBefore(today.minusDays(29)) }

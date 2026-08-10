@@ -153,7 +153,7 @@ class CsvExportRepository @Inject constructor(
 
     /** Exports completed fasts as CSV - see [exportWeightCsv]'s own doc comment. */
     suspend fun exportFastingCsv(): String {
-        val rows = fastingRepo.history.first()
+        val rows = fastingRepo.history().first()
         val lines = rows.sortedBy { it.date }.map { c -> "${c.date},${c.targetHours},${c.achievedHours},${c.reached}" }
         return buildCsv("date,targetHours,achievedHours,reached", lines)
     }

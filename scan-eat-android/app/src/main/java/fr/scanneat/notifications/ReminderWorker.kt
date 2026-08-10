@@ -46,6 +46,7 @@ class ReminderWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val s = remindersRepo.settings.first()
         val lang = prefs.language.first()
+        val profileId = prefs.activeProfileId.first()
         val now = LocalTime.now()
 
         checkMeal(s.breakfastOn, s.breakfastTime, RemindersRepository.K_LAST_BREAKFAST_DATE, now, 101,
@@ -63,7 +64,7 @@ class ReminderWorker @AssistedInject constructor(
                 // who already hit today's water goal kept getting nudged anyway.
                 val profile = prefs.profile.first()
                 val goalMl = hydrationRepo.goalMl(profile.sex, profile.activityLevel, profile.healthConditions)
-                val todayMl = hydrationRepo.observe(LocalDate.now()).first()
+                val todayMl = hydrationRepo.observe(LocalDate.now(), profileId).first()
                 if (todayMl < goalMl) {
                     NotificationHelper.show(applicationContext, 104,
                         localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body), NotifChannel.HYDRATION)
@@ -74,7 +75,7 @@ class ReminderWorker @AssistedInject constructor(
             localizedString(lang, R.string.reminders_notif_hydration_title), localizedString(lang, R.string.reminders_notif_hydration_body), NotifChannel.HYDRATION)
 
         if (s.weightOn) {
-            val lastDate = weightRepo.observeAll().first().maxByOrNull { it.date }?.date
+            val lastDate = weightRepo.observeAll(profileId).first().maxByOrNull { it.date }?.date
             val daysSince = lastDate?.let { ChronoUnit.DAYS.between(it, LocalDate.now()) } ?: Long.MAX_VALUE
             if (daysSince >= s.weightThresholdDays && !remindersRepo.wasFiredToday(RemindersRepository.K_LAST_WEIGHT_NUDGE_DATE)) {
                 if (NotificationHelper.show(applicationContext, 105,
@@ -87,7 +88,7 @@ class ReminderWorker @AssistedInject constructor(
             localizedString(lang, R.string.reminders_notif_weight_title), localizedString(lang, R.string.reminders_notif_weight_body), NotifChannel.WEIGHT)
 
         if (s.activityOn) {
-            val lastDate = activityRepo.getRange(LocalDate.now().minusDays(90), LocalDate.now()).maxByOrNull { it.date }?.date
+            val lastDate = activityRepo.getRange(LocalDate.now().minusDays(90), LocalDate.now(), profileId).maxByOrNull { it.date }?.date
             val daysSince = lastDate?.let { ChronoUnit.DAYS.between(it, LocalDate.now()) } ?: Long.MAX_VALUE
             if (daysSince >= s.activityThresholdDays && !remindersRepo.wasFiredToday(RemindersRepository.K_LAST_ACTIVITY_NUDGE_DATE)) {
                 if (NotificationHelper.show(applicationContext, 111,
@@ -101,8 +102,8 @@ class ReminderWorker @AssistedInject constructor(
             checkMeal(cr.on, cr.time, remindersRepo.customLastFiredKey(cr.id), now, cr.id, cr.label, cr.label, NotifChannel.CUSTOM)
         }
 
-        val takenMedIds = medicationRepo.observeLogByDate(LocalDate.now()).first().map { it.medicationId }.toSet()
-        medicationRepo.observeAll().first().filter { it.active && it.reminderOn }.forEach { med ->
+        val takenMedIds = medicationRepo.observeLogByDate(LocalDate.now(), profileId).first().map { it.medicationId }.toSet()
+        medicationRepo.observeAll(profileId).first().filter { it.active && it.reminderOn }.forEach { med ->
             val title = localizedString(lang, R.string.reminders_notif_medication_title)
             val body = String.format(localizedString(lang, R.string.reminders_notif_medication_body), med.name)
             val justFired = checkMeal(true, med.reminderTime, remindersRepo.medicationLastFiredKey(med.id), now, med.id.hashCode(), title, body, NotifChannel.MEDICATION)
@@ -123,7 +124,7 @@ class ReminderWorker @AssistedInject constructor(
             }
         }
 
-        fastingRepo.state.first()?.let { fast ->
+        fastingRepo.state(profileId).first()?.let { fast ->
             if (fast.elapsedHours >= fast.targetHours && !remindersRepo.fastingTargetAlreadyNotified(fast.startMs)) {
                 if (NotificationHelper.show(applicationContext, 109,
                     localizedString(lang, R.string.reminders_notif_fasting_title), localizedString(lang, R.string.reminders_notif_fasting_body), NotifChannel.FASTING)) {
