@@ -3,6 +3,8 @@ package fr.scanneat.data.repository.scan
 import androidx.room.withTransaction
 import com.squareup.moshi.Moshi
 import fr.scanneat.data.local.db.AppDatabase
+import fr.scanneat.data.local.db.scan.OnlineSearchCacheDao
+import fr.scanneat.data.local.db.scan.OnlineSearchCacheEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
@@ -58,6 +60,7 @@ class ScanRepository @Inject constructor(
     private val opfApi: OpenProductsFactsApi,
     private val dao: ScanHistoryDao,
     private val scoreHistoryDao: ScanScoreHistoryDao,
+    private val onlineSearchCacheDao: OnlineSearchCacheDao,
     private val prefs: UserPreferences,
     private val ocrParser: OcrParser,
     private val moshi: Moshi,                  // singleton from AppModule
@@ -114,6 +117,50 @@ class ScanRepository @Inject constructor(
 
     suspend fun searchOffProducts(query: String, lang: String): List<ScanResult> =
         historyQueries.searchOffProducts(query, lang)
+
+    /**
+     * User-requested persisted "typing cache" for Recherche's online search -
+     * every OFF result loaded back on app start, so instant offline
+     * suggestions from a prior session survive a restart instead of only
+     * living in FoodSearchViewModel's in-memory maps. A row that fails to
+     * deserialize (corrupt JSON, a future incompatible Product/ScoreAudit
+     * shape) is silently skipped rather than crashing the whole load - same
+     * defensive stance mapScanHistoryEntity already takes for scan_history.
+     */
+    suspend fun loadOnlineSearchCache(): List<ScanResult> =
+        onlineSearchCacheDao.getAll().mapNotNull { entity ->
+            runCatching {
+                ScanResult(
+                    product  = productAdapter.fromJson(entity.productJson) ?: return@runCatching null,
+                    audit    = auditAdapter.fromJson(entity.auditJson) ?: return@runCatching null,
+                    warnings = warningsAdapter.fromJson(entity.warningsJson) ?: emptyList(),
+                    source   = ScanSource.valueOf(entity.sourceJson),
+                    barcode  = entity.barcode,
+                )
+            }.getOrNull()
+        }
+
+    /** Persists a batch of online search results into online_search_cache -
+     *  see [loadOnlineSearchCache]. Skips any result with no barcode (the
+     *  table's primary key), which shouldn't happen for a real OFF search hit
+     *  but isn't guaranteed by the API response shape. */
+    suspend fun cacheOnlineSearchResults(results: List<ScanResult>) {
+        val now = System.currentTimeMillis()
+        val entities = results.mapNotNull { result ->
+            val barcode = result.barcode ?: return@mapNotNull null
+            OnlineSearchCacheEntity(
+                barcode      = barcode,
+                productJson  = productAdapter.toJson(result.product),
+                auditJson    = auditAdapter.toJson(result.audit),
+                sourceJson   = result.source.name,
+                warningsJson = warningsAdapter.toJson(result.warnings),
+                cachedAt     = now,
+            )
+        }
+        if (entities.isEmpty()) return
+        onlineSearchCacheDao.upsertAll(entities)
+        onlineSearchCacheDao.trimTo(MAX_ONLINE_CACHE_ROWS)
+    }
 
     suspend fun setFavorite(id: Long, favorite: Boolean) = historyQueries.setFavorite(id, favorite)
 
@@ -419,5 +466,7 @@ class ScanRepository @Inject constructor(
     private companion object {
         /** Generous cap on non-favorite scan_history rows per profile - see persist()/ScanHistoryDao.trimNonFavorites. */
         const val MAX_HISTORY_ROWS = 5000
+        /** Cap on online_search_cache rows - see cacheOnlineSearchResults()/OnlineSearchCacheDao.trimTo. */
+        const val MAX_ONLINE_CACHE_ROWS = 500
     }
 }

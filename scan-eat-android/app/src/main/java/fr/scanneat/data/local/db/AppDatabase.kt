@@ -19,6 +19,8 @@ import fr.scanneat.data.local.db.price.PriceDao
 import fr.scanneat.data.local.db.price.PriceEntity
 import fr.scanneat.data.local.db.recipe.RecipeDao
 import fr.scanneat.data.local.db.recipe.RecipeEntity
+import fr.scanneat.data.local.db.scan.OnlineSearchCacheDao
+import fr.scanneat.data.local.db.scan.OnlineSearchCacheEntity
 import fr.scanneat.data.local.db.scan.ScanHistoryDao
 import fr.scanneat.data.local.db.scan.ScanHistoryEntity
 import fr.scanneat.data.local.db.scan.ScanScoreHistoryDao
@@ -41,8 +43,9 @@ import fr.scanneat.data.local.db.weight.WeightEntity
         MedicationLogEntity::class,
         ScanScoreHistoryEntity::class,
         PriceEntity::class,
+        OnlineSearchCacheEntity::class,
     ],
-    version = 28,
+    version = 29,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -57,6 +60,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun medicationLogDao(): MedicationLogDao
     abstract fun scanScoreHistoryDao(): ScanScoreHistoryDao
     abstract fun priceDao(): PriceDao
+    abstract fun onlineSearchCacheDao(): OnlineSearchCacheDao
 }
 
 // ── Room migrations ────────────────────────────────────────────────────────────
@@ -439,5 +443,25 @@ val MIGRATION_27_28 = object : Migration(27, 28) {
         // every already-logged activity is treated as indoor, not a retroactive
         // vitD credit for sessions this flag didn't exist to ask about.
         db.execSQL("ALTER TABLE activity_log ADD COLUMN wasOutdoors INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+val MIGRATION_28_29 = object : Migration(28, 29) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // v28 → v29: new `online_search_cache` table - user-requested persisted
+        // "typing cache" for Recherche's online (Open Food Facts) search, so
+        // instant suggestions from a prior session survive an app restart
+        // instead of only living in FoodSearchViewModel's in-memory maps -
+        // see OnlineSearchCacheEntity's own doc comment.
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `online_search_cache` (" +
+                "`barcode` TEXT NOT NULL, " +
+                "`productJson` TEXT NOT NULL, " +
+                "`auditJson` TEXT NOT NULL, " +
+                "`sourceJson` TEXT NOT NULL, " +
+                "`warningsJson` TEXT NOT NULL DEFAULT '[]', " +
+                "`cachedAt` INTEGER NOT NULL, " +
+                "PRIMARY KEY(`barcode`))"
+        )
     }
 }

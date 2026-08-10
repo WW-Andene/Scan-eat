@@ -256,6 +256,21 @@ class FoodSearchViewModel @Inject constructor(
     private val manualOnlineTrigger = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
     init {
+        // User-requested: persist the typing cache across app restarts, not
+        // just in-memory for the current process - loaded once here from
+        // online_search_cache (see ScanRepository.loadOnlineSearchCache) into
+        // the same maps the live search below also writes into, so a query
+        // typed in an earlier session shows instant results again today
+        // without re-hitting OFF's rate-limited search endpoint at all.
+        viewModelScope.launch {
+            scanRepo.loadOnlineSearchCache().forEach { raw ->
+                val barcode = raw.barcode ?: return@forEach
+                onlineRawCache[barcode] = raw
+                onlineItemCache[barcode] = raw.toItem().copy(scanId = null, barcode = barcode)
+            }
+            _onlineResults.value = instantCacheMatches(_query.value)
+        }
+
         // Instant path: recomputed straight from the cache on every single
         // keystroke, completely unthrottled - this is what actually answers
         // "show me something related even before the real call fires".
@@ -301,6 +316,12 @@ class FoodSearchViewModel @Inject constructor(
             // results are never actually in scan_history yet.
             onlineItemCache[barcode] = raw.toItem().copy(scanId = null, barcode = barcode)
         }
+        // User-requested: persist to online_search_cache too, not just the
+        // in-memory maps above - fire-and-forget, doesn't block the UI update
+        // below on a disk write, and a failure here just means this batch
+        // isn't in tomorrow's cache, not a user-visible error (this session's
+        // in-memory cache already has it regardless).
+        viewModelScope.launch { runCatching { scanRepo.cacheOnlineSearchResults(deduped) } }
         // Re-filter from the now-updated cache against whatever the query box
         // currently holds rather than [q] itself - harmless when they match
         // (the common case), and correct on the rare case this callback still
