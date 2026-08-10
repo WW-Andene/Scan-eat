@@ -125,7 +125,7 @@ class GroceryViewModel @Inject constructor(
     // toggling scopeToPlanned on/off never discards check-off state for an
     // ingredient that's just temporarily out of view, only for one that's truly
     // gone (recipe/template deleted/edited).
-    private val allRecipeItems: StateFlow<List<GroceryItem>> = combine(recipes, templates, manualGroceryRepo.asRecipeInputs) { recipeList, templateList, manual ->
+    private val allRecipeItems: StateFlow<List<GroceryItem>> = combine(recipes, templates, activeProfileId.flatMapLatest { id -> manualGroceryRepo.asRecipeInputs(id) }) { recipeList, templateList, manual ->
         aggregateGroceryList(recipeList.map { it.toGroceryInput() } + templateList.map { it.toGroceryInput() } + manual)
     }
         .flowOn(Dispatchers.Default)
@@ -140,7 +140,7 @@ class GroceryViewModel @Inject constructor(
         combine(recipes, plannedRecipeCounts, ::Pair),
         combine(templates, plannedTemplateCounts, ::Pair),
         _scopeToPlanned,
-        manualGroceryRepo.asRecipeInputs,
+        activeProfileId.flatMapLatest { id -> manualGroceryRepo.asRecipeInputs(id) },
     ) { (recipeList, recipeCounts), (templateList, templateCounts), scoped, manual ->
         val inputs = if (!scoped) {
             recipeList.map { it.toGroceryInput() } + templateList.map { it.toGroceryInput() }
@@ -199,7 +199,7 @@ class GroceryViewModel @Inject constructor(
      * previously ignored [_sortAlpha] entirely, so toggling "Sort A-Z" changed the
      * icon's tint but never actually reordered the on-screen checklist.
      */
-    val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(groceryItems, checkedRepo.checkedKeys) { items, checked ->
+    val checkableItems: StateFlow<List<CheckableGroceryItem>> = combine(groceryItems, activeProfileId.flatMapLatest { id -> checkedRepo.checkedKeys(id) }) { items, checked ->
         items.map { CheckableGroceryItem(it, checked = it.key in checked) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -211,7 +211,7 @@ class GroceryViewModel @Inject constructor(
      * deleted since), so the readout could show more checked items than the list
      * actually has (e.g. "5/3 checked") instead of capping at the list size.
      */
-    val checkedProgress: StateFlow<Pair<Int, Int>> = combine(rawItems, checkedRepo.checkedKeys) { items, checked ->
+    val checkedProgress: StateFlow<Pair<Int, Int>> = combine(rawItems, activeProfileId.flatMapLatest { id -> checkedRepo.checkedKeys(id) }) { items, checked ->
         val validKeys = items.map { it.key }.toSet()
         checked.count { it in validKeys } to items.size
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0 to 0)
@@ -239,7 +239,7 @@ class GroceryViewModel @Inject constructor(
             // would prune every persisted checked key away the instant this
             // ViewModel is created, before the real recipe list even loads.
             allRecipeItems.drop(1).collect { items ->
-                runCatching { checkedRepo.pruneToKeys(items.map { it.key }.toSet()) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+                runCatching { checkedRepo.pruneToKeys(items.map { it.key }.toSet(), activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
             }
         }
     }
@@ -250,11 +250,11 @@ class GroceryViewModel @Inject constructor(
         // aggregate to the same item, or a renamed recipe changing which spelling
         // gets picked as `name`, would otherwise silently orphan the persisted
         // checked-state key and un-check a previously-checked item.
-        viewModelScope.launch { runCatching { checkedRepo.setChecked(item.key, checked) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { checkedRepo.setChecked(item.key, checked, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun clearAllChecked() {
-        viewModelScope.launch { runCatching { checkedRepo.clearAll() }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { checkedRepo.clearAll(activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     // ManualGroceryRepository.remove() previously had zero callers anywhere in the
@@ -264,7 +264,7 @@ class GroceryViewModel @Inject constructor(
     // identity aggregateGroceryList() builds it from, so a manual item can be
     // matched back to (and deleted from) the aggregated row it contributes to
     // without needing the aggregation itself to carry per-source ids.
-    val manualItemKeys: StateFlow<Set<String>> = combine(manualGroceryRepo.items, rawItems) { list, items ->
+    val manualItemKeys: StateFlow<Set<String>> = combine(activeProfileId.flatMapLatest { id -> manualGroceryRepo.items(id) }, rawItems) { list, items ->
         val existingKeys = items.map { it.key }.toSet()
         list.map { canonicalGroceryKey(it.name, existingKeys) }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
@@ -272,7 +272,7 @@ class GroceryViewModel @Inject constructor(
     /** Add a free-text item directly from the grocery screen's inline input row. */
     fun quickAdd(name: String) {
         if (name.isBlank()) return
-        viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { manualGroceryRepo.add(name.trim(), 0.0, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     // Same undo-delete pattern as Diary/Weight/ScanHistory/Medication - snapshots
@@ -287,9 +287,9 @@ class GroceryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 val existingKeys = rawItems.value.map { it.key }.toSet()
-                val toRemove = manualGroceryRepo.items.first()
+                val toRemove = manualGroceryRepo.items(activeProfileId.value).first()
                     .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
-                toRemove.forEach { manualGroceryRepo.remove(it.id) }
+                toRemove.forEach { manualGroceryRepo.remove(it.id, activeProfileId.value) }
                 toRemove
             }.onSuccess { removed -> lastDeleted = removed }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
@@ -308,9 +308,9 @@ class GroceryViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 val existingKeys = rawItems.value.map { it.key }.toSet()
-                manualGroceryRepo.items.first()
+                manualGroceryRepo.items(activeProfileId.value).first()
                     .filter { canonicalGroceryKey(it.name, existingKeys) == groceryKey }
-                    .forEach { manualGroceryRepo.updateGrams(it.id, grams) }
+                    .forEach { manualGroceryRepo.updateGrams(it.id, grams, activeProfileId.value) }
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
@@ -319,7 +319,7 @@ class GroceryViewModel @Inject constructor(
         val removed = lastDeleted ?: return
         lastDeleted = null
         viewModelScope.launch {
-            runCatching { removed.forEach { manualGroceryRepo.add(it.name, it.grams) } }
+            runCatching { removed.forEach { manualGroceryRepo.add(it.name, it.grams, activeProfileId.value) } }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

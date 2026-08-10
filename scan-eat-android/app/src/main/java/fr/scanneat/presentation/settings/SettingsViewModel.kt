@@ -130,7 +130,11 @@ class SettingsViewModel @Inject constructor(
      * shows the new symbol next to a not-yet-converted number.
      */
     fun setCurrencySymbolWithConversion(v: String, factor: Double) = guardedLaunch {
-        priceRepo.convertAllPrices(factor)
+        // Currency is a global app setting, not per-profile - converting only the
+        // active profile's price history would silently leave every other
+        // profile's already-logged prices in the old currency's numbers while
+        // showing them next to the new symbol app-wide.
+        prefs.profileIds.first().forEach { id -> priceRepo.convertAllPrices(factor, id) }
         prefs.setCurrencySymbol(v)
     }
     fun setBiolismAdvancedView(v: Boolean) = guardedLaunch { prefs.setBiolismAdvancedView(v) }

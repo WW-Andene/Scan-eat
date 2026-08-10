@@ -55,7 +55,7 @@ class ExpensesViewModel @Inject constructor(
     fun addToGroceryList(entry: PriceEntry) {
         val grams = entry.weightG ?: return
         viewModelScope.launch {
-            runCatching { groceryRepo.add(entry.productName, grams) }
+            runCatching { groceryRepo.add(entry.productName, grams, activeProfileId.value) }
                 .onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }

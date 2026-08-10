@@ -25,7 +25,13 @@ import javax.inject.Singleton
 // ============================================================================
 
 private val Context.groceryCheckedDataStore by preferencesDataStore(name = "grocery_checked")
-private val KEY_CHECKED = stringSetPreferencesKey("checked_item_keys")
+
+// R&D audit finding: grocery checked-state was a DataStore singleton with no
+// profileId concept at all. "default" keeps the exact same key name
+// pre-existing installs already use (zero migration); any other profile gets
+// its own namespaced key.
+private fun checkedKey(profileId: String) =
+    stringSetPreferencesKey(if (profileId == "default") "checked_item_keys" else "checked_item_keys_${profileId}")
 
 @Singleton
 class GroceryCheckedRepository @Inject constructor(
@@ -39,22 +45,24 @@ class GroceryCheckedRepository @Inject constructor(
         if (e is IOException) emit(emptyPreferences()) else throw e
     }
 
-    val checkedKeys: Flow<Set<String>> = storeData.map { it[KEY_CHECKED] ?: emptySet() }.distinctUntilChanged()
+    fun checkedKeys(profileId: String = "default"): Flow<Set<String>> =
+        storeData.map { it[checkedKey(profileId)] ?: emptySet() }.distinctUntilChanged()
 
     /** Count of checked items — cheap reactive source for a "3/12 checked" progress readout,
      *  without every collector re-deriving it from the full [checkedKeys] set. */
-    val checkedCount: Flow<Int> = checkedKeys.map { it.size }.distinctUntilChanged()
+    fun checkedCount(profileId: String = "default"): Flow<Int> = checkedKeys(profileId).map { it.size }.distinctUntilChanged()
 
-    suspend fun setChecked(key: String, checked: Boolean) {
+    suspend fun setChecked(key: String, checked: Boolean, profileId: String = "default") {
         store.edit { prefs ->
-            val current = prefs[KEY_CHECKED] ?: emptySet()
-            prefs[KEY_CHECKED] = if (checked) current + key else current - key
+            val k = checkedKey(profileId)
+            val current = prefs[k] ?: emptySet()
+            prefs[k] = if (checked) current + key else current - key
         }
     }
 
     /** Clears every checked mark — e.g. once a shopping trip is done. */
-    suspend fun clearAll() {
-        store.edit { prefs -> prefs.remove(KEY_CHECKED) }
+    suspend fun clearAll(profileId: String = "default") {
+        store.edit { prefs -> prefs.remove(checkedKey(profileId)) }
     }
 
     /**
@@ -69,11 +77,12 @@ class GroceryCheckedRepository @Inject constructor(
      * aggregated list changes, same self-healing pattern as Hydration/DayNotes'
      * date-based prune.
      */
-    suspend fun pruneToKeys(validKeys: Set<String>) {
+    suspend fun pruneToKeys(validKeys: Set<String>, profileId: String = "default") {
         store.edit { prefs ->
-            val current = prefs[KEY_CHECKED] ?: emptySet()
+            val k = checkedKey(profileId)
+            val current = prefs[k] ?: emptySet()
             val pruned = current.intersect(validKeys)
-            if (pruned.size != current.size) prefs[KEY_CHECKED] = pruned
+            if (pruned.size != current.size) prefs[k] = pruned
         }
     }
 
@@ -87,6 +96,6 @@ class GroceryCheckedRepository @Inject constructor(
      */
     suspend fun restoreAll(keys: Set<String>) {
         if (keys.isEmpty()) return
-        store.edit { prefs -> prefs[KEY_CHECKED] = (prefs[KEY_CHECKED] ?: emptySet()) + keys }
+        store.edit { prefs -> val k = checkedKey("default"); prefs[k] = (prefs[k] ?: emptySet()) + keys }
     }
 }

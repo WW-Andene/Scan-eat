@@ -59,6 +59,7 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                     // already-known category was discarded in favour of a
                     // hardcoded "other" on the saved custom food.
                     category = scan.product.category,
+                    profileId = profile.value.id,
                 )
             }
             if (SaveDestination.COURSES in destinations) {
@@ -70,7 +71,7 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                 // addOrUpdate (not add) - re-saving the same product on a later
                 // shopping trip previously created a fresh duplicate line item
                 // every time instead of refreshing the existing one's quantity.
-                manualGroceryRepo.addOrUpdate(scan.product.name, scan.product.weightG ?: 100.0)
+                manualGroceryRepo.addOrUpdate(scan.product.name, scan.product.weightG ?: 100.0, profile.value.id)
             }
             if (SaveDestination.REPAS in destinations) {
                 val n = scan.product.nutrition
@@ -81,7 +82,7 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                 // Was recipeRepo.observeAll().first().find{} - a full-table load+scan
                 // on every single scan-result save just to detect a duplicate name,
                 // growing with the recipe count. findByName does the same lookup in SQL.
-                val existingId = recipeRepo.findByName(scan.product.name)?.id
+                val existingId = recipeRepo.findByName(scan.product.name, profile.value.id)?.id
                 // Was hardcoded to 100g while the COURSES branch just above was fixed
                 // to use the real package weight - a scanned 1.5kg product saved as a
                 // recipe ingredient reported nutrition as if it were 100g. n.* are
@@ -103,6 +104,7 @@ internal fun ResultViewModel.saveToDestinations(destinations: Set<SaveDestinatio
                         ),
                     ),
                     id = existingId,
+                    profileId = profile.value.id,
                 )
             }
         }.onFailure { e ->

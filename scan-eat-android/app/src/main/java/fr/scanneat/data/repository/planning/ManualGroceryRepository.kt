@@ -29,7 +29,13 @@ import javax.inject.Singleton
 data class ManualGroceryItem(val id: String, val name: String, val grams: Double)
 
 private val Context.manualGroceryDataStore by preferencesDataStore(name = "manual_grocery")
-private val KEY_ITEMS = stringPreferencesKey("manual_grocery_items")
+
+// R&D audit finding: manual grocery items were a DataStore singleton with no
+// profileId concept at all. "default" keeps the exact same key name
+// pre-existing installs already use (zero migration); any other profile gets
+// its own namespaced key.
+private fun itemsKey(profileId: String) =
+    stringPreferencesKey(if (profileId == "default") "manual_grocery_items" else "manual_grocery_items_${profileId}")
 
 @Singleton
 class ManualGroceryRepository @Inject constructor(
@@ -44,19 +50,21 @@ class ManualGroceryRepository @Inject constructor(
         if (e is IOException) emit(emptyPreferences()) else throw e
     }
 
-    val items: Flow<List<ManualGroceryItem>> = storeData.map { parse(it[KEY_ITEMS]) }.distinctUntilChanged()
+    fun items(profileId: String = "default"): Flow<List<ManualGroceryItem>> =
+        storeData.map { parse(it[itemsKey(profileId)]) }.distinctUntilChanged()
 
     /** Feeds directly into aggregateGroceryList() alongside recipe-derived inputs. */
-    val asRecipeInputs: Flow<List<GroceryRecipeInput>> = items.map { list ->
+    fun asRecipeInputs(profileId: String = "default"): Flow<List<GroceryRecipeInput>> = items(profileId).map { list ->
         list.map { GroceryRecipeInput(name = it.name, components = listOf(GroceryComponent(it.name, it.grams))) }
     }
 
-    suspend fun add(name: String, grams: Double) {
+    suspend fun add(name: String, grams: Double, profileId: String = "default") {
         if (name.isBlank()) return
         store.edit { prefs ->
-            val current = parse(prefs[KEY_ITEMS]).toMutableList()
+            val k = itemsKey(profileId)
+            val current = parse(prefs[k]).toMutableList()
             current.add(ManualGroceryItem(UUID.randomUUID().toString(), name.trim(), grams.coerceAtLeast(0.0)))
-            prefs[KEY_ITEMS] = serialize(current)
+            prefs[k] = serialize(current)
         }
     }
 
@@ -68,38 +76,41 @@ class ManualGroceryRepository @Inject constructor(
      * of refreshing the existing one's quantity, unlike the Mes Aliments
      * destination in that same popup, which already dedupes by barcode/name.
      */
-    suspend fun addOrUpdate(name: String, grams: Double) {
+    suspend fun addOrUpdate(name: String, grams: Double, profileId: String = "default") {
         if (name.isBlank()) return
         store.edit { prefs ->
-            val current = parse(prefs[KEY_ITEMS]).toMutableList()
+            val k = itemsKey(profileId)
+            val current = parse(prefs[k]).toMutableList()
             val idx = current.indexOfFirst { it.name.equals(name.trim(), ignoreCase = true) }
             if (idx >= 0) {
                 current[idx] = current[idx].copy(grams = grams.coerceAtLeast(0.0))
             } else {
                 current.add(ManualGroceryItem(UUID.randomUUID().toString(), name.trim(), grams.coerceAtLeast(0.0)))
             }
-            prefs[KEY_ITEMS] = serialize(current)
+            prefs[k] = serialize(current)
         }
     }
 
     /** Corrects an existing manual item's quantity in place - previously the
      *  only way to fix a mistaken/changed quantity was delete-and-re-add,
      *  losing the item's position in the list and its id. */
-    suspend fun updateGrams(id: String, grams: Double) {
+    suspend fun updateGrams(id: String, grams: Double, profileId: String = "default") {
         store.edit { prefs ->
-            val current = parse(prefs[KEY_ITEMS]).toMutableList()
+            val k = itemsKey(profileId)
+            val current = parse(prefs[k]).toMutableList()
             val idx = current.indexOfFirst { it.id == id }
             if (idx >= 0) {
                 current[idx] = current[idx].copy(grams = grams.coerceAtLeast(0.0))
-                prefs[KEY_ITEMS] = serialize(current)
+                prefs[k] = serialize(current)
             }
         }
     }
 
-    suspend fun remove(id: String) {
+    suspend fun remove(id: String, profileId: String = "default") {
         store.edit { prefs ->
-            val current = parse(prefs[KEY_ITEMS]).filterNot { it.id == id }
-            prefs[KEY_ITEMS] = serialize(current)
+            val k = itemsKey(profileId)
+            val current = parse(prefs[k]).filterNot { it.id == id }
+            prefs[k] = serialize(current)
         }
     }
 
@@ -129,14 +140,15 @@ class ManualGroceryRepository @Inject constructor(
     // backup/restore or device migration, unlike every other grocery-list
     // input (recipes, checked-off state).
 
-    suspend fun exportAll(): List<ManualGroceryItem> = parse(storeData.first()[KEY_ITEMS])
+    suspend fun exportAll(): List<ManualGroceryItem> = parse(storeData.first()[itemsKey("default")])
 
     /** Restores entries from a backup - merged with (not replacing) whatever manual items already exist locally, keyed by id, same non-destructive intent as every other importAll() in this app. */
     suspend fun importAll(entries: List<ManualGroceryItem>) {
         if (entries.isEmpty()) return
         store.edit { prefs ->
-            val merged = (parse(prefs[KEY_ITEMS]) + entries).distinctBy { it.id }
-            prefs[KEY_ITEMS] = serialize(merged)
+            val k = itemsKey("default")
+            val merged = (parse(prefs[k]) + entries).distinctBy { it.id }
+            prefs[k] = serialize(merged)
         }
     }
 }
