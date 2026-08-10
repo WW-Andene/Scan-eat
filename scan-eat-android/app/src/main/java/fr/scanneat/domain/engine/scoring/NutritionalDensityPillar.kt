@@ -48,7 +48,17 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
 
     // Protein (0–7)
     val (pLow, pMed, pHigh) = thresholds.proteinG
-    val protScore = when {
+    // User-reported (via the alcohol scoring audit): pHigh==0.0 means this
+    // category's threshold band is (0,0,0) - protein is not a meaningful axis
+    // here (water, soda, alcoholic beverages, oil/fat). n.proteinG >= pHigh
+    // (i.e. >= 0.0) is trivially true for any non-negative value, so every
+    // such product previously scored the full 7/7 "high protein" tier purely
+    // from having literally zero protein - up to 14 of this pillar's 25
+    // points awarded for free (7 here + the same bug in fiber below), on top
+    // of whatever else the product scored. The comment that used to sit here
+    // only suppressed the misleading bonus *badge* below, leaving this
+    // unearned score contribution itself untouched.
+    val protScore = if (pHigh == 0.0) 0.0 else when {
         n.proteinG >= pHigh -> 7.0
         n.proteinG >= pMed  -> 5.0
         n.proteinG >= pLow  -> 3.0
@@ -57,11 +67,11 @@ fun scoreNutritionalDensity(product: Product, lang: String = "en"): PillarScore 
     score += protScore
     if (protScore < 7) deductions += Deduction("nutritional_density", if (en) "Protein ${n.proteinG}g/100g (${protScore.toInt()}/7)" else "Protéines ${n.proteinG}g/100g (${protScore.toInt()}/7)", protScore - 7, Severity.MINOR)
     else if (n.proteinG > 0.0) bonuses += Deduction("nutritional_density", if (en) "High protein ${n.proteinG}g/100g" else "Riche en protéines ${n.proteinG}g/100g", 7.0, Severity.INFO)
-    // else: protScore maxed only because this category's protein threshold is 0 (irrelevant, e.g. water) — not a real achievement, skip the highlight
 
     // Fiber (0–7)
     val (fLow, fMed, fHigh) = thresholds.fiberG
-    val fiberScore = when {
+    // Same zero-threshold-category fix as protein above.
+    val fiberScore = if (fHigh == 0.0) 0.0 else when {
         n.fiberG >= fHigh -> 7.0
         n.fiberG >= fMed  -> 5.0
         n.fiberG >= fLow  -> 3.0

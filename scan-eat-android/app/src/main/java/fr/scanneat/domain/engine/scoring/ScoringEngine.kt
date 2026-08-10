@@ -132,6 +132,22 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
         candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", 40)
 
+    // User-reported (via the alcohol scoring audit): the combo veto above only
+    // fires for PROCESSED_MEAT with high salt AND a refined-starch ingredient -
+    // AdditivesTier1.kt labels E249/E250 "IARC Group 1 (processed meat,
+    // carcinogenic to humans)", the same carcinogen classification that
+    // justifies the alcohol veto elsewhere in this function, but nitrite/
+    // nitrate in a fish, ready-meal, or sandwich product (any category other
+    // than PROCESSED_MEAT), or a cured meat that happens to sit under the
+    // salt/starch bar, previously never triggered any veto at all - only the
+    // flat, easily-absorbed Tier-1 additive deduction in AdditiveRiskPillar.kt.
+    // A softer cap than the full combo (45, not 40) since presence alone
+    // (without the corroborating high-salt/refined-starch signal) is a real
+    // but less compounded risk - candidates.minByOrNull{cap} below still picks
+    // the stricter combo veto automatically whenever both conditions hold.
+    if (hasNitrites)
+        candidates += VetoCondition(true, if (en) "Contains nitrite/nitrate preservatives (E249/E250) — IARC Group 1 carcinogen" else "Contient des conservateurs nitrités (E249/E250) — cancérigène IARC groupe 1", 45)
+
     val sugars = n.addedSugarsG ?: n.sugarsG
     if (product.category == ProductCategory.BEVERAGE_SOFT && sugars > 5 && n.proteinG < 1 && n.fiberG < 1)
         candidates += VetoCondition(true, if (en) "Sugar-sweetened beverage with no nutritional contribution" else "Boisson sucrée sans apport nutritionnel", 30)
