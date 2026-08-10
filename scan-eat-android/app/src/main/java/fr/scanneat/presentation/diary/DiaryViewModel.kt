@@ -55,6 +55,13 @@ class DiaryViewModel @Inject constructor(
 
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support (UserPreferences' Profile section) made it real -
+    // every tracker call below now targets the actually-active profile
+    // instead of the implicit "default" every call site previously assumed.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
     val useImperial: StateFlow<Boolean> = prefs.useImperialWeight
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     val currencySymbol: StateFlow<String> = prefs.currencySymbol
@@ -79,7 +86,8 @@ class DiaryViewModel @Inject constructor(
     // arrive newest-first from PriceRepository.observeAll, so first() per group
     // is already the latest); entries with no weight (pricePerKg == null, e.g.
     // a restaurant bill with no per-kg meaning) simply don't contribute here.
-    val pricePerKgByBarcode: StateFlow<Map<String, Double>> = priceRepo.observeAll()
+    val pricePerKgByBarcode: StateFlow<Map<String, Double>> = activeProfileId
+        .flatMapLatest { id -> priceRepo.observeAll(id) }
         .map { entries ->
             entries.filter { it.barcode != null && it.pricePerKg != null }
                 .groupBy { it.barcode!! }
@@ -87,9 +95,10 @@ class DiaryViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    // Flat-map so the observation restarts whenever the date changes
-    val summary: StateFlow<DailySummary> = _selectedDate
-        .flatMapLatest { date -> consumptionRepo.observeDay(date) }
+    // Flat-map so the observation restarts whenever the date OR the active
+    // profile changes.
+    val summary: StateFlow<DailySummary> = combine(_selectedDate, activeProfileId) { date, id -> date to id }
+        .flatMapLatest { (date, id) -> consumptionRepo.observeDay(date, id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000),
             DailySummary(LocalDate.now(), emptyList(), ConsumedNutrition.ZERO))
 
@@ -261,7 +270,7 @@ class DiaryViewModel @Inject constructor(
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     val searchResults: StateFlow<List<FoodEntry>> =
-        combine(_searchQuery.debounce(200), customFoodRepo.observeAll()) { q, customs -> q to customs }
+        combine(_searchQuery.debounce(200), activeProfileId.flatMapLatest { id -> customFoodRepo.observeAll(id) }) { q, customs -> q to customs }
             .map { (q, customs) -> if (q.isBlank()) emptyList() else searchFoodDB(q, limit = 10, customs) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -273,8 +282,8 @@ class DiaryViewModel @Inject constructor(
     // had to leave Diary, go to History, and there was no logging affordance
     // there either.
     val scanSearchResults: StateFlow<List<ScanResult>> =
-        _searchQuery.debounce(200)
-            .flatMapLatest { q -> if (q.isBlank()) flowOf(emptyList()) else scanRepo.searchHistory(q) }
+        combine(_searchQuery.debounce(200), activeProfileId) { q, id -> q to id }
+            .flatMapLatest { (q, id) -> if (q.isBlank()) flowOf(emptyList()) else scanRepo.searchHistory(q, id) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setSearchQuery(q: String) { _searchQuery.value = q }
@@ -296,6 +305,7 @@ class DiaryViewModel @Inject constructor(
                         source      = ScanSource.MANUAL,
                         ingredients = product.ingredients,
                         category    = product.category,
+                        profileId   = activeProfileId.value,
                     )
                 )
             }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
@@ -324,6 +334,7 @@ class DiaryViewModel @Inject constructor(
                         source      = scan.source,
                         ingredients = scan.product.ingredients,
                         category    = scan.product.category,
+                        profileId   = activeProfileId.value,
                     )
                 )
             }.onSuccess { loggedDuringFast -> _searchQuery.value = ""; if (loggedDuringFast) _loggedDuringFast.value = true }
@@ -343,7 +354,7 @@ class DiaryViewModel @Inject constructor(
     fun copyPreviousDayMeals() {
         viewModelScope.launch {
             val previousDay = _selectedDate.value.minusDays(1)
-            val previous = consumptionRepo.observeDay(previousDay).first()
+            val previous = consumptionRepo.observeDay(previousDay, activeProfileId.value).first()
             if (previous.entries.isEmpty()) return@launch
             val copies = previous.entries.map { entry ->
                 entry.copy(id = 0, date = _selectedDate.value, loggedAt = LocalDateTime.now())

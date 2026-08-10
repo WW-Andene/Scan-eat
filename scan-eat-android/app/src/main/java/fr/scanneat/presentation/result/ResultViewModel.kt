@@ -161,6 +161,9 @@ class ResultViewModel @Inject constructor(
                         source      = scan.source,
                         ingredients = scan.product.ingredients,
                         category    = scan.product.category,
+                        // R&D audit finding, phase 2: profileId was dead
+                        // scaffolding until multi-profile support made it real.
+                        profileId   = profile.value.id,
                     )
                 )
             }.fold(

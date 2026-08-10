@@ -10,12 +10,14 @@ import fr.scanneat.data.repository.health.WeightSummary
 import fr.scanneat.domain.engine.dashboard.WeightForecast
 import fr.scanneat.domain.engine.dashboard.weightForecast
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class WeightViewModel @Inject constructor(
     private val repo: WeightRepository,
@@ -36,10 +38,15 @@ class WeightViewModel @Inject constructor(
         viewModelScope.launch { runCatching { repo.syncFromHealthConnect() }.onFailure { e -> if (e is CancellationException) throw e } }
     }
 
-    val entries: StateFlow<List<WeightEntry>> = repo.observeAll()
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    val entries: StateFlow<List<WeightEntry>> = activeProfileId.flatMapLatest { id -> repo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val summary: StateFlow<WeightSummary?> = repo.observeSummary(30)
+    val summary: StateFlow<WeightSummary?> = activeProfileId.flatMapLatest { id -> repo.observeSummary(30, id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val forecast: StateFlow<WeightForecast> = combine(summary, prefs.profile) { s, p ->
@@ -125,7 +132,7 @@ class WeightViewModel @Inject constructor(
     fun clearActionFailed() { _actionFailed.value = false }
 
     fun log(kg: Double, notes: String = "", date: LocalDate = LocalDate.now()) {
-        viewModelScope.launch { runCatching { repo.log(date, kg, notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.log(date, kg, notes, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 
     fun delete(id: String) {
@@ -134,6 +141,6 @@ class WeightViewModel @Inject constructor(
 
     /** Re-creates a deleted entry (used by the "Undo" snackbar action) with its original date/weight/notes. */
     fun restore(entry: WeightEntry) {
-        viewModelScope.launch { runCatching { repo.log(entry.date, entry.weightKg, entry.notes) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
+        viewModelScope.launch { runCatching { repo.log(entry.date, entry.weightKg, entry.notes, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true } }
     }
 }

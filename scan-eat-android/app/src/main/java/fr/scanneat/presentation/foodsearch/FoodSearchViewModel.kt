@@ -127,7 +127,12 @@ class FoodSearchViewModel @Inject constructor(
     private val prefs: UserPreferences,
 ) : ViewModel() {
 
-    private val customFoods: StateFlow<List<FoodEntry>> = customFoodRepo.observeAll()
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    private val customFoods: StateFlow<List<FoodEntry>> = activeProfileId.flatMapLatest { id -> customFoodRepo.observeAll(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _query = MutableStateFlow("")
@@ -447,6 +452,7 @@ class FoodSearchViewModel @Inject constructor(
                         source      = resolved.source,
                         ingredients = resolved.product.ingredients,
                         category    = resolved.product.category,
+                        profileId   = activeProfileId.value,
                     )
                 )
             }.onSuccess { loggedDuringFast -> _logTarget.value = null; if (loggedDuringFast) _loggedDuringFast.value = true }

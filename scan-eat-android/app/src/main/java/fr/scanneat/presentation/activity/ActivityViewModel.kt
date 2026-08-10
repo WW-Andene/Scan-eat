@@ -60,8 +60,13 @@ class ActivityViewModel @Inject constructor(
     }.distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LocalDate.now())
 
-    val entries: StateFlow<List<ActivityEntry>> = date
-        .flatMapLatest { repo.observeByDate(it) }
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
+
+    val entries: StateFlow<List<ActivityEntry>> = combine(date, activeProfileId) { d, id -> d to id }
+        .flatMapLatest { (d, id) -> repo.observeByDate(d, id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val weightKg: StateFlow<Double?> = prefs.profile.map { it.weightKg }
@@ -70,8 +75,8 @@ class ActivityViewModel @Inject constructor(
     // Both markedDates and pastSubTypes are derived from the same 365-day
     // range read — computed together so logging a new entry only re-triggers
     // one repo.getRange() call, not two.
-    private val yearRange: StateFlow<List<ActivityEntry>> = entries.map {
-        repo.getRange(LocalDate.now().minusDays(365), LocalDate.now())
+    private val yearRange: StateFlow<List<ActivityEntry>> = combine(entries, activeProfileId) { _, id -> id }.map { id ->
+        repo.getRange(LocalDate.now().minusDays(365), LocalDate.now(), id)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Dates with at least one logged activity — drives the calendar marker dots.
@@ -204,7 +209,7 @@ class ActivityViewModel @Inject constructor(
                 repo.log(
                     type, minutes, weightKg.value ?: 70.0,
                     subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
-                    wasOutdoors = wasOutdoors,
+                    wasOutdoors = wasOutdoors, profileId = activeProfileId.value,
                 )
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -222,7 +227,7 @@ class ActivityViewModel @Inject constructor(
                 repo.update(
                     id, type, minutes, weightKg.value ?: 70.0,
                     subType = subType, sets = sets, reps = reps, distanceKm = distanceKm, weightUsedKg = weightUsedKg,
-                    wasOutdoors = wasOutdoors,
+                    wasOutdoors = wasOutdoors, profileId = activeProfileId.value,
                 )
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
@@ -240,6 +245,7 @@ class ActivityViewModel @Inject constructor(
                     entry.type, entry.minutes, weightKg.value ?: 70.0, kcalOverride = entry.kcalBurned, date = entry.date,
                     subType = entry.subType, sets = entry.sets, reps = entry.reps,
                     distanceKm = entry.distanceKm, weightUsedKg = entry.weightUsedKg, wasOutdoors = entry.wasOutdoors,
+                    profileId = activeProfileId.value,
                 )
             }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
