@@ -110,11 +110,33 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // fat's 40 vs a trans-fat-containing SSB's 30).
     val candidates = mutableListOf<VetoCondition>()
 
+    // 39, not 40 - scoreToGrade's own C floor is score >= 40, so a cap of 40
+    // left every veto below still reading as grade C, the same off-by-one
+    // the alcohol veto below was already fixed for (54, not 55). A product
+    // severe enough to trigger a hard veto shouldn't land on the C floor
+    // exactly; capping one point lower guarantees grade D instead.
     if ((n.transFatG ?: 0.0) > 0.1)
-        candidates += VetoCondition(true, if (en) "Contains industrial trans fats — no safe level" else "Contient des graisses trans industrielles — aucun seuil sûr", 40)
+        candidates += VetoCondition(true, if (en) "Contains industrial trans fats — no safe level" else "Contient des graisses trans industrielles — aucun seuil sûr", 39)
 
     if (countTier1Additives(product) > 3)
-        candidates += VetoCondition(true, (if (en) "${countTier1Additives(product)} Tier-1 additives — cumulative risk too high" else "${countTier1Additives(product)} additifs de niveau 1 — risque cumulé trop élevé"), 40)
+        candidates += VetoCondition(true, (if (en) "${countTier1Additives(product)} Tier-1 additives — cumulative risk too high" else "${countTier1Additives(product)} additifs de niveau 1 — risque cumulé trop élevé"), 39)
+
+    // Severity-aware, not just a count threshold: countTier1Additives(product)
+    // > 3 above only fires on volume, so a product with exactly one EU-banned
+    // or IARC-classified additive (e.g. a single trace of titanium dioxide,
+    // E171, banned outright in the EU since 2022) never triggered any veto on
+    // its own - only the flat, easily-absorbed Tier-1 pillar deduction. These
+    // five E-numbers are explicitly documented as banned/IARC-flagged in
+    // AdditivesTier1.kt (E249/E250/E251/E252 nitrites/nitrates are already
+    // covered by the standalone nitrite veto below, so excluded here to avoid
+    // a redundant, weaker-worded duplicate).
+    val bannedTier1ENumbers = setOf("E171", "E127", "E924", "E216", "E217")
+    val hasBannedTier1 = product.ingredients.any { ing ->
+        val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
+        eNum in bannedTier1ENumbers
+    }
+    if (hasBannedTier1)
+        candidates += VetoCondition(true, if (en) "Contains an additive banned or restricted for carcinogenicity/endocrine concerns in the EU" else "Contient un additif interdit ou restreint pour cancérogénicité/perturbation endocrinienne dans l'UE", 45)
 
     val hasNitrites = product.ingredients.any { ing ->
         val eNum = (ing.eNumber ?: "").uppercase().replace("\\s".toRegex(), "")
@@ -130,7 +152,7 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     val highSalt = n.saltG > getThresholds(ProductCategory.PROCESSED_MEAT).saltThresholds.second
     val refined = product.ingredients.any { Regex("""farine de blé|farine raffinée|amidon|dextrose""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasNitrites && highSalt && refined && product.category == ProductCategory.PROCESSED_MEAT)
-        candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", 40)
+        candidates += VetoCondition(true, if (en) "Processed meat with nitrites + high salt + refined starch" else "Viande transformée avec nitrites + sel élevé + amidon raffiné", 39)
 
     // User-reported (via the alcohol scoring audit): the combo veto above only
     // fires for PROCESSED_MEAT with high salt AND a refined-starch ingredient -
@@ -161,7 +183,7 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
     // MAJOR, not CRITICAL - the same category-blindness class already fixed
     // for BMI/diabetes thresholds elsewhere in this engine.
     if (product.category != ProductCategory.SNACK_SWEET && product.category != ProductCategory.CONDIMENT && sugars > 30)
-        candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", 40)
+        candidates += VetoCondition(true, if (en) "Added sugar >30g/100g in non-confectionery" else "Sucre ajouté >30g/100g dans un produit non-confiserie", 39)
 
     val hasMSM = product.ingredients.any { Regex("""séparée mécaniquement|mechanically separated|msm""", RegexOption.IGNORE_CASE).containsMatchIn(it.name) }
     if (hasMSM && product.novaClass == NovaClass.ULTRA_PROCESSED)
@@ -197,6 +219,18 @@ private fun checkVeto(product: Product, lang: String = "en"): VetoCondition {
         abv > 1.2 ->
             candidates += VetoCondition(true, if (en) "Alcohol (${abv.formatDecimal(1)}% vol) — no safe consumption level" else "Alcool (${abv.formatDecimal(1)}% vol) — aucun seuil de consommation sûr", 54)
     }
+
+    // Caffeine — NegativeNutrientsPillar.kt already deducts up to -8/25 for
+    // caffeine > 300mg/100g ("well above EFSA single-dose caution level"), but
+    // a pillar deduction alone lets a concentrated energy-drink/shot with an
+    // otherwise clean sugar/additive profile still land in grade B, the same
+    // gap the alcohol veto above was created to close. EFSA sets ~200mg as its
+    // single-dose caution level; 300mg/100g is comfortably past that even for
+    // a modest single serving, so it gets the same hard-veto treatment as the
+    // other "no safe level at this concentration" conditions above.
+    val caffeine = n.caffeineMg ?: 0.0
+    if (caffeine > 300.0)
+        candidates += VetoCondition(true, if (en) "Caffeine ${caffeine.formatDecimal(1)}mg/100g — well above EFSA single-dose caution level" else "Caféine ${caffeine.formatDecimal(1)}mg/100g — bien au-delà du seuil de prudence EFSA par prise", 45)
 
     return candidates.minByOrNull { it.cap } ?: VetoCondition(false, "", 100)
 }
