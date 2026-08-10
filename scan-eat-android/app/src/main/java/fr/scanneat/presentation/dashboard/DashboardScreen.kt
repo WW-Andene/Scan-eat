@@ -1,11 +1,6 @@
 package fr.scanneat.presentation.dashboard
 
-import compose.icons.tablericons.Star
-import compose.icons.tablericons.ClipboardList
 import compose.icons.tablericons.History
-import compose.icons.tablericons.Search
-import compose.icons.tablericons.ShoppingCart
-import compose.icons.tablericons.Calendar
 import compose.icons.TablerIcons
 import compose.icons.tablericons.ArrowLeft
 import androidx.compose.foundation.layout.Arrangement
@@ -17,18 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ListAlt
-import androidx.compose.material.icons.rounded.CalendarMonth
-import androidx.compose.material.icons.rounded.Eco
-import androidx.compose.material.icons.rounded.EventNote
-import androidx.compose.material.icons.rounded.Fastfood
-import androidx.compose.material.icons.rounded.History
-import androidx.compose.material.icons.rounded.RestaurantMenu
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.ShoppingCart
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -239,50 +222,18 @@ fun DashboardScreen(
                 Text(stringResource(R.string.dashboard_features_title), style = MaterialTheme.typography.titleSmall, color = OnBackground, fontWeight = FontWeight.SemiBold)
             }
             item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FeatureTile(TablerIcons.ClipboardList, stringResource(R.string.dashboard_tile_recipes),  Modifier.weight(1f), onClick = onOpenRecipes)
-                    FeatureTile(Icons.AutoMirrored.Filled.ListAlt, stringResource(R.string.dashboard_tile_templates),   Modifier.weight(1f), onClick = onOpenTemplates)
-                    FeatureTile(TablerIcons.Calendar, stringResource(R.string.dashboard_tile_mealplan),  Modifier.weight(1f), onClick = onOpenMealPlan)
-                }
-            }
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FeatureTile(TablerIcons.ShoppingCart, stringResource(R.string.dashboard_tile_grocery),   Modifier.weight(1f), onClick = onOpenGrocery)
-                    // onOpenCustomFoods had no call site anywhere in the composable -
-                    // CustomFoodScreen was completely unreachable from any UI gesture.
-                    FeatureTile(Icons.Rounded.Fastfood, stringResource(R.string.dashboard_tile_customfoods), Modifier.weight(1f), onClick = onOpenCustomFoods)
-                    FeatureTile(TablerIcons.Star, stringResource(R.string.dashboard_tile_favorites), Modifier.weight(1f), onClick = onOpenFavorites)
-                }
-            }
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    // Previously no single place showed everything logged on a given
-                    // day - Diary/Weight/Activity/Hydration each embedded their own
-                    // siloed single-domain mini-calendar with no cross-tracker view.
-                    // Was sharing TablerIcons.Calendar with Meal Plan's tile above -
-                    // same icon, two different destinations in the same grid, so users
-                    // couldn't tell them apart at a glance.
-                    FeatureTile(Icons.Rounded.EventNote, stringResource(R.string.dashboard_tile_calendar), Modifier.weight(1f), onClick = onOpenCalendar)
-                    // A UI/UX audit found ScanHistoryScreen (search/sort/favorite/
-                    // delete) was reachable ONLY via the "View all" link below, itself
-                    // gated on recentScans.isNotEmpty() - a brand-new user with zero
-                    // scans had no way to open it at all. This tile is unconditional.
-                    FeatureTile(TablerIcons.History, stringResource(R.string.dashboard_tile_history), Modifier.weight(1f), onClick = onOpenHistory)
-                    // Previously an unused spacer slot - FOOD_DB's ~130 curated foods
-                    // (plus the user's own custom foods) were only ever reachable
-                    // through a 6-10-result Quick Add autocomplete dropdown, never as
-                    // a real browsable/filterable search tool in its own right.
-                    FeatureTile(TablerIcons.Search, stringResource(R.string.dashboard_tile_search), Modifier.weight(1f), onClick = onOpenFoodSearch)
-                }
-            }
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.S)) {
-                    FeatureTile(Icons.Rounded.Eco, stringResource(R.string.dashboard_tile_seasonal), Modifier.weight(1f), onClick = onOpenSeasonalProduce)
-                    // Two empty weighted slots keep this tile the same size as every
-                    // other 3-per-row tile above instead of stretching to full width.
-                    Spacer(Modifier.weight(1f))
-                    Spacer(Modifier.weight(1f))
-                }
+                DashboardFeatureTilesGrid(
+                    onOpenRecipes = onOpenRecipes,
+                    onOpenTemplates = onOpenTemplates,
+                    onOpenMealPlan = onOpenMealPlan,
+                    onOpenGrocery = onOpenGrocery,
+                    onOpenCustomFoods = onOpenCustomFoods,
+                    onOpenFavorites = onOpenFavorites,
+                    onOpenCalendar = onOpenCalendar,
+                    onOpenHistory = onOpenHistory,
+                    onOpenFoodSearch = onOpenFoodSearch,
+                    onOpenSeasonalProduce = onOpenSeasonalProduce,
+                )
             }
 
             // ---- Recent scans ----
