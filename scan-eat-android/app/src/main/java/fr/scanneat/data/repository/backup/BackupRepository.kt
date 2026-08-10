@@ -146,7 +146,7 @@ class BackupRepository @Inject constructor(
             hydration = hydrationRepo.exportAll().map { (date, ml) -> HydrationEntryBackup(date.toString(), ml) },
             dayNotes = dayNotesRepo.exportAll().map { (date, text) -> DayNoteBackup(date.toString(), text) },
             mealPlanRaw = mealPlanRepo.exportRaw(),
-            groceryCheckedKeys = groceryCheckedRepo.checkedKeys.first().toList(),
+            groceryCheckedKeys = groceryCheckedRepo.checkedKeys().first().toList(),
             biolism = biolismRepo.exportForBackup(),
             manualGroceryItems = manualGroceryRepo.exportAll(),
         )
