@@ -10,6 +10,7 @@ import fr.scanneat.domain.engine.scoring.checkUserAllergens
 import fr.scanneat.domain.model.Grade
 import fr.scanneat.domain.model.ScanResult
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.Collator
@@ -18,6 +19,7 @@ import javax.inject.Inject
 
 enum class HistorySort { RECENT, OLDEST, NAME_AZ, SCORE_DESC }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ScanHistoryViewModel @Inject constructor(
     private val repo: ScanRepository,
@@ -25,6 +27,11 @@ class ScanHistoryViewModel @Inject constructor(
 ) : ViewModel() {
     val language: StateFlow<String> = prefs.language
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "fr")
+
+    // R&D audit finding, phase 2: profileId was dead scaffolding until
+    // multi-profile support made it real.
+    private val activeProfileId: StateFlow<String> = prefs.activeProfileId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "default")
 
     // Plain string comparison sorts accented letters (Éclair) after every
     // unaccented one instead of near their unaccented form - a Collator with
@@ -51,7 +58,8 @@ class ScanHistoryViewModel @Inject constructor(
     // unreachable from History with no way to see further back. loadMore()
     // raises the cap and flatMapLatest re-subscribes with the wider window.
     private val _limit = MutableStateFlow(200)
-    private val allScans = _limit.flatMapLatest { repo.observeHistory(limit = it) }
+    private val allScans = combine(_limit, activeProfileId) { limit, id -> limit to id }
+        .flatMapLatest { (limit, id) -> repo.observeHistory(limit = limit, profileId = id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** True while there may be more, older rows beyond the current window. */
@@ -63,7 +71,7 @@ class ScanHistoryViewModel @Inject constructor(
     // observeHistory is capped at 200 rows - a favorite older than the 200
     // most-recent scans would otherwise silently vanish from its own
     // dedicated filter. observeFavorites queries the DB directly, unbounded.
-    private val favoriteScans = repo.observeFavorites()
+    private val favoriteScans = activeProfileId.flatMapLatest { id -> repo.observeFavorites(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Grade filter: null = all, else the exact Grade to match. Filters by the
@@ -88,8 +96,8 @@ class ScanHistoryViewModel @Inject constructor(
     // enough times to reach it. null means "no active search" (query blank),
     // distinct from an empty result list, so filtered below knows whether to
     // fall back to the loaded window or use these DB-searched results directly.
-    private val searchResults: Flow<List<ScanResult>?> = _query.debounce(200).flatMapLatest { q ->
-        if (q.isBlank()) flowOf(null) else repo.searchHistory(q)
+    private val searchResults: Flow<List<ScanResult>?> = combine(_query.debounce(200), activeProfileId) { q, id -> q to id }.flatMapLatest { (q, id) ->
+        if (q.isBlank()) flowOf(null) else repo.searchHistory(q, id)
     }
 
     val filtered: StateFlow<List<ScanResult>> = combine(allScans, favoriteScans, searchResults, _favoritesOnly, sortAndCollator) { scans, favs, searched, favOnly, (sort, collator) ->
@@ -114,7 +122,7 @@ class ScanHistoryViewModel @Inject constructor(
     // barcode-less (photo-identified) products. Now derived from the
     // append-only scan_score_history log via a dedicated DAO query, so a
     // repeatedly-rescanned barcoded product is finally counted correctly.
-    val topScanned: StateFlow<List<Triple<String, Int, Long>>> = repo.observeTopScanned(limit = 3)
+    val topScanned: StateFlow<List<Triple<String, Int, Long>>> = activeProfileId.flatMapLatest { id -> repo.observeTopScanned(profileId = id, limit = 3) }
         .map { rows -> rows.map { Triple(it.productName, it.cnt, it.dbId) } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -219,7 +227,7 @@ class ScanHistoryViewModel @Inject constructor(
         val entry = lastDeleted ?: return
         lastDeleted = null
         viewModelScope.launch {
-            runCatching { repo.persist(entry) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
+            runCatching { repo.persist(entry, activeProfileId.value) }.onFailure { e -> if (e is CancellationException) throw e; _actionFailed.value = true }
         }
     }
 }
